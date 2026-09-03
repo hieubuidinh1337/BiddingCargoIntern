@@ -177,6 +177,14 @@
             renderAuctionsTable();
             document.getElementById('auctionSearch').addEventListener('input', renderAuctionsTable);
             document.getElementById('statusSelect').addEventListener('change', renderAuctionsTable);
+            setInterval(renderAuctionsTable, 1500);
+        });
+
+        // Cross-tab sync
+        window.addEventListener('storage', function(e) {
+            if (e.key === 'CARGO_BIDDING_DATA_V3') {
+                renderAuctionsTable();
+            }
         });
     </script>
 </body>
