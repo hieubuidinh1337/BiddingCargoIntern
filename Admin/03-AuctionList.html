@@ -180,11 +180,14 @@
             setInterval(renderAuctionsTable, 1500);
         });
 
-        // Cross-tab sync
+        // Cross-browser & Cross-tab sync
         window.addEventListener('storage', function(e) {
             if (e.key === 'CARGO_BIDDING_DATA_V3') {
                 renderAuctionsTable();
             }
+        });
+        window.addEventListener('cargostore_updated', function() {
+            renderAuctionsTable();
         });
     </script>
 </body>

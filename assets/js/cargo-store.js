@@ -421,12 +421,86 @@ const CargoStore = (function() {
         }
     }
 
-    function saveData(data) {
+    let lastServerVersion = 0;
+    let isSyncing = false;
+
+    function saveData(data, skipServerSync = false) {
         try {
             localStorage.setItem(STORAGE_KEY, JSON.stringify(data));
         } catch (e) {
             console.error('Error saving CargoStore data', e);
         }
+
+        // Broadcast to listeners in this browser window
+        try {
+            window.dispatchEvent(new CustomEvent('cargostore_updated', { detail: data }));
+        } catch (e) {}
+
+        // Push changes to server if running over HTTP/HTTPS
+        if (!skipServerSync && typeof window !== 'undefined' && window.location && window.location.protocol.startsWith('http')) {
+            fetch('/api/data', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    auctions: data.auctions,
+                    bids: data.bids,
+                    wonAuctions: data.wonAuctions,
+                    notifications: data.notifications,
+                    registrations: data.registrations,
+                    agentsList: data.agentsList,
+                    adminsList: data.adminsList,
+                    settings: data.settings
+                })
+            }).then(r => r.json()).then(res => {
+                if (res && res.version) {
+                    lastServerVersion = res.version;
+                }
+            }).catch(err => {
+                // Offline fallback
+            });
+        }
+    }
+
+    async function syncWithServer() {
+        if (isSyncing || typeof window === 'undefined' || !window.location || !window.location.protocol.startsWith('http')) return;
+        try {
+            isSyncing = true;
+            const res = await fetch('/api/data');
+            if (!res.ok) return;
+            const serverData = await res.json();
+            if (serverData && serverData.version && serverData.version !== lastServerVersion) {
+                lastServerVersion = serverData.version;
+                const local = loadData();
+
+                // Merge shared collections from server while preserving browser-specific login
+                local.auctions = serverData.auctions || local.auctions;
+                local.bids = serverData.bids || local.bids;
+                local.wonAuctions = serverData.wonAuctions || local.wonAuctions;
+                local.notifications = serverData.notifications || local.notifications;
+                local.registrations = serverData.registrations || local.registrations;
+                local.agentsList = serverData.agentsList || local.agentsList;
+                local.adminsList = serverData.adminsList || local.adminsList;
+                if (serverData.settings) local.settings = serverData.settings;
+
+                // Save locally without re-sending to server
+                saveData(local, true);
+
+                // Notify UI components to re-render
+                try {
+                    window.dispatchEvent(new CustomEvent('cargostore_updated', { detail: local }));
+                    window.dispatchEvent(new StorageEvent('storage', { key: STORAGE_KEY }));
+                } catch (e) {}
+            }
+        } catch (e) {
+        } finally {
+            isSyncing = false;
+        }
+    }
+
+    // Auto-poll server every 1000ms to stay in sync across different browsers
+    if (typeof window !== 'undefined') {
+        setTimeout(syncWithServer, 50);
+        setInterval(syncWithServer, 1000);
     }
 
     function formatCurrency(amount) {

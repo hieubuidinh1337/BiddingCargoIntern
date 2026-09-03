@@ -438,11 +438,14 @@
             setInterval(loadAuctionDetail, 3000);
         });
 
-        // Cross-tab sync: re-render when another tab updates localStorage
+        // Cross-browser & Cross-tab sync: re-render when store updates
         window.addEventListener('storage', function(e) {
             if (e.key === 'CARGO_BIDDING_DATA_V3') {
                 loadAuctionDetail();
             }
+        });
+        window.addEventListener('cargostore_updated', function() {
+            loadAuctionDetail();
         });
     </script>
 </body>
