@@ -88,8 +88,8 @@
                 </div>
                 <div>
                     <p class="text-xs text-slate-500 font-medium">Doanh thu thầu chốt</p>
-                    <p class="text-xl font-bold text-slate-900 mt-0.5">66.000.000 đ</p>
-                    <span class="text-[11px] text-emerald-600 font-semibold">+18.5% so với tuần trước</span>
+                    <p class="text-xl font-bold text-slate-900 mt-0.5" id="kpiClosedRevenue">0 đ</p>
+                    <span class="text-[11px] text-emerald-600 font-semibold" id="kpiClosedSubtext"><i class="fa-solid fa-circle-check"></i> Đã chốt thầu</span>
                 </div>
             </div>
 
@@ -99,7 +99,8 @@
                 </div>
                 <div>
                     <p class="text-xs text-slate-500 font-medium">Phiên đang mở</p>
-                    <p class="text-2xl font-bold text-emerald-600 mt-0.5" id="kpiOpenAuctions">3</p>
+                    <p class="text-2xl font-bold text-emerald-600 mt-0.5" id="kpiOpenAuctions">0</p>
+                    <span class="text-[11px] text-slate-400">Sẵn sàng nhận giá đặt</span>
                 </div>
             </div>
 
@@ -109,8 +110,8 @@
                 </div>
                 <div>
                     <p class="text-xs text-slate-500 font-medium">Hồ sơ chờ xét duyệt</p>
-                    <p class="text-2xl font-bold text-amber-600 mt-0.5" id="kpiPendingRegistrations">2</p>
-                    <span class="text-[11px] text-amber-700 font-semibold">Đợt Tháng 8/2026</span>
+                    <p class="text-2xl font-bold text-amber-600 mt-0.5" id="kpiPendingRegistrations">0</p>
+                    <span class="text-[11px] text-amber-700 font-semibold">Đợt nộp đại lý mới</span>
                 </div>
             </div>
 
@@ -120,8 +121,8 @@
                 </div>
                 <div>
                     <p class="text-xs text-slate-500 font-medium">Tổng tải trọng chào thầu</p>
-                    <p class="text-2xl font-bold text-purple-600 mt-0.5">12,500 <span class="text-xs text-slate-400 font-normal">Kg</span></p>
-                    <span class="text-[11px] text-slate-400">Tỷ lệ lấp đầy: 94.2%</span>
+                    <p class="text-xl font-bold text-purple-600 mt-0.5" id="kpiTotalCapacity">0 Kg</p>
+                    <span class="text-[11px] text-slate-400">Dung tích tải toàn mạng bay</span>
                 </div>
             </div>
         </div>
@@ -187,46 +188,77 @@
         function loadDashboard() {
             if (typeof CargoStore === 'undefined') return;
 
-            const auctions = CargoStore.getAuctions().filter(a => a.status === 'OPEN');
-            document.getElementById('kpiOpenAuctions').textContent = auctions.length;
-
-            const tbody = document.getElementById('adminAuctionsTable');
-            tbody.innerHTML = auctions.map(a => {
-                const timer = CargoStore.getTimeRemaining(a.endTime);
-                return `
-                    <tr class="hover:bg-slate-50 transition">
-                        <td class="py-3 px-3">
-                            <span class="bg-blue-600 text-white font-bold px-2 py-0.5 rounded text-[11px]">${a.flightNumber}</span>
-                            <span class="font-bold text-slate-800 ml-1">${a.route}</span>
-                        </td>
-                        <td class="py-3 px-3 font-medium text-slate-700">
-                            ${CargoStore.formatNumber(a.capacityKg)} Kg
-                        </td>
-                        <td class="py-3 px-3 font-bold text-blue-600">
-                            ${CargoStore.formatCurrency(a.currentPriceKg)}
-                        </td>
-                        <td class="py-3 px-3">
-                            <span class="font-semibold text-slate-900 block">${a.leadingAgentName}</span>
-                            <span class="text-[10px] text-slate-400 font-mono">${a.leadingAgentCode || '-'}</span>
-                        </td>
-                        <td class="py-3 px-3 text-orange-600 font-semibold text-[11px]">
-                            ${timer.minutes}m ${timer.seconds}s
-                        </td>
-                        <td class="py-3 px-3 text-right">
-                            <a href="05-AuctionDetail.html?id=${a.id}" class="bg-slate-100 hover:bg-blue-50 text-blue-700 font-medium px-2.5 py-1.5 rounded-lg text-xs transition inline-flex items-center gap-1">
-                                <i class="fa-solid fa-eye"></i> Giám sát
-                            </a>
-                        </td>
-                    </tr>
-                `;
-            }).join('');
-
-            // Registrations
             const data = CargoStore.getData();
-            const pendings = data.registrations.filter(r => r.status === 'PENDING');
+            const auctions = data.auctions || [];
+
+            // 1. Open Auctions
+            const openAuctions = auctions.filter(a => a.status === 'OPEN');
+            document.getElementById('kpiOpenAuctions').textContent = openAuctions.length;
+
+            // 2. Closed Revenue
+            const closedAuctions = auctions.filter(a => a.status === 'CLOSED');
+            const wonList = CargoStore.getWonAuctions ? CargoStore.getWonAuctions() : (data.wonAuctions || []);
+            
+            let totalRevenue = 0;
+            if (wonList && wonList.length > 0) {
+                totalRevenue = wonList.reduce((sum, item) => sum + (item.totalAmountVND || ((item.priceKg || 0) * (item.capacityKg || 0))), 0);
+            } else {
+                totalRevenue = closedAuctions.reduce((sum, a) => {
+                    const price = a.winningPriceKg || a.currentPriceKg || 0;
+                    const weight = a.capacityKg || 0;
+                    return sum + (price * weight);
+                }, 0);
+            }
+
+            document.getElementById('kpiClosedRevenue').textContent = CargoStore.formatCurrency(totalRevenue);
+            document.getElementById('kpiClosedSubtext').innerHTML = `<i class="fa-solid fa-circle-check text-emerald-600"></i> Tổng từ ${closedAuctions.length} phiên đã chốt thầu`;
+
+            // 3. Pending Registrations
+            const pendings = (data.registrations || []).filter(r => r.status === 'PENDING');
             document.getElementById('kpiPendingRegistrations').textContent = pendings.length;
             document.getElementById('pendingBadge').textContent = pendings.length;
 
+            // 4. Total Capacity
+            const totalCapacity = auctions.reduce((sum, a) => sum + (a.capacityKg || 0), 0);
+            document.getElementById('kpiTotalCapacity').textContent = CargoStore.formatNumber(totalCapacity) + ' Kg';
+
+            // 5. Open Auctions table
+            const tbody = document.getElementById('adminAuctionsTable');
+            if (openAuctions.length === 0) {
+                tbody.innerHTML = `<tr><td colspan="6" class="py-8 text-center text-gray-400">Không có phiên nào đang mở</td></tr>`;
+            } else {
+                tbody.innerHTML = openAuctions.map(a => {
+                    const timer = CargoStore.getTimeRemaining(a.endTime);
+                    return `
+                        <tr class="hover:bg-slate-50 transition">
+                            <td class="py-3 px-3">
+                                <span class="bg-blue-600 text-white font-bold px-2 py-0.5 rounded text-[11px]">${a.flightNumber}</span>
+                                <span class="font-bold text-slate-800 ml-1">${a.route}</span>
+                            </td>
+                            <td class="py-3 px-3 font-medium text-slate-700">
+                                ${CargoStore.formatNumber(a.capacityKg)} Kg
+                            </td>
+                            <td class="py-3 px-3 font-bold text-blue-600">
+                                ${CargoStore.formatCurrency(a.currentPriceKg)}
+                            </td>
+                            <td class="py-3 px-3">
+                                <span class="font-semibold text-slate-900 block">${a.leadingAgentName}</span>
+                                <span class="text-[10px] text-slate-400 font-mono">${a.leadingAgentCode || '-'}</span>
+                            </td>
+                            <td class="py-3 px-3 text-orange-600 font-semibold text-[11px]">
+                                ${timer.isEnded ? 'Đã hết giờ' : `${timer.minutes}m ${timer.seconds}s`}
+                            </td>
+                            <td class="py-3 px-3 text-right">
+                                <a href="05-AuctionDetail.html?id=${a.id}" class="bg-slate-100 hover:bg-blue-50 text-blue-700 font-medium px-2.5 py-1.5 rounded-lg text-xs transition inline-flex items-center gap-1">
+                                    <i class="fa-solid fa-eye"></i> Giám sát
+                                </a>
+                            </td>
+                        </tr>
+                    `;
+                }).join('');
+            }
+
+            // 6. Pending Registrations queue
             const regBox = document.getElementById('adminPendingRegistrations');
             if (pendings.length === 0) {
                 regBox.innerHTML = `<p class="text-xs text-gray-400 text-center py-6">Không có hồ sơ nào chờ duyệt</p>`;
@@ -242,7 +274,7 @@
                             <p class="text-[11px] text-gray-500">Người đại diện: ${r.repName} · ${r.phone}</p>
                         </div>
                         <div class="flex items-center justify-between pt-1 border-t">
-                            <span class="text-[11px] text-slate-400"><i class="fa-solid fa-paperclip"></i> ${r.documents.length} tệp đính kèm</span>
+                            <span class="text-[11px] text-slate-400"><i class="fa-solid fa-paperclip"></i> ${(r.documents || []).length} tệp đính kèm</span>
                             <a href="06-AgentList.html" class="text-blue-600 font-bold hover:underline">Xét duyệt ngay →</a>
                         </div>
                     </div>
