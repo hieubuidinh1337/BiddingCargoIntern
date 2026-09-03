@@ -42,8 +42,11 @@
                 </nav>
             </div>
             <div class="flex items-center gap-2">
-                <span class="text-xs text-slate-300 hidden sm:inline">Trần Quản Trị</span>
-                <a href="01-AdminLogin.html" title="Đăng xuất" class="text-slate-400 hover:text-red-400 p-1">
+                <span class="admin-header-role text-[10px] font-bold px-2 py-0.5 rounded-full bg-blue-500/20 text-blue-400 border border-blue-500/30 inline-flex items-center gap-1">
+                    <i class="fa-solid fa-shield-halved text-[9px]"></i> QUẢN TRỊ VIÊN
+                </span>
+                <span class="text-xs text-slate-200 font-semibold admin-header-name hidden sm:inline">Trần Quản Trị</span>
+                <a href="01-AdminLogin.html" onclick="if(window.CargoStore) CargoStore.logoutAdmin()" title="Đăng xuất" class="text-slate-400 hover:text-red-400 p-1">
                     <i class="fa-solid fa-power-off text-xs"></i>
                 </a>
             </div>
@@ -54,12 +57,12 @@
 
         <div>
             <h1 class="text-2xl font-bold text-slate-900 flex items-center gap-2">
-                <i class="fa-solid fa-sliders text-blue-600"></i> Cấu hình tham số hệ thống
+                <i class="fa-solid fa-sliders text-blue-600"></i> Cấu hình tham số hệ thống (CRUD System Settings)
             </h1>
-            <p class="text-xs text-slate-500 mt-1">Các quy chuẩn đấu giá, thời gian cut-off và thông số đồng bộ với bảng <code>SystemSettings</code> trong SQL Server 2022</p>
+            <p class="text-xs text-slate-500 mt-1">Các quy chuẩn đấu giá, bước giá sàn, thời gian cut-off và thông số đồng bộ với CSDL SQL Server</p>
         </div>
 
-        <form onsubmit="event.preventDefault(); alert('Đã lưu thành công cấu hình tham số hệ thống!');" class="space-y-6">
+        <form id="systemSettingsForm" onsubmit="handleSaveSettings(event)" class="space-y-6">
 
             <!-- Auction Parameters -->
             <div class="bg-white rounded-2xl border shadow-sm p-6 space-y-4">
@@ -70,32 +73,30 @@
                 <div class="grid grid-cols-1 sm:grid-cols-2 gap-4 text-xs">
                     <div>
                         <label class="block font-semibold text-slate-700 mb-1">Bước giá tối thiểu mặc định (VND/Kg)</label>
-                        <input type="number" value="500" step="100" required
+                        <input type="number" id="cfgMinIncrement" value="500" step="100" required
                                class="w-full border rounded-xl px-3.5 py-2.5 font-bold text-blue-600 focus:ring-2 focus:ring-blue-500 outline-none">
-                        <p class="text-[10px] text-gray-400 mt-1">Đại lý chỉ được đặt giá $\ge$ Giá hiện tại + Bước giá</p>
+                        <p class="text-[10px] text-gray-400 mt-1">Đại lý chỉ được đặt giá &ge; Giá hiện tại + Bước giá</p>
                     </div>
 
                     <div>
                         <label class="block font-semibold text-slate-700 mb-1">Thời gian đóng thầu trước ETD (Giờ)</label>
-                        <input type="number" value="3" min="1" max="12" required
+                        <input type="number" id="cfgCutoffHours" value="3" min="1" max="12" required
                                class="w-full border rounded-xl px-3.5 py-2.5 font-bold focus:ring-2 focus:ring-blue-500 outline-none">
                         <p class="text-[10px] text-gray-400 mt-1">Đảm bảo đủ thời gian giao nhận hàng hóa tại sân bay</p>
                     </div>
 
                     <div>
                         <label class="block font-semibold text-slate-700 mb-1">Thời hạn thanh toán sau khi thắng thầu (Giờ)</label>
-                        <input type="number" value="24" min="1" max="72" required
+                        <input type="number" id="cfgPaymentWindow" value="24" min="1" max="72" required
                                class="w-full border rounded-xl px-3.5 py-2.5 font-bold text-red-600 focus:ring-2 focus:ring-blue-500 outline-none">
-                        <p class="text-[10px] text-gray-400 mt-1">Quá 24 giờ chưa thanh toán sẽ tự động hủy đơn trúng</p>
+                        <p class="text-[10px] text-gray-400 mt-1">Quá thời hạn chưa thanh toán sẽ tự động hủy đơn trúng</p>
                     </div>
 
                     <div>
-                        <label class="block font-semibold text-slate-700 mb-1">Tự động gia hạn khi có bid phút chót</label>
-                        <select class="w-full border rounded-xl px-3 py-2.5 font-medium focus:ring-2 focus:ring-blue-500 outline-none bg-white">
-                            <option>Bật (Cộng thêm 3 phút nếu có bid trong 3 phút cuối)</option>
-                            <option>Tắt (Đóng đúng giờ tuyệt đối)</option>
-                        </select>
-                        <p class="text-[10px] text-gray-400 mt-1">Chống hành vi "Sniping" đặt giá giây cuối</p>
+                        <label class="block font-semibold text-slate-700 mb-1">Phí sàn giao dịch / Kg (VND)</label>
+                        <input type="number" id="cfgPlatformFee" value="50" min="0" step="10"
+                               class="w-full border rounded-xl px-3.5 py-2.5 font-bold text-emerald-600 focus:ring-2 focus:ring-blue-500 outline-none">
+                        <p class="text-[10px] text-gray-400 mt-1">Phí phục vụ nền tảng đấu giá trực tuyến</p>
                     </div>
                 </div>
             </div>
@@ -109,19 +110,13 @@
                 <div class="grid grid-cols-1 sm:grid-cols-2 gap-4 text-xs">
                     <div>
                         <label class="block font-semibold text-slate-700 mb-1">Hotline hỗ trợ điều hành</label>
-                        <input type="text" value="1900-xxxx" required
+                        <input type="text" id="cfgHotline" value="1900 6868" required
                                class="w-full border rounded-xl px-3.5 py-2.5 font-medium focus:ring-2 focus:ring-blue-500 outline-none">
                     </div>
 
                     <div>
                         <label class="block font-semibold text-slate-700 mb-1">Email tiếp nhận hồ sơ đại lý</label>
-                        <input type="email" value="cargo-agent@airline.vn" required
-                               class="w-full border rounded-xl px-3.5 py-2.5 font-medium focus:ring-2 focus:ring-blue-500 outline-none">
-                    </div>
-
-                    <div class="sm:col-span-2">
-                        <label class="block font-semibold text-slate-700 mb-1">Địa chỉ kho hàng cut-off Tân Sơn Nhất</label>
-                        <input type="text" value="Kho hàng SCSC / TCS - 30 Phan Thúc Duyện, Phường 4, Tân Bình, TP.HCM"
+                        <input type="email" id="cfgSupportEmail" value="cargo-agent@airline.vn" required
                                class="w-full border rounded-xl px-3.5 py-2.5 font-medium focus:ring-2 focus:ring-blue-500 outline-none">
                     </div>
                 </div>
@@ -130,9 +125,9 @@
             <!-- Admin Change Password Card -->
             <div class="bg-white rounded-2xl border shadow-sm p-6 space-y-4">
                 <h2 class="font-bold text-sm text-slate-900 border-b pb-2 flex items-center gap-2">
-                    <i class="fa-solid fa-key text-blue-600"></i> Đổi mật khẩu tài khoản Quản trị
+                    <i class="fa-solid fa-key text-blue-600"></i> Đổi mật khẩu tài khoản Quản trị / Nhân viên
                 </h2>
-                <p class="text-xs text-slate-500">Đổi mật khẩu cho tài khoản admin/staff đang làm việc. Mật khẩu cũ/mặc định sẽ lập tức không sử dụng được.</p>
+                <p class="text-xs text-slate-500">Đổi mật khẩu cho tài khoản đang đăng nhập hiện tại.</p>
 
                 <div id="adminPwdAlert" class="hidden p-3 rounded-xl text-xs font-semibold"></div>
 
@@ -155,26 +150,12 @@
                 </div>
                 <div>
                     <button type="button" onclick="handleAdminChangePassword()" class="bg-slate-900 hover:bg-slate-800 text-white text-xs font-bold px-4 py-2 rounded-xl transition shadow flex items-center gap-1.5">
-                        <i class="fa-solid fa-shield-halved"></i> Cập nhật mật khẩu Admin
+                        <i class="fa-solid fa-shield-halved"></i> Cập nhật mật khẩu
                     </button>
                 </div>
             </div>
 
-            <!-- Database status -->
-            <div class="bg-slate-900 text-white rounded-2xl p-5 text-xs flex items-center justify-between">
-                <div>
-                    <p class="font-bold text-sm">Cơ sở dữ liệu: SQL Server 2022 (SSMS 2022)</p>
-                    <p class="text-slate-400 mt-0.5">Database: <code>CargoBiddingDB</code> (Collation: Vietnamese_CI_AS) · Trạng thái: Sẵn sàng kết nối</p>
-                </div>
-                <span class="bg-emerald-500/20 text-emerald-400 border border-emerald-500/30 px-3 py-1 rounded-full font-bold">
-                    ONLINE
-                </span>
-            </div>
-
             <div class="flex items-center justify-end gap-3">
-                <button type="reset" class="px-5 py-2.5 border rounded-xl text-xs font-medium hover:bg-slate-50 transition">
-                    Khôi phục mặc định
-                </button>
                 <button type="submit" class="bg-blue-600 hover:bg-blue-700 text-white text-xs font-bold px-6 py-2.5 rounded-xl transition shadow flex items-center gap-1.5">
                     <i class="fa-solid fa-floppy-disk"></i> Lưu cấu hình hệ thống
                 </button>
@@ -185,6 +166,35 @@
     </main>
 
     <script>
+        function loadSettings() {
+            if (typeof CargoStore === 'undefined') return;
+            const s = CargoStore.getSystemSettings();
+            if (!s) return;
+
+            if (s.minIncrement) document.getElementById('cfgMinIncrement').value = s.minIncrement;
+            if (s.cutoffHours) document.getElementById('cfgCutoffHours').value = s.cutoffHours;
+            if (s.paymentWindowHours) document.getElementById('cfgPaymentWindow').value = s.paymentWindowHours;
+            if (s.platformFee !== undefined) document.getElementById('cfgPlatformFee').value = s.platformFee;
+            if (s.hotline) document.getElementById('cfgHotline').value = s.hotline;
+            if (s.supportEmail) document.getElementById('cfgSupportEmail').value = s.supportEmail;
+        }
+
+        function handleSaveSettings(e) {
+            e.preventDefault();
+            const res = CargoStore.updateSystemSettings({
+                minIncrement: document.getElementById('cfgMinIncrement').value,
+                cutoffHours: document.getElementById('cfgCutoffHours').value,
+                paymentWindowHours: document.getElementById('cfgPaymentWindow').value,
+                platformFee: document.getElementById('cfgPlatformFee').value,
+                hotline: document.getElementById('cfgHotline').value,
+                supportEmail: document.getElementById('cfgSupportEmail').value
+            });
+
+            if (res.success) {
+                alert(res.message);
+            }
+        }
+
         function handleAdminChangePassword() {
             const alertEl = document.getElementById('adminPwdAlert');
             alertEl.className = 'hidden p-3 rounded-xl text-xs font-semibold';
@@ -218,6 +228,11 @@
             document.getElementById('adminNewPwd').value = '';
             document.getElementById('adminConfirmPwd').value = '';
         }
+
+        document.addEventListener('DOMContentLoaded', function() {
+            loadSettings();
+            if (window.CargoStore && CargoStore.syncAdminHeaderUI) CargoStore.syncAdminHeaderUI();
+        });
     </script>
 </body>
 </html>

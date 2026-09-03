@@ -42,8 +42,11 @@
                 </nav>
             </div>
             <div class="flex items-center gap-2">
-                <span class="text-xs text-slate-300 hidden sm:inline">Trần Quản Trị</span>
-                <a href="01-AdminLogin.html" title="Đăng xuất" class="text-slate-400 hover:text-red-400 p-1">
+                <span class="admin-header-role text-[10px] font-bold px-2 py-0.5 rounded-full bg-blue-500/20 text-blue-400 border border-blue-500/30 inline-flex items-center gap-1">
+                    <i class="fa-solid fa-shield-halved text-[9px]"></i> QUẢN TRỊ VIÊN
+                </span>
+                <span class="text-xs text-slate-200 font-semibold admin-header-name hidden sm:inline">Trần Quản Trị</span>
+                <a href="01-AdminLogin.html" onclick="if(window.CargoStore) CargoStore.logoutAdmin()" title="Đăng xuất" class="text-slate-400 hover:text-red-400 p-1">
                     <i class="fa-solid fa-power-off text-xs"></i>
                 </a>
             </div>
@@ -57,11 +60,16 @@
                 <h1 class="text-2xl font-bold text-slate-900 flex items-center gap-2">
                     <i class="fa-solid fa-list-check text-blue-600"></i> Quản lý danh sách phiên đấu giá
                 </h1>
-                <p class="text-xs text-slate-500 mt-1">Danh sách toàn bộ các phiên thầu: Dự thảo, Đang mở, Đã đóng và Lịch sử</p>
+                <p class="text-xs text-slate-500 mt-1">Chức năng Điều hành & Quản trị: Thêm, Xoá, Sửa thông số, Chốt thầu và Phát thông báo</p>
             </div>
-            <a href="04-CreateAuction.html" class="bg-blue-600 hover:bg-blue-700 text-white text-xs font-semibold px-4 py-2.5 rounded-xl transition shadow flex items-center gap-1.5">
-                <i class="fa-solid fa-plus"></i> Tạo phiên mới
-            </a>
+            <div class="flex items-center gap-2.5">
+                <button onclick="openBroadcastModal()" class="bg-amber-500 hover:bg-amber-600 text-white text-xs font-semibold px-4 py-2.5 rounded-xl transition shadow flex items-center gap-1.5">
+                    <i class="fa-solid fa-bullhorn"></i> Phát thông báo đấu giá
+                </button>
+                <a href="04-CreateAuction.html" class="bg-blue-600 hover:bg-blue-700 text-white text-xs font-semibold px-4 py-2.5 rounded-xl transition shadow flex items-center gap-1.5">
+                    <i class="fa-solid fa-plus"></i> Tạo phiên mới
+                </a>
+            </div>
         </div>
 
         <!-- Filter bar -->
@@ -74,8 +82,8 @@
             <div class="w-full sm:w-48">
                 <select id="statusSelect" class="w-full border rounded-xl px-3 py-2 text-xs focus:ring-2 focus:ring-blue-500 outline-none bg-white">
                     <option value="ALL">Tất cả trạng thái</option>
-                    <option value="OPEN">Đang mở (OPEN)</option>
-                    <option value="CLOSED">Đã đóng (CLOSED)</option>
+                    <option value="OPEN">Đang mở đấu giá</option>
+                    <option value="CLOSED">Đã đóng / Chốt thầu</option>
                 </select>
             </div>
         </div>
@@ -83,8 +91,8 @@
         <!-- Table -->
         <div class="bg-white rounded-2xl border shadow-sm overflow-hidden">
             <div class="overflow-x-auto">
-                <table class="w-full text-left text-xs">
-                    <thead class="bg-slate-50 text-slate-500 font-semibold border-b">
+                <table class="w-full text-xs text-left">
+                    <thead class="bg-slate-50 text-slate-600 font-semibold border-b">
                         <tr>
                             <th class="py-3.5 px-4">Mã phiên & Số hiệu</th>
                             <th class="py-3.5 px-4">Tuyến bay</th>
@@ -104,17 +112,176 @@
 
     </main>
 
+    <!-- Modal 1: Chỉnh sửa thông số chuyến bay đấu giá (Edit Auction) -->
+    <div id="editAuctionModal" class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-50 hidden flex items-center justify-center p-4">
+        <div class="bg-white rounded-2xl shadow-xl max-w-lg w-full overflow-hidden animate-in fade-in zoom-in-95 duration-200">
+            <div class="bg-slate-900 text-white px-6 py-4 flex items-center justify-between">
+                <div class="flex items-center gap-2">
+                    <div class="w-7 h-7 bg-amber-500 rounded-lg flex items-center justify-center text-white text-xs">
+                        <i class="fa-solid fa-pen-to-square"></i>
+                    </div>
+                    <div>
+                        <h3 class="font-bold text-sm" id="editModalTitle">Chỉnh sửa thông số phiên đấu giá</h3>
+                        <p class="text-[11px] text-slate-400" id="editModalSub">Điều chỉnh giá sàn, tải trọng và thời gian</p>
+                    </div>
+                </div>
+                <button onclick="closeEditModal()" class="text-slate-400 hover:text-white text-lg">
+                    <i class="fa-solid fa-xmark"></i>
+                </button>
+            </div>
+
+            <form id="editAuctionForm" onsubmit="handleSaveEdit(event)" class="p-6 space-y-4 text-xs">
+                <input type="hidden" id="editAuctionId">
+
+                <div class="grid grid-cols-2 gap-3">
+                    <div>
+                        <label class="block font-semibold text-slate-700 mb-1">Tải trọng thầu (Kg)</label>
+                        <input type="number" id="editCapacity" required step="100" class="w-full border rounded-xl px-3 py-2 font-bold outline-none focus:ring-2 focus:ring-blue-500">
+                    </div>
+                    <div>
+                        <label class="block font-semibold text-slate-700 mb-1">Giá khởi điểm sàn (đ/Kg)</label>
+                        <input type="number" id="editStartingPrice" required step="500" class="w-full border rounded-xl px-3 py-2 font-bold text-blue-600 outline-none focus:ring-2 focus:ring-blue-500">
+                    </div>
+                </div>
+
+                <div class="grid grid-cols-2 gap-3">
+                    <div>
+                        <label class="block font-semibold text-slate-700 mb-1">Bước giá tối thiểu (đ/Kg)</label>
+                        <input type="number" id="editMinStep" required step="100" class="w-full border rounded-xl px-3 py-2 outline-none focus:ring-2 focus:ring-blue-500">
+                    </div>
+                    <div>
+                        <label class="block font-semibold text-slate-700 mb-1">Loại tàu bay</label>
+                        <input type="text" id="editAircraft" required class="w-full border rounded-xl px-3 py-2 outline-none focus:ring-2 focus:ring-blue-500">
+                    </div>
+                </div>
+
+                <div class="grid grid-cols-2 gap-3">
+                    <div>
+                        <label class="block font-semibold text-slate-700 mb-1">Giờ cất cánh (ETD)</label>
+                        <input type="text" id="editEtd" required class="w-full border rounded-xl px-3 py-2 outline-none focus:ring-2 focus:ring-blue-500">
+                    </div>
+                    <div>
+                        <label class="block font-semibold text-slate-700 mb-1">Giờ hạ cánh (ETA)</label>
+                        <input type="text" id="editEta" required class="w-full border rounded-xl px-3 py-2 outline-none focus:ring-2 focus:ring-blue-500">
+                    </div>
+                </div>
+
+                <div class="bg-blue-50/60 p-3.5 rounded-xl border border-blue-100 space-y-2">
+                    <p class="font-bold text-blue-900 flex items-center gap-1.5">
+                        <i class="fa-regular fa-clock text-blue-600"></i> Điều chỉnh thời gian mở thầu:
+                    </p>
+                    <div class="flex items-center gap-2">
+                        <select id="editExtendTime" class="flex-1 border rounded-lg px-2.5 py-1.5 bg-white text-xs outline-none">
+                            <option value="0">Giữ nguyên thời gian hiện tại</option>
+                            <option value="30">Gia hạn thêm 30 phút</option>
+                            <option value="60">Gia hạn thêm 60 phút</option>
+                            <option value="120">Gia hạn thêm 2 giờ</option>
+                        </select>
+                        <label class="flex items-center gap-1.5 text-[11px] text-slate-700 cursor-pointer">
+                            <input type="checkbox" id="editReopen" class="rounded text-blue-600">
+                            <span>Mở lại nếu đang đóng</span>
+                        </label>
+                    </div>
+                </div>
+
+                <div>
+                    <label class="block font-semibold text-slate-700 mb-1">Ghi chú & Yêu cầu loại hàng</label>
+                    <textarea id="editNotes" rows="2" class="w-full border rounded-xl px-3 py-2 outline-none focus:ring-2 focus:ring-blue-500"></textarea>
+                </div>
+
+                <div class="flex items-center justify-end gap-2.5 pt-2 border-t">
+                    <button type="button" onclick="closeEditModal()" class="px-4 py-2 border rounded-xl text-slate-600 hover:bg-slate-50 font-medium transition">Hủy bỏ</button>
+                    <button type="submit" class="px-5 py-2 bg-blue-600 hover:bg-blue-700 text-white font-bold rounded-xl transition shadow flex items-center gap-1.5">
+                        <i class="fa-solid fa-check"></i> Lưu cập nhật thông số
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Modal 2: Gửi thông báo đấu giá (Broadcast Notification) -->
+    <div id="broadcastModal" class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-50 hidden flex items-center justify-center p-4">
+        <div class="bg-white rounded-2xl shadow-xl max-w-lg w-full overflow-hidden animate-in fade-in zoom-in-95 duration-200">
+            <div class="bg-amber-600 text-white px-6 py-4 flex items-center justify-between">
+                <div class="flex items-center gap-2">
+                    <div class="w-7 h-7 bg-white/20 rounded-lg flex items-center justify-center text-white text-xs">
+                        <i class="fa-solid fa-bullhorn"></i>
+                    </div>
+                    <div>
+                        <h3 class="font-bold text-sm">Gửi thông báo đấu giá tới Đại lý</h3>
+                        <p class="text-[11px] text-amber-100">Phát thông báo đẩy theo thời gian thực tới chuông thông báo của đại lý</p>
+                    </div>
+                </div>
+                <button onclick="closeBroadcastModal()" class="text-white/80 hover:text-white text-lg">
+                    <i class="fa-solid fa-xmark"></i>
+                </button>
+            </div>
+
+            <form id="broadcastForm" onsubmit="handleSendBroadcast(event)" class="p-6 space-y-4 text-xs">
+                <div>
+                    <label class="block font-semibold text-slate-700 mb-1">Chuyến bay liên quan</label>
+                    <select id="bcAuctionSelect" class="w-full border rounded-xl px-3 py-2 outline-none focus:ring-2 focus:ring-amber-500 bg-white">
+                        <option value="">-- Áp dụng cho toàn sàn (Không gán chuyến cụ thể) --</option>
+                    </select>
+                </div>
+
+                <div>
+                    <label class="block font-semibold text-slate-700 mb-1">Đối tượng nhận thông báo</label>
+                    <select id="bcTargetAgent" class="w-full border rounded-xl px-3 py-2 outline-none focus:ring-2 focus:ring-amber-500 bg-white">
+                        <option value="">Gửi tới TẤT CẢ Đại lý tham gia sàn</option>
+                    </select>
+                </div>
+
+                <div>
+                    <label class="block font-semibold text-slate-700 mb-1">Tiêu đề thông báo <span class="text-red-500">*</span></label>
+                    <input type="text" id="bcTitle" required placeholder="VD: Khẩn cấp: Mở thêm 1 tấn tải trọng chuyến VU130"
+                           class="w-full border rounded-xl px-3.5 py-2 font-bold outline-none focus:ring-2 focus:ring-amber-500">
+                </div>
+
+                <div>
+                    <label class="block font-semibold text-slate-700 mb-1">Nội dung chi tiết thông báo <span class="text-red-500">*</span></label>
+                    <textarea id="bcMessage" rows="3" required placeholder="Nhập nội dung gửi tới các đại lý vận tải..."
+                              class="w-full border rounded-xl px-3.5 py-2 outline-none focus:ring-2 focus:ring-amber-500"></textarea>
+                </div>
+
+                <div>
+                    <label class="block font-semibold text-slate-700 mb-1">Loại thông báo</label>
+                    <select id="bcType" class="w-full border rounded-xl px-3 py-2 outline-none focus:ring-2 focus:ring-amber-500 bg-white">
+                        <option value="CLOSING_SOON">Cảnh báo sắp đóng thầu</option>
+                        <option value="SYSTEM">Thông báo điều hành hệ thống</option>
+                        <option value="HIGHEST">Cập nhật mức giá mới</option>
+                    </select>
+                </div>
+
+                <div class="flex items-center justify-end gap-2.5 pt-2 border-t">
+                    <button type="button" onclick="closeBroadcastModal()" class="px-4 py-2 border rounded-xl text-slate-600 hover:bg-slate-50 font-medium transition">Hủy bỏ</button>
+                    <button type="submit" class="px-5 py-2 bg-amber-600 hover:bg-amber-700 text-white font-bold rounded-xl transition shadow flex items-center gap-1.5">
+                        <i class="fa-solid fa-paper-plane"></i> Phát thông báo ngay
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+
     <script>
         function renderAuctionsTable() {
-            const search = document.getElementById('auctionSearch').value.toLowerCase().trim();
+            if (typeof CargoStore === 'undefined') return;
+            const data = CargoStore.getData();
+            const search = (document.getElementById('auctionSearch').value || '').toLowerCase();
             const status = document.getElementById('statusSelect').value;
 
-            let list = CargoStore.getAuctions();
+            let list = data.auctions || [];
+
             if (status !== 'ALL') {
                 list = list.filter(a => a.status === status);
             }
+
             if (search) {
-                list = list.filter(a => a.flightNumber.toLowerCase().includes(search) || a.route.toLowerCase().includes(search));
+                list = list.filter(a =>
+                    (a.flightNumber || '').toLowerCase().includes(search) ||
+                    (a.route || '').toLowerCase().includes(search) ||
+                    (a.flightCode || '').toLowerCase().includes(search)
+                );
             }
 
             const tbody = document.getElementById('auctionsTableBody');
@@ -151,15 +318,21 @@
                                 ${isOpen ? 'ĐANG MỞ' : 'ĐÃ ĐÓNG'}
                             </span>
                         </td>
-                        <td class="py-3.5 px-4 text-right space-x-2">
-                            <a href="05-AuctionDetail.html?id=${a.id}" class="inline-flex items-center gap-1 bg-blue-50 hover:bg-blue-100 text-blue-700 font-semibold px-2.5 py-1 rounded-lg transition">
+                        <td class="py-3.5 px-4 text-right space-x-1.5 whitespace-nowrap">
+                            <a href="05-AuctionDetail.html?id=${a.id}" class="inline-flex items-center gap-1 bg-blue-50 hover:bg-blue-100 text-blue-700 font-semibold px-2 py-1 rounded-lg transition" title="Xem chi tiết & lịch sử">
                                 <i class="fa-solid fa-eye text-[10px]"></i> Xem
                             </a>
+                            <button onclick="openEditModal(${a.id})" class="inline-flex items-center gap-1 bg-amber-50 hover:bg-amber-100 text-amber-700 font-semibold px-2 py-1 rounded-lg transition" title="Chỉnh sửa thông số">
+                                <i class="fa-solid fa-pen-to-square text-[10px]"></i> Sửa
+                            </button>
                             ${isOpen ? `
-                                <button onclick="handleCloseAuction(${a.id})" class="inline-flex items-center gap-1 bg-red-50 hover:bg-red-100 text-red-600 font-semibold px-2.5 py-1 rounded-lg transition">
-                                    <i class="fa-solid fa-gavel text-[10px]"></i> Chốt thầu
+                                <button onclick="handleCloseAuction(${a.id})" class="inline-flex items-center gap-1 bg-emerald-50 hover:bg-emerald-100 text-emerald-700 font-semibold px-2 py-1 rounded-lg transition" title="Chốt thầu">
+                                    <i class="fa-solid fa-gavel text-[10px]"></i> Chốt
                                 </button>
                             ` : ''}
+                            <button onclick="handleDeleteAuction(${a.id}, '${a.flightNumber}')" class="inline-flex items-center gap-1 bg-red-50 hover:bg-red-100 text-red-600 font-semibold px-2 py-1 rounded-lg transition" title="Xóa chuyến bay">
+                                <i class="fa-solid fa-trash text-[10px]"></i> Xóa
+                            </button>
                         </td>
                     </tr>
                 `;
@@ -173,11 +346,116 @@
             }
         }
 
+        function handleDeleteAuction(id, flightNumber) {
+            if (confirm(`CẢNH BÁO: Bạn có chắc chắn muốn xóa vĩnh viễn chuyến bay ${flightNumber}? Mọi lượt đặt giá liên quan sẽ bị xóa khỏi hệ thống!`)) {
+                const res = CargoStore.deleteAuction(id);
+                if (res.success) {
+                    alert(res.message);
+                    renderAuctionsTable();
+                } else {
+                    alert(res.message);
+                }
+            }
+        }
+
+        // --- Edit Modal Handlers ---
+        function openEditModal(id) {
+            const auction = CargoStore.getAuctionById(id);
+            if (!auction) return;
+
+            document.getElementById('editAuctionId').value = auction.id;
+            document.getElementById('editModalTitle').textContent = `Chỉnh sửa thông số chuyến ${auction.flightNumber}`;
+            document.getElementById('editModalSub').textContent = `Chặng ${auction.route} · Mã ${auction.flightCode}`;
+            document.getElementById('editCapacity').value = auction.capacityKg;
+            document.getElementById('editStartingPrice').value = auction.startingPriceKg;
+            document.getElementById('editMinStep').value = auction.minStep;
+            document.getElementById('editAircraft').value = auction.aircraft;
+            document.getElementById('editEtd').value = auction.etd;
+            document.getElementById('editEta').value = auction.eta;
+            document.getElementById('editNotes').value = auction.specialNotes || '';
+            document.getElementById('editExtendTime').value = '0';
+            document.getElementById('editReopen').checked = auction.status === 'CLOSED';
+
+            document.getElementById('editAuctionModal').classList.remove('hidden');
+        }
+
+        function closeEditModal() {
+            document.getElementById('editAuctionModal').classList.add('hidden');
+        }
+
+        function handleSaveEdit(e) {
+            e.preventDefault();
+            const id = Number(document.getElementById('editAuctionId').value);
+            const extend = Number(document.getElementById('editExtendTime').value);
+            const reopen = document.getElementById('editReopen').checked;
+
+            const res = CargoStore.updateAuction(id, {
+                capacityKg: document.getElementById('editCapacity').value,
+                startingPriceKg: document.getElementById('editStartingPrice').value,
+                minStep: document.getElementById('editMinStep').value,
+                aircraft: document.getElementById('editAircraft').value,
+                etd: document.getElementById('editEtd').value,
+                eta: document.getElementById('editEta').value,
+                specialNotes: document.getElementById('editNotes').value,
+                extendMinutes: extend,
+                reopen: reopen
+            });
+
+            if (res.success) {
+                alert(res.message);
+                closeEditModal();
+                renderAuctionsTable();
+            } else {
+                alert(res.message);
+            }
+        }
+
+        // --- Broadcast Modal Handlers ---
+        function openBroadcastModal() {
+            const data = CargoStore.getData();
+            const select = document.getElementById('bcAuctionSelect');
+            select.innerHTML = `<option value="">-- Áp dụng cho toàn sàn (Không gán chuyến cụ thể) --</option>` +
+                (data.auctions || []).map(a => `<option value="${a.id}">Chuyến ${a.flightNumber} (${a.route}) - Giá hiện tại: ${CargoStore.formatCurrency(a.currentPriceKg)}</option>`).join('');
+
+            const agentSelect = document.getElementById('bcTargetAgent');
+            agentSelect.innerHTML = `<option value="">Gửi tới TẤT CẢ Đại lý tham gia sàn</option>` +
+                (data.agentsList || []).map(ag => `<option value="${ag.code}">${ag.code} - ${ag.companyName}</option>`).join('');
+
+            document.getElementById('broadcastModal').classList.remove('hidden');
+        }
+
+        function closeBroadcastModal() {
+            document.getElementById('broadcastModal').classList.add('hidden');
+        }
+
+        function handleSendBroadcast(e) {
+            e.preventDefault();
+            const auctionId = document.getElementById('bcAuctionSelect').value;
+            const targetAgent = document.getElementById('bcTargetAgent').value;
+            const title = document.getElementById('bcTitle').value.trim();
+            const message = document.getElementById('bcMessage').value.trim();
+            const type = document.getElementById('bcType').value;
+
+            const res = CargoStore.sendBroadcastNotification({
+                title: title,
+                message: message,
+                type: type,
+                targetAgentCode: targetAgent || null,
+                link: auctionId ? `04-Detail.html?id=${auctionId}` : '03-Index.html'
+            });
+
+            if (res.success) {
+                alert(res.message);
+                closeBroadcastModal();
+            }
+        }
+
         document.addEventListener('DOMContentLoaded', function() {
             renderAuctionsTable();
             document.getElementById('auctionSearch').addEventListener('input', renderAuctionsTable);
             document.getElementById('statusSelect').addEventListener('change', renderAuctionsTable);
             setInterval(renderAuctionsTable, 1500);
+            if (window.CargoStore && CargoStore.syncAdminHeaderUI) CargoStore.syncAdminHeaderUI();
         });
 
         // Cross-browser & Cross-tab sync

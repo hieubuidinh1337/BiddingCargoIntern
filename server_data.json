@@ -1,5 +1,5 @@
 {
-  "version": 1788429348960,
+  "version": 1788429826229,
   "auctions": [
     {
       "id": 1,
@@ -42,7 +42,7 @@
       "currentPriceKg": 14500,
       "minStep": 500,
       "endTime": "2026-09-03T11:10:50.235Z",
-      "status": "OPEN",
+      "status": "CLOSED",
       "leadingAgentCode": "AG-1024",
       "leadingAgentName": "Vinatrans",
       "bidsCount": 4,
@@ -63,15 +63,18 @@
       "aircraft": "Airbus A321neo Cargo",
       "capacityKg": 4000,
       "startingPriceKg": 22000,
-      "currentPriceKg": 25000,
+      "currentPriceKg": 30000,
       "minStep": 1000,
       "endTime": "2026-09-03T12:40:50.235Z",
-      "status": "OPEN",
-      "leadingAgentCode": "AG-0556",
-      "leadingAgentName": "Golden Star",
-      "bidsCount": 5,
+      "status": "CLOSED",
+      "leadingAgentCode": "AG-1024",
+      "leadingAgentName": "Công ty CP Giao nhận Kho vận Vinatrans",
+      "bidsCount": 6,
       "specialNotes": "Hàng hải sản đông lạnh tươi sống đóng thùng xốp tiêu chuẩn IATA.",
-      "cutOffTime": "16:00 · 15/08/2026"
+      "cutOffTime": "16:00 · 15/08/2026",
+      "winnerAgentCode": "AG-1024",
+      "winnerAgentName": "Công ty CP Giao nhận Kho vận Vinatrans",
+      "winningPriceKg": 30000
     },
     {
       "id": 4,
@@ -102,6 +105,16 @@
     }
   ],
   "bids": [
+    {
+      "id": 1788429559431,
+      "auctionId": 3,
+      "agentCode": "AG-1024",
+      "agentName": "Công ty CP Giao nhận Kho vận Vinatrans",
+      "priceKg": 30000,
+      "time": "Vừa xong",
+      "status": "WON",
+      "weightKg": 4000
+    },
     {
       "id": 1788429142132,
       "auctionId": 1,
@@ -185,6 +198,22 @@
   ],
   "wonAuctions": [
     {
+      "wonId": "WON-20260903-03",
+      "auctionId": 3,
+      "agentCode": "AG-1024",
+      "flightNumber": "VU340",
+      "route": "HAN - PQC",
+      "capacityKg": 4000,
+      "priceKg": 30000,
+      "totalAmountVND": 120000000,
+      "paymentDeadline": "2026-09-04T09:59:28.819Z",
+      "paymentStatus": "UNPAID",
+      "paidAt": null,
+      "awbNumber": "998-68142002",
+      "cutOffTime": "16:00 · 15/08/2026",
+      "warehouse": "Kho hàng SCSC / TCS Tân Sơn Nhất (Cửa số 4)"
+    },
+    {
       "wonId": "WON-2026-0814-01",
       "auctionId": 4,
       "agentCode": "AG-0892",
@@ -203,14 +232,14 @@
   ],
   "notifications": [
     {
-      "id": 1788429142134,
-      "targetAgentCode": "AG-1024",
-      "title": "Cảnh báo bị vượt giá chuyến VU130!",
-      "message": "Đại lý Công ty TNHH Tiếp vận Toàn Cầu Golden Star (AG-0556) vừa đặt mức giá mới 41.500 đ/Kg cho chặng SGN - HAN.",
+      "id": 1788429559432,
+      "targetAgentCode": "AG-0556",
+      "title": "Cảnh báo bị vượt giá chuyến VU340!",
+      "message": "Đại lý Công ty CP Giao nhận Kho vận Vinatrans (AG-1024) vừa đặt mức giá mới 30.000 đ/Kg cho chặng HAN - PQC.",
       "time": "Vừa xong",
       "type": "OUTBID",
-      "read": true,
-      "link": "04-Detail.html?id=1"
+      "read": false,
+      "link": "04-Detail.html?id=3"
     },
     {
       "id": 1788429142132,
@@ -227,26 +256,6 @@
       "targetAgentCode": "AG-0556",
       "title": "Cảnh báo bị vượt giá chuyến VU130!",
       "message": "Đại lý Công ty CP Giao nhận Kho vận Vinatrans (AG-1024) vừa đặt mức giá mới 39.000 đ/Kg cho chặng SGN - HAN.",
-      "time": "Vừa xong",
-      "type": "OUTBID",
-      "read": true,
-      "link": "04-Detail.html?id=1"
-    },
-    {
-      "id": 1788428581475,
-      "targetAgentCode": "AG-1024",
-      "title": "Đặt giá thành công chuyến VU130",
-      "message": "Bạn (AG-1024) đang dẫn đầu mức giá 39.000 đ/Kg cho chặng SGN - HAN.",
-      "time": "Vừa xong",
-      "type": "HIGHEST",
-      "read": true,
-      "link": "04-Detail.html?id=1"
-    },
-    {
-      "id": 1788428565953,
-      "targetAgentCode": "AG-1024",
-      "title": "Cảnh báo bị vượt giá chuyến VU130!",
-      "message": "Đại lý Công ty TNHH Tiếp vận Toàn Cầu Golden Star (AG-0556) vừa đặt mức giá mới 25.000 đ/Kg cho chặng SGN - HAN.",
       "time": "Vừa xong",
       "type": "OUTBID",
       "read": true,
@@ -273,16 +282,6 @@
       "link": "04-Detail.html?id=1"
     },
     {
-      "id": 1788428508817,
-      "targetAgentCode": "AG-1024",
-      "title": "Đặt giá thành công chuyến VU130",
-      "message": "Bạn (AG-1024) đang dẫn đầu mức giá 24.500 đ/Kg cho chặng SGN - HAN.",
-      "time": "Vừa xong",
-      "type": "HIGHEST",
-      "read": true,
-      "link": "04-Detail.html?id=1"
-    },
-    {
       "id": 1788428497004,
       "targetAgentCode": "AG-0892",
       "title": "Cảnh báo bị vượt giá chuyến VU130!",
@@ -298,15 +297,6 @@
       "title": "Đặt giá thành công chuyến VU130",
       "message": "Bạn (AG-0556) đang dẫn đầu mức giá 23.000 đ/Kg cho chặng SGN - HAN.",
       "time": "Vừa xong",
-      "type": "HIGHEST",
-      "read": true,
-      "link": "04-Detail.html?id=1"
-    },
-    {
-      "id": 1,
-      "title": "Bạn đang dẫn đầu thầu VU130",
-      "message": "Mức giá 21,500 đ/Kg của bạn đang là cao nhất cho chuyến SGN-HAN.",
-      "time": "12 phút trước",
       "type": "HIGHEST",
       "read": true,
       "link": "04-Detail.html?id=1"

@@ -42,8 +42,11 @@
                 </nav>
             </div>
             <div class="flex items-center gap-2">
-                <span class="text-xs text-slate-300 hidden sm:inline">Trần Quản Trị</span>
-                <a href="01-AdminLogin.html" title="Đăng xuất" class="text-slate-400 hover:text-red-400 p-1">
+                <span class="admin-header-role text-[10px] font-bold px-2 py-0.5 rounded-full bg-blue-500/20 text-blue-400 border border-blue-500/30 inline-flex items-center gap-1">
+                    <i class="fa-solid fa-shield-halved text-[9px]"></i> QUẢN TRỊ VIÊN
+                </span>
+                <span class="text-xs text-slate-200 font-semibold admin-header-name hidden sm:inline">Trần Quản Trị</span>
+                <a href="01-AdminLogin.html" onclick="if(window.CargoStore) CargoStore.logoutAdmin()" title="Đăng xuất" class="text-slate-400 hover:text-red-400 p-1">
                     <i class="fa-solid fa-power-off text-xs"></i>
                 </a>
             </div>
@@ -63,7 +66,7 @@
                 </h1>
                 <p class="text-xs text-slate-500 mt-0.5" id="adminSubTitle">Mã phiên: FL-VU130-260815 · Tuyến: SGN - HAN</p>
             </div>
-            <div class="flex items-center gap-2" id="adminActionButtons">
+            <div class="flex flex-wrap items-center gap-2" id="adminActionButtons">
                 <!-- Action buttons rendered by JS -->
             </div>
         </div>
@@ -79,37 +82,49 @@
                 <p class="text-xl font-bold text-slate-700 mt-1" id="detStartingPrice">18.000 đ</p>
             </div>
             <div class="bg-white rounded-2xl p-4 border shadow-sm">
-                <p class="text-xs text-slate-500">Mức giá cao nhất hiện tại</p>
-                <p class="text-xl font-bold text-blue-600 mt-1" id="detCurrentPrice">21.500 đ</p>
+                <p class="text-xs text-slate-500">Bước giá tối thiểu</p>
+                <p class="text-xl font-bold text-slate-700 mt-1" id="detMinStep">+500 đ</p>
             </div>
             <div class="bg-white rounded-2xl p-4 border shadow-sm">
-                <p class="text-xs text-slate-500">Đại lý đang dẫn đầu</p>
-                <p class="text-sm font-bold text-emerald-600 mt-1" id="detLeadingAgent">ABC Logistics (AG-0892)</p>
+                <p class="text-xs text-slate-500">Giá cao nhất hiện tại</p>
+                <p class="text-xl font-bold text-blue-600 mt-1" id="detCurrentPrice">21.500 đ</p>
             </div>
         </div>
 
-        <!-- Live Bids History Table -->
-        <div class="bg-white rounded-2xl border shadow-sm p-6 space-y-4">
-            <div class="flex items-center justify-between">
-                <div>
-                    <h2 class="font-bold text-base text-slate-900 flex items-center gap-2">
-                        <i class="fa-solid fa-list-ol text-blue-600"></i> Nhật ký tất cả các lượt đặt thầu
-                    </h2>
-                    <p class="text-xs text-slate-500 mt-0.5">Dữ liệu kiểm toán đầy đủ gồm địa chỉ IP và dấu thời gian</p>
-                </div>
-                <button onclick="alert('Đã xuất file log định dạng CSV/Excel')" class="text-xs font-semibold text-blue-600 hover:underline flex items-center gap-1">
-                    <i class="fa-solid fa-file-export"></i> Xuất file Log
-                </button>
+        <!-- Flight Specs Detail Table -->
+        <div class="bg-white rounded-2xl border shadow-sm p-5 text-xs space-y-3">
+            <h3 class="font-bold text-sm text-slate-800 border-b pb-2 flex items-center gap-1.5">
+                <i class="fa-solid fa-circle-info text-blue-600"></i> Thông tin hành trình & Khai thác
+            </h3>
+            <div class="grid grid-cols-2 md:grid-cols-4 gap-4 text-slate-600">
+                <div><span class="text-gray-400 block">Tàu bay:</span> <strong class="text-slate-800" id="detAircraft">Airbus A321neo Cargo</strong></div>
+                <div><span class="text-gray-400 block">Giờ khởi hành (ETD):</span> <strong class="text-slate-800" id="detEtd">14:30 · 15/08/2026</strong></div>
+                <div><span class="text-gray-400 block">Giờ hạ cánh (ETA):</span> <strong class="text-slate-800" id="detEta">16:45 · 15/08/2026</strong></div>
+                <div><span class="text-gray-400 block">Cut-off nhận hàng:</span> <strong class="text-slate-800" id="detCutOff">11:30 · 15/08/2026</strong></div>
+            </div>
+            <div class="pt-2 border-t">
+                <span class="text-gray-400">Ghi chú hàng hóa: </span>
+                <span class="text-slate-700 font-medium" id="detNotes">Hàng tổng hợp, hỗ trợ kho lạnh bảo quản thực phẩm & dược phẩm.</span>
+            </div>
+        </div>
+
+        <!-- Bids Realtime Log Table -->
+        <div class="bg-white rounded-2xl border shadow-sm overflow-hidden space-y-3 p-5">
+            <div class="flex items-center justify-between border-b pb-3">
+                <h3 class="font-bold text-sm text-slate-800 flex items-center gap-1.5">
+                    <i class="fa-solid fa-list-ol text-blue-600"></i> Lịch sử các lượt đặt giá (Realtime Bidding Log)
+                </h3>
+                <span class="text-xs font-semibold text-blue-600 bg-blue-50 px-2.5 py-1 rounded-lg" id="detBidsCount">0 lượt đặt</span>
             </div>
 
             <div class="overflow-x-auto">
-                <table class="w-full text-left text-xs">
+                <table class="w-full text-xs text-left">
                     <thead class="bg-slate-50 text-slate-500 font-semibold border-b">
                         <tr>
                             <th class="py-3 px-4">Mã đại lý</th>
-                            <th class="py-3 px-4">Tên doanh nghiệp</th>
-                            <th class="py-3 px-4">Mức giá đặt (VND/Kg)</th>
-                            <th class="py-3 px-4">Tổng giá trị thầu</th>
+                            <th class="py-3 px-4">Tên đại lý</th>
+                            <th class="py-3 px-4">Mức giá đặt (đ/Kg)</th>
+                            <th class="py-3 px-4">Tổng giá trị (VND)</th>
                             <th class="py-3 px-4">Thời gian</th>
                             <th class="py-3 px-4">Trạng thái</th>
                         </tr>
@@ -123,44 +138,152 @@
 
     </main>
 
+    <!-- Modal: Chỉnh sửa thông số chuyến bay -->
+    <div id="detailEditModal" class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-50 hidden flex items-center justify-center p-4">
+        <div class="bg-white rounded-2xl shadow-xl max-w-lg w-full overflow-hidden">
+            <div class="bg-slate-900 text-white px-6 py-4 flex items-center justify-between">
+                <h3 class="font-bold text-sm flex items-center gap-2">
+                    <i class="fa-solid fa-pen-to-square text-amber-400"></i> Điều chỉnh thông số phiên đấu giá
+                </h3>
+                <button onclick="closeDetailEditModal()" class="text-slate-400 hover:text-white text-lg"><i class="fa-solid fa-xmark"></i></button>
+            </div>
+            <form onsubmit="saveDetailEdit(event)" class="p-6 space-y-4 text-xs">
+                <div class="grid grid-cols-2 gap-3">
+                    <div>
+                        <label class="block font-semibold text-slate-700 mb-1">Tải trọng (Kg)</label>
+                        <input type="number" id="modalDetCapacity" required class="w-full border rounded-xl px-3 py-2 font-bold outline-none">
+                    </div>
+                    <div>
+                        <label class="block font-semibold text-slate-700 mb-1">Giá khởi điểm (đ/Kg)</label>
+                        <input type="number" id="modalDetStarting" required class="w-full border rounded-xl px-3 py-2 font-bold text-blue-600 outline-none">
+                    </div>
+                </div>
+                <div class="grid grid-cols-2 gap-3">
+                    <div>
+                        <label class="block font-semibold text-slate-700 mb-1">Bước giá tối thiểu (đ/Kg)</label>
+                        <input type="number" id="modalDetMinStep" required class="w-full border rounded-xl px-3 py-2 outline-none">
+                    </div>
+                    <div>
+                        <label class="block font-semibold text-slate-700 mb-1">Tàu bay</label>
+                        <input type="text" id="modalDetAircraft" required class="w-full border rounded-xl px-3 py-2 outline-none">
+                    </div>
+                </div>
+                <div class="grid grid-cols-2 gap-3">
+                    <div>
+                        <label class="block font-semibold text-slate-700 mb-1">ETD</label>
+                        <input type="text" id="modalDetEtd" required class="w-full border rounded-xl px-3 py-2 outline-none">
+                    </div>
+                    <div>
+                        <label class="block font-semibold text-slate-700 mb-1">ETA</label>
+                        <input type="text" id="modalDetEta" required class="w-full border rounded-xl px-3 py-2 outline-none">
+                    </div>
+                </div>
+                <div>
+                    <label class="block font-semibold text-slate-700 mb-1">Gia hạn thời gian đóng thầu:</label>
+                    <select id="modalDetExtendTime" class="w-full border rounded-xl px-3 py-2 bg-white outline-none">
+                        <option value="0">Giữ nguyên</option>
+                        <option value="30">Gia hạn thêm 30 phút</option>
+                        <option value="60">Gia hạn thêm 1 giờ</option>
+                        <option value="120">Gia hạn thêm 2 giờ</option>
+                    </select>
+                </div>
+                <div>
+                    <label class="block font-semibold text-slate-700 mb-1">Ghi chú hàng hóa</label>
+                    <textarea id="modalDetNotes" rows="2" class="w-full border rounded-xl px-3 py-2 outline-none"></textarea>
+                </div>
+                <div class="flex items-center justify-end gap-2.5 pt-2 border-t">
+                    <button type="button" onclick="closeDetailEditModal()" class="px-4 py-2 border rounded-xl text-slate-600 hover:bg-slate-50 font-medium">Hủy bỏ</button>
+                    <button type="submit" class="px-5 py-2 bg-blue-600 hover:bg-blue-700 text-white font-bold rounded-xl shadow">Lưu thay đổi</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Modal: Gửi thông báo chuyến bay này -->
+    <div id="detailBroadcastModal" class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-50 hidden flex items-center justify-center p-4">
+        <div class="bg-white rounded-2xl shadow-xl max-w-lg w-full overflow-hidden">
+            <div class="bg-amber-600 text-white px-6 py-4 flex items-center justify-between">
+                <h3 class="font-bold text-sm flex items-center gap-2">
+                    <i class="fa-solid fa-bullhorn text-white"></i> Gửi thông báo về chuyến bay này
+                </h3>
+                <button onclick="closeDetailBroadcastModal()" class="text-white/80 hover:text-white text-lg"><i class="fa-solid fa-xmark"></i></button>
+            </div>
+            <form onsubmit="saveDetailBroadcast(event)" class="p-6 space-y-4 text-xs">
+                <div>
+                    <label class="block font-semibold text-slate-700 mb-1">Tiêu đề thông báo</label>
+                    <input type="text" id="bcFlightTitle" required class="w-full border rounded-xl px-3.5 py-2 font-bold outline-none">
+                </div>
+                <div>
+                    <label class="block font-semibold text-slate-700 mb-1">Nội dung thông báo</label>
+                    <textarea id="bcFlightMsg" rows="3" required class="w-full border rounded-xl px-3.5 py-2 outline-none"></textarea>
+                </div>
+                <div>
+                    <label class="block font-semibold text-slate-700 mb-1">Loại cảnh báo</label>
+                    <select id="bcFlightType" class="w-full border rounded-xl px-3 py-2 bg-white outline-none">
+                        <option value="CLOSING_SOON">Cảnh báo sắp đóng thầu</option>
+                        <option value="SYSTEM">Thông báo điều hành chuyến bay</option>
+                        <option value="HIGHEST">Cập nhật giá thầu</option>
+                    </select>
+                </div>
+                <div class="flex items-center justify-end gap-2.5 pt-2 border-t">
+                    <button type="button" onclick="closeDetailBroadcastModal()" class="px-4 py-2 border rounded-xl text-slate-600 hover:bg-slate-50 font-medium">Hủy bỏ</button>
+                    <button type="submit" class="px-5 py-2 bg-amber-600 hover:bg-amber-700 text-white font-bold rounded-xl shadow">Phát thông báo tới Đại lý</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
     <script>
         function getParam(param) {
             const urlParams = new URLSearchParams(window.location.search);
             return urlParams.get(param) || '1';
         }
 
+        let currentAuction = null;
+
         function loadAdminDetail() {
+            if (typeof CargoStore === 'undefined') return;
             const id = getParam('id');
             const auction = CargoStore.getAuctionById(id);
-            if (!auction) {
-                alert('Không tìm thấy phiên!');
-                window.location.href = '03-AuctionList.html';
-                return;
-            }
+            if (!auction) return;
+            currentAuction = auction;
 
             document.getElementById('adminFlightTitle').textContent = auction.flightNumber;
-            document.getElementById('adminSubTitle').textContent = `Mã phiên: ${auction.flightCode} · Tuyến: ${auction.route} · Tàu bay: ${auction.aircraft}`;
+            document.getElementById('adminSubTitle').textContent = `Mã phiên: ${auction.flightCode} · Tuyến: ${auction.route}`;
             document.getElementById('detCapacity').textContent = CargoStore.formatNumber(auction.capacityKg) + ' Kg';
             document.getElementById('detStartingPrice').textContent = CargoStore.formatCurrency(auction.startingPriceKg) + '/Kg';
+            document.getElementById('detMinStep').textContent = '+' + CargoStore.formatCurrency(auction.minStep) + '/Kg';
             document.getElementById('detCurrentPrice').textContent = CargoStore.formatCurrency(auction.currentPriceKg) + '/Kg';
-            document.getElementById('detLeadingAgent').textContent = `${auction.leadingAgentName} (${auction.leadingAgentCode || '-'})`;
+
+            document.getElementById('detAircraft').textContent = auction.aircraft;
+            document.getElementById('detEtd').textContent = auction.etd;
+            document.getElementById('detEta').textContent = auction.eta;
+            document.getElementById('detCutOff').textContent = auction.cutOffTime;
+            document.getElementById('detNotes').textContent = auction.specialNotes;
 
             const btnContainer = document.getElementById('adminActionButtons');
-            if (auction.status === 'OPEN') {
-                btnContainer.innerHTML = `
-                    <button onclick="forceClose(${auction.id})" class="bg-red-600 hover:bg-red-700 text-white text-xs font-bold px-4 py-2.5 rounded-xl transition shadow flex items-center gap-1.5">
-                        <i class="fa-solid fa-gavel"></i> Chốt thầu & Đóng phiên ngay
+            const isOpen = auction.status === 'OPEN';
+
+            btnContainer.innerHTML = `
+                <button onclick="openDetailEditModal()" class="bg-amber-500 hover:bg-amber-600 text-white text-xs font-bold px-3.5 py-2 rounded-xl transition shadow flex items-center gap-1.5">
+                    <i class="fa-solid fa-pen-to-square"></i> Sửa thông số
+                </button>
+                <button onclick="openDetailBroadcastModal()" class="bg-blue-600 hover:bg-blue-700 text-white text-xs font-bold px-3.5 py-2 rounded-xl transition shadow flex items-center gap-1.5">
+                    <i class="fa-solid fa-bullhorn"></i> Phát thông báo
+                </button>
+                ${isOpen ? `
+                    <button onclick="forceClose(${auction.id})" class="bg-red-600 hover:bg-red-700 text-white text-xs font-bold px-3.5 py-2 rounded-xl transition shadow flex items-center gap-1.5">
+                        <i class="fa-solid fa-gavel"></i> Chốt thầu ngay
                     </button>
-                `;
-            } else {
-                btnContainer.innerHTML = `
-                    <span class="bg-gray-200 text-gray-700 text-xs font-bold px-3 py-2 rounded-xl">
-                        <i class="fa-solid fa-lock mr-1"></i> Phiên này đã đóng thầu
+                ` : `
+                    <span class="bg-slate-200 text-slate-700 text-xs font-bold px-3 py-2 rounded-xl flex items-center gap-1">
+                        <i class="fa-solid fa-lock"></i> Đã đóng thầu
                     </span>
-                `;
-            }
+                `}
+            `;
 
             const bids = CargoStore.getBidsForAuction(auction.id);
+            document.getElementById('detBidsCount').textContent = bids.length + ' lượt đặt';
             const tbody = document.getElementById('adminBidsBody');
             if (bids.length === 0) {
                 tbody.innerHTML = `<tr><td colspan="6" class="py-8 text-center text-gray-400">Chưa có đại lý nào đặt giá</td></tr>`;
@@ -190,14 +313,87 @@
             }
         }
 
+        function openDetailEditModal() {
+            if (!currentAuction) return;
+            document.getElementById('modalDetCapacity').value = currentAuction.capacityKg;
+            document.getElementById('modalDetStarting').value = currentAuction.startingPriceKg;
+            document.getElementById('modalDetMinStep').value = currentAuction.minStep;
+            document.getElementById('modalDetAircraft').value = currentAuction.aircraft;
+            document.getElementById('modalDetEtd').value = currentAuction.etd;
+            document.getElementById('modalDetEta').value = currentAuction.eta;
+            document.getElementById('modalDetNotes').value = currentAuction.specialNotes || '';
+            document.getElementById('modalDetExtendTime').value = '0';
+            document.getElementById('detailEditModal').classList.remove('hidden');
+        }
+
+        function closeDetailEditModal() {
+            document.getElementById('detailEditModal').classList.add('hidden');
+        }
+
+        function saveDetailEdit(e) {
+            e.preventDefault();
+            if (!currentAuction) return;
+
+            const res = CargoStore.updateAuction(currentAuction.id, {
+                capacityKg: document.getElementById('modalDetCapacity').value,
+                startingPriceKg: document.getElementById('modalDetStarting').value,
+                minStep: document.getElementById('modalDetMinStep').value,
+                aircraft: document.getElementById('modalDetAircraft').value,
+                etd: document.getElementById('modalDetEtd').value,
+                eta: document.getElementById('modalDetEta').value,
+                specialNotes: document.getElementById('modalDetNotes').value,
+                extendMinutes: Number(document.getElementById('modalDetExtendTime').value)
+            });
+
+            if (res.success) {
+                alert(res.message);
+                closeDetailEditModal();
+                loadAdminDetail();
+            } else {
+                alert(res.message);
+            }
+        }
+
+        function openDetailBroadcastModal() {
+            if (!currentAuction) return;
+            document.getElementById('bcFlightTitle').value = `Thông báo về chuyến bay ${currentAuction.flightNumber} (${currentAuction.route})`;
+            document.getElementById('bcFlightMsg').value = `Cập nhật thông tin phiên thầu chuyến ${currentAuction.flightNumber}. Giá hiện tại đang ở mức ${CargoStore.formatCurrency(currentAuction.currentPriceKg)}/Kg.`;
+            document.getElementById('detailBroadcastModal').classList.remove('hidden');
+        }
+
+        function closeDetailBroadcastModal() {
+            document.getElementById('detailBroadcastModal').classList.add('hidden');
+        }
+
+        function saveDetailBroadcast(e) {
+            e.preventDefault();
+            if (!currentAuction) return;
+
+            const res = CargoStore.sendBroadcastNotification({
+                title: document.getElementById('bcFlightTitle').value.trim(),
+                message: document.getElementById('bcFlightMsg').value.trim(),
+                type: document.getElementById('bcFlightType').value,
+                link: `04-Detail.html?id=${currentAuction.id}`
+            });
+
+            if (res.success) {
+                alert(res.message);
+                closeDetailBroadcastModal();
+            }
+        }
+
         document.addEventListener('DOMContentLoaded', function() {
             loadAdminDetail();
             setInterval(loadAdminDetail, 3000);
+            if (window.CargoStore && CargoStore.syncAdminHeaderUI) CargoStore.syncAdminHeaderUI();
         });
 
         // Cross-tab sync
         window.addEventListener('storage', function(e) {
             if (e.key === 'CARGO_BIDDING_DATA_V3') loadAdminDetail();
+        });
+        window.addEventListener('cargostore_updated', function() {
+            loadAdminDetail();
         });
     </script>
 </body>

@@ -568,6 +568,14 @@ const CargoStore = (function() {
                 }
             }
 
+            // Verify status (Check if account is locked)
+            if (agent.status === 'Đã khóa' || agent.status === 'LOCKED') {
+                return {
+                    success: false,
+                    message: `Tài khoản đại lý ${agent.code} (${agent.companyName}) hiện đang bị KHÓA bởi Quản trị viên sàn. Vui lòng liên hệ Hotline để được hỗ trợ mở khóa.`
+                };
+            }
+
             // Verify against THAT SPECIFIC AGENT'S PASSWORD!
             const expectedPassword = agent.password || '12345678';
             if (password !== expectedPassword) {
@@ -617,6 +625,14 @@ const CargoStore = (function() {
 
             if (!admin) {
                 return { success: false, message: `Tài khoản admin "${username}" không tồn tại.` };
+            }
+
+            // Check if admin/staff account is locked
+            if (admin.status === 'Đã khóa' || admin.status === 'LOCKED') {
+                return {
+                    success: false,
+                    message: `Tài khoản nhân viên "${admin.username}" hiện đang bị KHÓA bởi Quản trị viên hệ thống.`
+                };
             }
 
             // Verify against THAT SPECIFIC ADMIN'S PASSWORD!
@@ -1087,6 +1103,198 @@ const CargoStore = (function() {
             return { success: true, message: 'Đổi mật khẩu Admin thành công! Mật khẩu mặc định/cũ đã bị vô hiệu hóa.' };
         },
 
+        getCurrentAdmin: function() {
+            return loadData().currentAdmin;
+        },
+
+        updateAgentProfile: function(profileData) {
+            const data = loadData();
+            const user = data.currentUser;
+            if (!user) return { success: false, message: 'Chưa đăng nhập tài khoản đại lý.' };
+
+            if (profileData.repName) user.fullName = profileData.repName;
+            if (profileData.position) user.position = profileData.position;
+            if (profileData.email) user.email = profileData.email;
+            if (profileData.phone) user.phone = profileData.phone;
+            if (profileData.address) user.address = profileData.address;
+            if (profileData.companyName) user.companyName = profileData.companyName;
+
+            // Update in agentsList as well
+            if (data.agentsList) {
+                const ag = data.agentsList.find(a => (a.code || '').toUpperCase() === (user.agentCode || '').toUpperCase());
+                if (ag) {
+                    if (profileData.repName) ag.repName = profileData.repName;
+                    if (profileData.position) ag.position = profileData.position;
+                    if (profileData.email) ag.email = profileData.email;
+                    if (profileData.phone) ag.phone = profileData.phone;
+                    if (profileData.address) ag.address = profileData.address;
+                    if (profileData.companyName) ag.companyName = profileData.companyName;
+                }
+            }
+
+            saveData(data);
+            return { success: true, message: 'Cập nhật thông tin đại lý thành công!', user: user };
+        },
+
+        updateAuction: function(id, updateData) {
+            const data = loadData();
+            const auction = data.auctions.find(a => a.id == id);
+            if (!auction) return { success: false, message: 'Phiên đấu giá không tồn tại.' };
+
+            if (updateData.capacityKg) auction.capacityKg = Number(updateData.capacityKg);
+            if (updateData.startingPriceKg) {
+                auction.startingPriceKg = Number(updateData.startingPriceKg);
+                // If currentPriceKg is at or below new startingPriceKg, update it
+                if (!auction.currentPriceKg || auction.currentPriceKg < auction.startingPriceKg) {
+                    auction.currentPriceKg = auction.startingPriceKg;
+                }
+            }
+            if (updateData.minStep) auction.minStep = Number(updateData.minStep);
+            if (updateData.etd) auction.etd = updateData.etd;
+            if (updateData.eta) auction.eta = updateData.eta;
+            if (updateData.aircraft) auction.aircraft = updateData.aircraft;
+            if (updateData.specialNotes !== undefined) auction.specialNotes = updateData.specialNotes;
+            if (updateData.cutOffTime) auction.cutOffTime = updateData.cutOffTime;
+            if (updateData.status) auction.status = updateData.status;
+
+            if (updateData.extendMinutes) {
+                auction.endTime = new Date(Date.now() + Number(updateData.extendMinutes) * 60 * 1000).toISOString();
+                if (updateData.reopen) auction.status = 'OPEN';
+            }
+
+            saveData(data);
+            return { success: true, message: `Cập nhật thông số chuyến bay ${auction.flightNumber} thành công!`, auction: auction };
+        },
+
+        deleteAuction: function(id) {
+            const data = loadData();
+            const idx = data.auctions.findIndex(a => a.id == id);
+            if (idx === -1) return { success: false, message: 'Phiên đấu giá không tồn tại.' };
+
+            const removed = data.auctions.splice(idx, 1)[0];
+            data.bids = (data.bids || []).filter(b => b.auctionId != id);
+
+            saveData(data);
+            return { success: true, message: `Đã xóa chuyến bay ${removed.flightNumber} khỏi hệ thống.` };
+        },
+
+        sendBroadcastNotification: function(notifData) {
+            const data = loadData();
+            if (!data.notifications) data.notifications = [];
+
+            const newNotif = {
+                id: Date.now(),
+                title: notifData.title || 'Thông báo từ Ban Điều hành Cargo',
+                message: notifData.message || '',
+                time: 'Vừa xong',
+                type: notifData.type || 'SYSTEM',
+                read: false,
+                link: notifData.link || '03-Index.html',
+                targetAgentCode: notifData.targetAgentCode || null
+            };
+
+            data.notifications.unshift(newNotif);
+            saveData(data);
+            return { success: true, message: 'Đã phát thông báo đấu giá thành công tới các Đại lý!', notification: newNotif };
+        },
+
+        toggleUserLock: function(identifier, type = 'agent') {
+            const data = loadData();
+
+            if (type === 'agent') {
+                const target = (data.agentsList || []).find(a => (a.code || '').toUpperCase() === (identifier || '').toUpperCase());
+                if (target) {
+                    const isCurrentlyActive = target.status === 'Đang hoạt động';
+                    target.status = isCurrentlyActive ? 'Đã khóa' : 'Đang hoạt động';
+                    saveData(data);
+                    return {
+                        success: true,
+                        newStatus: target.status,
+                        message: `Đã ${isCurrentlyActive ? 'KHÓA' : 'MỞ KHÓA'} tài khoản đại lý ${target.code} (${target.companyName}).`
+                    };
+                }
+            } else {
+                const target = (data.adminsList || []).find(a => (a.username || '').toLowerCase() === (identifier || '').toLowerCase());
+                if (target) {
+                    const isCurrentlyActive = target.status !== 'Đã khóa';
+                    target.status = isCurrentlyActive ? 'Đã khóa' : 'Đang hoạt động';
+                    saveData(data);
+                    return {
+                        success: true,
+                        newStatus: target.status,
+                        message: `Đã ${isCurrentlyActive ? 'KHÓA' : 'MỞ KHÓA'} tài khoản nhân viên "${target.username}".`
+                    };
+                }
+            }
+
+            return { success: false, message: 'Không tìm thấy người dùng trong hệ thống.' };
+        },
+
+        updateUserRole: function(identifier, newRole, type = 'agent') {
+            const data = loadData();
+            if (type === 'agent') {
+                const target = (data.agentsList || []).find(a => (a.code || '').toUpperCase() === (identifier || '').toUpperCase());
+                if (target) {
+                    target.tier = newRole;
+                    saveData(data);
+                    return { success: true, message: `Đã phân hạng đại lý ${target.code} thành ${newRole}.` };
+                }
+            } else {
+                const target = (data.adminsList || []).find(a => (a.username || '').toLowerCase() === (identifier || '').toLowerCase());
+                if (target) {
+                    target.role = newRole;
+                    saveData(data);
+                    return { success: true, message: `Đã cập nhật vai trò cho "${target.username}" thành ${newRole}.` };
+                }
+            }
+            return { success: false, message: 'Không tìm thấy người dùng.' };
+        },
+
+        createStaffAccount: function(staffData) {
+            const data = loadData();
+            if (!data.adminsList) data.adminsList = seedAdmins;
+
+            const u = (staffData.username || '').trim().toLowerCase();
+            if (!u) return { success: false, message: 'Tên đăng nhập không được để trống.' };
+
+            const exists = data.adminsList.some(a => (a.username || '').toLowerCase() === u);
+            if (exists) return { success: false, message: `Tài khoản "${u}" đã tồn tại trên hệ thống.` };
+
+            const newStaff = {
+                id: Date.now(),
+                username: u,
+                password: staffData.password || 'staff2026',
+                role: staffData.role || 'STAFF',
+                fullName: staffData.fullName || 'Nhân viên Điều hành',
+                email: staffData.email || `${u}@airline.vn`,
+                department: staffData.department || 'Air Cargo Flight Operations',
+                status: 'Đang hoạt động'
+            };
+
+            data.adminsList.push(newStaff);
+            saveData(data);
+            return { success: true, message: `Đã tạo mới tài khoản nhân viên "${u}" (${newStaff.fullName}).`, staff: newStaff };
+        },
+
+        updateSystemSettings: function(settingsData) {
+            const data = loadData();
+            if (!data.settings) data.settings = {};
+
+            if (settingsData.minIncrement) data.settings.minIncrement = Number(settingsData.minIncrement);
+            if (settingsData.cutoffHours) data.settings.cutoffHours = Number(settingsData.cutoffHours);
+            if (settingsData.paymentWindowHours) data.settings.paymentWindowHours = Number(settingsData.paymentWindowHours);
+            if (settingsData.hotline) data.settings.hotline = settingsData.hotline;
+            if (settingsData.supportEmail) data.settings.supportEmail = settingsData.supportEmail;
+            if (settingsData.platformFee) data.settings.platformFee = Number(settingsData.platformFee);
+
+            saveData(data);
+            return { success: true, message: 'Đã lưu cấu hình hệ thống thành công!', settings: data.settings };
+        },
+
+        getSystemSettings: function() {
+            return loadData().settings || defaultData.settings;
+        },
+
         logoutAgent: function() {
             const data = loadData();
             data.currentUser = null;
@@ -1123,13 +1331,34 @@ const CargoStore = (function() {
             if (avatar) avatar.textContent = (user.agentCode || 'AG').slice(0, 2);
             if (code) code.textContent = user.agentCode;
             if (company) company.textContent = user.companyName;
+        },
+
+        syncAdminHeaderUI: function() {
+            const admin = loadData().currentAdmin;
+            if (!admin) return;
+
+            const isStaff = admin.role === 'STAFF';
+            const roleName = isStaff ? 'NHÂN VIÊN ĐIỀU HÀNH' : 'QUẢN TRỊ VIÊN';
+            const badgeClass = isStaff ? 'bg-emerald-500/20 text-emerald-400 border border-emerald-500/30' : 'bg-blue-500/20 text-blue-400 border border-blue-500/30';
+
+            document.querySelectorAll('.admin-header-name').forEach(el => {
+                el.textContent = admin.fullName || admin.username;
+            });
+
+            document.querySelectorAll('.admin-header-role').forEach(el => {
+                el.className = `text-[10px] font-bold px-2 py-0.5 rounded-full ${badgeClass} inline-flex items-center gap-1`;
+                el.innerHTML = isStaff ? '<i class="fa-solid fa-user-gear text-[9px]"></i> ' + roleName : '<i class="fa-solid fa-shield-halved text-[9px]"></i> ' + roleName;
+            });
         }
     };
 })();
 
 // Auto sync headers on page load
-document.addEventListener('DOMContentLoaded', function() {
-    if (typeof CargoStore !== 'undefined' && CargoStore.syncHeaderUI) {
-        CargoStore.syncHeaderUI();
-    }
-});
+if (typeof document !== 'undefined') {
+    document.addEventListener('DOMContentLoaded', function() {
+        if (typeof CargoStore !== 'undefined') {
+            if (CargoStore.syncHeaderUI) CargoStore.syncHeaderUI();
+            if (CargoStore.syncAdminHeaderUI) CargoStore.syncAdminHeaderUI();
+        }
+    });
+}
