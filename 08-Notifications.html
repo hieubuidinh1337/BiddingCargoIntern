@@ -190,10 +190,10 @@
     }
 
     function renderNotifications() {
-        const data = CargoStore.getData ? CargoStore.getData() : null;
-        if (!data) return;
+        if (typeof CargoStore === 'undefined') return;
 
-        let notifs = (data.notifications || []).slice();
+        // Use filtered notifications for the logged-in agent
+        let notifs = CargoStore.getNotifications ? CargoStore.getNotifications().slice() : [];
 
         // Stats
         const total = notifs.length;
@@ -299,7 +299,12 @@
     function markAllRead() {
         const data = CargoStore.getData ? CargoStore.getData() : null;
         if (!data) return;
-        (data.notifications || []).forEach(n => { n.read = true; });
+        const user = CargoStore.getCurrentUser ? CargoStore.getCurrentUser() : null;
+        (data.notifications || []).forEach(n => {
+            if (!user || !n.targetAgentCode || n.targetAgentCode === user.agentCode) {
+                n.read = true;
+            }
+        });
         if (CargoStore.saveData) CargoStore.saveData(data);
         showToast('Đã đánh dấu tất cả là đã đọc');
         renderNotifications();
@@ -308,7 +313,13 @@
     function clearAllRead() {
         const data = CargoStore.getData ? CargoStore.getData() : null;
         if (!data) return;
-        data.notifications = (data.notifications || []).filter(n => !n.read);
+        const user = CargoStore.getCurrentUser ? CargoStore.getCurrentUser() : null;
+        data.notifications = (data.notifications || []).filter(n => {
+            if (!user || !n.targetAgentCode || n.targetAgentCode === user.agentCode) {
+                return !n.read;
+            }
+            return true;
+        });
         if (CargoStore.saveData) CargoStore.saveData(data);
         showToast('Đã xóa các thông báo đã đọc');
         renderNotifications();

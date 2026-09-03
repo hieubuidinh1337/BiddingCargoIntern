@@ -317,11 +317,14 @@
             setInterval(renderDashboard, 3000);
         });
 
-        // Cross-tab sync: when another tab updates localStorage, re-render immediately
+        // Cross-browser & Cross-tab sync: when store updates, re-render immediately
         window.addEventListener('storage', function(e) {
             if (e.key === 'CARGO_BIDDING_DATA_V3') {
                 renderDashboard();
             }
+        });
+        window.addEventListener('cargostore_updated', function() {
+            renderDashboard();
         });
     </script>
 </body>

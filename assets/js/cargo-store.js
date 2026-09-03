@@ -853,7 +853,12 @@ const CargoStore = (function() {
         },
 
         getNotifications: function() {
-            return loadData().notifications || [];
+            const data = loadData();
+            const user = data.currentUser;
+            const allNotifs = data.notifications || [];
+            if (!user || !user.agentCode) return allNotifs;
+            // Only return notifications intended for this specific agent, or system broadcasts
+            return allNotifs.filter(n => !n.targetAgentCode || n.targetAgentCode === user.agentCode);
         },
 
         markNotificationRead: function(id) {
