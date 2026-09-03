@@ -953,6 +953,18 @@ const CargoStore = (function() {
             return { success: true, message: 'Đổi mật khẩu Admin thành công! Mật khẩu mặc định/cũ đã bị vô hiệu hóa.' };
         },
 
+        logoutAgent: function() {
+            const data = loadData();
+            data.currentUser = null;
+            saveData(data);
+        },
+
+        logoutAdmin: function() {
+            const data = loadData();
+            data.currentAdmin = null;
+            saveData(data);
+        },
+
         syncHeaderUI: function() {
             const user = loadData().currentUser;
             if (!user) return;

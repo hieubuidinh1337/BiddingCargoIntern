@@ -1,4 +1,4 @@
-﻿<!DOCTYPE html>
+<!DOCTYPE html>
 <html lang="vi">
 <head>
     <meta charset="UTF-8">
@@ -185,6 +185,11 @@
         }
 
         document.addEventListener('DOMContentLoaded', renderWonAuctions);
+
+        // Cross-tab sync
+        window.addEventListener('storage', function(e) {
+            if (e.key === 'CARGO_BIDDING_DATA_V3') renderWonAuctions();
+        });
     </script>
 </body>
 </html>

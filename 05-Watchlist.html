@@ -285,7 +285,7 @@
 
         const watchIds = data.watchlist || [];
         const auctions = data.auctions || [];
-        const currentAgentCode = data.currentUser?.agentCode || 'AG-0892';
+        const currentAgentCode = data.currentUser?.agentCode || '';
         const sort = document.getElementById('sortSelect')?.value || 'closing';
 
         let list = auctions.filter(a => watchIds.includes(a.id));
@@ -520,6 +520,11 @@
         renderWatchlist();
         updateNotifDot();
         setInterval(() => { renderWatchlist(); updateNotifDot(); }, 1000);
+    });
+
+    // Cross-tab sync
+    window.addEventListener('storage', function(e) {
+        if (e.key === 'CARGO_BIDDING_DATA_V3') { renderWatchlist(); updateNotifDot(); }
     });
     </script>
 </body>

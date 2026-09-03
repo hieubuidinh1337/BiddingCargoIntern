@@ -123,7 +123,7 @@
             if (typeof CargoStore === 'undefined') return;
 
             const currentUser = CargoStore.getCurrentUser ? CargoStore.getCurrentUser() : null;
-            const currentAgentCode = currentUser ? currentUser.agentCode : 'AG-0892';
+            const currentAgentCode = currentUser ? currentUser.agentCode : '';
 
             const routeVal = document.getElementById('routeFilter').value;
             const statusVal = document.getElementById('statusFilter').value;
@@ -257,6 +257,11 @@
 
             // Timer update
             setInterval(renderAuctions, 1000);
+        });
+
+        // Cross-tab sync
+        window.addEventListener('storage', function(e) {
+            if (e.key === 'CARGO_BIDDING_DATA_V3') renderAuctions();
         });
     </script>
 </body>

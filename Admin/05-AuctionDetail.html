@@ -190,7 +190,15 @@
             }
         }
 
-        document.addEventListener('DOMContentLoaded', loadAdminDetail);
+        document.addEventListener('DOMContentLoaded', function() {
+            loadAdminDetail();
+            setInterval(loadAdminDetail, 3000);
+        });
+
+        // Cross-tab sync
+        window.addEventListener('storage', function(e) {
+            if (e.key === 'CARGO_BIDDING_DATA_V3') loadAdminDetail();
+        });
     </script>
 </body>
 </html>

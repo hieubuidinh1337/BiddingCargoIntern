@@ -171,9 +171,9 @@
                 <p class="font-bold text-slate-900 text-sm">Đăng xuất khỏi thiết bị</p>
                 <p class="text-xs text-gray-400">Kết thúc phiên làm việc an toàn trên hệ thống Cargo Bidding</p>
             </div>
-            <a href="01-Login.html" class="inline-flex items-center gap-2 text-red-600 hover:bg-red-50 border border-red-200 px-5 py-2.5 rounded-xl text-xs font-bold transition">
+            <button onclick="handleLogout()" class="inline-flex items-center gap-2 text-red-600 hover:bg-red-50 border border-red-200 px-5 py-2.5 rounded-xl text-xs font-bold transition">
                 <i class="fa-solid fa-right-from-bracket"></i> Đăng xuất
-            </a>
+            </button>
         </div>
 
     </main>
@@ -236,6 +236,20 @@
     }
 
     document.addEventListener('DOMContentLoaded', renderProfile);
+
+    function handleLogout() {
+        if (typeof CargoStore !== 'undefined' && CargoStore.logoutAgent) {
+            CargoStore.logoutAgent();
+        } else {
+            // Fallback: clear currentUser manually
+            const data = CargoStore.getData ? CargoStore.getData() : null;
+            if (data) {
+                data.currentUser = null;
+                if (CargoStore.saveData) CargoStore.saveData(data);
+            }
+        }
+        window.location.href = '01-Login.html';
+    }
     </script>
 </body>
 </html>
