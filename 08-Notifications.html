@@ -1,4 +1,4 @@
-﻿<!DOCTYPE html>
+<!DOCTYPE html>
 <html lang="vi">
 <head>
     <meta charset="UTF-8">
@@ -324,6 +324,13 @@
     document.addEventListener('DOMContentLoaded', function() {
         renderNotifications();
         setInterval(renderNotifications, 5000);
+    });
+
+    // Cross-tab sync: re-render when another tab updates localStorage
+    window.addEventListener('storage', function(e) {
+        if (e.key === 'CARGO_BIDDING_DATA_V3') {
+            renderNotifications();
+        }
     });
     </script>
 </body>

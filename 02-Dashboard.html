@@ -1,4 +1,4 @@
-﻿<!DOCTYPE html>
+<!DOCTYPE html>
 <html lang="vi">
 <head>
     <meta charset="UTF-8">
@@ -103,7 +103,8 @@
                 </div>
                 <div>
                     <p class="text-xs text-gray-500 font-medium">Phiên đang mở</p>
-                    <p class="text-2xl font-bold text-slate-900 mt-0.5">3 <span class="text-xs text-green-600 font-semibold font-normal">Hôm nay</span></p>
+                    <p id="kpiOpenSessions" class="text-2xl font-bold text-slate-900 mt-0.5">0</p>
+                    <span class="text-xs text-green-600 font-semibold font-normal">Hôm nay</span>
                 </div>
             </div>
 
@@ -113,7 +114,7 @@
                 </div>
                 <div>
                     <p class="text-xs text-gray-500 font-medium">Đang dẫn đầu</p>
-                    <p id="kpiLeading" class="text-2xl font-bold text-emerald-600 mt-0.5">1 <span class="text-xs text-gray-400 font-normal">chuyến</span></p>
+                    <p id="kpiLeading" class="text-2xl font-bold text-emerald-600 mt-0.5">0 <span class="text-xs text-gray-400 font-normal">chuyến</span></p>
                 </div>
             </div>
 
@@ -206,71 +207,120 @@
     </main>
 
     <script>
-        document.addEventListener('DOMContentLoaded', function() {
+        function renderDashboard() {
             if (typeof CargoStore === 'undefined') return;
 
             const u = CargoStore.getCurrentUser();
+            const allAuctions = CargoStore.getAuctions();
+            const openAuctions = allAuctions.filter(a => a.status === 'OPEN');
+            const myCode = u ? u.agentCode : '';
+
+            // === Update Header Profile ===
             if (u) {
-                document.getElementById('hdrCompany').textContent = u.companyName || 'ABC Logistics';
-                document.getElementById('hdrCode').textContent = u.agentCode || 'AG-0892';
-                document.getElementById('hdrAvatar').textContent = (u.agentCode || 'AG').slice(0,2);
+                const hdrCompany = document.getElementById('hdrCompany');
+                const hdrCode = document.getElementById('hdrCode');
+                const hdrAvatar = document.getElementById('hdrAvatar');
+                if (hdrCompany) hdrCompany.textContent = u.companyName || 'Đại lý';
+                if (hdrCode) hdrCode.textContent = u.agentCode || 'AG-xxxx';
+                if (hdrAvatar) hdrAvatar.textContent = (u.agentCode || 'AG').slice(0,2);
                 document.getElementById('dashWelcomeName').textContent = `Xin chào, ${u.fullName || 'Đại lý'}`;
-                document.getElementById('dashCompanyInfo').innerHTML = `${u.companyName} (${u.agentCode}) · Hôm nay có <strong>28 chuyến bay</strong> mở thầu tải trọng cargo.`;
+                document.getElementById('dashCompanyInfo').innerHTML = `${u.companyName} (${u.agentCode}) · Hôm nay có <strong>${openAuctions.length} chuyến bay</strong> mở thầu tải trọng cargo.`;
                 document.getElementById('dashTierLabel').textContent = `Đại lý ${u.tier || 'TIER 1'} ủy quyền chính thức`;
-                if (u.stats) {
-                    document.getElementById('kpiWins').innerHTML = `${u.stats.totalWins || 8} <span class="text-xs text-gray-400 font-normal">đơn</span>`;
+            }
+
+            // === KPI 1: Phiên đang mở ===
+            const kpiOpen = document.getElementById('kpiOpenSessions');
+            if (kpiOpen) kpiOpen.textContent = openAuctions.length;
+
+            // === KPI 2: Đang dẫn đầu ===
+            const leadingCount = openAuctions.filter(a => a.leadingAgentCode === myCode).length;
+            const kpiLeading = document.getElementById('kpiLeading');
+            if (kpiLeading) kpiLeading.innerHTML = `${leadingCount} <span class="text-xs text-gray-400 font-normal">chuyến</span>`;
+
+            // === KPI 3: Đang theo dõi ===
+            const watchlistAuctions = CargoStore.getWatchlistAuctions ? CargoStore.getWatchlistAuctions() : [];
+            const kpiWatchlist = document.getElementById('kpiWatchlist');
+            if (kpiWatchlist) kpiWatchlist.innerHTML = `${watchlistAuctions.length} <span class="text-xs text-gray-400 font-normal">chuyến</span>`;
+
+            // === KPI 4: Thắng thầu (tính từ dữ liệu thực) ===
+            const wonAuctions = CargoStore.getWonAuctions ? CargoStore.getWonAuctions() : [];
+            const kpiWins = document.getElementById('kpiWins');
+            if (kpiWins) kpiWins.innerHTML = `${wonAuctions.length} <span class="text-xs text-gray-400 font-normal">đơn</span>`;
+
+            // === Unpaid count ===
+            const unpaidCount = wonAuctions.filter(w => w.paymentStatus === 'UNPAID').length;
+            const dashUnpaid = document.getElementById('dashUnpaidCount');
+            if (dashUnpaid) dashUnpaid.textContent = unpaidCount;
+
+            // === Render Featured Open Auctions ===
+            const container = document.getElementById('dashboardAuctionList');
+            if (container) {
+                if (openAuctions.length === 0) {
+                    container.innerHTML = `<div class="p-6 text-center text-gray-400 text-sm">Hiện chưa có phiên đấu giá nào đang mở.</div>`;
+                } else {
+                    container.innerHTML = openAuctions.map(a => {
+                        const timer = CargoStore.getTimeRemaining(a.endTime);
+                        const isLeading = a.leadingAgentCode === myCode;
+                        return `
+                            <div class="p-4 rounded-xl border border-gray-200 hover:border-blue-400 hover:shadow-md transition bg-white flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+                                <div class="space-y-1.5">
+                                    <div class="flex items-center gap-2">
+                                        <span class="bg-blue-600 text-white font-bold text-xs px-2.5 py-0.5 rounded-lg">${a.flightNumber}</span>
+                                        <span class="font-bold text-slate-900 text-sm">${a.route}</span>
+                                        <span class="text-xs text-gray-400">· ${a.aircraft}</span>
+                                        ${isLeading ? '<span class="bg-green-100 text-green-700 text-[10px] font-bold px-2 py-0.5 rounded-full flex items-center gap-1"><i class="fa-solid fa-crown"></i> Bạn đang dẫn đầu</span>' : ''}
+                                    </div>
+                                    <div class="flex flex-wrap items-center gap-x-4 gap-y-1 text-xs text-gray-500">
+                                        <span><i class="fa-solid fa-plane-departure text-gray-400 mr-1"></i> ETD: ${a.etd}</span>
+                                        <span><i class="fa-solid fa-weight-hanging text-gray-400 mr-1"></i> Tải trọng: <strong>${CargoStore.formatNumber(a.capacityKg)} Kg</strong></span>
+                                    </div>
+                                </div>
+                                <div class="flex items-center justify-between sm:justify-end gap-5">
+                                    <div class="text-left sm:text-right">
+                                        <p class="text-xs text-gray-400">Giá hiện tại</p>
+                                        <p class="text-base font-bold text-blue-600">${CargoStore.formatCurrency(a.currentPriceKg)}<span class="text-xs font-normal text-gray-500">/Kg</span></p>
+                                        <p class="text-[11px] text-orange-600 font-medium"><i class="fa-regular fa-clock mr-1"></i>Còn ${timer.hours > 0 ? timer.hours + 'h ' : ''}${timer.minutes}m ${timer.seconds}s</p>
+                                    </div>
+                                    <a href="04-Detail.html?id=${a.id}" class="bg-blue-600 hover:bg-blue-700 text-white text-xs font-semibold px-4 py-2.5 rounded-xl transition shadow flex items-center gap-1.5 flex-shrink-0">
+                                        <span>Đặt giá</span> <i class="fa-solid fa-arrow-right text-[10px]"></i>
+                                    </a>
+                                </div>
+                            </div>
+                        `;
+                    }).join('');
                 }
             }
 
-            // Render Featured Auctions
-            const auctions = CargoStore.getAuctions().filter(a => a.status === 'OPEN');
-            const container = document.getElementById('dashboardAuctionList');
-            if (container) {
-                container.innerHTML = auctions.map(a => {
-                    const timer = CargoStore.getTimeRemaining(a.endTime);
-                    const isLeading = a.leadingAgentCode === u.agentCode;
-                    return `
-                        <div class="p-4 rounded-xl border border-gray-200 hover:border-blue-400 hover:shadow-md transition bg-white flex flex-col sm:flex-row sm:items-center justify-between gap-4">
-                            <div class="space-y-1.5">
-                                <div class="flex items-center gap-2">
-                                    <span class="bg-blue-600 text-white font-bold text-xs px-2.5 py-0.5 rounded-lg">${a.flightNumber}</span>
-                                    <span class="font-bold text-slate-900 text-sm">${a.route}</span>
-                                    <span class="text-xs text-gray-400">· ${a.aircraft}</span>
-                                    ${isLeading ? '<span class="bg-green-100 text-green-700 text-[10px] font-bold px-2 py-0.5 rounded-full flex items-center gap-1"><i class="fa-solid fa-crown"></i> Bạn đang dẫn đầu</span>' : ''}
-                                </div>
-                                <div class="flex flex-wrap items-center gap-x-4 gap-y-1 text-xs text-gray-500">
-                                    <span><i class="fa-solid fa-plane-departure text-gray-400 mr-1"></i> ETD: ${a.etd}</span>
-                                    <span><i class="fa-solid fa-weight-hanging text-gray-400 mr-1"></i> Tải trọng: <strong>${CargoStore.formatNumber(a.capacityKg)} Kg</strong></span>
-                                </div>
-                            </div>
-                            <div class="flex items-center justify-between sm:justify-end gap-5">
-                                <div class="text-left sm:text-right">
-                                    <p class="text-xs text-gray-400">Giá hiện tại</p>
-                                    <p class="text-base font-bold text-blue-600">${CargoStore.formatCurrency(a.currentPriceKg)}<span class="text-xs font-normal text-gray-500">/Kg</span></p>
-                                    <p class="text-[11px] text-orange-600 font-medium"><i class="fa-regular fa-clock mr-1"></i>Còn ${timer.minutes}m ${timer.seconds}s</p>
-                                </div>
-                                <a href="04-Detail.html?id=${a.id}" class="bg-blue-600 hover:bg-blue-700 text-white text-xs font-semibold px-4 py-2.5 rounded-xl transition shadow flex items-center gap-1.5 flex-shrink-0">
-                                    <span>Đặt giá</span> <i class="fa-solid fa-arrow-right text-[10px]"></i>
-                                </a>
-                            </div>
-                        </div>
-                    `;
-                }).join('');
-            }
-
-            // Render Notifications Widget
+            // === Render Notifications Widget ===
             const notifs = CargoStore.getNotifications().slice(0, 3);
             const notifBox = document.getElementById('quickNotificationsList');
             if (notifBox) {
-                notifBox.innerHTML = notifs.map(n => `
-                    <div class="p-3 rounded-xl bg-gray-50 border border-gray-100 hover:bg-blue-50/50 transition text-xs">
-                        <div class="flex items-center justify-between mb-1">
-                            <span class="font-bold text-slate-800">${n.title}</span>
-                            <span class="text-[10px] text-gray-400">${n.time}</span>
+                if (notifs.length === 0) {
+                    notifBox.innerHTML = `<div class="p-4 text-center text-gray-400 text-xs">Chưa có thông báo nào</div>`;
+                } else {
+                    notifBox.innerHTML = notifs.map(n => `
+                        <div class="p-3 rounded-xl bg-gray-50 border border-gray-100 hover:bg-blue-50/50 transition text-xs">
+                            <div class="flex items-center justify-between mb-1">
+                                <span class="font-bold text-slate-800">${n.title}</span>
+                                <span class="text-[10px] text-gray-400">${n.time}</span>
+                            </div>
+                            <p class="text-gray-600 text-[11px] leading-relaxed">${n.message}</p>
                         </div>
-                        <p class="text-gray-600 text-[11px] leading-relaxed">${n.message}</p>
-                    </div>
-                `).join('');
+                    `).join('');
+                }
+            }
+        }
+
+        document.addEventListener('DOMContentLoaded', function() {
+            renderDashboard();
+            // Auto-refresh every 3 seconds for realtime sync
+            setInterval(renderDashboard, 3000);
+        });
+
+        // Cross-tab sync: when another tab updates localStorage, re-render immediately
+        window.addEventListener('storage', function(e) {
+            if (e.key === 'CARGO_BIDDING_DATA_V3') {
+                renderDashboard();
             }
         });
     </script>

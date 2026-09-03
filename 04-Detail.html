@@ -243,6 +243,12 @@
             return urlParams.get(param) || '1';
         }
 
+        function getMyCode() {
+            if (typeof CargoStore === 'undefined') return '';
+            const u = CargoStore.getCurrentUser();
+            return u ? u.agentCode : '';
+        }
+
         function loadAuctionDetail() {
             if (typeof CargoStore === 'undefined') return;
             const id = getParam('id');
@@ -297,6 +303,7 @@
             if (!currentAuction) return;
             const bids = CargoStore.getBidsForAuction(currentAuction.id);
             document.getElementById('bidCountBadge').textContent = bids.length + ' lượt đặt';
+            const myCode = getMyCode();
 
             const tbody = document.getElementById('bidsTableBody');
             if (bids.length === 0) {
@@ -306,7 +313,7 @@
 
             tbody.innerHTML = bids.map((b, index) => {
                 const isFirst = index === 0;
-                const isMine = b.agentCode === 'AG-0892';
+                const isMine = b.agentCode === myCode;
                 return `
                     <tr class="${isFirst ? 'bg-blue-50/40 font-medium' : 'hover:bg-gray-50'} transition">
                         <td class="py-3 px-4">
@@ -377,6 +384,15 @@
         document.addEventListener('DOMContentLoaded', function() {
             loadAuctionDetail();
             setInterval(updateClock, 1000);
+            // Auto-refresh auction data every 3 seconds for realtime sync
+            setInterval(loadAuctionDetail, 3000);
+        });
+
+        // Cross-tab sync: re-render when another tab updates localStorage
+        window.addEventListener('storage', function(e) {
+            if (e.key === 'CARGO_BIDDING_DATA_V3') {
+                loadAuctionDetail();
+            }
         });
     </script>
 </body>
