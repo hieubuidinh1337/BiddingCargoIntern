@@ -553,6 +553,65 @@ const CargoStore = (function() {
             return loadData().currentAdmin;
         },
 
+        createAuction: function(auctionData) {
+            const data = loadData();
+            if (!data.auctions) data.auctions = [];
+
+            const newId = data.auctions.length > 0 ? Math.max(...data.auctions.map(a => a.id || 0)) + 1 : 1;
+            const now = new Date();
+            const flightNumber = (auctionData.flightNumber || 'VU999').trim().toUpperCase();
+            const origin = (auctionData.origin || 'SGN').trim().toUpperCase();
+            const dest = (auctionData.destination || 'HAN').trim().toUpperCase();
+
+            const airportNames = {
+                'SGN': 'TP. Hồ Chí Minh',
+                'HAN': 'Hà Nội',
+                'DAD': 'Đà Nẵng',
+                'PQC': 'Phú Quốc',
+                'CXR': 'Nha Trang'
+            };
+
+            const originName = airportNames[origin] || origin;
+            const destName = airportNames[dest] || dest;
+            const dateStr = now.toISOString().slice(2, 10).replace(/-/g, '');
+            const flightCode = `FL-${flightNumber}-${dateStr}`;
+
+            const capacityKg = Number(auctionData.capacityKg) || 3000;
+            const startingPriceKg = Number(auctionData.startingPriceKg) || 18000;
+            const minStep = Number(auctionData.minStep) || 500;
+
+            const endTime = new Date(now.getTime() + 120 * 60 * 1000).toISOString();
+
+            const newAuction = {
+                id: newId,
+                flightCode: flightCode,
+                flightNumber: flightNumber,
+                route: `${origin} - ${dest}`,
+                origin: origin,
+                destination: dest,
+                originName: originName,
+                destName: destName,
+                etd: auctionData.etd || '18:30 · Hôm nay',
+                eta: auctionData.eta || '20:45 · Hôm nay',
+                aircraft: auctionData.aircraft || 'Airbus A321neo Cargo',
+                capacityKg: capacityKg,
+                startingPriceKg: startingPriceKg,
+                currentPriceKg: startingPriceKg,
+                minStep: minStep,
+                endTime: endTime,
+                status: 'OPEN',
+                leadingAgentCode: 'Chưa có',
+                leadingAgentName: 'Chưa có đại lý nào đặt giá',
+                bidsCount: 0,
+                specialNotes: auctionData.specialNotes || 'Tải trọng tổng hợp tiêu chuẩn IATA.',
+                cutOffTime: auctionData.cutOffTime || 'Trước ETD 3 giờ'
+            };
+
+            data.auctions.unshift(newAuction);
+            saveData(data);
+            return newAuction;
+        },
+
         getAuctions: function() {
             return loadData().auctions;
         },
