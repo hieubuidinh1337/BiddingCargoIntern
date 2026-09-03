@@ -193,7 +193,7 @@
         const data = CargoStore.getData ? CargoStore.getData() : null;
         if (!data) return;
 
-        let notifs = (data.notifications || []).slice().reverse();
+        let notifs = (data.notifications || []).slice();
 
         // Stats
         const total = notifs.length;
@@ -323,7 +323,6 @@
 
     document.addEventListener('DOMContentLoaded', function() {
         renderNotifications();
-        setInterval(renderNotifications, 5000);
     });
 
     // Cross-tab sync: re-render when another tab updates localStorage

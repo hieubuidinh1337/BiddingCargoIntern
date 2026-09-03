@@ -631,6 +631,16 @@ const CargoStore = (function() {
             const auction = data.auctions.find(a => a.id == auctionId);
             if (!auction) return { success: false, message: 'Phiên đấu giá không tồn tại' };
 
+            // Check if auction is CLOSED or timer has expired
+            const timer = getTimeRemaining(auction.endTime);
+            if (auction.status === 'CLOSED' || timer.isEnded) {
+                if (auction.status !== 'CLOSED') {
+                    auction.status = 'CLOSED';
+                    saveData(data);
+                }
+                return { success: false, message: 'Phiên đấu giá này đã đóng thầu, không thể đặt thêm giá.' };
+            }
+
             const minAcceptable = auction.currentPriceKg + auction.minStep;
             if (bidPriceKg < minAcceptable) {
                 return {
@@ -639,14 +649,18 @@ const CargoStore = (function() {
                 };
             }
 
+            const user = data.currentUser || defaultData.currentUser;
+
+            // Track previous leader before updating
+            const previousLeaderCode = auction.leadingAgentCode;
+            const previousLeaderName = auction.leadingAgentName;
+
             // Mark previous bids as OUTBID
             data.bids.forEach(b => {
                 if (b.auctionId == auctionId && b.status === 'HIGHEST') {
                     b.status = 'OUTBID';
                 }
             });
-
-            const user = data.currentUser || defaultData.currentUser;
 
             // Insert new bid with logged in agent's identity
             const newBid = {
@@ -668,11 +682,15 @@ const CargoStore = (function() {
             auction.bidsCount = (auction.bidsCount || 0) + 1;
 
             // Update user stats
+            if (!user.stats) user.stats = {};
             user.stats.totalBids = (user.stats.totalBids || 0) + 1;
 
-            // Create notification
+            if (!data.notifications) data.notifications = [];
+
+            // 1. Notification for current bidder (HIGHEST)
             data.notifications.unshift({
                 id: Date.now(),
+                targetAgentCode: user.agentCode,
                 title: `Đặt giá thành công chuyến ${auction.flightNumber}`,
                 message: `Bạn (${user.agentCode}) đang dẫn đầu mức giá ${formatCurrency(bidPriceKg)}/Kg cho chặng ${auction.route}.`,
                 time: 'Vừa xong',
@@ -680,6 +698,20 @@ const CargoStore = (function() {
                 read: false,
                 link: `04-Detail.html?id=${auction.id}`
             });
+
+            // 2. Notification for previous leading agent (OUTBID)
+            if (previousLeaderCode && previousLeaderCode !== user.agentCode) {
+                data.notifications.unshift({
+                    id: Date.now() + 1,
+                    targetAgentCode: previousLeaderCode,
+                    title: `Cảnh báo bị vượt giá chuyến ${auction.flightNumber}!`,
+                    message: `Đại lý ${user.companyName} (${user.agentCode}) vừa đặt mức giá mới ${formatCurrency(bidPriceKg)}/Kg cho chặng ${auction.route}.`,
+                    time: 'Vừa xong',
+                    type: 'OUTBID',
+                    read: false,
+                    link: `04-Detail.html?id=${auction.id}`
+                });
+            }
 
             saveData(data);
             return { success: true, bid: newBid, auction: auction };

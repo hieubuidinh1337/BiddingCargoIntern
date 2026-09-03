@@ -48,7 +48,7 @@
             <a href="03-Index.html" class="text-xs font-semibold text-gray-500 hover:text-blue-600 flex items-center gap-1.5">
                 <i class="fa-solid fa-arrow-left"></i> Trở lại danh sách chuyến bay
             </a>
-            <div class="flex items-center gap-2">
+            <div class="flex items-center gap-2" id="topStatusBadge">
                 <span class="inline-block w-2.5 h-2.5 rounded-full bg-green-500 animate-pulse"></span>
                 <span class="text-xs font-medium text-green-700 bg-green-50 px-2.5 py-1 rounded-full border border-green-200">Phiên đang mở trực tiếp</span>
             </div>
@@ -275,10 +275,55 @@
             const minAcceptable = currentAuction.currentPriceKg + currentAuction.minStep;
             document.getElementById('minAcceptablePrice').textContent = CargoStore.formatCurrency(minAcceptable) + '/Kg';
 
-            const input = document.getElementById('bidPriceInput');
-            if (!input.value || Number(input.value) < minAcceptable) {
-                input.value = minAcceptable;
+            const timer = CargoStore.getTimeRemaining(currentAuction.endTime);
+            const isClosed = currentAuction.status === 'CLOSED' || timer.isEnded;
+
+            // Top Status Badge
+            const topBadge = document.getElementById('topStatusBadge');
+            if (topBadge) {
+                if (isClosed) {
+                    topBadge.innerHTML = `
+                        <span class="inline-block w-2.5 h-2.5 rounded-full bg-red-500"></span>
+                        <span class="text-xs font-medium text-red-700 bg-red-50 px-2.5 py-1 rounded-full border border-red-200">Phiên đã đóng thầu</span>
+                    `;
+                } else {
+                    topBadge.innerHTML = `
+                        <span class="inline-block w-2.5 h-2.5 rounded-full bg-green-500 animate-pulse"></span>
+                        <span class="text-xs font-medium text-green-700 bg-green-50 px-2.5 py-1 rounded-full border border-green-200">Phiên đang mở trực tiếp</span>
+                    `;
+                }
             }
+
+            // Input and Submit Controls
+            const input = document.getElementById('bidPriceInput');
+            const submitBtn = document.getElementById('submitBidBtn');
+            const alertBox = document.getElementById('bidAlertBox');
+
+            if (isClosed) {
+                if (input) input.disabled = true;
+                if (submitBtn) {
+                    submitBtn.disabled = true;
+                    submitBtn.className = 'w-full bg-slate-300 text-slate-500 font-bold py-3.5 rounded-xl text-sm flex items-center justify-center gap-2 cursor-not-allowed shadow-none';
+                    submitBtn.innerHTML = '<i class="fa-solid fa-lock"></i> <span>Phiên đấu giá đã đóng thầu</span>';
+                }
+                if (alertBox) {
+                    alertBox.className = 'mt-3 p-3 rounded-xl text-xs bg-amber-50 text-amber-800 border border-amber-200 block';
+                    alertBox.textContent = 'Phiên đấu giá này đã chính thức đóng thầu. Hệ thống ngắt quyền gửi mức giá mới.';
+                }
+            } else {
+                if (input) {
+                    input.disabled = false;
+                    if (!input.value || Number(input.value) < minAcceptable) {
+                        input.value = minAcceptable;
+                    }
+                }
+                if (submitBtn) {
+                    submitBtn.disabled = false;
+                    submitBtn.className = 'w-full bg-blue-600 hover:bg-blue-700 text-white font-bold py-3.5 rounded-xl transition shadow-md shadow-blue-600/20 text-sm flex items-center justify-center gap-2';
+                    submitBtn.innerHTML = '<i class="fa-solid fa-gavel"></i> <span>Xác nhận gửi mức giá</span>';
+                }
+            }
+
             updateCalc();
             renderBidsTable();
         }
@@ -294,6 +339,7 @@
 
         function addIncrement(amount) {
             const input = document.getElementById('bidPriceInput');
+            if (input.disabled) return;
             const cur = Number(input.value) || (currentAuction ? currentAuction.currentPriceKg : 0);
             input.value = cur + amount;
             updateCalc();
@@ -372,8 +418,12 @@
             const timer = CargoStore.getTimeRemaining(currentAuction.endTime);
             const clock = document.getElementById('countdownClock');
             if (clock) {
-                if (timer.isEnded) {
+                if (timer.isEnded || currentAuction.status === 'CLOSED') {
                     clock.textContent = '00:00:00 - ĐÃ ĐÓNG';
+                    const submitBtn = document.getElementById('submitBidBtn');
+                    if (submitBtn && !submitBtn.disabled) {
+                        loadAuctionDetail();
+                    }
                 } else {
                     const pad = n => String(n).padStart(2, '0');
                     clock.textContent = `${pad(timer.hours)}:${pad(timer.minutes)}:${pad(timer.seconds)}`;
