@@ -1,6 +1,0 @@
-﻿-- ============================================================================
--- HE THONG DAU GIA HANG HOA HANG KHONG (CARGO BIDDING SYSTEM)
--- DATABASE SCHEMA HOAN CHINH - MICROSOFT SQL SERVER 2022 (SSMS 2022)
--- Phien ban: 2.0 - Nang cap day du
--- Cap nhat: 03/09/2026
--- ============================================================================
