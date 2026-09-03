@@ -1,4 +1,4 @@
-﻿<!DOCTYPE html>
+<!DOCTYPE html>
 <html lang="vi">
 <head>
     <meta charset="UTF-8">
@@ -89,10 +89,10 @@
                 </a>
                 <div class="h-6 w-px bg-gray-200 hidden sm:block"></div>
                 <a href="09-Profile.html" class="flex items-center gap-2.5 hover:bg-gray-50 p-1.5 rounded-xl transition">
-                    <div class="w-8 h-8 rounded-lg bg-blue-100 text-blue-700 flex items-center justify-center font-bold text-xs">AG</div>
+                    <div class="w-8 h-8 rounded-lg bg-blue-100 text-blue-700 flex items-center justify-center font-bold text-xs" id="headerUserAvatar">AG</div>
                     <div class="hidden sm:block text-left">
-                        <p class="text-xs font-bold text-slate-800 leading-tight">ABC Logistics</p>
-                        <p class="text-[11px] text-gray-500 leading-none">Mã: <span class="text-blue-600 font-semibold">AG-0892</span></p>
+                        <p class="text-xs font-bold text-slate-800 leading-tight" id="headerCompanyName">ABC Logistics</p>
+                        <p class="text-[11px] text-gray-500 leading-none">Mã: <span class="text-blue-600 font-semibold" id="headerUserCode">AG-0892</span></p>
                     </div>
                 </a>
                 <a href="01-Login.html" title="Đăng xuất" class="text-gray-400 hover:text-red-600 p-2 transition">
@@ -404,8 +404,8 @@
                         <!-- Leader -->
                         <div class="hidden lg:block">
                             <p class="text-[11px] text-gray-400 mb-0.5">Đại lý dẫn đầu</p>
-                            <p class="text-sm font-semibold text-slate-700">${isLeading ? '<span class="text-emerald-600">🏆 Bạn (AG-0892)</span>' : (a.leadingAgentCode || '—')}</p>
-                            <p class="text-[11px] text-gray-400">${isLeading ? 'ABC Logistics' : (a.leadingAgentName || 'Chưa có lượt thầu')}</p>
+                            <p class="text-sm font-semibold text-slate-700">${isLeading ? `<span class="text-emerald-600">🏆 Bạn (${currentAgentCode})</span>` : (a.leadingAgentCode || '—')}</p>
+                            <p class="text-[11px] text-gray-400">${isLeading ? (data.currentUser ? data.currentUser.companyName : 'ABC Logistics') : (a.leadingAgentName || 'Chưa có lượt thầu')}</p>
                         </div>
                     </div>
 

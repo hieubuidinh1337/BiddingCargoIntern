@@ -964,11 +964,19 @@ const CargoStore = (function() {
                 el.textContent = user.agentCode;
             });
             document.querySelectorAll('.agent-rep-name').forEach(el => {
-                el.textContent = user.fullName;
+                el.textContent = user.fullName || user.repName;
             });
             document.querySelectorAll('.agent-tier-badge').forEach(el => {
                 el.textContent = user.tier || 'TIER1';
             });
+
+            const avatar = document.getElementById('headerUserAvatar') || document.getElementById('hdrAvatar');
+            const code = document.getElementById('headerUserCode') || document.getElementById('hdrCode');
+            const company = document.getElementById('headerCompanyName') || document.getElementById('hdrCompany');
+
+            if (avatar) avatar.textContent = (user.agentCode || 'AG').slice(0, 2);
+            if (code) code.textContent = user.agentCode;
+            if (company) company.textContent = user.companyName;
         }
     };
 })();
