@@ -1,0 +1,198 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Báo cáo & Thống kê - Cargo Bidding Admin</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+    <script src="../assets/js/cargo-store.js"></script>
+</head>
+<body class="bg-slate-100 text-slate-800">
+
+    <header class="bg-slate-900 text-white sticky top-0 z-50 border-b border-slate-800 shadow-sm">
+        <div class="max-w-7xl mx-auto px-4 py-2.5 flex items-center justify-between">
+            <div class="flex items-center gap-6">
+                <a href="02-AdminDashboard.html" class="flex items-center gap-2.5">
+                    <div class="w-8 h-8 bg-blue-600 rounded-lg flex items-center justify-center font-bold text-sm shadow">VN</div>
+                    <div>
+                        <span class="font-bold text-sm leading-tight block">Cargo Bidding Admin</span>
+                        <span class="text-[10px] text-blue-400 font-medium block">Hệ thống Điều hành & Thẩm định</span>
+                    </div>
+                </a>
+                <nav class="hidden md:flex items-center gap-1 text-xs font-medium">
+                    <a href="02-AdminDashboard.html" class="px-3 py-1.5 rounded-lg text-slate-300 hover:text-white hover:bg-slate-800 transition">Dashboard</a>
+                    <a href="03-AuctionList.html" class="px-3 py-1.5 rounded-lg text-slate-300 hover:text-white hover:bg-slate-800 transition">Quản lý phiên</a>
+                    <a href="04-CreateAuction.html" class="px-3 py-1.5 rounded-lg text-slate-300 hover:text-white hover:bg-slate-800 transition">Tạo phiên mới</a>
+                    <a href="06-AgentList.html" class="px-3 py-1.5 rounded-lg text-slate-300 hover:text-white hover:bg-slate-800 transition">Đại lý & Duyệt đơn</a>
+                    <a href="07-Reports.html" class="px-3 py-1.5 rounded-lg bg-blue-600 text-white font-semibold">Báo cáo</a>
+                    <a href="08-Settings.html" class="px-3 py-1.5 rounded-lg text-slate-300 hover:text-white hover:bg-slate-800 transition">Cài đặt</a>
+                </nav>
+            </div>
+            <div class="flex items-center gap-2">
+                <span class="text-xs text-slate-300 hidden sm:inline">Trần Quản Trị</span>
+                <a href="01-AdminLogin.html" title="Đăng xuất" class="text-slate-400 hover:text-red-400 p-1">
+                    <i class="fa-solid fa-power-off text-xs"></i>
+                </a>
+            </div>
+        </div>
+    </header>
+
+    <main class="max-w-7xl mx-auto px-4 py-6 space-y-6">
+
+        <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+            <div>
+                <h1 class="text-2xl font-bold text-slate-900 flex items-center gap-2">
+                    <i class="fa-solid fa-chart-line text-blue-600"></i> Báo cáo & Thống kê Hiệu quả Vận tải
+                </h1>
+                <p class="text-xs text-slate-500 mt-1">Phân tích doanh thu đấu giá, tỷ lệ lấp đầy tải trọng theo từng chặng bay</p>
+            </div>
+            <div class="flex items-center gap-2">
+                <button onclick="alert('Đang xuất file Excel dữ liệu chi tiết...')" class="bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-semibold px-4 py-2.5 rounded-xl transition shadow flex items-center gap-1.5">
+                    <i class="fa-solid fa-file-excel"></i> Xuất Excel
+                </button>
+                <button onclick="alert('Đang xuất báo cáo tổng quan định dạng PDF...')" class="bg-white border hover:bg-slate-50 text-slate-700 text-xs font-semibold px-4 py-2.5 rounded-xl transition shadow-sm flex items-center gap-1.5">
+                    <i class="fa-solid fa-file-pdf text-red-500"></i> Xuất PDF
+                </button>
+            </div>
+        </div>
+
+        <!-- 3 Big Metric Cards -->
+        <div class="grid grid-cols-1 sm:grid-cols-3 gap-4">
+            <div class="bg-white rounded-2xl p-5 border shadow-sm">
+                <p class="text-xs text-slate-500">Tổng doanh thu cargo qua thầu</p>
+                <p class="text-2xl font-bold text-slate-900 mt-1">1.280.500.000 đ</p>
+                <span class="text-[11px] text-emerald-600 font-semibold">+24.8% so với cùng kỳ tháng trước</span>
+            </div>
+            <div class="bg-white rounded-2xl p-5 border shadow-sm">
+                <p class="text-xs text-slate-500">Tổng tải trọng khai thác</p>
+                <p class="text-2xl font-bold text-blue-600 mt-1">68,400 Kg</p>
+                <span class="text-[11px] text-slate-400">Tỷ lệ lấp đầy bình quân: 92.6%</span>
+            </div>
+            <div class="bg-white rounded-2xl p-5 border shadow-sm">
+                <p class="text-xs text-slate-500">Giá thắng thầu bình quân</p>
+                <p class="text-2xl font-bold text-purple-600 mt-1">21.800 đ/Kg</p>
+                <span class="text-[11px] text-emerald-600 font-semibold">+12% so với giá sàn khởi điểm</span>
+            </div>
+        </div>
+
+        <!-- Revenue by Route Report Table -->
+        <div class="bg-white rounded-2xl border shadow-sm p-6 space-y-4">
+            <div class="flex items-center justify-between">
+                <div>
+                    <h2 class="text-base font-bold text-slate-900 flex items-center gap-2">
+                        <i class="fa-solid fa-route text-blue-600"></i> Doanh thu & Tải trọng theo từng đường bay
+                    </h2>
+                    <p class="text-xs text-slate-500 mt-0.5">Tương ứng với kết quả View <code>vw_RouteRevenueReport</code> trong SQL Server 2022</p>
+                </div>
+                <span class="text-xs bg-slate-100 text-slate-700 px-3 py-1 rounded-lg font-medium">Kỳ báo cáo: Tháng 08/2026</span>
+            </div>
+
+            <div class="overflow-x-auto">
+                <table class="w-full text-left text-xs">
+                    <thead class="bg-slate-50 text-slate-500 font-semibold border-b">
+                        <tr>
+                            <th class="py-3 px-4">Tuyến đường bay</th>
+                            <th class="py-3 px-4">Số chuyến đấu giá</th>
+                            <th class="py-3 px-4">Tổng tải trọng chào</th>
+                            <th class="py-3 px-4">Tải trọng trúng thầu</th>
+                            <th class="py-3 px-4">Tỷ lệ lấp đầy (Fill-rate)</th>
+                            <th class="py-3 px-4">Giá bình quân</th>
+                            <th class="py-3 px-4 text-right">Tổng doanh thu (VND)</th>
+                        </tr>
+                    </thead>
+                    <tbody class="divide-y divide-gray-100">
+                        <tr class="hover:bg-slate-50 transition">
+                            <td class="py-3.5 px-4 font-bold text-slate-800">
+                                <span class="w-2 h-2 rounded-full bg-blue-500 inline-block mr-1.5"></span> SGN - HAN (Sài Gòn - Hà Nội)
+                            </td>
+                            <td class="py-3.5 px-4 font-medium">18 chuyến</td>
+                            <td class="py-3.5 px-4">54,000 Kg</td>
+                            <td class="py-3.5 px-4 font-bold text-slate-900">52,500 Kg</td>
+                            <td class="py-3.5 px-4">
+                                <div class="flex items-center gap-2">
+                                    <div class="w-20 bg-gray-200 h-2 rounded-full overflow-hidden">
+                                        <div class="bg-emerald-500 h-full w-[97%]"></div>
+                                    </div>
+                                    <span class="font-bold text-emerald-600">97.2%</span>
+                                </div>
+                            </td>
+                            <td class="py-3.5 px-4 font-semibold text-blue-600">22.000 đ/Kg</td>
+                            <td class="py-3.5 px-4 text-right font-bold text-slate-900">1.155.000.000 đ</td>
+                        </tr>
+
+                        <tr class="hover:bg-slate-50 transition">
+                            <td class="py-3.5 px-4 font-bold text-slate-800">
+                                <span class="w-2 h-2 rounded-full bg-emerald-500 inline-block mr-1.5"></span> SGN - DAD (Sài Gòn - Đà Nẵng)
+                            </td>
+                            <td class="py-3.5 px-4 font-medium">8 chuyến</td>
+                            <td class="py-3.5 px-4">16,000 Kg</td>
+                            <td class="py-3.5 px-4 font-bold text-slate-900">14,200 Kg</td>
+                            <td class="py-3.5 px-4">
+                                <div class="flex items-center gap-2">
+                                    <div class="w-20 bg-gray-200 h-2 rounded-full overflow-hidden">
+                                        <div class="bg-blue-500 h-full w-[88%]"></div>
+                                    </div>
+                                    <span class="font-bold text-blue-600">88.7%</span>
+                                </div>
+                            </td>
+                            <td class="py-3.5 px-4 font-semibold text-blue-600">14.500 đ/Kg</td>
+                            <td class="py-3.5 px-4 text-right font-bold text-slate-900">205.900.000 đ</td>
+                        </tr>
+
+                        <tr class="hover:bg-slate-50 transition">
+                            <td class="py-3.5 px-4 font-bold text-slate-800">
+                                <span class="w-2 h-2 rounded-full bg-purple-500 inline-block mr-1.5"></span> HAN - PQC (Hà Nội - Phú Quốc)
+                            </td>
+                            <td class="py-3.5 px-4 font-medium">4 chuyến</td>
+                            <td class="py-3.5 px-4">16,000 Kg</td>
+                            <td class="py-3.5 px-4 font-bold text-slate-900">15,000 Kg</td>
+                            <td class="py-3.5 px-4">
+                                <div class="flex items-center gap-2">
+                                    <div class="w-20 bg-gray-200 h-2 rounded-full overflow-hidden">
+                                        <div class="bg-purple-500 h-full w-[93%]"></div>
+                                    </div>
+                                    <span class="font-bold text-purple-600">93.7%</span>
+                                </div>
+                            </td>
+                            <td class="py-3.5 px-4 font-semibold text-blue-600">25.000 đ/Kg</td>
+                            <td class="py-3.5 px-4 text-right font-bold text-slate-900">375.000.000 đ</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+        <!-- Top Active Agents -->
+        <div class="bg-white rounded-2xl border shadow-sm p-6 space-y-4">
+            <h2 class="text-base font-bold text-slate-900 flex items-center gap-2">
+                <i class="fa-solid fa-ranking-star text-amber-500"></i> Top Đại lý có doanh số đấu giá cao nhất
+            </h2>
+
+            <div class="grid grid-cols-1 sm:grid-cols-3 gap-4 text-xs">
+                <div class="p-4 rounded-xl border bg-amber-50/40 border-amber-200 space-y-2">
+                    <span class="w-6 h-6 rounded-full bg-amber-400 text-white font-bold flex items-center justify-center text-[10px]">1</span>
+                    <p class="font-bold text-slate-900 text-sm">Vinatrans Express (AG-1024)</p>
+                    <p class="text-gray-500">Tổng thầu: <strong>45 lượt</strong> · Thắng: <strong class="text-green-600">16 chuyến</strong></p>
+                    <p class="font-bold text-blue-600 text-sm">Tổng chi tiêu: 28,500 USD</p>
+                </div>
+
+                <div class="p-4 rounded-xl border bg-slate-50 border-slate-200 space-y-2">
+                    <span class="w-6 h-6 rounded-full bg-slate-400 text-white font-bold flex items-center justify-center text-[10px]">2</span>
+                    <p class="font-bold text-slate-900 text-sm">Công ty TNHH Vận tải ABC (AG-0892)</p>
+                    <p class="text-gray-500">Tổng thầu: <strong>24 lượt</strong> · Thắng: <strong class="text-green-600">8 chuyến</strong></p>
+                    <p class="font-bold text-blue-600 text-sm">Tổng chi tiêu: 12,400 USD</p>
+                </div>
+
+                <div class="p-4 rounded-xl border bg-slate-50 border-slate-200 space-y-2">
+                    <span class="w-6 h-6 rounded-full bg-amber-700 text-white font-bold flex items-center justify-center text-[10px]">3</span>
+                    <p class="font-bold text-slate-900 text-sm">Golden Star Forwarding (AG-0556)</p>
+                    <p class="text-gray-500">Tổng thầu: <strong>18 lượt</strong> · Thắng: <strong class="text-green-600">5 chuyến</strong></p>
+                    <p class="font-bold text-blue-600 text-sm">Tổng chi tiêu: 8,200 USD</p>
+                </div>
+            </div>
+        </div>
+
+    </main>
+</body>
+</html>

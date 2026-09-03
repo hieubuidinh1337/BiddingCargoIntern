@@ -1,0 +1,383 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Chi tiết phiên đấu giá - Cargo Bidding</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+    <script src="assets/js/cargo-store.js"></script>
+</head>
+<body class="bg-gray-100 text-gray-800">
+
+    <!-- Top Navigation Bar for Agent -->
+    <header class="bg-white border-b shadow-sm sticky top-0 z-50">
+        <div class="max-w-7xl mx-auto px-4 py-3 flex items-center justify-between">
+            <div class="flex items-center gap-6">
+                <a href="02-Dashboard.html" class="flex items-center gap-2.5">
+                    <div class="w-9 h-9 bg-blue-600 rounded-xl flex items-center justify-center text-white font-bold text-base shadow">VN</div>
+                    <div>
+                        <span class="font-bold text-base text-slate-900 block leading-tight">Cargo Bidding</span>
+                        <span class="text-[10px] text-gray-400 uppercase tracking-wider block font-semibold">Agent Portal</span>
+                    </div>
+                </a>
+                <nav class="hidden md:flex items-center gap-1 text-sm font-medium">
+                    <a href="02-Dashboard.html" class="px-3 py-1.5 rounded-lg text-gray-600 hover:text-blue-600 hover:bg-gray-50 transition">Tổng quan</a>
+                    <a href="03-Index.html" class="px-3 py-1.5 rounded-lg bg-blue-50 text-blue-600 font-semibold">Sàn đấu giá</a>
+                    <a href="05-Watchlist.html" class="px-3 py-1.5 rounded-lg text-gray-600 hover:text-blue-600 hover:bg-gray-50 transition">Theo dõi</a>
+                    <a href="06-MyBids.html" class="px-3 py-1.5 rounded-lg text-gray-600 hover:text-blue-600 hover:bg-gray-50 transition">Lịch sử thầu</a>
+                    <a href="07-WonAuction.html" class="px-3 py-1.5 rounded-lg text-gray-600 hover:text-blue-600 hover:bg-gray-50 transition">Thắng thầu</a>
+                </nav>
+            </div>
+            <div class="flex items-center gap-3">
+                <a href="08-Notifications.html" class="p-2 text-gray-500 hover:text-blue-600 rounded-xl hover:bg-gray-100 transition">
+                    <i class="fa-solid fa-bell text-lg"></i>
+                </a>
+                <a href="09-Profile.html" class="flex items-center gap-2 hover:bg-gray-50 p-1.5 rounded-xl transition">
+                    <div class="w-8 h-8 rounded-lg bg-blue-100 text-blue-700 flex items-center justify-center font-bold text-xs">AG</div>
+                    <span class="text-xs font-semibold text-gray-700 hidden sm:inline">AG-0892</span>
+                </a>
+            </div>
+        </div>
+    </header>
+
+    <main class="max-w-7xl mx-auto px-4 py-6 space-y-6">
+
+        <!-- Back Button & Breadcrumbs -->
+        <div class="flex items-center justify-between">
+            <a href="03-Index.html" class="text-xs font-semibold text-gray-500 hover:text-blue-600 flex items-center gap-1.5">
+                <i class="fa-solid fa-arrow-left"></i> Trở lại danh sách chuyến bay
+            </a>
+            <div class="flex items-center gap-2">
+                <span class="inline-block w-2.5 h-2.5 rounded-full bg-green-500 animate-pulse"></span>
+                <span class="text-xs font-medium text-green-700 bg-green-50 px-2.5 py-1 rounded-full border border-green-200">Phiên đang mở trực tiếp</span>
+            </div>
+        </div>
+
+        <!-- Flight Banner -->
+        <div class="bg-gradient-to-r from-slate-900 to-blue-900 text-white rounded-2xl p-6 shadow-md">
+            <div class="flex flex-col md:flex-row md:items-center justify-between gap-6">
+                <div>
+                    <div class="flex items-center gap-3 mb-2">
+                        <span class="bg-blue-600 text-white font-bold text-sm px-3 py-1 rounded-xl shadow" id="flightBadge">VU130</span>
+                        <span class="text-xs text-slate-300" id="flightCode">FL-VU130-260815</span>
+                        <span class="text-xs text-blue-300 font-medium" id="aircraftType">Airbus A321neo Cargo</span>
+                    </div>
+                    <h1 class="text-3xl font-extrabold tracking-tight" id="routeTitle">SGN → HAN (Sài Gòn - Hà Nội)</h1>
+                    <p class="text-xs text-slate-300 mt-1" id="flightTimes">ETD: 14:30 · 15/08/2026 | ETA: 16:45 · 15/08/2026</p>
+                </div>
+
+                <!-- Big Countdown Box -->
+                <div class="bg-white/10 backdrop-blur border border-white/20 rounded-2xl p-4 text-center min-w-[200px]">
+                    <p class="text-[11px] uppercase tracking-wider text-slate-300 font-semibold mb-1">Thời gian còn lại</p>
+                    <div class="text-2xl md:text-3xl font-mono font-bold text-amber-300" id="countdownClock">
+                        --:--:--
+                    </div>
+                    <p class="text-[10px] text-slate-400 mt-1">Đóng thầu trước ETD 3 giờ</p>
+                </div>
+            </div>
+        </div>
+
+        <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+
+            <!-- Left: Info & Realtime Bids Table (2 cols) -->
+            <div class="lg:col-span-2 space-y-6">
+
+                <!-- Flight Capacity & Pricing Specs -->
+                <div class="bg-white rounded-2xl border shadow-sm p-6">
+                    <h2 class="text-base font-bold text-slate-900 mb-4 flex items-center gap-2">
+                        <i class="fa-solid fa-plane text-blue-600"></i> Thông số tải trọng & Giá sàn
+                    </h2>
+                    <div class="grid grid-cols-2 sm:grid-cols-4 gap-4 text-sm">
+                        <div class="bg-slate-50 p-3.5 rounded-xl border border-slate-100">
+                            <p class="text-xs text-gray-500 mb-1">Tải trọng thầu</p>
+                            <p class="text-lg font-bold text-slate-900" id="specCapacity">3,500 Kg</p>
+                        </div>
+                        <div class="bg-slate-50 p-3.5 rounded-xl border border-slate-100">
+                            <p class="text-xs text-gray-500 mb-1">Giá khởi điểm</p>
+                            <p class="text-lg font-bold text-gray-700" id="specStarting">18.000 đ/Kg</p>
+                        </div>
+                        <div class="bg-slate-50 p-3.5 rounded-xl border border-slate-100">
+                            <p class="text-xs text-gray-500 mb-1">Bước giá tối thiểu</p>
+                            <p class="text-lg font-bold text-blue-600" id="specMinStep">+500 đ/Kg</p>
+                        </div>
+                        <div class="bg-blue-50/70 p-3.5 rounded-xl border border-blue-200">
+                            <p class="text-xs text-blue-700 mb-1 font-medium">Giá cao nhất hiện tại</p>
+                            <p class="text-lg font-bold text-blue-700" id="specCurrentPrice">21.500 đ/Kg</p>
+                        </div>
+                    </div>
+
+                    <div class="mt-4 pt-4 border-t text-xs text-gray-600 flex items-start gap-2">
+                        <i class="fa-solid fa-circle-info text-blue-500 mt-0.5"></i>
+                        <span id="specNotes">Hàng tổng hợp, có hỗ trợ kho lạnh bảo quản thực phẩm & dược phẩm tiêu chuẩn IATA.</span>
+                    </div>
+                </div>
+
+                <!-- Realtime Bidding Log -->
+                <div class="bg-white rounded-2xl border shadow-sm p-6">
+                    <div class="flex items-center justify-between mb-4">
+                        <div>
+                            <h2 class="text-base font-bold text-slate-900 flex items-center gap-2">
+                                <i class="fa-solid fa-list-ol text-blue-600"></i> Diễn biến các lượt đặt giá realtime
+                            </h2>
+                            <p class="text-xs text-gray-500 mt-0.5">Cập nhật tức thời mức giá cạnh tranh của các đại lý</p>
+                        </div>
+                        <span class="text-xs bg-slate-100 text-slate-700 font-semibold px-2.5 py-1 rounded-lg" id="bidCountBadge">7 lượt đặt</span>
+                    </div>
+
+                    <div class="overflow-x-auto">
+                        <table class="w-full text-left text-xs">
+                            <thead class="bg-slate-50 text-gray-500 font-semibold border-b">
+                                <tr>
+                                    <th class="py-3 px-4">Đại lý tham gia</th>
+                                    <th class="py-3 px-4">Mức giá đặt (đ/Kg)</th>
+                                    <th class="py-3 px-4">Tổng giá trị thầu</th>
+                                    <th class="py-3 px-4">Thời gian</th>
+                                    <th class="py-3 px-4 text-right">Trạng thái</th>
+                                </tr>
+                            </thead>
+                            <tbody class="divide-y divide-gray-100" id="bidsTableBody">
+                                <!-- Rendered dynamically -->
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+
+                <!-- Warehouse Cut-off guidelines -->
+                <div class="bg-white rounded-2xl border shadow-sm p-5">
+                    <h3 class="font-bold text-sm text-slate-900 mb-2 flex items-center gap-2">
+                        <i class="fa-solid fa-warehouse text-blue-600"></i> Địa điểm giao nhận & Cut-off sân bay
+                    </h3>
+                    <div class="grid grid-cols-1 sm:grid-cols-2 gap-4 text-xs text-gray-600">
+                        <div>
+                            <p class="text-gray-400">Kho hàng xuất phát:</p>
+                            <p class="font-semibold text-slate-800">Kho hàng SCSC / TCS Tân Sơn Nhất</p>
+                            <p class="text-[11px] text-gray-500 mt-0.5">30 Phan Thúc Duyện, P.4, Q.Tân Bình, TP.HCM</p>
+                        </div>
+                        <div>
+                            <p class="text-gray-400">Hạn chót cut-off chứng từ & hàng hóa:</p>
+                            <p class="font-semibold text-red-600" id="cutOffTimeDisplay">11:30 · 15/08/2026</p>
+                            <p class="text-[11px] text-gray-500 mt-0.5">Tối thiểu trước ETD 3 tiếng để hoàn tất soi chiếu an ninh</p>
+                        </div>
+                    </div>
+                </div>
+
+            </div>
+
+            <!-- Right: Bid Submission Form (1 col) -->
+            <div class="space-y-6">
+
+                <div class="bg-white rounded-2xl border shadow-sm p-6 sticky top-20">
+                    <div class="text-center pb-4 border-b">
+                        <p class="text-xs text-gray-500">Mức giá đặt thầu tối thiểu</p>
+                        <p class="text-2xl font-bold text-blue-600 mt-1" id="minAcceptablePrice">22.000 đ<span class="text-xs font-normal text-gray-500">/Kg</span></p>
+                        <p class="text-[11px] text-gray-400 mt-0.5">(Giá hiện tại + bước giá tối thiểu)</p>
+                    </div>
+
+                    <form id="bidForm" class="space-y-4 pt-4">
+                        <div>
+                            <label class="block text-xs font-semibold text-gray-700 mb-1.5">
+                                Nhập giá chào mới của bạn (VND/Kg) <span class="text-red-500">*</span>
+                            </label>
+                            <div class="relative">
+                                <input type="number" id="bidPriceInput" required step="100"
+                                       class="w-full border-2 border-blue-400 rounded-xl px-4 py-3 text-lg font-bold text-slate-900 outline-none focus:ring-2 focus:ring-blue-500 transition">
+                                <span class="absolute right-4 top-1/2 -translate-y-1/2 text-xs font-semibold text-gray-400">đ/Kg</span>
+                            </div>
+                        </div>
+
+                        <!-- Quick Increment Buttons -->
+                        <div>
+                            <p class="text-[11px] text-gray-500 mb-1.5 font-medium">Tăng nhanh mức giá:</p>
+                            <div class="grid grid-cols-3 gap-2">
+                                <button type="button" onclick="addIncrement(500)" class="py-1.5 bg-gray-50 hover:bg-blue-50 border rounded-lg text-xs font-semibold text-gray-700 hover:text-blue-600 transition">
+                                    +500 đ
+                                </button>
+                                <button type="button" onclick="addIncrement(1000)" class="py-1.5 bg-gray-50 hover:bg-blue-50 border rounded-lg text-xs font-semibold text-gray-700 hover:text-blue-600 transition">
+                                    +1.000 đ
+                                </button>
+                                <button type="button" onclick="addIncrement(2000)" class="py-1.5 bg-gray-50 hover:bg-blue-50 border rounded-lg text-xs font-semibold text-gray-700 hover:text-blue-600 transition">
+                                    +2.000 đ
+                                </button>
+                            </div>
+                        </div>
+
+                        <!-- Computed Total -->
+                        <div class="bg-slate-50 p-3.5 rounded-xl border text-xs space-y-1.5">
+                            <div class="flex justify-between text-gray-500">
+                                <span>Tải trọng đăng ký:</span>
+                                <span class="font-semibold text-slate-800" id="calcWeight">3,500 Kg</span>
+                            </div>
+                            <div class="flex justify-between text-gray-500">
+                                <span>Tổng tiền dự kiến (chưa VAT):</span>
+                                <span class="font-bold text-blue-600 text-sm" id="calcTotalAmount">77.000.000 đ</span>
+                            </div>
+                        </div>
+
+                        <!-- Terms commitment -->
+                        <label class="flex items-start gap-2.5 text-xs text-gray-600 cursor-pointer pt-1">
+                            <input type="checkbox" required checked class="w-4 h-4 mt-0.5 rounded text-blue-600">
+                            <span>Tôi cam kết thanh toán trong <strong>24 giờ</strong> nếu là người đặt giá cao nhất khi đóng thầu.</span>
+                        </label>
+
+                        <button type="submit" id="submitBidBtn" class="w-full bg-blue-600 hover:bg-blue-700 text-white font-bold py-3.5 rounded-xl transition shadow-md shadow-blue-600/20 text-sm flex items-center justify-center gap-2">
+                            <i class="fa-solid fa-gavel"></i>
+                            <span>Xác nhận gửi mức giá</span>
+                        </button>
+                    </form>
+
+                    <div id="bidAlertBox" class="mt-3 hidden p-3 rounded-xl text-xs"></div>
+                </div>
+
+            </div>
+
+        </div>
+
+    </main>
+
+    <script>
+        let currentAuction = null;
+
+        function getParam(param) {
+            const urlParams = new URLSearchParams(window.location.search);
+            return urlParams.get(param) || '1';
+        }
+
+        function loadAuctionDetail() {
+            if (typeof CargoStore === 'undefined') return;
+            const id = getParam('id');
+            currentAuction = CargoStore.getAuctionById(id);
+            if (!currentAuction) {
+                alert('Không tìm thấy phiên đấu giá!');
+                window.location.href = '03-Index.html';
+                return;
+            }
+
+            document.getElementById('flightBadge').textContent = currentAuction.flightNumber;
+            document.getElementById('flightCode').textContent = currentAuction.flightCode;
+            document.getElementById('aircraftType').textContent = currentAuction.aircraft;
+            document.getElementById('routeTitle').textContent = `${currentAuction.route} (${currentAuction.originName} - ${currentAuction.destName})`;
+            document.getElementById('flightTimes').textContent = `ETD: ${currentAuction.etd} | ETA: ${currentAuction.eta}`;
+
+            document.getElementById('specCapacity').textContent = CargoStore.formatNumber(currentAuction.capacityKg) + ' Kg';
+            document.getElementById('specStarting').textContent = CargoStore.formatCurrency(currentAuction.startingPriceKg) + '/Kg';
+            document.getElementById('specMinStep').textContent = '+' + CargoStore.formatCurrency(currentAuction.minStep) + '/Kg';
+            document.getElementById('specCurrentPrice').textContent = CargoStore.formatCurrency(currentAuction.currentPriceKg) + '/Kg';
+            document.getElementById('specNotes').textContent = currentAuction.specialNotes;
+            document.getElementById('cutOffTimeDisplay').textContent = currentAuction.cutOffTime;
+
+            const minAcceptable = currentAuction.currentPriceKg + currentAuction.minStep;
+            document.getElementById('minAcceptablePrice').textContent = CargoStore.formatCurrency(minAcceptable) + '/Kg';
+
+            const input = document.getElementById('bidPriceInput');
+            if (!input.value || Number(input.value) < minAcceptable) {
+                input.value = minAcceptable;
+            }
+            updateCalc();
+            renderBidsTable();
+        }
+
+        function updateCalc() {
+            if (!currentAuction) return;
+            const price = Number(document.getElementById('bidPriceInput').value) || 0;
+            const weight = currentAuction.capacityKg;
+            const total = price * weight;
+            document.getElementById('calcWeight').textContent = CargoStore.formatNumber(weight) + ' Kg';
+            document.getElementById('calcTotalAmount').textContent = CargoStore.formatCurrency(total);
+        }
+
+        function addIncrement(amount) {
+            const input = document.getElementById('bidPriceInput');
+            const cur = Number(input.value) || (currentAuction ? currentAuction.currentPriceKg : 0);
+            input.value = cur + amount;
+            updateCalc();
+        }
+
+        function renderBidsTable() {
+            if (!currentAuction) return;
+            const bids = CargoStore.getBidsForAuction(currentAuction.id);
+            document.getElementById('bidCountBadge').textContent = bids.length + ' lượt đặt';
+
+            const tbody = document.getElementById('bidsTableBody');
+            if (bids.length === 0) {
+                tbody.innerHTML = `<tr><td colspan="5" class="py-6 text-center text-gray-400">Chưa có lượt đặt giá nào cho chuyến bay này</td></tr>`;
+                return;
+            }
+
+            tbody.innerHTML = bids.map((b, index) => {
+                const isFirst = index === 0;
+                const isMine = b.agentCode === 'AG-0892';
+                return `
+                    <tr class="${isFirst ? 'bg-blue-50/40 font-medium' : 'hover:bg-gray-50'} transition">
+                        <td class="py-3 px-4">
+                            <div class="flex items-center gap-2">
+                                <span class="font-bold text-slate-800">${b.agentName}</span>
+                                ${isMine ? '<span class="bg-blue-100 text-blue-700 text-[10px] px-1.5 py-0.5 rounded font-bold">Bạn</span>' : ''}
+                            </div>
+                        </td>
+                        <td class="py-3 px-4 font-bold ${isFirst ? 'text-blue-600 text-sm' : 'text-slate-700'}">
+                            ${CargoStore.formatCurrency(b.priceKg)}
+                        </td>
+                        <td class="py-3 px-4 text-gray-600">
+                            ${CargoStore.formatCurrency(b.priceKg * b.weightKg)}
+                        </td>
+                        <td class="py-3 px-4 text-gray-400 text-[11px]">
+                            ${b.time}
+                        </td>
+                        <td class="py-3 px-4 text-right">
+                            ${isFirst ? `
+                                <span class="bg-green-100 text-green-700 font-bold px-2 py-0.5 rounded-full text-[10px] inline-flex items-center gap-1">
+                                    <i class="fa-solid fa-crown text-[9px]"></i> Dẫn đầu
+                                </span>
+                            ` : `
+                                <span class="bg-gray-100 text-gray-500 font-medium px-2 py-0.5 rounded-full text-[10px]">
+                                    Bị vượt
+                                </span>
+                            `}
+                        </td>
+                    </tr>
+                `;
+            }).join('');
+        }
+
+        // Form Submit
+        document.getElementById('bidForm').addEventListener('submit', function(e) {
+            e.preventDefault();
+            const price = Number(document.getElementById('bidPriceInput').value);
+            const alertBox = document.getElementById('bidAlertBox');
+
+            const res = CargoStore.placeBid(currentAuction.id, price);
+            if (!res.success) {
+                alertBox.className = 'mt-3 p-3 rounded-xl text-xs bg-red-50 text-red-700 border border-red-200 block';
+                alertBox.textContent = res.message;
+            } else {
+                alertBox.className = 'mt-3 p-3 rounded-xl text-xs bg-green-50 text-green-700 border border-green-200 block';
+                alertBox.textContent = 'Chúc mừng! Đặt giá thành công. Bạn đang dẫn đầu phiên đấu giá.';
+                loadAuctionDetail();
+            }
+        });
+
+        document.getElementById('bidPriceInput').addEventListener('input', updateCalc);
+
+        // Realtime Clock update
+        function updateClock() {
+            if (!currentAuction) return;
+            const timer = CargoStore.getTimeRemaining(currentAuction.endTime);
+            const clock = document.getElementById('countdownClock');
+            if (clock) {
+                if (timer.isEnded) {
+                    clock.textContent = '00:00:00 - ĐÃ ĐÓNG';
+                } else {
+                    const pad = n => String(n).padStart(2, '0');
+                    clock.textContent = `${pad(timer.hours)}:${pad(timer.minutes)}:${pad(timer.seconds)}`;
+                }
+            }
+        }
+
+        document.addEventListener('DOMContentLoaded', function() {
+            loadAuctionDetail();
+            setInterval(updateClock, 1000);
+        });
+    </script>
+</body>
+</html>

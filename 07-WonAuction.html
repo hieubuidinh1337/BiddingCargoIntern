@@ -1,0 +1,190 @@
+﻿<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Xác nhận thắng thầu - Cargo Bidding | Vietravel Airlines</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+    <script src="assets/js/cargo-store.js"></script>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap');
+        * { font-family: 'Inter', sans-serif; }
+    </style>
+</head>
+<body class="bg-gray-50 text-gray-800">
+
+    <!-- HEADER NAVIGATION -->
+    <header class="bg-white border-b shadow-sm sticky top-0 z-50">
+        <div class="max-w-7xl mx-auto px-4 py-3 flex items-center justify-between">
+            <div class="flex items-center gap-6">
+                <a href="02-Dashboard.html" class="flex items-center gap-2.5">
+                    <div class="w-9 h-9 bg-gradient-to-br from-blue-600 to-indigo-700 rounded-xl flex items-center justify-center text-white font-bold text-base shadow">VN</div>
+                    <div>
+                        <span class="font-bold text-base text-slate-900 block leading-tight">Cargo Bidding</span>
+                        <span class="text-[10px] text-gray-400 uppercase tracking-wider block font-semibold">Agent Portal</span>
+                    </div>
+                </a>
+                <nav class="hidden md:flex items-center gap-1 text-sm font-medium">
+                    <a href="02-Dashboard.html" class="px-3 py-1.5 rounded-lg text-gray-600 hover:text-blue-600 hover:bg-gray-50 transition flex items-center gap-1.5">
+                        <i class="fa-solid fa-gauge-high text-xs"></i> Tổng quan
+                    </a>
+                    <a href="03-Index.html" class="px-3 py-1.5 rounded-lg text-gray-600 hover:text-blue-600 hover:bg-gray-50 transition flex items-center gap-1.5">
+                        <i class="fa-solid fa-gavel text-xs"></i> Sàn đấu giá
+                    </a>
+                    <a href="05-Watchlist.html" class="px-3 py-1.5 rounded-lg text-gray-600 hover:text-blue-600 hover:bg-gray-50 transition flex items-center gap-1.5">
+                        <i class="fa-solid fa-star text-xs"></i> Theo dõi
+                    </a>
+                    <a href="06-MyBids.html" class="px-3 py-1.5 rounded-lg text-gray-600 hover:text-blue-600 hover:bg-gray-50 transition flex items-center gap-1.5">
+                        <i class="fa-solid fa-clock-rotate-left text-xs"></i> Lịch sử thầu
+                    </a>
+                    <a href="07-WonAuction.html" class="px-3 py-1.5 rounded-lg bg-blue-50 text-blue-600 font-semibold flex items-center gap-1.5">
+                        <i class="fa-solid fa-trophy text-xs"></i> Thắng thầu
+                    </a>
+                </nav>
+            </div>
+            <div class="flex items-center gap-3">
+                <a href="08-Notifications.html" class="relative p-2 text-gray-500 hover:text-blue-600 rounded-xl hover:bg-gray-100 transition">
+                    <i class="fa-solid fa-bell text-lg"></i>
+                    <span class="absolute top-1.5 right-1.5 w-2.5 h-2.5 bg-red-500 rounded-full border-2 border-white animate-pulse"></span>
+                </a>
+                <div class="h-6 w-px bg-gray-200 hidden sm:block"></div>
+                <a href="09-Profile.html" class="flex items-center gap-2.5 hover:bg-gray-50 p-1.5 rounded-xl transition">
+                    <div id="hdrAvatar" class="w-8 h-8 rounded-lg bg-blue-100 text-blue-700 flex items-center justify-center font-bold text-xs">AG</div>
+                    <div class="hidden sm:block text-left">
+                        <p id="hdrCompany" class="text-xs font-bold text-slate-800 leading-tight">ABC Logistics</p>
+                        <p class="text-[11px] text-gray-500 leading-none">Mã: <span id="hdrCode" class="text-blue-600 font-semibold font-mono">AG-0892</span></p>
+                    </div>
+                </a>
+                <a href="01-Login.html" title="Đăng xuất" class="text-gray-400 hover:text-red-600 p-2 transition">
+                    <i class="fa-solid fa-right-from-bracket"></i>
+                </a>
+            </div>
+        </div>
+    </header>
+
+    <main class="max-w-7xl mx-auto px-4 py-6 space-y-6">
+
+        <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+            <div>
+                <h1 class="text-2xl font-bold text-slate-900 flex items-center gap-2.5">
+                    <i class="fa-solid fa-trophy text-amber-500"></i>
+                    Xác nhận kết quả thắng thầu (Won Auctions)
+                </h1>
+                <p class="text-sm text-gray-500 mt-1">Danh sách lô hàng bạn đã trúng thầu chính thức và hướng dẫn bàn giao cut-off</p>
+            </div>
+            <div class="flex items-center gap-2 bg-amber-50 border border-amber-200 text-amber-800 text-xs px-3.5 py-2 rounded-xl">
+                <i class="fa-solid fa-triangle-exclamation text-amber-600"></i>
+                <span>Quy định: Hoàn tất thanh toán trong <strong>24 giờ</strong> để giữ slot vận chuyển.</span>
+            </div>
+        </div>
+
+        <div class="space-y-6" id="wonAuctionsContainer">
+            <!-- Rendered by JS -->
+        </div>
+
+    </main>
+
+    <script>
+        function renderWonAuctions() {
+            const u = CargoStore.getCurrentUser ? CargoStore.getCurrentUser() : null;
+            if (u) {
+                document.getElementById('hdrCompany').textContent = u.companyName || 'ABC Logistics';
+                document.getElementById('hdrCode').textContent = u.agentCode || 'AG-0892';
+                document.getElementById('hdrAvatar').textContent = (u.agentCode || 'AG').slice(0,2);
+            }
+
+            const list = CargoStore.getWonAuctions();
+            const container = document.getElementById('wonAuctionsContainer');
+
+            if (!list || list.length === 0) {
+                container.innerHTML = `
+                    <div class="bg-white rounded-2xl border p-16 text-center text-gray-400 shadow-sm">
+                        <i class="fa-solid fa-award text-5xl mb-3 text-amber-400"></i>
+                        <p class="font-bold text-slate-700 text-lg">Chưa có kết quả thắng thầu nào</p>
+                        <p class="text-xs text-gray-400 mt-1 mb-4">Tham gia đặt giá trên sàn đấu giá để sở hữu slot tải trọng tốt nhất</p>
+                        <a href="03-Index.html" class="inline-flex items-center gap-2 bg-blue-600 text-white font-semibold text-xs px-4 py-2.5 rounded-xl shadow">
+                            <i class="fa-solid fa-gavel"></i> Khám phá sàn đấu giá
+                        </a>
+                    </div>
+                `;
+                return;
+            }
+
+            container.innerHTML = list.map(item => {
+                const isPaid = item.paymentStatus === 'PAID';
+                return `
+                    <div class="bg-white rounded-2xl border shadow-sm overflow-hidden">
+                        <div class="bg-gradient-to-r ${isPaid ? 'from-emerald-700 to-teal-800' : 'from-blue-700 to-indigo-800'} p-5 text-white flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+                            <div class="flex items-center gap-3">
+                                <div class="w-12 h-12 bg-white/10 rounded-2xl flex items-center justify-center text-2xl font-bold shadow-inner">
+                                    <i class="fa-solid ${isPaid ? 'fa-check' : 'fa-clock'}"></i>
+                                </div>
+                                <div>
+                                    <span class="bg-white/20 text-xs font-semibold px-2.5 py-0.5 rounded-full">
+                                        MÃ ĐƠN: ${item.wonId}
+                                    </span>
+                                    <h2 class="text-xl font-bold mt-1">Chuyến ${item.flightNumber} · Tuyến ${item.route}</h2>
+                                </div>
+                            </div>
+                            <div class="text-left sm:text-right">
+                                <span class="inline-block ${isPaid ? 'bg-emerald-400 text-emerald-950' : 'bg-amber-400 text-amber-950'} text-xs font-bold px-3 py-1 rounded-full shadow">
+                                    ${isPaid ? 'ĐÃ HOÀN TẤT THANH TOÁN' : 'CHỜ THANH TOÁN (TRONG 24H)'}
+                                </span>
+                                ${isPaid ? `<p class="text-xs text-white/80 mt-1">Thanh toán lúc: ${item.paidAt}</p>` : ''}
+                            </div>
+                        </div>
+
+                        <div class="p-6 space-y-6">
+                            <div class="grid grid-cols-2 md:grid-cols-4 gap-4">
+                                <div class="bg-slate-50 p-4 rounded-xl border">
+                                    <p class="text-xs text-gray-500 mb-1">Tải trọng trúng thầu</p>
+                                    <p class="text-lg font-bold text-slate-900">${CargoStore.formatNumber(item.capacityKg)} Kg</p>
+                                </div>
+                                <div class="bg-slate-50 p-4 rounded-xl border">
+                                    <p class="text-xs text-gray-500 mb-1">Mức giá chốt thắng</p>
+                                    <p class="text-lg font-bold text-blue-600">${CargoStore.formatCurrency(item.priceKg)}/Kg</p>
+                                </div>
+                                <div class="bg-slate-50 p-4 rounded-xl border">
+                                    <p class="text-xs text-gray-500 mb-1">Tổng tiền thanh toán</p>
+                                    <p class="text-lg font-bold text-slate-900">${CargoStore.formatCurrency(item.totalAmountVND)}</p>
+                                </div>
+                                <div class="bg-slate-50 p-4 rounded-xl border">
+                                    <p class="text-xs text-gray-500 mb-1">Mã vận đơn (AWB)</p>
+                                    <p class="text-sm font-mono font-bold text-emerald-600 mt-1">${item.awbNumber}</p>
+                                </div>
+                            </div>
+
+                            <!-- Cut-off & Delivery instructions -->
+                            <div class="bg-blue-50/60 border border-blue-200/80 rounded-xl p-4 text-xs space-y-2">
+                                <h3 class="font-bold text-blue-900 flex items-center gap-2 text-sm">
+                                    <i class="fa-solid fa-truck-ramp-box"></i> Hướng dẫn cut-off & bàn giao hàng hóa
+                                </h3>
+                                <div class="grid grid-cols-1 md:grid-cols-2 gap-3 text-blue-800">
+                                    <div>
+                                        <p>• <strong>Địa điểm giao hàng:</strong> ${item.warehouse}</p>
+                                        <p class="mt-1">• <strong>Hạn chót nhập kho (Cut-off):</strong> <span class="font-bold text-red-600">${item.cutOffTime}</span></p>
+                                    </div>
+                                    <div>
+                                        <p>• Xuất trình mã trúng thầu <strong>${item.wonId}</strong> kèm AWB tại quầy tiếp nhận hàng.</p>
+                                        <p class="mt-1">• Hàng hóa phải được đóng gói theo quy chuẩn IATA và có nhãn phụ rõ ràng.</p>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="flex flex-wrap items-center justify-between gap-3 pt-2 border-t text-xs">
+                                <span class="text-gray-400">Đơn vị tiếp nhận: Ban Dịch vụ Vận chuyển Hàng hóa</span>
+                                <button onclick="alert('Đang tải phiếu xác nhận PDF...')" class="bg-slate-900 hover:bg-slate-800 text-white font-medium px-4 py-2 rounded-xl transition flex items-center gap-1.5">
+                                    <i class="fa-solid fa-download"></i> Tải Phiếu Xác Nhận Thắng Thầu (PDF)
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                `;
+            }).join('');
+        }
+
+        document.addEventListener('DOMContentLoaded', renderWonAuctions);
+    </script>
+</body>
+</html>

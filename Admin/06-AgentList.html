@@ -1,0 +1,242 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Quản lý Đại lý & Hồ sơ đăng ký - Cargo Bidding Admin</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+    <script src="../assets/js/cargo-store.js"></script>
+</head>
+<body class="bg-slate-100 text-slate-800">
+
+    <header class="bg-slate-900 text-white sticky top-0 z-50 border-b border-slate-800 shadow-sm">
+        <div class="max-w-7xl mx-auto px-4 py-2.5 flex items-center justify-between">
+            <div class="flex items-center gap-6">
+                <a href="02-AdminDashboard.html" class="flex items-center gap-2.5">
+                    <div class="w-8 h-8 bg-blue-600 rounded-lg flex items-center justify-center font-bold text-sm shadow">VN</div>
+                    <div>
+                        <span class="font-bold text-sm leading-tight block">Cargo Bidding Admin</span>
+                        <span class="text-[10px] text-blue-400 font-medium block">Hệ thống Điều hành & Thẩm định</span>
+                    </div>
+                </a>
+                <nav class="hidden md:flex items-center gap-1 text-xs font-medium">
+                    <a href="02-AdminDashboard.html" class="px-3 py-1.5 rounded-lg text-slate-300 hover:text-white hover:bg-slate-800 transition">Dashboard</a>
+                    <a href="03-AuctionList.html" class="px-3 py-1.5 rounded-lg text-slate-300 hover:text-white hover:bg-slate-800 transition">Quản lý phiên</a>
+                    <a href="04-CreateAuction.html" class="px-3 py-1.5 rounded-lg text-slate-300 hover:text-white hover:bg-slate-800 transition">Tạo phiên mới</a>
+                    <a href="06-AgentList.html" class="px-3 py-1.5 rounded-lg bg-blue-600 text-white font-semibold">Đại lý & Duyệt đơn</a>
+                    <a href="07-Reports.html" class="px-3 py-1.5 rounded-lg text-slate-300 hover:text-white hover:bg-slate-800 transition">Báo cáo</a>
+                    <a href="08-Settings.html" class="px-3 py-1.5 rounded-lg text-slate-300 hover:text-white hover:bg-slate-800 transition">Cài đặt</a>
+                </nav>
+            </div>
+            <div class="flex items-center gap-2">
+                <span class="text-xs text-slate-300 hidden sm:inline">Trần Quản Trị</span>
+                <a href="01-AdminLogin.html" title="Đăng xuất" class="text-slate-400 hover:text-red-400 p-1">
+                    <i class="fa-solid fa-power-off text-xs"></i>
+                </a>
+            </div>
+        </div>
+    </header>
+
+    <main class="max-w-7xl mx-auto px-4 py-6 space-y-6">
+
+        <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+            <div>
+                <h1 class="text-2xl font-bold text-slate-900 flex items-center gap-2">
+                    <i class="fa-solid fa-building-user text-blue-600"></i> Quản lý Đại lý & Thẩm định Hồ sơ
+                </h1>
+                <p class="text-xs text-slate-500 mt-1">Danh sách mạng lưới đại lý ủy quyền và hồ sơ nộp trực tuyến từ đợt mở đăng ký</p>
+            </div>
+        </div>
+
+        <!-- Navigation Tabs -->
+        <div class="flex items-center gap-2 border-b pb-2">
+            <button onclick="switchTab('REGISTRATIONS')" id="tabRegBtn" class="px-4 py-2 rounded-xl text-xs font-bold bg-blue-600 text-white shadow-sm flex items-center gap-2">
+                <i class="fa-solid fa-inbox"></i> Hồ sơ đăng ký mới (<span id="regCountBadge">0</span>)
+            </button>
+            <button onclick="switchTab('ACTIVE_AGENTS')" id="tabAgentBtn" class="px-4 py-2 rounded-xl text-xs font-bold bg-white text-slate-600 hover:bg-slate-50 border flex items-center gap-2">
+                <i class="fa-solid fa-users"></i> Danh sách Đại lý chính thức (<span id="agentCountBadge">0</span>)
+            </button>
+        </div>
+
+        <!-- Tab 1: Pending Registrations -->
+        <div id="sectionRegistrations" class="space-y-4">
+            <div class="bg-blue-50 border border-blue-200 text-blue-800 rounded-xl p-3.5 text-xs flex items-center gap-2">
+                <i class="fa-solid fa-circle-info text-blue-600 text-sm"></i>
+                <span>Các hồ sơ gửi lên từ trang <strong>Register.html</strong> sẽ xuất hiện tại đây. Nhấn <strong>"Phê duyệt & Cấp mã"</strong> để tự động cấp mã AG-xxxx và kích hoạt tài khoản đại lý.</span>
+            </div>
+
+            <div class="space-y-4" id="registrationsContainer">
+                <!-- Rendered by JS -->
+            </div>
+        </div>
+
+        <!-- Tab 2: Active Agents -->
+        <div id="sectionAgents" class="hidden bg-white rounded-2xl border shadow-sm overflow-hidden">
+            <div class="overflow-x-auto">
+                <table class="w-full text-left text-xs">
+                    <thead class="bg-slate-50 text-slate-500 font-semibold border-b">
+                        <tr>
+                            <th class="py-3.5 px-4">Mã đại lý</th>
+                            <th class="py-3.5 px-4">Tên doanh nghiệp</th>
+                            <th class="py-3.5 px-4">Người đại diện</th>
+                            <th class="py-3.5 px-4">Liên hệ</th>
+                            <th class="py-3.5 px-4">MST</th>
+                            <th class="py-3.5 px-4">Hạng</th>
+                            <th class="py-3.5 px-4">Số thầu / Thắng</th>
+                            <th class="py-3.5 px-4">Trạng thái</th>
+                        </tr>
+                    </thead>
+                    <tbody class="divide-y divide-gray-100" id="agentsTableBody">
+                        <!-- Populated by JS -->
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+    </main>
+
+    <script>
+        let activeTab = 'REGISTRATIONS';
+
+        function switchTab(tab) {
+            activeTab = tab;
+            const regBtn = document.getElementById('tabRegBtn');
+            const agentBtn = document.getElementById('tabAgentBtn');
+            const regSec = document.getElementById('sectionRegistrations');
+            const agentSec = document.getElementById('sectionAgents');
+
+            if (tab === 'REGISTRATIONS') {
+                regBtn.className = 'px-4 py-2 rounded-xl text-xs font-bold bg-blue-600 text-white shadow-sm flex items-center gap-2';
+                agentBtn.className = 'px-4 py-2 rounded-xl text-xs font-bold bg-white text-slate-600 hover:bg-slate-50 border flex items-center gap-2';
+                regSec.classList.remove('hidden');
+                agentSec.classList.add('hidden');
+            } else {
+                agentBtn.className = 'px-4 py-2 rounded-xl text-xs font-bold bg-blue-600 text-white shadow-sm flex items-center gap-2';
+                regBtn.className = 'px-4 py-2 rounded-xl text-xs font-bold bg-white text-slate-600 hover:bg-slate-50 border flex items-center gap-2';
+                agentSec.classList.remove('hidden');
+                regSec.classList.add('hidden');
+            }
+        }
+
+        function renderData() {
+            const data = CargoStore.getData();
+
+            // Render Registrations
+            const regs = data.registrations;
+            const pendings = regs.filter(r => r.status === 'PENDING');
+            document.getElementById('regCountBadge').textContent = pendings.length;
+
+            const regContainer = document.getElementById('registrationsContainer');
+            if (regs.length === 0) {
+                regContainer.innerHTML = `<div class="bg-white rounded-2xl border p-12 text-center text-gray-400">Chưa có hồ sơ đăng ký nào</div>`;
+            } else {
+                regContainer.innerHTML = regs.map(r => {
+                    const isPending = r.status === 'PENDING';
+                    const isApproved = r.status === 'APPROVED';
+
+                    return `
+                        <div class="bg-white rounded-2xl border shadow-sm p-6 hover:shadow-md transition space-y-4">
+                            <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-2 border-b pb-3">
+                                <div class="flex items-center gap-2.5">
+                                    <span class="font-mono font-bold text-xs bg-slate-100 text-slate-700 px-2.5 py-1 rounded-lg">${r.regId}</span>
+                                    <h3 class="font-bold text-base text-slate-900">${r.companyName}</h3>
+                                </div>
+                                <div>
+                                    ${isPending ? '<span class="bg-amber-100 text-amber-800 text-xs font-bold px-2.5 py-1 rounded-full">CHỜ XÉT DUYỆT</span>' : ''}
+                                    ${isApproved ? '<span class="bg-green-100 text-green-700 text-xs font-bold px-2.5 py-1 rounded-full">ĐÃ PHÊ DUYỆT CẤP MÃ</span>' : ''}
+                                    ${r.status === 'REJECTED' ? '<span class="bg-red-100 text-red-700 text-xs font-bold px-2.5 py-1 rounded-full">ĐÃ TỪ CHỐI</span>' : ''}
+                                </div>
+                            </div>
+
+                            <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-4 text-xs">
+                                <div>
+                                    <p class="text-gray-400">Mã số thuế (MST):</p>
+                                    <p class="font-bold text-slate-800">${r.taxCode}</p>
+                                </div>
+                                <div>
+                                    <p class="text-gray-400">Người đại diện:</p>
+                                    <p class="font-semibold text-slate-800">${r.repName} (${r.repPosition})</p>
+                                </div>
+                                <div>
+                                    <p class="text-gray-400">Email & SĐT:</p>
+                                    <p class="font-medium text-slate-800">${r.email} · ${r.phone}</p>
+                                </div>
+                                <div>
+                                    <p class="text-gray-400">Thời gian nộp đơn:</p>
+                                    <p class="text-slate-600">${r.submittedAt}</p>
+                                </div>
+                            </div>
+
+                            <!-- Attached Docs -->
+                            <div class="bg-slate-50 p-3 rounded-xl border text-xs">
+                                <p class="font-semibold text-slate-700 mb-1.5 flex items-center gap-1.5">
+                                    <i class="fa-solid fa-paperclip text-slate-400"></i> Hồ sơ đính kèm:
+                                </p>
+                                <div class="flex flex-wrap gap-2">
+                                    ${(r.documents || []).map(doc => `
+                                        <span class="inline-flex items-center gap-1.5 bg-white border border-slate-200 px-2.5 py-1 rounded-lg text-blue-600 font-medium cursor-pointer hover:bg-blue-50" onclick="alert('Xem file: ${doc}')">
+                                            <i class="fa-solid fa-file-pdf text-red-500"></i> ${doc}
+                                        </span>
+                                    `).join('')}
+                                </div>
+                            </div>
+
+                            <!-- Actions -->
+                            ${isPending ? `
+                                <div class="flex items-center justify-end gap-2.5 pt-2">
+                                    <button onclick="handleReject('${r.regId}')" class="bg-red-50 hover:bg-red-100 text-red-600 font-bold px-4 py-2 rounded-xl text-xs transition">
+                                        Từ chối hồ sơ
+                                    </button>
+                                    <button onclick="handleApprove('${r.regId}')" class="bg-blue-600 hover:bg-blue-700 text-white font-bold px-5 py-2 rounded-xl text-xs transition shadow flex items-center gap-1.5">
+                                        <i class="fa-solid fa-check"></i> Phê duyệt & Cấp mã đại lý
+                                    </button>
+                                </div>
+                            ` : ''}
+                        </div>
+                    `;
+                }).join('');
+            }
+
+            // Render Active Agents
+            const agents = data.agentsList;
+            document.getElementById('agentCountBadge').textContent = agents.length;
+
+            const tbody = document.getElementById('agentsTableBody');
+            tbody.innerHTML = agents.map(ag => `
+                <tr class="hover:bg-slate-50 transition">
+                    <td class="py-3.5 px-4 font-mono font-bold text-blue-600">${ag.code}</td>
+                    <td class="py-3.5 px-4 font-bold text-slate-800">${ag.companyName}</td>
+                    <td class="py-3.5 px-4 text-slate-700 font-medium">${ag.repName}</td>
+                    <td class="py-3.5 px-4 text-slate-600">${ag.phone}<br><span class="text-[10px] text-gray-400">${ag.email}</span></td>
+                    <td class="py-3.5 px-4 font-mono text-slate-600">${ag.taxCode}</td>
+                    <td class="py-3.5 px-4">
+                        <span class="bg-amber-100 text-amber-800 font-bold px-2 py-0.5 rounded text-[10px]">${ag.tier}</span>
+                    </td>
+                    <td class="py-3.5 px-4 text-slate-700 font-medium">${ag.totalBids || 0} / <span class="text-green-600 font-bold">${ag.totalWins || 0}</span></td>
+                    <td class="py-3.5 px-4">
+                        <span class="bg-green-100 text-green-700 font-bold px-2 py-0.5 rounded-full text-[10px]">HOẠT ĐỘNG</span>
+                    </td>
+                </tr>
+            `).join('');
+        }
+
+        function handleApprove(regId) {
+            if (confirm('Xác nhận phê duyệt hồ sơ này và tạo mã đại lý chính thức?')) {
+                const newCode = CargoStore.approveRegistration(regId);
+                alert(`Đã phê duyệt thành công! Đã cấp mã đại lý mới: ${newCode}`);
+                renderData();
+            }
+        }
+
+        function handleReject(regId) {
+            if (confirm('Xác nhận từ chối hồ sơ đăng ký này?')) {
+                CargoStore.rejectRegistration(regId);
+                renderData();
+            }
+        }
+
+        document.addEventListener('DOMContentLoaded', renderData);
+    </script>
+</body>
+</html>

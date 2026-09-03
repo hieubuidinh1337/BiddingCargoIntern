@@ -1,0 +1,420 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Đăng ký đại lý - Cargo Bidding</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+    <script src="assets/js/cargo-store.js"></script>
+</head>
+<body class="bg-gray-100 text-gray-800">
+
+    <!-- Top bar -->
+    <div class="bg-slate-900 text-slate-300 text-xs">
+        <div class="max-w-4xl mx-auto px-4 py-1.5 flex items-center justify-between">
+            <a href="00-Home.html" class="hover:text-white flex items-center gap-1.5">
+                <i class="fa-solid fa-arrow-left"></i> Về trang chủ
+            </a>
+            <div class="flex items-center gap-3">
+                <a href="01-Login.html" class="hover:text-white">Đã có tài khoản? Đăng nhập</a>
+                <span class="text-slate-600">|</span>
+                <a href="Admin/01-AdminLogin.html" class="hover:text-white flex items-center gap-1.5 text-blue-400">
+                    <i class="fa-solid fa-user-shield"></i> Admin
+                </a>
+            </div>
+        </div>
+    </div>
+
+    <!-- Header -->
+    <header class="bg-white border-b shadow-sm sticky top-0 z-40">
+        <div class="max-w-4xl mx-auto px-4 py-4 flex items-center justify-between">
+            <div class="flex items-center gap-3">
+                <div class="w-10 h-10 bg-blue-600 rounded-xl flex items-center justify-center text-white font-bold shadow">VN</div>
+                <div>
+                    <h1 class="font-bold text-lg text-slate-900">Đăng ký tài khoản đại lý</h1>
+                    <p class="text-xs text-gray-500">Cargo Bidding · Đợt mở đăng ký Tháng 8/2026</p>
+                </div>
+            </div>
+            <a href="00-Home.html" class="text-xs text-gray-500 hover:text-blue-600 flex items-center gap-1">
+                <i class="fa-solid fa-xmark"></i> Hủy
+            </a>
+        </div>
+    </header>
+
+    <main class="max-w-4xl mx-auto px-4 py-8">
+
+        <!-- Banner thông tin đợt -->
+        <div class="bg-blue-50 border border-blue-200 rounded-2xl p-5 mb-8 flex gap-4 items-start shadow-sm">
+            <div class="w-12 h-12 bg-blue-100 text-blue-600 rounded-xl flex items-center justify-center flex-shrink-0 mt-0.5">
+                <i class="fa-solid fa-calendar-check text-xl"></i>
+            </div>
+            <div class="text-sm">
+                <div class="flex items-center gap-2">
+                    <span class="bg-blue-600 text-white text-[11px] font-bold px-2 py-0.5 rounded">ĐANG TIẾP NHẬN</span>
+                    <p class="font-bold text-blue-900">Đợt đăng ký đại lý mới: 01/08 – 10/08/2026</p>
+                </div>
+                <p class="text-blue-800 mt-1 leading-relaxed">
+                    Hồ sơ sẽ được ban điều hành hàng hóa xét duyệt trong vòng <strong>3–5 ngày làm việc</strong>. Tài khoản chính thức và mã đại lý (AG-xxxx) sẽ được cấp trước ngày 15/08/2026 qua email của người đại diện.
+                </p>
+            </div>
+        </div>
+
+        <form class="space-y-6" id="registerForm">
+
+            <!-- 1. Thông tin công ty -->
+            <div class="bg-white rounded-2xl border shadow-sm p-6">
+                <h2 class="font-semibold text-lg mb-1 flex items-center gap-2 text-slate-900">
+                    <span class="w-7 h-7 bg-blue-100 text-blue-700 rounded-lg flex items-center justify-center text-sm font-bold">1</span>
+                    Thông tin công ty
+                </h2>
+                <p class="text-xs text-gray-500 mb-5 ml-9">Thông tin pháp lý của doanh nghiệp đăng ký tham gia</p>
+
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div class="md:col-span-2">
+                        <label class="block text-sm font-medium mb-1">Tên công ty / Doanh nghiệp <span class="text-red-500">*</span></label>
+                        <input type="text" id="companyName" required placeholder="VD: Công ty TNHH Vận tải & Tiếp vận Toàn Cầu"
+                               class="w-full border rounded-xl px-4 py-2.5 text-sm focus:ring-2 focus:ring-blue-500 outline-none transition">
+                    </div>
+                    <div>
+                        <label class="block text-sm font-medium mb-1">Mã số thuế (MST) <span class="text-red-500">*</span></label>
+                        <input type="text" id="taxCode" required placeholder="0312345678"
+                               class="w-full border rounded-xl px-4 py-2.5 text-sm focus:ring-2 focus:ring-blue-500 outline-none transition">
+                    </div>
+                    <div>
+                        <label class="block text-sm font-medium mb-1">Giấy phép kinh doanh số</label>
+                        <input type="text" id="businessLicense" placeholder="Số GPKD (nếu khác MST)"
+                               class="w-full border rounded-xl px-4 py-2.5 text-sm focus:ring-2 focus:ring-blue-500 outline-none transition">
+                    </div>
+                    <div class="md:col-span-2">
+                        <label class="block text-sm font-medium mb-1">Địa chỉ trụ sở chính <span class="text-red-500">*</span></label>
+                        <input type="text" id="address" required placeholder="VD: 123 Nguyễn Huệ, Phường Bến Nghé, Quận 1, TP.HCM"
+                               class="w-full border rounded-xl px-4 py-2.5 text-sm focus:ring-2 focus:ring-blue-500 outline-none transition">
+                    </div>
+                    <div>
+                        <label class="block text-sm font-medium mb-1">Website công ty (nếu có)</label>
+                        <input type="url" id="website" placeholder="https://..."
+                               class="w-full border rounded-xl px-4 py-2.5 text-sm focus:ring-2 focus:ring-blue-500 outline-none transition">
+                    </div>
+                    <div>
+                        <label class="block text-sm font-medium mb-1">Lĩnh vực hoạt động</label>
+                        <select id="businessField" class="w-full border rounded-xl px-4 py-2.5 text-sm focus:ring-2 focus:ring-blue-500 outline-none transition bg-white">
+                            <option value="Freight Forwarder">Freight Forwarder (Giao nhận vận tải)</option>
+                            <option value="Cargo Agent">Cargo Agent (Đại lý hàng hóa)</option>
+                            <option value="Logistics">Logistics tổng hợp</option>
+                            <option value="Khác">Khác</option>
+                        </select>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 2. Người đại diện -->
+            <div class="bg-white rounded-2xl border shadow-sm p-6">
+                <h2 class="font-semibold text-lg mb-1 flex items-center gap-2 text-slate-900">
+                    <span class="w-7 h-7 bg-blue-100 text-blue-700 rounded-lg flex items-center justify-center text-sm font-bold">2</span>
+                    Người đại diện / Liên hệ chính
+                </h2>
+                <p class="text-xs text-gray-500 mb-5 ml-9">Người trực tiếp sử dụng tài khoản đại lý và tiếp nhận thông báo thầu</p>
+
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div>
+                        <label class="block text-sm font-medium mb-1">Họ và tên người đại diện <span class="text-red-500">*</span></label>
+                        <input type="text" id="repName" required placeholder="VD: Nguyễn Văn An"
+                               class="w-full border rounded-xl px-4 py-2.5 text-sm focus:ring-2 focus:ring-blue-500 outline-none transition">
+                    </div>
+                    <div>
+                        <label class="block text-sm font-medium mb-1">Chức vụ <span class="text-red-500">*</span></label>
+                        <input type="text" id="repPosition" required placeholder="Giám đốc / Trưởng phòng Cargo..."
+                               class="w-full border rounded-xl px-4 py-2.5 text-sm focus:ring-2 focus:ring-blue-500 outline-none transition">
+                    </div>
+                    <div>
+                        <label class="block text-sm font-medium mb-1">Email nhận mã đại lý & hợp đồng <span class="text-red-500">*</span></label>
+                        <input type="email" id="email" required placeholder="an.nguyen@company.vn"
+                               class="w-full border rounded-xl px-4 py-2.5 text-sm focus:ring-2 focus:ring-blue-500 outline-none transition">
+                    </div>
+                    <div>
+                        <label class="block text-sm font-medium mb-1">Số điện thoại di động <span class="text-red-500">*</span></label>
+                        <input type="tel" id="phone" required placeholder="0901 234 567"
+                               class="w-full border rounded-xl px-4 py-2.5 text-sm focus:ring-2 focus:ring-blue-500 outline-none transition">
+                    </div>
+                    <div>
+                        <label class="block text-sm font-medium mb-1">Số CCCD / Hộ chiếu</label>
+                        <input type="text" id="citizenId" placeholder="Số căn cước công dân"
+                               class="w-full border rounded-xl px-4 py-2.5 text-sm focus:ring-2 focus:ring-blue-500 outline-none transition">
+                    </div>
+                    <div>
+                        <label class="block text-sm font-medium mb-1">Email nhận thông báo đấu giá (nếu khác)</label>
+                        <input type="email" id="notifEmail" placeholder="ops@company.vn"
+                               class="w-full border rounded-xl px-4 py-2.5 text-sm focus:ring-2 focus:ring-blue-500 outline-none transition">
+                    </div>
+                </div>
+            </div>
+
+            <!-- 3. Upload documents -->
+            <div class="bg-white rounded-2xl border shadow-sm p-6">
+                <h2 class="font-semibold text-lg mb-1 flex items-center gap-2 text-slate-900">
+                    <span class="w-7 h-7 bg-blue-100 text-blue-700 rounded-lg flex items-center justify-center text-sm font-bold">3</span>
+                    Hồ sơ đính kèm
+                </h2>
+                <p class="text-xs text-gray-500 mb-5 ml-9">Định dạng hỗ trợ: PDF, JPG, PNG · Dung lượng tối đa 10MB/tệp tin</p>
+
+                <div class="space-y-4">
+
+                    <!-- Giấy phép kinh doanh -->
+                    <div class="border border-dashed border-gray-300 rounded-xl p-4 hover:border-blue-400 transition" id="box-gpkd">
+                        <div class="flex items-start gap-4">
+                            <div class="w-11 h-11 bg-gray-100 text-gray-500 rounded-xl flex items-center justify-center flex-shrink-0">
+                                <i class="fa-solid fa-file-contract text-lg"></i>
+                            </div>
+                            <div class="flex-1 min-w-0">
+                                <p class="font-medium text-sm text-slate-900">Giấy phép kinh doanh / Đăng ký doanh nghiệp <span class="text-red-500">*</span></p>
+                                <p class="text-xs text-gray-500 mt-0.5">Bản chụp scan rõ nét, còn hiệu lực pháp lý</p>
+                                <div class="mt-3 flex items-center gap-3">
+                                    <label class="cursor-pointer bg-blue-50 hover:bg-blue-100 text-blue-700 text-xs font-medium px-3 py-1.5 rounded-lg transition">
+                                        <i class="fa-solid fa-upload mr-1"></i> Chọn tệp tin
+                                        <input type="file" accept=".pdf,.jpg,.jpeg,.png" class="hidden" data-label="gpkd" onchange="handleFile(this)">
+                                    </label>
+                                    <span class="text-xs text-gray-400 file-name" id="name-gpkd">Chưa chọn file</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Giấy ủy quyền cargo -->
+                    <div class="border border-dashed border-gray-300 rounded-xl p-4 hover:border-blue-400 transition">
+                        <div class="flex items-start gap-4">
+                            <div class="w-11 h-11 bg-gray-100 text-gray-500 rounded-xl flex items-center justify-center flex-shrink-0">
+                                <i class="fa-solid fa-file-signature text-lg"></i>
+                            </div>
+                            <div class="flex-1 min-w-0">
+                                <p class="font-medium text-sm text-slate-900">Giấy ủy quyền / Chứng nhận đại lý cargo / IATA <span class="text-red-500">*</span></p>
+                                <p class="text-xs text-gray-500 mt-0.5">Giấy tờ chứng minh tư cách đại lý hàng không hoặc đối tác forwarder</p>
+                                <div class="mt-3 flex items-center gap-3">
+                                    <label class="cursor-pointer bg-blue-50 hover:bg-blue-100 text-blue-700 text-xs font-medium px-3 py-1.5 rounded-lg transition">
+                                        <i class="fa-solid fa-upload mr-1"></i> Chọn tệp tin
+                                        <input type="file" accept=".pdf,.jpg,.jpeg,.png" class="hidden" data-label="uyquyen" onchange="handleFile(this)">
+                                    </label>
+                                    <span class="text-xs text-gray-400 file-name" id="name-uyquyen">Chưa chọn file</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- CCCD người đại diện -->
+                    <div class="border border-dashed border-gray-300 rounded-xl p-4 hover:border-blue-400 transition">
+                        <div class="flex items-start gap-4">
+                            <div class="w-11 h-11 bg-gray-100 text-gray-500 rounded-xl flex items-center justify-center flex-shrink-0">
+                                <i class="fa-solid fa-id-card text-lg"></i>
+                            </div>
+                            <div class="flex-1 min-w-0">
+                                <p class="font-medium text-sm text-slate-900">CCCD / CMND người đại diện pháp luật <span class="text-red-500">*</span></p>
+                                <p class="text-xs text-gray-500 mt-0.5">Mặt trước & mặt sau (có thể gộp chung 1 file PDF)</p>
+                                <div class="mt-3 flex items-center gap-3">
+                                    <label class="cursor-pointer bg-blue-50 hover:bg-blue-100 text-blue-700 text-xs font-medium px-3 py-1.5 rounded-lg transition">
+                                        <i class="fa-solid fa-upload mr-1"></i> Chọn tệp tin
+                                        <input type="file" accept=".pdf,.jpg,.jpeg,.png" class="hidden" data-label="cccd" onchange="handleFile(this)">
+                                    </label>
+                                    <span class="text-xs text-gray-400 file-name" id="name-cccd">Chưa chọn file</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Giấy ủy quyền nội bộ (optional) -->
+                    <div class="border border-dashed border-gray-300 rounded-xl p-4 hover:border-blue-400 transition">
+                        <div class="flex items-start gap-4">
+                            <div class="w-11 h-11 bg-gray-100 text-gray-500 rounded-xl flex items-center justify-center flex-shrink-0">
+                                <i class="fa-solid fa-file-lines text-lg"></i>
+                            </div>
+                            <div class="flex-1 min-w-0">
+                                <p class="font-medium text-sm text-slate-900">Giấy ủy quyền nội bộ doanh nghiệp <span class="text-gray-400 font-normal">(tuỳ chọn)</span></p>
+                                <p class="text-xs text-gray-500 mt-0.5">Cần nộp nếu người đứng tên đăng ký không phải đại diện pháp luật trên GPKD</p>
+                                <div class="mt-3 flex items-center gap-3">
+                                    <label class="cursor-pointer bg-blue-50 hover:bg-blue-100 text-blue-700 text-xs font-medium px-3 py-1.5 rounded-lg transition">
+                                        <i class="fa-solid fa-upload mr-1"></i> Chọn tệp tin
+                                        <input type="file" accept=".pdf,.jpg,.jpeg,.png" class="hidden" data-label="uqnb" onchange="handleFile(this)">
+                                    </label>
+                                    <span class="text-xs text-gray-400 file-name" id="name-uqnb">Chưa chọn file</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Tài liệu khác -->
+                    <div class="border border-dashed border-gray-300 rounded-xl p-4 hover:border-blue-400 transition">
+                        <div class="flex items-start gap-4">
+                            <div class="w-11 h-11 bg-gray-100 text-gray-500 rounded-xl flex items-center justify-center flex-shrink-0">
+                                <i class="fa-solid fa-folder-open text-lg"></i>
+                            </div>
+                            <div class="flex-1 min-w-0">
+                                <p class="font-medium text-sm text-slate-900">Tài liệu bổ trợ khác <span class="text-gray-400 font-normal">(tuỳ chọn)</span></p>
+                                <p class="text-xs text-gray-500 mt-0.5">Chứng chỉ vận chuyển hàng nguy hiểm (DGR), hồ sơ năng lực logistics</p>
+                                <div class="mt-3 flex items-center gap-3">
+                                    <label class="cursor-pointer bg-blue-50 hover:bg-blue-100 text-blue-700 text-xs font-medium px-3 py-1.5 rounded-lg transition">
+                                        <i class="fa-solid fa-upload mr-1"></i> Chọn tệp tin
+                                        <input type="file" accept=".pdf,.jpg,.jpeg,.png" multiple class="hidden" data-label="khac" onchange="handleFile(this)">
+                                    </label>
+                                    <span class="text-xs text-gray-400 file-name" id="name-khac">Chưa chọn file</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                </div>
+            </div>
+
+            <!-- 4. Tài khoản đăng nhập mong muốn -->
+            <div class="bg-white rounded-2xl border shadow-sm p-6">
+                <h2 class="font-semibold text-lg mb-1 flex items-center gap-2 text-slate-900">
+                    <span class="w-7 h-7 bg-blue-100 text-blue-700 rounded-lg flex items-center justify-center text-sm font-bold">4</span>
+                    Thông tin tài khoản (sau khi được duyệt)
+                </h2>
+                <p class="text-xs text-gray-500 mb-5 ml-9">Mã đại lý sẽ do ban điều hành cấp tự động (AG-xxxx). Quý đại lý vui lòng đặt mật khẩu khởi tạo.</p>
+
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div>
+                        <label class="block text-sm font-medium mb-1">Mật khẩu khởi tạo <span class="text-red-500">*</span></label>
+                        <input type="password" id="tempPassword" required placeholder="Tối thiểu 8 ký tự"
+                               class="w-full border rounded-xl px-4 py-2.5 text-sm focus:ring-2 focus:ring-blue-500 outline-none transition">
+                    </div>
+                    <div>
+                        <label class="block text-sm font-medium mb-1">Xác nhận mật khẩu <span class="text-red-500">*</span></label>
+                        <input type="password" id="confirmPassword" required placeholder="Nhập lại chính xác mật khẩu"
+                               class="w-full border rounded-xl px-4 py-2.5 text-sm focus:ring-2 focus:ring-blue-500 outline-none transition">
+                    </div>
+                </div>
+                <div class="bg-amber-50 border border-amber-200 text-amber-800 rounded-xl p-3 text-xs mt-4 flex items-center gap-2">
+                    <i class="fa-solid fa-circle-info text-amber-600"></i>
+                    <span>Sau khi được phê duyệt, thông tin đăng nhập chính thức gồm <strong>Mã Đại Lý (AG-xxxx)</strong> và mật khẩu trên sẽ được kích hoạt tức thì.</span>
+                </div>
+            </div>
+
+            <!-- 5. Cam kết -->
+            <div class="bg-white rounded-2xl border shadow-sm p-6">
+                <h2 class="font-semibold text-lg mb-4 flex items-center gap-2 text-slate-900">
+                    <span class="w-7 h-7 bg-blue-100 text-blue-700 rounded-lg flex items-center justify-center text-sm font-bold">5</span>
+                    Cam kết của doanh nghiệp
+                </h2>
+                <div class="space-y-3">
+                    <label class="flex items-start gap-3 cursor-pointer">
+                        <input type="checkbox" required class="w-4 h-4 mt-0.5 rounded text-blue-600 focus:ring-blue-500">
+                        <span class="text-sm text-gray-600 leading-relaxed">Tôi xác nhận mọi thông tin khai báo và hồ sơ tải lên là hoàn toàn chính xác, hợp pháp và còn nguyên hiệu lực.</span>
+                    </label>
+                    <label class="flex items-start gap-3 cursor-pointer">
+                        <input type="checkbox" required class="w-4 h-4 mt-0.5 rounded text-blue-600 focus:ring-blue-500">
+                        <span class="text-sm text-gray-600 leading-relaxed">Tôi đã đọc kỹ và đồng ý tuân thủ toàn bộ <a href="10-Terms.html" target="_blank" class="text-blue-600 font-semibold hover:underline">Điều khoản & Quy định vận hành</a> của hệ thống Cargo Bidding (bao gồm quy định thanh toán trong vòng 24h).</span>
+                    </label>
+                    <label class="flex items-start gap-3 cursor-pointer">
+                        <input type="checkbox" required class="w-4 h-4 mt-0.5 rounded text-blue-600 focus:ring-blue-500">
+                        <span class="text-sm text-gray-600 leading-relaxed">Tôi hiểu rõ việc gửi hồ sơ không đồng nghĩa với việc tự động được cấp quyền; quyết định phê duyệt cuối cùng thuộc thẩm quyền của hãng hàng không.</span>
+                    </label>
+                </div>
+            </div>
+
+            <!-- Actions -->
+            <div class="flex flex-col sm:flex-row gap-3 justify-end pt-2">
+                <a href="00-Home.html" class="px-6 py-3 border rounded-xl text-sm font-medium hover:bg-gray-50 transition text-center text-gray-600">
+                    Hủy bỏ
+                </a>
+                <button type="submit" class="px-8 py-3.5 bg-blue-600 hover:bg-blue-700 text-white rounded-xl text-sm font-semibold transition shadow-md shadow-blue-600/20 flex items-center justify-center gap-2">
+                    <i class="fa-solid fa-paper-plane"></i>
+                    Gửi hồ sơ đăng ký chính thức
+                </button>
+            </div>
+        </form>
+
+        <!-- Note -->
+        <p class="text-center text-xs text-gray-400 mt-8">
+            Cần giải đáp thắc mắc? Liên hệ Tổng đài <strong>1900-xxxx</strong> hoặc email <strong>cargo-agent@airline.vn</strong> · Hỗ trợ 07:00–22:00
+        </p>
+    </main>
+
+    <!-- Success modal (ẩn mặc định) -->
+    <div id="successModal" class="fixed inset-0 bg-black/50 backdrop-blur-sm z-50 hidden items-center justify-center p-4">
+        <div class="bg-white rounded-2xl shadow-2xl w-full max-w-md p-8 text-center animate-in fade-in zoom-in-95 duration-200">
+            <div class="w-16 h-16 bg-green-100 text-green-600 rounded-full flex items-center justify-center mx-auto mb-4 shadow-sm">
+                <i class="fa-solid fa-check text-2xl"></i>
+            </div>
+            <h3 class="text-xl font-bold mb-2 text-slate-900">Đã gửi hồ sơ thành công!</h3>
+            <p class="text-sm text-gray-600 mb-6 leading-relaxed">
+                Chúng tôi đã tiếp nhận hồ sơ đăng ký của doanh nghiệp. Mã hồ sơ đã được chuyển đến ban điều hành và sẽ phản hồi qua email trong <strong>3–5 ngày làm việc</strong>.
+            </p>
+            <div class="bg-slate-50 border p-3 rounded-xl text-xs text-gray-500 mb-6 text-left">
+                <p>• Doanh nghiệp: <strong id="modalCompName" class="text-slate-800">-</strong></p>
+                <p>• Người đại diện: <strong id="modalRepName" class="text-slate-800">-</strong></p>
+                <p>• Trạng thái hồ sơ: <span class="text-amber-600 font-semibold">Chờ xét duyệt (PENDING)</span></p>
+            </div>
+            <div class="flex flex-col gap-2">
+                <a href="00-Home.html" class="w-full bg-blue-600 hover:bg-blue-700 text-white font-medium py-3 rounded-xl transition shadow">
+                    Trở về trang chủ
+                </a>
+                <a href="Admin/06-AgentList.html" class="text-xs text-blue-600 hover:underline py-1">
+                    (Dành cho demo: Chuyển đến trang Admin để duyệt ngay)
+                </a>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const uploadedFileNames = [];
+
+        function handleFile(input) {
+            const label = input.getAttribute('data-label');
+            const nameEl = document.getElementById('name-' + label);
+            if (!nameEl) return;
+            if (input.files && input.files.length > 0) {
+                if (input.files.length === 1) {
+                    nameEl.textContent = input.files[0].name;
+                    uploadedFileNames.push(input.files[0].name);
+                } else {
+                    nameEl.textContent = input.files.length + ' tệp tin đã chọn';
+                    for (let i = 0; i < input.files.length; i++) {
+                        uploadedFileNames.push(input.files[i].name);
+                    }
+                }
+                nameEl.classList.remove('text-gray-400');
+                nameEl.classList.add('text-green-600', 'font-medium');
+            } else {
+                nameEl.textContent = 'Chưa chọn file';
+                nameEl.classList.add('text-gray-400');
+                nameEl.classList.remove('text-green-600', 'font-medium');
+            }
+        }
+
+        document.getElementById('registerForm').addEventListener('submit', function(e) {
+            e.preventDefault();
+
+            const p1 = document.getElementById('tempPassword').value;
+            const p2 = document.getElementById('confirmPassword').value;
+            if (p1 !== p2) {
+                alert('Mật khẩu xác nhận không trùng khớp! Vui lòng kiểm tra lại.');
+                return;
+            }
+
+            const compName = document.getElementById('companyName').value;
+            const repName = document.getElementById('repName').value;
+
+            // Save to shared store
+            if (typeof CargoStore !== 'undefined') {
+                CargoStore.registerAgent({
+                    companyName: compName,
+                    taxCode: document.getElementById('taxCode').value,
+                    address: document.getElementById('address').value,
+                    field: document.getElementById('businessField').value,
+                    repName: repName,
+                    repPosition: document.getElementById('repPosition').value,
+                    email: document.getElementById('email').value,
+                    phone: document.getElementById('phone').value,
+                    documents: uploadedFileNames.length > 0 ? uploadedFileNames : ['GiayPhepKinhDoanh.pdf', 'CCCD_NguoiDaiDien.pdf']
+                });
+            }
+
+            document.getElementById('modalCompName').textContent = compName;
+            document.getElementById('modalRepName').textContent = repName;
+
+            document.getElementById('successModal').classList.remove('hidden');
+            document.getElementById('successModal').classList.add('flex');
+        });
+    </script>
+</body>
+</html>

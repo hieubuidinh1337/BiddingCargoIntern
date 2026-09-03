@@ -1,0 +1,260 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Admin Dashboard - Cargo Bidding</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+    <script src="../assets/js/cargo-store.js"></script>
+</head>
+<body class="bg-slate-100 text-slate-800">
+
+    <!-- Admin Topbar -->
+    <header class="bg-slate-900 text-white sticky top-0 z-50 border-b border-slate-800 shadow-sm">
+        <div class="max-w-7xl mx-auto px-4 py-2.5 flex items-center justify-between">
+            <div class="flex items-center gap-6">
+                <a href="02-AdminDashboard.html" class="flex items-center gap-2.5">
+                    <div class="w-8 h-8 bg-blue-600 rounded-lg flex items-center justify-center font-bold text-sm shadow">VN</div>
+                    <div>
+                        <span class="font-bold text-sm leading-tight block">Cargo Bidding Admin</span>
+                        <span class="text-[10px] text-blue-400 font-medium block">Hệ thống Điều hành & Thẩm định</span>
+                    </div>
+                </a>
+                <nav class="hidden md:flex items-center gap-1 text-xs font-medium">
+                    <a href="02-AdminDashboard.html" class="px-3 py-1.5 rounded-lg bg-blue-600 text-white font-semibold flex items-center gap-1.5">
+                        <i class="fa-solid fa-chart-pie"></i> Dashboard
+                    </a>
+                    <a href="03-AuctionList.html" class="px-3 py-1.5 rounded-lg text-slate-300 hover:text-white hover:bg-slate-800 transition flex items-center gap-1.5">
+                        <i class="fa-solid fa-list-check"></i> Quản lý phiên
+                    </a>
+                    <a href="04-CreateAuction.html" class="px-3 py-1.5 rounded-lg text-slate-300 hover:text-white hover:bg-slate-800 transition flex items-center gap-1.5">
+                        <i class="fa-solid fa-plus-circle"></i> Tạo phiên mới
+                    </a>
+                    <a href="06-AgentList.html" class="px-3 py-1.5 rounded-lg text-slate-300 hover:text-white hover:bg-slate-800 transition flex items-center gap-1.5">
+                        <i class="fa-solid fa-building-user"></i> Đại lý & Duyệt đơn
+                    </a>
+                    <a href="07-Reports.html" class="px-3 py-1.5 rounded-lg text-slate-300 hover:text-white hover:bg-slate-800 transition flex items-center gap-1.5">
+                        <i class="fa-solid fa-chart-line"></i> Báo cáo
+                    </a>
+                    <a href="08-Settings.html" class="px-3 py-1.5 rounded-lg text-slate-300 hover:text-white hover:bg-slate-800 transition flex items-center gap-1.5">
+                        <i class="fa-solid fa-sliders"></i> Cài đặt
+                    </a>
+                </nav>
+            </div>
+
+            <div class="flex items-center gap-3">
+                <a href="../00-Home.html" target="_blank" class="hidden sm:inline-flex items-center gap-1.5 text-xs text-slate-300 hover:text-white bg-slate-800 px-3 py-1.5 rounded-lg border border-slate-700 transition">
+                    <i class="fa-solid fa-external-link text-[10px]"></i> Xem Sàn công khai
+                </a>
+                <div class="flex items-center gap-2 pl-2 border-l border-slate-700">
+                    <div class="w-7 h-7 bg-blue-500/20 text-blue-400 rounded-lg flex items-center justify-center text-xs font-bold">
+                        AD
+                    </div>
+                    <span class="text-xs font-medium text-slate-200 hidden sm:inline">Trần Quản Trị</span>
+                    <a href="01-AdminLogin.html" title="Đăng xuất Admin" class="text-slate-400 hover:text-red-400 p-1 transition">
+                        <i class="fa-solid fa-power-off text-xs"></i>
+                    </a>
+                </div>
+            </div>
+        </div>
+    </header>
+
+    <main class="max-w-7xl mx-auto px-4 py-6 space-y-6">
+
+        <!-- Header Controls -->
+        <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+            <div>
+                <h1 class="text-2xl font-bold text-slate-900 flex items-center gap-2">
+                    <i class="fa-solid fa-gauge text-blue-600"></i> Bảng điều khiển Quản trị (Admin Dashboard)
+                </h1>
+                <p class="text-xs text-slate-500 mt-1">Giám sát hoạt động đấu giá slot cargo, thẩm định đại lý và điều phối vận tải</p>
+            </div>
+            <div class="flex items-center gap-2">
+                <a href="04-CreateAuction.html" class="bg-blue-600 hover:bg-blue-700 text-white text-xs font-semibold px-4 py-2.5 rounded-xl transition shadow flex items-center gap-1.5">
+                    <i class="fa-solid fa-plus"></i> Tạo phiên đấu giá mới
+                </a>
+                <a href="06-AgentList.html" class="bg-white hover:bg-slate-50 text-slate-700 text-xs font-semibold px-4 py-2.5 rounded-xl border transition shadow-sm flex items-center gap-1.5">
+                    <i class="fa-solid fa-user-check text-blue-600"></i> Duyệt hồ sơ (<span id="pendingBadge">2</span>)
+                </a>
+            </div>
+        </div>
+
+        <!-- KPI Summary Cards -->
+        <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+            <div class="bg-white rounded-2xl p-5 border shadow-sm flex items-center gap-4">
+                <div class="w-12 h-12 bg-blue-50 text-blue-600 rounded-xl flex items-center justify-center text-xl flex-shrink-0">
+                    <i class="fa-solid fa-money-bill-wave"></i>
+                </div>
+                <div>
+                    <p class="text-xs text-slate-500 font-medium">Doanh thu thầu chốt</p>
+                    <p class="text-xl font-bold text-slate-900 mt-0.5">66.000.000 đ</p>
+                    <span class="text-[11px] text-emerald-600 font-semibold">+18.5% so với tuần trước</span>
+                </div>
+            </div>
+
+            <div class="bg-white rounded-2xl p-5 border shadow-sm flex items-center gap-4">
+                <div class="w-12 h-12 bg-emerald-50 text-emerald-600 rounded-xl flex items-center justify-center text-xl flex-shrink-0">
+                    <i class="fa-solid fa-plane-circle-check"></i>
+                </div>
+                <div>
+                    <p class="text-xs text-slate-500 font-medium">Phiên đang mở</p>
+                    <p class="text-2xl font-bold text-emerald-600 mt-0.5" id="kpiOpenAuctions">3</p>
+                    <span class="text-[11px] text-slate-400">Trên tổng số 28 chuyến</span>
+                </div>
+            </div>
+
+            <div class="bg-white rounded-2xl p-5 border shadow-sm flex items-center gap-4">
+                <div class="w-12 h-12 bg-amber-50 text-amber-600 rounded-xl flex items-center justify-center text-xl flex-shrink-0">
+                    <i class="fa-solid fa-clock-rotate-left"></i>
+                </div>
+                <div>
+                    <p class="text-xs text-slate-500 font-medium">Hồ sơ chờ xét duyệt</p>
+                    <p class="text-2xl font-bold text-amber-600 mt-0.5" id="kpiPendingRegistrations">2</p>
+                    <span class="text-[11px] text-amber-700 font-semibold">Đợt Tháng 8/2026</span>
+                </div>
+            </div>
+
+            <div class="bg-white rounded-2xl p-5 border shadow-sm flex items-center gap-4">
+                <div class="w-12 h-12 bg-purple-50 text-purple-600 rounded-xl flex items-center justify-center text-xl flex-shrink-0">
+                    <i class="fa-solid fa-weight-hanging"></i>
+                </div>
+                <div>
+                    <p class="text-xs text-slate-500 font-medium">Tổng tải trọng chào thầu</p>
+                    <p class="text-2xl font-bold text-purple-600 mt-0.5">12,500 <span class="text-xs text-slate-400 font-normal">Kg</span></p>
+                    <span class="text-[11px] text-slate-400">Tỷ lệ lấp đầy: 94.2%</span>
+                </div>
+            </div>
+        </div>
+
+        <!-- Tables Section -->
+        <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+
+            <!-- Active Flight Auctions Monitoring (2 cols) -->
+            <div class="lg:col-span-2 bg-white rounded-2xl border shadow-sm p-6 space-y-4">
+                <div class="flex items-center justify-between">
+                    <div>
+                        <h2 class="text-base font-bold text-slate-900 flex items-center gap-2">
+                            <i class="fa-solid fa-tower-broadcast text-blue-600"></i> Giám sát các phiên đấu giá đang mở
+                        </h2>
+                        <p class="text-xs text-slate-500 mt-0.5">Theo dõi thời gian thực các bước giá và đại lý dẫn đầu</p>
+                    </div>
+                    <a href="03-AuctionList.html" class="text-xs font-semibold text-blue-600 hover:underline">
+                        Quản lý tất cả phiên →
+                    </a>
+                </div>
+
+                <div class="overflow-x-auto">
+                    <table class="w-full text-left text-xs">
+                        <thead class="bg-slate-50 text-slate-500 font-semibold border-b">
+                            <tr>
+                                <th class="py-3 px-3">Chuyến bay</th>
+                                <th class="py-3 px-3">Tải trọng</th>
+                                <th class="py-3 px-3">Giá cao nhất</th>
+                                <th class="py-3 px-3">Đại lý dẫn đầu</th>
+                                <th class="py-3 px-3">Đếm ngược</th>
+                                <th class="py-3 px-3 text-right">Thao tác</th>
+                            </tr>
+                        </thead>
+                        <tbody class="divide-y divide-gray-100" id="adminAuctionsTable">
+                            <!-- Populated by JS -->
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
+            <!-- Pending Registrations Queue (1 col) -->
+            <div class="bg-white rounded-2xl border shadow-sm p-6 space-y-4">
+                <div class="flex items-center justify-between">
+                    <div>
+                        <h2 class="text-base font-bold text-slate-900 flex items-center gap-2">
+                            <i class="fa-solid fa-id-card-clip text-amber-500"></i> Hồ sơ đại lý mới
+                        </h2>
+                        <p class="text-xs text-slate-500 mt-0.5">Đơn đăng ký trực tuyến chờ duyệt</p>
+                    </div>
+                    <a href="06-AgentList.html" class="text-xs font-semibold text-blue-600 hover:underline">Tất cả</a>
+                </div>
+
+                <div class="space-y-3" id="adminPendingRegistrations">
+                    <!-- Populated by JS -->
+                </div>
+            </div>
+
+        </div>
+
+    </main>
+
+    <script>
+        function loadDashboard() {
+            if (typeof CargoStore === 'undefined') return;
+
+            const auctions = CargoStore.getAuctions().filter(a => a.status === 'OPEN');
+            document.getElementById('kpiOpenAuctions').textContent = auctions.length;
+
+            const tbody = document.getElementById('adminAuctionsTable');
+            tbody.innerHTML = auctions.map(a => {
+                const timer = CargoStore.getTimeRemaining(a.endTime);
+                return `
+                    <tr class="hover:bg-slate-50 transition">
+                        <td class="py-3 px-3">
+                            <span class="bg-blue-600 text-white font-bold px-2 py-0.5 rounded text-[11px]">${a.flightNumber}</span>
+                            <span class="font-bold text-slate-800 ml-1">${a.route}</span>
+                        </td>
+                        <td class="py-3 px-3 font-medium text-slate-700">
+                            ${CargoStore.formatNumber(a.capacityKg)} Kg
+                        </td>
+                        <td class="py-3 px-3 font-bold text-blue-600">
+                            ${CargoStore.formatCurrency(a.currentPriceKg)}
+                        </td>
+                        <td class="py-3 px-3">
+                            <span class="font-semibold text-slate-900 block">${a.leadingAgentName}</span>
+                            <span class="text-[10px] text-slate-400 font-mono">${a.leadingAgentCode || '-'}</span>
+                        </td>
+                        <td class="py-3 px-3 text-orange-600 font-semibold text-[11px]">
+                            ${timer.minutes}m ${timer.seconds}s
+                        </td>
+                        <td class="py-3 px-3 text-right">
+                            <a href="05-AuctionDetail.html?id=${a.id}" class="bg-slate-100 hover:bg-blue-50 text-blue-700 font-medium px-2.5 py-1.5 rounded-lg text-xs transition inline-flex items-center gap-1">
+                                <i class="fa-solid fa-eye"></i> Giám sát
+                            </a>
+                        </td>
+                    </tr>
+                `;
+            }).join('');
+
+            // Registrations
+            const data = CargoStore.getData();
+            const pendings = data.registrations.filter(r => r.status === 'PENDING');
+            document.getElementById('kpiPendingRegistrations').textContent = pendings.length;
+            document.getElementById('pendingBadge').textContent = pendings.length;
+
+            const regBox = document.getElementById('adminPendingRegistrations');
+            if (pendings.length === 0) {
+                regBox.innerHTML = `<p class="text-xs text-gray-400 text-center py-6">Không có hồ sơ nào chờ duyệt</p>`;
+            } else {
+                regBox.innerHTML = pendings.slice(0, 3).map(r => `
+                    <div class="p-3.5 rounded-xl border border-slate-200 bg-slate-50 hover:bg-white transition text-xs space-y-2">
+                        <div class="flex items-center justify-between">
+                            <span class="font-mono font-bold text-blue-600">${r.regId}</span>
+                            <span class="text-[10px] text-gray-400">${r.submittedAt}</span>
+                        </div>
+                        <div>
+                            <p class="font-bold text-slate-800">${r.companyName}</p>
+                            <p class="text-[11px] text-gray-500">Người đại diện: ${r.repName} · ${r.phone}</p>
+                        </div>
+                        <div class="flex items-center justify-between pt-1 border-t">
+                            <span class="text-[11px] text-slate-400"><i class="fa-solid fa-paperclip"></i> ${r.documents.length} tệp đính kèm</span>
+                            <a href="06-AgentList.html" class="text-blue-600 font-bold hover:underline">Xét duyệt ngay →</a>
+                        </div>
+                    </div>
+                `).join('');
+            }
+        }
+
+        document.addEventListener('DOMContentLoaded', function() {
+            loadDashboard();
+            setInterval(loadDashboard, 1500);
+        });
+    </script>
+</body>
+</html>

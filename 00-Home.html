@@ -1,0 +1,686 @@
+<!DOCTYPE html>
+<html lang="vi">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Cargo Bidding - Hệ thống đấu giá hàng hóa hàng không</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+    <script src="assets/js/cargo-store.js"></script>
+    <style>
+        .hero-bg {
+            background: linear-gradient(135deg, #0f172a 0%, #1e3a5f 50%, #1e40af 100%);
+        }
+    </style>
+</head>
+
+<body class="bg-gray-50 text-gray-800">
+
+    <!-- Top bar: Admin link -->
+    <div class="bg-slate-900 text-slate-300 text-xs">
+        <div class="max-w-7xl mx-auto px-4 py-1.5 flex items-center justify-between">
+            <span class="flex items-center gap-2">
+                <span class="w-2 h-2 rounded-full bg-emerald-400 animate-ping"></span>
+                <span>Hệ thống đấu giá slot cargo chính thức</span>
+            </span>
+            <div class="flex items-center gap-4">
+                <a href="01-Login.html" class="hover:text-white transition flex items-center gap-1">
+                    <i class="fa-solid fa-right-to-bracket text-[10px]"></i> Cổng Đại Lý
+                </a>
+                <span class="text-slate-600">|</span>
+                <a href="Admin/01-AdminLogin.html"
+                    class="hover:text-white flex items-center gap-1.5 transition text-blue-400 hover:text-blue-300 font-medium">
+                    <i class="fa-solid fa-user-shield"></i>
+                    <span>Đăng nhập Admin</span>
+                </a>
+            </div>
+        </div>
+    </div>
+
+    <!-- Main Header -->
+    <header class="bg-white border-b shadow-sm sticky top-0 z-50">
+        <div class="max-w-7xl mx-auto px-4 py-3 flex items-center justify-between">
+            <a href="00-Home.html" class="flex items-center gap-3">
+                <div
+                    class="w-11 h-11 bg-blue-600 rounded-xl flex items-center justify-center text-white font-bold text-lg shadow-md hover:scale-105 transition">
+                    VN
+                </div>
+                <div>
+                    <h1 class="font-bold text-lg leading-tight text-slate-900">Cargo Bidding</h1>
+                    <p class="text-xs text-gray-500">Sàn đấu giá hàng hóa hàng không</p>
+                </div>
+            </a>
+            <nav class="hidden md:flex items-center gap-6 text-sm font-medium">
+                <a href="#gioi-thieu" class="text-gray-600 hover:text-blue-600 transition">Giới thiệu</a>
+                <a href="#tinh-nang" class="text-gray-600 hover:text-blue-600 transition">Tính năng</a>
+                <a href="#quy-trinh" class="text-gray-600 hover:text-blue-600 transition">Quy trình</a>
+                <a href="#thong-bao" class="text-gray-600 hover:text-blue-600 transition">Thông báo</a>
+                <a href="#lien-he" class="text-gray-600 hover:text-blue-600 transition">Liên hệ</a>
+            </nav>
+            <div class="flex items-center gap-3">
+                <a href="Register.html"
+                    class="hidden sm:inline-flex items-center gap-1.5 text-blue-600 border border-blue-200 hover:bg-blue-50 text-sm font-medium px-4 py-2 rounded-xl transition">
+                    <i class="fa-solid fa-user-plus text-xs"></i> Đăng ký đại lý
+                </a>
+                <a href="01-Login.html" id="headerLoginBtn"
+                    class="bg-blue-600 hover:bg-blue-700 text-white text-sm font-medium px-4 py-2 rounded-xl transition shadow flex items-center gap-1.5">
+                    <i class="fa-solid fa-right-to-bracket text-xs"></i> Đăng nhập
+                </a>
+            </div>
+        </div>
+    </header>
+
+    <!-- Hero + Login -->
+    <section class="hero-bg text-white relative overflow-hidden" id="gioi-thieu">
+        <!-- Background decorative elements -->
+        <div class="absolute -right-20 -top-20 w-96 h-96 rounded-full bg-blue-500/10 blur-3xl pointer-events-none">
+        </div>
+        <div class="absolute left-1/3 -bottom-20 w-80 h-80 rounded-full bg-indigo-500/10 blur-3xl pointer-events-none">
+        </div>
+
+        <div class="max-w-7xl mx-auto px-4 py-12 lg:py-16 relative z-10">
+            <div class="grid grid-cols-1 lg:grid-cols-5 gap-10 items-center">
+
+                <!-- Left: Intro content (3 cols) -->
+                <div class="lg:col-span-3 space-y-6">
+                    <div
+                        class="inline-flex items-center gap-2 bg-white/10 backdrop-blur text-sm px-3.5 py-1.5 rounded-full border border-white/15">
+                        <span class="w-2 h-2 bg-green-400 rounded-full animate-pulse"></span>
+                        <span class="font-medium">Hệ thống đang hoạt động · 28 phiên mở hôm nay</span>
+                    </div>
+                    <h2 class="text-3xl md:text-4xl lg:text-5xl font-extrabold leading-tight tracking-tight">
+                        Đấu giá slot cargo<br>
+                        <span class="text-blue-300">minh bạch · realtime</span>
+                    </h2>
+                    <p class="text-slate-300 text-base md:text-lg max-w-xl leading-relaxed">
+                        Nền tảng đấu giá công suất hàng hóa hàng không dành riêng cho đại lý được ủy quyền.
+                        Đặt giá cạnh tranh, theo dõi realtime, thắng thầu rõ ràng với tiêu chuẩn dịch vụ hàng đầu.
+                    </p>
+                    <div class="grid grid-cols-1 sm:grid-cols-3 gap-3 pt-1 text-sm">
+                        <div
+                            class="flex items-center gap-2.5 bg-white/5 border border-white/10 rounded-xl px-3.5 py-2.5">
+                            <i class="fa-solid fa-check-circle text-green-400 text-base"></i>
+                            <span>Đấu giá công khai</span>
+                        </div>
+                        <div
+                            class="flex items-center gap-2.5 bg-white/5 border border-white/10 rounded-xl px-3.5 py-2.5">
+                            <i class="fa-solid fa-bolt text-yellow-400 text-base"></i>
+                            <span>Cập nhật realtime</span>
+                        </div>
+                        <div
+                            class="flex items-center gap-2.5 bg-white/5 border border-white/10 rounded-xl px-3.5 py-2.5">
+                            <i class="fa-solid fa-plane-up text-sky-400 text-base"></i>
+                            <span>40–50 chuyến/ngày</span>
+                        </div>
+                    </div>
+                    <div class="flex flex-wrap gap-3 pt-2">
+                        <a href="#login-box"
+                            class="bg-blue-500 hover:bg-blue-400 text-white font-semibold px-6 py-3.5 rounded-xl transition shadow-lg shadow-blue-500/30 flex items-center gap-2">
+                            <i class="fa-solid fa-right-to-bracket"></i> Đăng nhập đại lý
+                        </a>
+                        <a href="Register.html"
+                            class="bg-white/15 hover:bg-white/20 border border-white/30 text-white font-semibold px-6 py-3.5 rounded-xl transition flex items-center gap-2">
+                            <i class="fa-solid fa-file-pen"></i> Đăng ký tham gia
+                        </a>
+                        <a href="#thong-bao"
+                            class="border border-white/20 hover:bg-white/10 text-slate-300 hover:text-white font-medium px-5 py-3.5 rounded-xl transition">
+                            Xem đợt mở xét duyệt
+                        </a>
+                    </div>
+                </div>
+
+                <!-- Right: Big Login box (2 cols) -->
+                <div class="lg:col-span-2" id="login-box">
+                    <div class="bg-white rounded-2xl shadow-2xl p-6 md:p-8 text-gray-800 border border-slate-100">
+                        <div class="text-center mb-5">
+                            <div
+                                class="inline-flex items-center justify-center w-14 h-14 bg-blue-50 text-blue-600 rounded-2xl mb-3 shadow-inner">
+                                <i class="fa-solid fa-building text-2xl"></i>
+                            </div>
+                            <h3 class="text-xl font-bold text-slate-900">Đăng nhập đại lý</h3>
+                            <p class="text-sm text-gray-500 mt-0.5">Truy cập ngay sàn đấu giá slot hàng hóa hàng không
+                            </p>
+                        </div>
+
+                        <!-- Error Alert Box -->
+                        <div id="heroErrorAlert"
+                            class="hidden bg-red-50 border-l-4 border-red-500 rounded-xl p-3 mb-4 text-xs text-red-700 space-y-0.5">
+                            <div class="flex items-center gap-1.5 font-bold text-red-800">
+                                <i class="fa-solid fa-circle-exclamation text-red-500"></i>
+                                <span id="heroErrorTitle">Đăng nhập thất bại</span>
+                            </div>
+                            <p id="heroErrorMsg" class="pl-5 text-gray-600">Mã đại lý hoặc mật khẩu không đúng.</p>
+                        </div>
+
+                        <!-- Demo Accounts Selector -->
+                        <div
+                            class="bg-blue-50/80 border border-blue-200/80 rounded-xl p-3 mb-4 text-xs text-blue-900 space-y-1.5">
+                            <span class="font-bold flex items-center gap-1">
+                                <i class="fa-solid fa-bolt text-amber-500"></i> Chọn nhanh tài khoản đại lý mẫu:
+                            </span>
+                            <div class="grid grid-cols-2 gap-1.5 pt-0.5">
+                                <button type="button" onclick="fillHeroDemo('AG-0892', 'abc123456')"
+                                    class="bg-white hover:bg-blue-100 text-blue-900 border border-blue-200 px-2 py-1.5 rounded-lg text-left transition text-[11px] shadow-sm">
+                                    <span class="font-bold block truncate">ABC Logistics</span>
+                                    <span class="text-[10px] text-blue-600 font-mono">AG-0892</span>
+                                </button>
+                                <button type="button" onclick="fillHeroDemo('AG-1024', 'vina123456')"
+                                    class="bg-white hover:bg-blue-100 text-blue-900 border border-blue-200 px-2 py-1.5 rounded-lg text-left transition text-[11px] shadow-sm">
+                                    <span class="font-bold block truncate">Vinatrans</span>
+                                    <span class="text-[10px] text-blue-600 font-mono">AG-1024</span>
+                                </button>
+                                <button type="button" onclick="fillHeroDemo('AG-0556', 'star123456')"
+                                    class="bg-white hover:bg-blue-100 text-blue-900 border border-blue-200 px-2 py-1.5 rounded-lg text-left transition text-[11px] shadow-sm">
+                                    <span class="font-bold block truncate">Golden Star</span>
+                                    <span class="text-[10px] text-blue-600 font-mono">AG-0556</span>
+                                </button>
+                                <button type="button" onclick="fillHeroDemo('AG-0341', 'sky123456')"
+                                    class="bg-white hover:bg-blue-100 text-blue-900 border border-blue-200 px-2 py-1.5 rounded-lg text-left transition text-[11px] shadow-sm">
+                                    <span class="font-bold block truncate">SkyFreight</span>
+                                    <span class="text-[10px] text-blue-600 font-mono">AG-0341</span>
+                                </button>
+                            </div>
+                        </div>
+
+                        <form class="space-y-4" id="heroLoginForm" onsubmit="handleHeroLogin(event)">
+                            <div>
+                                <label class="block text-xs font-semibold text-gray-700 mb-1">Mã đại lý ủy quyền</label>
+                                <div class="relative">
+                                    <i
+                                        class="fa-solid fa-id-card absolute left-3.5 top-1/2 -translate-y-1/2 text-gray-400 text-sm"></i>
+                                    <input type="text" id="heroAgentCode" value="AG-0892" required
+                                        placeholder="VD: AG-0892"
+                                        class="w-full border border-gray-300 rounded-xl pl-10 pr-4 py-2.5 text-sm focus:ring-2 focus:ring-blue-500 outline-none transition uppercase font-semibold">
+                                </div>
+                            </div>
+                            <div>
+                                <label class="block text-xs font-semibold text-gray-700 mb-1">Mật khẩu xác thực</label>
+                                <div class="relative">
+                                    <i
+                                        class="fa-solid fa-lock absolute left-3.5 top-1/2 -translate-y-1/2 text-gray-400 text-sm"></i>
+                                    <input type="password" id="heroAgentPassword" value="abc123456" required
+                                        placeholder="••••••••"
+                                        class="w-full border border-gray-300 rounded-xl pl-10 pr-10 py-2.5 text-sm focus:ring-2 focus:ring-blue-500 outline-none transition">
+                                    <button type="button" onclick="toggleHeroPass()"
+                                        class="absolute right-3.5 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600">
+                                        <i class="fa-solid fa-eye text-sm" id="heroEyeIcon"></i>
+                                    </button>
+                                </div>
+                            </div>
+                            <div class="flex items-center justify-between text-xs py-0.5">
+                                <label class="flex items-center gap-2 cursor-pointer">
+                                    <input type="checkbox" checked
+                                        class="w-3.5 h-3.5 rounded border-gray-300 text-blue-600 focus:ring-blue-500">
+                                    <span class="text-gray-600">Duy trì đăng nhập</span>
+                                </label>
+                            </div>
+                            <button type="submit" id="heroSubmitBtn"
+                                class="w-full bg-blue-600 hover:bg-blue-700 text-white font-bold py-3.5 rounded-xl transition shadow-md shadow-blue-600/20 text-sm flex items-center justify-center gap-2">
+                                <i class="fa-solid fa-right-to-bracket"></i> Đăng nhập vào Sàn thầu
+                            </button>
+                        </form>
+
+                        <div class="mt-5 pt-4 border-t text-center text-xs text-gray-500">
+                            Chưa có tài khoản?
+                            <a href="Register.html" class="text-blue-600 font-bold hover:underline ml-1">Đăng ký đại lý
+                                mới ngay →</a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Tính năng nổi bật -->
+    <section id="tinh-nang" class="py-16 bg-white border-b">
+        <div class="max-w-7xl mx-auto px-4">
+            <div class="text-center max-w-2xl mx-auto mb-12">
+                <span
+                    class="text-blue-600 font-semibold text-xs tracking-wider uppercase bg-blue-50 px-3 py-1 rounded-full">Tính
+                    năng cốt lõi</span>
+                <h2 class="text-2xl md:text-3xl font-bold text-slate-900 mt-2">Nền tảng tối ưu hóa doanh thu & tải trọng
+                </h2>
+                <p class="text-gray-500 mt-2 text-sm">Giải pháp kết nối trực tiếp các đại lý Forwarder uy tín với mạng
+                    lưới đường bay hàng không toàn quốc.</p>
+            </div>
+
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-8">
+                <div class="bg-gray-50 rounded-2xl p-6 border border-gray-200/80 hover:shadow-lg transition">
+                    <div
+                        class="w-12 h-12 bg-blue-100 text-blue-600 rounded-xl flex items-center justify-center text-xl mb-4">
+                        <i class="fa-solid fa-chart-line"></i>
+                    </div>
+                    <h3 class="text-lg font-bold text-slate-900 mb-2">Đấu giá thời gian thực</h3>
+                    <p class="text-sm text-gray-600 leading-relaxed">
+                        Cập nhật từng bước giá đặt của các đại lý tức thời qua hệ thống socket realtime, không độ trễ,
+                        cảnh báo vượt giá tự động.
+                    </p>
+                </div>
+                <div class="bg-gray-50 rounded-2xl p-6 border border-gray-200/80 hover:shadow-lg transition">
+                    <div
+                        class="w-12 h-12 bg-emerald-100 text-emerald-600 rounded-xl flex items-center justify-center text-xl mb-4">
+                        <i class="fa-solid fa-shield-halved"></i>
+                    </div>
+                    <h3 class="text-lg font-bold text-slate-900 mb-2">Minh bạch & Độc lập</h3>
+                    <p class="text-sm text-gray-600 leading-relaxed">
+                        Toàn bộ quy trình từ mở thầu, ghi nhận giá, chốt thắng thầu đến sinh mã đơn đều được mã hóa và
+                        kiểm toán trên hệ thống.
+                    </p>
+                </div>
+                <div class="bg-gray-50 rounded-2xl p-6 border border-gray-200/80 hover:shadow-lg transition">
+                    <div
+                        class="w-12 h-12 bg-amber-100 text-amber-600 rounded-xl flex items-center justify-center text-xl mb-4">
+                        <i class="fa-solid fa-clock-rotate-left"></i>
+                    </div>
+                    <h3 class="text-lg font-bold text-slate-900 mb-2">Quy chuẩn 24H & Cut-off</h3>
+                    <p class="text-sm text-gray-600 leading-relaxed">
+                        Thời hạn thanh toán minh bạch trong vòng 24 giờ sau khi thắng thầu, đồng bộ chính xác với lịch
+                        cut-off hàng tại nhà ga sân bay.
+                    </p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Quy trình tham gia -->
+    <section id="quy-trinh" class="py-16 bg-slate-50">
+        <div class="max-w-7xl mx-auto px-4">
+            <div class="text-center max-w-2xl mx-auto mb-12">
+                <span
+                    class="text-blue-600 font-semibold text-xs tracking-wider uppercase bg-blue-50 px-3 py-1 rounded-full">Đơn
+                    giản & Nhanh chóng</span>
+                <h2 class="text-2xl md:text-3xl font-bold text-slate-900 mt-2">Quy trình 4 bước tham gia sàn đấu giá
+                </h2>
+            </div>
+            <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
+                <div class="bg-white p-6 rounded-2xl border shadow-sm relative">
+                    <span
+                        class="w-8 h-8 rounded-full bg-blue-600 text-white font-bold flex items-center justify-center text-sm mb-4">1</span>
+                    <h4 class="font-bold text-base mb-1">Nộp hồ sơ đại lý</h4>
+                    <p class="text-xs text-gray-500">Điền thông tin doanh nghiệp và tải lên GPKD, giấy ủy quyền qua cổng
+                        đăng ký.</p>
+                </div>
+                <div class="bg-white p-6 rounded-2xl border shadow-sm relative">
+                    <span
+                        class="w-8 h-8 rounded-full bg-blue-600 text-white font-bold flex items-center justify-center text-sm mb-4">2</span>
+                    <h4 class="font-bold text-base mb-1">Xét duyệt & Cấp mã</h4>
+                    <p class="text-xs text-gray-500">Ban điều hành thẩm định hồ sơ trong 3-5 ngày và gửi mã đại lý
+                        (AG-xxxx) qua email.</p>
+                </div>
+                <div class="bg-white p-6 rounded-2xl border shadow-sm relative">
+                    <span
+                        class="w-8 h-8 rounded-full bg-blue-600 text-white font-bold flex items-center justify-center text-sm mb-4">3</span>
+                    <h4 class="font-bold text-base mb-1">Đấu giá trực tuyến</h4>
+                    <p class="text-xs text-gray-500">Lựa chọn chuyến bay, theo dõi diễn biến và đặt giá cạnh tranh cho
+                        tải trọng mong muốn.</p>
+                </div>
+                <div class="bg-white p-6 rounded-2xl border shadow-sm relative">
+                    <span
+                        class="w-8 h-8 rounded-full bg-green-600 text-white font-bold flex items-center justify-center text-sm mb-4">4</span>
+                    <h4 class="font-bold text-base mb-1">Nhận thầu & Giao hàng</h4>
+                    <p class="text-xs text-gray-500">Thanh toán trong 24 giờ, nhận số vận đơn AWB và bàn giao hàng đúng
+                        giờ cut-off sân bay.</p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Thông báo / Đợt đăng ký -->
+    <section id="thong-bao" class="py-16 bg-white">
+        <div class="max-w-7xl mx-auto px-4">
+            <div class="flex flex-col md:flex-row md:items-end md:justify-between gap-4 mb-10">
+                <div>
+                    <span
+                        class="text-blue-600 font-semibold text-xs tracking-wider uppercase bg-blue-50 px-3 py-1 rounded-full">Tin
+                        tức & Sự kiện</span>
+                    <h2 class="text-2xl md:text-3xl font-bold text-slate-900 mt-2">Thông báo & Đợt đăng ký mới</h2>
+                    <p class="text-gray-500 text-sm">Tin tức mới nhất về hệ thống và các đợt mở tiếp nhận hồ sơ đại lý
+                        hàng không</p>
+                </div>
+                <a href="Register.html"
+                    class="inline-flex items-center gap-2 text-blue-600 hover:text-blue-700 font-medium text-sm">
+                    Xem tất cả thông báo <i class="fa-solid fa-arrow-right text-xs"></i>
+                </a>
+            </div>
+
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+
+                <!-- Bài 1 - Nổi bật: Đợt đăng ký -->
+                <article
+                    class="md:col-span-2 bg-white rounded-2xl border shadow-sm overflow-hidden hover:shadow-md transition group">
+                    <div class="bg-gradient-to-r from-blue-600 to-indigo-600 px-6 py-5 text-white">
+                        <div class="flex items-center justify-between">
+                            <span class="inline-block bg-white/20 text-xs font-semibold px-2.5 py-1 rounded-full">ĐỢT
+                                ĐĂNG KÝ MỚI</span>
+                            <span class="text-xs text-white/80"><i class="fa-regular fa-clock mr-1"></i> Đang mở nhận hồ
+                                sơ</span>
+                        </div>
+                        <h3 class="text-xl font-bold group-hover:underline mt-2">Mở đăng ký đại lý tham gia Cargo
+                            Bidding — Tháng 8/2026</h3>
+                    </div>
+                    <div class="p-6">
+                        <p class="text-sm text-gray-600 leading-relaxed mb-4">
+                            Hãng chính thức mở đợt tiếp nhận đăng ký đại lý mới cho hệ thống đấu giá công suất cargo.
+                            Đại lý đủ điều kiện sẽ được cấp tài khoản ủy quyền và tham gia các phiên đấu giá chính thức
+                            từ ngày <strong>15/08/2026</strong>.
+                        </p>
+                        <ul
+                            class="text-sm text-gray-600 space-y-2 mb-6 bg-slate-50 p-4 rounded-xl border border-slate-100">
+                            <li class="flex items-start gap-2.5">
+                                <i class="fa-solid fa-calendar-check text-blue-600 mt-1"></i>
+                                <span><strong>Thời gian nhận hồ sơ:</strong> 01/08 – 10/08/2026</span>
+                            </li>
+                            <li class="flex items-start gap-2.5">
+                                <i class="fa-solid fa-file-lines text-blue-600 mt-1"></i>
+                                <span><strong>Hồ sơ cần có:</strong> Giấy phép kinh doanh, giấy ủy quyền cargo, CCCD
+                                    người đại diện</span>
+                            </li>
+                            <li class="flex items-start gap-2.5">
+                                <i class="fa-solid fa-envelope text-blue-600 mt-1"></i>
+                                <span><strong>Nộp hồ sơ trực tuyến:</strong> Nhấp nút Đăng ký ngay bên dưới hoặc gửi về
+                                    cargo-agent@airline.vn</span>
+                            </li>
+                        </ul>
+                        <div class="flex items-center justify-between pt-2 border-t text-xs text-gray-400">
+                            <span>Đăng ngày 28/07/2026 · Ban Tiếp thị & Vận chuyển Hàng hóa</span>
+                            <a href="Register.html"
+                                class="inline-flex items-center gap-1.5 bg-blue-600 hover:bg-blue-700 text-white font-medium text-xs px-4 py-2 rounded-lg transition">
+                                Nộp hồ sơ ngay <i class="fa-solid fa-arrow-right text-[10px]"></i>
+                            </a>
+                        </div>
+                    </div>
+                </article>
+
+                <!-- Bài 2 -->
+                <article
+                    class="bg-white rounded-2xl border shadow-sm overflow-hidden hover:shadow-md transition flex flex-col">
+                    <div
+                        class="h-36 bg-gradient-to-br from-emerald-500 to-teal-600 flex items-center justify-center text-white">
+                        <i class="fa-solid fa-rocket text-4xl opacity-90"></i>
+                    </div>
+                    <div class="p-5 flex-1 flex flex-col">
+                        <span class="text-xs font-semibold text-emerald-600 mb-1">HỆ THỐNG</span>
+                        <h3 class="font-bold mb-2 leading-snug text-slate-900">Chính thức vận hành Cargo Bidding từ
+                            01/07/2026</h3>
+                        <p class="text-sm text-gray-500 flex-1">
+                            Hệ thống đấu giá slot cargo đã đi vào hoạt động ổn định với hơn 100 đại lý và trung bình 45
+                            chuyến/ngày.
+                        </p>
+                        <div class="flex items-center justify-between text-xs text-gray-400 mt-4 pt-3 border-t">
+                            <span>01/07/2026</span>
+                            <a href="02-Dashboard.html" class="text-blue-600 font-medium hover:underline">Xem sàn
+                                thầu</a>
+                        </div>
+                    </div>
+                </article>
+
+                <!-- Bài 3 -->
+                <article
+                    class="bg-white rounded-2xl border shadow-sm overflow-hidden hover:shadow-md transition flex flex-col">
+                    <div
+                        class="h-36 bg-gradient-to-br from-orange-400 to-amber-500 flex items-center justify-center text-white">
+                        <i class="fa-solid fa-clock text-4xl opacity-90"></i>
+                    </div>
+                    <div class="p-5 flex-1 flex flex-col">
+                        <span class="text-xs font-semibold text-orange-600 mb-1">LỊCH BẢO TRÌ</span>
+                        <h3 class="font-bold mb-2 leading-snug text-slate-900">Bảo trì hệ thống định kỳ 02:00–04:00 ngày
+                            01/08/2026</h3>
+                        <p class="text-sm text-gray-500 flex-1">
+                            Nâng cấp máy chủ thanh toán. Trong khung giờ bảo trì, các phiên đang mở sẽ được tự động gia
+                            hạn tương ứng.
+                        </p>
+                        <div class="flex items-center justify-between text-xs text-gray-400 mt-4 pt-3 border-t">
+                            <span>30/07/2026</span>
+                            <span class="text-gray-400">Đã hoàn tất</span>
+                        </div>
+                    </div>
+                </article>
+
+                <!-- Bài 4 -->
+                <article
+                    class="bg-white rounded-2xl border shadow-sm overflow-hidden hover:shadow-md transition flex flex-col">
+                    <div
+                        class="h-36 bg-gradient-to-br from-violet-500 to-purple-600 flex items-center justify-center text-white">
+                        <i class="fa-solid fa-book text-4xl opacity-90"></i>
+                    </div>
+                    <div class="p-5 flex-1 flex flex-col">
+                        <span class="text-xs font-semibold text-violet-600 mb-1">HƯỚNG DẪN</span>
+                        <h3 class="font-bold mb-2 leading-snug text-slate-900">Cập nhật Điều khoản đấu giá phiên bản 2.1
+                        </h3>
+                        <p class="text-sm text-gray-500 flex-1">
+                            Bổ sung quy định về thời hạn thanh toán 24h và xử lý trường hợp hủy thầu không lý do chính
+                            đáng.
+                        </p>
+                        <div class="flex items-center justify-between text-xs text-gray-400 mt-4 pt-3 border-t">
+                            <span>15/07/2026</span>
+                            <a href="10-Terms.html" class="text-blue-600 font-medium hover:underline">Xem điều khoản</a>
+                        </div>
+                    </div>
+                </article>
+
+                <!-- Bài 5 -->
+                <article
+                    class="bg-white rounded-2xl border shadow-sm overflow-hidden hover:shadow-md transition flex flex-col">
+                    <div
+                        class="h-36 bg-gradient-to-br from-sky-500 to-blue-600 flex items-center justify-center text-white">
+                        <i class="fa-solid fa-graduation-cap text-4xl opacity-90"></i>
+                    </div>
+                    <div class="p-5 flex-1 flex flex-col">
+                        <span class="text-xs font-semibold text-sky-600 mb-1">ĐÀO TẠO</span>
+                        <h3 class="font-bold mb-2 leading-snug text-slate-900">Tổ chức buổi hướng dẫn sử dụng cho đại lý
+                            mới</h3>
+                        <p class="text-sm text-gray-500 flex-1">
+                            Online qua Zoom lúc 14:00 ngày 12/08/2026. Đăng ký tài khoản trước để nhận link tham dự và
+                            tài liệu nghiệp vụ.
+                        </p>
+                        <div class="flex items-center justify-between text-xs text-gray-400 mt-4 pt-3 border-t">
+                            <span>25/07/2026</span>
+                            <a href="Register.html" class="text-blue-600 font-medium hover:underline">Đăng ký tham
+                                dự</a>
+                        </div>
+                    </div>
+                </article>
+
+            </div>
+        </div>
+    </section>
+
+    <!-- Footer / Liên hệ -->
+    <footer id="lien-he" class="bg-slate-900 text-slate-300">
+        <div class="max-w-7xl mx-auto px-4 py-12">
+            <div class="grid grid-cols-1 md:grid-cols-4 gap-8">
+                <div class="md:col-span-2">
+                    <div class="flex items-center gap-3 mb-4">
+                        <div
+                            class="w-10 h-10 bg-blue-600 rounded-xl flex items-center justify-center text-white font-bold text-lg">
+                            VN</div>
+                        <div>
+                            <p class="font-bold text-white text-base">Cargo Bidding System</p>
+                            <p class="text-xs text-slate-400">Sàn đấu giá hàng hóa hàng không chính thức</p>
+                        </div>
+                    </div>
+                    <p class="text-sm text-slate-400 max-w-sm leading-relaxed mb-4">
+                        Nền tảng đấu giá slot cargo chính thức, kết nối hãng hàng không với mạng lưới đại lý ủy quyền
+                        trên toàn quốc. Đảm bảo tính minh bạch, tốc độ và hiệu quả vận hành tối đa.
+                    </p>
+                    <div class="flex items-center gap-3 text-sm">
+                        <span
+                            class="inline-block bg-slate-800 text-slate-300 text-xs px-2.5 py-1 rounded border border-slate-700">Tương
+                            thích SQL Server 2022</span>
+                        <span
+                            class="inline-block bg-slate-800 text-slate-300 text-xs px-2.5 py-1 rounded border border-slate-700">IATA
+                            Cargo Standards</span>
+                    </div>
+                </div>
+                <div>
+                    <h4 class="font-semibold text-white mb-3 text-sm">Liên kết nhanh</h4>
+                    <ul class="space-y-2.5 text-sm">
+                        <li><a href="00-Home.html" class="hover:text-white transition">Trang chủ</a></li>
+                        <li><a href="01-Login.html" class="hover:text-white transition">Đăng nhập Đại lý</a></li>
+                        <li><a href="Register.html" class="hover:text-white transition">Đăng ký Đại lý mới</a></li>
+                        <li><a href="Admin/01-AdminLogin.html" class="hover:text-white text-blue-400 transition">Cổng
+                                Quản trị Admin</a></li>
+                    </ul>
+                </div>
+                <div>
+                    <h4 class="font-semibold text-white mb-3 text-sm">Liên hệ hỗ trợ</h4>
+                    <ul class="space-y-2.5 text-sm">
+                        <li class="flex items-center gap-2.5">
+                            <i class="fa-solid fa-phone text-blue-400 w-4"></i>
+                            <span>Hotline: <strong>1900-xxxx</strong></span>
+                        </li>
+                        <li class="flex items-center gap-2.5">
+                            <i class="fa-solid fa-envelope text-blue-400 w-4"></i>
+                            <span>cargo-bidding@airline.vn</span>
+                        </li>
+                        <li class="flex items-center gap-2.5">
+                            <i class="fa-solid fa-clock text-blue-400 w-4"></i>
+                            <span>07:00 – 22:00 hàng ngày</span>
+                        </li>
+                        <li class="flex items-center gap-2.5">
+                            <i class="fa-solid fa-location-dot text-blue-400 w-4"></i>
+                            <span>Cảng HKQT Tân Sơn Nhất & Nội Bài</span>
+                        </li>
+                    </ul>
+                </div>
+            </div>
+            <div
+                class="border-t border-slate-800 mt-10 pt-6 flex flex-col sm:flex-row justify-between items-center gap-3 text-xs text-slate-500">
+                <p>© 2026 Cargo Bidding System. All rights reserved.</p>
+                <div class="flex items-center gap-4">
+                    <a href="10-Terms.html" class="hover:text-slate-300">Chính sách bảo mật</a>
+                    <span class="text-slate-700">·</span>
+                    <a href="Admin/01-AdminLogin.html"
+                        class="hover:text-slate-300 flex items-center gap-1.5 text-blue-400">
+                        <i class="fa-solid fa-user-shield"></i> Trang quản trị
+                    </a>
+                </div>
+            </div>
+        </div>
+    </footer>
+
+    <script>
+        function fillHeroDemo(code, pwd) {
+            document.getElementById('heroAgentCode').value = code;
+            document.getElementById('heroAgentPassword').value = pwd;
+            hideHeroError();
+        }
+
+        function toggleHeroPass() {
+            const input = document.getElementById('heroAgentPassword');
+            const icon = document.getElementById('heroEyeIcon');
+            if (input.type === 'password') {
+                input.type = 'text';
+                icon.className = 'fa-solid fa-eye-slash text-sm';
+            } else {
+                input.type = 'password';
+                icon.className = 'fa-solid fa-eye text-sm';
+            }
+        }
+
+        function showHeroError(title, msg) {
+            const alertBox = document.getElementById('heroErrorAlert');
+            document.getElementById('heroErrorTitle').textContent = title;
+            document.getElementById('heroErrorMsg').textContent = msg;
+            alertBox.classList.remove('hidden');
+        }
+
+        function hideHeroError() {
+            const alertBox = document.getElementById('heroErrorAlert');
+            if (alertBox) alertBox.classList.add('hidden');
+        }
+
+        function handleHeroLogin(e) {
+            e.preventDefault();
+            hideHeroError();
+
+            const code = document.getElementById('heroAgentCode').value.trim();
+            const pwd = document.getElementById('heroAgentPassword').value.trim();
+
+            if (!code) {
+                showHeroError('Thiếu thông tin', 'Vui lòng nhập Mã đại lý được cấp.');
+                return;
+            }
+
+            if (!pwd) {
+                showHeroError('Thiếu mật khẩu', 'Vui lòng nhập mật khẩu xác thực.');
+                return;
+            }
+
+            const res = CargoStore.loginAgent(code, pwd);
+            if (!res.success) {
+                showHeroError('Đăng nhập thất bại', res.message);
+                return;
+            }
+
+            const btn = document.getElementById('heroSubmitBtn');
+            btn.disabled = true;
+            btn.innerHTML = `<i class="fa-solid fa-circle-notch fa-spin"></i> Đăng nhập tài khoản ${res.user.agentCode}...`;
+
+            setTimeout(() => {
+                window.location.href = '02-Dashboard.html';
+            }, 400);
+        }
+
+        function handleHeroLogout() {
+            const data = CargoStore.getData();
+            delete data.currentUser;
+            CargoStore.saveData(data);
+            window.location.reload();
+        }
+
+        function checkLoginState() {
+            if (typeof CargoStore === 'undefined') return;
+            const u = CargoStore.getCurrentUser ? CargoStore.getCurrentUser() : null;
+            if (!u) return;
+
+            // Update Header Login Button
+            const hdrBtn = document.getElementById('headerLoginBtn');
+            if (hdrBtn) {
+                hdrBtn.href = '02-Dashboard.html';
+                hdrBtn.className = 'bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-semibold px-3.5 py-2 rounded-xl transition shadow flex items-center gap-1.5';
+                hdrBtn.innerHTML = `<i class="fa-solid fa-gauge-high text-xs"></i> Vào Dashboard (${u.agentCode})`;
+            }
+
+            // Update Hero Login Box
+            const loginBox = document.getElementById('login-box');
+            if (loginBox) {
+                loginBox.innerHTML = `
+                <div class="bg-white rounded-2xl shadow-2xl p-6 md:p-8 text-gray-800 border border-slate-100 space-y-4">
+                    <div class="text-center">
+                        <div class="w-16 h-16 bg-blue-100 text-blue-700 font-bold text-xl rounded-2xl flex items-center justify-center mx-auto shadow-inner mb-3">
+                            ${(u.agentCode || 'AG').slice(0, 2)}
+                        </div>
+                        <span class="inline-flex items-center gap-1.5 bg-emerald-50 text-emerald-700 text-xs font-bold px-3 py-1 rounded-full border border-emerald-200">
+                            <span class="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></span>
+                            Đã đăng nhập thành công
+                        </span>
+                        <h3 class="text-xl font-bold text-slate-900 mt-2">${u.companyName}</h3>
+                        <p class="text-xs text-gray-500 mt-0.5">Mã đại lý: <strong class="text-blue-600 font-mono">${u.agentCode}</strong> · Hạng: <span class="bg-amber-100 text-amber-800 font-bold px-1.5 py-0.5 rounded">${u.tier || 'TIER1'}</span></p>
+                    </div>
+
+                    <div class="pt-2 space-y-2.5">
+                        <a href="02-Dashboard.html" class="w-full bg-blue-600 hover:bg-blue-700 text-white font-semibold py-3 rounded-xl transition shadow-lg shadow-blue-600/30 flex items-center justify-center gap-2 text-sm">
+                            <i class="fa-solid fa-gauge-high"></i> Truy cập Bảng điều khiển (Dashboard)
+                        </a>
+                        <a href="03-Index.html" class="w-full bg-slate-100 hover:bg-slate-200 text-slate-700 font-semibold py-2.5 rounded-xl transition flex items-center justify-center gap-2 text-xs">
+                            <i class="fa-solid fa-gavel"></i> Vào Sàn đấu giá trực tuyến
+                        </a>
+                    </div>
+
+                    <div class="pt-3 border-t text-center">
+                        <button onclick="handleHeroLogout()" class="text-xs text-red-600 hover:text-red-800 font-medium hover:underline inline-flex items-center gap-1">
+                            <i class="fa-solid fa-right-from-bracket"></i> Đăng xuất tài khoản này
+                        </button>
+                    </div>
+                </div>
+            `;
+            }
+        }
+
+        document.addEventListener('DOMContentLoaded', checkLoginState);
+    </script>
+</body>
+
+</html>

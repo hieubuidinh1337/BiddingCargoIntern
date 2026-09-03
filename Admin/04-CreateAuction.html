@@ -1,0 +1,195 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Tạo phiên đấu giá mới - Cargo Bidding Admin</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+    <script src="../assets/js/cargo-store.js"></script>
+</head>
+<body class="bg-slate-100 text-slate-800">
+
+    <header class="bg-slate-900 text-white sticky top-0 z-50 border-b border-slate-800 shadow-sm">
+        <div class="max-w-7xl mx-auto px-4 py-2.5 flex items-center justify-between">
+            <div class="flex items-center gap-6">
+                <a href="02-AdminDashboard.html" class="flex items-center gap-2.5">
+                    <div class="w-8 h-8 bg-blue-600 rounded-lg flex items-center justify-center font-bold text-sm shadow">VN</div>
+                    <div>
+                        <span class="font-bold text-sm leading-tight block">Cargo Bidding Admin</span>
+                        <span class="text-[10px] text-blue-400 font-medium block">Hệ thống Điều hành & Thẩm định</span>
+                    </div>
+                </a>
+                <nav class="hidden md:flex items-center gap-1 text-xs font-medium">
+                    <a href="02-AdminDashboard.html" class="px-3 py-1.5 rounded-lg text-slate-300 hover:text-white hover:bg-slate-800 transition">Dashboard</a>
+                    <a href="03-AuctionList.html" class="px-3 py-1.5 rounded-lg text-slate-300 hover:text-white hover:bg-slate-800 transition">Quản lý phiên</a>
+                    <a href="04-CreateAuction.html" class="px-3 py-1.5 rounded-lg bg-blue-600 text-white font-semibold">Tạo phiên mới</a>
+                    <a href="06-AgentList.html" class="px-3 py-1.5 rounded-lg text-slate-300 hover:text-white hover:bg-slate-800 transition">Đại lý & Duyệt đơn</a>
+                    <a href="07-Reports.html" class="px-3 py-1.5 rounded-lg text-slate-300 hover:text-white hover:bg-slate-800 transition">Báo cáo</a>
+                    <a href="08-Settings.html" class="px-3 py-1.5 rounded-lg text-slate-300 hover:text-white hover:bg-slate-800 transition">Cài đặt</a>
+                </nav>
+            </div>
+            <div class="flex items-center gap-2">
+                <span class="text-xs text-slate-300 hidden sm:inline">Trần Quản Trị</span>
+                <a href="01-AdminLogin.html" title="Đăng xuất" class="text-slate-400 hover:text-red-400 p-1">
+                    <i class="fa-solid fa-power-off text-xs"></i>
+                </a>
+            </div>
+        </div>
+    </header>
+
+    <main class="max-w-4xl mx-auto px-4 py-8">
+
+        <div class="flex items-center justify-between mb-6">
+            <div>
+                <a href="03-AuctionList.html" class="text-xs text-slate-500 hover:text-blue-600 flex items-center gap-1 mb-1">
+                    <i class="fa-solid fa-arrow-left"></i> Trở lại danh sách
+                </a>
+                <h1 class="text-2xl font-bold text-slate-900 flex items-center gap-2">
+                    <i class="fa-solid fa-circle-plus text-blue-600"></i> Thiết lập phiên đấu giá mới
+                </h1>
+                <p class="text-xs text-slate-500 mt-0.5">Khai báo chuyến bay, tải trọng khả dụng và thông số giá sàn</p>
+            </div>
+        </div>
+
+        <form id="createAuctionForm" class="space-y-6">
+
+            <!-- 1. Thông tin hành trình bay -->
+            <div class="bg-white rounded-2xl border shadow-sm p-6 space-y-4">
+                <h2 class="font-bold text-sm text-slate-900 border-b pb-2 flex items-center gap-2">
+                    <i class="fa-solid fa-plane-departure text-blue-600"></i> 1. Thông tin chuyến bay & Hành trình
+                </h2>
+
+                <div class="grid grid-cols-1 sm:grid-cols-3 gap-4">
+                    <div>
+                        <label class="block text-xs font-semibold text-slate-700 mb-1">Số hiệu chuyến bay <span class="text-red-500">*</span></label>
+                        <input type="text" id="flightNumber" required placeholder="VD: VU136"
+                               class="w-full border rounded-xl px-3.5 py-2.5 text-xs font-bold uppercase focus:ring-2 focus:ring-blue-500 outline-none">
+                    </div>
+                    <div>
+                        <label class="block text-xs font-semibold text-slate-700 mb-1">Sân bay đi (Origin) <span class="text-red-500">*</span></label>
+                        <select id="originAirport" class="w-full border rounded-xl px-3 py-2.5 text-xs focus:ring-2 focus:ring-blue-500 outline-none bg-white">
+                            <option value="SGN">SGN - TP. Hồ Chí Minh</option>
+                            <option value="HAN">HAN - Hà Nội</option>
+                            <option value="DAD">DAD - Đà Nẵng</option>
+                        </select>
+                    </div>
+                    <div>
+                        <label class="block text-xs font-semibold text-slate-700 mb-1">Sân bay đến (Destination) <span class="text-red-500">*</span></label>
+                        <select id="destinationAirport" class="w-full border rounded-xl px-3 py-2.5 text-xs focus:ring-2 focus:ring-blue-500 outline-none bg-white">
+                            <option value="HAN">HAN - Hà Nội</option>
+                            <option value="SGN">SGN - TP. Hồ Chí Minh</option>
+                            <option value="PQC">PQC - Phú Quốc</option>
+                            <option value="DAD">DAD - Đà Nẵng</option>
+                        </select>
+                    </div>
+                </div>
+
+                <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                    <div>
+                        <label class="block text-xs font-semibold text-slate-700 mb-1">Thời gian cất cánh dự kiến (ETD) <span class="text-red-500">*</span></label>
+                        <input type="text" id="etdInput" value="18:30 · 16/08/2026" required
+                               class="w-full border rounded-xl px-3.5 py-2.5 text-xs focus:ring-2 focus:ring-blue-500 outline-none">
+                    </div>
+                    <div>
+                        <label class="block text-xs font-semibold text-slate-700 mb-1">Thời gian hạ cánh dự kiến (ETA)</label>
+                        <input type="text" id="etaInput" value="20:45 · 16/08/2026" required
+                               class="w-full border rounded-xl px-3.5 py-2.5 text-xs focus:ring-2 focus:ring-blue-500 outline-none">
+                    </div>
+                </div>
+            </div>
+
+            <!-- 2. Cấu hình tải trọng & Giá sàn -->
+            <div class="bg-white rounded-2xl border shadow-sm p-6 space-y-4">
+                <h2 class="font-bold text-sm text-slate-900 border-b pb-2 flex items-center gap-2">
+                    <i class="fa-solid fa-coins text-amber-500"></i> 2. Tải trọng & Tham số đấu giá
+                </h2>
+
+                <div class="grid grid-cols-1 sm:grid-cols-3 gap-4">
+                    <div>
+                        <label class="block text-xs font-semibold text-slate-700 mb-1">Tải trọng chào thầu (Kg) <span class="text-red-500">*</span></label>
+                        <input type="number" id="capacityKg" required value="3000" step="100"
+                               class="w-full border rounded-xl px-3.5 py-2.5 text-xs font-bold focus:ring-2 focus:ring-blue-500 outline-none">
+                    </div>
+                    <div>
+                        <label class="block text-xs font-semibold text-slate-700 mb-1">Giá khởi điểm sàn (VND/Kg) <span class="text-red-500">*</span></label>
+                        <input type="number" id="startingPriceKg" required value="18000" step="500"
+                               class="w-full border rounded-xl px-3.5 py-2.5 text-xs font-bold focus:ring-2 focus:ring-blue-500 outline-none">
+                    </div>
+                    <div>
+                        <label class="block text-xs font-semibold text-slate-700 mb-1">Bước giá tối thiểu (VND/Kg)</label>
+                        <input type="number" id="minStep" required value="500" step="100"
+                               class="w-full border rounded-xl px-3.5 py-2.5 text-xs font-bold focus:ring-2 focus:ring-blue-500 outline-none">
+                    </div>
+                </div>
+
+                <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                    <div>
+                        <label class="block text-xs font-semibold text-slate-700 mb-1">Loại tàu bay khai thác</label>
+                        <input type="text" id="aircraftType" value="Airbus A321neo Cargo"
+                               class="w-full border rounded-xl px-3.5 py-2.5 text-xs focus:ring-2 focus:ring-blue-500 outline-none">
+                    </div>
+                    <div>
+                        <label class="block text-xs font-semibold text-slate-700 mb-1">Hạn chót đóng nhận giá (Trước ETD)</label>
+                        <select class="w-full border rounded-xl px-3 py-2.5 text-xs focus:ring-2 focus:ring-blue-500 outline-none bg-white">
+                            <option>Trước ETD 3 giờ (Khuyến nghị tiêu chuẩn)</option>
+                            <option>Trước ETD 2 giờ (Gấp)</option>
+                            <option>Trước ETD 4 giờ</option>
+                        </select>
+                    </div>
+                </div>
+
+                <div>
+                    <label class="block text-xs font-semibold text-slate-700 mb-1">Ghi chú & Yêu cầu loại hàng</label>
+                    <textarea id="specialNotes" rows="2" placeholder="Hàng bưu phẩm, hàng tươi sống, vắc-xin bảo quản lạnh..."
+                              class="w-full border rounded-xl px-3.5 py-2 text-xs focus:ring-2 focus:ring-blue-500 outline-none">Tải trọng tổng hợp tiêu chuẩn IATA. Có hỗ trợ xe nâng hàng pallet tại sân bay.</textarea>
+                </div>
+            </div>
+
+            <!-- Action buttons -->
+            <div class="flex items-center justify-end gap-3 pt-2">
+                <a href="03-AuctionList.html" class="px-5 py-2.5 border rounded-xl text-xs font-medium hover:bg-slate-50 transition">
+                    Hủy bỏ
+                </a>
+                <button type="submit" class="bg-blue-600 hover:bg-blue-700 text-white text-xs font-bold px-6 py-2.5 rounded-xl transition shadow flex items-center gap-1.5">
+                    <i class="fa-solid fa-paper-plane"></i> Xuất bản phiên đấu giá lên Sàn
+                </button>
+            </div>
+
+        </form>
+
+    </main>
+
+    <script>
+        document.getElementById('createAuctionForm').addEventListener('submit', function(e) {
+            e.preventDefault();
+
+            const fn = document.getElementById('flightNumber').value.trim().toUpperCase();
+            const origin = document.getElementById('originAirport').value;
+            const dest = document.getElementById('destinationAirport').value;
+
+            if (origin === dest) {
+                alert('Sân bay đi và đến không được trùng nhau!');
+                return;
+            }
+
+            const newAuction = CargoStore.createAuction({
+                flightNumber: fn,
+                origin: origin,
+                destination: dest,
+                etd: document.getElementById('etdInput').value,
+                eta: document.getElementById('etaInput').value,
+                aircraft: document.getElementById('aircraftType').value,
+                capacityKg: document.getElementById('capacityKg').value,
+                startingPriceKg: document.getElementById('startingPriceKg').value,
+                minStep: document.getElementById('minStep').value,
+                specialNotes: document.getElementById('specialNotes').value,
+                cutOffTime: 'Trước ETD 3 giờ'
+            });
+
+            alert(`Tạo phiên đấu giá chuyến ${fn} (${origin} - ${dest}) thành công! Phiên đã mở trực tiếp trên sàn.`);
+            window.location.href = '03-AuctionList.html';
+        });
+    </script>
+</body>
+</html>

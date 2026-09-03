@@ -1,0 +1,211 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Cấu hình hệ thống - Cargo Bidding Admin</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+    <script src="../assets/js/cargo-store.js"></script>
+</head>
+<body class="bg-slate-100 text-slate-800">
+
+    <header class="bg-slate-900 text-white sticky top-0 z-50 border-b border-slate-800 shadow-sm">
+        <div class="max-w-7xl mx-auto px-4 py-2.5 flex items-center justify-between">
+            <div class="flex items-center gap-6">
+                <a href="02-AdminDashboard.html" class="flex items-center gap-2.5">
+                    <div class="w-8 h-8 bg-blue-600 rounded-lg flex items-center justify-center font-bold text-sm shadow">VN</div>
+                    <div>
+                        <span class="font-bold text-sm leading-tight block">Cargo Bidding Admin</span>
+                        <span class="text-[10px] text-blue-400 font-medium block">Hệ thống Điều hành & Thẩm định</span>
+                    </div>
+                </a>
+                <nav class="hidden md:flex items-center gap-1 text-xs font-medium">
+                    <a href="02-AdminDashboard.html" class="px-3 py-1.5 rounded-lg text-slate-300 hover:text-white hover:bg-slate-800 transition">Dashboard</a>
+                    <a href="03-AuctionList.html" class="px-3 py-1.5 rounded-lg text-slate-300 hover:text-white hover:bg-slate-800 transition">Quản lý phiên</a>
+                    <a href="04-CreateAuction.html" class="px-3 py-1.5 rounded-lg text-slate-300 hover:text-white hover:bg-slate-800 transition">Tạo phiên mới</a>
+                    <a href="06-AgentList.html" class="px-3 py-1.5 rounded-lg text-slate-300 hover:text-white hover:bg-slate-800 transition">Đại lý & Duyệt đơn</a>
+                    <a href="07-Reports.html" class="px-3 py-1.5 rounded-lg text-slate-300 hover:text-white hover:bg-slate-800 transition">Báo cáo</a>
+                    <a href="08-Settings.html" class="px-3 py-1.5 rounded-lg bg-blue-600 text-white font-semibold">Cài đặt</a>
+                </nav>
+            </div>
+            <div class="flex items-center gap-2">
+                <span class="text-xs text-slate-300 hidden sm:inline">Trần Quản Trị</span>
+                <a href="01-AdminLogin.html" title="Đăng xuất" class="text-slate-400 hover:text-red-400 p-1">
+                    <i class="fa-solid fa-power-off text-xs"></i>
+                </a>
+            </div>
+        </div>
+    </header>
+
+    <main class="max-w-4xl mx-auto px-4 py-8 space-y-6">
+
+        <div>
+            <h1 class="text-2xl font-bold text-slate-900 flex items-center gap-2">
+                <i class="fa-solid fa-sliders text-blue-600"></i> Cấu hình tham số hệ thống
+            </h1>
+            <p class="text-xs text-slate-500 mt-1">Các quy chuẩn đấu giá, thời gian cut-off và thông số đồng bộ với bảng <code>SystemSettings</code> trong SQL Server 2022</p>
+        </div>
+
+        <form onsubmit="event.preventDefault(); alert('Đã lưu thành công cấu hình tham số hệ thống!');" class="space-y-6">
+
+            <!-- Auction Parameters -->
+            <div class="bg-white rounded-2xl border shadow-sm p-6 space-y-4">
+                <h2 class="font-bold text-sm text-slate-900 border-b pb-2 flex items-center gap-2">
+                    <i class="fa-solid fa-gavel text-blue-600"></i> Tham số Đấu giá & Quy chế thời gian
+                </h2>
+
+                <div class="grid grid-cols-1 sm:grid-cols-2 gap-4 text-xs">
+                    <div>
+                        <label class="block font-semibold text-slate-700 mb-1">Bước giá tối thiểu mặc định (VND/Kg)</label>
+                        <input type="number" value="500" step="100" required
+                               class="w-full border rounded-xl px-3.5 py-2.5 font-bold text-blue-600 focus:ring-2 focus:ring-blue-500 outline-none">
+                        <p class="text-[10px] text-gray-400 mt-1">Đại lý chỉ được đặt giá $\ge$ Giá hiện tại + Bước giá</p>
+                    </div>
+
+                    <div>
+                        <label class="block font-semibold text-slate-700 mb-1">Thời gian đóng thầu trước ETD (Giờ)</label>
+                        <input type="number" value="3" min="1" max="12" required
+                               class="w-full border rounded-xl px-3.5 py-2.5 font-bold focus:ring-2 focus:ring-blue-500 outline-none">
+                        <p class="text-[10px] text-gray-400 mt-1">Đảm bảo đủ thời gian giao nhận hàng hóa tại sân bay</p>
+                    </div>
+
+                    <div>
+                        <label class="block font-semibold text-slate-700 mb-1">Thời hạn thanh toán sau khi thắng thầu (Giờ)</label>
+                        <input type="number" value="24" min="1" max="72" required
+                               class="w-full border rounded-xl px-3.5 py-2.5 font-bold text-red-600 focus:ring-2 focus:ring-blue-500 outline-none">
+                        <p class="text-[10px] text-gray-400 mt-1">Quá 24 giờ chưa thanh toán sẽ tự động hủy đơn trúng</p>
+                    </div>
+
+                    <div>
+                        <label class="block font-semibold text-slate-700 mb-1">Tự động gia hạn khi có bid phút chót</label>
+                        <select class="w-full border rounded-xl px-3 py-2.5 font-medium focus:ring-2 focus:ring-blue-500 outline-none bg-white">
+                            <option>Bật (Cộng thêm 3 phút nếu có bid trong 3 phút cuối)</option>
+                            <option>Tắt (Đóng đúng giờ tuyệt đối)</option>
+                        </select>
+                        <p class="text-[10px] text-gray-400 mt-1">Chống hành vi "Sniping" đặt giá giây cuối</p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Contact & Operations Info -->
+            <div class="bg-white rounded-2xl border shadow-sm p-6 space-y-4">
+                <h2 class="font-bold text-sm text-slate-900 border-b pb-2 flex items-center gap-2">
+                    <i class="fa-solid fa-headset text-blue-600"></i> Thông tin tiếp nhận & Hỗ trợ kỹ thuật
+                </h2>
+
+                <div class="grid grid-cols-1 sm:grid-cols-2 gap-4 text-xs">
+                    <div>
+                        <label class="block font-semibold text-slate-700 mb-1">Hotline hỗ trợ điều hành</label>
+                        <input type="text" value="1900-xxxx" required
+                               class="w-full border rounded-xl px-3.5 py-2.5 font-medium focus:ring-2 focus:ring-blue-500 outline-none">
+                    </div>
+
+                    <div>
+                        <label class="block font-semibold text-slate-700 mb-1">Email tiếp nhận hồ sơ đại lý</label>
+                        <input type="email" value="cargo-agent@airline.vn" required
+                               class="w-full border rounded-xl px-3.5 py-2.5 font-medium focus:ring-2 focus:ring-blue-500 outline-none">
+                    </div>
+
+                    <div class="sm:col-span-2">
+                        <label class="block font-semibold text-slate-700 mb-1">Địa chỉ kho hàng cut-off Tân Sơn Nhất</label>
+                        <input type="text" value="Kho hàng SCSC / TCS - 30 Phan Thúc Duyện, Phường 4, Tân Bình, TP.HCM"
+                               class="w-full border rounded-xl px-3.5 py-2.5 font-medium focus:ring-2 focus:ring-blue-500 outline-none">
+                    </div>
+                </div>
+            </div>
+
+            <!-- Admin Change Password Card -->
+            <div class="bg-white rounded-2xl border shadow-sm p-6 space-y-4">
+                <h2 class="font-bold text-sm text-slate-900 border-b pb-2 flex items-center gap-2">
+                    <i class="fa-solid fa-key text-blue-600"></i> Đổi mật khẩu tài khoản Quản trị
+                </h2>
+                <p class="text-xs text-slate-500">Đổi mật khẩu cho tài khoản admin/staff đang làm việc. Mật khẩu cũ/mặc định sẽ lập tức không sử dụng được.</p>
+
+                <div id="adminPwdAlert" class="hidden p-3 rounded-xl text-xs font-semibold"></div>
+
+                <div class="grid grid-cols-1 sm:grid-cols-3 gap-4 text-xs">
+                    <div>
+                        <label class="block font-semibold text-slate-700 mb-1">Mật khẩu hiện tại</label>
+                        <input type="password" id="adminOldPwd" placeholder="••••••••"
+                               class="w-full border rounded-xl px-3.5 py-2.5 font-medium focus:ring-2 focus:ring-blue-500 outline-none">
+                    </div>
+                    <div>
+                        <label class="block font-semibold text-slate-700 mb-1">Mật khẩu mới</label>
+                        <input type="password" id="adminNewPwd" placeholder="•••••••• (tối thiểu 6 ký tự)"
+                               class="w-full border rounded-xl px-3.5 py-2.5 font-medium focus:ring-2 focus:ring-blue-500 outline-none">
+                    </div>
+                    <div>
+                        <label class="block font-semibold text-slate-700 mb-1">Xác nhận mật khẩu mới</label>
+                        <input type="password" id="adminConfirmPwd" placeholder="••••••••"
+                               class="w-full border rounded-xl px-3.5 py-2.5 font-medium focus:ring-2 focus:ring-blue-500 outline-none">
+                    </div>
+                </div>
+                <div>
+                    <button type="button" onclick="handleAdminChangePassword()" class="bg-slate-900 hover:bg-slate-800 text-white text-xs font-bold px-4 py-2 rounded-xl transition shadow flex items-center gap-1.5">
+                        <i class="fa-solid fa-shield-halved"></i> Cập nhật mật khẩu Admin
+                    </button>
+                </div>
+            </div>
+
+            <!-- Database status -->
+            <div class="bg-slate-900 text-white rounded-2xl p-5 text-xs flex items-center justify-between">
+                <div>
+                    <p class="font-bold text-sm">Cơ sở dữ liệu: SQL Server 2022 (SSMS 2022)</p>
+                    <p class="text-slate-400 mt-0.5">Database: <code>CargoBiddingDB</code> (Collation: Vietnamese_CI_AS) · Trạng thái: Sẵn sàng kết nối</p>
+                </div>
+                <span class="bg-emerald-500/20 text-emerald-400 border border-emerald-500/30 px-3 py-1 rounded-full font-bold">
+                    ONLINE
+                </span>
+            </div>
+
+            <div class="flex items-center justify-end gap-3">
+                <button type="reset" class="px-5 py-2.5 border rounded-xl text-xs font-medium hover:bg-slate-50 transition">
+                    Khôi phục mặc định
+                </button>
+                <button type="submit" class="bg-blue-600 hover:bg-blue-700 text-white text-xs font-bold px-6 py-2.5 rounded-xl transition shadow flex items-center gap-1.5">
+                    <i class="fa-solid fa-floppy-disk"></i> Lưu cấu hình hệ thống
+                </button>
+            </div>
+
+        </form>
+
+    </main>
+
+    <script>
+        function handleAdminChangePassword() {
+            const alertEl = document.getElementById('adminPwdAlert');
+            alertEl.className = 'hidden p-3 rounded-xl text-xs font-semibold';
+
+            const oldPwd = document.getElementById('adminOldPwd').value;
+            const newPwd = document.getElementById('adminNewPwd').value;
+            const confirmPwd = document.getElementById('adminConfirmPwd').value;
+
+            if (!oldPwd || !newPwd || !confirmPwd) {
+                alertEl.textContent = 'Vui lòng nhập đầy đủ mật khẩu hiện tại, mật khẩu mới và xác nhận mật khẩu!';
+                alertEl.className = 'p-3 rounded-xl text-xs font-semibold bg-red-50 text-red-700 border border-red-200 block';
+                return;
+            }
+
+            if (newPwd !== confirmPwd) {
+                alertEl.textContent = 'Mật khẩu mới và xác nhận mật khẩu không trùng khớp!';
+                alertEl.className = 'p-3 rounded-xl text-xs font-semibold bg-red-50 text-red-700 border border-red-200 block';
+                return;
+            }
+
+            const res = CargoStore.changeAdminPassword(oldPwd, newPwd);
+            if (!res.success) {
+                alertEl.textContent = res.message;
+                alertEl.className = 'p-3 rounded-xl text-xs font-semibold bg-red-50 text-red-700 border border-red-200 block';
+                return;
+            }
+
+            alertEl.textContent = res.message;
+            alertEl.className = 'p-3 rounded-xl text-xs font-semibold bg-green-50 text-green-700 border border-green-200 block';
+            document.getElementById('adminOldPwd').value = '';
+            document.getElementById('adminNewPwd').value = '';
+            document.getElementById('adminConfirmPwd').value = '';
+        }
+    </script>
+</body>
+</html>

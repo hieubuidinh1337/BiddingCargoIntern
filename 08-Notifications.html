@@ -1,0 +1,330 @@
+﻿<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Trung tâm thông báo - Cargo Bidding | Vietravel Airlines</title>
+    <meta name="description" content="Nhận và quản lý toàn bộ thông báo biến động giá thầu, thắng thầu và nhắc nhở thanh toán.">
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+    <script src="assets/js/cargo-store.js"></script>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap');
+        * { font-family: 'Inter', sans-serif; }
+        .notif-card { transition: all 0.25s ease; }
+        .notif-card:hover { transform: translateX(4px); }
+        .notif-card.unread { border-left: 3px solid #3b82f6; }
+        .notif-card.urgent { border-left: 3px solid #ef4444; }
+        .notif-card.won { border-left: 3px solid #10b981; }
+        .notif-card.warn { border-left: 3px solid #f59e0b; }
+        .badge-dot { width: 8px; height: 8px; border-radius: 50%; flex-shrink: 0; margin-top: 5px; }
+        .fade-in { animation: fadeInUp 0.3s ease forwards; opacity: 0; }
+        @keyframes fadeInUp { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+        .filter-btn.active { background: #1e3a5f; color: white; }
+        .filter-btn { transition: all 0.15s; }
+        .empty-anim { animation: float 3s ease-in-out infinite; }
+        @keyframes float { 0%, 100% { transform: translateY(0); } 50% { transform: translateY(-10px); } }
+    </style>
+</head>
+<body class="bg-gray-50 text-gray-800">
+
+    <!-- HEADER -->
+    <header class="bg-white border-b shadow-sm sticky top-0 z-50">
+        <div class="max-w-4xl mx-auto px-4 py-3 flex items-center justify-between">
+            <div class="flex items-center gap-3">
+                <a href="02-Dashboard.html" class="w-9 h-9 rounded-xl bg-gray-100 hover:bg-gray-200 flex items-center justify-center text-gray-600 hover:text-blue-600 transition">
+                    <i class="fa-solid fa-arrow-left text-sm"></i>
+                </a>
+                <a href="02-Dashboard.html" class="flex items-center gap-2">
+                    <div class="w-8 h-8 bg-gradient-to-br from-blue-600 to-indigo-700 rounded-xl flex items-center justify-center text-white font-bold text-xs shadow">VN</div>
+                    <div>
+                        <span class="font-bold text-sm text-slate-900 block leading-tight">Cargo Bidding</span>
+                        <span class="text-[10px] text-gray-400 uppercase tracking-wider font-semibold">Agent Portal</span>
+                    </div>
+                </a>
+                <span class="text-gray-300 hidden sm:inline">|</span>
+                <div class="hidden sm:block">
+                    <h1 class="font-bold text-base text-slate-900">Trung tâm thông báo</h1>
+                    <p class="text-xs text-gray-400">Biến động giá thầu & cập nhật hệ thống</p>
+                </div>
+            </div>
+            <div class="flex items-center gap-2">
+                <button onclick="markAllRead()" id="markAllBtn" class="text-xs font-semibold text-blue-600 hover:text-blue-800 bg-blue-50 hover:bg-blue-100 px-3 py-1.5 rounded-lg transition flex items-center gap-1.5">
+                    <i class="fa-solid fa-check-double text-[10px]"></i>
+                    Đánh dấu tất cả đã đọc
+                </button>
+                <button onclick="clearAllRead()" class="text-xs font-semibold text-gray-500 hover:text-red-600 bg-gray-100 hover:bg-red-50 px-3 py-1.5 rounded-lg transition flex items-center gap-1.5">
+                    <i class="fa-solid fa-trash text-[10px]"></i>
+                    Xóa đã đọc
+                </button>
+            </div>
+        </div>
+    </header>
+
+    <main class="max-w-4xl mx-auto px-4 py-6 space-y-5">
+
+        <!-- Notification Summary Stats -->
+        <div class="grid grid-cols-2 sm:grid-cols-4 gap-3">
+            <div class="bg-white rounded-xl border p-4 flex items-center gap-3 shadow-sm">
+                <div class="w-10 h-10 rounded-xl bg-blue-100 flex items-center justify-center">
+                    <i class="fa-solid fa-bell text-blue-600"></i>
+                </div>
+                <div>
+                    <p class="text-xl font-bold text-slate-900" id="statTotal">0</p>
+                    <p class="text-xs text-gray-500">Tổng thông báo</p>
+                </div>
+            </div>
+            <div class="bg-white rounded-xl border p-4 flex items-center gap-3 shadow-sm">
+                <div class="w-10 h-10 rounded-xl bg-red-100 flex items-center justify-center">
+                    <i class="fa-solid fa-circle-dot text-red-500"></i>
+                </div>
+                <div>
+                    <p class="text-xl font-bold text-red-600" id="statUnread">0</p>
+                    <p class="text-xs text-gray-500">Chưa đọc</p>
+                </div>
+            </div>
+            <div class="bg-white rounded-xl border p-4 flex items-center gap-3 shadow-sm">
+                <div class="w-10 h-10 rounded-xl bg-amber-100 flex items-center justify-center">
+                    <i class="fa-solid fa-arrow-trend-up text-amber-600"></i>
+                </div>
+                <div>
+                    <p class="text-xl font-bold text-amber-600" id="statOutbid">0</p>
+                    <p class="text-xs text-gray-500">Bị vượt giá</p>
+                </div>
+            </div>
+            <div class="bg-white rounded-xl border p-4 flex items-center gap-3 shadow-sm">
+                <div class="w-10 h-10 rounded-xl bg-emerald-100 flex items-center justify-center">
+                    <i class="fa-solid fa-trophy text-emerald-600"></i>
+                </div>
+                <div>
+                    <p class="text-xl font-bold text-emerald-600" id="statWon">0</p>
+                    <p class="text-xs text-gray-500">Thắng thầu</p>
+                </div>
+            </div>
+        </div>
+
+        <!-- Filter Bar -->
+        <div class="bg-white rounded-xl border p-1.5 shadow-sm flex items-center gap-1 overflow-x-auto">
+            <button onclick="setFilter('all')" class="filter-btn active text-xs font-semibold px-3 py-1.5 rounded-lg whitespace-nowrap" id="f-all">
+                <i class="fa-solid fa-list mr-1"></i>Tất cả
+            </button>
+            <button onclick="setFilter('unread')" class="filter-btn text-gray-600 text-xs font-semibold px-3 py-1.5 rounded-lg whitespace-nowrap" id="f-unread">
+                <i class="fa-solid fa-circle-dot mr-1 text-red-500"></i>Chưa đọc
+            </button>
+            <button onclick="setFilter('OUTBID')" class="filter-btn text-gray-600 text-xs font-semibold px-3 py-1.5 rounded-lg whitespace-nowrap" id="f-OUTBID">
+                <i class="fa-solid fa-arrow-trend-up mr-1 text-amber-500"></i>Bị vượt giá
+            </button>
+            <button onclick="setFilter('HIGHEST')" class="filter-btn text-gray-600 text-xs font-semibold px-3 py-1.5 rounded-lg whitespace-nowrap" id="f-HIGHEST">
+                <i class="fa-solid fa-crown mr-1 text-blue-500"></i>Dẫn đầu
+            </button>
+            <button onclick="setFilter('WON')" class="filter-btn text-gray-600 text-xs font-semibold px-3 py-1.5 rounded-lg whitespace-nowrap" id="f-WON">
+                <i class="fa-solid fa-trophy mr-1 text-emerald-500"></i>Trúng thầu
+            </button>
+            <button onclick="setFilter('CLOSING_SOON')" class="filter-btn text-gray-600 text-xs font-semibold px-3 py-1.5 rounded-lg whitespace-nowrap" id="f-CLOSING_SOON">
+                <i class="fa-solid fa-clock mr-1 text-orange-500"></i>Sắp đóng
+            </button>
+            <button onclick="setFilter('SYSTEM')" class="filter-btn text-gray-600 text-xs font-semibold px-3 py-1.5 rounded-lg whitespace-nowrap" id="f-SYSTEM">
+                <i class="fa-solid fa-gear mr-1 text-gray-400"></i>Hệ thống
+            </button>
+        </div>
+
+        <!-- Notification Feed -->
+        <div id="notifList" class="space-y-3"></div>
+
+    </main>
+
+    <!-- Toast -->
+    <div id="toast" class="fixed bottom-6 right-6 z-50 hidden">
+        <div class="bg-slate-900 text-white rounded-xl px-4 py-3 shadow-xl flex items-center gap-3 text-sm font-medium">
+            <i class="fa-solid fa-check-circle text-emerald-400"></i>
+            <span id="toastText">Đã cập nhật</span>
+        </div>
+    </div>
+
+    <script>
+    let currentFilter = 'all';
+
+    const typeConfig = {
+        'OUTBID': {
+            icon: 'fa-arrow-trend-up', iconColor: 'text-amber-600', iconBg: 'bg-amber-100',
+            borderClass: 'warn', dotColor: 'bg-amber-400', label: 'Bị vượt giá',
+            labelBg: 'bg-amber-100 text-amber-700'
+        },
+        'HIGHEST': {
+            icon: 'fa-crown', iconColor: 'text-blue-600', iconBg: 'bg-blue-100',
+            borderClass: 'unread', dotColor: 'bg-blue-400', label: 'Đang dẫn đầu',
+            labelBg: 'bg-blue-100 text-blue-700'
+        },
+        'WON': {
+            icon: 'fa-trophy', iconColor: 'text-emerald-600', iconBg: 'bg-emerald-100',
+            borderClass: 'won', dotColor: 'bg-emerald-400', label: 'Trúng thầu',
+            labelBg: 'bg-emerald-100 text-emerald-700'
+        },
+        'CLOSING_SOON': {
+            icon: 'fa-hourglass-end', iconColor: 'text-orange-600', iconBg: 'bg-orange-100',
+            borderClass: 'urgent', dotColor: 'bg-orange-400', label: 'Sắp đóng thầu',
+            labelBg: 'bg-orange-100 text-orange-700'
+        },
+        'SYSTEM': {
+            icon: 'fa-gear', iconColor: 'text-gray-500', iconBg: 'bg-gray-100',
+            borderClass: '', dotColor: 'bg-gray-400', label: 'Hệ thống',
+            labelBg: 'bg-gray-100 text-gray-600'
+        },
+        'PAYMENT': {
+            icon: 'fa-credit-card', iconColor: 'text-rose-600', iconBg: 'bg-rose-100',
+            borderClass: 'urgent', dotColor: 'bg-rose-400', label: 'Thanh toán',
+            labelBg: 'bg-rose-100 text-rose-700'
+        }
+    };
+
+    function getConfig(type) {
+        return typeConfig[type] || typeConfig['SYSTEM'];
+    }
+
+    function setFilter(f) {
+        currentFilter = f;
+        document.querySelectorAll('.filter-btn').forEach(b => b.classList.remove('active'));
+        const btn = document.getElementById('f-' + f);
+        if (btn) btn.classList.add('active');
+        renderNotifications();
+    }
+
+    function renderNotifications() {
+        const data = CargoStore.getData ? CargoStore.getData() : null;
+        if (!data) return;
+
+        let notifs = (data.notifications || []).slice().reverse();
+
+        // Stats
+        const total = notifs.length;
+        const unread = notifs.filter(n => !n.read).length;
+        const outbid = notifs.filter(n => n.type === 'OUTBID').length;
+        const won = notifs.filter(n => n.type === 'WON').length;
+        document.getElementById('statTotal').textContent = total;
+        document.getElementById('statUnread').textContent = unread;
+        document.getElementById('statOutbid').textContent = outbid;
+        document.getElementById('statWon').textContent = won;
+
+        // Filter
+        if (currentFilter === 'unread') notifs = notifs.filter(n => !n.read);
+        else if (currentFilter !== 'all') notifs = notifs.filter(n => n.type === currentFilter);
+
+        const container = document.getElementById('notifList');
+        const markAllBtn = document.getElementById('markAllBtn');
+        if (markAllBtn) markAllBtn.style.display = unread === 0 ? 'none' : 'flex';
+
+        if (notifs.length === 0) {
+            const msgs = {
+                'all': 'Hộp thư thông báo trống',
+                'unread': 'Không có thông báo chưa đọc',
+                'OUTBID': 'Không có thông báo bị vượt giá',
+                'HIGHEST': 'Không có thông báo dẫn đầu',
+                'WON': 'Bạn chưa trúng thầu nào',
+                'CLOSING_SOON': 'Không có cảnh báo sắp đóng thầu',
+                'SYSTEM': 'Không có thông báo hệ thống'
+            };
+            container.innerHTML = `
+                <div class="bg-white rounded-2xl border p-16 text-center shadow-sm">
+                    <div class="empty-anim text-6xl mb-5">🔔</div>
+                    <p class="font-bold text-slate-700 text-lg">${msgs[currentFilter] || 'Trống'}</p>
+                    <p class="text-sm text-gray-400 mt-1">Các thông báo mới sẽ xuất hiện tại đây theo thời gian thực</p>
+                    <a href="03-Index.html" class="inline-flex items-center gap-2 mt-5 bg-blue-600 hover:bg-blue-700 text-white text-sm font-semibold px-5 py-2.5 rounded-xl transition shadow">
+                        <i class="fa-solid fa-gavel"></i> Tham gia đấu giá
+                    </a>
+                </div>`;
+            return;
+        }
+
+        container.innerHTML = notifs.map((n, idx) => {
+            const cfg = getConfig(n.type);
+            const readClass = n.read ? '' : cfg.borderClass;
+            const bgClass = n.read ? 'bg-white' : (n.type === 'OUTBID' ? 'bg-amber-50/30' : (n.type === 'WON' ? 'bg-emerald-50/30' : (n.type === 'CLOSING_SOON' ? 'bg-red-50/20' : 'bg-blue-50/20')));
+
+            return `
+            <div class="notif-card ${readClass} ${bgClass} rounded-xl border shadow-sm fade-in" style="animation-delay:${idx * 0.04}s">
+                <div class="flex items-start gap-4 p-4">
+                    <!-- Icon -->
+                    <div class="w-11 h-11 rounded-xl ${cfg.iconBg} flex items-center justify-center flex-shrink-0 shadow-sm">
+                        <i class="fa-solid ${cfg.icon} ${cfg.iconColor} text-lg"></i>
+                    </div>
+
+                    <!-- Content -->
+                    <div class="flex-1 min-w-0">
+                        <div class="flex items-start justify-between gap-2 mb-1">
+                            <div class="flex items-center gap-2 flex-wrap">
+                                ${!n.read ? `<span class="badge-dot ${cfg.dotColor}"></span>` : ''}
+                                <h3 class="font-bold text-sm text-slate-900">${n.title}</h3>
+                                <span class="text-[10px] font-semibold px-2 py-0.5 rounded-full ${cfg.labelBg}">${cfg.label}</span>
+                            </div>
+                            <span class="text-[11px] text-gray-400 flex-shrink-0 whitespace-nowrap">${n.time}</span>
+                        </div>
+                        <p class="text-xs text-gray-600 leading-relaxed">${n.message}</p>
+                        <div class="flex items-center gap-3 mt-2.5">
+                            ${n.link ? `
+                            <a href="${n.link}" onclick="markReadById(${n.id})" class="inline-flex items-center gap-1 text-xs font-semibold text-blue-600 hover:text-blue-800 hover:underline transition">
+                                <i class="fa-solid fa-arrow-right text-[9px]"></i> Xem chi tiết
+                            </a>
+                            <span class="text-gray-200">|</span>
+                            ` : ''}
+                            ${!n.read ? `
+                            <button onclick="markReadById(${n.id})" class="text-xs text-gray-400 hover:text-gray-700 hover:underline transition flex items-center gap-1">
+                                <i class="fa-regular fa-circle-check text-[10px]"></i> Đánh dấu đã đọc
+                            </button>
+                            ` : `
+                            <span class="text-xs text-gray-300 flex items-center gap-1"><i class="fa-solid fa-check text-[9px]"></i> Đã đọc</span>
+                            `}
+                        </div>
+                    </div>
+
+                    <!-- Quick Action for OUTBID -->
+                    ${n.type === 'OUTBID' && n.link ? `
+                    <a href="${n.link}" onclick="markReadById(${n.id})" class="flex-shrink-0 bg-amber-500 hover:bg-amber-600 text-white text-xs font-bold px-3 py-2 rounded-xl transition shadow flex items-center gap-1.5 whitespace-nowrap">
+                        <i class="fa-solid fa-gavel text-[10px]"></i> Đặt lại ngay
+                    </a>
+                    ` : (n.type === 'WON' ? `
+                    <a href="07-WonAuction.html" onclick="markReadById(${n.id})" class="flex-shrink-0 bg-emerald-500 hover:bg-emerald-600 text-white text-xs font-bold px-3 py-2 rounded-xl transition shadow flex items-center gap-1.5 whitespace-nowrap">
+                        <i class="fa-solid fa-circle-check text-[10px]"></i> Xem đơn
+                    </a>
+                    ` : '')}
+                </div>
+            </div>`;
+        }).join('');
+    }
+
+    function markReadById(id) {
+        CargoStore.markNotificationRead(id);
+        renderNotifications();
+    }
+
+    function markAllRead() {
+        const data = CargoStore.getData ? CargoStore.getData() : null;
+        if (!data) return;
+        (data.notifications || []).forEach(n => { n.read = true; });
+        if (CargoStore.saveData) CargoStore.saveData(data);
+        showToast('Đã đánh dấu tất cả là đã đọc');
+        renderNotifications();
+    }
+
+    function clearAllRead() {
+        const data = CargoStore.getData ? CargoStore.getData() : null;
+        if (!data) return;
+        data.notifications = (data.notifications || []).filter(n => !n.read);
+        if (CargoStore.saveData) CargoStore.saveData(data);
+        showToast('Đã xóa các thông báo đã đọc');
+        renderNotifications();
+    }
+
+    function showToast(msg) {
+        const t = document.getElementById('toast');
+        document.getElementById('toastText').textContent = msg;
+        t.classList.remove('hidden');
+        setTimeout(() => t.classList.add('hidden'), 2800);
+    }
+
+    document.addEventListener('DOMContentLoaded', function() {
+        renderNotifications();
+        setInterval(renderNotifications, 5000);
+    });
+    </script>
+</body>
+</html>

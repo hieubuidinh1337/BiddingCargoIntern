@@ -1,0 +1,220 @@
+﻿<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Đăng nhập đại lý - Cargo Bidding | Vietravel Airlines</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+    <script src="assets/js/cargo-store.js"></script>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap');
+        * { font-family: 'Inter', sans-serif; }
+        .login-bg {
+            background: radial-gradient(circle at top right, #1e3a5f 0%, #0f172a 100%);
+        }
+        .shake { animation: shake 0.4s ease-in-out; }
+        @keyframes shake {
+            0%, 100% { transform: translateX(0); }
+            20%, 60% { transform: translateX(-6px); }
+            40%, 80% { transform: translateX(6px); }
+        }
+    </style>
+</head>
+<body class="login-bg min-h-screen text-gray-800 flex flex-col justify-between">
+
+    <!-- Top nav -->
+    <div class="max-w-7xl w-full mx-auto px-4 py-4 flex items-center justify-between">
+        <a href="00-Home.html" class="flex items-center gap-3 text-white">
+            <div class="w-10 h-10 bg-gradient-to-br from-blue-600 to-indigo-700 rounded-xl flex items-center justify-center font-bold text-lg shadow">VN</div>
+            <div>
+                <h1 class="font-bold text-base leading-tight">Cargo Bidding</h1>
+                <p class="text-xs text-slate-400">Hệ thống đấu giá hàng hóa</p>
+            </div>
+        </a>
+        <div class="flex items-center gap-4 text-xs text-slate-300">
+            <a href="00-Home.html" class="hover:text-white transition"><i class="fa-solid fa-house mr-1"></i> Trang chủ</a>
+            <span class="text-slate-600">|</span>
+            <a href="Admin/01-AdminLogin.html" class="hover:text-white text-blue-400 font-semibold flex items-center gap-1 transition">
+                <i class="fa-solid fa-user-shield"></i> Cổng Admin
+            </a>
+        </div>
+    </div>
+
+    <!-- Center Card -->
+    <main class="w-full max-w-md mx-auto px-4 py-6">
+        <div class="bg-white rounded-3xl shadow-2xl p-8 border border-slate-100 relative" id="loginCard">
+            <div class="text-center mb-6">
+                <div class="inline-flex items-center justify-center w-16 h-16 bg-blue-50 text-blue-600 rounded-2xl mb-3 shadow-inner">
+                    <i class="fa-solid fa-plane-departure text-2xl"></i>
+                </div>
+                <h2 class="text-2xl font-bold text-slate-900">Đăng nhập Đại lý</h2>
+                <p class="text-sm text-gray-500 mt-1">Truy cập sàn đấu giá slot hàng hóa hàng không</p>
+            </div>
+
+            <!-- Error Alert Box -->
+            <div id="errorAlert" class="hidden bg-red-50 border-l-4 border-red-500 rounded-xl p-3.5 mb-5 text-xs text-red-700 space-y-1">
+                <div class="flex items-center gap-2 font-bold text-red-800 text-sm">
+                    <i class="fa-solid fa-circle-exclamation text-red-500"></i>
+                    <span id="errorTitle">Đăng nhập không thành công</span>
+                </div>
+                <p id="errorMsg" class="pl-6">Mã đại lý hoặc mật khẩu không chính xác.</p>
+            </div>
+
+            <!-- Demo Account Multi-Select Banner -->
+            <div class="bg-blue-50/90 border border-blue-200 rounded-xl p-3.5 mb-5 text-xs text-blue-800 space-y-2">
+                <div class="flex items-center justify-between">
+                    <span class="font-bold flex items-center gap-1.5 text-blue-900"><i class="fa-solid fa-bolt text-amber-500"></i> Chọn tài khoản Đại lý mẫu (Mật khẩu riêng từng tài khoản):</span>
+                </div>
+                <div class="grid grid-cols-2 gap-2 pt-1">
+                    <button type="button" onclick="fillDemo('AG-0892', 'abc123456')" class="bg-white hover:bg-blue-100 text-blue-800 border border-blue-200 p-2 rounded-lg text-left transition shadow-sm">
+                        <span class="font-bold block text-slate-900">ABC Logistics</span>
+                        <span class="text-[10px] text-blue-600 font-semibold">AG-0892 (abc123456)</span>
+                    </button>
+                    <button type="button" onclick="fillDemo('AG-1024', 'vina123456')" class="bg-white hover:bg-blue-100 text-blue-800 border border-blue-200 p-2 rounded-lg text-left transition shadow-sm">
+                        <span class="font-bold block text-slate-900">Vinatrans</span>
+                        <span class="text-[10px] text-blue-600 font-semibold">AG-1024 (vina123456)</span>
+                    </button>
+                    <button type="button" onclick="fillDemo('AG-0556', 'star123456')" class="bg-white hover:bg-blue-100 text-blue-800 border border-blue-200 p-2 rounded-lg text-left transition shadow-sm">
+                        <span class="font-bold block text-slate-900">Golden Star</span>
+                        <span class="text-[10px] text-blue-600 font-semibold">AG-0556 (star123456)</span>
+                    </button>
+                    <button type="button" onclick="fillDemo('AG-0341', 'sky123456')" class="bg-white hover:bg-blue-100 text-blue-800 border border-blue-200 p-2 rounded-lg text-left transition shadow-sm">
+                        <span class="font-bold block text-slate-900">SkyFreight</span>
+                        <span class="text-[10px] text-blue-600 font-semibold">AG-0341 (sky123456)</span>
+                    </button>
+                </div>
+            </div>
+
+            <form id="agentLoginForm" onsubmit="handleLogin(event)" class="space-y-4">
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-1">Mã đại lý ủy quyền</label>
+                    <div class="relative">
+                        <i class="fa-solid fa-id-card absolute left-3.5 top-1/2 -translate-y-1/2 text-gray-400"></i>
+                        <input type="text" id="agentCode" value="AG-0892" required placeholder="VD: AG-0892"
+                               class="w-full border border-gray-300 rounded-xl pl-10 pr-4 py-3 text-sm focus:ring-2 focus:ring-blue-500 outline-none transition font-medium uppercase">
+                    </div>
+                </div>
+
+                <div>
+                    <div class="flex items-center justify-between mb-1">
+                        <label class="block text-sm font-medium text-gray-700">Mật khẩu bảo mật</label>
+                        <a href="javascript:void(0)" onclick="forgotPassword()" class="text-xs text-blue-600 hover:underline">Quên mật khẩu?</a>
+                    </div>
+                    <div class="relative">
+                        <i class="fa-solid fa-lock absolute left-3.5 top-1/2 -translate-y-1/2 text-gray-400"></i>
+                        <input type="password" id="agentPassword" value="abc123456" required placeholder="••••••••"
+                               class="w-full border border-gray-300 rounded-xl pl-10 pr-10 py-3 text-sm focus:ring-2 focus:ring-blue-500 outline-none transition">
+                        <button type="button" onclick="togglePassword()" class="absolute right-3.5 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600">
+                            <i class="fa-solid fa-eye" id="eyeIcon"></i>
+                        </button>
+                    </div>
+                </div>
+
+                <div class="flex items-center justify-between text-sm py-1">
+                    <label class="flex items-center gap-2 cursor-pointer">
+                        <input type="checkbox" checked class="w-4 h-4 rounded border-gray-300 text-blue-600 focus:ring-blue-500">
+                        <span class="text-gray-600 text-xs">Duy trì trạng thái đăng nhập</span>
+                    </label>
+                    <span class="text-xs text-emerald-600 font-medium flex items-center gap-1">
+                        <i class="fa-solid fa-shield-check"></i> SSL 256-bit
+                    </span>
+                </div>
+
+                <button type="submit" id="submitBtn"
+                        class="w-full bg-blue-600 hover:bg-blue-700 text-white font-semibold py-3.5 rounded-xl transition shadow-lg shadow-blue-600/30 flex items-center justify-center gap-2 text-base">
+                    <i class="fa-solid fa-right-to-bracket"></i> Đăng nhập vào Sàn
+                </button>
+            </form>
+
+            <div class="mt-6 pt-5 border-t text-center space-y-3">
+                <p class="text-sm text-gray-500">
+                    Chưa được cấp mã đại lý?
+                    <a href="Register.html" class="text-blue-600 font-bold hover:underline ml-1">Đăng ký tham gia ngay</a>
+                </p>
+                <div>
+                    <a href="10-Terms.html" class="text-xs text-gray-400 hover:text-gray-600">
+                        Quy chế đấu giá & Điều khoản dịch vụ
+                    </a>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <!-- Footer -->
+    <footer class="max-w-7xl w-full mx-auto px-4 py-4 text-center text-xs text-slate-400">
+        © 2026 Cargo Bidding System · Vietravel Airlines. Nền tảng đấu giá công suất hàng không.
+    </footer>
+
+    <script>
+    function fillDemo(code, pwd) {
+        document.getElementById('agentCode').value = code;
+        document.getElementById('agentPassword').value = pwd;
+        hideError();
+    }
+
+    function togglePassword() {
+        const input = document.getElementById('agentPassword');
+        const icon = document.getElementById('eyeIcon');
+        if (input.type === 'password') {
+            input.type = 'text';
+            icon.className = 'fa-solid fa-eye-slash';
+        } else {
+            input.type = 'password';
+            icon.className = 'fa-solid fa-eye';
+        }
+    }
+
+    function showError(title, msg) {
+        const alertBox = document.getElementById('errorAlert');
+        document.getElementById('errorTitle').textContent = title;
+        document.getElementById('errorMsg').textContent = msg;
+        alertBox.classList.remove('hidden');
+        const card = document.getElementById('loginCard');
+        card.classList.remove('shake');
+        void card.offsetWidth;
+        card.classList.add('shake');
+    }
+
+    function hideError() {
+        document.getElementById('errorAlert').classList.add('hidden');
+    }
+
+    function forgotPassword() {
+        showError('Hỗ trợ cấp lại mật khẩu', 'Vui lòng gọi Hotline điều hành Cargo 1900-xxxx hoặc gửi email về support@airline.vn kèm bản scan Giấy đăng ký kinh doanh để được reset mật khẩu.');
+    }
+
+    function handleLogin(e) {
+        e.preventDefault();
+        hideError();
+
+        const code = document.getElementById('agentCode').value.trim();
+        const pwd = document.getElementById('agentPassword').value.trim();
+
+        if (!code) {
+            showError('Thiếu thông tin', 'Vui lòng nhập Mã đại lý được cấp.');
+            return;
+        }
+
+        if (!pwd) {
+            showError('Thiếu mật khẩu', 'Vui lòng nhập mật khẩu bảo mật.');
+            return;
+        }
+
+        const res = CargoStore.loginAgent(code, pwd);
+        if (!res.success) {
+            showError('Đăng nhập thất bại', res.message);
+            return;
+        }
+
+        const btn = document.getElementById('submitBtn');
+        btn.disabled = true;
+        btn.innerHTML = `<i class="fa-solid fa-circle-notch fa-spin"></i> Đăng nhập tài khoản ${res.user.agentCode}...`;
+
+        setTimeout(() => {
+            window.location.href = '02-Dashboard.html';
+        }, 500);
+    }
+    </script>
+</body>
+</html>
