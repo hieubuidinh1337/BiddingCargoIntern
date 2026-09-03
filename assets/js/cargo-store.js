@@ -382,13 +382,36 @@ const CargoStore = (function() {
     function loadData() {
         try {
             const raw = localStorage.getItem(STORAGE_KEY);
+            let data;
             if (!raw) {
-                saveData(defaultData);
-                return defaultData;
+                data = JSON.parse(JSON.stringify(defaultData));
+            } else {
+                data = JSON.parse(raw);
             }
-            const data = JSON.parse(raw);
+
+            let updated = false;
+
+            // Auto-refresh end time for OPEN auctions if expired in localStorage
+            const now = Date.now();
+            if (data.auctions && Array.isArray(data.auctions)) {
+                data.auctions.forEach((a, idx) => {
+                    if (a.status === 'OPEN') {
+                        const endTimeMs = Date.parse(a.endTime);
+                        if (isNaN(endTimeMs) || endTimeMs <= now) {
+                            const addMinutes = (idx === 0 ? 45 : (idx === 1 ? 90 : 120));
+                            a.endTime = new Date(now + addMinutes * 60 * 1000).toISOString();
+                            updated = true;
+                        }
+                    }
+                });
+            }
+
             if (!data.agentsList || data.agentsList.length === 0) {
                 data.agentsList = seedAgents;
+                updated = true;
+            }
+
+            if (!raw || updated) {
                 saveData(data);
             }
             return data;

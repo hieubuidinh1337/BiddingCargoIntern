@@ -1,6 +1,7 @@
 const http = require('http');
 const fs = require('fs');
 const path = require('path');
+const url = require('url');
 
 const PORT = 8085;
 const PUBLIC_DIR = __dirname;
@@ -18,17 +19,22 @@ const MIME_TYPES = {
 };
 
 const server = http.createServer((req, res) => {
-    let filePath = path.join(PUBLIC_DIR, req.url === '/' ? 'index.html' : req.url);
+    // Parse URL to strip query parameters (e.g. ?id=1)
+    const parsedUrl = url.parse(req.url, true);
+    let pathname = parsedUrl.pathname;
+    if (pathname === '/') pathname = '/00-Home.html';
+
+    let filePath = path.join(PUBLIC_DIR, pathname);
     const ext = path.extname(filePath);
     let contentType = MIME_TYPES[ext] || 'application/octet-stream';
 
     fs.readFile(filePath, (err, content) => {
         if (err) {
             if (err.code === 'ENOENT') {
-                res.writeHead(404, { 'Content-Type': 'text/html' });
-                res.end('<h1>404 Not Found</h1>', 'utf-8');
+                res.writeHead(404, { 'Content-Type': 'text/html; charset=UTF-8' });
+                res.end('<h1>404 Not Found</h1><p>Trang không tồn tại trên máy chủ.</p>', 'utf-8');
             } else {
-                res.writeHead(500);
+                res.writeHead(500, { 'Content-Type': 'text/html; charset=UTF-8' });
                 res.end(`Server Error: ${err.code}`);
             }
         } else {
