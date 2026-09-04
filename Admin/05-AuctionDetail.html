@@ -253,7 +253,14 @@
             document.getElementById('detCapacity').textContent = CargoStore.formatNumber(auction.capacityKg) + ' Kg';
             document.getElementById('detStartingPrice').textContent = CargoStore.formatCurrency(auction.startingPriceKg) + '/Kg';
             document.getElementById('detMinStep').textContent = '+' + CargoStore.formatCurrency(auction.minStep) + '/Kg';
-            document.getElementById('detCurrentPrice').textContent = CargoStore.formatCurrency(auction.currentPriceKg) + '/Kg';
+            
+            const isOpen = auction.status === 'OPEN';
+            const data = CargoStore.getData();
+            const isAdmin = data.currentAdmin && data.currentAdmin.role === 'ADMIN';
+
+            document.getElementById('detCurrentPrice').innerHTML = (isOpen && !isAdmin) ? 
+                '<span class="text-gray-500">??? <span class="text-[10px] font-normal">(Bảo mật)</span></span>' : 
+                CargoStore.formatCurrency(auction.currentPriceKg) + '/Kg';
 
             document.getElementById('detAircraft').textContent = auction.aircraft;
             document.getElementById('detEtd').textContent = auction.etd;
@@ -262,29 +269,42 @@
             document.getElementById('detNotes').textContent = auction.specialNotes;
 
             const btnContainer = document.getElementById('adminActionButtons');
-            const isOpen = auction.status === 'OPEN';
+
+            const bids = CargoStore.getBidsForAuction(auction.id);
+            const hasBids = bids.length > 0;
 
             btnContainer.innerHTML = `
-                <button onclick="openDetailEditModal()" class="bg-amber-500 hover:bg-amber-600 text-white text-xs font-bold px-3.5 py-2 rounded-xl transition shadow flex items-center gap-1.5">
-                    <i class="fa-solid fa-pen-to-square"></i> Sửa thông số
-                </button>
+                ${hasBids ? `
+                    <button disabled class="bg-slate-200 text-slate-400 text-xs font-bold px-3.5 py-2 rounded-xl cursor-not-allowed opacity-70 flex items-center gap-1.5" title="Không thể sửa – đã có lượt đặt giá">
+                        <i class="fa-solid fa-lock"></i> Khóa sửa
+                    </button>
+                ` : `
+                    <button onclick="openDetailEditModal()" class="bg-amber-500 hover:bg-amber-600 text-white text-xs font-bold px-3.5 py-2 rounded-xl transition shadow flex items-center gap-1.5">
+                        <i class="fa-solid fa-pen-to-square"></i> Sửa thông số
+                    </button>
+                `}
                 <button onclick="openDetailBroadcastModal()" class="bg-blue-600 hover:bg-blue-700 text-white text-xs font-bold px-3.5 py-2 rounded-xl transition shadow flex items-center gap-1.5">
                     <i class="fa-solid fa-bullhorn"></i> Phát thông báo
                 </button>
-                ${isOpen ? `
+                ${(isOpen && isAdmin) ? `
                     <button onclick="forceClose(${auction.id})" class="bg-red-600 hover:bg-red-700 text-white text-xs font-bold px-3.5 py-2 rounded-xl transition shadow flex items-center gap-1.5">
                         <i class="fa-solid fa-gavel"></i> Chốt thầu ngay
                     </button>
-                ` : `
+                ` : (!isOpen ? `
                     <span class="bg-slate-200 text-slate-700 text-xs font-bold px-3 py-2 rounded-xl flex items-center gap-1">
                         <i class="fa-solid fa-lock"></i> Đã đóng thầu
                     </span>
-                `}
+                ` : '')}
             `;
 
-            const bids = CargoStore.getBidsForAuction(auction.id);
             document.getElementById('detBidsCount').textContent = bids.length + ' lượt đặt';
             const tbody = document.getElementById('adminBidsBody');
+            
+            if (isOpen && !isAdmin) {
+                tbody.innerHTML = `<tr><td colspan="6" class="py-8 text-center text-gray-500"><i class="fa-solid fa-lock mb-2 text-2xl block text-gray-300"></i> Đang trong thời gian đấu giá bảo mật.<br>Chi tiết các lượt đặt giá chỉ dành cho Quản trị viên, hoặc sẽ được hệ thống công bố khi đóng phiên.</td></tr>`;
+                return;
+            }
+
             if (bids.length === 0) {
                 tbody.innerHTML = `<tr><td colspan="6" class="py-8 text-center text-gray-400">Chưa có đại lý nào đặt giá</td></tr>`;
                 return;

@@ -281,15 +281,17 @@
             document.getElementById('specCapacity').textContent = CargoStore.formatNumber(currentAuction.capacityKg) + ' Kg';
             document.getElementById('specStarting').textContent = CargoStore.formatCurrency(currentAuction.startingPriceKg) + '/Kg';
             document.getElementById('specMinStep').textContent = '+' + CargoStore.formatCurrency(currentAuction.minStep) + '/Kg';
+            
+            const timer = CargoStore.getTimeRemaining(currentAuction.endTime);
+            const isClosed = currentAuction.status === 'CLOSED' || timer.isEnded;
+
             document.getElementById('specCurrentPrice').textContent = CargoStore.formatCurrency(currentAuction.currentPriceKg) + '/Kg';
+            
             document.getElementById('specNotes').textContent = currentAuction.specialNotes;
             document.getElementById('cutOffTimeDisplay').textContent = currentAuction.cutOffTime;
 
             const minAcceptable = currentAuction.currentPriceKg + currentAuction.minStep;
             document.getElementById('minAcceptablePrice').textContent = CargoStore.formatCurrency(minAcceptable) + '/Kg';
-
-            const timer = CargoStore.getTimeRemaining(currentAuction.endTime);
-            const isClosed = currentAuction.status === 'CLOSED' || timer.isEnded;
 
             // Top Status Badge
             const topBadge = document.getElementById('topStatusBadge');
@@ -370,7 +372,7 @@
 
         function renderBidsTable() {
             if (!currentAuction) return;
-            const bids = CargoStore.getBidsForAuction(currentAuction.id);
+            let bids = CargoStore.getBidsForAuction(currentAuction.id);
             document.getElementById('bidCountBadge').textContent = bids.length + ' lượt đặt';
             const myCode = getMyCode();
 

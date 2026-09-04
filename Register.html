@@ -375,29 +375,60 @@
     </div>
 
     <script>
-        const uploadedFileNames = [];
+        // Map of uploaded files: key = label, value = [{name, dataUrl, type}]
+        const uploadedFilesMap = {};
 
         function handleFile(input) {
             const label = input.getAttribute('data-label');
             const nameEl = document.getElementById('name-' + label);
             if (!nameEl) return;
+
             if (input.files && input.files.length > 0) {
-                if (input.files.length === 1) {
-                    nameEl.textContent = input.files[0].name;
-                    uploadedFileNames.push(input.files[0].name);
-                } else {
-                    nameEl.textContent = input.files.length + ' tệp tin đã chọn';
-                    for (let i = 0; i < input.files.length; i++) {
-                        uploadedFileNames.push(input.files[i].name);
-                    }
+                // Clear previous files for this slot (prevents accumulation)
+                uploadedFilesMap[label] = [];
+
+                const fileCount = input.files.length;
+                let readCount = 0;
+
+                for (let i = 0; i < fileCount; i++) {
+                    const file = input.files[i];
+                    const reader = new FileReader();
+                    reader.onload = function(e) {
+                        uploadedFilesMap[label].push({
+                            name: file.name,
+                            dataUrl: e.target.result,
+                            type: file.type,
+                            size: file.size
+                        });
+                        readCount++;
+                        if (readCount === fileCount) {
+                            // All files read for this slot
+                            if (fileCount === 1) {
+                                nameEl.textContent = file.name;
+                            } else {
+                                nameEl.textContent = fileCount + ' tệp tin đã chọn';
+                            }
+                            nameEl.classList.remove('text-gray-400');
+                            nameEl.classList.add('text-green-600', 'font-medium');
+                        }
+                    };
+                    reader.readAsDataURL(file);
                 }
-                nameEl.classList.remove('text-gray-400');
-                nameEl.classList.add('text-green-600', 'font-medium');
             } else {
+                delete uploadedFilesMap[label];
                 nameEl.textContent = 'Chưa chọn file';
                 nameEl.classList.add('text-gray-400');
                 nameEl.classList.remove('text-green-600', 'font-medium');
             }
+        }
+
+        // Collect all uploaded files into a flat array of {name, dataUrl, type}
+        function collectUploadedFiles() {
+            const result = [];
+            for (const label in uploadedFilesMap) {
+                uploadedFilesMap[label].forEach(f => result.push(f));
+            }
+            return result;
         }
 
         const p1Input = document.getElementById('tempPassword');
@@ -453,8 +484,11 @@
                     if (c !== cb) c.checked = true;
                 });
 
-                uploadedFileNames.length = 0;
-                uploadedFileNames.push('GPKD_TanSonNhat_Scan.pdf', 'UyQuyen_Cargo_IATA.pdf', 'CCCD_TranHoangNam.pdf');
+                // Demo files: store with label keys (clears any previous real uploads)
+                for (const k in uploadedFilesMap) delete uploadedFilesMap[k];
+                uploadedFilesMap['gpkd'] = [{ name: 'GPKD_TanSonNhat_Scan.pdf', dataUrl: null, type: 'application/pdf', size: 0 }];
+                uploadedFilesMap['uyquyen'] = [{ name: 'UyQuyen_Cargo_IATA.pdf', dataUrl: null, type: 'application/pdf', size: 0 }];
+                uploadedFilesMap['cccd'] = [{ name: 'CCCD_TranHoangNam.pdf', dataUrl: null, type: 'application/pdf', size: 0 }];
 
                 const g = document.getElementById('name-gpkd');
                 if (g) { g.textContent = 'GPKD_TanSonNhat_Scan.pdf'; g.className = 'text-xs text-green-600 font-medium'; }
@@ -481,6 +515,7 @@
 
             // Save to shared store
             if (typeof CargoStore !== 'undefined') {
+                const collectedFiles = collectUploadedFiles();
                 const res = CargoStore.registerAgent({
                     companyName: compName,
                     taxCode: document.getElementById('taxCode').value,
@@ -495,7 +530,11 @@
                     notifEmail: document.getElementById('notifEmail').value,
                     password: p1,
                     pin: pinVal,
-                    documents: uploadedFileNames.length > 0 ? uploadedFileNames : ['GPKD_TanSonNhat_Scan.pdf', 'UyQuyen_Cargo_IATA.pdf', 'CCCD_TranHoangNam.pdf']
+                    documents: collectedFiles.length > 0 ? collectedFiles : [
+                        { name: 'GPKD_TanSonNhat_Scan.pdf', dataUrl: null, type: 'application/pdf' },
+                        { name: 'UyQuyen_Cargo_IATA.pdf', dataUrl: null, type: 'application/pdf' },
+                        { name: 'CCCD_TranHoangNam.pdf', dataUrl: null, type: 'application/pdf' }
+                    ]
                 });
 
                 if (res && res.success === false) {

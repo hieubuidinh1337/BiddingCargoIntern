@@ -1,7 +1,7 @@
 const http = require('http');
 const fs = require('fs');
 const path = require('path');
-const url = require('url');
+// url module no longer needed – using WHATWG URL API
 
 const PORT = 8085;
 const PUBLIC_DIR = __dirname;
@@ -257,7 +257,7 @@ const server = http.createServer((req, res) => {
         return;
     }
 
-    const parsedUrl = url.parse(req.url, true);
+    const parsedUrl = new URL(req.url, `http://${req.headers.host}`);
     let pathname = parsedUrl.pathname;
 
     // --- REST API: GET /api/data ---

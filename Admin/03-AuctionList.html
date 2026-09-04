@@ -322,17 +322,29 @@
                             <a href="05-AuctionDetail.html?id=${a.id}" class="inline-flex items-center gap-1 bg-blue-50 hover:bg-blue-100 text-blue-700 font-semibold px-2 py-1 rounded-lg transition" title="Xem chi tiết & lịch sử">
                                 <i class="fa-solid fa-eye text-[10px]"></i> Xem
                             </a>
-                            <button onclick="openEditModal(${a.id})" class="inline-flex items-center gap-1 bg-amber-50 hover:bg-amber-100 text-amber-700 font-semibold px-2 py-1 rounded-lg transition" title="Chỉnh sửa thông số">
-                                <i class="fa-solid fa-pen-to-square text-[10px]"></i> Sửa
-                            </button>
-                            ${isOpen ? `
+                            ${(a.bidsCount && a.bidsCount > 0) ? `
+                                <button disabled class="inline-flex items-center gap-1 bg-gray-100 text-gray-400 font-semibold px-2 py-1 rounded-lg cursor-not-allowed opacity-60" title="Không thể sửa – đã có ${a.bidsCount} lượt đặt giá">
+                                    <i class="fa-solid fa-lock text-[10px]"></i> Sửa
+                                </button>
+                            ` : `
+                                <button onclick="openEditModal(${a.id})" class="inline-flex items-center gap-1 bg-amber-50 hover:bg-amber-100 text-amber-700 font-semibold px-2 py-1 rounded-lg transition" title="Chỉnh sửa thông số">
+                                    <i class="fa-solid fa-pen-to-square text-[10px]"></i> Sửa
+                                </button>
+                            `}
+                            ${(isOpen && data.currentAdmin && data.currentAdmin.role !== 'STAFF') ? `
                                 <button onclick="handleCloseAuction(${a.id})" class="inline-flex items-center gap-1 bg-emerald-50 hover:bg-emerald-100 text-emerald-700 font-semibold px-2 py-1 rounded-lg transition" title="Chốt thầu">
                                     <i class="fa-solid fa-gavel text-[10px]"></i> Chốt
                                 </button>
                             ` : ''}
-                            <button onclick="handleDeleteAuction(${a.id}, '${a.flightNumber}')" class="inline-flex items-center gap-1 bg-red-50 hover:bg-red-100 text-red-600 font-semibold px-2 py-1 rounded-lg transition" title="Xóa chuyến bay">
-                                <i class="fa-solid fa-trash text-[10px]"></i> Xóa
-                            </button>
+                            ${(a.bidsCount && a.bidsCount > 0) ? `
+                                <button disabled class="inline-flex items-center gap-1 bg-gray-100 text-gray-400 font-semibold px-2 py-1 rounded-lg cursor-not-allowed opacity-60" title="Không thể xóa – đã có ${a.bidsCount} lượt đặt giá">
+                                    <i class="fa-solid fa-lock text-[10px]"></i> Xóa
+                                </button>
+                            ` : `
+                                <button onclick="handleDeleteAuction(${a.id}, '${a.flightNumber}')" class="inline-flex items-center gap-1 bg-red-50 hover:bg-red-100 text-red-600 font-semibold px-2 py-1 rounded-lg transition" title="Xóa chuyến bay">
+                                    <i class="fa-solid fa-trash text-[10px]"></i> Xóa
+                                </button>
+                            `}
                         </td>
                     </tr>
                 `;

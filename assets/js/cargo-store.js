@@ -368,7 +368,11 @@ const CargoStore = (function() {
                 repPosition: 'Giám đốc điều hành',
                 email: 'trong.hoang@saomaiexpress.vn',
                 phone: '0933 887 766',
-                documents: ['GPKD_SaoMai_Scan.pdf', 'UyQuyen_Cargo_SaoMai.pdf', 'CCCD_HoangDucTrong.pdf'],
+                documents: [
+                    { name: 'GPKD_SaoMai_Scan.pdf', dataUrl: null, type: 'application/pdf' },
+                    { name: 'UyQuyen_Cargo_SaoMai.pdf', dataUrl: null, type: 'application/pdf' },
+                    { name: 'CCCD_HoangDucTrong.pdf', dataUrl: null, type: 'application/pdf' }
+                ],
                 status: 'PENDING',
                 submittedAt: '05/08/2026 10:15'
             }
@@ -1114,7 +1118,15 @@ const CargoStore = (function() {
                 notifEmail: regData.notifEmail || '',
                 password: regData.password || '12345678',
                 pin: regData.pin || '1234',
-                documents: (regData.documents && regData.documents.length > 0) ? regData.documents : ['GPKD_TanSonNhat_Scan.pdf', 'UyQuyen_Cargo_IATA.pdf', 'CCCD_TranHoangNam.pdf'],
+                documents: (regData.documents && regData.documents.length > 0) ? regData.documents.map(d => {
+                    // Support both old format (string) and new format ({name, dataUrl, type})
+                    if (typeof d === 'string') return { name: d, dataUrl: null, type: d.toLowerCase().endsWith('.pdf') ? 'application/pdf' : 'image/png' };
+                    return { name: d.name || 'document', dataUrl: d.dataUrl || null, type: d.type || 'application/octet-stream', size: d.size || 0 };
+                }) : [
+                    { name: 'GPKD_TanSonNhat_Scan.pdf', dataUrl: null, type: 'application/pdf' },
+                    { name: 'UyQuyen_Cargo_IATA.pdf', dataUrl: null, type: 'application/pdf' },
+                    { name: 'CCCD_TranHoangNam.pdf', dataUrl: null, type: 'application/pdf' }
+                ],
                 status: 'PENDING',
                 submittedAt: now.toLocaleDateString('vi-VN') + ' ' + now.toLocaleTimeString('vi-VN', { hour: '2-digit', minute: '2-digit' })
             };
@@ -1226,6 +1238,10 @@ const CargoStore = (function() {
 
         closeAuction: function(id) {
             const data = loadData();
+            if (data.currentAdmin && data.currentAdmin.role === 'STAFF') {
+                return { success: false, message: 'Nhân viên (STAFF) không có quyền chốt thầu sớm. Thao tác này chỉ dành cho Quản trị viên (ADMIN).' };
+            }
+            
             const auction = data.auctions.find(a => a.id == id);
             if (!auction) return { success: false, message: 'Phiên đấu giá không tồn tại' };
 
@@ -1405,6 +1421,16 @@ const CargoStore = (function() {
             const auction = data.auctions.find(a => a.id == id);
             if (!auction) return { success: false, message: 'Phiên đấu giá không tồn tại.' };
 
+            // Only allow editing if no agent has placed a bid yet
+            const hasBids = (auction.bidsCount && auction.bidsCount > 0) ||
+                            (data.bids || []).some(b => b.auctionId == id);
+            if (hasBids) {
+                return {
+                    success: false,
+                    message: `Không thể chỉnh sửa chuyến bay ${auction.flightNumber} (${auction.route}) vì đã có đại lý đặt giá (${auction.bidsCount || 0} lượt đấu giá). Chỉ được sửa thông số khi chưa có đại lý nào tham gia đấu giá.`
+                };
+            }
+
             if (updateData.capacityKg) auction.capacityKg = Number(updateData.capacityKg);
             if (updateData.startingPriceKg) {
                 auction.startingPriceKg = Number(updateData.startingPriceKg);
@@ -1434,6 +1460,16 @@ const CargoStore = (function() {
             const data = loadData();
             const idx = data.auctions.findIndex(a => a.id == id);
             if (idx === -1) return { success: false, message: 'Phiên đấu giá không tồn tại.' };
+
+            const auction = data.auctions[idx];
+            const hasBids = (auction.bidsCount && auction.bidsCount > 0) ||
+                            (data.bids || []).some(b => b.auctionId == id);
+            if (hasBids) {
+                return {
+                    success: false,
+                    message: `Không thể xóa chuyến bay ${auction.flightNumber} vì đã có đại lý đặt giá. Chỉ được xóa chuyến bay khi chưa có người tham gia.`
+                };
+            }
 
             const removed = data.auctions.splice(idx, 1)[0];
             data.bids = (data.bids || []).filter(b => b.auctionId != id);
