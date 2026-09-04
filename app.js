@@ -2,6 +2,13 @@
    Vietravel Airlines - Bidding Cargo System (Application Core Controller)
    ========================================================================== */
 
+if (typeof document === 'undefined') {
+    console.log('📌 [Vietravel Airlines Cargo] "app.js" là file giao diện chạy trên Trình duyệt (Browser).');
+    console.log('🚀 Đang tự động chuyển hướng khởi động Web Server (server.js) tại http://localhost:8085 ...');
+    require('./server.js');
+    return;
+}
+
 let currentUser = null;
 let currentRole = 'guest'; // 'guest' | 'agent' | 'staff' | 'admin'
 let countdownInterval = null;
