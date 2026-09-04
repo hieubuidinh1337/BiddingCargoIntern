@@ -895,6 +895,12 @@ const CargoStore = (function() {
 
             const user = data.currentUser || defaultData.currentUser;
 
+            // Check if current agent account is LOCKED in agentsList
+            const agentAccount = (data.agentsList || []).find(a => (a.code || '').toUpperCase() === (user.agentCode || '').toUpperCase());
+            if (agentAccount && (agentAccount.status === 'Đã khóa' || agentAccount.status === 'LOCKED')) {
+                return { success: false, message: `Tài khoản đại lý ${user.agentCode} của bạn hiện đang BỊ KHÓA bởi Quản trị viên. Không thể gửi mức giá!` };
+            }
+
             // Track previous leader before updating
             const previousLeaderCode = auction.leadingAgentCode;
             const previousLeaderName = auction.leadingAgentName;
@@ -1072,7 +1078,7 @@ const CargoStore = (function() {
             const newCode = `AG-${String(count).padStart(4, '0')}`;
 
             // Add to agents list with default password
-            data.agentsList.push({
+            const newAgent = {
                 id: Date.now(),
                 code: newCode,
                 password: '12345678',
@@ -1088,10 +1094,33 @@ const CargoStore = (function() {
                 joinedDate: new Date().toLocaleDateString('vi-VN'),
                 totalBids: 0,
                 totalWins: 0
+            };
+            data.agentsList.push(newAgent);
+
+            // Send automated Email Notification record to contact email
+            if (!data.notifications) data.notifications = [];
+            const now = Date.now();
+            data.notifications.unshift({
+                id: now,
+                timestamp: now,
+                targetAgentCode: newCode,
+                targetEmail: reg.email,
+                title: `[EMAIL THÔNG BÁO] Phê duyệt Hồ sơ & Cấp Mã Đại lý ${newCode}`,
+                message: `Kính gửi ${reg.repName} (${reg.companyName}), Ban Điều hành Hãng hàng không xin thông báo: Hồ sơ đăng ký của Quý doanh nghiệp đã được PHÊ DUYỆT thành công! Mã Đại lý chính thức của Quý công ty là: ${newCode}. Mật khẩu khởi tạo: 12345678. Quý công ty có thể sử dụng Mã Đại lý này để đăng nhập vào Sàn Đấu giá Cargo.`,
+                time: formatTimeAgo(now),
+                type: 'SYSTEM',
+                read: false,
+                link: '01-Login.html'
             });
 
             saveData(data);
-            return newCode;
+            return {
+                success: true,
+                code: newCode,
+                email: reg.email,
+                companyName: reg.companyName,
+                repName: reg.repName
+            };
         },
 
         rejectRegistration: function(regId) {

@@ -312,16 +312,26 @@
             const submitBtn = document.getElementById('submitBidBtn');
             const alertBox = document.getElementById('bidAlertBox');
 
-            if (isClosed) {
+            // Check if current agent account is locked in store
+            const currentAgent = CargoStore.getCurrentUser();
+            const dataStore = CargoStore.getData();
+            const agentAcc = (dataStore.agentsList || []).find(a => (a.code || '').toUpperCase() === (currentAgent ? currentAgent.agentCode || '' : '').toUpperCase());
+            const isAccountLocked = agentAcc && (agentAcc.status === 'Đã khóa' || agentAcc.status === 'LOCKED');
+
+            if (isClosed || isAccountLocked) {
                 if (input) input.disabled = true;
                 if (submitBtn) {
                     submitBtn.disabled = true;
                     submitBtn.className = 'w-full bg-slate-300 text-slate-500 font-bold py-3.5 rounded-xl text-sm flex items-center justify-center gap-2 cursor-not-allowed shadow-none';
-                    submitBtn.innerHTML = '<i class="fa-solid fa-lock"></i> <span>Phiên đấu giá đã đóng thầu</span>';
+                    submitBtn.innerHTML = isAccountLocked ?
+                        '<i class="fa-solid fa-ban text-red-500"></i> <span>Tài khoản đại lý đang BỊ KHÓA</span>' :
+                        '<i class="fa-solid fa-lock"></i> <span>Phiên đấu giá đã đóng thầu</span>';
                 }
                 if (alertBox) {
-                    alertBox.className = 'mt-3 p-3 rounded-xl text-xs bg-amber-50 text-amber-800 border border-amber-200 block';
-                    alertBox.textContent = 'Phiên đấu giá này đã chính thức đóng thầu. Hệ thống ngắt quyền gửi mức giá mới.';
+                    alertBox.className = 'mt-3 p-3 rounded-xl text-xs bg-red-50 text-red-800 border border-red-200 block font-medium';
+                    alertBox.textContent = isAccountLocked ?
+                        'Tài khoản đại lý của bạn hiện đang BỊ KHÓA bởi Ban Quản trị. Hệ thống ngắt hoàn toàn quyền đặt giá thầu mới!' :
+                        'Phiên đấu giá này đã chính thức đóng thầu. Hệ thống ngắt quyền gửi mức giá mới.';
                 }
             } else {
                 if (input) {

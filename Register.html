@@ -331,24 +331,32 @@
 
     <!-- Success modal (ẩn mặc định) -->
     <div id="successModal" class="fixed inset-0 bg-black/50 backdrop-blur-sm z-50 hidden items-center justify-center p-4">
-        <div class="bg-white rounded-2xl shadow-2xl w-full max-w-md p-8 text-center animate-in fade-in zoom-in-95 duration-200">
-            <div class="w-16 h-16 bg-green-100 text-green-600 rounded-full flex items-center justify-center mx-auto mb-4 shadow-sm">
-                <i class="fa-solid fa-check text-2xl"></i>
+        <div class="bg-white rounded-2xl shadow-2xl w-full max-w-md p-8 text-center animate-in fade-in zoom-in-95 duration-200 border">
+            <div class="w-16 h-16 bg-blue-100 text-blue-600 rounded-full flex items-center justify-center mx-auto mb-4 shadow-sm">
+                <i class="fa-solid fa-paper-plane text-2xl"></i>
             </div>
-            <h3 class="text-xl font-bold mb-2 text-slate-900">Đã gửi hồ sơ thành công!</h3>
-            <p class="text-sm text-gray-600 mb-6 leading-relaxed">
-                Chúng tôi đã tiếp nhận hồ sơ đăng ký của doanh nghiệp. Mã hồ sơ đã được chuyển đến ban điều hành và sẽ phản hồi qua email trong <strong>3–5 ngày làm việc</strong>.
+            <h3 class="text-xl font-bold mb-2 text-slate-900">Đã nộp hồ sơ thành công!</h3>
+            <p class="text-xs text-gray-600 mb-5 leading-relaxed">
+                Hồ sơ đăng ký của Quý doanh nghiệp đã được gửi thành công tới Ban Điều hành để thẩm định pháp lý.
             </p>
-            <div class="bg-slate-50 border p-3 rounded-xl text-xs text-gray-500 mb-6 text-left">
+            <div class="bg-slate-50 border p-3.5 rounded-xl text-xs text-gray-600 mb-5 text-left space-y-1">
                 <p>• Doanh nghiệp: <strong id="modalCompName" class="text-slate-800">-</strong></p>
                 <p>• Người đại diện: <strong id="modalRepName" class="text-slate-800">-</strong></p>
-                <p>• Trạng thái hồ sơ: <span class="text-amber-600 font-semibold">Chờ xét duyệt (PENDING)</span></p>
+                <p>• Trạng thái hồ sơ: <span class="text-amber-700 font-bold bg-amber-50 px-2 py-0.5 rounded border border-amber-200">CHỜ XÉT DUYỆT (PENDING)</span></p>
+            </div>
+            <div class="bg-blue-50 border border-blue-200 p-3.5 rounded-xl text-xs text-blue-900 mb-6 text-left space-y-1 shadow-xs">
+                <p class="font-bold flex items-center gap-1.5 text-blue-950">
+                    <i class="fa-solid fa-envelope-circle-check text-blue-600 text-sm"></i> Thông báo Email tự động:
+                </p>
+                <p class="text-blue-800 leading-relaxed">
+                    Mã đại lý chính thức (AG-xxxx) và hướng dẫn đăng nhập sẽ được hệ thống <strong>TỰ ĐỘNG GỬI QUA EMAIL</strong> tới người liên hệ ngay sau khi Quản trị viên Phê duyệt hồ sơ.
+                </p>
             </div>
             <div class="flex flex-col gap-2">
-                <a href="00-Home.html" class="w-full bg-blue-600 hover:bg-blue-700 text-white font-medium py-3 rounded-xl transition shadow">
+                <a href="00-Home.html" class="w-full bg-blue-600 hover:bg-blue-700 text-white font-bold py-3 rounded-xl transition shadow">
                     Trở về trang chủ
                 </a>
-                <a href="Admin/06-AgentList.html" class="text-xs text-blue-600 hover:underline py-1">
+                <a href="Admin/06-AgentList.html" class="text-xs text-blue-600 hover:underline py-1 font-medium">
                     (Dành cho demo: Chuyển đến trang Admin để duyệt ngay)
                 </a>
             </div>

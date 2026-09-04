@@ -495,8 +495,11 @@
                 const res = CargoStore.approveRegistration(regId);
                 if (typeof res === 'object' && res && !res.success) {
                     alert(res.message);
+                } else if (res && res.code) {
+                    alert(`ĐÃ PHÊ DUYỆT HỒ SƠ THÀNH CÔNG!\n\n• Mã Đại lý được cấp: ${res.code}\n• Doanh nghiệp: ${res.companyName}\n\nEmail thông báo cấp Mã đại lý (${res.code}) kèm hướng dẫn đăng nhập đã được hệ thống TỰ ĐỘNG GỬI tới địa chỉ Email: ${res.email}!`);
+                    renderData();
                 } else if (res) {
-                    alert(`Đã phê duyệt thành công! Đã cấp mã đại lý mới: ${res}`);
+                    alert(`Đã phê duyệt thành công! Mã đại lý cấp mới: ${res}`);
                     renderData();
                 }
             }
