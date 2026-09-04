@@ -394,19 +394,32 @@ const CargoStore = (function() {
 
             let updated = false;
 
-            // Auto-refresh end time for OPEN auctions if expired in localStorage
+            // Auto-refresh end time for OPEN auctions if expired in localStorage & deduplicate
             const now = Date.now();
             if (data.auctions && Array.isArray(data.auctions)) {
+                const seenIds = new Set();
+                const seenCodes = new Set();
+                const uniqueAuctions = [];
                 data.auctions.forEach((a, idx) => {
-                    if (a.status === 'OPEN') {
-                        const endTimeMs = Date.parse(a.endTime);
-                        if (isNaN(endTimeMs) || endTimeMs <= now) {
-                            const addMinutes = (idx === 0 ? 45 : (idx === 1 ? 90 : 120));
-                            a.endTime = new Date(now + addMinutes * 60 * 1000).toISOString();
-                            updated = true;
+                    const idKey = a.id;
+                    const codeKey = (a.flightCode || '').trim().toUpperCase();
+                    if (!seenIds.has(idKey) && (!codeKey || !seenCodes.has(codeKey))) {
+                        seenIds.add(idKey);
+                        if (codeKey) seenCodes.add(codeKey);
+                        if (a.status === 'OPEN') {
+                            const endTimeMs = Date.parse(a.endTime);
+                            if (isNaN(endTimeMs) || endTimeMs <= now) {
+                                const addMinutes = (idx === 0 ? 45 : (idx === 1 ? 90 : 120));
+                                a.endTime = new Date(now + addMinutes * 60 * 1000).toISOString();
+                                updated = true;
+                            }
                         }
+                        uniqueAuctions.push(a);
+                    } else {
+                        updated = true;
                     }
                 });
+                data.auctions = uniqueAuctions;
             }
 
             if (!data.agentsList || data.agentsList.length === 0) {
@@ -781,6 +794,26 @@ const CargoStore = (function() {
             const dateStr = now.toISOString().slice(2, 10).replace(/-/g, '');
             const flightCode = `FL-${flightNumber}-${dateStr}`;
 
+            // Anti-duplication checks
+            const existingCode = (data.auctions || []).find(a => (a.flightCode || '').toUpperCase() === flightCode.toUpperCase());
+            if (existingCode) {
+                return {
+                    success: false,
+                    message: `Mã phiên ${flightCode} (Chuyến ${flightNumber}) đã tồn tại trên hệ thống! Vui lòng chọn số hiệu chuyến bay khác để tránh trùng lặp dữ liệu.`
+                };
+            }
+
+            const existingActive = (data.auctions || []).find(a =>
+                (a.flightNumber || '').trim().toUpperCase() === flightNumber &&
+                (a.status === 'OPEN' || a.status === 'UPCOMING')
+            );
+            if (existingActive) {
+                return {
+                    success: false,
+                    message: `Chuyến bay ${flightNumber} hiện đang có một phiên đấu giá mở (${existingActive.flightCode}). Vui lòng không tạo trùng lặp phiên đấu giá.`
+                };
+            }
+
             const capacityKg = Number(auctionData.capacityKg) || 3000;
             const startingPriceKg = Number(auctionData.startingPriceKg) || 18000;
             const minStep = Number(auctionData.minStep) || 500;
@@ -1035,6 +1068,31 @@ const CargoStore = (function() {
         registerAgent: function(regData) {
             const data = loadData();
             if (!data.registrations) data.registrations = [];
+
+            const taxClean = (regData.taxCode || '').trim();
+            const emailClean = (regData.email || '').trim().toLowerCase();
+
+            if (taxClean) {
+                const duplicateTax = (data.registrations || []).find(r => r.status === 'PENDING' && (r.taxCode || '').trim() === taxClean) ||
+                                     (data.agentsList || []).find(a => (a.taxCode || '').trim() === taxClean);
+                if (duplicateTax) {
+                    return {
+                        success: false,
+                        message: `Mã số thuế "${taxClean}" đã được đăng ký trên hệ thống bởi (${duplicateTax.companyName}). Vui lòng kiểm tra lại để tránh trùng dữ liệu.`
+                    };
+                }
+            }
+
+            if (emailClean) {
+                const duplicateEmail = (data.registrations || []).find(r => r.status === 'PENDING' && (r.email || '').trim().toLowerCase() === emailClean) ||
+                                       (data.agentsList || []).find(a => (a.email || '').trim().toLowerCase() === emailClean);
+                if (duplicateEmail) {
+                    return {
+                        success: false,
+                        message: `Email "${emailClean}" đã được sử dụng trên hệ thống. Vui lòng sử dụng email khác.`
+                    };
+                }
+            }
 
             const now = new Date();
             const dateStr = now.toISOString().slice(0, 10).replace(/-/g, '');

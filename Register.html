@@ -481,7 +481,7 @@
 
             // Save to shared store
             if (typeof CargoStore !== 'undefined') {
-                CargoStore.registerAgent({
+                const res = CargoStore.registerAgent({
                     companyName: compName,
                     taxCode: document.getElementById('taxCode').value,
                     businessLicense: document.getElementById('businessLicense').value,
@@ -497,6 +497,11 @@
                     pin: pinVal,
                     documents: uploadedFileNames.length > 0 ? uploadedFileNames : ['GPKD_TanSonNhat_Scan.pdf', 'UyQuyen_Cargo_IATA.pdf', 'CCCD_TranHoangNam.pdf']
                 });
+
+                if (res && res.success === false) {
+                    alert('❌ ' + res.message);
+                    return;
+                }
             }
 
             document.getElementById('modalCompName').textContent = compName;
