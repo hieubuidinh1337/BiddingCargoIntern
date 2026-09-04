@@ -1,5 +1,5 @@
 {
-  "version": 1788491099082,
+  "version": 1788492871350,
   "auctions": [
     {
       "id": 1,
@@ -15,13 +15,13 @@
       "aircraft": "Airbus A321neo Cargo",
       "capacityKg": 3500,
       "startingPriceKg": 18000,
-      "currentPriceKg": 42500,
+      "currentPriceKg": 43500,
       "minStep": 500,
-      "endTime": "2026-09-04T03:15:58.983Z",
+      "endTime": "2026-09-04T04:01:46.479Z",
       "status": "OPEN",
-      "leadingAgentCode": "AG-0556",
-      "leadingAgentName": "Công ty TNHH Tiếp vận Toàn Cầu Golden Star",
-      "bidsCount": 14,
+      "leadingAgentCode": "AG-0341",
+      "leadingAgentName": "Công ty TNHH SkyFreight Logistics Việt Nam",
+      "bidsCount": 16,
       "specialNotes": "Hàng tổng hợp, hỗ trợ kho lạnh bảo quản thực phẩm & dược phẩm.",
       "cutOffTime": "11:30 · 15/08/2026",
       "isAnonymous": true
@@ -107,6 +107,30 @@
   ],
   "bids": [
     {
+      "id": 1788491533884,
+      "timestamp": 1788491533884,
+      "auctionId": 1,
+      "agentCode": "AG-0341",
+      "agentName": "Công ty TNHH SkyFreight Logistics Việt Nam",
+      "isAnonymous": true,
+      "priceKg": 43500,
+      "time": "Vừa xong",
+      "status": "HIGHEST",
+      "weightKg": 3500
+    },
+    {
+      "id": 1788491531432,
+      "timestamp": 1788491531432,
+      "auctionId": 1,
+      "agentCode": "AG-0341",
+      "agentName": "Công ty TNHH SkyFreight Logistics Việt Nam",
+      "isAnonymous": true,
+      "priceKg": 43000,
+      "time": "Vừa xong",
+      "status": "OUTBID",
+      "weightKg": 3500
+    },
+    {
       "id": 1788490894083,
       "auctionId": 1,
       "agentCode": "AG-0556",
@@ -114,7 +138,7 @@
       "isAnonymous": true,
       "priceKg": 42500,
       "time": "Vừa xong",
-      "status": "HIGHEST",
+      "status": "OUTBID",
       "weightKg": 3500
     },
     {
@@ -254,6 +278,49 @@
     }
   ],
   "notifications": [
+    {
+      "id": 1788491637620,
+      "title": "Thông báo về chuyến bay VU130 (SGN - HAN)",
+      "message": "Cập nhật thông tin phiên thầu chuyến VU130. Giá hiện tại đang ở mức 43.500 đ/Kg.",
+      "time": "Vừa xong",
+      "type": "CLOSING_SOON",
+      "read": true,
+      "link": "04-Detail.html?id=1",
+      "targetAgentCode": null
+    },
+    {
+      "id": 1788491533884,
+      "timestamp": 1788491533884,
+      "targetAgentCode": "AG-0341",
+      "title": "Đặt giá thành công chuyến VU130",
+      "message": "Bạn (AG-0341) đang dẫn đầu mức giá 43.500 đ/Kg cho chặng SGN - HAN. (Tên công ty được che ẩn danh đối với các đối thủ)",
+      "time": "Vừa xong",
+      "type": "HIGHEST",
+      "read": true,
+      "link": "04-Detail.html?id=1"
+    },
+    {
+      "id": 1788491531433,
+      "timestamp": 1788491531433,
+      "targetAgentCode": "AG-0556",
+      "title": "Cảnh báo bị vượt giá chuyến VU130!",
+      "message": "Một đại lý đối thủ (Ẩn danh) vừa đặt mức giá mới 43.000 đ/Kg cho chặng SGN - HAN.",
+      "time": "Vừa xong",
+      "type": "OUTBID",
+      "read": false,
+      "link": "04-Detail.html?id=1"
+    },
+    {
+      "id": 1788491531432,
+      "timestamp": 1788491531432,
+      "targetAgentCode": "AG-0341",
+      "title": "Đặt giá thành công chuyến VU130",
+      "message": "Bạn (AG-0341) đang dẫn đầu mức giá 43.000 đ/Kg cho chặng SGN - HAN. (Tên công ty được che ẩn danh đối với các đối thủ)",
+      "time": "Vừa xong",
+      "type": "HIGHEST",
+      "read": true,
+      "link": "04-Detail.html?id=1"
+    },
     {
       "id": 1788490894083,
       "targetAgentCode": "AG-0556",

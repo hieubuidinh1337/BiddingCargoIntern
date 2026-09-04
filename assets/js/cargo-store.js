@@ -1051,6 +1051,8 @@ const CargoStore = (function() {
                 repPosition: regData.repPosition || 'Đại diện ủy quyền',
                 email: regData.email || '',
                 phone: regData.phone || '',
+                password: regData.password || '12345678',
+                pin: regData.pin || '1234',
                 documents: (regData.documents && regData.documents.length > 0) ? regData.documents : ['GPKD_Scan.pdf', 'CCCD_NguoiDaiDien.pdf'],
                 status: 'PENDING',
                 submittedAt: now.toLocaleDateString('vi-VN') + ' ' + now.toLocaleTimeString('vi-VN', { hour: '2-digit', minute: '2-digit' })
@@ -1076,12 +1078,15 @@ const CargoStore = (function() {
             reg.status = 'APPROVED';
             const count = (data.agentsList || []).length + 1;
             const newCode = `AG-${String(count).padStart(4, '0')}`;
+            const agentPwd = reg.password || '12345678';
+            const agentPin = reg.pin || '1234';
 
-            // Add to agents list with default password
+            // Add to agents list with registered password & PIN
             const newAgent = {
                 id: Date.now(),
                 code: newCode,
-                password: '12345678',
+                password: agentPwd,
+                pin: agentPin,
                 companyName: reg.companyName,
                 repName: reg.repName,
                 position: reg.repPosition,
@@ -1106,7 +1111,7 @@ const CargoStore = (function() {
                 targetAgentCode: newCode,
                 targetEmail: reg.email,
                 title: `[EMAIL THÔNG BÁO] Phê duyệt Hồ sơ & Cấp Mã Đại lý ${newCode}`,
-                message: `Kính gửi ${reg.repName} (${reg.companyName}), Ban Điều hành Hãng hàng không xin thông báo: Hồ sơ đăng ký của Quý doanh nghiệp đã được PHÊ DUYỆT thành công! Mã Đại lý chính thức của Quý công ty là: ${newCode}. Mật khẩu khởi tạo: 12345678. Quý công ty có thể sử dụng Mã Đại lý này để đăng nhập vào Sàn Đấu giá Cargo.`,
+                message: `Kính gửi ${reg.repName} (${reg.companyName}), Ban Điều hành Hãng hàng không xin thông báo: Hồ sơ đăng ký của Quý doanh nghiệp đã được PHÊ DUYỆT thành công! Mã Đại lý chính thức của Quý công ty là: ${newCode}. Mật khẩu đăng nhập: ${agentPwd} (Mã PIN Security: ${agentPin}). Quý công ty có thể sử dụng Mã Đại lý này để đăng nhập vào Sàn Đấu giá Cargo.`,
                 time: formatTimeAgo(now),
                 type: 'SYSTEM',
                 read: false,
@@ -1117,9 +1122,32 @@ const CargoStore = (function() {
             return {
                 success: true,
                 code: newCode,
+                password: agentPwd,
+                pin: agentPin,
                 email: reg.email,
                 companyName: reg.companyName,
                 repName: reg.repName
+            };
+        },
+
+        verifyPinAndGetPassword: function(agentCode, pinInput) {
+            const data = loadData();
+            const code = (agentCode || '').trim().toUpperCase();
+            const agent = (data.agentsList || []).find(a => (a.code || '').toUpperCase() === code);
+
+            if (!agent) {
+                return { success: false, message: `Mã đại lý "${code}" không tồn tại trong CSDL.` };
+            }
+
+            const expectedPin = agent.pin || '1234';
+            if (String(pinInput).trim() !== String(expectedPin).trim()) {
+                return { success: false, message: `Mã PIN Security 4 chữ số không chính xác cho đại lý ${code}!` };
+            }
+
+            return {
+                success: true,
+                password: agent.password || '12345678',
+                agent: agent
             };
         },
 

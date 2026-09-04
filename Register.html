@@ -255,9 +255,9 @@
                     <span class="w-7 h-7 bg-blue-100 text-blue-700 rounded-lg flex items-center justify-center text-sm font-bold">4</span>
                     Thông tin tài khoản (sau khi được duyệt)
                 </h2>
-                <p class="text-xs text-gray-500 mb-5 ml-9">Mã đại lý sẽ do ban điều hành cấp tự động (AG-xxxx). Quý đại lý vui lòng đặt mật khẩu khởi tạo.</p>
+                <p class="text-xs text-gray-500 mb-5 ml-9">Mã đại lý sẽ do ban điều hành cấp tự động (AG-xxxx). Quý đại lý vui lòng đặt mật khẩu khởi tạo và Mã PIN bảo mật.</p>
 
-                <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
                     <div>
                         <label class="block text-sm font-medium mb-1">Mật khẩu khởi tạo <span class="text-red-500">*</span></label>
                         <input type="password" id="tempPassword" required placeholder="Tối thiểu 8 ký tự"
@@ -267,11 +267,18 @@
                         <label class="block text-sm font-medium mb-1">Xác nhận mật khẩu <span class="text-red-500">*</span></label>
                         <input type="password" id="confirmPassword" required placeholder="Nhập lại chính xác mật khẩu"
                                class="w-full border rounded-xl px-4 py-2.5 text-sm focus:ring-2 focus:ring-blue-500 outline-none transition">
+                        <p id="confirmFeedbackMsg" class="text-xs mt-1 font-medium hidden"></p>
+                    </div>
+                    <div>
+                        <label class="block text-sm font-medium mb-1">Mã PIN bảo mật (4 chữ số) <span class="text-red-500">*</span></label>
+                        <input type="password" id="pinCode" maxlength="4" pattern="[0-9]{4}" required placeholder="VD: 1234" value="1234"
+                               class="w-full border rounded-xl px-4 py-2.5 text-sm focus:ring-2 focus:ring-blue-500 outline-none transition font-mono tracking-widest text-center">
+                        <p class="text-[11px] text-gray-500 mt-1">Dùng để tra cứu/xem lại mật khẩu</p>
                     </div>
                 </div>
                 <div class="bg-amber-50 border border-amber-200 text-amber-800 rounded-xl p-3 text-xs mt-4 flex items-center gap-2">
                     <i class="fa-solid fa-circle-info text-amber-600"></i>
-                    <span>Sau khi được phê duyệt, thông tin đăng nhập chính thức gồm <strong>Mã Đại Lý (AG-xxxx)</strong> và mật khẩu trên sẽ được kích hoạt tức thì.</span>
+                    <span>Sau khi được phê duyệt, thông tin đăng nhập chính thức gồm <strong>Mã Đại Lý (AG-xxxx)</strong>, Mật khẩu và Mã PIN sẽ được kích hoạt tức thì.</span>
                 </div>
             </div>
 
@@ -375,11 +382,39 @@
             }
         }
 
+        const p1Input = document.getElementById('tempPassword');
+        const p2Input = document.getElementById('confirmPassword');
+        const feedbackEl = document.getElementById('confirmFeedbackMsg');
+
+        function checkPasswordMatch() {
+            if (!feedbackEl) return;
+            const val1 = p1Input.value;
+            const val2 = p2Input.value;
+            if (!val2) {
+                feedbackEl.className = 'text-xs mt-1 font-medium hidden';
+                feedbackEl.textContent = '';
+                return;
+            }
+            if (val1 === val2) {
+                feedbackEl.className = 'text-xs mt-1 font-medium text-emerald-600 block flex items-center gap-1';
+                feedbackEl.innerHTML = '<i class="fa-solid fa-circle-check"></i> Mật khẩu trùng khớp';
+            } else {
+                feedbackEl.className = 'text-xs mt-1 font-medium text-red-600 block flex items-center gap-1';
+                feedbackEl.innerHTML = '<i class="fa-solid fa-circle-xmark"></i> Mật khẩu không trùng khớp!';
+            }
+        }
+
+        if (p1Input && p2Input) {
+            p1Input.addEventListener('input', checkPasswordMatch);
+            p2Input.addEventListener('input', checkPasswordMatch);
+        }
+
         document.getElementById('registerForm').addEventListener('submit', function(e) {
             e.preventDefault();
 
             const p1 = document.getElementById('tempPassword').value;
             const p2 = document.getElementById('confirmPassword').value;
+            const pinVal = document.getElementById('pinCode').value || '1234';
             if (p1 !== p2) {
                 alert('Mật khẩu xác nhận không trùng khớp! Vui lòng kiểm tra lại.');
                 return;
@@ -399,6 +434,8 @@
                     repPosition: document.getElementById('repPosition').value,
                     email: document.getElementById('email').value,
                     phone: document.getElementById('phone').value,
+                    password: p1,
+                    pin: pinVal,
                     documents: uploadedFileNames.length > 0 ? uploadedFileNames : ['GiayPhepKinhDoanh.pdf', 'CCCD_NguoiDaiDien.pdf']
                 });
             }
