@@ -570,6 +570,17 @@ const server = http.createServer((req, res) => {
     });
 });
 
+server.on('error', (err) => {
+    if (err.code === 'EADDRINUSE') {
+        console.error(`\n⚠️  [Port In Use] Cổng ${PORT} hiện đang được sử dụng bởi một tiến trình khác.`);
+        console.error(`👉 Máy chủ có thể đã đang chạy sẵn tại: http://localhost:${PORT}/`);
+        console.error(`👉 Để khởi động mới, bạn hãy tắt tiến trình đang chiếm cổng ${PORT}.\n`);
+        process.exit(1);
+    } else {
+        console.error('Server error:', err);
+    }
+});
+
 server.listen(PORT, () => {
     console.log(`Vietravel Airlines Bidding Cargo app running at http://localhost:${PORT}/`);
 });
