@@ -996,24 +996,41 @@
                 // If demo file without uploaded binary, generate real downloadable PDF via html2pdf
                 const paperEl = document.getElementById('mockDocPaper');
                 if (paperEl && window.html2pdf) {
-                    const opt = {
-                        margin: [6, 8, 6, 8],
-                        filename: activeDocObj.name.toLowerCase().endsWith('.pdf') ? activeDocObj.name : (activeDocObj.name + '.pdf'),
-                        image: { type: 'jpeg', quality: 0.98 },
-                        html2canvas: {
-                            scale: 2,
-                            useCORS: true,
-                            letterRendering: true,
-                            logging: false,
-                            scrollY: 0,
-                            scrollX: 0,
-                            windowWidth: 1000,
-                            windowHeight: 1400
-                        },
-                        jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait' },
-                        pagebreak: { mode: ['avoid-all', 'css', 'legacy'] }
-                    };
-                    html2pdf().set(opt).from(paperEl).save();
+                    // Mount offscreen clone for reliable html2canvas capture
+                    const offWrap = document.createElement('div');
+                    offWrap.style.cssText = 'position:fixed;left:-9999px;top:0;width:720px;background:#fff;z-index:-1;opacity:0;pointer-events:none;';
+                    const cloned = paperEl.cloneNode(true);
+                    cloned.style.width = '720px';
+                    cloned.style.maxWidth = '720px';
+                    cloned.style.margin = '0';
+                    cloned.style.padding = '24px';
+                    cloned.style.boxSizing = 'border-box';
+                    cloned.style.display = 'block';
+                    offWrap.appendChild(cloned);
+                    document.body.appendChild(offWrap);
+
+                    requestAnimationFrame(() => {
+                        const realH = cloned.scrollHeight || cloned.offsetHeight || 800;
+                        const opt = {
+                            margin: [8, 8, 8, 8],
+                            filename: activeDocObj.name.toLowerCase().endsWith('.pdf') ? activeDocObj.name : (activeDocObj.name + '.pdf'),
+                            image: { type: 'jpeg', quality: 0.98 },
+                            html2canvas: {
+                                scale: 2,
+                                useCORS: true,
+                                letterRendering: true,
+                                logging: false,
+                                width: 720,
+                                height: realH,
+                                scrollX: 0,
+                                scrollY: 0
+                            },
+                            jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait' }
+                        };
+                        html2pdf().set(opt).from(cloned).save().finally(() => {
+                            if (offWrap.parentNode) offWrap.parentNode.removeChild(offWrap);
+                        });
+                    });
                 } else {
                     // Fallback download text file
                     const blob = new Blob([

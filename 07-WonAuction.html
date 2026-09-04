@@ -422,72 +422,69 @@
             }
 
             setTimeout(() => {
+                let offscreenWrap = null;
                 try {
                     if (typeof html2pdf === 'undefined') {
                         alert('Thư viện PDF đang tải, vui lòng thử lại sau giây lát!');
-                        if (btn) {
-                            btn.disabled = false;
-                            btn.innerHTML = originalContent;
-                        }
+                        if (btn) { btn.disabled = false; btn.innerHTML = originalContent; }
                         return;
                     }
 
                     const html = buildAwardSlipHtml(wonId);
                     if (!html) {
                         alert('Không tìm thấy dữ liệu đơn thắng thầu!');
-                        if (btn) {
-                            btn.disabled = false;
-                            btn.innerHTML = originalContent;
-                        }
+                        if (btn) { btn.disabled = false; btn.innerHTML = originalContent; }
                         return;
                     }
 
-                    let container = document.getElementById('pdfExportContainer');
-                    if (!container) {
-                        container = document.createElement('div');
-                        container.id = 'pdfExportContainer';
-                        container.style.display = 'none';
-                        document.body.appendChild(container);
-                    }
-                    container.innerHTML = html;
+                    // Mount offscreen but fully laid-out element for html2canvas
+                    offscreenWrap = document.createElement('div');
+                    offscreenWrap.style.cssText = 'position:fixed;left:-9999px;top:0;width:720px;background:#fff;z-index:-1;opacity:0;pointer-events:none;';
+                    offscreenWrap.innerHTML = html;
+                    document.body.appendChild(offscreenWrap);
 
-                    const element = container.firstElementChild.cloneNode(true);
-                    element.style.display = 'block';
-                    element.style.margin = '0 auto';
-                    element.style.boxSizing = 'border-box';
+                    const targetEl = offscreenWrap.firstElementChild || offscreenWrap;
+                    targetEl.style.width = '720px';
+                    targetEl.style.maxWidth = '720px';
+                    targetEl.style.margin = '0';
+                    targetEl.style.boxSizing = 'border-box';
 
-                    const opt = {
-                        margin:       [8, 8, 8, 8],
-                        filename:     `Phieu_Xac_Nhan_Thang_Thau_${wonId}.pdf`,
-                        image:        { type: 'jpeg', quality: 0.98 },
-                        html2canvas:  {
-                            scale: 2,
-                            useCORS: true,
-                            letterRendering: true,
-                            logging: false
-                        },
-                        jsPDF:        { unit: 'mm', format: 'a4', orientation: 'portrait' }
-                    };
+                    // Wait a frame for layout to settle
+                    requestAnimationFrame(() => {
+                        const realH = targetEl.scrollHeight || targetEl.offsetHeight || 800;
 
-                    html2pdf().set(opt).from(element).save().then(() => {
-                        showToast(`Đã tải xuống Phiếu xác nhận thắng thầu (${wonId}) thành công!`);
-                    }).catch(err => {
-                        console.error('Error generating PDF:', err);
-                        alert('Lỗi tạo file PDF: ' + err.message);
-                    }).finally(() => {
-                        container.innerHTML = '';
-                        if (btn) {
-                            btn.disabled = false;
-                            btn.innerHTML = originalContent;
-                        }
+                        const opt = {
+                            margin:       [8, 8, 8, 8],
+                            filename:     `Phieu_Xac_Nhan_Thang_Thau_${wonId}.pdf`,
+                            image:        { type: 'jpeg', quality: 0.98 },
+                            html2canvas:  {
+                                scale: 2,
+                                useCORS: true,
+                                letterRendering: true,
+                                logging: false,
+                                width: 720,
+                                height: realH,
+                                scrollX: 0,
+                                scrollY: 0
+                            },
+                            jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait' }
+                        };
+
+                        html2pdf().set(opt).from(targetEl).save().then(() => {
+                            showToast(`Đã tải xuống Phiếu xác nhận thắng thầu (${wonId}) thành công!`);
+                        }).catch(err => {
+                            console.error('Error generating PDF:', err);
+                            alert('Lỗi tạo file PDF: ' + err.message);
+                        }).finally(() => {
+                            if (offscreenWrap && offscreenWrap.parentNode) offscreenWrap.parentNode.removeChild(offscreenWrap);
+                            if (btn) { btn.disabled = false; btn.innerHTML = originalContent; }
+                        });
                     });
                 } catch (err) {
+                    if (offscreenWrap && offscreenWrap.parentNode) offscreenWrap.parentNode.removeChild(offscreenWrap);
                     console.error('downloadAwardSlipPDF error:', err);
                     alert('Lỗi khi xuất file PDF: ' + err.message);
-                    if (btn) {
-                        btn.disabled = false;
-                        btn.innerHTML = originalContent;
-                    }
+                    if (btn) { btn.disabled = false; btn.innerHTML = originalContent; }
                 }
             }, 250);
         }
