@@ -1,5 +1,5 @@
 {
-  "version": 1788493583209,
+  "version": 1788493922077,
   "auctions": [
     {
       "id": 1,
@@ -447,6 +447,32 @@
     }
   ],
   "registrations": [
+    {
+      "regId": "REG-20260904-05",
+      "companyName": "Công ty TNHH Vận tải & Logistics Tân Sơn Nhất",
+      "taxCode": "031899887744",
+      "businessLicense": "GPKD-8899/2025/SNH",
+      "address": "45 Trường Sơn, Phường 2, Quận Tân Bình, TP. Hồ Chí Minh",
+      "field": "Freight Forwarder",
+      "repName": "Trần Hoàng Nam",
+      "repPosition": "Giám đốc Logistics Cargo",
+      "email": "nam@tsn-logistics.vn",
+      "phone": "0988 776 655",
+      "citizenId": "079095001234",
+      "notifEmail": "ops-cargo@tsn-logistics.vn",
+      "password": "Demo123456",
+      "pin": "9999",
+      "documents": [
+        "GPKD_TanSonNhat_Scan.pdf",
+        "UyQuyen_Cargo_IATA.pdf",
+        "CCCD_TranHoangNam.pdf",
+        "Screenshot 2026-07-30 154648.png",
+        "Screenshot 2026-07-24 200557.png",
+        "Screenshot 2026-08-01 005924.png"
+      ],
+      "status": "PENDING",
+      "submittedAt": "4/9/2026 10:52"
+    },
     {
       "regId": "REG-20260904-04",
       "companyName": "Công ty TNHH Vận tải & Logistics Tân Sơn Nhất",
