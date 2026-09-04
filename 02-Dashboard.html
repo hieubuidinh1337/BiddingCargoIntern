@@ -302,7 +302,7 @@
                         <div class="p-3 rounded-xl bg-gray-50 border border-gray-100 hover:bg-blue-50/50 transition text-xs">
                             <div class="flex items-center justify-between mb-1">
                                 <span class="font-bold text-slate-800">${n.title}</span>
-                                <span class="text-[10px] text-gray-400">${n.time}</span>
+                                <span class="text-[10px] text-gray-400">${CargoStore.formatTimeAgo(n.timestamp || n.id, n.time)}</span>
                             </div>
                             <p class="text-gray-600 text-[11px] leading-relaxed">${n.message}</p>
                         </div>

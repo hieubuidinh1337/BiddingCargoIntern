@@ -256,7 +256,7 @@
                                 <h3 class="font-bold text-sm text-slate-900">${n.title}</h3>
                                 <span class="text-[10px] font-semibold px-2 py-0.5 rounded-full ${cfg.labelBg}">${cfg.label}</span>
                             </div>
-                            <span class="text-[11px] text-gray-400 flex-shrink-0 whitespace-nowrap">${n.time}</span>
+                            <span class="text-[11px] text-gray-400 flex-shrink-0 whitespace-nowrap">${CargoStore.formatTimeAgo(n.timestamp || n.id, n.time)}</span>
                         </div>
                         <p class="text-xs text-gray-600 leading-relaxed">${n.message}</p>
                         <div class="flex items-center gap-3 mt-2.5">

@@ -296,7 +296,7 @@
                     <td class="py-3 px-4 font-bold text-slate-800">${b.agentName}</td>
                     <td class="py-3 px-4 font-bold text-slate-900">${CargoStore.formatCurrency(b.priceKg)}</td>
                     <td class="py-3 px-4 text-slate-700">${CargoStore.formatCurrency(b.priceKg * b.weightKg)}</td>
-                    <td class="py-3 px-4 text-gray-400 text-[11px]">${b.time}</td>
+                    <td class="py-3 px-4 text-gray-400 text-[11px]">${CargoStore.formatTimeAgo(b.timestamp || b.id, b.time)}</td>
                     <td class="py-3 px-4">
                         ${b.status === 'HIGHEST' || b.status === 'WON' ? 
                             '<span class="bg-green-100 text-green-700 font-bold px-2 py-0.5 rounded text-[10px]">DẪN ĐẦU</span>' : 

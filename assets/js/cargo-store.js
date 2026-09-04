@@ -525,12 +525,45 @@ const CargoStore = (function() {
         return { total, hours, minutes, seconds, isEnded: false };
     }
 
+    function formatTimeAgo(ts, defaultFallback) {
+        if (!ts) return defaultFallback || 'Vừa xong';
+        let timeMs = Number(ts);
+        if (isNaN(timeMs) || timeMs <= 0) {
+            if (typeof ts === 'string') {
+                const parsed = Date.parse(ts);
+                if (!isNaN(parsed)) timeMs = parsed;
+            }
+        }
+        if (isNaN(timeMs) || timeMs <= 0) return defaultFallback || 'Vừa xong';
+
+        const now = Date.now();
+        const diffSec = Math.floor((now - timeMs) / 1000);
+
+        if (diffSec < 0 || diffSec < 45) return 'Vừa xong';
+        if (diffSec < 3600) {
+            const mins = Math.max(1, Math.floor(diffSec / 60));
+            return `${mins} phút trước`;
+        }
+        if (diffSec < 86400) {
+            const hours = Math.floor(diffSec / 3600);
+            return `${hours} giờ trước`;
+        }
+        const days = Math.floor(diffSec / 86400);
+        if (days < 30) {
+            return `${days} ngày trước`;
+        }
+        const d = new Date(timeMs);
+        const pad = n => String(n).padStart(2, '0');
+        return `${pad(d.getHours())}:${pad(d.getMinutes())} ${pad(d.getDate())}/${pad(d.getMonth() + 1)}/${d.getFullYear()}`;
+    }
+
     return {
         getData: loadData,
         saveData: saveData,
         formatCurrency: formatCurrency,
         formatNumber: formatNumber,
         getTimeRemaining: getTimeRemaining,
+        formatTimeAgo: formatTimeAgo,
 
         /**
          * Dynamic Agent Login checking each agent's SPECIFIC password
@@ -875,15 +908,17 @@ const CargoStore = (function() {
 
             const anonFlag = isAnonymous !== false;
 
+            const now = Date.now();
             // Insert new bid with logged in agent's identity and isAnonymous flag
             const newBid = {
-                id: Date.now(),
+                id: now,
+                timestamp: now,
                 auctionId: Number(auctionId),
                 agentCode: user.agentCode,
                 agentName: user.companyName,
                 isAnonymous: anonFlag,
                 priceKg: Number(bidPriceKg),
-                time: 'Vừa xong',
+                time: formatTimeAgo(now),
                 status: 'HIGHEST',
                 weightKg: auction.capacityKg
             };
@@ -904,11 +939,12 @@ const CargoStore = (function() {
 
             // 1. Notification for current bidder (HIGHEST)
             data.notifications.unshift({
-                id: Date.now(),
+                id: now,
+                timestamp: now,
                 targetAgentCode: user.agentCode,
                 title: `Đặt giá thành công chuyến ${auction.flightNumber}`,
                 message: `Bạn (${user.agentCode}) đang dẫn đầu mức giá ${formatCurrency(bidPriceKg)}/Kg cho chặng ${auction.route}.${anonFlag ? ' (Tên công ty được che ẩn danh đối với các đối thủ)' : ''}`,
-                time: 'Vừa xong',
+                time: formatTimeAgo(now),
                 type: 'HIGHEST',
                 read: false,
                 link: `04-Detail.html?id=${auction.id}`
@@ -918,11 +954,12 @@ const CargoStore = (function() {
             if (previousLeaderCode && previousLeaderCode !== user.agentCode) {
                 const competitorNameDisplay = anonFlag ? 'Một đại lý đối thủ (Ẩn danh)' : `Đại lý ${user.companyName} (${user.agentCode})`;
                 data.notifications.unshift({
-                    id: Date.now() + 1,
+                    id: now + 1,
+                    timestamp: now + 1,
                     targetAgentCode: previousLeaderCode,
                     title: `Cảnh báo bị vượt giá chuyến ${auction.flightNumber}!`,
                     message: `${competitorNameDisplay} vừa đặt mức giá mới ${formatCurrency(bidPriceKg)}/Kg cho chặng ${auction.route}.`,
-                    time: 'Vừa xong',
+                    time: formatTimeAgo(now + 1),
                     type: 'OUTBID',
                     read: false,
                     link: `04-Detail.html?id=${auction.id}`
