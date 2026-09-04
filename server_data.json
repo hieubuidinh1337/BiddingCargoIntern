@@ -1,5 +1,5 @@
 {
-  "version": 1788492871350,
+  "version": 1788493351816,
   "auctions": [
     {
       "id": 1,
@@ -279,6 +279,30 @@
   ],
   "notifications": [
     {
+      "id": 1788493144191,
+      "timestamp": 1788493144191,
+      "targetAgentCode": "AG-0008",
+      "targetEmail": "hieubuidinh304@gmail.com",
+      "title": "[EMAIL THÔNG BÁO] Phê duyệt Hồ sơ & Cấp Mã Đại lý AG-0008",
+      "message": "Kính gửi 23131 (asda), Ban Điều hành Hãng hàng không xin thông báo: Hồ sơ đăng ký của Quý doanh nghiệp đã được PHÊ DUYỆT thành công! Mã Đại lý chính thức của Quý công ty là: AG-0008. Mật khẩu đăng nhập: 12345678 (Mã PIN Security: 1234). Quý công ty có thể sử dụng Mã Đại lý này để đăng nhập vào Sàn Đấu giá Cargo.",
+      "time": "Vừa xong",
+      "type": "SYSTEM",
+      "read": false,
+      "link": "01-Login.html"
+    },
+    {
+      "id": 1788493137242,
+      "timestamp": 1788493137242,
+      "targetAgentCode": "AG-0007",
+      "targetEmail": "hieubuidinh304@gmail.com",
+      "title": "[EMAIL THÔNG BÁO] Phê duyệt Hồ sơ & Cấp Mã Đại lý AG-0007",
+      "message": "Kính gửi 23131 (asda), Ban Điều hành Hãng hàng không xin thông báo: Hồ sơ đăng ký của Quý doanh nghiệp đã được PHÊ DUYỆT thành công! Mã Đại lý chính thức của Quý công ty là: AG-0007. Mật khẩu đăng nhập: 123456789 (Mã PIN Security: 1234). Quý công ty có thể sử dụng Mã Đại lý này để đăng nhập vào Sàn Đấu giá Cargo.",
+      "time": "Vừa xong",
+      "type": "SYSTEM",
+      "read": false,
+      "link": "01-Login.html"
+    },
+    {
       "id": 1788491637620,
       "title": "Thông báo về chuyến bay VU130 (SGN - HAN)",
       "message": "Cập nhật thông tin phiên thầu chuyến VU130. Giá hiện tại đang ở mức 43.500 đ/Kg.",
@@ -414,6 +438,42 @@
   ],
   "registrations": [
     {
+      "regId": "REG-20260904-03",
+      "companyName": "asda",
+      "taxCode": "d",
+      "address": "w",
+      "field": "Freight Forwarder",
+      "repName": "23131",
+      "repPosition": "eqwwwewqe",
+      "email": "hieubuidinh304@gmail.com",
+      "phone": "d2q13",
+      "password": "123456789",
+      "pin": "1234",
+      "documents": [
+        "GiayPhepKinhDoanh.pdf",
+        "CCCD_NguoiDaiDien.pdf"
+      ],
+      "status": "APPROVED",
+      "submittedAt": "4/9/2026 10:38"
+    },
+    {
+      "regId": "REG-20260904-02",
+      "companyName": "asda",
+      "taxCode": "213123",
+      "address": "dqwdq",
+      "field": "Freight Forwarder",
+      "repName": "23131",
+      "repPosition": "eqwwwewqe",
+      "email": "hieubuidinh304@gmail.com",
+      "phone": "2131313",
+      "documents": [
+        "GiayPhepKinhDoanh.pdf",
+        "CCCD_NguoiDaiDien.pdf"
+      ],
+      "status": "APPROVED",
+      "submittedAt": "4/9/2026 10:37"
+    },
+    {
       "regId": "REG-2026-0805-01",
       "companyName": "Công ty TNHH Giao nhận Sao Mai Express",
       "taxCode": "0315998877",
@@ -428,7 +488,7 @@
         "UyQuyen_Cargo_SaoMai.pdf",
         "CCCD_HoangDucTrong.pdf"
       ],
-      "status": "PENDING",
+      "status": "REJECTED",
       "submittedAt": "05/08/2026 10:15"
     }
   ],
@@ -552,6 +612,42 @@
       "tier": "TIER2",
       "status": "Đang hoạt động",
       "joinedDate": "3/9/2026",
+      "totalBids": 0,
+      "totalWins": 0
+    },
+    {
+      "id": 1788493137235,
+      "code": "AG-0007",
+      "password": "123456789",
+      "pin": "1234",
+      "companyName": "asda",
+      "repName": "23131",
+      "position": "eqwwwewqe",
+      "phone": "d2q13",
+      "email": "hieubuidinh304@gmail.com",
+      "taxCode": "d",
+      "address": "w",
+      "tier": "TIER2",
+      "status": "Đang hoạt động",
+      "joinedDate": "4/9/2026",
+      "totalBids": 0,
+      "totalWins": 0
+    },
+    {
+      "id": 1788493144191,
+      "code": "AG-0008",
+      "password": "12345678",
+      "pin": "1234",
+      "companyName": "asda",
+      "repName": "23131",
+      "position": "eqwwwewqe",
+      "phone": "2131313",
+      "email": "hieubuidinh304@gmail.com",
+      "taxCode": "213123",
+      "address": "dqwdq",
+      "tier": "TIER2",
+      "status": "Đang hoạt động",
+      "joinedDate": "4/9/2026",
       "totalBids": 0,
       "totalWins": 0
     }

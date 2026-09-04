@@ -1045,15 +1045,18 @@ const CargoStore = (function() {
                 regId: regId,
                 companyName: regData.companyName || 'Công ty mới đăng ký',
                 taxCode: regData.taxCode || '',
+                businessLicense: regData.businessLicense || '',
                 address: regData.address || '',
                 field: regData.field || 'Cargo Agent',
                 repName: regData.repName || '',
                 repPosition: regData.repPosition || 'Đại diện ủy quyền',
                 email: regData.email || '',
                 phone: regData.phone || '',
+                citizenId: regData.citizenId || '',
+                notifEmail: regData.notifEmail || '',
                 password: regData.password || '12345678',
                 pin: regData.pin || '1234',
-                documents: (regData.documents && regData.documents.length > 0) ? regData.documents : ['GPKD_Scan.pdf', 'CCCD_NguoiDaiDien.pdf'],
+                documents: (regData.documents && regData.documents.length > 0) ? regData.documents : ['GPKD_TanSonNhat_Scan.pdf', 'UyQuyen_Cargo_IATA.pdf', 'CCCD_TranHoangNam.pdf'],
                 status: 'PENDING',
                 submittedAt: now.toLocaleDateString('vi-VN') + ' ' + now.toLocaleTimeString('vi-VN', { hour: '2-digit', minute: '2-digit' })
             };
@@ -1567,6 +1570,34 @@ const CargoStore = (function() {
                 el.className = `text-[10px] font-bold px-2 py-0.5 rounded-full ${badgeClass} inline-flex items-center gap-1`;
                 el.innerHTML = isStaff ? '<i class="fa-solid fa-user-gear text-[9px]"></i> ' + roleName : '<i class="fa-solid fa-shield-halved text-[9px]"></i> ' + roleName;
             });
+
+            // Hide AgentList nav links for STAFF across headers & dashboard
+            if (isStaff) {
+                document.querySelectorAll('a[href*="06-AgentList.html"]').forEach(el => {
+                    el.style.display = 'none';
+                });
+            }
+
+            // Block access on 06-AgentList.html for STAFF
+            if (isStaff && typeof window !== 'undefined' && window.location.pathname.includes('06-AgentList.html')) {
+                const main = document.querySelector('main');
+                if (main) {
+                    main.innerHTML = `
+                        <div class="max-w-xl mx-auto my-12 bg-white rounded-3xl p-8 border shadow-xl text-center space-y-4">
+                            <div class="w-16 h-16 bg-red-100 text-red-600 rounded-2xl mx-auto flex items-center justify-center text-3xl shadow-sm">
+                                <i class="fa-solid fa-ban"></i>
+                            </div>
+                            <h2 class="text-xl font-bold text-slate-900">Truy cập bị từ chối (Access Denied)</h2>
+                            <p class="text-xs text-slate-600 leading-relaxed">
+                                Tài khoản <strong>Nhân viên Điều hành (STAFF)</strong> không có quyền sử dụng trang Quản lý Đại lý & Phê duyệt hồ sơ. Thao tác này thuộc thẩm quyền của <strong>Quản trị viên (ADMIN)</strong>.
+                            </p>
+                            <a href="02-AdminDashboard.html" class="inline-block bg-blue-600 hover:bg-blue-700 text-white text-xs font-bold px-6 py-3 rounded-xl transition shadow">
+                                Quay lại Admin Dashboard
+                            </a>
+                        </div>
+                    `;
+                }
+            }
         }
     };
 })();

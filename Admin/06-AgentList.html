@@ -334,22 +334,50 @@
                                 </div>
                             </div>
 
-                            <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-4 text-xs">
+                            <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-3.5 text-xs bg-slate-50/80 p-4 rounded-xl border border-slate-200">
                                 <div>
-                                    <p class="text-gray-400">Mã số thuế (MST):</p>
-                                    <p class="font-bold text-slate-800">${r.taxCode}</p>
+                                    <p class="text-slate-500 font-medium">Tên doanh nghiệp:</p>
+                                    <p class="font-bold text-slate-900">${r.companyName}</p>
                                 </div>
                                 <div>
-                                    <p class="text-gray-400">Người đại diện:</p>
-                                    <p class="font-semibold text-slate-800">${r.repName} (${r.repPosition})</p>
+                                    <p class="text-slate-500 font-medium">Mã số thuế / Số GPKD:</p>
+                                    <p class="font-mono font-bold text-slate-800">${r.taxCode} ${r.businessLicense ? `<span class="text-slate-500 font-normal">(GP: ${r.businessLicense})</span>` : ''}</p>
                                 </div>
                                 <div>
-                                    <p class="text-gray-400">Email & SĐT:</p>
+                                    <p class="text-slate-500 font-medium">Lĩnh vực hoạt động:</p>
+                                    <p class="font-semibold text-blue-700">${r.field || 'Freight Forwarder'}</p>
+                                </div>
+                                <div>
+                                    <p class="text-slate-500 font-medium">Địa chỉ trụ sở chính:</p>
+                                    <p class="font-medium text-slate-800">${r.address || 'Chưa cập nhật'}</p>
+                                </div>
+                                <div>
+                                    <p class="text-slate-500 font-medium">Người đại diện pháp luật:</p>
+                                    <p class="font-bold text-slate-900">${r.repName} <span class="text-slate-500 font-normal">(${r.repPosition})</span></p>
+                                </div>
+                                <div>
+                                    <p class="text-slate-500 font-medium">Số CCCD / Hộ chiếu:</p>
+                                    <p class="font-mono text-slate-800">${r.citizenId || 'Không cung cấp'}</p>
+                                </div>
+                                <div>
+                                    <p class="text-slate-500 font-medium">Email liên hệ & SĐT:</p>
                                     <p class="font-medium text-slate-800">${r.email} · ${r.phone}</p>
                                 </div>
                                 <div>
-                                    <p class="text-gray-400">Thời gian nộp đơn:</p>
-                                    <p class="text-slate-600">${r.submittedAt}</p>
+                                    <p class="text-slate-500 font-medium">Email nhận thông báo thầu:</p>
+                                    <p class="font-medium text-slate-800">${r.notifEmail || r.email}</p>
+                                </div>
+                                <div>
+                                    <p class="text-slate-500 font-medium">Mật khẩu khởi tạo đăng ký:</p>
+                                    <p class="font-mono font-bold text-slate-800 bg-white px-2 py-0.5 rounded border border-slate-200 inline-block">${r.password || '••••••••'}</p>
+                                </div>
+                                <div>
+                                    <p class="text-slate-500 font-medium">Mã PIN bảo mật (4 chữ số):</p>
+                                    <p class="font-mono font-bold text-indigo-700 bg-indigo-50 px-2 py-0.5 rounded border border-indigo-200 inline-block">${r.pin || '1234'}</p>
+                                </div>
+                                <div class="col-span-2">
+                                    <p class="text-slate-500 font-medium">Thời gian nộp hồ sơ:</p>
+                                    <p class="text-slate-700 font-semibold">${r.submittedAt}</p>
                                 </div>
                             </div>
 

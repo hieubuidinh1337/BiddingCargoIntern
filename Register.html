@@ -44,7 +44,25 @@
 
     <main class="max-w-4xl mx-auto px-4 py-8">
 
-
+        <!-- Demo Mode Quick Fill Banner -->
+        <div class="bg-blue-50 border border-blue-200 rounded-2xl p-4 mb-6 flex flex-col sm:flex-row sm:items-center justify-between gap-3 shadow-xs">
+            <div class="flex items-center gap-3">
+                <div class="w-10 h-10 bg-blue-600 text-white rounded-xl flex items-center justify-center font-bold text-lg flex-shrink-0">
+                    <i class="fa-solid fa-bolt"></i>
+                </div>
+                <div>
+                    <h3 class="font-bold text-sm text-slate-900 flex items-center gap-2">
+                        Chế độ Đăng ký Nhanh (Demo Auto-Fill)
+                        <span class="text-[10px] bg-blue-600 text-white px-2 py-0.5 rounded-md uppercase font-extrabold tracking-wider">Demo Tool</span>
+                    </h3>
+                    <p class="text-xs text-slate-600">Tích chọn để tự động điền đầy đủ dữ liệu hồ sơ mẫu & bỏ qua nhập liệu thủ công</p>
+                </div>
+            </div>
+            <label class="flex items-center gap-2 cursor-pointer bg-white px-4 py-2.5 rounded-xl border border-blue-300 hover:bg-blue-100/50 transition flex-shrink-0 shadow-xs">
+                <input type="checkbox" id="demoAutoFillCheckbox" onchange="toggleDemoFill(this)" class="w-4 h-4 rounded text-blue-600 focus:ring-blue-500">
+                <span class="text-xs font-bold text-blue-900">Tự động điền Hồ sơ mẫu</span>
+            </label>
+        </div>
 
         <form class="space-y-6" id="registerForm">
 
@@ -409,6 +427,44 @@
             p2Input.addEventListener('input', checkPasswordMatch);
         }
 
+        function toggleDemoFill(cb) {
+            if (cb.checked) {
+                document.getElementById('companyName').value = "Công ty TNHH Vận tải & Logistics Tân Sơn Nhất";
+                document.getElementById('taxCode').value = "0318998877";
+                document.getElementById('businessLicense').value = "GPKD-8899/2025/SNH";
+                document.getElementById('address').value = "45 Trường Sơn, Phường 2, Quận Tân Bình, TP. Hồ Chí Minh";
+                document.getElementById('website').value = "https://tsn-logistics.vn";
+                document.getElementById('businessField').value = "Freight Forwarder";
+
+                document.getElementById('repName').value = "Trần Hoàng Nam";
+                document.getElementById('repPosition').value = "Giám đốc Logistics Cargo";
+                document.getElementById('email').value = "nam.tran@tsn-logistics.vn";
+                document.getElementById('phone').value = "0988 776 655";
+                document.getElementById('citizenId').value = "079095001234";
+                document.getElementById('notifEmail').value = "ops-cargo@tsn-logistics.vn";
+
+                document.getElementById('tempPassword').value = "Demo123456";
+                document.getElementById('confirmPassword').value = "Demo123456";
+                document.getElementById('pinCode').value = "9999";
+
+                checkPasswordMatch();
+
+                document.querySelectorAll('#registerForm input[type="checkbox"]').forEach(c => {
+                    if (c !== cb) c.checked = true;
+                });
+
+                uploadedFileNames.length = 0;
+                uploadedFileNames.push('GPKD_TanSonNhat_Scan.pdf', 'UyQuyen_Cargo_IATA.pdf', 'CCCD_TranHoangNam.pdf');
+
+                const g = document.getElementById('name-gpkd');
+                if (g) { g.textContent = 'GPKD_TanSonNhat_Scan.pdf'; g.className = 'text-xs text-green-600 font-medium'; }
+                const u = document.getElementById('name-uyquyen');
+                if (u) { u.textContent = 'UyQuyen_Cargo_IATA.pdf'; u.className = 'text-xs text-green-600 font-medium'; }
+                const c = document.getElementById('name-cccd');
+                if (c) { c.textContent = 'CCCD_TranHoangNam.pdf'; c.className = 'text-xs text-green-600 font-medium'; }
+            }
+        }
+
         document.getElementById('registerForm').addEventListener('submit', function(e) {
             e.preventDefault();
 
@@ -428,15 +484,18 @@
                 CargoStore.registerAgent({
                     companyName: compName,
                     taxCode: document.getElementById('taxCode').value,
+                    businessLicense: document.getElementById('businessLicense').value,
                     address: document.getElementById('address').value,
                     field: document.getElementById('businessField').value,
                     repName: repName,
                     repPosition: document.getElementById('repPosition').value,
                     email: document.getElementById('email').value,
                     phone: document.getElementById('phone').value,
+                    citizenId: document.getElementById('citizenId').value,
+                    notifEmail: document.getElementById('notifEmail').value,
                     password: p1,
                     pin: pinVal,
-                    documents: uploadedFileNames.length > 0 ? uploadedFileNames : ['GiayPhepKinhDoanh.pdf', 'CCCD_NguoiDaiDien.pdf']
+                    documents: uploadedFileNames.length > 0 ? uploadedFileNames : ['GPKD_TanSonNhat_Scan.pdf', 'UyQuyen_Cargo_IATA.pdf', 'CCCD_TranHoangNam.pdf']
                 });
             }
 
