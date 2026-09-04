@@ -1133,6 +1133,15 @@ const CargoStore = (function() {
 
             data.registrations.unshift(newReg);
             saveData(data);
+
+            // Dispatch automated email via Nodemailer
+            CargoStore.sendEmailNotification({
+                type: 'REGISTRATION_SUBMITTED',
+                to: newReg.email,
+                notifEmail: newReg.notifEmail,
+                regData: newReg
+            });
+
             return newReg;
         },
 
@@ -1192,6 +1201,16 @@ const CargoStore = (function() {
             });
 
             saveData(data);
+
+            // Dispatch automated email via Nodemailer
+            CargoStore.sendEmailNotification({
+                type: 'REGISTRATION_APPROVED',
+                to: reg.email,
+                notifEmail: reg.notifEmail,
+                agentCode: newCode,
+                regData: reg
+            });
+
             return {
                 success: true,
                 code: newCode,
@@ -1233,7 +1252,32 @@ const CargoStore = (function() {
             if (!reg) return false;
             reg.status = 'REJECTED';
             saveData(data);
+
+            // Dispatch automated email via Nodemailer
+            CargoStore.sendEmailNotification({
+                type: 'REGISTRATION_REJECTED',
+                to: reg.email,
+                notifEmail: reg.notifEmail,
+                regData: reg
+            });
+
             return true;
+        },
+
+        sendEmailNotification: async function(payload) {
+            try {
+                const res = await fetch('/api/send-email', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(payload)
+                });
+                const json = await res.json();
+                console.log('[CargoStore] Nodemailer dispatch:', json);
+                return json;
+            } catch (err) {
+                console.warn('[CargoStore] Nodemailer error:', err);
+                return { success: false, error: err.message };
+            }
         },
 
         closeAuction: function(id) {

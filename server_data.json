@@ -1,5 +1,5 @@
 {
-  "version": 1788502491533,
+  "version": 1788506248357,
   "auctions": [
     {
       "id": 1,
@@ -17,7 +17,7 @@
       "startingPriceKg": 18000,
       "currentPriceKg": 1800000,
       "minStep": 500,
-      "endTime": "2026-09-04T06:59:49.799Z",
+      "endTime": "2026-09-04T07:47:13.296Z",
       "status": "OPEN",
       "leadingAgentCode": "AG-1024",
       "leadingAgentName": "Công ty CP Giao nhận Kho vận Vinatrans",
@@ -884,5 +884,25 @@
     "paymentWindowHours": 24,
     "hotline": "1900-xxxx",
     "supportEmail": "cargo-bidding@airline.vn"
-  }
+  },
+  "emailLogs": [
+    {
+      "id": 1788505085146,
+      "to": "test@cargo-logistics.vn",
+      "type": "REGISTRATION_APPROVED",
+      "subject": "[Vietravel Airlines Cargo] CHÚC MỪNG! Hồ sơ Đại lý đã được PHÊ DUYỆT - Mã: AG-9999",
+      "messageId": "<071f75bc-85dc-0ddf-a3ae-c42984534d55@vietravelairlines.vn>",
+      "previewUrl": "https://ethereal.email/message/appr6wlT7djryGQNappr.d4vWvYlxQHYAAAAAqFcSGz.-tKpL2tLBwj6qfg",
+      "sentAt": "13:58:05 4/9/2026"
+    },
+    {
+      "id": 1788505071141,
+      "to": "test@cargo-logistics.vn",
+      "type": "REGISTRATION_SUBMITTED",
+      "subject": "[Vietravel Airlines Cargo] Tiếp nhận hồ sơ đăng ký đại lý - REG-TEST-001",
+      "messageId": "<c517c43a-540b-f632-6011-7f5bd8dff504@vietravelairlines.vn>",
+      "previewUrl": "https://ethereal.email/message/appr6wlT7djryGQNappr794vWvYlxQHSAAAAAU0C-.uX8drab0-Fr4R4IPk",
+      "sentAt": "13:57:51 4/9/2026"
+    }
+  ]
 }
