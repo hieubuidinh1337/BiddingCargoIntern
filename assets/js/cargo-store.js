@@ -1200,6 +1200,9 @@ const CargoStore = (function() {
 
         toggleUserLock: function(identifier, type = 'agent') {
             const data = loadData();
+            if (data.currentAdmin && data.currentAdmin.role === 'STAFF') {
+                return { success: false, message: 'Nhân viên (STAFF) không có quyền kích hoạt hoặc khóa tài khoản. Thao tác này chỉ dành cho Quản trị viên (ADMIN).' };
+            }
 
             if (type === 'agent') {
                 const target = (data.agentsList || []).find(a => (a.code || '').toUpperCase() === (identifier || '').toUpperCase());
@@ -1232,6 +1235,10 @@ const CargoStore = (function() {
 
         updateUserRole: function(identifier, newRole, type = 'agent') {
             const data = loadData();
+            if (data.currentAdmin && data.currentAdmin.role === 'STAFF') {
+                return { success: false, message: 'Nhân viên (STAFF) không có quyền phân quyền hoặc thay đổi vai trò/phân hạng người dùng. Thao tác này chỉ dành cho Quản trị viên (ADMIN).' };
+            }
+
             if (type === 'agent') {
                 const target = (data.agentsList || []).find(a => (a.code || '').toUpperCase() === (identifier || '').toUpperCase());
                 if (target) {
@@ -1252,6 +1259,10 @@ const CargoStore = (function() {
 
         createStaffAccount: function(staffData) {
             const data = loadData();
+            if (data.currentAdmin && data.currentAdmin.role === 'STAFF') {
+                return { success: false, message: 'Nhân viên (STAFF) không có quyền tạo hoặc phân quyền tài khoản nhân viên mới. Thao tác này chỉ dành cho Quản trị viên (ADMIN).' };
+            }
+
             if (!data.adminsList) data.adminsList = seedAdmins;
 
             const u = (staffData.username || '').trim().toLowerCase();
@@ -1278,6 +1289,10 @@ const CargoStore = (function() {
 
         updateSystemSettings: function(settingsData) {
             const data = loadData();
+            if (data.currentAdmin && data.currentAdmin.role === 'STAFF') {
+                return { success: false, message: 'Nhân viên (STAFF) không có quyền thay đổi cấu hình hệ thống (CRUD System Settings). Thao tác này chỉ dành cho Quản trị viên (ADMIN).' };
+            }
+
             if (!data.settings) data.settings = {};
 
             if (settingsData.minIncrement) data.settings.minIncrement = Number(settingsData.minIncrement);

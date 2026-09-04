@@ -77,9 +77,10 @@ if (!latestNotif || !latestNotif.title.includes('Khẩn cấp')) {
 console.log('Đại lý nhận thông báo mới nhất:', latestNotif.title, '|', latestNotif.message);
 
 // 4. USE CASE ADMIN: Khóa và Kích hoạt mở khóa tài khoản
-console.log('\n--- 4. Kiểm tra Khóa & Mở khóa tài khoản Đại lý ---');
+console.log('\n--- 4. Kiểm tra Khóa & Mở khóa tài khoản Đại lý (ADMIN) ---');
+CargoStore.loginAdmin('admin', 'admin2026'); // Đảm bảo đăng nhập bằng ADMIN
 const lockRes = CargoStore.toggleUserLock('AG-0892', 'agent');
-console.log('Khóa tài khoản AG-0892:', lockRes.message);
+console.log('ADMIN Khóa tài khoản AG-0892:', lockRes.message);
 
 // Thử đăng nhập lại tài khoản bị khóa -> Phải bị chặn!
 const tryLoginLocked = CargoStore.loginAgent('AG-0892', 'abc123456');
@@ -90,7 +91,7 @@ if (tryLoginLocked.success) {
 
 // Mở khóa lại
 const unlockRes = CargoStore.toggleUserLock('AG-0892', 'agent');
-console.log('Mở khóa tài khoản AG-0892:', unlockRes.message);
+console.log('ADMIN Mở khóa tài khoản AG-0892:', unlockRes.message);
 const tryLoginUnlocked = CargoStore.loginAgent('AG-0892', 'abc123456');
 console.log('Đăng nhập sau khi mở khóa:', tryLoginUnlocked.success ? 'THÀNH CÔNG' : 'THẤT BÀI - ' + tryLoginUnlocked.message);
 if (!tryLoginUnlocked.success) {
@@ -98,7 +99,8 @@ if (!tryLoginUnlocked.success) {
 }
 
 // 5. USE CASE ADMIN: Tạo tài khoản Nhân viên mới & Đăng nhập
-console.log('\n--- 5. Kiểm tra Tạo tài khoản Nhân viên mới ---');
+console.log('\n--- 5. Kiểm tra Tạo tài khoản Nhân viên mới (ADMIN) ---');
+CargoStore.loginAdmin('admin', 'admin2026');
 const createStaffRes = CargoStore.createStaffAccount({
     username: 'staff99',
     fullName: 'Hoàng Văn Điều Phối',
@@ -106,14 +108,15 @@ const createStaffRes = CargoStore.createStaffAccount({
     role: 'STAFF',
     password: 'stafftest2026'
 });
-console.log('Tạo nhân viên mới:', createStaffRes.message);
+console.log('ADMIN Tạo nhân viên mới:', createStaffRes.message);
 const loginStaffRes = CargoStore.loginAdmin('staff99', 'stafftest2026');
 console.log('Đăng nhập nhân viên mới tạo:', loginStaffRes.success ? 'THÀNH CÔNG' : 'THẤT BÀI');
 const currentAdmin = CargoStore.getCurrentAdmin();
 console.log('Thông tin tài khoản đăng nhập:', currentAdmin.fullName, '| Vai trò:', currentAdmin.role);
 
 // 6. USE CASE ADMIN: CRUD Cấu hình hệ thống
-console.log('\n--- 6. Kiểm tra CRUD Cấu hình hệ thống ---');
+console.log('\n--- 6. Kiểm tra CRUD Cấu hình hệ thống (ADMIN) ---');
+CargoStore.loginAdmin('admin', 'admin2026');
 const updateSettingsRes = CargoStore.updateSystemSettings({
     minIncrement: 700,
     cutoffHours: 4,
@@ -121,15 +124,36 @@ const updateSettingsRes = CargoStore.updateSystemSettings({
     hotline: '1900 9999',
     supportEmail: 'ops@airline.vn'
 });
-console.log('Lưu cấu hình hệ thống:', updateSettingsRes.message);
+console.log('ADMIN Lưu cấu hình hệ thống:', updateSettingsRes.message);
 const currSettings = CargoStore.getSystemSettings();
 if (currSettings.minIncrement !== 700 || currSettings.cutoffHours !== 4 || currSettings.hotline !== '1900 9999') {
     throw new Error('Cấu hình hệ thống không lưu chính xác!');
 }
 console.log('Cấu hình đã lưu:', currSettings);
 
-// 7. USE CASE NHÂN VIÊN / ADMIN: Xóa chuyến bay đấu giá
-console.log('\n--- 7. Kiểm tra Xóa chuyến bay đấu giá ---');
+// 7. KIỂM TRA PHÂN QUYỀN GIỚI HẠN DÀNH CHO NHÂN VIÊN (STAFF)
+console.log('\n--- 7. Kiểm tra Giới hạn Quyền Nhân viên (STAFF) ---');
+CargoStore.loginAdmin('staff01', 'staff2026');
+console.log('Đang đăng nhập bằng tài khoản Nhân viên: staff01 (STAFF)');
+
+const staffUpdateSettings = CargoStore.updateSystemSettings({ minIncrement: 999 });
+console.log('STAFF Sửa Cấu hình hệ thống:', staffUpdateSettings.success ? 'SAI (Cho phép)' : 'ĐÚNG (Bị chặn: ' + staffUpdateSettings.message + ')');
+if (staffUpdateSettings.success) throw new Error('Lỗi phân quyền: STAFF vẫn sửa được Cấu hình hệ thống!');
+
+const staffLockUser = CargoStore.toggleUserLock('AG-0892', 'agent');
+console.log('STAFF Khóa tài khoản:', staffLockUser.success ? 'SAI (Cho phép)' : 'ĐÚNG (Bị chặn: ' + staffLockUser.message + ')');
+if (staffLockUser.success) throw new Error('Lỗi phân quyền: STAFF vẫn khóa/mở khóa được tài khoản!');
+
+const staffChangeRole = CargoStore.updateUserRole('AG-0892', 'TIER2', 'agent');
+console.log('STAFF Phân hạng/Phân quyền:', staffChangeRole.success ? 'SAI (Cho phép)' : 'ĐÚNG (Bị chặn: ' + staffChangeRole.message + ')');
+if (staffChangeRole.success) throw new Error('Lỗi phân quyền: STAFF vẫn thay đổi được phân hạng/vai trò!');
+
+const staffCreateAccount = CargoStore.createStaffAccount({ username: 'staff100' });
+console.log('STAFF Tạo nhân viên mới:', staffCreateAccount.success ? 'SAI (Cho phép)' : 'ĐÚNG (Bị chặn: ' + staffCreateAccount.message + ')');
+if (staffCreateAccount.success) throw new Error('Lỗi phân quyền: STAFF vẫn tạo được nhân viên mới!');
+
+// 8. USE CASE NHÂN VIÊN / ADMIN: Xóa chuyến bay đấu giá
+console.log('\n--- 8. Kiểm tra Xóa chuyến bay đấu giá ---');
 const countBefore = CargoStore.getAuctions().length;
 const deleteRes = CargoStore.deleteAuction(firstAuction.id);
 console.log('Xóa chuyến bay:', deleteRes.message);
@@ -139,4 +163,5 @@ if (countAfter !== countBefore - 1) {
 }
 console.log(`Số lượng chuyến bay: ${countBefore} -> ${countAfter} (Đã xóa thành công)`);
 
-console.log('\n=== TẤT CẢ 10 USE CASE ĐÃ ĐƯỢC KIỂM THỬ THÀNH CÔNG 100%! ===');
+console.log('\n=== TẤT CẢ USE CASE & KIỂM TRA PHÂN QUYỀN NHÂN VIÊN ĐÃ ĐƯỢC XÁC MINH THÀNH CÔNG 100%! ===');
+

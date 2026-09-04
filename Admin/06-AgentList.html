@@ -55,6 +55,8 @@
 
     <main class="max-w-7xl mx-auto px-4 py-6 space-y-6">
 
+        <div id="staffListNotice"></div>
+
         <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
             <div>
                 <h1 class="text-2xl font-bold text-slate-900 flex items-center gap-2">
@@ -123,7 +125,7 @@
         <div id="sectionStaff" class="hidden bg-white rounded-2xl border shadow-sm overflow-hidden">
             <div class="p-4 bg-slate-50/70 border-b flex items-center justify-between">
                 <span class="text-xs text-slate-600 font-semibold">Danh sách tài khoản Nhân viên Điều hành & Quản trị viên sàn</span>
-                <button onclick="openAddStaffModal()" class="bg-blue-600 hover:bg-blue-700 text-white text-xs font-bold px-3 py-1.5 rounded-xl transition shadow flex items-center gap-1.5">
+                <button id="addStaffBtn" onclick="openAddStaffModal()" class="bg-blue-600 hover:bg-blue-700 text-white text-xs font-bold px-3 py-1.5 rounded-xl transition shadow flex items-center gap-1.5">
                     <i class="fa-solid fa-user-plus"></i> Thêm tài khoản nhân viên mới
                 </button>
             </div>
@@ -225,6 +227,43 @@
         function renderData() {
             if (typeof CargoStore === 'undefined') return;
             const data = CargoStore.getData();
+            const currentAdmin = CargoStore.getCurrentAdmin();
+            const isStaff = currentAdmin && currentAdmin.role === 'STAFF';
+
+            // Notice Banner for Staff
+            const noticeContainer = document.getElementById('staffListNotice');
+            if (noticeContainer) {
+                if (isStaff) {
+                    noticeContainer.className = 'bg-amber-50 border border-amber-200 text-amber-900 rounded-2xl p-4 text-xs font-medium flex items-center gap-3 shadow-sm mb-4';
+                    noticeContainer.innerHTML = `
+                        <div class="w-8 h-8 rounded-xl bg-amber-500/20 text-amber-600 flex items-center justify-center text-base flex-shrink-0">
+                            <i class="fa-solid fa-user-shield"></i>
+                        </div>
+                        <div>
+                            <p class="font-bold text-slate-900">Giới hạn phân quyền Nhân viên (STAFF)</p>
+                            <p class="text-slate-600 mt-0.5">Tài khoản Nhân viên bị giới hạn: Không được <strong>Khóa / Mở khóa tài khoản</strong>, <strong>Phân quyền vai trò / Phân hạng đại lý</strong>, hoặc <strong>Cấp tài khoản nhân viên mới</strong>. Thao tác này dành cho <strong>Quản trị viên (ADMIN)</strong>.</p>
+                        </div>
+                    `;
+                } else {
+                    noticeContainer.className = 'hidden';
+                }
+            }
+
+            // Disable or hide Add Staff button for Staff
+            const addStaffBtn = document.getElementById('addStaffBtn');
+            if (addStaffBtn) {
+                if (isStaff) {
+                    addStaffBtn.disabled = true;
+                    addStaffBtn.className = 'bg-slate-200 text-slate-400 text-xs font-bold px-3 py-1.5 rounded-xl cursor-not-allowed flex items-center gap-1.5';
+                    addStaffBtn.title = 'Nhân viên không có quyền cấp tài khoản nhân sự mới';
+                    addStaffBtn.innerHTML = '<i class="fa-solid fa-lock"></i> Giới hạn tạo nhân viên';
+                } else {
+                    addStaffBtn.disabled = false;
+                    addStaffBtn.className = 'bg-blue-600 hover:bg-blue-700 text-white text-xs font-bold px-3 py-1.5 rounded-xl transition shadow flex items-center gap-1.5';
+                    addStaffBtn.title = '';
+                    addStaffBtn.innerHTML = '<i class="fa-solid fa-user-plus"></i> Thêm tài khoản nhân viên mới';
+                }
+            }
 
             // 1. Render Registrations
             const regs = data.registrations || [];
@@ -310,12 +349,21 @@
                                 '<span class="bg-emerald-100 text-emerald-700 font-bold px-2.5 py-1 rounded-full text-[10px] inline-flex items-center gap-1"><i class="fa-solid fa-circle-check"></i> HOẠT ĐỘNG</span>'}
                         </td>
                         <td class="py-3.5 px-4 text-right space-x-1.5 whitespace-nowrap">
-                            <button onclick="handleToggleTier('${ag.code}', '${ag.tier === 'TIER1' ? 'TIER2' : 'TIER1'}')" class="inline-flex items-center gap-1 bg-slate-100 hover:bg-slate-200 text-slate-700 font-semibold px-2 py-1 rounded-lg transition" title="Chuyển đổi phân hạng">
-                                <i class="fa-solid fa-layer-group text-[10px]"></i> Đổi ${ag.tier === 'TIER1' ? 'Tier 2' : 'Tier 1'}
-                            </button>
-                            <button onclick="handleToggleLock('${ag.code}', 'agent')" class="inline-flex items-center gap-1 ${isLocked ? 'bg-emerald-50 hover:bg-emerald-100 text-emerald-700' : 'bg-red-50 hover:bg-red-100 text-red-600'} font-semibold px-2 py-1 rounded-lg transition" title="${isLocked ? 'Mở khóa tài khoản' : 'Khóa tài khoản đại lý'}">
-                                <i class="fa-solid ${isLocked ? 'fa-lock-open' : 'fa-lock'} text-[10px]"></i> ${isLocked ? 'Mở khóa' : 'Khóa'}
-                            </button>
+                            ${isStaff ? `
+                                <button disabled class="inline-flex items-center gap-1 bg-slate-100 text-slate-400 font-semibold px-2 py-1 rounded-lg opacity-60 cursor-not-allowed" title="Chỉ ADMIN mới có quyền chuyển phân hạng">
+                                    <i class="fa-solid fa-layer-group text-[10px]"></i> Đổi ${ag.tier === 'TIER1' ? 'Tier 2' : 'Tier 1'}
+                                </button>
+                                <button disabled class="inline-flex items-center gap-1 bg-slate-100 text-slate-400 font-semibold px-2 py-1 rounded-lg opacity-60 cursor-not-allowed" title="Chỉ ADMIN mới có quyền khóa/kích hoạt tài khoản">
+                                    <i class="fa-solid ${isLocked ? 'fa-lock-open' : 'fa-lock'} text-[10px]"></i> ${isLocked ? 'Mở khóa' : 'Khóa'}
+                                </button>
+                            ` : `
+                                <button onclick="handleToggleTier('${ag.code}', '${ag.tier === 'TIER1' ? 'TIER2' : 'TIER1'}')" class="inline-flex items-center gap-1 bg-slate-100 hover:bg-slate-200 text-slate-700 font-semibold px-2 py-1 rounded-lg transition" title="Chuyển đổi phân hạng">
+                                    <i class="fa-solid fa-layer-group text-[10px]"></i> Đổi ${ag.tier === 'TIER1' ? 'Tier 2' : 'Tier 1'}
+                                </button>
+                                <button onclick="handleToggleLock('${ag.code}', 'agent')" class="inline-flex items-center gap-1 ${isLocked ? 'bg-emerald-50 hover:bg-emerald-100 text-emerald-700' : 'bg-red-50 hover:bg-red-100 text-red-600'} font-semibold px-2 py-1 rounded-lg transition" title="${isLocked ? 'Mở khóa tài khoản' : 'Khóa tài khoản đại lý'}">
+                                    <i class="fa-solid ${isLocked ? 'fa-lock-open' : 'fa-lock'} text-[10px]"></i> ${isLocked ? 'Mở khóa' : 'Khóa'}
+                                </button>
+                            `}
                         </td>
                     </tr>
                 `;
@@ -347,14 +395,21 @@
                                 '<span class="bg-emerald-100 text-emerald-700 font-bold px-2.5 py-1 rounded-full text-[10px] inline-flex items-center gap-1"><i class="fa-solid fa-circle-check"></i> HOẠT ĐỘNG</span>'}
                         </td>
                         <td class="py-3.5 px-4 text-right space-x-1.5 whitespace-nowrap">
-                            ${st.username !== 'admin' ? `
+                            ${st.username !== 'admin' ? (isStaff ? `
+                                <button disabled class="inline-flex items-center gap-1 bg-slate-100 text-slate-400 font-semibold px-2 py-1 rounded-lg opacity-60 cursor-not-allowed" title="Chỉ ADMIN mới có quyền phân quyền vai trò">
+                                    <i class="fa-solid fa-id-badge text-[10px]"></i> Cấp ${isAdmin ? 'Staff' : 'Admin'}
+                                </button>
+                                <button disabled class="inline-flex items-center gap-1 bg-slate-100 text-slate-400 font-semibold px-2 py-1 rounded-lg opacity-60 cursor-not-allowed" title="Chỉ ADMIN mới có quyền khóa/kích hoạt nhân sự">
+                                    <i class="fa-solid ${isLocked ? 'fa-lock-open' : 'fa-lock'} text-[10px]"></i> ${isLocked ? 'Mở khóa' : 'Khóa'}
+                                </button>
+                            ` : `
                                 <button onclick="handleToggleRole('${st.username}', '${isAdmin ? 'STAFF' : 'ADMIN'}')" class="inline-flex items-center gap-1 bg-slate-100 hover:bg-slate-200 text-slate-700 font-semibold px-2 py-1 rounded-lg transition" title="Đổi quyền">
                                     <i class="fa-solid fa-id-badge text-[10px]"></i> Cấp ${isAdmin ? 'Staff' : 'Admin'}
                                 </button>
                                 <button onclick="handleToggleLock('${st.username}', 'staff')" class="inline-flex items-center gap-1 ${isLocked ? 'bg-emerald-50 hover:bg-emerald-100 text-emerald-700' : 'bg-red-50 hover:bg-red-100 text-red-600'} font-semibold px-2 py-1 rounded-lg transition">
                                     <i class="fa-solid ${isLocked ? 'fa-lock-open' : 'fa-lock'} text-[10px]"></i> ${isLocked ? 'Mở khóa' : 'Khóa'}
                                 </button>
-                            ` : '<span class="text-slate-400 text-[11px] italic">Quản trị tối cao</span>'}
+                            `) : '<span class="text-slate-400 text-[11px] italic">Quản trị tối cao</span>'}
                         </td>
                     </tr>
                 `;
@@ -392,6 +447,8 @@
                 if (res.success) {
                     alert(res.message);
                     renderData();
+                } else {
+                    alert(res.message);
                 }
             }
         }
@@ -402,11 +459,18 @@
                 if (res.success) {
                     alert(res.message);
                     renderData();
+                } else {
+                    alert(res.message);
                 }
             }
         }
 
         function openAddStaffModal() {
+            const admin = CargoStore.getCurrentAdmin();
+            if (admin && admin.role === 'STAFF') {
+                alert('Tài khoản Nhân viên không có quyền cấp tài khoản nhân sự mới!');
+                return;
+            }
             document.getElementById('addStaffModal').classList.remove('hidden');
         }
 
