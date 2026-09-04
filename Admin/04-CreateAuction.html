@@ -103,13 +103,15 @@
                 <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
                     <div>
                         <label class="block text-xs font-semibold text-slate-700 mb-1">Thời gian cất cánh dự kiến (ETD) <span class="text-red-500">*</span></label>
-                        <input type="text" id="etdInput" value="18:30 · 16/08/2026" required
-                               class="w-full border rounded-xl px-3.5 py-2.5 text-xs focus:ring-2 focus:ring-blue-500 outline-none">
+                        <input type="datetime-local" id="etdInput" required
+                               class="w-full border rounded-xl px-3.5 py-2.5 text-xs font-medium focus:ring-2 focus:ring-blue-500 outline-none">
+                        <p class="text-[10px] text-slate-400 mt-1">Phải là thời điểm trong tương lai</p>
                     </div>
                     <div>
-                        <label class="block text-xs font-semibold text-slate-700 mb-1">Thời gian hạ cánh dự kiến (ETA)</label>
-                        <input type="text" id="etaInput" value="20:45 · 16/08/2026" required
-                               class="w-full border rounded-xl px-3.5 py-2.5 text-xs focus:ring-2 focus:ring-blue-500 outline-none">
+                        <label class="block text-xs font-semibold text-slate-700 mb-1">Thời gian hạ cánh dự kiến (ETA) <span class="text-red-500">*</span></label>
+                        <input type="datetime-local" id="etaInput" required
+                               class="w-full border rounded-xl px-3.5 py-2.5 text-xs font-medium focus:ring-2 focus:ring-blue-500 outline-none">
+                        <p class="text-[10px] text-slate-400 mt-1">Phải sau thời gian ETD</p>
                     </div>
                 </div>
             </div>
@@ -176,6 +178,37 @@
     </main>
 
     <script>
+        function initDateInputs() {
+            const now = new Date();
+            // Format to YYYY-MM-DDTHH:mm for datetime-local
+            const toLocalISO = (d) => {
+                const tzOffset = d.getTimezoneOffset() * 60000;
+                return new Date(d.getTime() - tzOffset).toISOString().slice(0, 16);
+            };
+
+            const etdEl = document.getElementById('etdInput');
+            const etaEl = document.getElementById('etaInput');
+
+            if (etdEl && etaEl) {
+                const minStr = toLocalISO(now);
+                etdEl.min = minStr;
+                etaEl.min = minStr;
+
+                // Default ETD: +2 hours from now
+                const etdDefault = new Date(now.getTime() + 2 * 3600 * 1000);
+                // Default ETA: +4 hours from now
+                const etaDefault = new Date(now.getTime() + 4 * 3600 * 1000);
+
+                etdEl.value = toLocalISO(etdDefault);
+                etaEl.value = toLocalISO(etaDefault);
+            }
+        }
+
+        document.addEventListener('DOMContentLoaded', function() {
+            initDateInputs();
+            if (window.CargoStore && CargoStore.syncAdminHeaderUI) CargoStore.syncAdminHeaderUI();
+        });
+
         document.getElementById('createAuctionForm').addEventListener('submit', function(e) {
             e.preventDefault();
 
@@ -188,12 +221,32 @@
                 return;
             }
 
-            const newAuction = CargoStore.createAuction({
+            const etdVal = document.getElementById('etdInput').value;
+            const etaVal = document.getElementById('etaInput').value;
+
+            // Extra client-side validation check
+            if (etdVal) {
+                const selectedEtd = new Date(etdVal);
+                if (selectedEtd.getTime() <= Date.now()) {
+                    alert('❌ Không thể tạo chuyến bay trong quá khứ! Thời gian cất cánh dự kiến (ETD) phải ở thời điểm tương lai.');
+                    return;
+                }
+
+                if (etaVal) {
+                    const selectedEta = new Date(etaVal);
+                    if (selectedEta.getTime() <= selectedEtd.getTime()) {
+                        alert('❌ Thời gian hạ cánh dự kiến (ETA) phải sau thời gian cất cánh dự kiến (ETD).');
+                        return;
+                    }
+                }
+            }
+
+            const res = CargoStore.createAuction({
                 flightNumber: fn,
                 origin: origin,
                 destination: dest,
-                etd: document.getElementById('etdInput').value,
-                eta: document.getElementById('etaInput').value,
+                etd: etdVal,
+                eta: etaVal,
                 aircraft: document.getElementById('aircraftType').value,
                 capacityKg: document.getElementById('capacityKg').value,
                 startingPriceKg: document.getElementById('startingPriceKg').value,
@@ -202,8 +255,12 @@
                 cutOffTime: 'Trước ETD 3 giờ'
             });
 
-            alert(`Tạo phiên đấu giá chuyến ${fn} (${origin} - ${dest}) thành công! Phiên đã mở trực tiếp trên sàn.`);
-            window.location.href = '03-AuctionList.html';
+            if (res.success) {
+                alert(res.message);
+                window.location.href = '03-AuctionList.html';
+            } else {
+                alert('❌ ' + (res.message || 'Tạo phiên đấu giá thất bại!'));
+            }
         });
     </script>
 </body>

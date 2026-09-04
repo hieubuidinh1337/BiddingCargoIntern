@@ -61,6 +61,35 @@ if (updatedAuction.capacityKg !== 4500 || updatedAuction.startingPriceKg !== 195
 }
 console.log(`Chuyến bay sau sửa: Tải trọng: ${updatedAuction.capacityKg}Kg - Giá sàn: ${updatedAuction.startingPriceKg}đ - Bước giá: ${updatedAuction.minStep}đ`);
 
+// 2b. KIỂM TRA TẠO CHUYẾN BAY TRONG QUÁ KHỨ (Phải bị chặn!)
+console.log('\n--- 2b. Kiểm tra Tạo chuyến bay trong quá khứ ---');
+const pastCreateRes = CargoStore.createAuction({
+    flightNumber: 'VU999',
+    origin: 'SGN',
+    destination: 'HAN',
+    etd: '2020-01-01T10:00', // Ngày trong quá khứ
+    capacityKg: 3000,
+    startingPriceKg: 18000
+});
+console.log('Tạo chuyến bay ngày 2020-01-01:', pastCreateRes.success ? 'SAI (Vẫn tạo được!)' : 'ĐÚNG (Bị chặn: ' + pastCreateRes.message + ')');
+if (pastCreateRes.success) {
+    throw new Error('Lỗi nghiệp vụ: Hệ thống vẫn cho phép tạo chuyến bay trong quá khứ!');
+}
+
+const futureEtd = new Date(Date.now() + 24 * 3600 * 1000).toISOString();
+const futureCreateRes = CargoStore.createAuction({
+    flightNumber: 'VU888',
+    origin: 'SGN',
+    destination: 'HAN',
+    etd: futureEtd,
+    capacityKg: 3000,
+    startingPriceKg: 18000
+});
+console.log('Tạo chuyến bay tương lai:', futureCreateRes.success ? 'THÀNH CÔNG (' + futureCreateRes.message + ')' : 'THẤT BÀI');
+if (!futureCreateRes.success) {
+    throw new Error('Tạo chuyến bay tương lai hợp lệ bị thất bại!');
+}
+
 // 3. USE CASE NHÂN VIÊN / ADMIN: Gửi thông báo đấu giá
 console.log('\n--- 3. Kiểm tra Gửi thông báo đấu giá (Broadcast) ---');
 const bcRes = CargoStore.sendBroadcastNotification({

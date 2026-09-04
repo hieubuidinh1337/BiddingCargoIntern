@@ -666,12 +666,68 @@ const CargoStore = (function() {
             return loadData().currentAdmin;
         },
 
+        parseFlightDate: function(dateInput) {
+            if (!dateInput) return null;
+            if (dateInput instanceof Date) return isNaN(dateInput.getTime()) ? null : dateInput;
+
+            const str = String(dateInput).trim();
+            if (!str) return null;
+
+            const d1 = new Date(str);
+            if (!isNaN(d1.getTime())) return d1;
+
+            const match = str.match(/(\d{1,2}):(\d{2})\s*(?:·|\s)?\s*(\d{1,2})\/(\d{1,2})\/(\d{4})/);
+            if (match) {
+                const [, hours, minutes, day, month, year] = match;
+                const d = new Date(Number(year), Number(month) - 1, Number(day), Number(hours), Number(minutes));
+                return isNaN(d.getTime()) ? null : d;
+            }
+            return null;
+        },
+
+        formatFlightDateDisplay: function(dateInput) {
+            const d = this.parseFlightDate(dateInput);
+            if (!d) return String(dateInput || '');
+            const hours = String(d.getHours()).padStart(2, '0');
+            const minutes = String(d.getMinutes()).padStart(2, '0');
+            const day = String(d.getDate()).padStart(2, '0');
+            const month = String(d.getMonth() + 1).padStart(2, '0');
+            const year = d.getFullYear();
+            return `${hours}:${minutes} · ${day}/${month}/${year}`;
+        },
+
         createAuction: function(auctionData) {
             const data = loadData();
             if (!data.auctions) data.auctions = [];
 
-            const newId = data.auctions.length > 0 ? Math.max(...data.auctions.map(a => a.id || 0)) + 1 : 1;
             const now = new Date();
+            
+            // Validate ETD date
+            const parsedEtd = this.parseFlightDate(auctionData.etd);
+            if (!parsedEtd) {
+                return { success: false, message: 'Thời gian cất cánh dự kiến (ETD) không đúng định dạng hợp lệ.' };
+            }
+
+            // Check if ETD is in the past
+            if (parsedEtd.getTime() <= now.getTime()) {
+                return {
+                    success: false,
+                    message: 'Không thể tạo chuyến bay trong quá khứ! Thời gian cất cánh dự kiến (ETD) phải ở thời điểm tương lai.'
+                };
+            }
+
+            // Validate ETA if provided
+            if (auctionData.eta) {
+                const parsedEta = this.parseFlightDate(auctionData.eta);
+                if (parsedEta && parsedEta.getTime() <= parsedEtd.getTime()) {
+                    return {
+                        success: false,
+                        message: 'Thời gian hạ cánh dự kiến (ETA) phải sau thời gian cất cánh dự kiến (ETD).'
+                    };
+                }
+            }
+
+            const newId = data.auctions.length > 0 ? Math.max(...data.auctions.map(a => a.id || 0)) + 1 : 1;
             const flightNumber = (auctionData.flightNumber || 'VU999').trim().toUpperCase();
             const origin = (auctionData.origin || 'SGN').trim().toUpperCase();
             const dest = (auctionData.destination || 'HAN').trim().toUpperCase();
@@ -693,6 +749,9 @@ const CargoStore = (function() {
             const startingPriceKg = Number(auctionData.startingPriceKg) || 18000;
             const minStep = Number(auctionData.minStep) || 500;
 
+            const formattedEtd = this.formatFlightDateDisplay(parsedEtd);
+            const formattedEta = auctionData.eta ? this.formatFlightDateDisplay(auctionData.eta) : 'Chưa cập nhật';
+
             const endTime = new Date(now.getTime() + 120 * 60 * 1000).toISOString();
 
             const newAuction = {
@@ -704,8 +763,9 @@ const CargoStore = (function() {
                 destination: dest,
                 originName: originName,
                 destName: destName,
-                etd: auctionData.etd || '18:30 · Hôm nay',
-                eta: auctionData.eta || '20:45 · Hôm nay',
+                etd: formattedEtd,
+                eta: formattedEta,
+                etdIso: parsedEtd.toISOString(),
                 aircraft: auctionData.aircraft || 'Airbus A321neo Cargo',
                 capacityKg: capacityKg,
                 startingPriceKg: startingPriceKg,
@@ -722,7 +782,13 @@ const CargoStore = (function() {
 
             data.auctions.unshift(newAuction);
             saveData(data);
-            return newAuction;
+
+            return {
+                success: true,
+                message: `Tạo phiên đấu giá chuyến ${flightNumber} (${origin} - ${dest}) thành công! Phiên đã mở trực tiếp trên sàn.`,
+                auction: newAuction,
+                ...newAuction
+            };
         },
 
         getAuctions: function() {
