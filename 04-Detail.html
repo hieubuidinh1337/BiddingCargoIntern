@@ -415,6 +415,14 @@
             const isAnon = document.getElementById('isAnonymousCheckbox') ? document.getElementById('isAnonymousCheckbox').checked : true;
             const alertBox = document.getElementById('bidAlertBox');
 
+            const formattedPrice = CargoStore.formatCurrency(price);
+            const totalAmount = CargoStore.formatCurrency(price * currentAuction.capacityKg);
+            const confirmMsg = `Bạn có chắc chắn muốn đặt giá thầu ${formattedPrice}/Kg (Tổng giá trị: ${totalAmount}) cho chuyến bay ${currentAuction.flightNumber} không?${isAnon ? '\n\n(Tên công ty của bạn sẽ được ẩn danh đối với các đối thủ)' : ''}`;
+            
+            if (!confirm(confirmMsg)) {
+                return;
+            }
+
             const res = CargoStore.placeBid(currentAuction.id, price, isAnon);
             if (!res.success) {
                 alertBox.className = 'mt-3 p-3 rounded-xl text-xs bg-red-50 text-red-700 border border-red-200 block';

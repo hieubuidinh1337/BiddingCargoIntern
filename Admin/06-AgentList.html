@@ -426,21 +426,33 @@
         }
 
         function handleApprove(regId) {
-            if (confirm('Xác nhận phê duyệt hồ sơ này và tạo mã đại lý chính thức?')) {
-                const newCode = CargoStore.approveRegistration(regId);
-                alert(`Đã phê duyệt thành công! Đã cấp mã đại lý mới: ${newCode}`);
-                renderData();
+            if (confirm(`Bạn có chắc chắn muốn phê duyệt hồ sơ "${regId}" và khởi tạo mã đại lý chính thức không?`)) {
+                const res = CargoStore.approveRegistration(regId);
+                if (typeof res === 'object' && res && !res.success) {
+                    alert(res.message);
+                } else if (res) {
+                    alert(`Đã phê duyệt thành công! Đã cấp mã đại lý mới: ${res}`);
+                    renderData();
+                }
             }
         }
 
         function handleReject(regId) {
-            if (confirm('Xác nhận từ chối hồ sơ đăng ký này?')) {
-                CargoStore.rejectRegistration(regId);
-                renderData();
+            if (confirm(`Bạn có chắc chắn muốn từ chối hồ sơ đăng ký đại lý "${regId}" không?`)) {
+                const res = CargoStore.rejectRegistration(regId);
+                if (typeof res === 'object' && res && !res.success) {
+                    alert(res.message);
+                } else {
+                    renderData();
+                }
             }
         }
 
         function handleToggleLock(identifier, type) {
+            const label = type === 'agent' ? 'đại lý' : 'nhân sự';
+            if (!confirm(`Bạn có chắc chắn muốn thực hiện khóa / mở khóa kích hoạt tài khoản ${label} "${identifier}" không?`)) {
+                return;
+            }
             const res = CargoStore.toggleUserLock(identifier, type);
             if (res.success) {
                 alert(res.message);
