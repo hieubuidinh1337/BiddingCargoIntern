@@ -6,7 +6,9 @@
     <title>Xác nhận thắng thầu - Cargo Bidding | Vietravel Airlines</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
-    <script src="assets/js/cargo-store.js"></script>
+    <script src="assets/js/cargo-store.js?v=20260904_05"></script>
+    <!-- html2pdf.js for generating official PDF award certificates -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
     <style>
         @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap');
         * { font-family: 'Inter', sans-serif; }
@@ -71,7 +73,7 @@
                     <i class="fa-solid fa-trophy text-amber-500"></i>
                     Xác nhận kết quả thắng thầu (Won Auctions)
                 </h1>
-                <p class="text-sm text-gray-500 mt-1">Danh sách lô hàng bạn đã trúng thầu chính thức và hướng dẫn bàn giao cut-off</p>
+                <p class="text-sm text-gray-500 mt-1">Danh sách lô hàng bạn đã trúng thầu chính thức và tải phiếu bàn giao cut-off hợp lệ</p>
             </div>
             <div class="flex items-center gap-2 bg-amber-50 border border-amber-200 text-amber-800 text-xs px-3.5 py-2 rounded-xl">
                 <i class="fa-solid fa-triangle-exclamation text-amber-600"></i>
@@ -85,17 +87,437 @@
 
     </main>
 
+    <!-- Hidden Container for PDF export rendering -->
+    <div id="pdfExportContainer" style="display: none;"></div>
+
+    <!-- Modal Preview Phiếu Xác Nhận Thắng Thầu -->
+    <div id="previewModal" class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-50 flex items-center justify-center p-4 hidden">
+        <div class="bg-white rounded-2xl max-w-3xl w-full max-h-[92vh] flex flex-col shadow-2xl overflow-hidden animate-in fade-in zoom-in duration-200">
+            <div class="px-6 py-4 border-b flex items-center justify-between bg-slate-50">
+                <div class="flex items-center gap-2">
+                    <i class="fa-solid fa-file-invoice text-blue-600 text-lg"></i>
+                    <h3 class="font-bold text-slate-800 text-sm">Xem trước Phiếu Xác Nhận Thắng Thầu & Lệnh Bàn Giao Slot</h3>
+                </div>
+                <button onclick="closePreviewModal()" class="text-slate-400 hover:text-slate-600 p-1 cursor-pointer">
+                    <i class="fa-solid fa-xmark text-lg"></i>
+                </button>
+            </div>
+            <div class="p-6 overflow-y-auto flex-1 bg-slate-100 flex justify-center" id="previewModalContent">
+                <!-- Injected printable card -->
+            </div>
+            <div class="px-6 py-3 border-t bg-slate-50 flex items-center justify-between">
+                <span class="text-[11px] text-slate-500">Định dạng file xuất: <strong>Adobe PDF (A4 Portrait, 300 DPI)</strong></span>
+                <div class="flex items-center gap-2">
+                    <button onclick="closePreviewModal()" class="px-4 py-2 rounded-xl text-xs font-semibold text-slate-600 hover:bg-slate-200 transition cursor-pointer">
+                        Đóng
+                    </button>
+                    <button id="btnModalDownload" class="px-5 py-2 rounded-xl text-xs font-bold bg-blue-600 hover:bg-blue-700 text-white transition shadow flex items-center gap-2 cursor-pointer">
+                        <i class="fa-solid fa-download"></i> Tải file PDF ngay
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Notification Toast -->
+    <div id="toastWon" class="fixed bottom-5 right-5 bg-slate-900 text-white text-xs font-semibold px-4 py-3 rounded-xl shadow-xl flex items-center gap-2.5 z-50 transform translate-y-20 opacity-0 transition-all duration-300 pointer-events-none">
+        <i class="fa-solid fa-circle-check text-emerald-400 text-base" id="toastWonIcon"></i>
+        <span id="toastWonMsg">Đã tải xuống phiếu xác nhận thắng thầu thành công!</span>
+    </div>
+
     <script>
-        function renderWonAuctions() {
-            const u = CargoStore.getCurrentUser ? CargoStore.getCurrentUser() : null;
-            if (u) {
-                document.getElementById('hdrCompany').textContent = u.companyName || 'ABC Logistics';
-                document.getElementById('hdrCode').textContent = u.agentCode || 'AG-0892';
-                document.getElementById('hdrAvatar').textContent = (u.agentCode || 'AG').slice(0,2);
+        function getStore() {
+            return (typeof CargoStore !== 'undefined') ? CargoStore : (typeof window !== 'undefined' ? window.CargoStore : null);
+        }
+
+        function showToast(msg, isSuccess = true) {
+            const toast = document.getElementById('toastWon');
+            const icon = document.getElementById('toastWonIcon');
+            const txt = document.getElementById('toastWonMsg');
+            if (!toast || !txt) return;
+
+            txt.textContent = msg;
+            icon.className = isSuccess ? 'fa-solid fa-circle-check text-emerald-400 text-base' : 'fa-solid fa-circle-exclamation text-amber-400 text-base';
+            toast.classList.remove('translate-y-20', 'opacity-0', 'pointer-events-none');
+
+            setTimeout(() => {
+                toast.classList.add('translate-y-20', 'opacity-0', 'pointer-events-none');
+            }, 3500);
+        }
+
+        // Convert number to Vietnamese currency words
+        function readVietnameseCurrency(n) {
+            if (!n || isNaN(n) || n <= 0) return 'Không đồng';
+            const num = Math.round(Number(n));
+            const digits = ['không', 'một', 'hai', 'ba', 'bốn', 'năm', 'sáu', 'bảy', 'tám', 'chín'];
+            
+            function readThree(b, isFirst) {
+                let h = Math.floor(b / 100);
+                let t = Math.floor((b % 100) / 10);
+                let u = b % 10;
+                if (h === 0 && t === 0 && u === 0) return '';
+                let res = '';
+                if (h > 0 || !isFirst) res += digits[h] + ' trăm ';
+                if (t > 1) {
+                    res += digits[t] + ' mươi ';
+                    if (u === 1) res += 'mốt ';
+                    else if (u === 5) res += 'lăm ';
+                    else if (u > 0) res += digits[u] + ' ';
+                } else if (t === 1) {
+                    res += 'mười ';
+                    if (u === 5) res += 'lăm ';
+                    else if (u > 0) res += digits[u] + ' ';
+                } else if (t === 0 && u > 0) {
+                    if (h > 0 || !isFirst) res += 'lẻ ' + digits[u] + ' ';
+                    else res += digits[u] + ' ';
+                }
+                return res;
             }
 
-            const list = CargoStore.getWonAuctions();
+            const units = ['', 'nghìn', 'triệu', 'tỷ', 'nghìn tỷ'];
+            let str = '';
+            let temp = num;
+            let i = 0;
+            while (temp > 0) {
+                let chunk = temp % 1000;
+                if (chunk > 0) {
+                    let s = readThree(chunk, Math.floor(temp / 1000) === 0);
+                    str = s + units[i] + ' ' + str;
+                }
+                temp = Math.floor(temp / 1000);
+                i++;
+            }
+            str = str.trim().replace(/\s+/g, ' ');
+            if (!str) return 'Không đồng';
+            return str.charAt(0).toUpperCase() + str.slice(1) + ' đồng chẵn.';
+        }
+
+        // Build HTML template for official PDF award slip
+        function buildAwardSlipHtml(wonId) {
+            const store = getStore();
+            const data = store ? store.getData() : {};
+            const list = data.wonAuctions || [];
+            const item = list.find(w => w.wonId === wonId) || list[0];
+            if (!item) return null;
+
+            const u = (store && store.getCurrentUser) ? store.getCurrentUser() : (data.currentUser || {});
+            const agentsList = data.agentsList || [];
+            const agent = agentsList.find(a => (a.code || '').toUpperCase() === (item.agentCode || u.agentCode || '').toUpperCase()) || u;
+            const auctions = data.auctions || [];
+            const auction = auctions.find(a => a.id == item.auctionId || a.flightNumber === item.flightNumber) || {};
+
+            const isPaid = item.paymentStatus === 'PAID';
+            const now = new Date();
+            const nowStr = `${now.toLocaleDateString('vi-VN')} ${now.toLocaleTimeString('vi-VN', {hour:'2-digit', minute:'2-digit'})}`;
+            const deadlineStr = item.paymentDeadline ? new Date(item.paymentDeadline).toLocaleString('vi-VN') : 'Trong vòng 24 giờ kể từ thời điểm chốt thầu';
+
+            return `
+                <div style="padding: 24px 28px; font-family: 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; color: #1e293b; background: #ffffff; width: 700px; margin: 0 auto; font-size: 11px; line-height: 1.45; box-shadow: 0 4px 6px -1px rgba(0,0,0,0.1); border-radius: 8px;">
+                    <!-- Header with Airline logo and Department -->
+                    <div style="border-bottom: 2px solid #0284c7; padding-bottom: 12px; margin-bottom: 14px; display: flex; justify-content: space-between; align-items: flex-start;">
+                        <div>
+                            <div style="display: flex; align-items: center; gap: 8px;">
+                                <span style="background: #2563eb; color: #fff; font-weight: 900; font-size: 11px; padding: 4px 8px; border-radius: 6px; letter-spacing: 0.5px;">VU CARGO</span>
+                                <span style="font-size: 14px; font-weight: 800; color: #0f172a; text-transform: uppercase;">VIETRAVEL AIRLINES</span>
+                            </div>
+                            <p style="font-size: 9.5px; color: #0369a1; font-weight: 700; margin: 4px 0 0 0; text-transform: uppercase;">
+                                KHỐI KHAI THÁC VẬN TẢI HÀNG HÓA · BAN ĐIỀU HÀNH ĐẤU GIÁ SÀN CARGO
+                            </p>
+                            <p style="font-size: 8.5px; color: #64748b; margin: 1px 0 0 0;">
+                                Trung tâm Khai thác Hàng hóa Vietravel Airlines · Cảng Hàng không Quốc tế Tân Sơn Nhất / Nội Bài
+                            </p>
+                        </div>
+                        <div style="text-align: right; font-size: 9px; color: #64748b;">
+                            <p style="margin: 0; font-weight: 800; color: #0f172a; font-size: 9.5px;">CHỨNG TỪ XÁC NHẬN CHÍNH THỨC</p>
+                            <p style="margin: 2px 0 0 0; font-family: monospace; font-weight: 700; color: #2563eb;">MÃ ĐƠN: ${item.wonId}</p>
+                            <p style="margin: 2px 0 0 0;">Số AWB: <strong style="font-family: monospace; color: #16a34a;">${item.awbNumber || '-'}</strong></p>
+                            <p style="margin: 2px 0 0 0;">Ngày xuất: ${nowStr}</p>
+                        </div>
+                    </div>
+
+                    <!-- Title -->
+                    <div style="text-align: center; margin-bottom: 16px;">
+                        <h1 style="font-size: 15px; font-weight: 900; color: #0f172a; margin: 0; text-transform: uppercase; letter-spacing: 0.3px;">
+                            PHIẾU XÁC NHẬN KẾT QUẢ THẮNG THẦU & LỆNH BÀN GIAO TẢI TRỌNG
+                        </h1>
+                        <p style="font-size: 9.5px; font-weight: 700; color: #2563eb; margin: 3px 0 0 0; text-transform: uppercase;">
+                            OFFICIAL CARGO BIDDING AWARD CONFIRMATION & SLOT RELEASE ORDER
+                        </p>
+                        <p style="font-size: 8.5px; color: #64748b; margin: 2px 0 0 0; font-style: italic;">
+                            (Chứng từ điện tử có giá trị pháp lý để bàn giao cut-off hàng hóa và đối soát thanh toán hóa đơn)
+                        </p>
+                    </div>
+
+                    <!-- Status Banner -->
+                    <div style="background: ${isPaid ? '#ecfdf5' : '#fffbeb'}; border: 1.5px solid ${isPaid ? '#10b981' : '#f59e0b'}; border-radius: 8px; padding: 8px 12px; margin-bottom: 14px; display: flex; justify-content: space-between; align-items: center;">
+                        <div>
+                            <span style="font-size: 9.5px; font-weight: 800; color: ${isPaid ? '#047857' : '#b45309'}; text-transform: uppercase;">
+                                TRẠNG THÁI: ${isPaid ? 'ĐÃ HOÀN TẤT THANH TOÁN (PAYMENT CONFIRMED)' : 'CHỜ THANH TOÁN (TRONG VÒNG 24H)'}
+                            </span>
+                            <span style="font-size: 8.5px; color: ${isPaid ? '#065f46' : '#92400e'}; margin-left: 8px;">
+                                ${isPaid ? `(Thời gian thanh toán: ${item.paidAt || 'Hợp lệ'})` : `(Hạn thanh toán: ${deadlineStr})`}
+                            </span>
+                        </div>
+                        <div style="font-size: 9px; font-weight: 700; color: ${isPaid ? '#047857' : '#b45309'};">
+                            SLOT TẢI TRỌNG: HỢP LỆ
+                        </div>
+                    </div>
+
+                    <!-- Section 1: Thông tin Đại lý -->
+                    <div style="margin-bottom: 14px;">
+                        <div style="background: #f1f5f9; padding: 4px 8px; border-left: 3px solid #2563eb; font-weight: 800; font-size: 10px; color: #0f172a; text-transform: uppercase; margin-bottom: 6px;">
+                            I. THÔNG TIN ĐẠI LÝ TRÚNG THẦU (WINNING FORWARDER INFORMATION)
+                        </div>
+                        <table style="width: 100%; border-collapse: collapse; font-size: 9.5px;">
+                            <tr>
+                                <td style="padding: 4px 6px; width: 140px; color: #64748b; font-weight: 600;">Tên doanh nghiệp / Đại lý:</td>
+                                <td style="padding: 4px 6px; font-weight: 800; color: #0f172a;" colspan="3">${agent.companyName || u.companyName || 'Công ty TNHH Vận tải ABC Logistics'}</td>
+                            </tr>
+                            <tr>
+                                <td style="padding: 4px 6px; color: #64748b; font-weight: 600;">Mã định danh đại lý:</td>
+                                <td style="padding: 4px 6px; font-weight: 700; font-family: monospace; color: #2563eb;">${item.agentCode || agent.code || 'AG-0892'} (${agent.tier || 'TIER1'})</td>
+                                <td style="padding: 4px 6px; width: 120px; color: #64748b; font-weight: 600;">Mã số thuế / GPKD:</td>
+                                <td style="padding: 4px 6px; font-weight: 700; color: #334155;">${agent.taxCode || '0312345678'}</td>
+                            </tr>
+                            <tr>
+                                <td style="padding: 4px 6px; color: #64748b; font-weight: 600;">Người đại diện liên hệ:</td>
+                                <td style="padding: 4px 6px; font-weight: 700; color: #334155;">${agent.repName || u.fullName || 'Nguyễn Văn An'} (${agent.position || 'Giám đốc kinh doanh'})</td>
+                                <td style="padding: 4px 6px; color: #64748b; font-weight: 600;">Số điện thoại:</td>
+                                <td style="padding: 4px 6px; font-weight: 700; color: #334155;">${agent.phone || u.phone || '0901 234 567'}</td>
+                            </tr>
+                            <tr>
+                                <td style="padding: 4px 6px; color: #64748b; font-weight: 600;">Email giao dịch:</td>
+                                <td style="padding: 4px 6px; color: #334155;">${agent.email || u.email || 'an.nguyen@abccargo.vn'}</td>
+                                <td style="padding: 4px 6px; color: #64748b; font-weight: 600;">Địa chỉ đại lý:</td>
+                                <td style="padding: 4px 6px; color: #334155;">${agent.address || 'TP. Hồ Chí Minh'}</td>
+                            </tr>
+                        </table>
+                    </div>
+
+                    <!-- Section 2: Chi tiết phiên thắng thầu & Tải trọng -->
+                    <div style="margin-bottom: 14px;">
+                        <div style="background: #f1f5f9; padding: 4px 8px; border-left: 3px solid #2563eb; font-weight: 800; font-size: 10px; color: #0f172a; text-transform: uppercase; margin-bottom: 6px;">
+                            II. CHI TIẾT CHUYẾN BAY & PHÂN BỔ TẢI TRỌNG (FLIGHT & CAPACITY ALLOCATION)
+                        </div>
+                        <table style="width: 100%; border-collapse: collapse; font-size: 9.5px; border: 1px solid #cbd5e1;">
+                            <thead>
+                                <tr style="background: #e2e8f0; color: #1e293b; font-weight: 800; text-align: left;">
+                                    <th style="padding: 6px 8px; border: 1px solid #cbd5e1;">Số hiệu chuyến bay</th>
+                                    <th style="padding: 6px 8px; border: 1px solid #cbd5e1;">Tuyến đường bay</th>
+                                    <th style="padding: 6px 8px; border: 1px solid #cbd5e1; text-align: right;">Tải trọng trúng</th>
+                                    <th style="padding: 6px 8px; border: 1px solid #cbd5e1; text-align: right;">Đơn giá trúng thầu</th>
+                                    <th style="padding: 6px 8px; border: 1px solid #cbd5e1; text-align: right;">Thành tiền (VND)</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <tr>
+                                    <td style="padding: 8px; border: 1px solid #cbd5e1; font-weight: 800; color: #0f172a;">
+                                        ${item.flightNumber}
+                                        <span style="display: block; font-size: 8px; color: #64748b; font-weight: 500;">Tàu bay: ${auction.aircraft || 'Airbus A321neo Cargo'}</span>
+                                    </td>
+                                    <td style="padding: 8px; border: 1px solid #cbd5e1; font-weight: 700; color: #0f172a;">
+                                        ${item.route}
+                                        <span style="display: block; font-size: 8px; color: #2563eb; font-weight: 600;">Giờ bay (ETD): ${auction.etd || 'Theo lịch bay công bố'}</span>
+                                    </td>
+                                    <td style="padding: 8px; border: 1px solid #cbd5e1; text-align: right; font-weight: 800; color: #0f172a; font-size: 11px;">
+                                        ${store ? store.formatNumber(item.capacityKg) : item.capacityKg} Kg
+                                    </td>
+                                    <td style="padding: 8px; border: 1px solid #cbd5e1; text-align: right; font-weight: 700; color: #2563eb;">
+                                        ${store ? store.formatCurrency(item.priceKg) : item.priceKg + ' đ'}/Kg
+                                    </td>
+                                    <td style="padding: 8px; border: 1px solid #cbd5e1; text-align: right; font-weight: 900; color: #0f172a; font-size: 11px;">
+                                        ${store ? store.formatCurrency(item.totalAmountVND) : item.totalAmountVND + ' đ'}
+                                    </td>
+                                </tr>
+                                <tr style="background: #f8fafc; font-weight: 700;">
+                                    <td colspan="4" style="padding: 6px 8px; border: 1px solid #cbd5e1; text-align: right; text-transform: uppercase; color: #475569;">
+                                        TỔNG CỘNG GIÁ TRỊ TRÚNG THẦU:
+                                    </td>
+                                    <td style="padding: 6px 8px; border: 1px solid #cbd5e1; text-align: right; font-weight: 900; color: #2563eb; font-size: 12px;">
+                                        ${store ? store.formatCurrency(item.totalAmountVND) : item.totalAmountVND + ' đ'}
+                                    </td>
+                                </tr>
+                            </tbody>
+                        </table>
+                        <p style="font-size: 9px; margin: 4px 0 0 0; color: #475569; font-style: italic;">
+                            • Số tiền bằng chữ: <strong style="color: #0f172a;">${readVietnameseCurrency(item.totalAmountVND)}</strong>
+                        </p>
+                    </div>
+
+                    <!-- Section 3: Quy định bàn giao hàng hóa -->
+                    <div style="margin-bottom: 16px;">
+                        <div style="background: #f1f5f9; padding: 4px 8px; border-left: 3px solid #2563eb; font-weight: 800; font-size: 10px; color: #0f172a; text-transform: uppercase; margin-bottom: 6px;">
+                            III. ĐỊA ĐIỂM TIẾP NHẬN & QUY ĐỊNH CUT-OFF BÀN GIAO HÀNG HÓA
+                        </div>
+                        <div style="background: #eff6ff; border: 1px solid #bfdbfe; border-radius: 6px; padding: 8px 10px; font-size: 9px; color: #1e3a8a;">
+                            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px;">
+                                <div>
+                                    <p style="margin: 0;">• <strong>Kho tiếp nhận:</strong> ${item.warehouse || 'Kho hàng SCSC / TCS Tân Sơn Nhất'}</p>
+                                    <p style="margin: 3px 0 0 0;">• <strong>Hạn chót nhập kho (Cut-off Time):</strong> <span style="font-weight: 800; color: #dc2626;">${item.cutOffTime || '3 tiếng trước giờ bay'}</span></p>
+                                </div>
+                                <div>
+                                    <p style="margin: 0;">• <strong>Mã vận đơn AWB:</strong> <span style="font-family: monospace; font-weight: 800; color: #16a34a;">${item.awbNumber || '-'}</span></p>
+                                    <p style="margin: 3px 0 0 0;">• <strong>Quy chuẩn hàng hóa:</strong> Đóng gói đúng tiêu chuẩn IATA, xuất trình phiếu này tại quầy tiếp nhận.</p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Section 4: Chữ ký & Xác nhận Điện tử -->
+                    <div style="display: grid; grid-template-columns: 1fr 1fr; margin-top: 16px; text-align: center; font-size: 9px; page-break-inside: avoid;">
+                        <div>
+                            <p style="font-weight: 800; color: #0f172a; margin: 0; text-transform: uppercase;">ĐẠI DIỆN ĐẠI LÝ TRÚNG THẦU</p>
+                            <p style="color: #64748b; font-size: 8px; margin: 2px 0 0 0;">(Ký xác nhận & xuất trình tại kho hàng)</p>
+                            <div style="height: 45px;"></div>
+                            <p style="font-weight: 700; color: #334155; margin: 0;">${agent.repName || u.fullName || 'Nguyễn Văn An'}</p>
+                            <p style="font-size: 8px; color: #64748b; margin: 0;">Đại diện có thẩm quyền</p>
+                        </div>
+                        <div>
+                            <p style="font-weight: 800; color: #0f172a; margin: 0; text-transform: uppercase;">VIETRAVEL AIRLINES CARGO OPERATIONS</p>
+                            <p style="color: #64748b; font-size: 8px; margin: 2px 0 0 0;">(Phê duyệt & Đóng dấu điện tử hệ thống)</p>
+                            <div style="height: 10px;"></div>
+                            <div style="display: inline-block; border: 2px solid #16a34a; color: #16a34a; padding: 4px 10px; border-radius: 6px; font-weight: 800; font-size: 10px; letter-spacing: 0.5px;">
+                                ✓ ĐÃ XÁC THỰC ĐIỆN TỬ
+                            </div>
+                            <div style="height: 10px;"></div>
+                            <p style="font-weight: 700; color: #334155; margin: 0;">BAN ĐIỀU HÀNH SÀN ĐẤU GIÁ</p>
+                            <p style="font-size: 8px; color: #16a34a; font-weight: 700; margin: 0;">(Hệ thống tự động phát hành)</p>
+                        </div>
+                    </div>
+                </div>
+            `;
+        }
+
+        // Preview Modal handler
+        function previewAwardSlip(wonId) {
+            const html = buildAwardSlipHtml(wonId);
+            if (!html) {
+                alert('Không tìm thấy thông tin đơn trúng thầu này!');
+                return;
+            }
+
+            const modalContent = document.getElementById('previewModalContent');
+            modalContent.innerHTML = html;
+
+            const btnDownload = document.getElementById('btnModalDownload');
+            btnDownload.onclick = function() {
+                downloadAwardSlipPDF(wonId, btnDownload);
+            };
+
+            const modal = document.getElementById('previewModal');
+            modal.classList.remove('hidden');
+        }
+
+        function closePreviewModal() {
+            const modal = document.getElementById('previewModal');
+            modal.classList.add('hidden');
+        }
+
+        // Download official PDF using html2pdf
+        function downloadAwardSlipPDF(wonId, btn) {
+            const originalContent = btn ? btn.innerHTML : '';
+            if (btn) {
+                btn.disabled = true;
+                btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin text-sm"></i> <span>Đang tạo PDF...</span>';
+            }
+
+            setTimeout(() => {
+                try {
+                    if (typeof html2pdf === 'undefined') {
+                        alert('Thư viện PDF đang tải, vui lòng thử lại sau giây lát!');
+                        if (btn) {
+                            btn.disabled = false;
+                            btn.innerHTML = originalContent;
+                        }
+                        return;
+                    }
+
+                    const html = buildAwardSlipHtml(wonId);
+                    if (!html) {
+                        alert('Không tìm thấy dữ liệu đơn thắng thầu!');
+                        if (btn) {
+                            btn.disabled = false;
+                            btn.innerHTML = originalContent;
+                        }
+                        return;
+                    }
+
+                    const container = document.getElementById('pdfExportContainer');
+                    container.innerHTML = html;
+                    const element = container.firstElementChild.cloneNode(true);
+                    element.style.display = 'block';
+
+                    const opt = {
+                        margin:       [8, 8, 8, 8],
+                        filename:     `Phieu_Xac_Nhan_Thang_Thau_${wonId}.pdf`,
+                        image:        { type: 'jpeg', quality: 0.98 },
+                        html2canvas:  { scale: 2, useCORS: true, letterRendering: true, logging: false },
+                        jsPDF:        { unit: 'mm', format: 'a4', orientation: 'portrait' }
+                    };
+
+                    html2pdf().set(opt).from(element).save().then(() => {
+                        showToast(`Đã tải xuống Phiếu xác nhận thắng thầu (${wonId}) thành công!`);
+                    }).catch(err => {
+                        console.error('Error generating PDF:', err);
+                        alert('Lỗi tạo file PDF: ' + err.message);
+                    }).finally(() => {
+                        if (btn) {
+                            btn.disabled = false;
+                            btn.innerHTML = originalContent;
+                        }
+                    });
+                } catch (err) {
+                    console.error('downloadAwardSlipPDF error:', err);
+                    alert('Lỗi khi xuất file PDF: ' + err.message);
+                    if (btn) {
+                        btn.disabled = false;
+                        btn.innerHTML = originalContent;
+                    }
+                }
+            }, 250);
+        }
+
+        async function renderWonAuctions() {
+            const store = getStore();
+            const u = store && store.getCurrentUser ? store.getCurrentUser() : null;
+            if (u) {
+                const hdrCompany = document.getElementById('hdrCompany');
+                const hdrCode = document.getElementById('hdrCode');
+                const hdrAvatar = document.getElementById('hdrAvatar');
+                if (hdrCompany) hdrCompany.textContent = u.companyName || 'ABC Logistics';
+                if (hdrCode) hdrCode.textContent = u.agentCode || 'AG-0892';
+                if (hdrAvatar) hdrAvatar.textContent = (u.agentCode || 'AG').slice(0,2);
+            }
+
+            // Sync with backend if needed
+            if (store) {
+                const cur = store.getData();
+                if (!cur.wonAuctions || cur.wonAuctions.length === 0) {
+                    try {
+                        const apiUrl = (window.location && window.location.protocol.startsWith('http'))
+                            ? '/api/data'
+                            : 'http://localhost:8085/api/data';
+                        const res = await fetch(apiUrl);
+                        if (res.ok) {
+                            const sData = await res.json();
+                            if (sData && sData.wonAuctions && sData.wonAuctions.length > 0) {
+                                cur.wonAuctions = sData.wonAuctions;
+                                store.saveData(cur, true);
+                            }
+                        }
+                    } catch (e) {}
+                }
+            }
+
+            let list = (store && store.getWonAuctions) ? store.getWonAuctions() : [];
+            // Fallback: If empty, show full won auctions for demonstration
+            if (!list || list.length === 0) {
+                const data = store ? store.getData() : {};
+                list = data.wonAuctions || [];
+            }
+
             const container = document.getElementById('wonAuctionsContainer');
+            if (!container) return;
 
             if (!list || list.length === 0) {
                 container.innerHTML = `
@@ -114,14 +536,14 @@
             container.innerHTML = list.map(item => {
                 const isPaid = item.paymentStatus === 'PAID';
                 return `
-                    <div class="bg-white rounded-2xl border shadow-sm overflow-hidden">
+                    <div class="bg-white rounded-2xl border shadow-sm overflow-hidden hover:shadow-md transition">
                         <div class="bg-gradient-to-r ${isPaid ? 'from-emerald-700 to-teal-800' : 'from-blue-700 to-indigo-800'} p-5 text-white flex flex-col sm:flex-row sm:items-center justify-between gap-4">
                             <div class="flex items-center gap-3">
                                 <div class="w-12 h-12 bg-white/10 rounded-2xl flex items-center justify-center text-2xl font-bold shadow-inner">
                                     <i class="fa-solid ${isPaid ? 'fa-check' : 'fa-clock'}"></i>
                                 </div>
                                 <div>
-                                    <span class="bg-white/20 text-xs font-semibold px-2.5 py-0.5 rounded-full">
+                                    <span class="bg-white/20 text-xs font-semibold px-2.5 py-0.5 rounded-full font-mono">
                                         MÃ ĐƠN: ${item.wonId}
                                     </span>
                                     <h2 class="text-xl font-bold mt-1">Chuyến ${item.flightNumber} · Tuyến ${item.route}</h2>
@@ -131,7 +553,7 @@
                                 <span class="inline-block ${isPaid ? 'bg-emerald-400 text-emerald-950' : 'bg-amber-400 text-amber-950'} text-xs font-bold px-3 py-1 rounded-full shadow">
                                     ${isPaid ? 'ĐÃ HOÀN TẤT THANH TOÁN' : 'CHỜ THANH TOÁN (TRONG 24H)'}
                                 </span>
-                                ${isPaid ? `<p class="text-xs text-white/80 mt-1">Thanh toán lúc: ${item.paidAt}</p>` : ''}
+                                ${isPaid ? `<p class="text-xs text-white/80 mt-1">Thanh toán lúc: ${item.paidAt || 'Hợp lệ'}</p>` : ''}
                             </div>
                         </div>
 
@@ -139,19 +561,19 @@
                             <div class="grid grid-cols-2 md:grid-cols-4 gap-4">
                                 <div class="bg-slate-50 p-4 rounded-xl border">
                                     <p class="text-xs text-gray-500 mb-1">Tải trọng trúng thầu</p>
-                                    <p class="text-lg font-bold text-slate-900">${CargoStore.formatNumber(item.capacityKg)} Kg</p>
+                                    <p class="text-lg font-bold text-slate-900">${store ? store.formatNumber(item.capacityKg) : item.capacityKg} Kg</p>
                                 </div>
                                 <div class="bg-slate-50 p-4 rounded-xl border">
                                     <p class="text-xs text-gray-500 mb-1">Mức giá chốt thắng</p>
-                                    <p class="text-lg font-bold text-blue-600">${CargoStore.formatCurrency(item.priceKg)}/Kg</p>
+                                    <p class="text-lg font-bold text-blue-600">${store ? store.formatCurrency(item.priceKg) : item.priceKg + ' đ'}/Kg</p>
                                 </div>
                                 <div class="bg-slate-50 p-4 rounded-xl border">
                                     <p class="text-xs text-gray-500 mb-1">Tổng tiền thanh toán</p>
-                                    <p class="text-lg font-bold text-slate-900">${CargoStore.formatCurrency(item.totalAmountVND)}</p>
+                                    <p class="text-lg font-bold text-slate-900">${store ? store.formatCurrency(item.totalAmountVND) : item.totalAmountVND + ' đ'}</p>
                                 </div>
                                 <div class="bg-slate-50 p-4 rounded-xl border">
                                     <p class="text-xs text-gray-500 mb-1">Mã vận đơn (AWB)</p>
-                                    <p class="text-sm font-mono font-bold text-emerald-600 mt-1">${item.awbNumber}</p>
+                                    <p class="text-sm font-mono font-bold text-emerald-600 mt-1">${item.awbNumber || '-'}</p>
                                 </div>
                             </div>
 
@@ -162,21 +584,28 @@
                                 </h3>
                                 <div class="grid grid-cols-1 md:grid-cols-2 gap-3 text-blue-800">
                                     <div>
-                                        <p>• <strong>Địa điểm giao hàng:</strong> ${item.warehouse}</p>
-                                        <p class="mt-1">• <strong>Hạn chót nhập kho (Cut-off):</strong> <span class="font-bold text-red-600">${item.cutOffTime}</span></p>
+                                        <p>• <strong>Địa điểm giao hàng:</strong> ${item.warehouse || 'Kho hàng TCS / SCSC Tân Sơn Nhất'}</p>
+                                        <p class="mt-1">• <strong>Hạn chót nhập kho (Cut-off):</strong> <span class="font-bold text-red-600">${item.cutOffTime || '3 tiếng trước ETD'}</span></p>
                                     </div>
                                     <div>
-                                        <p>• Xuất trình mã trúng thầu <strong>${item.wonId}</strong> kèm AWB tại quầy tiếp nhận hàng.</p>
-                                        <p class="mt-1">• Hàng hóa phải được đóng gói theo quy chuẩn IATA và có nhãn phụ rõ ràng.</p>
+                                        <p>• Xuất trình mã trúng thầu <strong>${item.wonId}</strong> kèm phiếu xác nhận PDF tại quầy tiếp nhận.</p>
+                                        <p class="mt-1">• Hàng hóa đóng gói theo quy chuẩn IATA, nhãn phụ rõ ràng, không có hàng cấm bay.</p>
                                     </div>
                                 </div>
                             </div>
 
-                            <div class="flex flex-wrap items-center justify-between gap-3 pt-2 border-t text-xs">
-                                <span class="text-gray-400">Đơn vị tiếp nhận: Ban Dịch vụ Vận chuyển Hàng hóa</span>
-                                <button onclick="alert('Đang tải phiếu xác nhận PDF...')" class="bg-slate-900 hover:bg-slate-800 text-white font-medium px-4 py-2 rounded-xl transition flex items-center gap-1.5">
-                                    <i class="fa-solid fa-download"></i> Tải Phiếu Xác Nhận Thắng Thầu (PDF)
-                                </button>
+                            <div class="flex flex-wrap items-center justify-between gap-3 pt-3 border-t text-xs">
+                                <span class="text-gray-400 flex items-center gap-1.5">
+                                    <i class="fa-solid fa-shield-check text-emerald-500"></i> Đơn vị phát hành: Ban Dịch vụ Vận chuyển Hàng hóa Vietravel Airlines
+                                </span>
+                                <div class="flex items-center gap-2">
+                                    <button onclick="previewAwardSlip('${item.wonId}')" class="bg-white border border-slate-300 hover:bg-slate-50 text-slate-700 font-semibold px-3.5 py-2.5 rounded-xl transition flex items-center gap-1.5 shadow-xs cursor-pointer">
+                                        <i class="fa-solid fa-eye text-blue-600"></i> Xem trước phiếu
+                                    </button>
+                                    <button onclick="downloadAwardSlipPDF('${item.wonId}', this)" class="bg-slate-900 hover:bg-slate-800 text-white font-semibold px-4 py-2.5 rounded-xl transition flex items-center gap-2 shadow cursor-pointer">
+                                        <i class="fa-solid fa-file-arrow-down text-red-400"></i> Tải Phiếu Xác Nhận (PDF)
+                                    </button>
+                                </div>
                             </div>
                         </div>
                     </div>
@@ -190,6 +619,7 @@
         window.addEventListener('storage', function(e) {
             if (e.key === 'CARGO_BIDDING_DATA_V3') renderWonAuctions();
         });
+        window.addEventListener('cargostore_updated', renderWonAuctions);
     </script>
 </body>
 </html>

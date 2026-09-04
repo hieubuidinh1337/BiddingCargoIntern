@@ -1,6 +1,32 @@
 {
-  "version": 1788509317039,
+  "version": 1788509890556,
   "auctions": [
+    {
+      "id": 5,
+      "flightCode": "FL-VU3245-260904",
+      "flightNumber": "VU3245",
+      "route": "SGN - HAN",
+      "origin": "SGN",
+      "destination": "HAN",
+      "originName": "TP. Hồ Chí Minh",
+      "destName": "Hà Nội",
+      "etd": "17:15 · 04/09/2026",
+      "eta": "19:15 · 04/09/2026",
+      "etdIso": "2026-09-04T10:15:00.000Z",
+      "aircraft": "Airbus A321neo Cargo",
+      "capacityKg": 3000,
+      "startingPriceKg": 18000,
+      "currentPriceKg": 40000,
+      "minStep": 500,
+      "endTime": "2026-09-04T10:15:22.027Z",
+      "status": "OPEN",
+      "leadingAgentCode": "AG-0341",
+      "leadingAgentName": "Công ty TNHH SkyFreight Logistics Việt Nam",
+      "bidsCount": 2,
+      "specialNotes": "Tải trọng tổng hợp tiêu chuẩn IATA. Có hỗ trợ xe nâng hàng pallet tại sân bay.",
+      "cutOffTime": "Trước ETD 3 giờ",
+      "isAnonymous": true
+    },
     {
       "id": 1,
       "flightCode": "FL-VU130-260815",
@@ -109,6 +135,30 @@
     }
   ],
   "bids": [
+    {
+      "id": 1788509757316,
+      "timestamp": 1788509757316,
+      "auctionId": 5,
+      "agentCode": "AG-0341",
+      "agentName": "Công ty TNHH SkyFreight Logistics Việt Nam",
+      "isAnonymous": true,
+      "priceKg": 40000,
+      "time": "Vừa xong",
+      "status": "HIGHEST",
+      "weightKg": 3000
+    },
+    {
+      "id": 1788509746308,
+      "timestamp": 1788509746308,
+      "auctionId": 5,
+      "agentCode": "AG-1024",
+      "agentName": "Công ty CP Giao nhận Kho vận Vinatrans",
+      "isAnonymous": true,
+      "priceKg": 36500,
+      "time": "Vừa xong",
+      "status": "OUTBID",
+      "weightKg": 3000
+    },
     {
       "id": 1788496300339,
       "timestamp": 1788496300339,
@@ -334,12 +384,56 @@
   ],
   "notifications": [
     {
+      "id": 1788509757317,
+      "timestamp": 1788509757317,
+      "targetAgentCode": "AG-1024",
+      "title": "Cảnh báo bị vượt giá chuyến VU3245!",
+      "message": "Một đại lý đối thủ (Ẩn danh) vừa đặt mức giá mới 40.000 đ/Kg cho chặng SGN - HAN.",
+      "time": "Vừa xong",
+      "type": "OUTBID",
+      "read": false,
+      "link": "04-Detail.html?id=5"
+    },
+    {
+      "id": 1788509757316,
+      "timestamp": 1788509757316,
+      "targetAgentCode": "AG-0341",
+      "title": "Đặt giá thành công chuyến VU3245",
+      "message": "Bạn (AG-0341) đang dẫn đầu mức giá 40.000 đ/Kg cho chặng SGN - HAN. (Tên công ty được che ẩn danh đối với các đối thủ)",
+      "time": "Vừa xong",
+      "type": "HIGHEST",
+      "read": false,
+      "link": "04-Detail.html?id=5"
+    },
+    {
+      "id": 1788509746309,
+      "timestamp": 1788509746309,
+      "targetAgentCode": "Chưa có",
+      "title": "Cảnh báo bị vượt giá chuyến VU3245!",
+      "message": "Một đại lý đối thủ (Ẩn danh) vừa đặt mức giá mới 36.500 đ/Kg cho chặng SGN - HAN.",
+      "time": "Vừa xong",
+      "type": "OUTBID",
+      "read": false,
+      "link": "04-Detail.html?id=5"
+    },
+    {
+      "id": 1788509746308,
+      "timestamp": 1788509746308,
+      "targetAgentCode": "AG-1024",
+      "title": "Đặt giá thành công chuyến VU3245",
+      "message": "Bạn (AG-1024) đang dẫn đầu mức giá 36.500 đ/Kg cho chặng SGN - HAN. (Tên công ty được che ẩn danh đối với các đối thủ)",
+      "time": "Vừa xong",
+      "type": "HIGHEST",
+      "read": false,
+      "link": "04-Detail.html?id=5"
+    },
+    {
       "id": 1788506882002,
       "title": "Phiên VU130 đã chốt kết quả!",
       "message": "Đại lý Công ty CP Giao nhận Kho vận Vinatrans (AG-1024) đã trúng thầu chuyến VU130 (SGN - HAN) mức giá 1.800.000 đ/Kg.",
       "time": "Vừa xong",
       "type": "WON",
-      "read": false,
+      "read": true,
       "link": "07-WonAuction.html"
     },
     {
