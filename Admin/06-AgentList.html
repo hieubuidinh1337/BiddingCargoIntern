@@ -313,12 +313,21 @@
 
                             ${isPending ? `
                                 <div class="flex items-center justify-end gap-2.5 pt-2 border-t">
-                                    <button onclick="handleReject('${r.regId}')" class="bg-red-50 hover:bg-red-100 text-red-600 font-bold px-4 py-2 rounded-xl text-xs transition">
-                                        Từ chối hồ sơ
-                                    </button>
-                                    <button onclick="handleApprove('${r.regId}')" class="bg-blue-600 hover:bg-blue-700 text-white font-bold px-5 py-2 rounded-xl text-xs transition shadow flex items-center gap-1.5">
-                                        <i class="fa-solid fa-check"></i> Phê duyệt & Kích hoạt đại lý
-                                    </button>
+                                    ${isStaff ? `
+                                        <button disabled class="bg-slate-100 text-slate-400 font-bold px-4 py-2 rounded-xl text-xs opacity-60 cursor-not-allowed" title="Chỉ ADMIN mới có quyền từ chối hồ sơ đại lý">
+                                            Từ chối hồ sơ
+                                        </button>
+                                        <button disabled class="bg-slate-100 text-slate-400 font-bold px-5 py-2 rounded-xl text-xs opacity-60 cursor-not-allowed flex items-center gap-1.5" title="Chỉ ADMIN mới có quyền phê duyệt hồ sơ đại lý">
+                                            <i class="fa-solid fa-check"></i> Phê duyệt & Kích hoạt đại lý
+                                        </button>
+                                    ` : `
+                                        <button onclick="handleReject('${r.regId}')" class="bg-red-50 hover:bg-red-100 text-red-600 font-bold px-4 py-2 rounded-xl text-xs transition">
+                                            Từ chối hồ sơ
+                                        </button>
+                                        <button onclick="handleApprove('${r.regId}')" class="bg-blue-600 hover:bg-blue-700 text-white font-bold px-5 py-2 rounded-xl text-xs transition shadow flex items-center gap-1.5">
+                                            <i class="fa-solid fa-check"></i> Phê duyệt & Kích hoạt đại lý
+                                        </button>
+                                    `}
                                 </div>
                             ` : ''}
                         </div>
@@ -353,7 +362,7 @@
                                 <button disabled class="inline-flex items-center gap-1 bg-slate-100 text-slate-400 font-semibold px-2 py-1 rounded-lg opacity-60 cursor-not-allowed" title="Chỉ ADMIN mới có quyền chuyển phân hạng">
                                     <i class="fa-solid fa-layer-group text-[10px]"></i> Đổi ${ag.tier === 'TIER1' ? 'Tier 2' : 'Tier 1'}
                                 </button>
-                                <button onclick="handleToggleLock('${ag.code}', 'agent')" class="inline-flex items-center gap-1 ${isLocked ? 'bg-emerald-50 hover:bg-emerald-100 text-emerald-700' : 'bg-red-50 hover:bg-red-100 text-red-600'} font-semibold px-2 py-1 rounded-lg transition" title="${isLocked ? 'Mở khóa / Kích hoạt tài khoản' : 'Khóa tài khoản đại lý'}">
+                                <button disabled class="inline-flex items-center gap-1 bg-slate-100 text-slate-400 font-semibold px-2 py-1 rounded-lg opacity-60 cursor-not-allowed" title="Chỉ ADMIN mới có quyền khóa/kích hoạt tài khoản đại lý">
                                     <i class="fa-solid ${isLocked ? 'fa-lock-open' : 'fa-lock'} text-[10px]"></i> ${isLocked ? 'Kích hoạt' : 'Khóa'}
                                 </button>
                             ` : `

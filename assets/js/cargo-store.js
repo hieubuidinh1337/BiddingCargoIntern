@@ -1061,6 +1061,9 @@ const CargoStore = (function() {
 
         approveRegistration: function(regId) {
             const data = loadData();
+            if (data.currentAdmin && data.currentAdmin.role === 'STAFF') {
+                return { success: false, message: 'Nhân viên (STAFF) không có quyền phê duyệt hồ sơ đại lý. Thao tác này chỉ dành cho Quản trị viên (ADMIN).' };
+            }
             const reg = data.registrations.find(r => r.regId === regId);
             if (!reg) return false;
 
@@ -1093,6 +1096,9 @@ const CargoStore = (function() {
 
         rejectRegistration: function(regId) {
             const data = loadData();
+            if (data.currentAdmin && data.currentAdmin.role === 'STAFF') {
+                return { success: false, message: 'Nhân viên (STAFF) không có quyền từ chối hồ sơ đại lý. Thao tác này chỉ dành cho Quản trị viên (ADMIN).' };
+            }
             const reg = data.registrations.find(r => r.regId === regId);
             if (!reg) return false;
             reg.status = 'REJECTED';
@@ -1340,8 +1346,8 @@ const CargoStore = (function() {
 
         toggleUserLock: function(identifier, type = 'agent') {
             const data = loadData();
-            if (type !== 'agent' && data.currentAdmin && data.currentAdmin.role === 'STAFF') {
-                return { success: false, message: 'Nhân viên (STAFF) không có quyền kích hoạt hoặc khóa tài khoản nhân sự. Thao tác này chỉ dành cho Quản trị viên (ADMIN).' };
+            if (data.currentAdmin && data.currentAdmin.role === 'STAFF') {
+                return { success: false, message: 'Nhân viên (STAFF) không có quyền kích hoạt hoặc khóa tài khoản. Thao tác này chỉ dành cho Quản trị viên (ADMIN).' };
             }
 
             if (type === 'agent') {
