@@ -212,7 +212,7 @@
             const deadlineStr = item.paymentDeadline ? new Date(item.paymentDeadline).toLocaleString('vi-VN') : 'Trong vòng 24 giờ kể từ thời điểm chốt thầu';
 
             return `
-                <div style="padding: 18px 24px; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; color: #1e293b; background: #ffffff; width: 740px; margin: 0 auto; font-size: 10px; line-height: 1.35; box-sizing: border-box;">
+                <div style="padding: 18px 24px; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; color: #1e293b; background: #ffffff; width: 720px; max-width: 720px; margin: 0 auto; font-size: 10px; line-height: 1.35; box-sizing: border-box;">
                     <!-- Header with Airline logo and Department -->
                     <div style="border-bottom: 2px solid #0284c7; padding-bottom: 8px; margin-bottom: 10px; display: flex; justify-content: space-between; align-items: flex-start;">
                         <div>
@@ -422,7 +422,6 @@
             }
 
             setTimeout(() => {
-                let renderWrapper = null;
                 try {
                     if (typeof html2pdf === 'undefined') {
                         alert('Thư viện PDF đang tải, vui lòng thử lại sau giây lát!');
@@ -443,58 +442,46 @@
                         return;
                     }
 
-                    // Create attached temporary render container in DOM with fixed width & sufficient height to prevent html2canvas viewport clipping
-                    renderWrapper = document.createElement('div');
-                    renderWrapper.id = 'tempPdfRenderBox_' + Date.now();
-                    renderWrapper.style.position = 'fixed';
-                    renderWrapper.style.left = '0';
-                    renderWrapper.style.top = '0';
-                    renderWrapper.style.width = '740px';
-                    renderWrapper.style.zIndex = '-9999';
-                    renderWrapper.style.background = '#ffffff';
-                    renderWrapper.style.margin = '0';
-                    renderWrapper.style.padding = '0';
-                    renderWrapper.innerHTML = html;
-                    document.body.appendChild(renderWrapper);
+                    let container = document.getElementById('pdfExportContainer');
+                    if (!container) {
+                        container = document.createElement('div');
+                        container.id = 'pdfExportContainer';
+                        container.style.display = 'none';
+                        document.body.appendChild(container);
+                    }
+                    container.innerHTML = html;
 
-                    const targetEl = renderWrapper.firstElementChild || renderWrapper;
+                    const element = container.firstElementChild.cloneNode(true);
+                    element.style.display = 'block';
+                    element.style.margin = '0 auto';
+                    element.style.boxSizing = 'border-box';
 
                     const opt = {
-                        margin:       [6, 6, 6, 6],
+                        margin:       [8, 8, 8, 8],
                         filename:     `Phieu_Xac_Nhan_Thang_Thau_${wonId}.pdf`,
                         image:        { type: 'jpeg', quality: 0.98 },
                         html2canvas:  {
                             scale: 2,
                             useCORS: true,
                             letterRendering: true,
-                            logging: false,
-                            scrollY: 0,
-                            scrollX: 0,
-                            windowWidth: 1000,
-                            windowHeight: 1400
+                            logging: false
                         },
-                        jsPDF:        { unit: 'mm', format: 'a4', orientation: 'portrait' },
-                        pagebreak:    { mode: ['avoid-all', 'css', 'legacy'] }
+                        jsPDF:        { unit: 'mm', format: 'a4', orientation: 'portrait' }
                     };
 
-                    html2pdf().set(opt).from(targetEl).save().then(() => {
+                    html2pdf().set(opt).from(element).save().then(() => {
                         showToast(`Đã tải xuống Phiếu xác nhận thắng thầu (${wonId}) thành công!`);
                     }).catch(err => {
                         console.error('Error generating PDF:', err);
                         alert('Lỗi tạo file PDF: ' + err.message);
                     }).finally(() => {
-                        if (renderWrapper && document.body.contains(renderWrapper)) {
-                            document.body.removeChild(renderWrapper);
-                        }
+                        container.innerHTML = '';
                         if (btn) {
                             btn.disabled = false;
                             btn.innerHTML = originalContent;
                         }
                     });
                 } catch (err) {
-                    if (renderWrapper && document.body.contains(renderWrapper)) {
-                        document.body.removeChild(renderWrapper);
-                    }
                     console.error('downloadAwardSlipPDF error:', err);
                     alert('Lỗi khi xuất file PDF: ' + err.message);
                     if (btn) {
