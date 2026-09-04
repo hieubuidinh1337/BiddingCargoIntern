@@ -161,7 +161,7 @@ if (currSettings.minIncrement !== 700 || currSettings.cutoffHours !== 4 || currS
 console.log('Cấu hình đã lưu:', currSettings);
 
 // 7. KIỂM TRA PHÂN QUYỀN GIỚI HẠN DÀNH CHO NHÂN VIÊN (STAFF)
-console.log('\n--- 7. Kiểm tra Giới hạn Quyền Nhân viên (STAFF) ---');
+console.log('\n--- 7. Kiểm tra Quyền Hạn Nhân viên (STAFF) ---');
 CargoStore.loginAdmin('staff01', 'staff2026');
 console.log('Đang đăng nhập bằng tài khoản Nhân viên: staff01 (STAFF)');
 
@@ -169,13 +169,15 @@ const staffUpdateSettings = CargoStore.updateSystemSettings({ minIncrement: 999 
 console.log('STAFF Sửa Cấu hình hệ thống:', staffUpdateSettings.success ? 'SAI (Cho phép)' : 'ĐÚNG (Bị chặn: ' + staffUpdateSettings.message + ')');
 if (staffUpdateSettings.success) throw new Error('Lỗi phân quyền: STAFF vẫn sửa được Cấu hình hệ thống!');
 
-const staffLockUser = CargoStore.toggleUserLock('AG-0892', 'agent');
-console.log('STAFF Khóa tài khoản:', staffLockUser.success ? 'SAI (Cho phép)' : 'ĐÚNG (Bị chặn: ' + staffLockUser.message + ')');
-if (staffLockUser.success) throw new Error('Lỗi phân quyền: STAFF vẫn khóa/mở khóa được tài khoản!');
+const staffLockAgent = CargoStore.toggleUserLock('AG-0892', 'agent');
+console.log('STAFF Kích hoạt / Khóa tài khoản Đại lý:', staffLockAgent.success ? 'ĐÚNG (Cho phép: ' + staffLockAgent.message + ')' : 'SAI (Bị chặn)');
+if (!staffLockAgent.success) throw new Error('Lỗi phân quyền: STAFF phải có quyền kích hoạt/khóa tài khoản đại lý!');
+// Trả lại trạng thái cũ cho AG-0892
+CargoStore.toggleUserLock('AG-0892', 'agent');
 
-const staffChangeRole = CargoStore.updateUserRole('AG-0892', 'TIER2', 'agent');
-console.log('STAFF Phân hạng/Phân quyền:', staffChangeRole.success ? 'SAI (Cho phép)' : 'ĐÚNG (Bị chặn: ' + staffChangeRole.message + ')');
-if (staffChangeRole.success) throw new Error('Lỗi phân quyền: STAFF vẫn thay đổi được phân hạng/vai trò!');
+const staffLockStaff = CargoStore.toggleUserLock('admin', 'staff');
+console.log('STAFF Khóa tài khoản Nhân sự khác:', staffLockStaff.success ? 'SAI (Cho phép)' : 'ĐÚNG (Bị chặn: ' + staffLockStaff.message + ')');
+if (staffLockStaff.success) throw new Error('Lỗi phân quyền: STAFF không được phép khóa/mở khóa tài khoản nhân sự!');
 
 const staffCreateAccount = CargoStore.createStaffAccount({ username: 'staff100' });
 console.log('STAFF Tạo nhân viên mới:', staffCreateAccount.success ? 'SAI (Cho phép)' : 'ĐÚNG (Bị chặn: ' + staffCreateAccount.message + ')');

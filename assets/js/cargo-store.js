@@ -1303,8 +1303,8 @@ const CargoStore = (function() {
 
         toggleUserLock: function(identifier, type = 'agent') {
             const data = loadData();
-            if (data.currentAdmin && data.currentAdmin.role === 'STAFF') {
-                return { success: false, message: 'Nhân viên (STAFF) không có quyền kích hoạt hoặc khóa tài khoản. Thao tác này chỉ dành cho Quản trị viên (ADMIN).' };
+            if (type !== 'agent' && data.currentAdmin && data.currentAdmin.role === 'STAFF') {
+                return { success: false, message: 'Nhân viên (STAFF) không có quyền kích hoạt hoặc khóa tài khoản nhân sự. Thao tác này chỉ dành cho Quản trị viên (ADMIN).' };
             }
 
             if (type === 'agent') {
@@ -1316,7 +1316,7 @@ const CargoStore = (function() {
                     return {
                         success: true,
                         newStatus: target.status,
-                        message: `Đã ${isCurrentlyActive ? 'KHÓA' : 'MỞ KHÓA'} tài khoản đại lý ${target.code} (${target.companyName}).`
+                        message: `Đã ${isCurrentlyActive ? 'KHÓA' : 'KÍCH HOẠT / MỞ KHÓA'} tài khoản đại lý ${target.code} (${target.companyName}).`
                     };
                 }
             } else {
@@ -1328,7 +1328,7 @@ const CargoStore = (function() {
                     return {
                         success: true,
                         newStatus: target.status,
-                        message: `Đã ${isCurrentlyActive ? 'KHÓA' : 'MỞ KHÓA'} tài khoản nhân viên "${target.username}".`
+                        message: `Đã ${isCurrentlyActive ? 'KHÓA' : 'KÍCH HOẠT / MỞ KHÓA'} tài khoản nhân viên "${target.username}".`
                     };
                 }
             }
