@@ -371,12 +371,34 @@
                                     <p class="font-medium text-slate-800">${r.notifEmail || r.email}</p>
                                 </div>
                                 <div>
-                                    <p class="text-slate-500 font-medium">Mật khẩu khởi tạo đăng ký:</p>
-                                    <p class="font-mono font-bold text-slate-800 bg-white px-2 py-0.5 rounded border border-slate-200 inline-block">${r.password || '••••••••'}</p>
+                                    <p class="text-slate-500 font-medium mb-1">Mật khẩu khởi tạo đăng ký:</p>
+                                    <div class="inline-flex items-center gap-2 bg-white px-2.5 py-1 rounded-lg border border-slate-200 shadow-2xs">
+                                        <span id="pwd-val-${r.regId}" class="font-mono font-bold text-slate-800 tracking-wider">••••••••</span>
+                                        <button type="button" 
+                                                onclick="toggleRegSecret('${r.regId}', 'pwd')" 
+                                                id="pwd-btn-${r.regId}" 
+                                                data-real="${encodeURIComponent(r.password || '12345678')}" 
+                                                data-masked="••••••••" 
+                                                class="text-slate-400 hover:text-blue-600 transition p-0.5 cursor-pointer flex items-center justify-center" 
+                                                title="Bấm để xem / ẩn mật khẩu">
+                                            <i class="fa-solid fa-eye text-xs"></i>
+                                        </button>
+                                    </div>
                                 </div>
                                 <div>
-                                    <p class="text-slate-500 font-medium">Mã PIN bảo mật (4 chữ số):</p>
-                                    <p class="font-mono font-bold text-indigo-700 bg-indigo-50 px-2 py-0.5 rounded border border-indigo-200 inline-block">${r.pin || '1234'}</p>
+                                    <p class="text-slate-500 font-medium mb-1">Mã PIN bảo mật (4 chữ số):</p>
+                                    <div class="inline-flex items-center gap-2 bg-indigo-50/80 px-2.5 py-1 rounded-lg border border-indigo-200 shadow-2xs">
+                                        <span id="pin-val-${r.regId}" class="font-mono font-bold text-indigo-700 tracking-wider">••••</span>
+                                        <button type="button" 
+                                                onclick="toggleRegSecret('${r.regId}', 'pin')" 
+                                                id="pin-btn-${r.regId}" 
+                                                data-real="${encodeURIComponent(r.pin || '1234')}" 
+                                                data-masked="••••" 
+                                                class="text-indigo-400 hover:text-indigo-700 transition p-0.5 cursor-pointer flex items-center justify-center" 
+                                                title="Bấm để xem / ẩn mã PIN">
+                                            <i class="fa-solid fa-eye text-xs"></i>
+                                        </button>
+                                    </div>
                                 </div>
                                 <div class="col-span-2">
                                     <p class="text-slate-500 font-medium">Thời gian nộp hồ sơ:</p>
@@ -592,6 +614,28 @@
                 } else {
                     alert(res.message);
                 }
+            }
+        }
+
+        function toggleRegSecret(regId, type) {
+            const valEl = document.getElementById(`${type}-val-${regId}`);
+            const btnEl = document.getElementById(`${type}-btn-${regId}`);
+            if (!valEl || !btnEl) return;
+
+            const real = decodeURIComponent(btnEl.getAttribute('data-real') || '');
+            const masked = btnEl.getAttribute('data-masked') || (type === 'pwd' ? '••••••••' : '••••');
+            const isMasked = valEl.textContent.trim() === masked;
+
+            if (isMasked) {
+                valEl.textContent = real;
+                valEl.classList.remove('tracking-wider');
+                btnEl.innerHTML = '<i class="fa-solid fa-eye-slash text-xs text-blue-600"></i>';
+                btnEl.title = `Bấm để ẩn ${type === 'pwd' ? 'mật khẩu' : 'mã PIN'}`;
+            } else {
+                valEl.textContent = masked;
+                valEl.classList.add('tracking-wider');
+                btnEl.innerHTML = '<i class="fa-solid fa-eye text-xs"></i>';
+                btnEl.title = `Bấm để xem ${type === 'pwd' ? 'mật khẩu' : 'mã PIN'}`;
             }
         }
 
