@@ -997,11 +997,21 @@
                 const paperEl = document.getElementById('mockDocPaper');
                 if (paperEl && window.html2pdf) {
                     const opt = {
-                        margin: [8, 8, 8, 8],
+                        margin: [6, 8, 6, 8],
                         filename: activeDocObj.name.toLowerCase().endsWith('.pdf') ? activeDocObj.name : (activeDocObj.name + '.pdf'),
                         image: { type: 'jpeg', quality: 0.98 },
-                        html2canvas: { scale: 2, useCORS: true },
-                        jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait' }
+                        html2canvas: {
+                            scale: 2,
+                            useCORS: true,
+                            letterRendering: true,
+                            logging: false,
+                            scrollY: 0,
+                            scrollX: 0,
+                            windowWidth: 1000,
+                            windowHeight: 1400
+                        },
+                        jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait' },
+                        pagebreak: { mode: ['avoid-all', 'css', 'legacy'] }
                     };
                     html2pdf().set(opt).from(paperEl).save();
                 } else {
