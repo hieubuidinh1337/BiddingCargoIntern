@@ -196,6 +196,7 @@ console.log(`Số lượng chuyến bay: ${countBefore} -> ${countAfter} (Đã x
 console.log('\n--- 9. Kiểm tra Đấu giá Ẩn danh & Bảo mật Dữ liệu ---');
 CargoStore.logoutAdmin();
 CargoStore.loginAgent('AG-0892', 'abc123456');
+window.location.pathname = '/04-Detail.html';
 const openAuction = CargoStore.getAuctions().find(a => a.status === 'OPEN') || CargoStore.getAuctions()[0];
 const anonBidRes = CargoStore.placeBid(openAuction.id, openAuction.currentPriceKg + openAuction.minStep, true);
 console.log('Đặt giá ẩn danh từ AG-0892:', anonBidRes.success ? 'THÀNH CÔNG' : 'THẤT BÀI');
@@ -211,10 +212,11 @@ const competitorViewName = CargoStore.getPublicAgentName('AG-0892', 'ABC Logisti
 console.log('Đại lý đối thủ (AG-0556) nhìn thấy:', competitorViewName);
 if (competitorViewName.includes('ABC Logistics')) throw new Error('Lỗi bảo mật: Đại lý đối thủ vẫn nhìn thấy tên công ty!');
 
-// Đăng nhập Quản trị viên (ADMIN)
+// Đăng nhập Quản trị viên (ADMIN) trên trang Admin
 CargoStore.loginAdmin('admin', 'admin2026');
+window.location.pathname = '/Admin/05-AuctionDetail.html';
 const adminViewName = CargoStore.getPublicAgentName('AG-0892', 'ABC Logistics', true, null);
-console.log('Quản trị viên (ADMIN) nhìn thấy:', adminViewName);
+console.log('Quản trị viên (ADMIN) nhìn thấy trên Admin Portal:', adminViewName);
 if (!adminViewName.includes('ABC Logistics') || !adminViewName.includes('ẨN DANH')) throw new Error('Lỗi Admin: Admin không xem được tên thực kèm tag ẨN DANH!');
 
 console.log('\n=== TẤT CẢ USE CASE & KIỂM TRA BẢO MẬT ĐẤU GIÁ ẨN DANH ĐÃ ĐƯỢC XÁC MINH THÀNH CÔNG 100%! ===');

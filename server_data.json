@@ -1,5 +1,5 @@
 {
-  "version": 1788490370166,
+  "version": 1788490900393,
   "auctions": [
     {
       "id": 1,
@@ -15,15 +15,16 @@
       "aircraft": "Airbus A321neo Cargo",
       "capacityKg": 3500,
       "startingPriceKg": 18000,
-      "currentPriceKg": 41500,
+      "currentPriceKg": 42500,
       "minStep": 500,
       "endTime": "2026-09-04T03:15:58.983Z",
       "status": "OPEN",
       "leadingAgentCode": "AG-0556",
       "leadingAgentName": "Công ty TNHH Tiếp vận Toàn Cầu Golden Star",
-      "bidsCount": 12,
+      "bidsCount": 14,
       "specialNotes": "Hàng tổng hợp, hỗ trợ kho lạnh bảo quản thực phẩm & dược phẩm.",
-      "cutOffTime": "11:30 · 15/08/2026"
+      "cutOffTime": "11:30 · 15/08/2026",
+      "isAnonymous": true
     },
     {
       "id": 2,
@@ -106,10 +107,33 @@
   ],
   "bids": [
     {
+      "id": 1788490894083,
+      "auctionId": 1,
+      "agentCode": "AG-0556",
+      "agentName": "Công ty TNHH Tiếp vận Toàn Cầu Golden Star",
+      "isAnonymous": true,
+      "priceKg": 42500,
+      "time": "Vừa xong",
+      "status": "HIGHEST",
+      "weightKg": 3500
+    },
+    {
+      "id": 1788490892087,
+      "auctionId": 1,
+      "agentCode": "AG-0556",
+      "agentName": "Công ty TNHH Tiếp vận Toàn Cầu Golden Star",
+      "isAnonymous": true,
+      "priceKg": 42000,
+      "time": "Vừa xong",
+      "status": "OUTBID",
+      "weightKg": 3500
+    },
+    {
       "id": 1788429559431,
       "auctionId": 3,
       "agentCode": "AG-1024",
       "agentName": "Công ty CP Giao nhận Kho vận Vinatrans",
+      "isAnonymous": true,
       "priceKg": 30000,
       "time": "Vừa xong",
       "status": "WON",
@@ -120,9 +144,10 @@
       "auctionId": 1,
       "agentCode": "AG-0556",
       "agentName": "Công ty TNHH Tiếp vận Toàn Cầu Golden Star",
+      "isAnonymous": true,
       "priceKg": 41500,
       "time": "Vừa xong",
-      "status": "HIGHEST",
+      "status": "OUTBID",
       "weightKg": 3500
     },
     {
@@ -130,6 +155,7 @@
       "auctionId": 1,
       "agentCode": "AG-1024",
       "agentName": "Công ty CP Giao nhận Kho vận Vinatrans",
+      "isAnonymous": true,
       "priceKg": 39000,
       "time": "Vừa xong",
       "status": "OUTBID",
@@ -231,6 +257,26 @@
     }
   ],
   "notifications": [
+    {
+      "id": 1788490894083,
+      "targetAgentCode": "AG-0556",
+      "title": "Đặt giá thành công chuyến VU130",
+      "message": "Bạn (AG-0556) đang dẫn đầu mức giá 42.500 đ/Kg cho chặng SGN - HAN. (Tên công ty được che ẩn danh đối với các đối thủ)",
+      "time": "Vừa xong",
+      "type": "HIGHEST",
+      "read": false,
+      "link": "04-Detail.html?id=1"
+    },
+    {
+      "id": 1788490892087,
+      "targetAgentCode": "AG-0556",
+      "title": "Đặt giá thành công chuyến VU130",
+      "message": "Bạn (AG-0556) đang dẫn đầu mức giá 42.000 đ/Kg cho chặng SGN - HAN.",
+      "time": "Vừa xong",
+      "type": "HIGHEST",
+      "read": false,
+      "link": "04-Detail.html?id=1"
+    },
     {
       "id": 1788429559432,
       "targetAgentCode": "AG-0556",

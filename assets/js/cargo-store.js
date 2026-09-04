@@ -289,6 +289,7 @@ const CargoStore = (function() {
                 auctionId: 1,
                 agentCode: 'AG-1024',
                 agentName: 'Vinatrans Express',
+                isAnonymous: true,
                 priceKg: 19000,
                 time: '1 giờ trước',
                 status: 'OUTBID',
@@ -299,6 +300,7 @@ const CargoStore = (function() {
                 auctionId: 1,
                 agentCode: 'AG-0556',
                 agentName: 'Golden Star Forwarding',
+                isAnonymous: true,
                 priceKg: 20000,
                 time: '35 phút trước',
                 status: 'OUTBID',
@@ -309,6 +311,7 @@ const CargoStore = (function() {
                 auctionId: 1,
                 agentCode: 'AG-0892',
                 agentName: 'ABC Logistics',
+                isAnonymous: true,
                 priceKg: 21500,
                 time: '12 phút trước',
                 status: 'HIGHEST',
@@ -807,29 +810,30 @@ const CargoStore = (function() {
 
         getPublicAgentName: function(agentCode, agentName, isAnonymous = false, viewerContext = null) {
             const data = loadData();
-            const currentAdmin = data.currentAdmin;
             const currentUser = viewerContext || data.currentUser;
+            const pathname = (typeof window !== 'undefined' && window.location && window.location.pathname) ? window.location.pathname : '';
+            const isAdminPage = pathname.includes('/Admin/') || pathname.includes('/admin/');
 
-            // Admin or Staff viewing -> Full visibility + tag if anonymous
-            if (currentAdmin) {
+            // 1. Admin or Staff viewing on Admin Portal -> Full visibility + tag if anonymous
+            if (isAdminPage && data.currentAdmin) {
                 if (isAnonymous) {
                     return `${agentName || 'Đại lý'} (${agentCode || '-'}) [ẨN DANH]`;
                 }
                 return `${agentName || 'Đại lý'} (${agentCode || '-'})`;
             }
 
-            // The bidding agent themselves viewing -> Real name with (Bạn)
+            // 2. The bidding agent themselves viewing -> Real name with (Bạn)
             if (currentUser && (currentUser.agentCode === agentCode || currentUser.code === agentCode)) {
                 return `${agentName || currentUser.companyName} (Bạn)`;
             }
 
-            // Competitor agent viewing an anonymous bid -> Mask identity
+            // 3. Competitor agent viewing an anonymous bid -> Mask identity completely!
             if (isAnonymous) {
                 const maskedCode = agentCode ? (agentCode.slice(0, 3) + '***') : 'AG-***';
                 return `Đại lý ẩn danh (${maskedCode})`;
             }
 
-            // Competitor viewing non-anonymous bid -> Real name
+            // 4. Competitor viewing non-anonymous bid -> Real name
             return agentName || 'Đại lý đấu thầu';
         },
 
