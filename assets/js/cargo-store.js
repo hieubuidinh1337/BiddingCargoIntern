@@ -398,6 +398,12 @@ const CargoStore = (function() {
 
             let updated = false;
 
+            // Ensure data.auctions has default seed if missing or empty
+            if (!data.auctions || !Array.isArray(data.auctions) || data.auctions.length === 0) {
+                data.auctions = JSON.parse(JSON.stringify(defaultData.auctions));
+                updated = true;
+            }
+
             // Auto-refresh end time for OPEN auctions if expired in localStorage & deduplicate
             const now = Date.now();
             if (data.auctions && Array.isArray(data.auctions)) {
@@ -456,9 +462,13 @@ const CargoStore = (function() {
             window.dispatchEvent(new CustomEvent('cargostore_updated', { detail: data }));
         } catch (e) {}
 
-        // Push changes to server if running over HTTP/HTTPS
-        if (!skipServerSync && typeof window !== 'undefined' && window.location && window.location.protocol.startsWith('http')) {
-            fetch('/api/data', {
+        // Push changes to server if running over HTTP/HTTPS or local dev server
+        if (!skipServerSync && typeof window !== 'undefined') {
+            const apiUrl = (window.location && window.location.protocol.startsWith('http'))
+                ? '/api/data'
+                : 'http://localhost:8085/api/data';
+
+            fetch(apiUrl, {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({
@@ -482,10 +492,14 @@ const CargoStore = (function() {
     }
 
     async function syncWithServer() {
-        if (isSyncing || typeof window === 'undefined' || !window.location || !window.location.protocol.startsWith('http')) return;
+        if (isSyncing || typeof window === 'undefined') return;
         try {
             isSyncing = true;
-            const res = await fetch('/api/data');
+            const apiUrl = (window.location && window.location.protocol.startsWith('http'))
+                ? '/api/data'
+                : 'http://localhost:8085/api/data';
+
+            const res = await fetch(apiUrl);
             if (!res.ok) return;
             const serverData = await res.json();
             if (serverData && serverData.version && serverData.version !== lastServerVersion) {
@@ -1740,6 +1754,14 @@ const CargoStore = (function() {
     };
 })();
 
+// Attach to global window object
+if (typeof window !== 'undefined') {
+    window.CargoStore = CargoStore;
+}
+if (typeof globalThis !== 'undefined') {
+    globalThis.CargoStore = CargoStore;
+}
+
 // Auto sync headers on page load
 if (typeof document !== 'undefined') {
     document.addEventListener('DOMContentLoaded', function() {
@@ -1748,4 +1770,8 @@ if (typeof document !== 'undefined') {
             if (CargoStore.syncAdminHeaderUI) CargoStore.syncAdminHeaderUI();
         }
     });
+}
+
+if (typeof module !== 'undefined' && module.exports) {
+    module.exports = CargoStore;
 }

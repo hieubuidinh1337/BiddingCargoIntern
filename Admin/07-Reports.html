@@ -6,7 +6,7 @@
     <title>Báo cáo & Thống kê - Cargo Bidding Admin</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
-    <script src="../assets/js/cargo-store.js"></script>
+    <script src="../assets/js/cargo-store.js?v=20260904_05"></script>
     <!-- SheetJS for real Excel (.xlsx) export -->
     <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
     <!-- html2pdf.js for real PDF export -->
@@ -78,20 +78,22 @@
 
         <!-- 3 Big Metric Cards -->
         <div class="grid grid-cols-1 sm:grid-cols-3 gap-4">
-            <div class="bg-white rounded-2xl p-5 border shadow-sm">
-                <p class="text-xs text-slate-500">Tổng doanh thu cargo qua thầu</p>
-                <p class="text-2xl font-bold text-slate-900 mt-1">1.280.500.000 đ</p>
-                <span class="text-[11px] text-emerald-600 font-semibold">+24.8% so với cùng kỳ tháng trước</span>
+            <div class="bg-white rounded-2xl p-5 border shadow-sm hover:shadow-md transition">
+                <p class="text-xs text-slate-500 font-medium">Tổng doanh thu cargo qua thầu</p>
+                <p class="text-2xl font-bold text-slate-900 mt-1" id="kpiTotalRevenue">0 đ</p>
+                <span class="text-[11px] text-emerald-600 font-semibold flex items-center gap-1 mt-1" id="kpiRevenueSubtext">
+                    <i class="fa-solid fa-arrow-trend-up"></i> Tự động tính theo dữ liệu phiên
+                </span>
             </div>
-            <div class="bg-white rounded-2xl p-5 border shadow-sm">
-                <p class="text-xs text-slate-500">Tổng tải trọng khai thác</p>
-                <p class="text-2xl font-bold text-blue-600 mt-1">68,400 Kg</p>
-                <span class="text-[11px] text-slate-400">Tỷ lệ lấp đầy bình quân: 92.6%</span>
+            <div class="bg-white rounded-2xl p-5 border shadow-sm hover:shadow-md transition">
+                <p class="text-xs text-slate-500 font-medium">Tổng tải trọng khai thác</p>
+                <p class="text-2xl font-bold text-blue-600 mt-1" id="kpiTotalCapacity">0 Kg</p>
+                <span class="text-[11px] text-slate-500 block mt-1" id="kpiFillRateSubtext">Tỷ lệ lấp đầy bình quân: 0%</span>
             </div>
-            <div class="bg-white rounded-2xl p-5 border shadow-sm">
-                <p class="text-xs text-slate-500">Giá thắng thầu bình quân</p>
-                <p class="text-2xl font-bold text-purple-600 mt-1">21.800 đ/Kg</p>
-                <span class="text-[11px] text-emerald-600 font-semibold">+12% so với giá sàn khởi điểm</span>
+            <div class="bg-white rounded-2xl p-5 border shadow-sm hover:shadow-md transition">
+                <p class="text-xs text-slate-500 font-medium">Giá thắng thầu bình quân</p>
+                <p class="text-2xl font-bold text-purple-600 mt-1" id="kpiAvgPrice">0 đ/Kg</p>
+                <span class="text-[11px] text-emerald-600 font-semibold block mt-1" id="kpiPriceSubtext">Tính trên toàn bộ tải trọng trúng thầu</span>
             </div>
         </div>
 
@@ -102,9 +104,9 @@
                     <h2 class="text-base font-bold text-slate-900 flex items-center gap-2">
                         <i class="fa-solid fa-route text-blue-600"></i> Doanh thu & Tải trọng theo từng đường bay
                     </h2>
-                    <p class="text-xs text-slate-500 mt-0.5">Tương ứng với kết quả View <code>vw_RouteRevenueReport</code> trong SQL Server 2022</p>
+                    <p class="text-xs text-slate-500 mt-0.5">Tự động tổng hợp và nhóm từ toàn bộ các chuyến bay trong hệ thống</p>
                 </div>
-                <span class="text-xs bg-slate-100 text-slate-700 px-3 py-1 rounded-lg font-medium">Kỳ báo cáo: Tháng 08/2026</span>
+                <span class="text-xs bg-slate-100 text-slate-700 px-3 py-1 rounded-lg font-medium" id="reportPeriodBadge">Kỳ báo cáo: Đang cập nhật</span>
             </div>
 
             <div class="overflow-x-auto">
@@ -120,62 +122,9 @@
                             <th class="py-3 px-4 text-right">Tổng doanh thu (VND)</th>
                         </tr>
                     </thead>
-                    <tbody class="divide-y divide-gray-100">
-                        <tr class="hover:bg-slate-50 transition">
-                            <td class="py-3.5 px-4 font-bold text-slate-800">
-                                <span class="w-2 h-2 rounded-full bg-blue-500 inline-block mr-1.5"></span> SGN - HAN (Sài Gòn - Hà Nội)
-                            </td>
-                            <td class="py-3.5 px-4 font-medium">18 chuyến</td>
-                            <td class="py-3.5 px-4">54,000 Kg</td>
-                            <td class="py-3.5 px-4 font-bold text-slate-900">52,500 Kg</td>
-                            <td class="py-3.5 px-4">
-                                <div class="flex items-center gap-2">
-                                    <div class="w-20 bg-gray-200 h-2 rounded-full overflow-hidden">
-                                        <div class="bg-emerald-500 h-full w-[97%]"></div>
-                                    </div>
-                                    <span class="font-bold text-emerald-600">97.2%</span>
-                                </div>
-                            </td>
-                            <td class="py-3.5 px-4 font-semibold text-blue-600">22.000 đ/Kg</td>
-                            <td class="py-3.5 px-4 text-right font-bold text-slate-900">1.155.000.000 đ</td>
-                        </tr>
-
-                        <tr class="hover:bg-slate-50 transition">
-                            <td class="py-3.5 px-4 font-bold text-slate-800">
-                                <span class="w-2 h-2 rounded-full bg-emerald-500 inline-block mr-1.5"></span> SGN - DAD (Sài Gòn - Đà Nẵng)
-                            </td>
-                            <td class="py-3.5 px-4 font-medium">8 chuyến</td>
-                            <td class="py-3.5 px-4">16,000 Kg</td>
-                            <td class="py-3.5 px-4 font-bold text-slate-900">14,200 Kg</td>
-                            <td class="py-3.5 px-4">
-                                <div class="flex items-center gap-2">
-                                    <div class="w-20 bg-gray-200 h-2 rounded-full overflow-hidden">
-                                        <div class="bg-blue-500 h-full w-[88%]"></div>
-                                    </div>
-                                    <span class="font-bold text-blue-600">88.7%</span>
-                                </div>
-                            </td>
-                            <td class="py-3.5 px-4 font-semibold text-blue-600">14.500 đ/Kg</td>
-                            <td class="py-3.5 px-4 text-right font-bold text-slate-900">205.900.000 đ</td>
-                        </tr>
-
-                        <tr class="hover:bg-slate-50 transition">
-                            <td class="py-3.5 px-4 font-bold text-slate-800">
-                                <span class="w-2 h-2 rounded-full bg-purple-500 inline-block mr-1.5"></span> HAN - PQC (Hà Nội - Phú Quốc)
-                            </td>
-                            <td class="py-3.5 px-4 font-medium">4 chuyến</td>
-                            <td class="py-3.5 px-4">16,000 Kg</td>
-                            <td class="py-3.5 px-4 font-bold text-slate-900">15,000 Kg</td>
-                            <td class="py-3.5 px-4">
-                                <div class="flex items-center gap-2">
-                                    <div class="w-20 bg-gray-200 h-2 rounded-full overflow-hidden">
-                                        <div class="bg-purple-500 h-full w-[93%]"></div>
-                                    </div>
-                                    <span class="font-bold text-purple-600">93.7%</span>
-                                </div>
-                            </td>
-                            <td class="py-3.5 px-4 font-semibold text-blue-600">25.000 đ/Kg</td>
-                            <td class="py-3.5 px-4 text-right font-bold text-slate-900">375.000.000 đ</td>
+                    <tbody class="divide-y divide-gray-100" id="routeReportTableBody">
+                        <tr>
+                            <td colspan="7" class="py-8 text-center text-gray-400">Đang tải dữ liệu báo cáo...</td>
                         </tr>
                     </tbody>
                 </table>
@@ -184,31 +133,15 @@
 
         <!-- Top Active Agents -->
         <div class="bg-white rounded-2xl border shadow-sm p-6 space-y-4">
-            <h2 class="text-base font-bold text-slate-900 flex items-center gap-2">
-                <i class="fa-solid fa-ranking-star text-amber-500"></i> Top Đại lý có doanh số đấu giá cao nhất
-            </h2>
+            <div class="flex items-center justify-between">
+                <h2 class="text-base font-bold text-slate-900 flex items-center gap-2">
+                    <i class="fa-solid fa-ranking-star text-amber-500"></i> Top Đại lý có doanh số đấu giá cao nhất
+                </h2>
+                <span class="text-[11px] text-gray-400">Cập nhật tự động theo lịch sử đặt thầu</span>
+            </div>
 
-            <div class="grid grid-cols-1 sm:grid-cols-3 gap-4 text-xs">
-                <div class="p-4 rounded-xl border bg-amber-50/40 border-amber-200 space-y-2">
-                    <span class="w-6 h-6 rounded-full bg-amber-400 text-white font-bold flex items-center justify-center text-[10px]">1</span>
-                    <p class="font-bold text-slate-900 text-sm">Vinatrans Express (AG-1024)</p>
-                    <p class="text-gray-500">Tổng thầu: <strong>45 lượt</strong> · Thắng: <strong class="text-green-600">16 chuyến</strong></p>
-                    <p class="font-bold text-blue-600 text-sm">Tổng chi tiêu: 28,500 USD</p>
-                </div>
-
-                <div class="p-4 rounded-xl border bg-slate-50 border-slate-200 space-y-2">
-                    <span class="w-6 h-6 rounded-full bg-slate-400 text-white font-bold flex items-center justify-center text-[10px]">2</span>
-                    <p class="font-bold text-slate-900 text-sm">Công ty TNHH Vận tải ABC (AG-0892)</p>
-                    <p class="text-gray-500">Tổng thầu: <strong>24 lượt</strong> · Thắng: <strong class="text-green-600">8 chuyến</strong></p>
-                    <p class="font-bold text-blue-600 text-sm">Tổng chi tiêu: 12,400 USD</p>
-                </div>
-
-                <div class="p-4 rounded-xl border bg-slate-50 border-slate-200 space-y-2">
-                    <span class="w-6 h-6 rounded-full bg-amber-700 text-white font-bold flex items-center justify-center text-[10px]">3</span>
-                    <p class="font-bold text-slate-900 text-sm">Golden Star Forwarding (AG-0556)</p>
-                    <p class="text-gray-500">Tổng thầu: <strong>18 lượt</strong> · Thắng: <strong class="text-green-600">5 chuyến</strong></p>
-                    <p class="font-bold text-blue-600 text-sm">Tổng chi tiêu: 8,200 USD</p>
-                </div>
+            <div class="grid grid-cols-1 sm:grid-cols-3 gap-4 text-xs" id="topAgentsContainer">
+                <div class="col-span-3 text-center py-6 text-gray-400">Đang tổng hợp dữ liệu đại lý...</div>
             </div>
         </div>
 
@@ -414,7 +347,298 @@
             }, 3500);
         }
 
-        // 1. Export to Excel (.xlsx) using SheetJS
+        // Compute dynamic metrics from live store data
+        function computeReportMetrics(customData) {
+            const store = getStore();
+            const data = customData || (store ? store.getData() : {});
+            const auctions = data.auctions || [];
+            const bids = data.bids || [];
+            const wonList = data.wonAuctions || [];
+            const agentsList = data.agentsList || [];
+
+            const routeMap = {};
+            let grandTotalRevenue = 0;
+            let grandTotalOfferedKg = 0;
+            let grandTotalWonKg = 0;
+            let closedCount = 0;
+
+            // 1. Group auctions by route
+            auctions.forEach(a => {
+                const routeName = a.route || `${a.origin || 'SGN'} - ${a.destination || 'HAN'}`;
+                if (!routeMap[routeName]) {
+                    routeMap[routeName] = {
+                        route: routeName,
+                        flightCount: 0,
+                        totalOfferedKg: 0,
+                        totalWonKg: 0,
+                        totalRevenue: 0
+                    };
+                }
+
+                const rm = routeMap[routeName];
+                rm.flightCount += 1;
+                const capacity = Number(a.capacityKg) || 0;
+                rm.totalOfferedKg += capacity;
+                grandTotalOfferedKg += capacity;
+
+                const hasBids = (a.bidsCount > 0) || (bids.some(b => b.auctionId == a.id)) || (a.status === 'CLOSED');
+                const finalPrice = Number(a.winningPriceKg) || Number(a.currentPriceKg) || Number(a.startingPriceKg) || 0;
+
+                if (hasBids) {
+                    rm.totalWonKg += capacity;
+                    grandTotalWonKg += capacity;
+                    const rev = capacity * finalPrice;
+                    rm.totalRevenue += rev;
+                    grandTotalRevenue += rev;
+                }
+
+                if (a.status === 'CLOSED') {
+                    closedCount++;
+                }
+            });
+
+            // Factor in wonList if any auctions aren't in auctions array
+            wonList.forEach(w => {
+                const routeName = w.route || (w.flightNumber ? w.flightNumber : 'Khác');
+                if (!auctions.some(a => a.id == w.auctionId || (a.flightCode && a.flightCode === w.flightCode))) {
+                    if (!routeMap[routeName]) {
+                        routeMap[routeName] = {
+                            route: routeName,
+                            flightCount: 1,
+                            totalOfferedKg: Number(w.capacityKg) || 0,
+                            totalWonKg: Number(w.capacityKg) || 0,
+                            totalRevenue: Number(w.totalAmountVND) || ((w.capacityKg || 0) * (w.priceKg || 0))
+                        };
+                        grandTotalOfferedKg += (w.capacityKg || 0);
+                        grandTotalWonKg += (w.capacityKg || 0);
+                        grandTotalRevenue += routeMap[routeName].totalRevenue;
+                    }
+                }
+            });
+
+            const grandFillRate = grandTotalOfferedKg > 0 ? (grandTotalWonKg / grandTotalOfferedKg * 100) : 0;
+            const grandAvgPrice = grandTotalWonKg > 0 ? Math.round(grandTotalRevenue / grandTotalWonKg) : 0;
+
+            // 2. Compute dynamic stats for Top Agents
+            const agentStats = {};
+            agentsList.forEach(ag => {
+                agentStats[ag.code] = {
+                    code: ag.code,
+                    companyName: ag.companyName,
+                    tier: ag.tier || 'TIER2',
+                    totalBids: ag.totalBids || 0,
+                    wonCount: ag.totalWins || 0,
+                    totalSpentVND: ag.totalSpentVND || 0
+                };
+            });
+
+            // Count placed bids from bids array
+            bids.forEach(b => {
+                const c = b.agentCode;
+                if (c) {
+                    if (!agentStats[c]) {
+                        agentStats[c] = {
+                            code: c,
+                            companyName: b.agentName || c,
+                            tier: 'TIER2',
+                            totalBids: 0,
+                            wonCount: 0,
+                            totalSpentVND: 0
+                        };
+                    }
+                    agentStats[c].totalBids += 1;
+                }
+            });
+
+            // Calculate spent and won from auctions
+            auctions.forEach(a => {
+                const winner = a.winnerAgentCode || (a.status === 'CLOSED' ? a.leadingAgentCode : null);
+                if (winner && a.bidsCount > 0) {
+                    if (!agentStats[winner]) {
+                        agentStats[winner] = {
+                            code: winner,
+                            companyName: a.winnerAgentName || a.leadingAgentName || winner,
+                            tier: 'TIER2',
+                            totalBids: a.bidsCount,
+                            wonCount: 0,
+                            totalSpentVND: 0
+                        };
+                    }
+                    agentStats[winner].wonCount += 1;
+                    const price = Number(a.winningPriceKg) || Number(a.currentPriceKg) || 0;
+                    agentStats[winner].totalSpentVND += ((a.capacityKg || 0) * price);
+                }
+            });
+
+            wonList.forEach(w => {
+                const winner = w.agentCode;
+                if (winner) {
+                    if (!agentStats[winner]) {
+                        agentStats[winner] = {
+                            code: winner,
+                            companyName: w.companyName || winner,
+                            tier: 'TIER2',
+                            totalBids: 1,
+                            wonCount: 0,
+                            totalSpentVND: 0
+                        };
+                    }
+                    if (!auctions.some(a => (a.winnerAgentCode === winner || a.leadingAgentCode === winner) && a.id == w.auctionId)) {
+                        agentStats[winner].wonCount += 1;
+                        agentStats[winner].totalSpentVND += (w.totalAmountVND || ((w.capacityKg || 0) * (w.priceKg || 0)));
+                    }
+                }
+            });
+
+            const sortedAgents = Object.values(agentStats)
+                .filter(a => a.totalBids > 0 || a.wonCount > 0 || a.totalSpentVND > 0)
+                .sort((a, b) => b.totalSpentVND - a.totalSpentVND);
+
+            const finalTopAgents = sortedAgents.length > 0 ? sortedAgents : agentsList.slice(0, 3).map(ag => ({
+                code: ag.code,
+                companyName: ag.companyName,
+                tier: ag.tier || 'TIER2',
+                totalBids: ag.totalBids || 0,
+                wonCount: ag.totalWins || 0,
+                totalSpentVND: ag.totalSpentVND || 0
+            }));
+
+            return {
+                grandTotalRevenue,
+                grandTotalOfferedKg,
+                grandTotalWonKg,
+                grandFillRate,
+                grandAvgPrice,
+                closedCount,
+                routes: Object.values(routeMap),
+                topAgents: finalTopAgents
+            };
+        }
+
+        // Render dynamic UI from store
+        function renderReportUI(e) {
+            const passedData = (e && e.detail) ? e.detail : (window.CargoStore ? CargoStore.getData() : null);
+            const metrics = computeReportMetrics(passedData);
+
+            // 1. Render 3 KPI Cards
+            const kpiRev = document.getElementById('kpiTotalRevenue');
+            const kpiRevSub = document.getElementById('kpiRevenueSubtext');
+            const kpiCap = document.getElementById('kpiTotalCapacity');
+            const kpiFillSub = document.getElementById('kpiFillRateSubtext');
+            const kpiPrice = document.getElementById('kpiAvgPrice');
+
+            if (kpiRev) kpiRev.textContent = CargoStore.formatCurrency(metrics.grandTotalRevenue);
+            if (kpiRevSub) kpiRevSub.innerHTML = `<i class="fa-solid fa-circle-check text-emerald-600"></i> Tổng từ ${metrics.closedCount} phiên đã đóng/chốt thầu`;
+            if (kpiCap) kpiCap.textContent = CargoStore.formatNumber(metrics.grandTotalOfferedKg) + ' Kg';
+            if (kpiFillSub) kpiFillSub.textContent = `Tỷ lệ lấp đầy bình quân: ${metrics.grandFillRate.toFixed(1)}% (${CargoStore.formatNumber(metrics.grandTotalWonKg)} Kg trúng thầu)`;
+            if (kpiPrice) kpiPrice.textContent = CargoStore.formatCurrency(metrics.grandAvgPrice) + '/Kg';
+
+            const periodBadge = document.getElementById('reportPeriodBadge');
+            if (periodBadge) {
+                const now = new Date();
+                periodBadge.textContent = `Kỳ báo cáo: Tháng ${String(now.getMonth() + 1).padStart(2, '0')}/${now.getFullYear()}`;
+            }
+
+            // 2. Render Route Revenue Table
+            const tbody = document.getElementById('routeReportTableBody');
+            if (tbody) {
+                if (!metrics.routes || metrics.routes.length === 0) {
+                    tbody.innerHTML = `<tr><td colspan="7" class="py-8 text-center text-gray-400">Chưa có dữ liệu chuyến bay nào trong hệ thống</td></tr>`;
+                } else {
+                    const dotColors = ['bg-blue-500', 'bg-emerald-500', 'bg-purple-500', 'bg-amber-500', 'bg-indigo-500'];
+                    const barColors = ['bg-blue-500', 'bg-emerald-500', 'bg-purple-500', 'bg-amber-500', 'bg-indigo-500'];
+                    const textColors = ['text-blue-600', 'text-emerald-600', 'text-purple-600', 'text-amber-600', 'text-indigo-600'];
+
+                    const rowsHtml = metrics.routes.map((r, idx) => {
+                        const fillRate = r.totalOfferedKg > 0 ? (r.totalWonKg / r.totalOfferedKg * 100) : 0;
+                        const avgPrice = r.totalWonKg > 0 ? Math.round(r.totalRevenue / r.totalWonKg) : 0;
+                        const dotColor = dotColors[idx % dotColors.length];
+                        const barColor = barColors[idx % barColors.length];
+                        const textColor = textColors[idx % textColors.length];
+
+                        return `
+                            <tr class="hover:bg-slate-50 transition">
+                                <td class="py-3.5 px-4 font-bold text-slate-800">
+                                    <span class="w-2 h-2 rounded-full ${dotColor} inline-block mr-1.5"></span> ${r.route}
+                                </td>
+                                <td class="py-3.5 px-4 font-medium text-slate-700">${r.flightCount} chuyến</td>
+                                <td class="py-3.5 px-4 text-slate-600">${CargoStore.formatNumber(r.totalOfferedKg)} Kg</td>
+                                <td class="py-3.5 px-4 font-bold text-slate-900">${CargoStore.formatNumber(r.totalWonKg)} Kg</td>
+                                <td class="py-3.5 px-4">
+                                    <div class="flex items-center gap-2">
+                                        <div class="w-20 bg-gray-200 h-2 rounded-full overflow-hidden">
+                                            <div class="${barColor} h-full" style="width: ${Math.min(fillRate, 100)}%;"></div>
+                                        </div>
+                                        <span class="font-bold ${textColor}">${fillRate.toFixed(1)}%</span>
+                                    </div>
+                                </td>
+                                <td class="py-3.5 px-4 font-semibold text-blue-600">${CargoStore.formatCurrency(avgPrice)}/Kg</td>
+                                <td class="py-3.5 px-4 text-right font-bold text-slate-900">${CargoStore.formatCurrency(r.totalRevenue)}</td>
+                            </tr>
+                        `;
+                    }).join('');
+
+                    const totalSummaryRow = `
+                        <tr class="bg-slate-50 font-bold border-t-2 border-slate-300 text-slate-900">
+                            <td class="py-3.5 px-4 uppercase text-blue-800">
+                                <i class="fa-solid fa-plane-departure mr-1 text-blue-600"></i> Tổng cộng toàn mạng
+                            </td>
+                            <td class="py-3.5 px-4 text-slate-800">${metrics.routes.reduce((sum, r) => sum + r.flightCount, 0)} chuyến</td>
+                            <td class="py-3.5 px-4 text-slate-700">${CargoStore.formatNumber(metrics.grandTotalOfferedKg)} Kg</td>
+                            <td class="py-3.5 px-4 text-blue-700">${CargoStore.formatNumber(metrics.grandTotalWonKg)} Kg</td>
+                            <td class="py-3.5 px-4">
+                                <span class="text-emerald-700 bg-emerald-100 px-2 py-0.5 rounded text-[11px] font-bold">
+                                    ${metrics.grandFillRate.toFixed(1)}%
+                                </span>
+                            </td>
+                            <td class="py-3.5 px-4 text-blue-700">${CargoStore.formatCurrency(metrics.grandAvgPrice)}/Kg</td>
+                            <td class="py-3.5 px-4 text-right text-base text-blue-700 font-extrabold">${CargoStore.formatCurrency(metrics.grandTotalRevenue)}</td>
+                        </tr>
+                    `;
+
+                    tbody.innerHTML = rowsHtml + totalSummaryRow;
+                }
+            }
+
+            // 3. Render Top Agents
+            const topBox = document.getElementById('topAgentsContainer');
+            if (topBox) {
+                const agentsToShow = metrics.topAgents.slice(0, 3);
+                if (agentsToShow.length === 0) {
+                    topBox.innerHTML = `<div class="col-span-3 text-center py-6 text-gray-400">Chưa có dữ liệu giao dịch của đại lý</div>`;
+                } else {
+                    const medalBadges = [
+                        { bg: 'bg-amber-400', cardBg: 'bg-amber-50/40 border-amber-200', num: '1' },
+                        { bg: 'bg-slate-400', cardBg: 'bg-slate-50 border-slate-200', num: '2' },
+                        { bg: 'bg-amber-700', cardBg: 'bg-slate-50 border-slate-200', num: '3' }
+                    ];
+
+                    topBox.innerHTML = agentsToShow.map((ag, idx) => {
+                        const m = medalBadges[idx] || medalBadges[1];
+                        const spentUSD = Math.round(ag.totalSpentVND / 25000);
+                        return `
+                            <div class="p-4 rounded-xl border ${m.cardBg} space-y-2 hover:shadow-sm transition">
+                                <div class="flex items-center justify-between">
+                                    <span class="w-6 h-6 rounded-full ${m.bg} text-white font-bold flex items-center justify-center text-[10px] shadow-2xs">${m.num}</span>
+                                    <span class="bg-blue-100 text-blue-800 text-[10px] font-bold px-2 py-0.5 rounded">${ag.tier || 'TIER2'}</span>
+                                </div>
+                                <p class="font-bold text-slate-900 text-sm truncate" title="${ag.companyName}">${ag.companyName}</p>
+                                <p class="text-gray-500 font-mono text-[11px]">${ag.code}</p>
+                                <p class="text-gray-600 text-xs">
+                                    Lượt thầu: <strong>${ag.totalBids || 0} lượt</strong> · Thắng: <strong class="text-green-600">${ag.wonCount || 0} chuyến</strong>
+                                </p>
+                                <p class="font-bold text-blue-600 text-sm pt-1 border-t border-slate-200/80">
+                                    Chi tiêu: ${CargoStore.formatCurrency(ag.totalSpentVND)}
+                                    ${spentUSD > 0 ? `<span class="text-[10px] font-normal text-slate-400"> (~${CargoStore.formatNumber(spentUSD)} USD)</span>` : ''}
+                                </p>
+                            </div>
+                        `;
+                    }).join('');
+                }
+            }
+        }
+
+        // 1. Export to Excel (.xlsx) using dynamic metrics
         function exportToExcel(btn) {
             const originalContent = btn.innerHTML;
             btn.disabled = true;
@@ -429,21 +653,51 @@
                         return;
                     }
 
-                    const routeData = [
-                        { "STT": 1, "Tuyến đường bay": "SGN - HAN (Sài Gòn - Hà Nội)", "Số chuyến đấu giá": 18, "Tổng tải chào (Kg)": 54000, "Tải trúng thầu (Kg)": 52500, "Tỷ lệ lấp đầy": "97.2%", "Giá bình quân (VND/Kg)": 22000, "Tổng doanh thu (VND)": 1155000000 },
-                        { "STT": 2, "Tuyến đường bay": "SGN - DAD (Sài Gòn - Đà Nẵng)", "Số chuyến đấu giá": 8, "Tổng tải chào (Kg)": 16000, "Tải trúng thầu (Kg)": 14200, "Tỷ lệ lấp đầy": "88.7%", "Giá bình quân (VND/Kg)": 14500, "Tổng doanh thu (VND)": 205900000 },
-                        { "STT": 3, "Tuyến đường bay": "HAN - PQC (Hà Nội - Phú Quốc)", "Số chuyến đấu giá": 4, "Tổng tải chào (Kg)": 16000, "Tải trúng thầu (Kg)": 15000, "Tỷ lệ lấp đầy": "93.7%", "Giá bình quân (VND/Kg)": 25000, "Tổng doanh thu (VND)": 375000000 },
-                        { "STT": "TỔNG", "Tuyến đường bay": "Toàn mạng bay khai thác Cargo", "Số chuyến đấu giá": 30, "Tổng tải chào (Kg)": 86000, "Tải trúng thầu (Kg)": 81700, "Tỷ lệ lấp đầy": "95.0%", "Giá bình quân (VND/Kg)": 21800, "Tổng doanh thu (VND)": 1735900000 }
-                    ];
+                    const metrics = computeReportMetrics();
 
-                    const agentData = [
-                        { "Hạng": 1, "Mã đại lý": "AG-1024", "Tên doanh nghiệp": "Vinatrans Express Logistics", "Phân hạng": "TIER 1", "Tổng lượt đấu giá": 45, "Số chuyến thắng thầu": 16, "Tỷ lệ thắng": "35.5%", "Tổng chi tiêu (USD)": 28500 },
-                        { "Hạng": 2, "Mã đại lý": "AG-0892", "Tên doanh nghiệp": "Công ty TNHH Vận tải ABC", "Phân hạng": "TIER 1", "Tổng lượt đấu giá": 24, "Số chuyến thắng thầu": 8, "Tỷ lệ thắng": "33.3%", "Tổng chi tiêu (USD)": 12400 },
-                        { "Hạng": 3, "Mã đại lý": "AG-0556", "Tên doanh nghiệp": "Golden Star Forwarding Corp", "Phân hạng": "TIER 2", "Tổng lượt đấu giá": 18, "Số chuyến thắng thầu": 5, "Tỷ lệ thắng": "27.8%", "Tổng chi tiêu (USD)": 8200 }
-                    ];
+                    // Sheet 1: Route details from store
+                    const routeData = metrics.routes.map((r, idx) => {
+                        const fillRate = r.totalOfferedKg > 0 ? (r.totalWonKg / r.totalOfferedKg * 100) : 0;
+                        const avgPrice = r.totalWonKg > 0 ? Math.round(r.totalRevenue / r.totalWonKg) : 0;
+                        return {
+                            "STT": idx + 1,
+                            "Tuyến đường bay": r.route,
+                            "Số chuyến đấu giá": r.flightCount,
+                            "Tổng tải chào (Kg)": r.totalOfferedKg,
+                            "Tải trúng thầu (Kg)": r.totalWonKg,
+                            "Tỷ lệ lấp đầy": `${fillRate.toFixed(1)}%`,
+                            "Giá bình quân (VND/Kg)": avgPrice,
+                            "Tổng doanh thu (VND)": r.totalRevenue
+                        };
+                    });
 
-                    // Dynamic flight auctions from CargoStore
-                    const storeData = window.CargoStore ? CargoStore.getData() : {};
+                    // Add total row
+                    routeData.push({
+                        "STT": "TỔNG CỘNG",
+                        "Tuyến đường bay": "Toàn mạng bay khai thác Cargo",
+                        "Số chuyến đấu giá": metrics.routes.reduce((sum, r) => sum + r.flightCount, 0),
+                        "Tổng tải chào (Kg)": metrics.grandTotalOfferedKg,
+                        "Tải trúng thầu (Kg)": metrics.grandTotalWonKg,
+                        "Tỷ lệ lấp đầy": `${metrics.grandFillRate.toFixed(1)}%`,
+                        "Giá bình quân (VND/Kg)": metrics.grandAvgPrice,
+                        "Tổng doanh thu (VND)": metrics.grandTotalRevenue
+                    });
+
+                    // Sheet 2: Top Agents from store
+                    const agentData = metrics.topAgents.map((ag, idx) => ({
+                        "Xếp hạng": idx + 1,
+                        "Mã đại lý": ag.code,
+                        "Tên doanh nghiệp": ag.companyName,
+                        "Phân hạng": ag.tier || 'TIER2',
+                        "Tổng lượt đấu giá": ag.totalBids || 0,
+                        "Số chuyến thắng thầu": ag.wonCount || 0,
+                        "Tổng chi tiêu (VND)": ag.totalSpentVND || 0,
+                        "Tổng chi tiêu (~USD)": Math.round((ag.totalSpentVND || 0) / 25000)
+                    }));
+
+                    // Sheet 3: Dynamic flight auctions from CargoStore
+                    const store = getStore();
+                    const storeData = store ? store.getData() : {};
                     const auctions = storeData.auctions || [];
                     const auctionRows = auctions.map((a, idx) => ({
                         "STT": idx + 1,
@@ -453,9 +707,9 @@
                         "Loại tàu bay": a.aircraft || 'A321neo',
                         "Tải trọng (Kg)": a.capacityKg || 0,
                         "Giá khởi điểm (đ/Kg)": a.startingPriceKg || 0,
-                        "Giá hiện tại / trúng (đ/Kg)": a.currentPriceKg || 0,
+                        "Giá hiện tại / trúng (đ/Kg)": a.winningPriceKg || a.currentPriceKg || 0,
                         "Số lượt đặt giá": a.bidsCount || 0,
-                        "Đại lý dẫn đầu / Thắng": a.leadingAgentCode || a.winnerAgentCode || 'Chưa có',
+                        "Đại lý dẫn đầu / Thắng": a.winnerAgentCode || a.leadingAgentCode || 'Chưa có',
                         "Trạng thái": a.status === 'OPEN' ? 'ĐANG MỞ' : (a.status === 'CLOSED' ? 'ĐÃ ĐÓNG' : a.status)
                     }));
 
@@ -464,15 +718,17 @@
                     const wsAgents = XLSX.utils.json_to_sheet(agentData);
                     const wsAuctions = XLSX.utils.json_to_sheet(auctionRows);
 
-                    wsRoutes['!cols'] = [{wch: 6}, {wch: 32}, {wch: 18}, {wch: 20}, {wch: 20}, {wch: 16}, {wch: 22}, {wch: 24}];
-                    wsAgents['!cols'] = [{wch: 8}, {wch: 14}, {wch: 32}, {wch: 14}, {wch: 18}, {wch: 20}, {wch: 16}, {wch: 20}];
+                    wsRoutes['!cols'] = [{wch: 10}, {wch: 32}, {wch: 18}, {wch: 20}, {wch: 20}, {wch: 16}, {wch: 24}, {wch: 24}];
+                    wsAgents['!cols'] = [{wch: 10}, {wch: 14}, {wch: 34}, {wch: 14}, {wch: 18}, {wch: 20}, {wch: 22}, {wch: 20}];
                     wsAuctions['!cols'] = [{wch: 6}, {wch: 20}, {wch: 16}, {wch: 18}, {wch: 22}, {wch: 14}, {wch: 20}, {wch: 24}, {wch: 16}, {wch: 24}, {wch: 14}];
 
                     XLSX.utils.book_append_sheet(wb, wsRoutes, "DoanhThu_TuyenBay");
                     XLSX.utils.book_append_sheet(wb, wsAgents, "Top_DaiLy");
                     XLSX.utils.book_append_sheet(wb, wsAuctions, "ChiTiet_ChuyenBay");
 
-                    XLSX.writeFile(wb, "BaoCao_HieuQua_KhaiThac_Cargo_VU_Thang08_2026.xlsx");
+                    const now = new Date();
+                    const fileName = `BaoCao_HieuQua_KhaiThac_Cargo_VU_Thang${String(now.getMonth() + 1).padStart(2, '0')}_${now.getFullYear()}.xlsx`;
+                    XLSX.writeFile(wb, fileName);
                     showToast("Đã tải xuống file Excel (.xlsx) thành công!");
                 } catch (err) {
                     console.error("Export Excel error:", err);
@@ -484,7 +740,7 @@
             }, 300);
         }
 
-        // 2. Export to PDF using html2pdf.js
+        // 2. Export to PDF with dynamic content injection
         function exportToPDF(btn) {
             const originalContent = btn.innerHTML;
             btn.disabled = true;
@@ -499,19 +755,161 @@
                         return;
                     }
 
-                    const templateWrap = document.getElementById('pdfExportTemplate');
-                    const printDate = document.getElementById('pdfPrintDate');
-                    if (printDate) {
-                        printDate.textContent = 'Ngày lập: ' + new Date().toLocaleDateString('vi-VN') + ' ' + new Date().toLocaleTimeString('vi-VN', {hour: '2-digit', minute:'2-digit'});
-                    }
+                    const metrics = computeReportMetrics();
+                    const now = new Date();
+                    const periodStr = `Tháng ${String(now.getMonth() + 1).padStart(2, '0')}/${now.getFullYear()}`;
 
-                    // Clone element and make visible for rendering
-                    const element = templateWrap.firstElementChild.cloneNode(true);
+                    // Dynamically build clean printable HTML
+                    const printWrap = document.getElementById('pdfExportTemplate');
+                    printWrap.innerHTML = `
+                        <div style="padding: 24px 28px; font-family: 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; color: #1e293b; background: #ffffff; max-width: 800px; margin: 0 auto; font-size: 11px;">
+                            <div style="border-bottom: 2px solid #0284c7; padding-bottom: 12px; margin-bottom: 16px; display: flex; justify-content: space-between; align-items: flex-start;">
+                                <div>
+                                    <div style="display: flex; align-items: center; gap: 8px;">
+                                        <span style="background: #2563eb; color: #fff; font-weight: 900; font-size: 11px; padding: 4px 8px; border-radius: 6px; letter-spacing: 0.5px;">VU CARGO</span>
+                                        <span style="font-size: 14px; font-weight: 800; color: #0f172a; text-transform: uppercase;">VIETRAVEL AIRLINES</span>
+                                    </div>
+                                    <p style="font-size: 10px; color: #0369a1; font-weight: 600; margin: 4px 0 0 0;">KHỐI KHAI THÁC VẬN TẢI HÀNG HÓA · BAN ĐIỀU HÀNH ĐẤU GIÁ (AIR CARGO BIDDING)</p>
+                                </div>
+                                <div style="text-align: right; font-size: 9px; color: #64748b;">
+                                    <p style="margin: 0; font-weight: 700; color: #0f172a;">BIỂU MẪU BÁO CÁO QUẢN TRỊ</p>
+                                    <p style="margin: 2px 0 0 0;">Mã tài liệu: VU-CARGO-REP-${now.getFullYear()}/${String(now.getMonth() + 1).padStart(2, '0')}</p>
+                                    <p style="margin: 2px 0 0 0;">Ngày xuất: ${now.toLocaleDateString('vi-VN')} ${now.toLocaleTimeString('vi-VN', {hour:'2-digit', minute:'2-digit'})}</p>
+                                </div>
+                            </div>
+
+                            <div style="text-align: center; margin-bottom: 18px;">
+                                <h1 style="font-size: 16px; font-weight: 800; color: #0f172a; margin: 0; text-transform: uppercase;">BÁO CÁO TỔNG KẾT HIỆU QUẢ ĐẤU GIÁ TẢI TRỌNG CARGO</h1>
+                                <p style="font-size: 11px; color: #475569; margin: 4px 0 0 0; font-weight: 500;">Kỳ báo cáo: ${periodStr} · Dữ liệu tự động từ Hệ thống Đấu giá Trực tuyến</p>
+                            </div>
+
+                            <div style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; margin-bottom: 18px;">
+                                <div style="background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 8px; padding: 10px 12px;">
+                                    <p style="font-size: 9px; color: #64748b; margin: 0; text-transform: uppercase; font-weight: 600;">Tổng Doanh thu Thầu</p>
+                                    <p style="font-size: 15px; font-weight: 800; color: #0f172a; margin: 3px 0 0 0;">${CargoStore.formatCurrency(metrics.grandTotalRevenue)}</p>
+                                    <span style="font-size: 9px; color: #16a34a; font-weight: 600;">${metrics.closedCount} phiên đã đóng thầu</span>
+                                </div>
+                                <div style="background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 8px; padding: 10px 12px;">
+                                    <p style="font-size: 9px; color: #64748b; margin: 0; text-transform: uppercase; font-weight: 600;">Tổng Tải trọng Khai thác</p>
+                                    <p style="font-size: 15px; font-weight: 800; color: #2563eb; margin: 3px 0 0 0;">${CargoStore.formatNumber(metrics.grandTotalOfferedKg)} Kg</p>
+                                    <span style="font-size: 9px; color: #64748b; font-weight: 600;">Lấp đầy TB: ${metrics.grandFillRate.toFixed(1)}%</span>
+                                </div>
+                                <div style="background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 8px; padding: 10px 12px;">
+                                    <p style="font-size: 9px; color: #64748b; margin: 0; text-transform: uppercase; font-weight: 600;">Giá Thắng Thầu TB</p>
+                                    <p style="font-size: 15px; font-weight: 800; color: #9333ea; margin: 3px 0 0 0;">${CargoStore.formatCurrency(metrics.grandAvgPrice)}/Kg</p>
+                                    <span style="font-size: 9px; color: #16a34a; font-weight: 600;">Toàn mạng khai thác</span>
+                                </div>
+                            </div>
+
+                            <div style="margin-bottom: 18px;">
+                                <p style="font-size: 11px; font-weight: 700; color: #0f172a; margin: 0 0 6px 0; text-transform: uppercase;">
+                                    1. Doanh thu & Tải trọng theo từng đường bay
+                                </p>
+                                <table style="width: 100%; border-collapse: collapse; font-size: 9.5px;">
+                                    <thead>
+                                        <tr style="background: #f1f5f9; color: #334155; border-top: 1px solid #cbd5e1; border-bottom: 1px solid #cbd5e1;">
+                                            <th style="padding: 6px 8px; text-align: left;">Tuyến bay</th>
+                                            <th style="padding: 6px 8px; text-align: center;">Số chuyến</th>
+                                            <th style="padding: 6px 8px; text-align: right;">Tải chào</th>
+                                            <th style="padding: 6px 8px; text-align: right;">Tải trúng</th>
+                                            <th style="padding: 6px 8px; text-align: center;">Fill-rate</th>
+                                            <th style="padding: 6px 8px; text-align: right;">Giá TB (đ/Kg)</th>
+                                            <th style="padding: 6px 8px; text-align: right;">Doanh thu (VND)</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        ${metrics.routes.map(r => {
+                                            const fill = r.totalOfferedKg > 0 ? (r.totalWonKg / r.totalOfferedKg * 100) : 0;
+                                            const avgP = r.totalWonKg > 0 ? Math.round(r.totalRevenue / r.totalWonKg) : 0;
+                                            return `
+                                                <tr style="border-bottom: 1px solid #f1f5f9;">
+                                                    <td style="padding: 6px 8px; font-weight: 700; color: #0f172a;">${r.route}</td>
+                                                    <td style="padding: 6px 8px; text-align: center;">${r.flightCount}</td>
+                                                    <td style="padding: 6px 8px; text-align: right;">${CargoStore.formatNumber(r.totalOfferedKg)} Kg</td>
+                                                    <td style="padding: 6px 8px; text-align: right; font-weight: 600;">${CargoStore.formatNumber(r.totalWonKg)} Kg</td>
+                                                    <td style="padding: 6px 8px; text-align: center; color: #16a34a; font-weight: 700;">${fill.toFixed(1)}%</td>
+                                                    <td style="padding: 6px 8px; text-align: right; color: #2563eb;">${CargoStore.formatCurrency(avgP)}</td>
+                                                    <td style="padding: 6px 8px; text-align: right; font-weight: 700;">${CargoStore.formatCurrency(r.totalRevenue)}</td>
+                                                </tr>
+                                            `;
+                                        }).join('')}
+                                        <tr style="background: #f8fafc; font-weight: 700; border-top: 1px solid #cbd5e1; border-bottom: 1px solid #cbd5e1;">
+                                            <td style="padding: 6px 8px; color: #0f172a;">TỔNG CỘNG MẠNG BAY</td>
+                                            <td style="padding: 6px 8px; text-align: center;">${metrics.routes.reduce((sum, r) => sum + r.flightCount, 0)}</td>
+                                            <td style="padding: 6px 8px; text-align: right;">${CargoStore.formatNumber(metrics.grandTotalOfferedKg)} Kg</td>
+                                            <td style="padding: 6px 8px; text-align: right;">${CargoStore.formatNumber(metrics.grandTotalWonKg)} Kg</td>
+                                            <td style="padding: 6px 8px; text-align: center; color: #16a34a;">${metrics.grandFillRate.toFixed(1)}%</td>
+                                            <td style="padding: 6px 8px; text-align: right; color: #2563eb;">${CargoStore.formatCurrency(metrics.grandAvgPrice)}</td>
+                                            <td style="padding: 6px 8px; text-align: right; color: #0f172a;">${CargoStore.formatCurrency(metrics.grandTotalRevenue)}</td>
+                                        </tr>
+                                    </tbody>
+                                </table>
+                            </div>
+
+                            <div style="margin-bottom: 24px;">
+                                <p style="font-size: 11px; font-weight: 700; color: #0f172a; margin: 0 0 6px 0; text-transform: uppercase;">
+                                    2. Xếp hạng Doanh số Đại lý tiêu biểu (Top Forwarders)
+                                </p>
+                                <table style="width: 100%; border-collapse: collapse; font-size: 9.5px;">
+                                    <thead>
+                                        <tr style="background: #f1f5f9; color: #334155; border-top: 1px solid #cbd5e1; border-bottom: 1px solid #cbd5e1;">
+                                            <th style="padding: 6px 8px; text-align: center; width: 40px;">Hạng</th>
+                                            <th style="padding: 6px 8px; text-align: left;">Mã đại lý</th>
+                                            <th style="padding: 6px 8px; text-align: left;">Tên doanh nghiệp</th>
+                                            <th style="padding: 6px 8px; text-align: center;">Phân hạng</th>
+                                            <th style="padding: 6px 8px; text-align: center;">Lượt thầu</th>
+                                            <th style="padding: 6px 8px; text-align: center;">Thắng thầu</th>
+                                            <th style="padding: 6px 8px; text-align: right;">Tổng chi tiêu</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        ${metrics.topAgents.slice(0, 5).map((ag, idx) => `
+                                            <tr style="border-bottom: 1px solid #f1f5f9;">
+                                                <td style="padding: 6px 8px; text-align: center; font-weight: 700; color: ${idx === 0 ? '#d97706' : '#64748b'};">#${idx + 1}</td>
+                                                <td style="padding: 6px 8px; font-family: monospace; font-weight: 700; color: #2563eb;">${ag.code}</td>
+                                                <td style="padding: 6px 8px; font-weight: 700; color: #0f172a;">${ag.companyName}</td>
+                                                <td style="padding: 6px 8px; text-align: center;">${ag.tier || 'TIER2'}</td>
+                                                <td style="padding: 6px 8px; text-align: center;">${ag.totalBids || 0} lượt</td>
+                                                <td style="padding: 6px 8px; text-align: center; color: #16a34a; font-weight: 700;">${ag.wonCount || 0} chuyến</td>
+                                                <td style="padding: 6px 8px; text-align: right; font-weight: 700; color: #2563eb;">${CargoStore.formatCurrency(ag.totalSpentVND)}</td>
+                                            </tr>
+                                        `).join('')}
+                                    </tbody>
+                                </table>
+                            </div>
+
+                            <div style="display: grid; grid-template-columns: repeat(3, 1fr); text-align: center; margin-top: 24px; font-size: 9px; page-break-inside: avoid;">
+                                <div>
+                                    <p style="font-weight: 700; color: #0f172a; margin: 0;">NGƯỜI LẬP BIỂU</p>
+                                    <p style="color: #64748b; font-size: 8px; margin: 2px 0 0 0;">(Ký và ghi rõ họ tên)</p>
+                                    <div style="height: 40px;"></div>
+                                    <p style="font-weight: 700; color: #334155; margin: 0;">Trần Quản Trị</p>
+                                    <p style="font-size: 8px; color: #64748b; margin: 0;">Chuyên viên Báo cáo Khai thác</p>
+                                </div>
+                                <div>
+                                    <p style="font-weight: 700; color: #0f172a; margin: 0;">TRƯỞNG PHÒNG THƯƠNG MẠI</p>
+                                    <p style="color: #64748b; font-size: 8px; margin: 2px 0 0 0;">(Ký và xác nhận dữ liệu)</p>
+                                    <div style="height: 40px;"></div>
+                                    <p style="font-weight: 700; color: #334155; margin: 0;">Nguyễn Hoài Nam</p>
+                                    <p style="font-size: 8px; color: #64748b; margin: 0;">Trưởng phòng Cargo Operations</p>
+                                </div>
+                                <div>
+                                    <p style="font-weight: 700; color: #0f172a; margin: 0;">GIÁM ĐỐC KHAI THÁC CARGO</p>
+                                    <p style="color: #64748b; font-size: 8px; margin: 2px 0 0 0;">(Phê duyệt & Đóng dấu)</p>
+                                    <div style="height: 40px;"></div>
+                                    <p style="font-weight: 700; color: #16a34a; margin: 0;">PHÊ DUYỆT</p>
+                                    <p style="font-size: 8px; color: #16a34a; font-weight: 700; margin: 0;">(Đã ký điện tử)</p>
+                                </div>
+                            </div>
+                        </div>
+                    `;
+
+                    const element = printWrap.firstElementChild.cloneNode(true);
                     element.style.display = 'block';
 
                     const opt = {
                         margin:       [8, 8, 8, 8],
-                        filename:     'BaoCao_HieuQua_KhaiThac_Cargo_VU_Thang08_2026.pdf',
+                        filename:     `BaoCao_HieuQua_KhaiThac_Cargo_VU_Thang${String(now.getMonth() + 1).padStart(2, '0')}_${now.getFullYear()}.pdf`,
                         image:        { type: 'jpeg', quality: 0.98 },
                         html2canvas:  { scale: 2, useCORS: true, letterRendering: true, logging: false },
                         jsPDF:        { unit: 'mm', format: 'a4', orientation: 'portrait' }
@@ -535,11 +933,50 @@
             }, 300);
         }
 
-        document.addEventListener('DOMContentLoaded', function() {
-            if (window.CargoStore && CargoStore.syncAdminHeaderUI) {
-                CargoStore.syncAdminHeaderUI();
+        function getStore() {
+            return (typeof CargoStore !== 'undefined') ? CargoStore : (typeof window !== 'undefined' ? window.CargoStore : null);
+        }
+
+        async function initReports() {
+            const store = getStore();
+            if (store) {
+                try {
+                    const apiUrl = (window.location && window.location.protocol.startsWith('http'))
+                        ? '/api/data'
+                        : 'http://localhost:8085/api/data';
+                    const res = await fetch(apiUrl);
+                    if (res.ok) {
+                        const sData = await res.json();
+                        if (sData && sData.auctions && sData.auctions.length > 0) {
+                            const currentData = store.getData();
+                            currentData.auctions = sData.auctions;
+                            currentData.bids = sData.bids || currentData.bids || [];
+                            currentData.wonAuctions = sData.wonAuctions || currentData.wonAuctions || [];
+                            currentData.agentsList = sData.agentsList || currentData.agentsList || [];
+                            store.saveData(currentData, true);
+                        }
+                    }
+                } catch (err) {
+                    console.warn('Sync /api/data error:', err);
+                }
+            }
+
+            renderReportUI();
+
+            if (store && store.syncAdminHeaderUI) {
+                store.syncAdminHeaderUI();
+            }
+        }
+
+        document.addEventListener('DOMContentLoaded', initReports);
+
+        // Auto-update report numbers in real-time when data changes
+        window.addEventListener('storage', function(e) {
+            if (e.key === 'CARGO_BIDDING_DATA_V3') {
+                renderReportUI();
             }
         });
+        window.addEventListener('cargostore_updated', renderReportUI);
     </script>
 </body>
 </html>
