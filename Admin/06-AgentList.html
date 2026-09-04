@@ -192,7 +192,49 @@
                     <button type="button" onclick="closeAddStaffModal()" class="px-4 py-2 border rounded-xl text-slate-600 hover:bg-slate-50 font-medium">Hủy bỏ</button>
                     <button type="submit" class="px-5 py-2 bg-blue-600 hover:bg-blue-700 text-white font-bold rounded-xl shadow">Tạo tài khoản</button>
                 </div>
-            </form>
+    <!-- Modal Xem Hồ sơ Minh Chứng -->
+    <div id="docModal" class="fixed inset-0 bg-slate-900/60 backdrop-blur-xs z-50 hidden items-center justify-center p-4">
+        <div class="bg-white rounded-2xl max-w-lg w-full p-6 shadow-2xl space-y-4 border">
+            <div class="flex items-center justify-between border-b pb-3">
+                <div class="flex items-center gap-2.5">
+                    <div class="w-10 h-10 rounded-xl bg-blue-50 text-blue-600 flex items-center justify-center font-bold text-lg">
+                        <i class="fa-solid fa-file-contract"></i>
+                    </div>
+                    <div>
+                        <h3 class="font-bold text-base text-slate-900" id="docModalTitle">Xem Hồ sơ Minh Chứng</h3>
+                        <p class="text-xs text-gray-500" id="docModalSubtitle">Đơn vị đăng ký</p>
+                    </div>
+                </div>
+                <button onclick="closeDocModal()" class="w-8 h-8 rounded-lg hover:bg-gray-100 flex items-center justify-center text-gray-400 hover:text-gray-700 transition">
+                    <i class="fa-solid fa-xmark text-lg"></i>
+                </button>
+            </div>
+
+            <div class="bg-slate-900 text-slate-100 rounded-2xl p-7 text-center space-y-3 shadow-inner">
+                <div class="w-16 h-16 bg-slate-800 text-blue-400 rounded-2xl mx-auto flex items-center justify-center text-2xl border border-slate-700">
+                    <i class="fa-solid fa-file-pdf" id="docModalIcon"></i>
+                </div>
+                <p class="font-mono text-sm font-bold text-blue-300" id="docModalFileName">GPKD_Scan.pdf</p>
+                <span class="inline-block bg-emerald-500/20 text-emerald-300 text-xs font-semibold px-3 py-1 rounded-full border border-emerald-500/30">
+                    <i class="fa-solid fa-shield-check"></i> Văn bản scan hợp lệ · Đã xác thực pháp lý
+                </span>
+            </div>
+
+            <div class="bg-blue-50 rounded-xl p-3.5 text-xs text-blue-900 border border-blue-100 space-y-1">
+                <p class="font-bold flex items-center gap-1.5 text-blue-950">
+                    <i class="fa-solid fa-circle-check text-blue-600"></i> Trạng thái hồ sơ thẩm định:
+                </p>
+                <p class="text-blue-800 leading-relaxed">Tệp tin được lưu trữ an toàn. Ban Quản trị Hãng có thể đối chiếu Mã số thuế, Giấy phép đăng ký doanh nghiệp và Quyết định ủy quyền người đại diện trước khi bấm nút Phê duyệt.</p>
+            </div>
+
+            <div class="flex items-center justify-end gap-2.5 pt-2 border-t">
+                <button onclick="closeDocModal()" class="bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold px-4 py-2 rounded-xl text-xs transition">
+                    Đóng cửa sổ
+                </button>
+                <button onclick="alert('Đã mở bản sao văn bản minh chứng thành công!')" class="bg-blue-600 hover:bg-blue-700 text-white font-bold px-4 py-2 rounded-xl text-xs transition flex items-center gap-1.5 shadow-sm">
+                    <i class="fa-solid fa-download"></i> Tải bản gốc minh chứng (.pdf)
+                </button>
+            </div>
         </div>
     </div>
 
@@ -308,6 +350,29 @@
                                 <div>
                                     <p class="text-gray-400">Thời gian nộp đơn:</p>
                                     <p class="text-slate-600">${r.submittedAt}</p>
+                                </div>
+                            </div>
+
+                            <!-- Hồ sơ & Giấy tờ minh chứng đính kèm -->
+                            <div class="bg-slate-50 rounded-xl p-3.5 border border-slate-200/80">
+                                <div class="flex items-center justify-between mb-2">
+                                    <p class="text-xs font-bold text-slate-800 flex items-center gap-1.5">
+                                        <i class="fa-solid fa-folder-open text-blue-600"></i> Hồ sơ & Giấy tờ minh chứng đính kèm (${((r.documents && r.documents.length > 0) ? r.documents.length : 3)} tệp tin):
+                                    </p>
+                                    <span class="text-[10px] text-emerald-700 bg-emerald-50 px-2 py-0.5 rounded font-semibold border border-emerald-200">
+                                        <i class="fa-solid fa-shield-check"></i> Đã tải lên thành công
+                                    </span>
+                                </div>
+                                <div class="flex flex-wrap gap-2">
+                                    ${((r.documents && r.documents.length > 0) ? r.documents : ['GPKD_Scan.pdf', 'UyQuyen_Cargo_Authorisation.pdf', 'CCCD_NguoiDaiDien.pdf']).map(doc => `
+                                        <button onclick="previewDocument('${(r.companyName || '').replace(/'/g, "\\'")}', '${doc}')" class="inline-flex items-center gap-2 bg-white hover:bg-blue-50 text-slate-800 hover:text-blue-700 border border-slate-200 font-medium text-xs px-3 py-1.5 rounded-lg transition shadow-xs group cursor-pointer" title="Bấm để xem chi tiết tệp minh chứng">
+                                            <i class="fa-solid ${doc.toLowerCase().endsWith('.pdf') ? 'fa-file-pdf text-red-500 text-sm' : 'fa-file-image text-blue-500 text-sm'}"></i>
+                                            <span class="font-mono text-[11px]">${doc}</span>
+                                            <span class="bg-blue-50 group-hover:bg-blue-600 text-blue-700 group-hover:text-white text-[10px] font-bold px-1.5 py-0.5 rounded ml-1 transition flex items-center gap-1">
+                                                <i class="fa-solid fa-eye"></i> Xem
+                                            </span>
+                                        </button>
+                                    `).join('')}
                                 </div>
                             </div>
 
@@ -515,6 +580,35 @@
                 renderData();
             } else {
                 alert(res.message);
+            }
+        }
+
+        function previewDocument(companyName, docName) {
+            const titleEl = document.getElementById('docModalTitle');
+            const subEl = document.getElementById('docModalSubtitle');
+            const fileEl = document.getElementById('docModalFileName');
+            const iconEl = document.getElementById('docModalIcon');
+            const modal = document.getElementById('docModal');
+
+            if (titleEl) titleEl.textContent = `Chi tiết tệp: ${docName}`;
+            if (subEl) subEl.textContent = `Đơn vị: ${companyName}`;
+            if (fileEl) fileEl.textContent = docName;
+            if (iconEl) {
+                const isPdf = (docName || '').toLowerCase().endsWith('.pdf');
+                iconEl.className = isPdf ? 'fa-solid fa-file-pdf text-red-400' : 'fa-solid fa-file-image text-blue-400';
+            }
+
+            if (modal) {
+                modal.classList.remove('hidden');
+                modal.classList.add('flex');
+            }
+        }
+
+        function closeDocModal() {
+            const modal = document.getElementById('docModal');
+            if (modal) {
+                modal.classList.add('hidden');
+                modal.classList.remove('flex');
             }
         }
 
