@@ -805,7 +805,35 @@ const CargoStore = (function() {
             return bids.filter(b => b.auctionId == auctionId).sort((a, b) => b.priceKg - a.priceKg);
         },
 
-        placeBid: function(auctionId, bidPriceKg) {
+        getPublicAgentName: function(agentCode, agentName, isAnonymous = false, viewerContext = null) {
+            const data = loadData();
+            const currentAdmin = data.currentAdmin;
+            const currentUser = viewerContext || data.currentUser;
+
+            // Admin or Staff viewing -> Full visibility + tag if anonymous
+            if (currentAdmin) {
+                if (isAnonymous) {
+                    return `${agentName || 'Đại lý'} (${agentCode || '-'}) [ẨN DANH]`;
+                }
+                return `${agentName || 'Đại lý'} (${agentCode || '-'})`;
+            }
+
+            // The bidding agent themselves viewing -> Real name with (Bạn)
+            if (currentUser && (currentUser.agentCode === agentCode || currentUser.code === agentCode)) {
+                return `${agentName || currentUser.companyName} (Bạn)`;
+            }
+
+            // Competitor agent viewing an anonymous bid -> Mask identity
+            if (isAnonymous) {
+                const maskedCode = agentCode ? (agentCode.slice(0, 3) + '***') : 'AG-***';
+                return `Đại lý ẩn danh (${maskedCode})`;
+            }
+
+            // Competitor viewing non-anonymous bid -> Real name
+            return agentName || 'Đại lý đấu thầu';
+        },
+
+        placeBid: function(auctionId, bidPriceKg, isAnonymous = true) {
             const data = loadData();
             const auction = data.auctions.find(a => a.id == auctionId);
             if (!auction) return { success: false, message: 'Phiên đấu giá không tồn tại' };
@@ -841,12 +869,15 @@ const CargoStore = (function() {
                 }
             });
 
-            // Insert new bid with logged in agent's identity
+            const anonFlag = isAnonymous !== false;
+
+            // Insert new bid with logged in agent's identity and isAnonymous flag
             const newBid = {
                 id: Date.now(),
                 auctionId: Number(auctionId),
                 agentCode: user.agentCode,
                 agentName: user.companyName,
+                isAnonymous: anonFlag,
                 priceKg: Number(bidPriceKg),
                 time: 'Vừa xong',
                 status: 'HIGHEST',
@@ -858,6 +889,7 @@ const CargoStore = (function() {
             auction.currentPriceKg = Number(bidPriceKg);
             auction.leadingAgentCode = user.agentCode;
             auction.leadingAgentName = user.companyName;
+            auction.isAnonymous = anonFlag;
             auction.bidsCount = (auction.bidsCount || 0) + 1;
 
             // Update user stats
@@ -871,7 +903,7 @@ const CargoStore = (function() {
                 id: Date.now(),
                 targetAgentCode: user.agentCode,
                 title: `Đặt giá thành công chuyến ${auction.flightNumber}`,
-                message: `Bạn (${user.agentCode}) đang dẫn đầu mức giá ${formatCurrency(bidPriceKg)}/Kg cho chặng ${auction.route}.`,
+                message: `Bạn (${user.agentCode}) đang dẫn đầu mức giá ${formatCurrency(bidPriceKg)}/Kg cho chặng ${auction.route}.${anonFlag ? ' (Tên công ty được che ẩn danh đối với các đối thủ)' : ''}`,
                 time: 'Vừa xong',
                 type: 'HIGHEST',
                 read: false,
@@ -880,11 +912,12 @@ const CargoStore = (function() {
 
             // 2. Notification for previous leading agent (OUTBID)
             if (previousLeaderCode && previousLeaderCode !== user.agentCode) {
+                const competitorNameDisplay = anonFlag ? 'Một đại lý đối thủ (Ẩn danh)' : `Đại lý ${user.companyName} (${user.agentCode})`;
                 data.notifications.unshift({
                     id: Date.now() + 1,
                     targetAgentCode: previousLeaderCode,
                     title: `Cảnh báo bị vượt giá chuyến ${auction.flightNumber}!`,
-                    message: `Đại lý ${user.companyName} (${user.agentCode}) vừa đặt mức giá mới ${formatCurrency(bidPriceKg)}/Kg cho chặng ${auction.route}.`,
+                    message: `${competitorNameDisplay} vừa đặt mức giá mới ${formatCurrency(bidPriceKg)}/Kg cho chặng ${auction.route}.`,
                     time: 'Vừa xong',
                     type: 'OUTBID',
                     read: false,

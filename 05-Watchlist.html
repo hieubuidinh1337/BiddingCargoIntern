@@ -404,8 +404,8 @@
                         <!-- Leader -->
                         <div class="hidden lg:block">
                             <p class="text-[11px] text-gray-400 mb-0.5">Đại lý dẫn đầu</p>
-                            <p class="text-sm font-semibold text-slate-700">${isLeading ? `<span class="text-emerald-600">🏆 Bạn (${currentAgentCode})</span>` : (a.leadingAgentCode || '—')}</p>
-                            <p class="text-[11px] text-gray-400">${isLeading ? (data.currentUser ? data.currentUser.companyName : 'ABC Logistics') : (a.leadingAgentName || 'Chưa có lượt thầu')}</p>
+                            <p class="text-sm font-semibold text-slate-700">${isLeading ? `<span class="text-emerald-600">🏆 Bạn (${currentAgentCode})</span>` : (a.leadingAgentCode ? CargoStore.getPublicAgentName(a.leadingAgentCode, a.leadingAgentName, a.isAnonymous) : '—')}</p>
+                            <p class="text-[11px] text-gray-400">${isLeading ? (data.currentUser ? data.currentUser.companyName + ' (Công ty của bạn)' : 'Công ty của bạn') : (a.leadingAgentName ? (a.isAnonymous ? 'Thông tin đã được ẩn danh' : a.leadingAgentName) : 'Chưa có lượt thầu')}</p>
                         </div>
                     </div>
 

@@ -192,5 +192,30 @@ if (countAfter !== countBefore - 1) {
 }
 console.log(`Số lượng chuyến bay: ${countBefore} -> ${countAfter} (Đã xóa thành công)`);
 
-console.log('\n=== TẤT CẢ USE CASE & KIỂM TRA PHÂN QUYỀN NHÂN VIÊN ĐÃ ĐƯỢC XÁC MINH THÀNH CÔNG 100%! ===');
+// 9. KIỂM TRA ĐẤU GIÁ ẨN DANH & BẢO MẬT TÊN DOANH NGHIỆP
+console.log('\n--- 9. Kiểm tra Đấu giá Ẩn danh & Bảo mật Dữ liệu ---');
+CargoStore.logoutAdmin();
+CargoStore.loginAgent('AG-0892', 'abc123456');
+const openAuction = CargoStore.getAuctions().find(a => a.status === 'OPEN') || CargoStore.getAuctions()[0];
+const anonBidRes = CargoStore.placeBid(openAuction.id, openAuction.currentPriceKg + openAuction.minStep, true);
+console.log('Đặt giá ẩn danh từ AG-0892:', anonBidRes.success ? 'THÀNH CÔNG' : 'THẤT BÀI');
+
+// Kiểm tra hiển thị phía Đại lý chính chủ (AG-0892)
+const myViewName = CargoStore.getPublicAgentName('AG-0892', 'ABC Logistics', true, CargoStore.getCurrentUser());
+console.log('Đại lý chính chủ (AG-0892) nhìn thấy:', myViewName);
+if (!myViewName.includes('Bạn')) throw new Error('Đại lý chính chủ không nhìn thấy nhãn (Bạn)!');
+
+// Đăng nhập Đại lý đối thủ (AG-0556)
+CargoStore.loginAgent('AG-0556', 'star123456');
+const competitorViewName = CargoStore.getPublicAgentName('AG-0892', 'ABC Logistics', true, CargoStore.getCurrentUser());
+console.log('Đại lý đối thủ (AG-0556) nhìn thấy:', competitorViewName);
+if (competitorViewName.includes('ABC Logistics')) throw new Error('Lỗi bảo mật: Đại lý đối thủ vẫn nhìn thấy tên công ty!');
+
+// Đăng nhập Quản trị viên (ADMIN)
+CargoStore.loginAdmin('admin', 'admin2026');
+const adminViewName = CargoStore.getPublicAgentName('AG-0892', 'ABC Logistics', true, null);
+console.log('Quản trị viên (ADMIN) nhìn thấy:', adminViewName);
+if (!adminViewName.includes('ABC Logistics') || !adminViewName.includes('ẨN DANH')) throw new Error('Lỗi Admin: Admin không xem được tên thực kèm tag ẨN DANH!');
+
+console.log('\n=== TẤT CẢ USE CASE & KIỂM TRA BẢO MẬT ĐẤU GIÁ ẨN DANH ĐÃ ĐƯỢC XÁC MINH THÀNH CÔNG 100%! ===');
 
