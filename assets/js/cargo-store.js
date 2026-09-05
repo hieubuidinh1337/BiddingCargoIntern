@@ -1660,6 +1660,17 @@ const CargoStore = (function() {
             if (settingsData.supportEmail) data.settings.supportEmail = settingsData.supportEmail;
             if (settingsData.platformFee) data.settings.platformFee = Number(settingsData.platformFee);
 
+            if (settingsData.smtp) {
+                data.settings.smtp = {
+                    host: (settingsData.smtp.host || 'smtp.gmail.com').trim(),
+                    port: Number(settingsData.smtp.port) || 465,
+                    user: (settingsData.smtp.user || '').trim(),
+                    pass: (settingsData.smtp.pass || '').trim().replace(/\s+/g, ''),
+                    fromName: (settingsData.smtp.fromName || 'Vietravel Airlines Cargo').trim(),
+                    secure: Number(settingsData.smtp.port) === 465
+                };
+            }
+
             saveData(data);
             return { success: true, message: 'Đã lưu cấu hình hệ thống thành công!', settings: data.settings };
         },

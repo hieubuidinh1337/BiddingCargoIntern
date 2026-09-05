@@ -1,5 +1,5 @@
 {
-  "version": 1788511387695,
+  "version": 1788583866114,
   "auctions": [
     {
       "id": 5,
@@ -18,7 +18,7 @@
       "startingPriceKg": 18000,
       "currentPriceKg": 40000,
       "minStep": 500,
-      "endTime": "2026-09-04T10:15:22.027Z",
+      "endTime": "2026-09-05T05:36:06.099Z",
       "status": "OPEN",
       "leadingAgentCode": "AG-0341",
       "leadingAgentName": "Công ty TNHH SkyFreight Logistics Việt Nam",
@@ -384,6 +384,30 @@
   ],
   "notifications": [
     {
+      "id": 1788516558876,
+      "timestamp": 1788516558876,
+      "targetAgentCode": "AG-0011",
+      "targetEmail": "realjakivip33@gmail.com",
+      "title": "[EMAIL THÔNG BÁO] Phê duyệt Hồ sơ & Cấp Mã Đại lý AG-0011",
+      "message": "Kính gửi Trần Hoàng Nam (Công ty TNHH Vận tải & Logistics Tân Sơn Nhất), Ban Điều hành Hãng hàng không xin thông báo: Hồ sơ đăng ký của Quý doanh nghiệp đã được PHÊ DUYỆT thành công! Mã Đại lý chính thức của Quý công ty là: AG-0011. Mật khẩu đăng nhập: Demo123456 (Mã PIN Security: 9999). Quý công ty có thể sử dụng Mã Đại lý này để đăng nhập vào Sàn Đấu giá Cargo.",
+      "time": "Vừa xong",
+      "type": "SYSTEM",
+      "read": false,
+      "link": "01-Login.html"
+    },
+    {
+      "id": 1788516042905,
+      "timestamp": 1788516042905,
+      "targetAgentCode": "AG-0010",
+      "targetEmail": "j01500401@gmail.com",
+      "title": "[EMAIL THÔNG BÁO] Phê duyệt Hồ sơ & Cấp Mã Đại lý AG-0010",
+      "message": "Kính gửi Trần Hoàng Nam (Công ty TNHH Vận tải & Logistics Tân Sơn Nhất), Ban Điều hành Hãng hàng không xin thông báo: Hồ sơ đăng ký của Quý doanh nghiệp đã được PHÊ DUYỆT thành công! Mã Đại lý chính thức của Quý công ty là: AG-0010. Mật khẩu đăng nhập: Demo123456 (Mã PIN Security: 9999). Quý công ty có thể sử dụng Mã Đại lý này để đăng nhập vào Sàn Đấu giá Cargo.",
+      "time": "Vừa xong",
+      "type": "SYSTEM",
+      "read": false,
+      "link": "01-Login.html"
+    },
+    {
       "id": 1788509757317,
       "timestamp": 1788509757317,
       "targetAgentCode": "AG-1024",
@@ -613,7 +637,7 @@
       "id": 1788428581476,
       "targetAgentCode": "AG-0556",
       "title": "Cảnh báo bị vượt giá chuyến VU130!",
-      "message": "Đại lý Công ty CP Giao nhận Kho vận Vinatrans (AG-1024) vừa đặt mức giá mới 39.000 đ/Kg cho chặng SGN - HAN.",
+      "message": "Đại lý Công ty CP Giao nhận Kho vận Vinatrans (AG-1024) vừa đặt mức giá mới 39.000 đ/Kg cho ch���ng SGN - HAN.",
       "time": "Vừa xong",
       "type": "OUTBID",
       "read": true,
@@ -661,6 +685,120 @@
     }
   ],
   "registrations": [
+    {
+      "regId": "REG-20260904-11",
+      "companyName": "Công ty TNHH Vận tải & Logistics Tân Sơn Nhất",
+      "taxCode": "0318998877312313",
+      "businessLicense": "GPKD-8899/2025/SNH",
+      "address": "45 Trường Sơn, Phường 2, Quận Tân Bình, TP. Hồ Chí Minh",
+      "field": "Freight Forwarder",
+      "repName": "Trần Hoàng Nam",
+      "repPosition": "Giám đốc Logistics Cargo",
+      "email": "realjakivip33@gmail.com",
+      "phone": "0988 776 655",
+      "citizenId": "079095001234",
+      "notifEmail": "",
+      "password": "Demo123456",
+      "pin": "9999",
+      "documents": [
+        {
+          "name": "GPKD_TanSonNhat_Scan.pdf",
+          "dataUrl": null,
+          "type": "application/pdf",
+          "size": 0
+        },
+        {
+          "name": "UyQuyen_Cargo_IATA.pdf",
+          "dataUrl": null,
+          "type": "application/pdf",
+          "size": 0
+        },
+        {
+          "name": "CCCD_TranHoangNam.pdf",
+          "dataUrl": null,
+          "type": "application/pdf",
+          "size": 0
+        }
+      ],
+      "status": "APPROVED",
+      "submittedAt": "4/9/2026 17:09"
+    },
+    {
+      "regId": "REG-20260904-10",
+      "companyName": "Công ty TNHH Vận tải & Logistics Tân Sơn Nhất",
+      "taxCode": "0318998877dqwdq",
+      "businessLicense": "GPKD-8899/2025/SNH",
+      "address": "45 Trường Sơn, Phường 2, Quận Tân Bình, TP. Hồ Chí Minh",
+      "field": "Freight Forwarder",
+      "repName": "Trần Hoàng Nam",
+      "repPosition": "Giám đốc Logistics Cargo",
+      "email": "nam.dwqdqwtran@tsn-logistics.vn",
+      "phone": "0988 776 655",
+      "citizenId": "079095001234",
+      "notifEmail": "",
+      "password": "Demo123456",
+      "pin": "9999",
+      "documents": [
+        {
+          "name": "GPKD_TanSonNhat_Scan.pdf",
+          "dataUrl": null,
+          "type": "application/pdf",
+          "size": 0
+        },
+        {
+          "name": "UyQuyen_Cargo_IATA.pdf",
+          "dataUrl": null,
+          "type": "application/pdf",
+          "size": 0
+        },
+        {
+          "name": "CCCD_TranHoangNam.pdf",
+          "dataUrl": null,
+          "type": "application/pdf",
+          "size": 0
+        }
+      ],
+      "status": "REJECTED",
+      "submittedAt": "4/9/2026 17:08"
+    },
+    {
+      "regId": "REG-20260904-09",
+      "companyName": "Công ty TNHH Vận tải & Logistics Tân Sơn Nhất",
+      "taxCode": "0318992131238877",
+      "businessLicense": "GPKD-8899/2025/SNH",
+      "address": "45 Trường Sơn, Phường 2, Quận Tân Bình, TP. Hồ Chí Minh",
+      "field": "Freight Forwarder",
+      "repName": "Trần Hoàng Nam",
+      "repPosition": "Giám đốc Logistics Cargo",
+      "email": "j01500401@gmail.com",
+      "phone": "0988 776 655dwa",
+      "citizenId": "079095001234",
+      "notifEmail": "ops-cargo@tsn-logistics.vn",
+      "password": "Demo123456",
+      "pin": "9999",
+      "documents": [
+        {
+          "name": "GPKD_TanSonNhat_Scan.pdf",
+          "dataUrl": null,
+          "type": "application/pdf",
+          "size": 0
+        },
+        {
+          "name": "UyQuyen_Cargo_IATA.pdf",
+          "dataUrl": null,
+          "type": "application/pdf",
+          "size": 0
+        },
+        {
+          "name": "CCCD_TranHoangNam.pdf",
+          "dataUrl": null,
+          "type": "application/pdf",
+          "size": 0
+        }
+      ],
+      "status": "APPROVED",
+      "submittedAt": "4/9/2026 17:00"
+    },
     {
       "regId": "REG-20260904-08",
       "companyName": "Công ty TNHH Vận tải & Logistics Tân Sơn Nhất",
@@ -1037,6 +1175,42 @@
       "joinedDate": "4/9/2026",
       "totalBids": 0,
       "totalWins": 0
+    },
+    {
+      "id": 1788516042905,
+      "code": "AG-0010",
+      "password": "Demo123456",
+      "pin": "9999",
+      "companyName": "Công ty TNHH Vận tải & Logistics Tân Sơn Nhất",
+      "repName": "Trần Hoàng Nam",
+      "position": "Giám đốc Logistics Cargo",
+      "phone": "0988 776 655dwa",
+      "email": "j01500401@gmail.com",
+      "taxCode": "0318992131238877",
+      "address": "45 Trường Sơn, Phường 2, Quận Tân Bình, TP. Hồ Chí Minh",
+      "tier": "TIER2",
+      "status": "Đang hoạt động",
+      "joinedDate": "4/9/2026",
+      "totalBids": 0,
+      "totalWins": 0
+    },
+    {
+      "id": 1788516558876,
+      "code": "AG-0011",
+      "password": "Demo123456",
+      "pin": "9999",
+      "companyName": "Công ty TNHH Vận tải & Logistics Tân Sơn Nhất",
+      "repName": "Trần Hoàng Nam",
+      "position": "Giám đốc Logistics Cargo",
+      "phone": "0988 776 655",
+      "email": "realjakivip33@gmail.com",
+      "taxCode": "0318998877312313",
+      "address": "45 Trường Sơn, Phường 2, Quận Tân Bình, TP. Hồ Chí Minh",
+      "tier": "TIER2",
+      "status": "Đang hoạt động",
+      "joinedDate": "4/9/2026",
+      "totalBids": 0,
+      "totalWins": 0
     }
   ],
   "adminsList": [
@@ -1073,9 +1247,167 @@
     "cutoffHours": 3,
     "paymentWindowHours": 24,
     "hotline": "1900-xxxx",
-    "supportEmail": "cargo-bidding@airline.vn"
+    "supportEmail": "cargo-bidding@airline.vn",
+    "smtp": {
+      "host": "smtp.gmail.com",
+      "port": 465,
+      "user": "jome7093@gmail.com",
+      "pass": "fcjuktvwjqhgilzb",
+      "fromName": "Vietravel Airlines Cargo",
+      "secure": true
+    },
+    "platformFee": 50
   },
   "emailLogs": [
+    {
+      "id": 1788582615419,
+      "to": "hieubuidinh304@gmail.com",
+      "type": "TEST_EMAIL",
+      "subject": "[Vietravel Airlines Cargo] KIỂM TRA KẾT NỐI EMAIL THÀNH CÔNG (11:28:24)",
+      "messageId": "<828c82d5-7f16-6ee3-c270-c2e5dc18bb0a@gmail.com>",
+      "isRealSmtp": true,
+      "previewUrl": null,
+      "sentAt": "11:30:15 5/9/2026"
+    },
+    {
+      "id": 1788582329959,
+      "to": "hieubuidinh304@gmail.com",
+      "type": "TEST_EMAIL",
+      "subject": "[Vietravel Airlines Cargo] KIỂM TRA KẾT NỐI EMAIL THÀNH CÔNG (11:23:22)",
+      "messageId": "<94e770c2-d613-678f-2a4f-96d8a8b07d2d@gmail.com>",
+      "isRealSmtp": true,
+      "previewUrl": null,
+      "sentAt": "11:25:29 5/9/2026"
+    },
+    {
+      "id": 1788581530559,
+      "to": "realjakivip33@gmail.com",
+      "type": "TEST_EMAIL",
+      "subject": "[Vietravel Airlines Cargo] KIỂM TRA KẾT NỐI EMAIL THÀNH CÔNG (11:10:19)",
+      "messageId": "<03b6ac58-9aef-6283-7c54-48cbe283793e@gmail.com>",
+      "isRealSmtp": true,
+      "previewUrl": null,
+      "sentAt": "11:12:10 5/9/2026"
+    },
+    {
+      "id": 1788516613402,
+      "to": "hieubuidinh304@gmail.com",
+      "type": "TEST_EMAIL",
+      "subject": "[Vietravel Airlines Cargo] KIỂM TRA KẾT NỐI EMAIL THÀNH CÔNG (17:10:10)",
+      "messageId": "<603b2ae1-8a20-9fad-8de2-bf76f1db9761@gmail.com>",
+      "isRealSmtp": true,
+      "previewUrl": null,
+      "sentAt": "17:10:13 4/9/2026"
+    },
+    {
+      "id": 1788516561664,
+      "to": "realjakivip33@gmail.com",
+      "type": "REGISTRATION_APPROVED",
+      "subject": "[Vietravel Airlines Cargo] CHÚC MỪNG! Hồ sơ Đại lý đã được PHÊ DUYỆT - Mã: AG-0011",
+      "messageId": "<24e763db-359f-6357-b238-5e7bf064a534@gmail.com>",
+      "isRealSmtp": true,
+      "previewUrl": null,
+      "sentAt": "17:09:21 4/9/2026"
+    },
+    {
+      "id": 1788516547155,
+      "to": "realjakivip33@gmail.com",
+      "type": "REGISTRATION_SUBMITTED",
+      "subject": "[Vietravel Airlines Cargo] Tiếp nhận hồ sơ đăng ký đại lý - REG-20260904-11",
+      "messageId": "<c217f56f-8378-5993-48fe-cf6d5fbac68e@gmail.com>",
+      "isRealSmtp": true,
+      "previewUrl": null,
+      "sentAt": "17:09:07 4/9/2026"
+    },
+    {
+      "id": 1788516516411,
+      "to": "nam.dwqdqwtran@tsn-logistics.vn",
+      "type": "REGISTRATION_REJECTED",
+      "subject": "[Vietravel Airlines Cargo] Thông báo kết quả xét duyệt hồ sơ đại lý - REG-20260904-10",
+      "messageId": "<42dec28b-e69c-9c85-3785-79a80c6e5601@gmail.com>",
+      "isRealSmtp": true,
+      "previewUrl": null,
+      "sentAt": "17:08:36 4/9/2026"
+    },
+    {
+      "id": 1788516493883,
+      "to": "nam.dwqdqwtran@tsn-logistics.vn",
+      "type": "REGISTRATION_SUBMITTED",
+      "subject": "[Vietravel Airlines Cargo] Tiếp nhận hồ sơ đăng ký đại lý - REG-20260904-10",
+      "messageId": "<ad15dfba-0e01-8f5b-66ff-632a5d1dae5b@gmail.com>",
+      "isRealSmtp": true,
+      "previewUrl": null,
+      "sentAt": "17:08:13 4/9/2026"
+    },
+    {
+      "id": 1788516189650,
+      "to": "hieubuidinh304@gmail.com",
+      "type": "TEST_EMAIL",
+      "subject": "[Vietravel Airlines Cargo] KIỂM TRA KẾT NỐI EMAIL THÀNH CÔNG (17:03:06)",
+      "messageId": "<4da6eea2-2862-ad79-1d05-a02132dfd20e@gmail.com>",
+      "isRealSmtp": true,
+      "previewUrl": null,
+      "sentAt": "17:03:09 4/9/2026"
+    },
+    {
+      "id": 1788516066884,
+      "to": "hieubuidinh304@gmail.com",
+      "type": "TEST_EMAIL",
+      "subject": "[Vietravel Airlines Cargo] KIỂM TRA KẾT NỐI EMAIL THÀNH CÔNG (17:01:03)",
+      "messageId": "<3f8ac1a2-d62b-9cb3-6da3-586d15eac44b@gmail.com>",
+      "isRealSmtp": true,
+      "previewUrl": null,
+      "sentAt": "17:01:06 4/9/2026"
+    },
+    {
+      "id": 1788516046358,
+      "to": "j01500401@gmail.com",
+      "type": "REGISTRATION_APPROVED",
+      "subject": "[Vietravel Airlines Cargo] CHÚC MỪNG! Hồ sơ Đại lý đã được PHÊ DUYỆT - Mã: AG-0010",
+      "messageId": "<9d6f9815-3320-a7c0-f19d-cd2e67f6f18b@gmail.com>",
+      "isRealSmtp": true,
+      "previewUrl": null,
+      "sentAt": "17:00:46 4/9/2026"
+    },
+    {
+      "id": 1788516030092,
+      "to": "j01500401@gmail.com",
+      "type": "REGISTRATION_SUBMITTED",
+      "subject": "[Vietravel Airlines Cargo] Tiếp nhận hồ sơ đăng ký đại lý - REG-20260904-09",
+      "messageId": "<0b6d2c4f-787d-97f0-db97-378b1ce8e23d@gmail.com>",
+      "isRealSmtp": true,
+      "previewUrl": null,
+      "sentAt": "17:00:30 4/9/2026"
+    },
+    {
+      "id": 1788515931601,
+      "to": "hieubuidinh304@gmail.com",
+      "type": "TEST_EMAIL",
+      "subject": "[Vietravel Airlines Cargo] KIỂM TRA KẾT NỐI EMAIL THÀNH CÔNG (16:58:47)",
+      "messageId": "<57e96a3c-8eb3-3569-094e-9cbaf193c34a@gmail.com>",
+      "isRealSmtp": true,
+      "previewUrl": null,
+      "sentAt": "16:58:51 4/9/2026"
+    },
+    {
+      "id": 1788515242765,
+      "to": "hieubuidinh304@gmail.com",
+      "type": "TEST_EMAIL",
+      "subject": "[Vietravel Airlines Cargo] KIỂM TRA KẾT NỐI EMAIL THÀNH CÔNG (16:47:18)",
+      "messageId": "<72043bdf-d9c4-1e3f-3098-d6162727a343@vietravelairlines.vn>",
+      "isRealSmtp": false,
+      "previewUrl": "https://ethereal.email/message/apqTpwlT7djrzU7IapqTq.NVsWIVeRNEAAAAASnZaZseW9.la75lUepf-Ds",
+      "sentAt": "16:47:22 4/9/2026"
+    },
+    {
+      "id": 1788514649329,
+      "to": "hieubuidinh304@gmail.com",
+      "type": "REGISTRATION_APPROVED",
+      "subject": "[Vietravel Airlines Cargo] CHÚC MỪNG! Hồ sơ Đại lý đã được PHÊ DUYỆT - Mã: AG-TEST",
+      "messageId": "<f3527ba0-433b-d53b-aed2-88e330a27cfc@vietravelairlines.vn>",
+      "previewUrl": "https://ethereal.email/message/apqRVglT7djrzQVaapqRWYIuM2RB01V0AAAAASFstj2CRnbQ2n88TIO7adQ",
+      "sentAt": "16:37:29 4/9/2026"
+    },
     {
       "id": 1788506800659,
       "to": "jakivip1811@gmail.com",

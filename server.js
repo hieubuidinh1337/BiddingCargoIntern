@@ -2,7 +2,21 @@ const http = require('http');
 const fs = require('fs');
 const path = require('path');
 const nodemailer = require('nodemailer');
-// url module no longer needed – using WHATWG URL API
+// Load local .env if present
+if (fs.existsSync(path.join(__dirname, '.env'))) {
+    try {
+        const envLines = fs.readFileSync(path.join(__dirname, '.env'), 'utf8').split(/\r?\n/);
+        for (const line of envLines) {
+            const trimmed = line.trim();
+            if (trimmed && !trimmed.startsWith('#') && trimmed.includes('=')) {
+                const idx = trimmed.indexOf('=');
+                const key = trimmed.slice(0, idx).trim();
+                const val = trimmed.slice(idx + 1).trim();
+                if (!process.env[key]) process.env[key] = val;
+            }
+        }
+    } catch (e) {}
+}
 
 const PORT = 8085;
 const PUBLIC_DIR = __dirname;
@@ -248,24 +262,54 @@ loadServerData();
 
 // --- Nodemailer & Email Service Helper ---
 let mailTransporter = null;
+let lastSmtpFingerprint = ''; // Track SMTP config changes to invalidate cache
+
+function getSmtpFingerprint() {
+    const smtpSettings = (serverData.settings && serverData.settings.smtp) || {};
+    const host = process.env.SMTP_HOST || smtpSettings.host || '';
+    const port = process.env.SMTP_PORT || smtpSettings.port || '';
+    const user = process.env.SMTP_USER || smtpSettings.user || '';
+    const pass = process.env.SMTP_PASS || smtpSettings.pass || '';
+    return `${host}:${port}:${user}:${pass}`;
+}
 
 async function getMailTransporter() {
-    if (mailTransporter) return mailTransporter;
+    // Invalidate cached transporter if SMTP settings have changed
+    const currentFingerprint = getSmtpFingerprint();
+    if (mailTransporter && currentFingerprint === lastSmtpFingerprint) {
+        return mailTransporter;
+    }
+    // Settings changed or first call - recreate transporter
+    if (mailTransporter && currentFingerprint !== lastSmtpFingerprint) {
+        console.log('[Nodemailer] SMTP settings changed, recreating transporter...');
+        mailTransporter = null;
+    }
 
     const smtpSettings = (serverData.settings && serverData.settings.smtp) || {};
     const host = process.env.SMTP_HOST || smtpSettings.host;
-    const port = process.env.SMTP_PORT || smtpSettings.port || 587;
+    const port = process.env.SMTP_PORT || smtpSettings.port || 465;
     const user = process.env.SMTP_USER || smtpSettings.user;
-    const pass = process.env.SMTP_PASS || smtpSettings.pass;
+    let pass = process.env.SMTP_PASS || smtpSettings.pass;
+
+    if (pass) {
+        pass = String(pass).replace(/\s+/g, '');
+    }
 
     if (host && user && pass) {
         mailTransporter = nodemailer.createTransport({
             host: host,
             port: Number(port),
             secure: Number(port) === 465,
-            auth: { user, pass }
+            auth: { user, pass },
+            tls: {
+                rejectUnauthorized: false
+            },
+            connectionTimeout: 15000, // 15 giây timeout kết nối
+            greetingTimeout: 10000,   // 10 giây timeout greeting
+            socketTimeout: 20000      // 20 giây timeout socket
         });
-        console.log(`[Nodemailer] Configured SMTP transporter: ${host}:${port} (${user})`);
+        lastSmtpFingerprint = currentFingerprint;
+        console.log(`[Nodemailer] Configured REAL SMTP transporter: ${host}:${port} (${user})`);
         return mailTransporter;
     }
 
@@ -280,67 +324,85 @@ async function getMailTransporter() {
                 pass: testAccount.pass
             }
         });
+        lastSmtpFingerprint = currentFingerprint;
         console.log(`[Nodemailer] Created Ethereal SMTP test account: ${testAccount.user}`);
     } catch (e) {
         console.warn(`[Nodemailer] Fallback to JSON transport: ${e.message}`);
         mailTransporter = nodemailer.createTransport({
             jsonTransport: true
         });
+        lastSmtpFingerprint = currentFingerprint;
     }
     return mailTransporter;
 }
 
 function buildEmailHtml({ title, subtitle, contentHtml, footerNote }) {
     return `<!DOCTYPE html>
-<html>
+<html lang="vi" xmlns="http://www.w3.org/1999/xhtml">
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<style>
-  body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; margin: 0; padding: 0; background-color: #f8fafc; color: #1e293b; }
-  .wrapper { max-width: 600px; margin: 20px auto; background: #ffffff; border-radius: 16px; overflow: hidden; box-shadow: 0 10px 25px -5px rgba(0,0,0,0.1), 0 8px 10px -6px rgba(0,0,0,0.1); border: 1px solid #e2e8f0; }
-  .header { background: linear-gradient(135deg, #0f172a 0%, #1e3a8a 100%); padding: 32px 28px; color: #ffffff; }
-  .logo-row { display: flex; align-items: center; gap: 10px; margin-bottom: 12px; }
-  .logo-badge { background: #2563eb; color: #ffffff; font-weight: 800; font-size: 13px; padding: 5px 12px; border-radius: 8px; letter-spacing: 0.5px; display: inline-block; }
-  .brand-title { font-size: 18px; font-weight: 700; color: #ffffff; margin-left: 8px; }
-  .brand-sub { font-size: 11px; color: #93c5fd; text-transform: uppercase; letter-spacing: 1px; margin-top: 2px; }
-  .header h1 { font-size: 20px; font-weight: 700; margin: 18px 0 6px 0; color: #ffffff; }
-  .header p { font-size: 13px; color: #cbd5e1; margin: 0; }
-  .body { padding: 32px 28px; line-height: 1.6; font-size: 14px; }
-  .card-box { background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 12px; padding: 18px 20px; margin: 20px 0; }
-  .card-success { background: #f0fdf4; border: 1px solid #bbf7d0; border-left: 4px solid #16a34a; }
-  .card-danger { background: #fef2f2; border: 1px solid #fecaca; border-left: 4px solid #dc2626; }
-  .row { display: flex; justify-content: space-between; padding: 7px 0; border-bottom: 1px dashed #e2e8f0; font-size: 13px; }
-  .row:last-child { border-bottom: none; }
-  .lbl { color: #64748b; font-weight: 500; }
-  .val { color: #0f172a; font-weight: 600; text-align: right; }
-  .btn-wrap { text-align: center; margin: 26px 0; }
-  .btn { display: inline-block; background: #2563eb; color: #ffffff !important; font-weight: 700; font-size: 14px; padding: 12px 28px; border-radius: 10px; text-decoration: none; box-shadow: 0 4px 12px rgba(37,99,235,0.25); }
-  .footer { background: #f8fafc; padding: 24px 28px; text-align: center; border-top: 1px solid #e2e8f0; font-size: 12px; color: #64748b; }
-</style>
+<title>${title}</title>
 </head>
-<body>
-<div class="wrapper">
-  <div class="header">
-    <div class="logo-row">
-      <span class="logo-badge">VU CARGO</span>
-      <span class="brand-title">Vietravel Airlines</span>
-    </div>
-    <div class="brand-sub">Hệ thống Đấu giá Tải trọng Hàng không (Air Cargo Bidding)</div>
-    <h1>${title}</h1>
-    <p>${subtitle}</p>
-  </div>
-  <div class="body">
-    ${contentHtml}
-  </div>
-  <div class="footer">
-    <p style="margin:0 0 6px 0;font-weight:600;color:#334155;">Ban Quản lý & Khai thác Hàng hóa Vietravel Airlines (VU Cargo)</p>
-    <p style="margin:0 0 8px 0;">Hotline Hỗ trợ Đại lý: <strong style="color:#2563eb;">1900 6699</strong> · Email: ops-cargo@vietravelairlines.vn</p>
-    <p style="margin:0;font-size:11px;color:#94a3b8;">${footerNote || 'Thông báo tự động từ Hệ thống Đấu giá Hàng không Vietravel Airlines.'}</p>
-  </div>
-</div>
+<body style="margin:0;padding:0;background-color:#f4f4f7;font-family:Arial,Helvetica,sans-serif;color:#333333;">
+<table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="background-color:#f4f4f7;">
+<tr><td align="center" style="padding:24px 16px;">
+<table role="presentation" width="580" cellpadding="0" cellspacing="0" style="background-color:#ffffff;border:1px solid #dddddd;border-radius:8px;overflow:hidden;">
+  <!-- Header -->
+  <tr>
+    <td style="background-color:#1e3a5f;padding:24px 28px;">
+      <table role="presentation" width="100%" cellpadding="0" cellspacing="0">
+        <tr>
+          <td style="font-size:14px;font-weight:bold;color:#ffffff;padding-bottom:4px;">VU CARGO &mdash; Vietravel Airlines</td>
+        </tr>
+        <tr>
+          <td style="font-size:11px;color:#b0c4de;letter-spacing:0.5px;">Air Cargo Bidding System</td>
+        </tr>
+        <tr>
+          <td style="font-size:18px;font-weight:bold;color:#ffffff;padding-top:16px;">${title}</td>
+        </tr>
+        <tr>
+          <td style="font-size:13px;color:#d0d8e8;padding-top:4px;">${subtitle}</td>
+        </tr>
+      </table>
+    </td>
+  </tr>
+  <!-- Body -->
+  <tr>
+    <td style="padding:28px;font-size:14px;line-height:1.6;color:#333333;">
+      ${contentHtml}
+    </td>
+  </tr>
+  <!-- Footer -->
+  <tr>
+    <td style="background-color:#f9f9f9;padding:20px 28px;border-top:1px solid #eeeeee;text-align:center;font-size:12px;color:#888888;">
+      <p style="margin:0 0 4px 0;font-weight:bold;color:#555555;">Ban Quản lý Hàng hóa Vietravel Airlines (VU Cargo)</p>
+      <p style="margin:0 0 8px 0;">Hotline: <strong style="color:#1e3a5f;">1900 6699</strong> &middot; ops-cargo@vietravelairlines.vn</p>
+      <p style="margin:0;font-size:11px;color:#aaaaaa;">${footerNote || 'Email thông báo từ Hệ thống VU Cargo.'}</p>
+    </td>
+  </tr>
+</table>
+</td></tr>
+</table>
 </body>
 </html>`;
+}
+
+// Helper: Strip HTML tags for plain text alternative
+function htmlToPlainText(html) {
+    return html
+        .replace(/<br\s*\/?>/gi, '\n')
+        .replace(/<\/p>/gi, '\n\n')
+        .replace(/<\/li>/gi, '\n')
+        .replace(/<\/tr>/gi, '\n')
+        .replace(/<\/div>/gi, '\n')
+        .replace(/<[^>]+>/g, '')
+        .replace(/&nbsp;/g, ' ')
+        .replace(/&amp;/g, '&')
+        .replace(/&middot;/g, '·')
+        .replace(/&mdash;/g, '—')
+        .replace(/\n{3,}/g, '\n\n')
+        .trim();
 }
 
 const server = http.createServer((req, res) => {
@@ -382,7 +444,10 @@ const server = http.createServer((req, res) => {
                 if (incoming.registrations) serverData.registrations = incoming.registrations;
                 if (incoming.agentsList) serverData.agentsList = incoming.agentsList;
                 if (incoming.adminsList) serverData.adminsList = incoming.adminsList;
-                if (incoming.settings) serverData.settings = incoming.settings;
+                if (incoming.settings) {
+                    serverData.settings = incoming.settings;
+                    mailTransporter = null; // Clear cached transporter so new SMTP credentials take effect immediately
+                }
 
                 serverData.version = Date.now();
                 saveServerData();
@@ -419,30 +484,53 @@ const server = http.createServer((req, res) => {
                 const repName = (regData && regData.repName) || 'Quý đại lý';
                 const regId = (regData && regData.regId) || 'REG-PENDING';
 
-                if (type === 'REGISTRATION_SUBMITTED') {
+                if (type === 'TEST_EMAIL') {
+                    subject = `[Vietravel Airlines Cargo] KIỂM TRA KẾT NỐI EMAIL THÀNH CÔNG (${new Date().toLocaleTimeString('vi-VN')})`;
+                    html = buildEmailHtml({
+                        title: 'Kiểm tra Cấu hình Email Thành công',
+                        subtitle: 'Hệ thống Đấu giá Hàng hóa Vietravel Airlines Cargo',
+                        contentHtml: `
+                            <p>Xin chào <strong>${recipient}</strong>,</p>
+                            <p style="color:#2e7d32;font-weight:bold;">Cấu hình gửi thư SMTP của bạn đã hoạt động chính xác.</p>
+                            
+                            <table role="presentation" width="100%" cellpadding="8" cellspacing="0" style="background:#f0f7f0;border:1px solid #c8e6c9;border-radius:6px;margin:16px 0;">
+                                <tr><td style="color:#555;border-bottom:1px solid #e0e0e0;">Hộp thư nhận:</td><td style="font-weight:bold;color:#1565c0;">${recipient}</td></tr>
+                                <tr><td style="color:#555;border-bottom:1px solid #e0e0e0;">Thời gian gửi:</td><td>${new Date().toLocaleString('vi-VN')}</td></tr>
+                                <tr><td style="color:#555;">Trạng thái:</td><td style="font-weight:bold;color:#2e7d32;">HOẠT ĐỘNG (REAL SMTP)</td></tr>
+                            </table>
+
+                            <p style="margin-top:16px;">Từ bây giờ, các thông báo sẽ được gửi trực tiếp đến hòm thư này:</p>
+                            <ul style="padding-left:20px;line-height:1.7;">
+                                <li>Xác nhận tiếp nhận hồ sơ đại lý.</li>
+                                <li>Thông báo kết quả phê duyệt và cấp Mã Đại lý.</li>
+                                <li>Phiếu xác nhận thắng thầu.</li>
+                            </ul>
+                        `
+                    });
+                } else if (type === 'REGISTRATION_SUBMITTED') {
                     subject = `[Vietravel Airlines Cargo] Tiếp nhận hồ sơ đăng ký đại lý - ${regId}`;
                     html = buildEmailHtml({
                         title: 'Xác nhận Tiếp nhận Hồ sơ Đăng ký Đại lý',
                         subtitle: `Mã hồ sơ: ${regId}`,
                         contentHtml: `
                             <p>Kính gửi <strong>${repName}</strong> (Đại diện <strong>${companyName}</strong>),</p>
-                            <p>Hệ thống Đấu giá Vận tải Hàng không Vietravel Airlines trân trọng thông báo đã tiếp nhận thành công hồ sơ đăng ký tham gia mạng lưới đại lý vận tải của Quý công ty.</p>
+                            <p>Hệ thống Vietravel Airlines trân trọng thông báo đã tiếp nhận thành công hồ sơ đăng ký đại lý của Quý công ty.</p>
                             
-                            <div class="card-box">
-                                <div class="row"><span class="lbl">Mã tiếp nhận hồ sơ:</span><span class="val" style="color:#2563eb;font-family:monospace;font-size:14px;">${regId}</span></div>
-                                <div class="row"><span class="lbl">Tên doanh nghiệp:</span><span class="val">${companyName}</span></div>
-                                <div class="row"><span class="lbl">Mã số thuế / GPKD:</span><span class="val">${(regData && regData.taxCode) || '-'}</span></div>
-                                <div class="row"><span class="lbl">Người đại diện:</span><span class="val">${repName} (${(regData && regData.repPosition) || 'Đại diện'})</span></div>
-                                <div class="row"><span class="lbl">Số điện thoại liên hệ:</span><span class="val">${(regData && regData.phone) || '-'}</span></div>
-                                <div class="row"><span class="lbl">Thời gian tiếp nhận:</span><span class="val">${(regData && regData.submittedAt) || new Date().toLocaleString('vi-VN')}</span></div>
-                                <div class="row"><span class="lbl">Trạng thái hiện tại:</span><span class="val" style="color:#d97706;font-weight:700;">CHỜ THẨM ĐỊNH & XÉT DUYỆT</span></div>
-                            </div>
+                            <table role="presentation" width="100%" cellpadding="8" cellspacing="0" style="background:#f5f5f5;border:1px solid #e0e0e0;border-radius:6px;margin:16px 0;">
+                                <tr><td style="color:#555;border-bottom:1px solid #e0e0e0;">Mã tiếp nhận:</td><td style="font-weight:bold;color:#1565c0;font-family:monospace;">${regId}</td></tr>
+                                <tr><td style="color:#555;border-bottom:1px solid #e0e0e0;">Tên doanh nghiệp:</td><td>${companyName}</td></tr>
+                                <tr><td style="color:#555;border-bottom:1px solid #e0e0e0;">Mã số thuế:</td><td>${(regData && regData.taxCode) || '-'}</td></tr>
+                                <tr><td style="color:#555;border-bottom:1px solid #e0e0e0;">Người đại diện:</td><td>${repName} (${(regData && regData.repPosition) || 'Đại diện'})</td></tr>
+                                <tr><td style="color:#555;border-bottom:1px solid #e0e0e0;">Số điện thoại:</td><td>${(regData && regData.phone) || '-'}</td></tr>
+                                <tr><td style="color:#555;border-bottom:1px solid #e0e0e0;">Thời gian tiếp nhận:</td><td>${(regData && regData.submittedAt) || new Date().toLocaleString('vi-VN')}</td></tr>
+                                <tr><td style="color:#555;">Trạng thái:</td><td style="font-weight:bold;color:#e65100;">CHỜ XÉT DUYỆT</td></tr>
+                            </table>
 
-                            <p style="margin-top:16px;"><strong>Quy trình xử lý tiếp theo:</strong></p>
-                            <ol style="padding-left:20px;color:#334155;line-height:1.7;">
-                                <li>Ban Điều hành Cargo sẽ thẩm định tính hợp lệ của hồ sơ pháp lý trong vòng <strong>24 giờ làm việc</strong>.</li>
-                                <li>Ngay khi hồ sơ được phê duyệt, hệ thống sẽ tự động gửi email thông báo kèm <strong>Mã Đại lý (AG-xxxx)</strong> chính thức.</li>
-                                <li>Quý công ty sử dụng Mã đại lý cùng Mật khẩu và Mã PIN đã đăng ký để đăng nhập và tham gia đấu giá tải trọng các chuyến bay nội địa & quốc tế.</li>
+                            <p style="margin-top:16px;"><strong>Quy trình tiếp theo:</strong></p>
+                            <ol style="padding-left:20px;line-height:1.7;">
+                                <li>Ban Điều hành sẽ thẩm định hồ sơ trong vòng <strong>24 giờ làm việc</strong>.</li>
+                                <li>Khi hồ sơ được duyệt, hệ thống sẽ gửi email kèm <strong>Mã Đại lý (AG-xxxx)</strong>.</li>
+                                <li>Quý công ty dùng Mã đại lý, Mật khẩu và Mã PIN để đăng nhập tham gia đấu giá.</li>
                             </ol>
                         `
                     });
@@ -454,26 +542,23 @@ const server = http.createServer((req, res) => {
                         subtitle: `Mã đại lý chính thức: ${finalCode}`,
                         contentHtml: `
                             <p>Kính gửi <strong>${repName}</strong> (Đại diện <strong>${companyName}</strong>),</p>
-                            <p style="color:#16a34a;font-weight:700;">Ban Quản lý & Khai thác Hàng hóa Vietravel Airlines trân trọng thông báo hồ sơ đăng ký đại lý của Quý công ty đã được THẨM ĐỊNH VÀ PHÊ DUYỆT THÀNH CÔNG!</p>
+                            <p style="color:#2e7d32;font-weight:bold;">Hồ sơ đăng ký đại lý của Quý công ty đã được thẩm định và phê duyệt thành công.</p>
                             
-                            <div class="card-box card-success">
-                                <div class="row"><span class="lbl">Mã Đại lý chính thức:</span><span class="val" style="color:#16a34a;font-family:monospace;font-size:16px;font-weight:700;">${finalCode}</span></div>
-                                <div class="row"><span class="lbl">Tên doanh nghiệp:</span><span class="val">${companyName}</span></div>
-                                <div class="row"><span class="lbl">Phân hạng đại lý:</span><span class="val" style="color:#2563eb;font-weight:700;">TIER 2 (Đại lý Tiêu chuẩn)</span></div>
-                                <div class="row"><span class="lbl">Tên đăng nhập:</span><span class="val" style="font-family:monospace;font-weight:700;">${finalCode} hoặc MST (${(regData && regData.taxCode) || ''})</span></div>
-                                <div class="row"><span class="lbl">Mật khẩu:</span><span class="val" style="font-family:monospace;">•••••••• (Mật khẩu Quý vị đã đăng ký)</span></div>
-                                <div class="row"><span class="lbl">Mã PIN xác thực thầu:</span><span class="val" style="font-family:monospace;">•••• (Mã PIN Quý vị đã đăng ký)</span></div>
-                                <div class="row"><span class="lbl">Trạng thái kích hoạt:</span><span class="val" style="color:#16a34a;font-weight:700;">ĐÃ HOẠT ĐỘNG CHÍNH THỨC</span></div>
-                            </div>
+                            <table role="presentation" width="100%" cellpadding="8" cellspacing="0" style="background:#f0f7f0;border:1px solid #c8e6c9;border-radius:6px;margin:16px 0;">
+                                <tr><td style="color:#555;border-bottom:1px solid #e0e0e0;">Mã Đại lý:</td><td style="font-weight:bold;color:#2e7d32;font-family:monospace;font-size:16px;">${finalCode}</td></tr>
+                                <tr><td style="color:#555;border-bottom:1px solid #e0e0e0;">Tên doanh nghiệp:</td><td>${companyName}</td></tr>
+                                <tr><td style="color:#555;border-bottom:1px solid #e0e0e0;">Phân hạng:</td><td style="font-weight:bold;color:#1565c0;">TIER 2 (Đại lý Tiêu chuẩn)</td></tr>
+                                <tr><td style="color:#555;border-bottom:1px solid #e0e0e0;">Tên đăng nhập:</td><td style="font-family:monospace;font-weight:bold;">${finalCode} hoặc MST (${(regData && regData.taxCode) || ''})</td></tr>
+                                <tr><td style="color:#555;border-bottom:1px solid #e0e0e0;">Mật khẩu:</td><td style="font-family:monospace;">Mật khẩu Quý vị đã đăng ký</td></tr>
+                                <tr><td style="color:#555;border-bottom:1px solid #e0e0e0;">Mã PIN:</td><td style="font-family:monospace;">Mã PIN Quý vị đã đăng ký</td></tr>
+                                <tr><td style="color:#555;">Trạng thái:</td><td style="font-weight:bold;color:#2e7d32;">ĐÃ HOẠT ĐỘNG</td></tr>
+                            </table>
 
-                            <div class="btn-wrap">
-                                <a href="http://localhost:8085/01-Login.html" class="btn">ĐĂNG NHẬP THAM GIA ĐẤU GIÁ NGAY →</a>
-                            </div>
+                            <p style="text-align:center;margin:24px 0;">
+                                <a href="http://localhost:8085/01-Login.html" style="display:inline-block;background-color:#1565c0;color:#ffffff;font-weight:bold;padding:12px 28px;border-radius:6px;text-decoration:none;">ĐĂNG NHẬP THAM GIA ĐẤU GIÁ</a>
+                            </p>
 
                             <p><strong>Hướng dẫn tham gia đấu giá:</strong></p>
-                            <ul style="padding-left:20px;color:#334155;line-height:1.7;">
-                                <li>Quý đại lý có thể xem toàn bộ các chuyến bay mở thầu trên các tuyến trục SGN-HAN, SGN-DAD, HAN-PQC...</li>
-                                <li>Đặt giá thầu (bidding) trực tiếp theo bước giá quy định của từng chuyến bay.</li>
                                 <li>Theo dõi kết quả trúng thầu và xác nhận hợp đồng vận chuyển điện tử ngay trên ứng dụng.</li>
                             </ul>
                         `
@@ -485,33 +570,54 @@ const server = http.createServer((req, res) => {
                         subtitle: `Mã hồ sơ: ${regId}`,
                         contentHtml: `
                             <p>Kính gửi <strong>${repName}</strong> (Đại diện <strong>${companyName}</strong>),</p>
-                            <p>Ban Điều hành Đấu giá Vietravel Airlines Cargo trân trọng cảm ơn Quý doanh nghiệp đã quan tâm và nộp hồ sơ đăng ký tham gia sàn đấu giá.</p>
+                            <p>Ban Điều hành Đấu giá Vietravel Airlines Cargo trân trọng cảm ơn Quý doanh nghiệp đã quan tâm và nộp hồ sơ.</p>
                             
-                            <div class="card-box card-danger">
-                                <div class="row"><span class="lbl">Mã hồ sơ:</span><span class="val">${regId}</span></div>
-                                <div class="row"><span class="lbl">Doanh nghiệp:</span><span class="val">${companyName}</span></div>
-                                <div class="row"><span class="lbl">Kết quả thẩm định:</span><span class="val" style="color:#dc2626;font-weight:700;">TỪ CHỐI / CẦN BỔ SUNG</span></div>
-                                ${reason ? `<div class="row"><span class="lbl">Lý do:</span><span class="val" style="color:#b91c1c;">${reason}</span></div>` : ''}
-                            </div>
+                            <table role="presentation" width="100%" cellpadding="8" cellspacing="0" style="background:#fff3e0;border:1px solid #ffe0b2;border-radius:6px;margin:16px 0;">
+                                <tr><td style="color:#555;border-bottom:1px solid #e0e0e0;width:35%;">Mã hồ sơ:</td><td style="font-weight:bold;color:#e65100;">${regId}</td></tr>
+                                <tr><td style="color:#555;border-bottom:1px solid #e0e0e0;">Doanh nghiệp:</td><td>${companyName}</td></tr>
+                                <tr><td style="color:#555;border-bottom:1px solid #e0e0e0;">Kết quả:</td><td style="font-weight:bold;color:#d32f2f;">TỪ CHỐI / CẦN BỔ SUNG</td></tr>
+                                ${reason ? `<tr><td style="color:#555;">Lý do:</td><td style="color:#d32f2f;font-weight:bold;">${reason}</td></tr>` : ''}
+                            </table>
 
-                            <p>Quý doanh nghiệp vui lòng kiểm tra lại tính chính xác của Giấy phép kinh doanh, Giấy ủy quyền đại lý, hoặc liên hệ trực tiếp với bộ phận chăm sóc đại lý của chúng tôi qua Hotline <strong>1900 6699</strong> để được hướng dẫn hoàn thiện hồ sơ.</p>
+                            <p style="margin-top:16px;">Quý doanh nghiệp vui lòng kiểm tra lại hồ sơ và liên hệ bộ phận hỗ trợ đại lý qua Hotline <strong>1900 6699</strong> để được hướng dẫn bổ sung.</p>
                         `
                     });
                 }
 
                 const transporter = await getMailTransporter();
+                const smtpSettings = (serverData.settings && serverData.settings.smtp) || {};
+                const fromAddress = smtpSettings.user || process.env.SMTP_USER || 'ops-cargo@vietravelairlines.vn';
+                const fromName = smtpSettings.fromName || 'Vietravel Airlines Cargo';
+                let validCc = undefined;
+                if (notifEmail && notifEmail !== recipient) {
+                    const cleanCc = String(notifEmail).trim().toLowerCase();
+                    const isDummy = ['tsn-logistics.vn', 'example.com', 'airline.vn', 'test.com', 'demo.com', 'fake.com'].some(d => cleanCc.endsWith('@' + d));
+                    if (!isDummy && cleanCc.includes('@') && cleanCc.includes('.')) {
+                        validCc = notifEmail.trim();
+                    }
+                }
+
                 const mailOptions = {
-                    from: '"Vietravel Airlines Cargo" <ops-cargo@vietravelairlines.vn>',
+                    from: `"${fromName}" <${fromAddress}>`,
                     to: recipient,
-                    cc: notifEmail && notifEmail !== recipient ? notifEmail : undefined,
+                    cc: validCc,
+                    bcc: fromAddress,
                     subject: subject,
-                    html: html
+                    html: html,
+                    text: htmlToPlainText(html), // Plain text alternative — giảm spam score
+                    headers: {
+                        'X-Mailer': 'VU-Cargo-Bidding/1.0',
+                        'Precedence': 'bulk',
+                        'List-Unsubscribe': `<mailto:${fromAddress}?subject=unsubscribe>`,
+                        'X-Auto-Response-Suppress': 'OOF, DR, RN, NRN, AutoReply'
+                    }
                 };
 
                 const info = await transporter.sendMail(mailOptions);
                 const previewUrl = nodemailer.getTestMessageUrl ? nodemailer.getTestMessageUrl(info) : null;
+                const isReal = !previewUrl;
                 
-                console.log(`[Nodemailer] Email sent successfully to ${recipient}! MessageId: ${info.messageId}`);
+                console.log(`[Nodemailer] Email sent successfully to ${recipient}! MessageId: ${info.messageId} (Real SMTP: ${isReal})`);
                 if (previewUrl) {
                     console.log(`[Nodemailer] Preview URL (Ethereal): ${previewUrl}`);
                 }
@@ -524,6 +630,7 @@ const server = http.createServer((req, res) => {
                     type: type || 'CUSTOM',
                     subject: subject,
                     messageId: info.messageId,
+                    isRealSmtp: isReal,
                     previewUrl: previewUrl || null,
                     sentAt: new Date().toLocaleString('vi-VN')
                 });
@@ -533,6 +640,7 @@ const server = http.createServer((req, res) => {
                 res.writeHead(200, { 'Content-Type': 'application/json; charset=UTF-8' });
                 res.end(JSON.stringify({
                     success: true,
+                    isRealSmtp: isReal,
                     messageId: info.messageId,
                     previewUrl: previewUrl || null,
                     recipient: recipient,
