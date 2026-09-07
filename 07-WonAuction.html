@@ -877,9 +877,9 @@
                 document.getElementById('declVolume').focus();
                 return;
             }
-            if (volumeCbm > 500) {
+            if (volumeCbm > 2500) {
                 highlightCargoInputError('declVolume', true);
-                showCargoModalError(`Thể tích hàng hóa (${volumeCbm} m³) vượt quá dung tích tối đa chứa hàng của tàu bay (Tối đa 500 m³). Vui lòng kiểm tra lại!`);
+                showCargoModalError(`Thể tích hàng hóa (${volumeCbm.toLocaleString('vi-VN')} m³) vượt quá dung tích tối đa chứa hàng của tàu bay (Tối đa 2.500 m³). Vui lòng kiểm tra lại!`);
                 document.getElementById('declVolume').focus();
                 return;
             }
@@ -900,7 +900,7 @@
             if (densityKgCbm < 20) {
                 highlightCargoInputError('declVolume', true);
                 highlightCargoInputError('declGrossWeight', true);
-                const maxCbm = (grossWeightKg / 20).toFixed(2);
+                const maxCbm = (grossWeightKg / 20).toFixed(1);
                 showCargoModalError(`Tỷ trọng hàng hóa không hợp lệ (${densityKgCbm.toFixed(1)} Kg/m³ - quá nhẹ so với thể tích ${volumeCbm} m³). Theo tiêu chuẩn IATA Air Cargo (tối thiểu 20 Kg/m³), với khối lượng ${grossWeightKg.toLocaleString('vi-VN')} Kg thể tích tối đa hợp lệ là ${maxCbm} m³!`);
                 document.getElementById('declVolume').focus();
                 return;
