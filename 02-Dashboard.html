@@ -313,8 +313,8 @@
 
         document.addEventListener('DOMContentLoaded', function() {
             renderDashboard();
-            // Auto-refresh every 3 seconds for realtime sync
-            setInterval(renderDashboard, 3000);
+            // Auto-refresh every 1 second for smooth countdown timer and realtime sync
+            setInterval(renderDashboard, 1000);
         });
 
         // Cross-browser & Cross-tab sync: when store updates, re-render immediately
