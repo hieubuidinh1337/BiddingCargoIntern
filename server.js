@@ -214,7 +214,22 @@ const defaultSharedData = {
             status: 'PENDING',
             submittedAt: '05/08/2026 10:15'
         }
-    ]
+    ],
+    settings: {
+        minIncrement: 500,
+        cutoffHours: 3,
+        paymentWindowHours: 24,
+        platformFee: 50,
+        hotline: '1900 6868',
+        supportEmail: 'cargo-agent@airline.vn',
+        smtp: {
+            host: 'smtp.gmail.com',
+            port: 465,
+            user: 'jome7093@gmail.com',
+            pass: 'fcjuktvwjqhgilzb',
+            fromName: 'Vietravel Airlines Cargo'
+        }
+    }
 };
 
 let serverData = null;
@@ -233,9 +248,19 @@ function loadServerData() {
         serverData = JSON.parse(JSON.stringify(defaultSharedData));
     }
 
+    let changed = false;
+
+    // Ensure SMTP settings exist with default credentials if unconfigured
+    if (!serverData.settings) {
+        serverData.settings = defaultSharedData.settings;
+        changed = true;
+    } else if (!serverData.settings.smtp || !serverData.settings.smtp.user) {
+        serverData.settings.smtp = defaultSharedData.settings.smtp;
+        changed = true;
+    }
+
     // Auto renew open auctions if expired
     const now = Date.now();
-    let changed = false;
     if (serverData.auctions) {
         serverData.auctions.forEach((a, idx) => {
             if (a.status === 'OPEN') {
@@ -266,10 +291,10 @@ let lastSmtpFingerprint = ''; // Track SMTP config changes to invalidate cache
 
 function getSmtpFingerprint() {
     const smtpSettings = (serverData.settings && serverData.settings.smtp) || {};
-    const host = process.env.SMTP_HOST || smtpSettings.host || '';
-    const port = process.env.SMTP_PORT || smtpSettings.port || '';
-    const user = process.env.SMTP_USER || smtpSettings.user || '';
-    const pass = process.env.SMTP_PASS || smtpSettings.pass || '';
+    const host = process.env.SMTP_HOST || smtpSettings.host || 'smtp.gmail.com';
+    const port = process.env.SMTP_PORT || smtpSettings.port || 465;
+    const user = process.env.SMTP_USER || smtpSettings.user || 'jome7093@gmail.com';
+    const pass = process.env.SMTP_PASS || smtpSettings.pass || 'fcjuktvwjqhgilzb';
     return `${host}:${port}:${user}:${pass}`;
 }
 
@@ -286,10 +311,10 @@ async function getMailTransporter() {
     }
 
     const smtpSettings = (serverData.settings && serverData.settings.smtp) || {};
-    const host = process.env.SMTP_HOST || smtpSettings.host;
+    const host = process.env.SMTP_HOST || smtpSettings.host || 'smtp.gmail.com';
     const port = process.env.SMTP_PORT || smtpSettings.port || 465;
-    const user = process.env.SMTP_USER || smtpSettings.user;
-    let pass = process.env.SMTP_PASS || smtpSettings.pass;
+    const user = process.env.SMTP_USER || smtpSettings.user || 'jome7093@gmail.com';
+    let pass = process.env.SMTP_PASS || smtpSettings.pass || 'fcjuktvwjqhgilzb';
 
     if (pass) {
         pass = String(pass).replace(/\s+/g, '');

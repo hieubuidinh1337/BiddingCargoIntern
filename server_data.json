@@ -1,5 +1,5 @@
 {
-  "version": 1788583866114,
+  "version": 1788743162197,
   "auctions": [
     {
       "id": 5,
@@ -18,7 +18,7 @@
       "startingPriceKg": 18000,
       "currentPriceKg": 40000,
       "minStep": 500,
-      "endTime": "2026-09-05T05:36:06.099Z",
+      "endTime": "2026-09-07T01:50:58.441Z",
       "status": "OPEN",
       "leadingAgentCode": "AG-0341",
       "leadingAgentName": "Công ty TNHH SkyFreight Logistics Việt Nam",

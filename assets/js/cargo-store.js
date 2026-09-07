@@ -382,7 +382,14 @@ const CargoStore = (function() {
             cutoffHours: 3,
             paymentWindowHours: 24,
             hotline: '1900-xxxx',
-            supportEmail: 'cargo-bidding@airline.vn'
+            supportEmail: 'cargo-bidding@airline.vn',
+            smtp: {
+                host: 'smtp.gmail.com',
+                port: 465,
+                user: 'jome7093@gmail.com',
+                pass: 'fcjuktvwjqhgilzb',
+                fromName: 'Vietravel Airlines Cargo'
+            }
         }
     };
 
@@ -599,16 +606,21 @@ const CargoStore = (function() {
         /**
          * Dynamic Agent Login checking each agent's SPECIFIC password
          */
-        loginAgent: function(agentCode, password) {
+        loginAgent: function(agentCodeOrEmail, password) {
             const data = loadData();
-            const code = (agentCode || '').trim().toUpperCase();
+            const identifier = (agentCodeOrEmail || '').trim().toLowerCase();
 
-            // Search agent in list
-            let agent = (data.agentsList || seedAgents).find(a => (a.code || '').toUpperCase() === code);
+            // Search agent in list by Agent Code, Tax Code, or Email
+            let agent = (data.agentsList || seedAgents).find(a => 
+                (a.code || '').toLowerCase() === identifier ||
+                (a.taxCode || '').toLowerCase() === identifier ||
+                (a.email || '').toLowerCase() === identifier
+            );
 
             if (!agent) {
                 // If newly approved agent code format AG-xxxx
-                if (code.startsWith('AG-')) {
+                if (identifier.startsWith('ag-')) {
+                    const code = identifier.toUpperCase();
                     agent = {
                         id: Date.now(),
                         code: code,
@@ -631,7 +643,7 @@ const CargoStore = (function() {
                         totalSpentVND: 0
                     };
                 } else {
-                    return { success: false, message: `Mã đại lý "${code}" không tồn tại trong CSDL SQL Server 2022.` };
+                    return { success: false, message: `Mã đại lý hoặc Email "${agentCodeOrEmail}" không tồn tại trong CSDL.` };
                 }
             }
 
@@ -685,13 +697,16 @@ const CargoStore = (function() {
         /**
          * Dynamic Admin Login checking each admin's SPECIFIC password
          */
-        loginAdmin: function(username, password) {
+        loginAdmin: function(usernameOrEmail, password) {
             const data = loadData();
-            const u = (username || '').trim().toLowerCase();
-            const admin = (data.adminsList || seedAdmins).find(a => (a.username || '').toLowerCase() === u);
+            const u = (usernameOrEmail || '').trim().toLowerCase();
+            const admin = (data.adminsList || seedAdmins).find(a => 
+                (a.username || '').toLowerCase() === u ||
+                (a.email || '').toLowerCase() === u
+            );
 
             if (!admin) {
-                return { success: false, message: `Tài khoản admin "${username}" không tồn tại.` };
+                return { success: false, message: `Tài khoản hoặc Email admin "${usernameOrEmail}" không tồn tại.` };
             }
 
             // Check if admin/staff account is locked
@@ -707,7 +722,7 @@ const CargoStore = (function() {
             if (password !== expectedPassword) {
                 return {
                     success: false,
-                    message: `Mật khẩu quản trị không chính xác cho tài khoản "${username}"!`
+                    message: `Mật khẩu quản trị không chính xác cho tài khoản "${usernameOrEmail}"!`
                 };
             }
 
@@ -1236,13 +1251,17 @@ const CargoStore = (function() {
             };
         },
 
-        verifyPinAndGetPassword: function(agentCode, pinInput) {
+        verifyPinAndGetPassword: function(agentCodeOrEmail, pinInput) {
             const data = loadData();
-            const code = (agentCode || '').trim().toUpperCase();
-            const agent = (data.agentsList || []).find(a => (a.code || '').toUpperCase() === code);
+            const identifier = (agentCodeOrEmail || '').trim().toLowerCase();
+            const agent = (data.agentsList || []).find(a => 
+                (a.code || '').toLowerCase() === identifier ||
+                (a.taxCode || '').toLowerCase() === identifier ||
+                (a.email || '').toLowerCase() === identifier
+            );
 
             if (!agent) {
-                return { success: false, message: `Mã đại lý "${code}" không tồn tại trong CSDL.` };
+                return { success: false, message: `Mã đại lý hoặc Email "${agentCodeOrEmail}" không tồn tại trong CSDL.` };
             }
 
             const expectedPin = agent.pin || '1234';
