@@ -633,6 +633,14 @@
         }
 
         function toggleRegSecret(regId, type) {
+            const settings = (window.CargoStore && CargoStore.getSystemSettings) ? CargoStore.getSystemSettings() : {};
+            const isHidden = settings.hideAgentCredentials !== false; // DEFAULT ALWAYS ON (TRUE)
+
+            if (isHidden) {
+                alert('🔒 Chính sách Bảo mật Hệ thống (Đang Bật):\n\nQuản trị viên và Nhân viên không có quyền xem Mật khẩu & Mã PIN cá nhân của Đại lý (Đảm bảo an toàn thông tin theo chuẩn ISO/IEC 27001).\n\n(Bạn có thể tắt tùy chọn này trong Cài đặt Hệ thống -> Chính sách Bảo mật).');
+                return;
+            }
+
             const valEl = document.getElementById(`${type}-val-${regId}`);
             const btnEl = document.getElementById(`${type}-btn-${regId}`);
             if (!valEl || !btnEl) return;

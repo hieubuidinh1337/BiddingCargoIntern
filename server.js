@@ -222,6 +222,7 @@ const defaultSharedData = {
         platformFee: 50,
         hotline: '1900 6868',
         supportEmail: 'cargo-agent@airline.vn',
+        hideAgentCredentials: true,
         smtp: {
             host: 'smtp.gmail.com',
             port: 465,
@@ -250,13 +251,19 @@ function loadServerData() {
 
     let changed = false;
 
-    // Ensure SMTP settings exist with default credentials if unconfigured
+    // Ensure SMTP & Privacy settings exist with default credentials if unconfigured
     if (!serverData.settings) {
         serverData.settings = defaultSharedData.settings;
         changed = true;
-    } else if (!serverData.settings.smtp || !serverData.settings.smtp.user) {
-        serverData.settings.smtp = defaultSharedData.settings.smtp;
-        changed = true;
+    } else {
+        if (serverData.settings.hideAgentCredentials === undefined) {
+            serverData.settings.hideAgentCredentials = true;
+            changed = true;
+        }
+        if (!serverData.settings.smtp || !serverData.settings.smtp.user) {
+            serverData.settings.smtp = defaultSharedData.settings.smtp;
+            changed = true;
+        }
     }
 
     // Auto renew open auctions if expired

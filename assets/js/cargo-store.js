@@ -383,6 +383,7 @@ const CargoStore = (function() {
             paymentWindowHours: 24,
             hotline: '1900-xxxx',
             supportEmail: 'cargo-bidding@airline.vn',
+            hideAgentCredentials: true,
             smtp: {
                 host: 'smtp.gmail.com',
                 port: 465,
@@ -1678,6 +1679,9 @@ const CargoStore = (function() {
             if (settingsData.hotline) data.settings.hotline = settingsData.hotline;
             if (settingsData.supportEmail) data.settings.supportEmail = settingsData.supportEmail;
             if (settingsData.platformFee) data.settings.platformFee = Number(settingsData.platformFee);
+            if (settingsData.hideAgentCredentials !== undefined) {
+                data.settings.hideAgentCredentials = Boolean(settingsData.hideAgentCredentials);
+            }
 
             if (settingsData.smtp) {
                 data.settings.smtp = {
