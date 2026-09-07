@@ -161,14 +161,19 @@
                     <input type="text" id="declCargoName" required placeholder="VD: Linh kiện điện thoại Samsung, Thủy hải sản tươi sống, Quần áo xuất khẩu..." class="w-full border rounded-xl px-3 py-2 outline-none focus:ring-2 focus:ring-blue-500 text-xs">
                 </div>
 
-                <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div class="grid grid-cols-1 md:grid-cols-3 gap-3">
                     <div>
-                        <label class="block font-semibold text-slate-700 mb-1">Tổng số kiện / Thùng đóng gói <span class="text-red-500">*</span></label>
+                        <label class="block font-semibold text-slate-700 mb-1">Tổng số kiện / Thùng <span class="text-red-500">*</span></label>
                         <input type="number" id="declPieces" min="1" required placeholder="VD: 45" class="w-full border rounded-xl px-3 py-2 outline-none focus:ring-2 focus:ring-blue-500 text-xs">
                     </div>
                     <div>
-                        <label class="block font-semibold text-slate-700 mb-1">Thể tích ước tính (CBM - m³) <span class="text-red-500">*</span></label>
-                        <input type="number" id="declVolume" step="0.1" min="0.1" required placeholder="VD: 3.2" class="w-full border rounded-xl px-3 py-2 outline-none focus:ring-2 focus:ring-blue-500 text-xs">
+                        <label class="block font-semibold text-slate-700 mb-1">Khối lượng hàng hóa (Kg) <span class="text-red-500">*</span></label>
+                        <input type="number" id="declGrossWeight" step="0.1" min="0.1" required placeholder="VD: 2850" class="w-full border rounded-xl px-3 py-2 outline-none focus:ring-2 focus:ring-blue-500 text-xs">
+                        <p class="text-[10px] text-slate-400 mt-0.5">Tải trọng trúng: <span id="declMaxCapacityHint" class="font-bold text-blue-600">- Kg</span></p>
+                    </div>
+                    <div>
+                        <label class="block font-semibold text-slate-700 mb-1">Thể tích (CBM - m³) <span class="text-red-500">*</span></label>
+                        <input type="number" id="declVolume" step="0.01" min="0.01" required placeholder="VD: 3.2" class="w-full border rounded-xl px-3 py-2 outline-none focus:ring-2 focus:ring-blue-500 text-xs">
                     </div>
                 </div>
 
@@ -468,10 +473,10 @@
                                     <td style="padding: 4px 6px; font-weight: 700; color: #0f172a; border: 1px solid #cbd5e1;" colspan="3">${decl.cargoName || '-'}</td>
                                 </tr>
                                 <tr>
-                                    <td style="padding: 4px 6px; background: #f8fafc; font-weight: 700; color: #475569; border: 1px solid #cbd5e1;">Tổng số kiện đóng gói:</td>
-                                    <td style="padding: 4px 6px; font-weight: 700; color: #0f172a; border: 1px solid #cbd5e1;">${decl.piecesCount || 0} kiện / thùng</td>
-                                    <td style="padding: 4px 6px; background: #f8fafc; font-weight: 700; color: #475569; border: 1px solid #cbd5e1;">Thể tích ước tính (CBM):</td>
-                                    <td style="padding: 4px 6px; font-weight: 700; color: #0f172a; border: 1px solid #cbd5e1;">${decl.volumeCbm || 0} m³</td>
+                                    <td style="padding: 4px 6px; background: #f8fafc; font-weight: 700; color: #475569; border: 1px solid #cbd5e1;">Khối lượng hàng hóa:</td>
+                                    <td style="padding: 4px 6px; font-weight: 800; color: #2563eb; border: 1px solid #cbd5e1;">${store ? store.formatNumber(decl.grossWeightKg || 0) : decl.grossWeightKg} Kg</td>
+                                    <td style="padding: 4px 6px; background: #f8fafc; font-weight: 700; color: #475569; border: 1px solid #cbd5e1;">Số kiện & Thể tích CBM:</td>
+                                    <td style="padding: 4px 6px; font-weight: 700; color: #0f172a; border: 1px solid #cbd5e1;">${decl.piecesCount || 0} kiện / thùng · ${decl.volumeCbm || 0} m³</td>
                                 </tr>
                                 <tr>
                                     <td style="padding: 4px 6px; background: #f8fafc; font-weight: 700; color: #475569; border: 1px solid #cbd5e1;">Đơn vị Gửi (Shipper):</td>
@@ -546,7 +551,29 @@
             modal.classList.add('hidden');
         }
 
-        // Modal cargo declaration functions
+        // Modal cargo declaration functions & validation
+        function showCargoModalError(msg) {
+            let errBox = document.getElementById('cargoModalErrorBox');
+            if (!errBox) {
+                const form = document.querySelector('#cargoDeclarationModal form');
+                if (form) {
+                    errBox = document.createElement('div');
+                    errBox.id = 'cargoModalErrorBox';
+                    errBox.className = 'bg-red-50 border border-red-200 text-red-700 p-3 rounded-xl text-xs font-semibold flex items-center gap-2 mb-2';
+                    form.insertBefore(errBox, form.firstChild);
+                }
+            }
+            if (errBox) {
+                errBox.innerHTML = `<i class="fa-solid fa-triangle-exclamation text-red-500 text-sm"></i> <span>${msg}</span>`;
+                errBox.classList.remove('hidden');
+            }
+        }
+
+        function hideCargoModalError() {
+            const errBox = document.getElementById('cargoModalErrorBox');
+            if (errBox) errBox.classList.add('hidden');
+        }
+
         function openCargoModal(wonId) {
             const store = getStore();
             const data = store ? store.getData() : {};
@@ -557,11 +584,17 @@
             document.getElementById('modalTargetWonId').value = wonId;
             document.getElementById('modalWonId').textContent = wonId;
 
+            const hintEl = document.getElementById('declMaxCapacityHint');
+            if (hintEl) hintEl.textContent = `${store ? store.formatNumber(item.capacityKg) : item.capacityKg} Kg`;
+
+            hideCargoModalError();
+
             const decl = item.cargoDeclaration || {};
             document.getElementById('declCargoType').value = decl.cargoType || 'Hàng bưu kiện / E-commerce';
             document.getElementById('declHawb').value = decl.hawbNumber || '';
             document.getElementById('declCargoName').value = decl.cargoName || '';
             document.getElementById('declPieces').value = decl.piecesCount || '';
+            document.getElementById('declGrossWeight').value = decl.grossWeightKg || item.capacityKg || '';
             document.getElementById('declVolume').value = decl.volumeCbm || '';
             document.getElementById('declShipper').value = decl.shipperName || '';
             document.getElementById('declConsignee').value = decl.consigneeName || '';
@@ -577,22 +610,87 @@
 
         function handleSaveCargoDeclaration(e) {
             e.preventDefault();
+            hideCargoModalError();
+
             const wonId = document.getElementById('modalTargetWonId').value;
             if (!wonId) return;
 
+            const store = getStore();
+            const data = store ? store.getData() : {};
+            const item = (data.wonAuctions || []).find(w => w.wonId === wonId);
+
+            const cargoType = document.getElementById('declCargoType').value;
+            const hawbNumber = document.getElementById('declHawb').value.trim();
+            const cargoName = document.getElementById('declCargoName').value.trim();
+            const piecesCount = Number(document.getElementById('declPieces').value);
+            const grossWeightKg = Number(document.getElementById('declGrossWeight').value);
+            const volumeCbm = Number(document.getElementById('declVolume').value);
+            const shipperName = document.getElementById('declShipper').value.trim();
+            const consigneeName = document.getElementById('declConsignee').value.trim();
+            const consigneeAddress = document.getElementById('declConsigneeAddress').value.trim();
+            const specialNotes = document.getElementById('declNotes').value.trim();
+
+            // 1. Kiểm tra tên hàng hóa
+            if (!cargoName || cargoName.length < 3) {
+                showCargoModalError('Vui lòng nhập Tên & Mô tả chi tiết mặt hàng (tối thiểu 3 ký tự).');
+                document.getElementById('declCargoName').focus();
+                return;
+            }
+
+            // 2. Kiểm tra số kiện
+            if (!piecesCount || isNaN(piecesCount) || piecesCount <= 0 || !Number.isInteger(piecesCount)) {
+                showCargoModalError('Tổng số kiện đóng gói phải là số nguyên lớn hơn 0 (Ví dụ: 10, 45).');
+                document.getElementById('declPieces').focus();
+                return;
+            }
+
+            // 3. Kiểm tra khối lượng hàng hóa (Kg)
+            if (!grossWeightKg || isNaN(grossWeightKg) || grossWeightKg <= 0) {
+                showCargoModalError('Khối lượng hàng hóa (Kg) phải là số dương lớn hơn 0.');
+                document.getElementById('declGrossWeight').focus();
+                return;
+            }
+
+            if (item && item.capacityKg && grossWeightKg > item.capacityKg * 1.15) {
+                showCargoModalError(`Cảnh báo: Khối lượng hàng hóa khai báo (${grossWeightKg} Kg) vượt quá nhiều so với tải trọng trúng thầu (${item.capacityKg} Kg) của chuyến bay! Vui lòng kiểm tra lại.`);
+                document.getElementById('declGrossWeight').focus();
+                return;
+            }
+
+            // 4. Kiểm tra thể tích (CBM)
+            if (!volumeCbm || isNaN(volumeCbm) || volumeCbm <= 0) {
+                showCargoModalError('Thể tích hàng hóa (CBM - m³) phải là số dương lớn hơn 0 (Ví dụ: 3.2).');
+                document.getElementById('declVolume').focus();
+                return;
+            }
+
+            // 5. Kiểm tra mã HAWB (nếu có nhập)
+            if (hawbNumber && !/^[A-Za-z0-9\-\/]{3,30}$/.test(hawbNumber)) {
+                showCargoModalError('Mã Vận đơn House (HAWB) chỉ được dùng chữ cái, số, dấu gạch (-) hoặc xuyệt (/). Ví dụ: HAWB-SGN-88901');
+                document.getElementById('declHawb').focus();
+                return;
+            }
+
+            // 6. Kiểm tra tên Consignee
+            if (!consigneeName || consigneeName.length < 2) {
+                showCargoModalError('Vui lòng nhập tên Đơn vị Nhận hàng (Consignee) hợp lệ (tối thiểu 2 ký tự).');
+                document.getElementById('declConsignee').focus();
+                return;
+            }
+
             const cargoData = {
-                cargoType: document.getElementById('declCargoType').value,
-                hawbNumber: document.getElementById('declHawb').value.trim(),
-                cargoName: document.getElementById('declCargoName').value.trim(),
-                piecesCount: document.getElementById('declPieces').value,
-                volumeCbm: document.getElementById('declVolume').value,
-                shipperName: document.getElementById('declShipper').value.trim(),
-                consigneeName: document.getElementById('declConsignee').value.trim(),
-                consigneeAddress: document.getElementById('declConsigneeAddress').value.trim(),
-                specialNotes: document.getElementById('declNotes').value.trim()
+                cargoType,
+                hawbNumber,
+                cargoName,
+                piecesCount,
+                grossWeightKg,
+                volumeCbm,
+                shipperName,
+                consigneeName,
+                consigneeAddress,
+                specialNotes
             };
 
-            const store = getStore();
             if (store && store.updateCargoDeclaration) {
                 const res = store.updateCargoDeclaration(wonId, cargoData);
                 if (res && res.success) {
@@ -600,7 +698,7 @@
                     showToast(res.message, true);
                     renderWonAuctions();
                 } else {
-                    showToast((res && res.message) || 'Lỗi cập nhật thông tin hàng hóa', false);
+                    showCargoModalError((res && res.message) || 'Lỗi cập nhật thông tin hàng hóa');
                 }
             }
         }
@@ -815,8 +913,8 @@
                                             <p class="font-bold text-slate-900">${decl.cargoName} <span class="text-emerald-700 font-medium">(${decl.cargoType})</span></p>
                                         </div>
                                         <div>
-                                            <p class="text-gray-500 text-[11px]">Số kiện & Thể tích (CBM):</p>
-                                            <p class="font-bold text-slate-900">${decl.piecesCount} kiện / ${decl.volumeCbm} m³</p>
+                                            <p class="text-gray-500 text-[11px]">Trọng lượng & Quy cách:</p>
+                                            <p class="font-bold text-blue-600">${store ? store.formatNumber(decl.grossWeightKg || 0) : decl.grossWeightKg} Kg <span class="text-slate-700 font-normal text-[11px]">(${decl.piecesCount} kiện / ${decl.volumeCbm} m³)</span></p>
                                         </div>
                                         <div>
                                             <p class="text-gray-500 text-[11px]">Đơn vị Nhận hàng / HAWB:</p>
