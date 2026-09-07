@@ -1193,6 +1193,49 @@ const CargoStore = (function() {
             const taxClean = (regData.taxCode || '').trim();
             const emailClean = (regData.email || '').trim().toLowerCase();
 
+            // Store-level Validation Rules
+            const nameRegex = /^[a-zA-ZÀÁÂÃÈÉÊÌÍÒÓÔÕÙÚĂĐĨŨƠàáâãèéêìíòóôõùúăđĩũơƯĂẠẢẤẦẨẪẬẮẰẲẴẶẸẺẼỀỀỂưăạảấầẩẫậắằẳẵặẹẻẽềềểỄỆỈỊỌỎỐỒỔỖỘỚỜỞỠỢỤỦỨỪễệỉịọỏốồổỗộớờởỡợụủứừỬỮỰỲỴÝỶỸửữựỳỵỷỹ\s]+$/;
+            const emailRegex = /^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/;
+            const phoneRegex = /^(03|05|07|08|09)\d{8}$/;
+            const taxRegex = /^\d{10}(\d{3})?$/;
+            const pinRegex = /^\d{4}$/;
+
+            const repNameClean = (regData.repName || '').trim();
+            if (!repNameClean || repNameClean.split(/\s+/).length < 2 || !nameRegex.test(repNameClean)) {
+                return { success: false, message: 'Họ và tên người đại diện phải gồm cả Họ và Tên (tối thiểu 2 từ, chỉ gồm chữ cái).' };
+            }
+
+            if (!emailClean || !emailRegex.test(emailClean)) {
+                return { success: false, message: 'Email đăng ký không đúng định dạng hợp lệ (VD: user@company.com).' };
+            }
+
+            const phoneClean = (regData.phone || '').replace(/\s+/g, '');
+            if (!phoneClean || !phoneRegex.test(phoneClean)) {
+                return { success: false, message: 'Số điện thoại di động phải gồm 10 chữ số hợp lệ của các nhà mạng Việt Nam (VD: 0901234567).' };
+            }
+
+            if (!taxClean || !taxRegex.test(taxClean)) {
+                return { success: false, message: 'Mã số thuế (MST) phải gồm 10 hoặc 13 chữ số.' };
+            }
+
+            const pwd = regData.password || '';
+            const pwdHasUpper = /[A-Z]/.test(pwd);
+            const pwdHasLower = /[a-z]/.test(pwd);
+            const pwdHasDigit = /[0-9]/.test(pwd);
+            const pwdHasSpecial = /[!@#$%^&*()_+\-=\[\]{};':"\\|,.<>\/?]/.test(pwd);
+
+            if (pwd.length < 8 || !pwdHasUpper || !pwdHasLower || !pwdHasDigit || !pwdHasSpecial) {
+                return { 
+                    success: false, 
+                    message: 'Mật khẩu chưa đạt yêu cầu an toàn! Mật khẩu phải từ 8 ký tự trở lên, gồm chữ HOA, chữ thường, chữ số và ký tự đặc biệt (!@#$%^&*).' 
+                };
+            }
+
+            const pinClean = (regData.pin || '').trim();
+            if (!pinClean || !pinRegex.test(pinClean)) {
+                return { success: false, message: 'Mã PIN bảo mật phải gồm đúng 4 chữ số (0-9).' };
+            }
+
             if (taxClean) {
                 const duplicateTax = (data.registrations || []).find(r => r.status === 'PENDING' && (r.taxCode || '').trim() === taxClean) ||
                                      (data.agentsList || []).find(a => (a.taxCode || '').trim() === taxClean);

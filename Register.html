@@ -84,6 +84,7 @@
                         <label class="block text-sm font-medium mb-1">Mã số thuế (MST) <span class="text-red-500">*</span></label>
                         <input type="text" id="taxCode" required placeholder="0312345678"
                                class="w-full border rounded-xl px-4 py-2.5 text-sm focus:ring-2 focus:ring-blue-500 outline-none transition">
+                        <p id="taxCodeErr" class="text-xs text-red-600 font-medium mt-1 hidden"></p>
                     </div>
                     <div>
                         <label class="block text-sm font-medium mb-1">Giấy phép kinh doanh số</label>
@@ -125,6 +126,7 @@
                         <label class="block text-sm font-medium mb-1">Họ và tên người đại diện <span class="text-red-500">*</span></label>
                         <input type="text" id="repName" required placeholder="VD: Nguyễn Văn An"
                                class="w-full border rounded-xl px-4 py-2.5 text-sm focus:ring-2 focus:ring-blue-500 outline-none transition">
+                        <p id="repNameErr" class="text-xs text-red-600 font-medium mt-1 hidden"></p>
                     </div>
                     <div>
                         <label class="block text-sm font-medium mb-1">Chức vụ <span class="text-red-500">*</span></label>
@@ -135,21 +137,25 @@
                         <label class="block text-sm font-medium mb-1">Email nhận mã đại lý & hợp đồng <span class="text-red-500">*</span></label>
                         <input type="email" id="email" required placeholder="an.nguyen@company.vn"
                                class="w-full border rounded-xl px-4 py-2.5 text-sm focus:ring-2 focus:ring-blue-500 outline-none transition">
+                        <p id="emailErr" class="text-xs text-red-600 font-medium mt-1 hidden"></p>
                     </div>
                     <div>
                         <label class="block text-sm font-medium mb-1">Số điện thoại di động <span class="text-red-500">*</span></label>
                         <input type="tel" id="phone" required placeholder="0901 234 567"
                                class="w-full border rounded-xl px-4 py-2.5 text-sm focus:ring-2 focus:ring-blue-500 outline-none transition">
+                        <p id="phoneErr" class="text-xs text-red-600 font-medium mt-1 hidden"></p>
                     </div>
                     <div>
                         <label class="block text-sm font-medium mb-1">Số CCCD / Hộ chiếu</label>
                         <input type="text" id="citizenId" placeholder="Số căn cước công dân"
                                class="w-full border rounded-xl px-4 py-2.5 text-sm focus:ring-2 focus:ring-blue-500 outline-none transition">
+                        <p id="citizenIdErr" class="text-xs text-red-600 font-medium mt-1 hidden"></p>
                     </div>
                     <div>
                         <label class="block text-sm font-medium mb-1">Email nhận thông báo đấu giá (nếu khác)</label>
                         <input type="email" id="notifEmail" placeholder="ops@company.vn"
                                class="w-full border rounded-xl px-4 py-2.5 text-sm focus:ring-2 focus:ring-blue-500 outline-none transition">
+                        <p id="notifEmailErr" class="text-xs text-red-600 font-medium mt-1 hidden"></p>
                     </div>
                 </div>
             </div>
@@ -280,6 +286,27 @@
                         <label class="block text-sm font-medium mb-1">Mật khẩu khởi tạo <span class="text-red-500">*</span></label>
                         <input type="password" id="tempPassword" required placeholder="Tối thiểu 8 ký tự"
                                class="w-full border rounded-xl px-4 py-2.5 text-sm focus:ring-2 focus:ring-blue-500 outline-none transition">
+                        
+                        <div class="mt-2.5 bg-slate-50 border border-slate-200 rounded-xl p-3 text-xs space-y-1.5" id="pwdChecklist">
+                            <p class="font-bold text-slate-700 text-[11px] mb-1 flex items-center gap-1.5">
+                                <i class="fa-solid fa-shield-halved text-blue-600"></i> Yêu cầu mật khẩu an toàn:
+                            </p>
+                            <div class="flex items-center gap-1.5 text-slate-500" id="ruleLen">
+                                <i class="fa-solid fa-circle-xmark text-red-500 text-[11px]"></i> <span>Từ 8 ký tự trở lên</span>
+                            </div>
+                            <div class="flex items-center gap-1.5 text-slate-500" id="ruleUpper">
+                                <i class="fa-solid fa-circle-xmark text-red-500 text-[11px]"></i> <span>Có chữ HOA (A-Z)</span>
+                            </div>
+                            <div class="flex items-center gap-1.5 text-slate-500" id="ruleLower">
+                                <i class="fa-solid fa-circle-xmark text-red-500 text-[11px]"></i> <span>Có chữ thường (a-z)</span>
+                            </div>
+                            <div class="flex items-center gap-1.5 text-slate-500" id="ruleDigit">
+                                <i class="fa-solid fa-circle-xmark text-red-500 text-[11px]"></i> <span>Có chữ số (0-9)</span>
+                            </div>
+                            <div class="flex items-center gap-1.5 text-slate-500" id="ruleSpecial">
+                                <i class="fa-solid fa-circle-xmark text-red-500 text-[11px]"></i> <span>Có ký tự đặc biệt (!@#$%^&*)</span>
+                            </div>
+                        </div>
                     </div>
                     <div>
                         <label class="block text-sm font-medium mb-1">Xác nhận mật khẩu <span class="text-red-500">*</span></label>
@@ -291,6 +318,7 @@
                         <label class="block text-sm font-medium mb-1">Mã PIN bảo mật (4 chữ số) <span class="text-red-500">*</span></label>
                         <input type="password" id="pinCode" maxlength="4" pattern="[0-9]{4}" required placeholder="VD: 1234" value="1234"
                                class="w-full border rounded-xl px-4 py-2.5 text-sm focus:ring-2 focus:ring-blue-500 outline-none transition font-mono tracking-widest text-center">
+                        <p id="pinCodeErr" class="text-xs text-red-600 font-medium mt-1 hidden"></p>
                         <p class="text-[11px] text-gray-500 mt-1">Dùng để tra cứu/xem lại mật khẩu</p>
                     </div>
                 </div>
@@ -435,10 +463,153 @@
         const p2Input = document.getElementById('confirmPassword');
         const feedbackEl = document.getElementById('confirmFeedbackMsg');
 
+        // Regex patterns
+        const nameRegex = /^[a-zA-ZÀÁÂÃÈÉÊÌÍÒÓÔÕÙÚĂĐĨŨƠàáâãèéêìíòóôõùúăđĩũơƯĂẠẢẤẦẨẪẬẮẰẲẴẶẸẺẼỀỀỂưăạảấầẩẫậắằẳẵặẹẻẽềềểỄỆỈỊỌỎỐỒỔỖỘỚỜỞỠỢỤỦỨỪễệỉịọỏốồổỗộớờởỡợụủứừỬỮỰỲỴÝỶỸửữựỳỵỷỹ\s]+$/;
+        const emailRegex = /^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/;
+        const phoneRegex = /^(03|05|07|08|09)\d{8}$/;
+        const taxRegex = /^\d{10}(\d{3})?$/;
+        const pinRegex = /^\d{4}$/;
+        const citizenIdRegex = /^(\d{12}|[A-Za-z]\d{7,8})$/;
+
+        function updatePasswordChecklist() {
+            const val = p1Input ? p1Input.value : '';
+            const lenOk = val.length >= 8;
+            const upperOk = /[A-Z]/.test(val);
+            const lowerOk = /[a-z]/.test(val);
+            const digitOk = /[0-9]/.test(val);
+            const specialOk = /[!@#$%^&*()_+\-=\[\]{};':"\\|,.<>\/?]/.test(val);
+
+            setRuleItem('ruleLen', lenOk, 'Từ 8 ký tự trở lên');
+            setRuleItem('ruleUpper', upperOk, 'Có chữ HOA (A-Z)');
+            setRuleItem('ruleLower', lowerOk, 'Có chữ thường (a-z)');
+            setRuleItem('ruleDigit', digitOk, 'Có chữ số (0-9)');
+            setRuleItem('ruleSpecial', specialOk, 'Có ký tự đặc biệt (!@#$%^&*)');
+
+            return lenOk && upperOk && lowerOk && digitOk && specialOk;
+        }
+
+        function setRuleItem(id, isOk, text) {
+            const el = document.getElementById(id);
+            if (!el) return;
+            if (isOk) {
+                el.className = 'flex items-center gap-1.5 text-emerald-700 font-medium';
+                el.innerHTML = `<i class="fa-solid fa-circle-check text-emerald-500 text-[11px]"></i> <span>${text}</span>`;
+            } else {
+                el.className = 'flex items-center gap-1.5 text-slate-500';
+                el.innerHTML = `<i class="fa-solid fa-circle-xmark text-red-500 text-[11px]"></i> <span>${text}</span>`;
+            }
+        }
+
+        function setFieldError(fieldId, errId, isValid, errorMsg, showErrors) {
+            const inputEl = document.getElementById(fieldId);
+            const errEl = document.getElementById(errId);
+            if (!inputEl) return isValid;
+
+            if (isValid) {
+                inputEl.classList.remove('border-red-500', 'focus:ring-red-500');
+                inputEl.classList.add('border-gray-200');
+                if (errEl) {
+                    errEl.textContent = '';
+                    errEl.classList.add('hidden');
+                }
+            } else {
+                inputEl.classList.remove('border-gray-200');
+                inputEl.classList.add('border-red-500', 'focus:ring-red-500');
+                if (errEl && showErrors) {
+                    errEl.textContent = errorMsg;
+                    errEl.classList.remove('hidden');
+                }
+            }
+            return isValid;
+        }
+
+        function validateFormInputs(showErrors = false) {
+            let isValid = true;
+            let firstInvalidEl = null;
+
+            // 1. Tax Code
+            const taxVal = (document.getElementById('taxCode')?.value || '').trim();
+            const taxOk = taxRegex.test(taxVal);
+            if (!setFieldError('taxCode', 'taxCodeErr', taxOk, 'Mã số thuế phải đúng 10 hoặc 13 chữ số', showErrors)) {
+                isValid = false;
+                if (!firstInvalidEl) firstInvalidEl = document.getElementById('taxCode');
+            }
+
+            // 2. Representative Name
+            const repVal = (document.getElementById('repName')?.value || '').trim();
+            const repOk = repVal.length >= 2 && repVal.split(/\s+/).length >= 2 && nameRegex.test(repVal);
+            if (!setFieldError('repName', 'repNameErr', repOk, 'Họ và tên phải gồm ít nhất 2 từ và chỉ chứa chữ cái', showErrors)) {
+                isValid = false;
+                if (!firstInvalidEl) firstInvalidEl = document.getElementById('repName');
+            }
+
+            // 3. Email
+            const emailVal = (document.getElementById('email')?.value || '').trim();
+            const emailOk = emailRegex.test(emailVal);
+            if (!setFieldError('email', 'emailErr', emailOk, 'Email không đúng định dạng hợp lệ (VD: user@company.com)', showErrors)) {
+                isValid = false;
+                if (!firstInvalidEl) firstInvalidEl = document.getElementById('email');
+            }
+
+            // 4. Phone
+            const phoneVal = (document.getElementById('phone')?.value || '').replace(/\s+/g, '');
+            const phoneOk = phoneRegex.test(phoneVal);
+            if (!setFieldError('phone', 'phoneErr', phoneOk, 'Số điện thoại phải đủ 10 chữ số hợp lệ (bắt đầu bằng 03, 05, 07, 08, 09)', showErrors)) {
+                isValid = false;
+                if (!firstInvalidEl) firstInvalidEl = document.getElementById('phone');
+            }
+
+            // 5. Citizen ID (Optional check if non-empty)
+            const citizenVal = (document.getElementById('citizenId')?.value || '').trim();
+            const citizenOk = !citizenVal || citizenIdRegex.test(citizenVal);
+            if (!setFieldError('citizenId', 'citizenIdErr', citizenOk, 'Số CCCD/Hộ chiếu không đúng định dạng (12 số hoặc Hộ chiếu)', showErrors)) {
+                isValid = false;
+                if (!firstInvalidEl) firstInvalidEl = document.getElementById('citizenId');
+            }
+
+            // 6. Notification Email (Optional check if non-empty)
+            const notifEmailVal = (document.getElementById('notifEmail')?.value || '').trim();
+            const notifEmailOk = !notifEmailVal || emailRegex.test(notifEmailVal);
+            if (!setFieldError('notifEmail', 'notifEmailErr', notifEmailOk, 'Email nhận thông báo không hợp lệ', showErrors)) {
+                isValid = false;
+                if (!firstInvalidEl) firstInvalidEl = document.getElementById('notifEmail');
+            }
+
+            // 7. PIN Code
+            const pinVal = (document.getElementById('pinCode')?.value || '').trim();
+            const pinOk = pinRegex.test(pinVal);
+            if (!setFieldError('pinCode', 'pinCodeErr', pinOk, 'Mã PIN bảo mật phải đúng 4 chữ số (0-9)', showErrors)) {
+                isValid = false;
+                if (!firstInvalidEl) firstInvalidEl = document.getElementById('pinCode');
+            }
+
+            // 8. Password Strength
+            const pwdOk = updatePasswordChecklist();
+            if (!pwdOk) {
+                isValid = false;
+                if (!firstInvalidEl) firstInvalidEl = p1Input;
+            }
+
+            // 9. Password Confirm
+            const p1 = p1Input ? p1Input.value : '';
+            const p2 = p2Input ? p2Input.value : '';
+            if (p1 !== p2) {
+                isValid = false;
+                if (!firstInvalidEl && p2Input) firstInvalidEl = p2Input;
+            }
+
+            if (!isValid && showErrors && firstInvalidEl) {
+                firstInvalidEl.focus();
+                firstInvalidEl.scrollIntoView({ behavior: 'smooth', block: 'center' });
+            }
+
+            return isValid;
+        }
+
         function checkPasswordMatch() {
             if (!feedbackEl) return;
-            const val1 = p1Input.value;
-            const val2 = p2Input.value;
+            const val1 = p1Input ? p1Input.value : '';
+            const val2 = p2Input ? p2Input.value : '';
             if (!val2) {
                 feedbackEl.className = 'text-xs mt-1 font-medium hidden';
                 feedbackEl.textContent = '';
@@ -454,9 +625,21 @@
         }
 
         if (p1Input && p2Input) {
-            p1Input.addEventListener('input', checkPasswordMatch);
+            p1Input.addEventListener('input', () => {
+                updatePasswordChecklist();
+                checkPasswordMatch();
+            });
             p2Input.addEventListener('input', checkPasswordMatch);
         }
+
+        // Live format checks on blur / input
+        ['taxCode', 'repName', 'email', 'phone', 'citizenId', 'notifEmail', 'pinCode'].forEach(id => {
+            const el = document.getElementById(id);
+            if (el) {
+                el.addEventListener('blur', () => validateFormInputs(true));
+                el.addEventListener('input', () => validateFormInputs(false));
+            }
+        });
 
         function toggleDemoFill(cb) {
             if (cb.checked) {
@@ -470,15 +653,17 @@
                 document.getElementById('repName').value = "Trần Hoàng Nam";
                 document.getElementById('repPosition').value = "Giám đốc Logistics Cargo";
                 document.getElementById('email').value = "nam.tran@tsn-logistics.vn";
-                document.getElementById('phone').value = "0988 776 655";
+                document.getElementById('phone').value = "0988776655";
                 document.getElementById('citizenId').value = "079095001234";
                 document.getElementById('notifEmail').value = "";
 
-                document.getElementById('tempPassword').value = "Demo123456";
-                document.getElementById('confirmPassword').value = "Demo123456";
+                document.getElementById('tempPassword').value = "Demo@123456";
+                document.getElementById('confirmPassword').value = "Demo@123456";
                 document.getElementById('pinCode').value = "9999";
 
+                updatePasswordChecklist();
                 checkPasswordMatch();
+                validateFormInputs(false);
 
                 document.querySelectorAll('#registerForm input[type="checkbox"]').forEach(c => {
                     if (c !== cb) c.checked = true;
@@ -501,6 +686,13 @@
 
         document.getElementById('registerForm').addEventListener('submit', function(e) {
             e.preventDefault();
+
+            // Run full form validation
+            const isFormValid = validateFormInputs(true);
+            if (!isFormValid) {
+                alert('⚠️ Thông tin đăng ký chưa đúng định dạng hoặc chưa đủ tiêu chuẩn bảo mật. Vui lòng kiểm tra lại các trường được đánh dấu đỏ!');
+                return;
+            }
 
             const p1 = document.getElementById('tempPassword').value;
             const p2 = document.getElementById('confirmPassword').value;
