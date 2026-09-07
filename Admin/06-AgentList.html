@@ -330,11 +330,14 @@
             const pendings = regs.filter(r => r.status === 'PENDING');
             document.getElementById('regCountBadge').textContent = pendings.length;
 
+            const settings = (window.CargoStore && CargoStore.getSystemSettings) ? CargoStore.getSystemSettings() : {};
+            const isHiddenCredentials = settings.hideAgentCredentials !== false; // DEFAULT ALWAYS ON (TRUE)
+
             const regContainer = document.getElementById('registrationsContainer');
             if (regs.length === 0) {
                 regContainer.innerHTML = `<div class="bg-white rounded-2xl border p-12 text-center text-gray-400">Chưa có hồ sơ đăng ký nào</div>`;
             } else {
-                regContainer.innerHTML = regs.map(r => {
+                regContainer.innerHTML = regs.map((r, regIdx) => {
                     const isPending = r.status === 'PENDING';
                     const isApproved = r.status === 'APPROVED';
 
@@ -389,30 +392,34 @@
                                     <p class="text-slate-500 font-medium mb-1">Mật khẩu khởi tạo đăng ký:</p>
                                     <div class="inline-flex items-center gap-2 bg-white px-2.5 py-1 rounded-lg border border-slate-200 shadow-2xs">
                                         <span id="pwd-val-${r.regId}" class="font-mono font-bold text-slate-800 tracking-wider">••••••••</span>
-                                        <button type="button" 
-                                                onclick="toggleRegSecret('${r.regId}', 'pwd')" 
-                                                id="pwd-btn-${r.regId}" 
-                                                data-real="${encodeURIComponent(r.password || '12345678')}" 
-                                                data-masked="••••••••" 
-                                                class="text-slate-400 hover:text-blue-600 transition p-0.5 cursor-pointer flex items-center justify-center" 
-                                                title="Bấm để xem / ẩn mật khẩu">
-                                            <i class="fa-solid fa-eye text-xs"></i>
-                                        </button>
+                                        ${isHiddenCredentials ? '' : `
+                                            <button type="button" 
+                                                    onclick="toggleRegSecret('${r.regId}', 'pwd')" 
+                                                    id="pwd-btn-${r.regId}" 
+                                                    data-real="${encodeURIComponent(r.password || '12345678')}" 
+                                                    data-masked="••••••••" 
+                                                    class="text-slate-400 hover:text-blue-600 transition p-0.5 cursor-pointer flex items-center justify-center" 
+                                                    title="Bấm để xem / ẩn mật khẩu">
+                                                <i class="fa-solid fa-eye text-xs"></i>
+                                            </button>
+                                        `}
                                     </div>
                                 </div>
                                 <div>
                                     <p class="text-slate-500 font-medium mb-1">Mã PIN bảo mật (4 chữ số):</p>
                                     <div class="inline-flex items-center gap-2 bg-indigo-50/80 px-2.5 py-1 rounded-lg border border-indigo-200 shadow-2xs">
                                         <span id="pin-val-${r.regId}" class="font-mono font-bold text-indigo-700 tracking-wider">••••</span>
-                                        <button type="button" 
-                                                onclick="toggleRegSecret('${r.regId}', 'pin')" 
-                                                id="pin-btn-${r.regId}" 
-                                                data-real="${encodeURIComponent(r.pin || '1234')}" 
-                                                data-masked="••••" 
-                                                class="text-indigo-400 hover:text-indigo-700 transition p-0.5 cursor-pointer flex items-center justify-center" 
-                                                title="Bấm để xem / ẩn mã PIN">
-                                            <i class="fa-solid fa-eye text-xs"></i>
-                                        </button>
+                                        ${isHiddenCredentials ? '' : `
+                                            <button type="button" 
+                                                    onclick="toggleRegSecret('${r.regId}', 'pin')" 
+                                                    id="pin-btn-${r.regId}" 
+                                                    data-real="${encodeURIComponent(r.pin || '1234')}" 
+                                                    data-masked="••••" 
+                                                    class="text-indigo-400 hover:text-indigo-700 transition p-0.5 cursor-pointer flex items-center justify-center" 
+                                                    title="Bấm để xem / ẩn mã PIN">
+                                                <i class="fa-solid fa-eye text-xs"></i>
+                                            </button>
+                                        `}
                                     </div>
                                 </div>
                                 <div class="col-span-2">
