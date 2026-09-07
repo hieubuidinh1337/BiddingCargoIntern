@@ -119,6 +119,90 @@
         </div>
     </div>
 
+    <!-- Modal: Khai báo thông tin hàng hóa cần vận chuyển -->
+    <div id="cargoDeclarationModal" class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-50 flex items-center justify-center p-4 hidden">
+        <div class="bg-white rounded-2xl max-w-2xl w-full shadow-2xl overflow-hidden animate-in fade-in zoom-in duration-200">
+            <div class="bg-slate-900 text-white px-6 py-4 flex items-center justify-between">
+                <div class="flex items-center gap-2.5">
+                    <div class="w-9 h-9 rounded-xl bg-blue-500/20 text-blue-400 flex items-center justify-center text-sm font-bold border border-blue-500/30">
+                        <i class="fa-solid fa-boxes-packing text-base"></i>
+                    </div>
+                    <div>
+                        <h3 class="font-bold text-sm leading-tight">Khai báo hồ sơ hàng hóa vận chuyển</h3>
+                        <p class="text-[11px] text-slate-400">Mã đơn thắng thầu: <strong id="modalWonId" class="text-blue-300 font-mono">-</strong></p>
+                    </div>
+                </div>
+                <button onclick="closeCargoModal()" class="text-slate-400 hover:text-white text-lg cursor-pointer"><i class="fa-solid fa-xmark"></i></button>
+            </div>
+            <form onsubmit="handleSaveCargoDeclaration(event)" class="p-6 space-y-4 text-xs">
+                <input type="hidden" id="modalTargetWonId">
+                
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div>
+                        <label class="block font-semibold text-slate-700 mb-1">Loại hàng hóa vận chuyển <span class="text-red-500">*</span></label>
+                        <select id="declCargoType" required class="w-full border rounded-xl px-3 py-2 bg-white outline-none focus:ring-2 focus:ring-blue-500 text-xs">
+                            <option value="Hàng bưu kiện / E-commerce">Hàng bưu kiện / Thương mại điện tử (General Cargo)</option>
+                            <option value="Hàng dễ hỏng / Kho lạnh (PER)">Hàng thực phẩm / Thực vật / Kho lạnh (PER)</option>
+                            <option value="Hàng linh kiện điện tử (VAL/AVI)">Hàng linh kiện điện tử / Giá trị cao (VAL)</option>
+                            <option value="Hàng nguy hiểm (DGR)">Hàng nguy hiểm có chứng chỉ DGR (DGR)</option>
+                            <option value="Hàng may mặc / Tiêu dùng (GOH)">Hàng may mặc / Dệt may (GOH)</option>
+                            <option value="Hàng tươi sống / Động vật (AVI)">Hàng thủy hải sản tươi sống (AVI)</option>
+                            <option value="Khác">Khác</option>
+                        </select>
+                    </div>
+                    <div>
+                        <label class="block font-semibold text-slate-700 mb-1">Mã Vận đơn House AWB (HAWB) / Số HĐ</label>
+                        <input type="text" id="declHawb" placeholder="VD: HAWB-SGN-88901" class="w-full border rounded-xl px-3 py-2 outline-none focus:ring-2 focus:ring-blue-500 font-mono text-xs">
+                    </div>
+                </div>
+
+                <div>
+                    <label class="block font-semibold text-slate-700 mb-1">Tên & Mô tả chi tiết mặt hàng <span class="text-red-500">*</span></label>
+                    <input type="text" id="declCargoName" required placeholder="VD: Linh kiện điện thoại Samsung, Thủy hải sản tươi sống, Quần áo xuất khẩu..." class="w-full border rounded-xl px-3 py-2 outline-none focus:ring-2 focus:ring-blue-500 text-xs">
+                </div>
+
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div>
+                        <label class="block font-semibold text-slate-700 mb-1">Tổng số kiện / Thùng đóng gói <span class="text-red-500">*</span></label>
+                        <input type="number" id="declPieces" min="1" required placeholder="VD: 45" class="w-full border rounded-xl px-3 py-2 outline-none focus:ring-2 focus:ring-blue-500 text-xs">
+                    </div>
+                    <div>
+                        <label class="block font-semibold text-slate-700 mb-1">Thể tích ước tính (CBM - m³) <span class="text-red-500">*</span></label>
+                        <input type="number" id="declVolume" step="0.1" min="0.1" required placeholder="VD: 3.2" class="w-full border rounded-xl px-3 py-2 outline-none focus:ring-2 focus:ring-blue-500 text-xs">
+                    </div>
+                </div>
+
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div>
+                        <label class="block font-semibold text-slate-700 mb-1">Tên Đơn vị Gửi hàng (Shipper)</label>
+                        <input type="text" id="declShipper" placeholder="VD: Công ty TNHH Vận tải ABC Logistics" class="w-full border rounded-xl px-3 py-2 outline-none focus:ring-2 focus:ring-blue-500 text-xs">
+                    </div>
+                    <div>
+                        <label class="block font-semibold text-slate-700 mb-1">Tên Đơn vị Nhận hàng (Consignee) <span class="text-red-500">*</span></label>
+                        <input type="text" id="declConsignee" required placeholder="VD: Công ty CP Đầu tư & Công nghệ Hà Nội" class="w-full border rounded-xl px-3 py-2 outline-none focus:ring-2 focus:ring-blue-500 text-xs">
+                    </div>
+                </div>
+
+                <div>
+                    <label class="block font-semibold text-slate-700 mb-1">Địa chỉ kho nhận hàng tại sân bay đích</label>
+                    <input type="text" id="declConsigneeAddress" placeholder="VD: Kho NCTS / ALSC Sân bay Nội Bài, Hà Nội" class="w-full border rounded-xl px-3 py-2 outline-none focus:ring-2 focus:ring-blue-500 text-xs">
+                </div>
+
+                <div>
+                    <label class="block font-semibold text-slate-700 mb-1">Yêu cầu bảo quản & Vận chuyển đặc biệt (nếu có)</label>
+                    <textarea id="declNotes" rows="2" placeholder="VD: Bảo quản kho mát 2-8°C, Hàng giá trị cao niêm phong seal, Không lật ngược..." class="w-full border rounded-xl px-3 py-2 outline-none focus:ring-2 focus:ring-blue-500 text-xs"></textarea>
+                </div>
+
+                <div class="flex items-center justify-end gap-2.5 pt-3 border-t">
+                    <button type="button" onclick="closeCargoModal()" class="px-4 py-2 border rounded-xl text-slate-600 hover:bg-slate-50 font-medium cursor-pointer">Hủy bỏ</button>
+                    <button type="submit" class="px-6 py-2.5 bg-blue-600 hover:bg-blue-700 text-white font-bold rounded-xl shadow flex items-center gap-1.5 cursor-pointer">
+                        <i class="fa-solid fa-floppy-disk"></i> Lưu & Cập nhật hồ sơ
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+
     <!-- Notification Toast -->
     <div id="toastWon" class="fixed bottom-5 right-5 bg-slate-900 text-white text-xs font-semibold px-4 py-3 rounded-xl shadow-xl flex items-center gap-2.5 z-50 transform translate-y-20 opacity-0 transition-all duration-300 pointer-events-none">
         <i class="fa-solid fa-circle-check text-emerald-400 text-base" id="toastWonIcon"></i>
@@ -210,6 +294,8 @@
             const now = new Date();
             const nowStr = `${now.toLocaleDateString('vi-VN')} ${now.toLocaleTimeString('vi-VN', {hour:'2-digit', minute:'2-digit'})}`;
             const deadlineStr = item.paymentDeadline ? new Date(item.paymentDeadline).toLocaleString('vi-VN') : 'Trong vòng 24 giờ kể từ thời điểm chốt thầu';
+
+            const decl = item.cargoDeclaration;
 
             return `
                 <div style="padding: 18px 24px; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; color: #1e293b; background: #ffffff; width: 720px; max-width: 720px; margin: 0 auto; font-size: 10px; line-height: 1.35; box-sizing: border-box;">
@@ -345,7 +431,7 @@
                     </div>
 
                     <!-- Section 3: Quy định bàn giao hàng hóa -->
-                    <div style="margin-bottom: 12px;">
+                    <div style="margin-bottom: 10px;">
                         <div style="background: #f1f5f9; padding: 3px 6px; border-left: 3px solid #2563eb; font-weight: 800; font-size: 9px; color: #0f172a; text-transform: uppercase; margin-bottom: 4px;">
                             III. ĐỊA ĐIỂM TIẾP NHẬN & QUY ĐỊNH CUT-OFF BÀN GIAO HÀNG HÓA
                         </div>
@@ -363,7 +449,54 @@
                         </div>
                     </div>
 
-                    <!-- Section 4: Chữ ký & Xác nhận Điện tử -->
+                    <!-- Section 4: Thông tin Hàng hóa khai báo -->
+                    ${decl ? `
+                    <div style="margin-bottom: 10px;">
+                        <div style="background: #f1f5f9; padding: 3px 6px; border-left: 3px solid #2563eb; font-weight: 800; font-size: 9px; color: #0f172a; text-transform: uppercase; margin-bottom: 4px;">
+                            IV. THÔNG TIN HÀNG HÓA KHAI BÁO (DECLARED CARGO DETAILS)
+                        </div>
+                        <table style="width: 100%; border-collapse: collapse; font-size: 8.5px; border: 1px solid #cbd5e1;">
+                            <tbody>
+                                <tr>
+                                    <td style="padding: 4px 6px; width: 130px; background: #f8fafc; font-weight: 700; color: #475569; border: 1px solid #cbd5e1;">Loại hàng hóa:</td>
+                                    <td style="padding: 4px 6px; font-weight: 700; color: #0f172a; border: 1px solid #cbd5e1;">${decl.cargoType || 'Chưa phân loại'}</td>
+                                    <td style="padding: 4px 6px; width: 130px; background: #f8fafc; font-weight: 700; color: #475569; border: 1px solid #cbd5e1;">Mã Vận đơn House (HAWB):</td>
+                                    <td style="padding: 4px 6px; font-weight: 800; font-family: monospace; color: #2563eb; border: 1px solid #cbd5e1;">${decl.hawbNumber || '-'}</td>
+                                </tr>
+                                <tr>
+                                    <td style="padding: 4px 6px; background: #f8fafc; font-weight: 700; color: #475569; border: 1px solid #cbd5e1;">Tên / Mô tả hàng hóa:</td>
+                                    <td style="padding: 4px 6px; font-weight: 700; color: #0f172a; border: 1px solid #cbd5e1;" colspan="3">${decl.cargoName || '-'}</td>
+                                </tr>
+                                <tr>
+                                    <td style="padding: 4px 6px; background: #f8fafc; font-weight: 700; color: #475569; border: 1px solid #cbd5e1;">Tổng số kiện đóng gói:</td>
+                                    <td style="padding: 4px 6px; font-weight: 700; color: #0f172a; border: 1px solid #cbd5e1;">${decl.piecesCount || 0} kiện / thùng</td>
+                                    <td style="padding: 4px 6px; background: #f8fafc; font-weight: 700; color: #475569; border: 1px solid #cbd5e1;">Thể tích ước tính (CBM):</td>
+                                    <td style="padding: 4px 6px; font-weight: 700; color: #0f172a; border: 1px solid #cbd5e1;">${decl.volumeCbm || 0} m³</td>
+                                </tr>
+                                <tr>
+                                    <td style="padding: 4px 6px; background: #f8fafc; font-weight: 700; color: #475569; border: 1px solid #cbd5e1;">Đơn vị Gửi (Shipper):</td>
+                                    <td style="padding: 4px 6px; color: #334155; border: 1px solid #cbd5e1;">${decl.shipperName || '-'}</td>
+                                    <td style="padding: 4px 6px; background: #f8fafc; font-weight: 700; color: #475569; border: 1px solid #cbd5e1;">Đơn vị Nhận (Consignee):</td>
+                                    <td style="padding: 4px 6px; font-weight: 700; color: #0f172a; border: 1px solid #cbd5e1;">${decl.consigneeName || '-'}</td>
+                                </tr>
+                                ${decl.consigneeAddress ? `
+                                <tr>
+                                    <td style="padding: 4px 6px; background: #f8fafc; font-weight: 700; color: #475569; border: 1px solid #cbd5e1;">Địa chỉ kho đích:</td>
+                                    <td style="padding: 4px 6px; color: #334155; border: 1px solid #cbd5e1;" colspan="3">${decl.consigneeAddress}</td>
+                                </tr>
+                                ` : ''}
+                                ${decl.specialNotes ? `
+                                <tr>
+                                    <td style="padding: 4px 6px; background: #f8fafc; font-weight: 700; color: #dc2626; border: 1px solid #cbd5e1;">Bảo quản đặc biệt:</td>
+                                    <td style="padding: 4px 6px; font-weight: 700; color: #dc2626; border: 1px solid #cbd5e1;" colspan="3">${decl.specialNotes}</td>
+                                </tr>
+                                ` : ''}
+                            </tbody>
+                        </table>
+                    </div>
+                    ` : ''}
+
+                    <!-- Section 5: Chữ ký & Xác nhận Điện tử -->
                     <div style="display: grid; grid-template-columns: 1fr 1fr; margin-top: 10px; text-align: center; font-size: 8.5px; page-break-inside: avoid;">
                         <div>
                             <p style="font-weight: 800; color: #0f172a; margin: 0; text-transform: uppercase; font-size: 8.5px;">ĐẠI DIỆN ĐẠI LÝ TRÚNG THẦU</p>
@@ -411,6 +544,65 @@
         function closePreviewModal() {
             const modal = document.getElementById('previewModal');
             modal.classList.add('hidden');
+        }
+
+        // Modal cargo declaration functions
+        function openCargoModal(wonId) {
+            const store = getStore();
+            const data = store ? store.getData() : {};
+            const list = data.wonAuctions || [];
+            const item = list.find(w => w.wonId === wonId);
+            if (!item) return;
+
+            document.getElementById('modalTargetWonId').value = wonId;
+            document.getElementById('modalWonId').textContent = wonId;
+
+            const decl = item.cargoDeclaration || {};
+            document.getElementById('declCargoType').value = decl.cargoType || 'Hàng bưu kiện / E-commerce';
+            document.getElementById('declHawb').value = decl.hawbNumber || '';
+            document.getElementById('declCargoName').value = decl.cargoName || '';
+            document.getElementById('declPieces').value = decl.piecesCount || '';
+            document.getElementById('declVolume').value = decl.volumeCbm || '';
+            document.getElementById('declShipper').value = decl.shipperName || '';
+            document.getElementById('declConsignee').value = decl.consigneeName || '';
+            document.getElementById('declConsigneeAddress').value = decl.consigneeAddress || '';
+            document.getElementById('declNotes').value = decl.specialNotes || '';
+
+            document.getElementById('cargoDeclarationModal').classList.remove('hidden');
+        }
+
+        function closeCargoModal() {
+            document.getElementById('cargoDeclarationModal').classList.add('hidden');
+        }
+
+        function handleSaveCargoDeclaration(e) {
+            e.preventDefault();
+            const wonId = document.getElementById('modalTargetWonId').value;
+            if (!wonId) return;
+
+            const cargoData = {
+                cargoType: document.getElementById('declCargoType').value,
+                hawbNumber: document.getElementById('declHawb').value.trim(),
+                cargoName: document.getElementById('declCargoName').value.trim(),
+                piecesCount: document.getElementById('declPieces').value,
+                volumeCbm: document.getElementById('declVolume').value,
+                shipperName: document.getElementById('declShipper').value.trim(),
+                consigneeName: document.getElementById('declConsignee').value.trim(),
+                consigneeAddress: document.getElementById('declConsigneeAddress').value.trim(),
+                specialNotes: document.getElementById('declNotes').value.trim()
+            };
+
+            const store = getStore();
+            if (store && store.updateCargoDeclaration) {
+                const res = store.updateCargoDeclaration(wonId, cargoData);
+                if (res && res.success) {
+                    closeCargoModal();
+                    showToast(res.message, true);
+                    renderWonAuctions();
+                } else {
+                    showToast((res && res.message) || 'Lỗi cập nhật thông tin hàng hóa', false);
+                }
+            }
         }
 
         // Download official PDF using html2pdf without any cut-off
@@ -548,6 +740,7 @@
             container.innerHTML = list.map(item => {
                 const isPaid = item.paymentStatus === 'PAID';
                 const isPending = item.paymentStatus === 'PENDING_VERIFICATION';
+                const decl = item.cargoDeclaration;
 
                 let statusBadgeText = 'CHỜ THANH TOÁN (TRONG 24H)';
                 let statusBadgeClass = 'bg-amber-400 text-amber-950';
@@ -600,6 +793,46 @@
                                     <p class="text-xs text-gray-500 mb-1">Mã vận đơn (AWB)</p>
                                     <p class="text-sm font-mono font-bold text-emerald-600 mt-1">${item.awbNumber || '-'}</p>
                                 </div>
+                            </div>
+
+                            <!-- Khai báo thông tin hàng hóa -->
+                            <div class="rounded-xl p-4 border text-xs ${decl ? 'bg-emerald-50/70 border-emerald-200' : 'bg-amber-50/70 border-amber-200'} space-y-2">
+                                <div class="flex flex-wrap items-center justify-between gap-2">
+                                    <h3 class="font-bold flex items-center gap-2 text-sm ${decl ? 'text-emerald-900' : 'text-amber-900'}">
+                                        <i class="fa-solid ${decl ? 'fa-boxes-packing text-emerald-600' : 'fa-triangle-exclamation text-amber-600'}"></i>
+                                        ${decl ? 'Thông tin hàng hóa khai báo vận chuyển' : 'Khai báo thông tin hàng hóa vận chuyển'}
+                                    </h3>
+                                    <button onclick="openCargoModal('${item.wonId}')" class="px-3.5 py-1.5 rounded-xl text-xs font-bold ${decl ? 'bg-emerald-600 hover:bg-emerald-700 text-white' : 'bg-amber-600 hover:bg-amber-700 text-white'} transition shadow flex items-center gap-1.5 cursor-pointer">
+                                        <i class="fa-solid ${decl ? 'fa-pen-to-square' : 'fa-plus'}"></i>
+                                        ${decl ? 'Chỉnh sửa khai báo' : 'Điền thông tin hàng hóa'}
+                                    </button>
+                                </div>
+
+                                ${decl ? `
+                                    <div class="grid grid-cols-1 md:grid-cols-3 gap-3 pt-1 text-slate-700">
+                                        <div>
+                                            <p class="text-gray-500 text-[11px]">Mặt hàng & Loại hàng:</p>
+                                            <p class="font-bold text-slate-900">${decl.cargoName} <span class="text-emerald-700 font-medium">(${decl.cargoType})</span></p>
+                                        </div>
+                                        <div>
+                                            <p class="text-gray-500 text-[11px]">Số kiện & Thể tích (CBM):</p>
+                                            <p class="font-bold text-slate-900">${decl.piecesCount} kiện / ${decl.volumeCbm} m³</p>
+                                        </div>
+                                        <div>
+                                            <p class="text-gray-500 text-[11px]">Đơn vị Nhận hàng / HAWB:</p>
+                                            <p class="font-bold text-slate-900">${decl.consigneeName} <span class="font-mono text-blue-600 font-bold">(${decl.hawbNumber || 'Chưa gắn HAWB'})</span></p>
+                                        </div>
+                                    </div>
+                                    ${decl.specialNotes ? `
+                                        <div class="mt-1 text-amber-900 font-semibold text-[11px] bg-amber-100/70 border border-amber-200/80 rounded-lg px-2.5 py-1.5 inline-block">
+                                            <i class="fa-solid fa-triangle-exclamation text-amber-600"></i> Yêu cầu đặc biệt: ${decl.specialNotes}
+                                        </div>
+                                    ` : ''}
+                                ` : `
+                                    <p class="text-amber-800 font-medium">
+                                        Quý đại lý chưa khai báo chi tiết lô hàng! Vui lòng điền thông tin hàng hóa (loại hàng, số kiện, CBM, House AWB, Consignee...) để Ban Khai thác Vietravel Airlines sắp xếp slot và phát hành lệnh giao nhận kho.
+                                    </p>
+                                `}
                             </div>
 
                             <!-- Cut-off & Delivery instructions -->

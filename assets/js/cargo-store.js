@@ -334,7 +334,18 @@ const CargoStore = (function() {
                 paidAt: '14/08/2026 14:20',
                 awbNumber: '998-12345678',
                 cutOffTime: '15/08/2026 06:00',
-                warehouse: 'Kho hàng TCS Tân Sơn Nhất (Cửa số 4)'
+                warehouse: 'Kho hàng TCS Tân Sơn Nhất (Cửa số 4)',
+                cargoDeclaration: {
+                    cargoType: 'Hàng bưu kiện / E-commerce',
+                    cargoName: 'Linh kiện điện tử & Bưu phẩm TĐH',
+                    piecesCount: 45,
+                    volumeCbm: 3.2,
+                    hawbNumber: 'HAWB-SGN-88901',
+                    shipperName: 'Công ty TNHH Vận tải ABC Logistics',
+                    consigneeName: 'Công ty CP Đầu tư & Công nghệ Hà Nội',
+                    consigneeAddress: 'Kho Cargo Nội Bài, Sóc Sơn, Hà Nội',
+                    specialNotes: 'Hàng giá trị cao. Bảo quản nơi khô ráo, không đè nặng quá 50kg/thùng.'
+                }
             }
         ],
         notifications: [
@@ -1607,6 +1618,35 @@ const CargoStore = (function() {
             saveData(data);
 
             return { success: true, message: `Đã gửi thông báo chuyển khoản cho đơn ${wonId}! Ban Điều hành sẽ kiểm tra và xác nhận trong ít phút.` };
+        },
+
+        updateCargoDeclaration: function(wonId, cargoData) {
+            const data = loadData();
+            if (!data.wonAuctions) data.wonAuctions = [];
+            const item = data.wonAuctions.find(w => w.wonId === wonId);
+            if (!item) {
+                return { success: false, message: `Không tìm thấy đơn thắng thầu "${wonId}".` };
+            }
+
+            item.cargoDeclaration = {
+                cargoType: cargoData.cargoType || 'Hàng bưu kiện / Thương mại điện tử',
+                cargoName: cargoData.cargoName || '',
+                piecesCount: Number(cargoData.piecesCount) || 1,
+                volumeCbm: Number(cargoData.volumeCbm) || 0,
+                hawbNumber: cargoData.hawbNumber || '',
+                shipperName: cargoData.shipperName || '',
+                consigneeName: cargoData.consigneeName || '',
+                consigneeAddress: cargoData.consigneeAddress || '',
+                specialNotes: cargoData.specialNotes || '',
+                updatedAt: new Date().toLocaleString('vi-VN')
+            };
+
+            saveData(data);
+            return {
+                success: true,
+                message: `Đã cập nhật thông tin hàng hóa vận chuyển cho đơn ${wonId} thành công!`,
+                cargoDeclaration: item.cargoDeclaration
+            };
         },
 
         changePassword: function(oldPassword, newPassword) {
