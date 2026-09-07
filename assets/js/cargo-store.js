@@ -764,11 +764,41 @@ const CargoStore = (function() {
         },
 
         getCurrentUser: function() {
-            return loadData().currentUser;
+            const data = loadData();
+            const user = data.currentUser;
+            if (!user) return null;
+
+            // Verify if current agent account status is locked in agentsList
+            if (user.role === 'agent' || user.agentCode || user.code) {
+                const targetCode = (user.agentCode || user.code || '').toUpperCase();
+                const agent = (data.agentsList || []).find(a => 
+                    (a.code || '').toUpperCase() === targetCode || a.id == user.id
+                );
+                if (agent && (agent.status === 'Đã khóa' || agent.status === 'LOCKED')) {
+                    // Auto logout / clear session immediately
+                    data.currentUser = null;
+                    saveData(data);
+                    return null;
+                }
+            }
+            return user;
         },
 
         getCurrentAdmin: function() {
-            return loadData().currentAdmin;
+            const data = loadData();
+            const admin = data.currentAdmin;
+            if (!admin) return null;
+
+            // Verify if current admin/staff account status is locked in adminsList
+            const targetUsername = (admin.username || '').toLowerCase();
+            const staff = (data.adminsList || []).find(a => (a.username || '').toLowerCase() === targetUsername || a.id == admin.id);
+            if (staff && (staff.status === 'Đã khóa' || staff.status === 'LOCKED')) {
+                // Auto logout / clear session immediately
+                data.currentAdmin = null;
+                saveData(data);
+                return null;
+            }
+            return admin;
         },
 
         parseFlightDate: function(dateInput) {
@@ -1787,6 +1817,15 @@ const CargoStore = (function() {
                 if (target) {
                     const isCurrentlyActive = target.status === 'Đang hoạt động';
                     target.status = isCurrentlyActive ? 'Đã khóa' : 'Đang hoạt động';
+
+                    // If locking and target is currently logged in, clear currentUser session immediately!
+                    if (target.status === 'Đã khóa' && data.currentUser) {
+                        const currentCode = (data.currentUser.agentCode || data.currentUser.code || '').toUpperCase();
+                        if (currentCode === (target.code || '').toUpperCase() || data.currentUser.id == target.id) {
+                            data.currentUser = null;
+                        }
+                    }
+
                     saveData(data);
                     return {
                         success: true,
@@ -1799,6 +1838,15 @@ const CargoStore = (function() {
                 if (target) {
                     const isCurrentlyActive = target.status !== 'Đã khóa';
                     target.status = isCurrentlyActive ? 'Đã khóa' : 'Đang hoạt động';
+
+                    // If locking and target staff is currently logged in, clear currentAdmin session immediately!
+                    if (target.status === 'Đã khóa' && data.currentAdmin) {
+                        const currentUsername = (data.currentAdmin.username || '').toLowerCase();
+                        if (currentUsername === (target.username || '').toLowerCase() || data.currentAdmin.id == target.id) {
+                            data.currentAdmin = null;
+                        }
+                    }
+
                     saveData(data);
                     return {
                         success: true,
@@ -1996,14 +2044,67 @@ if (typeof globalThis !== 'undefined') {
     globalThis.CargoStore = CargoStore;
 }
 
-// Auto sync headers on page load
-if (typeof document !== 'undefined') {
-    document.addEventListener('DOMContentLoaded', function() {
-        if (typeof CargoStore !== 'undefined') {
-            if (CargoStore.syncHeaderUI) CargoStore.syncHeaderUI();
-            if (CargoStore.syncAdminHeaderUI) CargoStore.syncAdminHeaderUI();
+// Auto sync headers & Session Lock Guard on page load & realtime events
+if (typeof window !== 'undefined') {
+    let isRedirecting = false;
+
+    function checkAccountLockGuard() {
+        if (isRedirecting) return;
+        if (typeof CargoStore === 'undefined') return;
+
+        const pathname = window.location.pathname.toLowerCase();
+        const isAdminPage = pathname.includes('/admin/');
+        
+        // Agent Pages Guard
+        const isAgentProtectedPage = (
+            pathname.includes('02-dashboard') ||
+            pathname.includes('03-index') ||
+            pathname.includes('04-detail') ||
+            pathname.includes('05-watchlist') ||
+            pathname.includes('06-mybids') ||
+            pathname.includes('07-wonauction') ||
+            pathname.includes('08-notifications') ||
+            pathname.includes('09-profile')
+        );
+
+        if (!isAdminPage) {
+            // Call getCurrentUser() which auto-checks if agent is locked in agentsList and clears currentUser
+            const user = CargoStore.getCurrentUser();
+
+            // If on an agent protected page and currentUser became null (was locked or logged out)
+            if (isAgentProtectedPage && !user) {
+                isRedirecting = true;
+                alert('⛔ TÀI KHOẢN ĐẠI LÝ ĐÃ BỊ KHÓA HOẶC ĐĂNG XUẤT!\n\nTài khoản của bạn đã bị Quản trị viên KHÓA hoặc đã đăng xuất. Hệ thống sẽ tự động chuyển hướng về trang Đăng nhập.');
+                window.location.href = '01-Login.html';
+                return;
+            }
+        } else {
+            // Admin Pages Guard
+            const admin = CargoStore.getCurrentAdmin();
+            const isAdminLoginPage = pathname.includes('01-login');
+            if (!isAdminLoginPage && !admin) {
+                isRedirecting = true;
+                alert('⛔ TÀI KHOẢN QUẢN TRỊ ĐÃ BỊ KHÓA HOẶC ĐĂNG XUẤT!\n\nTài khoản của bạn đã bị KHÓA hoặc đã đăng xuất khỏi trang Quản trị.');
+                window.location.href = '01-Login.html';
+                return;
+            }
         }
-    });
+    }
+
+    if (typeof document !== 'undefined') {
+        document.addEventListener('DOMContentLoaded', function() {
+            if (typeof CargoStore !== 'undefined') {
+                if (CargoStore.syncHeaderUI) CargoStore.syncHeaderUI();
+                if (CargoStore.syncAdminHeaderUI) CargoStore.syncAdminHeaderUI();
+            }
+            checkAccountLockGuard();
+        });
+    }
+
+    // Periodically check every 1.5s & on store updates
+    setInterval(checkAccountLockGuard, 1500);
+    window.addEventListener('storage', checkAccountLockGuard);
+    window.addEventListener('cargostore_updated', checkAccountLockGuard);
 }
 
 if (typeof module !== 'undefined' && module.exports) {
