@@ -110,6 +110,42 @@
             </div>
         </div>
 
+        <!-- Won Auctions Payment Verification Table -->
+        <div class="bg-white rounded-2xl border shadow-sm overflow-hidden mt-8">
+            <div class="px-6 py-4 border-b bg-slate-900 text-white flex items-center justify-between">
+                <div class="flex items-center gap-2.5">
+                    <div class="w-8 h-8 bg-emerald-500 rounded-lg flex items-center justify-center font-bold text-white text-sm">
+                        <i class="fa-solid fa-receipt"></i>
+                    </div>
+                    <div>
+                        <h2 class="font-bold text-sm">Quản lý Thanh toán & Chốt đơn thắng thầu (Won Auctions)</h2>
+                        <p class="text-[11px] text-slate-300">Xác nhận tiền chuyển khoản của đại lý và kích hoạt phiếu bàn giao slot</p>
+                    </div>
+                </div>
+                <span class="text-xs font-semibold bg-emerald-500/20 text-emerald-300 border border-emerald-500/30 px-3 py-1 rounded-full flex items-center gap-1.5">
+                    <i class="fa-solid fa-circle-info"></i> <span id="wonCountText">0 đơn thắng thầu</span>
+                </span>
+            </div>
+            <div class="overflow-x-auto">
+                <table class="w-full text-xs text-left">
+                    <thead class="bg-slate-50 text-slate-600 font-semibold border-b">
+                        <tr>
+                            <th class="py-3.5 px-4">Mã đơn & Chuyến bay</th>
+                            <th class="py-3.5 px-4">Đại lý trúng thầu</th>
+                            <th class="py-3.5 px-4">Tải trọng & Giá chốt</th>
+                            <th class="py-3.5 px-4">Tổng tiền (VND)</th>
+                            <th class="py-3.5 px-4">Mã AWB & Cut-off</th>
+                            <th class="py-3.5 px-4">Trạng thái thanh toán</th>
+                            <th class="py-3.5 px-4 text-right">Xác nhận thanh toán</th>
+                        </tr>
+                    </thead>
+                    <tbody class="divide-y divide-gray-100" id="wonAuctionsTableBody">
+                        <!-- Populated by JS -->
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
     </main>
 
     <!-- Modal 1: Chỉnh sửa thông số chuyến bay đấu giá (Edit Auction) -->
@@ -462,11 +498,106 @@
             }
         }
 
+        function renderWonAuctionsAdminTable() {
+            const data = CargoStore.getData();
+            const list = data.wonAuctions || [];
+            const tbody = document.getElementById('wonAuctionsTableBody');
+            const countText = document.getElementById('wonCountText');
+            if (!tbody) return;
+
+            if (countText) countText.textContent = `${list.length} đơn thắng thầu`;
+
+            if (list.length === 0) {
+                tbody.innerHTML = `
+                    <tr>
+                        <td colspan="7" class="py-8 text-center text-slate-400">
+                            <i class="fa-solid fa-inbox text-3xl mb-2 block"></i>
+                            Chưa có đơn hàng trúng thầu nào được tạo trong hệ thống.
+                        </td>
+                    </tr>
+                `;
+                return;
+            }
+
+            tbody.innerHTML = list.map(item => {
+                const isPaid = item.paymentStatus === 'PAID';
+                const isPending = item.paymentStatus === 'PENDING_VERIFICATION';
+
+                let statusBadgeHtml = '';
+                if (isPaid) {
+                    statusBadgeHtml = `<span class="bg-emerald-100 text-emerald-800 font-bold px-2.5 py-1 rounded-full text-[10px] inline-flex items-center gap-1"><i class="fa-solid fa-circle-check text-emerald-600"></i> ĐÃ THANH TOÁN</span>`;
+                } else if (isPending) {
+                    statusBadgeHtml = `<span class="bg-amber-100 text-amber-900 font-bold px-2.5 py-1 rounded-full text-[10px] inline-flex items-center gap-1 animate-pulse"><i class="fa-solid fa-spinner fa-spin text-amber-600"></i> ĐẠI LÝ BÁO ĐÃ CK</span>`;
+                } else {
+                    statusBadgeHtml = `<span class="bg-red-100 text-red-700 font-bold px-2.5 py-1 rounded-full text-[10px] inline-flex items-center gap-1"><i class="fa-solid fa-clock text-red-500"></i> CHỜ THANH TOÁN</span>`;
+                }
+
+                const agentInfo = (data.agentsList || []).find(a => (a.code || '').toUpperCase() === (item.agentCode || '').toUpperCase());
+                const agentNameDisplay = agentInfo ? agentInfo.companyName : (item.agentCode || 'Đại lý');
+
+                return `
+                    <tr class="hover:bg-slate-50/80 transition">
+                        <td class="py-3.5 px-4 font-mono font-bold text-slate-900">
+                            <span class="text-blue-600 font-bold block">${item.wonId}</span>
+                            <span class="text-slate-500 font-normal text-[11px]">Chuyến ${item.flightNumber} (${item.route})</span>
+                        </td>
+                        <td class="py-3.5 px-4 font-medium text-slate-800">
+                            <p class="font-bold text-slate-900">${agentNameDisplay}</p>
+                            <p class="text-[11px] text-blue-600 font-mono font-semibold">Mã đại lý: ${item.agentCode || '-'}</p>
+                        </td>
+                        <td class="py-3.5 px-4">
+                            <p class="font-semibold text-slate-800">${CargoStore.formatNumber(item.capacityKg)} Kg</p>
+                            <p class="text-[11px] text-emerald-600 font-bold">${CargoStore.formatCurrency(item.priceKg)}/Kg</p>
+                        </td>
+                        <td class="py-3.5 px-4 font-bold text-red-600 text-sm">
+                            ${CargoStore.formatCurrency(item.totalAmountVND)}
+                        </td>
+                        <td class="py-3.5 px-4 text-slate-600">
+                            <p class="font-mono font-bold text-blue-600 text-[11px]">${item.awbNumber || '-'}</p>
+                            <p class="text-[10px] text-slate-400">Cut-off: ${item.cutOffTime || 'Tiêu chuẩn'}</p>
+                        </td>
+                        <td class="py-3.5 px-4">
+                            ${statusBadgeHtml}
+                            ${item.paidAt ? `<p class="text-[10px] text-slate-400 mt-0.5">Xác nhận: ${item.paidAt}</p>` : ''}
+                        </td>
+                        <td class="py-3.5 px-4 text-right">
+                            ${isPaid ? `
+                                <span class="inline-flex items-center gap-1 text-emerald-700 font-bold text-xs bg-emerald-50 px-3 py-1.5 rounded-xl border border-emerald-200">
+                                    <i class="fa-solid fa-check"></i> Đã nhận đủ tiền
+                                </span>
+                            ` : `
+                                <button onclick="handleAdminConfirmPayment('${item.wonId}')" class="inline-flex items-center gap-1.5 bg-emerald-600 hover:bg-emerald-700 text-white font-bold px-3 py-1.5 rounded-xl text-xs transition shadow-sm cursor-pointer">
+                                    <i class="fa-solid fa-receipt"></i> Xác nhận Đã nhận tiền
+                                </button>
+                            `}
+                        </td>
+                    </tr>
+                `;
+            }).join('');
+        }
+
+        function handleAdminConfirmPayment(wonId) {
+            if (confirm(`Xác nhận đã nhận đủ số tiền thanh toán cho đơn hàng thắng thầu ${wonId}?\n\nHệ thống sẽ tự động cập nhật trạng thái PAID và gửi Email xác nhận kèm chứng từ cho đại lý.`)) {
+                const res = CargoStore.confirmPayment(wonId);
+                if (res.success) {
+                    alert(res.message);
+                    renderAuctionsTable();
+                    renderWonAuctionsAdminTable();
+                } else {
+                    alert(res.message);
+                }
+            }
+        }
+
         document.addEventListener('DOMContentLoaded', function() {
             renderAuctionsTable();
+            renderWonAuctionsAdminTable();
             document.getElementById('auctionSearch').addEventListener('input', renderAuctionsTable);
             document.getElementById('statusSelect').addEventListener('change', renderAuctionsTable);
-            setInterval(renderAuctionsTable, 1500);
+            setInterval(function() {
+                renderAuctionsTable();
+                renderWonAuctionsAdminTable();
+            }, 1500);
             if (window.CargoStore && CargoStore.syncAdminHeaderUI) CargoStore.syncAdminHeaderUI();
         });
 
@@ -474,10 +605,12 @@
         window.addEventListener('storage', function(e) {
             if (e.key === 'CARGO_BIDDING_DATA_V3') {
                 renderAuctionsTable();
+                renderWonAuctionsAdminTable();
             }
         });
         window.addEventListener('cargostore_updated', function() {
             renderAuctionsTable();
+            renderWonAuctionsAdminTable();
         });
     </script>
 </body>

@@ -1375,12 +1375,12 @@ const CargoStore = (function() {
                 auction.winningPriceKg = highestBid.priceKg;
 
                 if (!data.wonAuctions) data.wonAuctions = [];
-                const existingWon = data.wonAuctions.find(w => w.auctionId == auction.id);
-                if (!existingWon) {
+                let newWonItem = data.wonAuctions.find(w => w.auctionId == auction.id);
+                if (!newWonItem) {
                     const now = new Date();
                     const dateStr = now.toISOString().slice(0, 10).replace(/-/g, '');
                     const payDeadline = new Date(now.getTime() + 24 * 60 * 60 * 1000).toISOString();
-                    data.wonAuctions.unshift({
+                    newWonItem = {
                         wonId: `WON-${dateStr}-${String(auction.id).padStart(2, '0')}`,
                         auctionId: auction.id,
                         agentCode: highestBid.agentCode,
@@ -1395,12 +1395,28 @@ const CargoStore = (function() {
                         awbNumber: `998-${Math.floor(10000000 + Math.random() * 90000000)}`,
                         cutOffTime: auction.cutOffTime || 'Hôm nay 18:00',
                         warehouse: 'Kho hàng SCSC / TCS Tân Sơn Nhất (Cửa số 4)'
+                    };
+                    data.wonAuctions.unshift(newWonItem);
+                }
+
+                // Dispatch automated AUCTION_WON email notification to winner
+                const winningAgentAccount = (data.agentsList || []).find(a => (a.code || '').toUpperCase() === (highestBid.agentCode || '').toUpperCase());
+                const winnerEmail = winningAgentAccount ? winningAgentAccount.email : null;
+                if (winnerEmail) {
+                    CargoStore.sendEmailNotification({
+                        type: 'AUCTION_WON',
+                        to: winnerEmail,
+                        wonData: newWonItem,
+                        auctionData: auction,
+                        agentName: highestBid.agentName,
+                        agentCode: highestBid.agentCode
                     });
                 }
 
                 if (!data.notifications) data.notifications = [];
                 data.notifications.unshift({
                     id: Date.now(),
+                    targetAgentCode: highestBid.agentCode,
                     title: `Phiên ${auction.flightNumber} đã chốt kết quả!`,
                     message: `Đại lý ${highestBid.agentName} (${highestBid.agentCode}) đã trúng thầu chuyến ${auction.flightNumber} (${auction.route}) mức giá ${formatCurrency(highestBid.priceKg)}/Kg.`,
                     time: 'Vừa xong',
@@ -1412,6 +1428,60 @@ const CargoStore = (function() {
 
             saveData(data);
             return { success: true, auction: auction };
+        },
+
+        confirmPayment: function(wonId) {
+            const data = loadData();
+            if (!data.wonAuctions) data.wonAuctions = [];
+            const item = data.wonAuctions.find(w => w.wonId === wonId);
+            if (!item) {
+                return { success: false, message: `Không tìm thấy đơn thắng thầu "${wonId}".` };
+            }
+
+            item.paymentStatus = 'PAID';
+            item.paidAt = new Date().toLocaleString('vi-VN');
+
+            // Find agent email to dispatch PAYMENT_CONFIRMED email
+            const agentAccount = (data.agentsList || []).find(a => (a.code || '').toUpperCase() === (item.agentCode || '').toUpperCase());
+            const targetEmail = agentAccount ? agentAccount.email : null;
+            if (targetEmail) {
+                CargoStore.sendEmailNotification({
+                    type: 'PAYMENT_CONFIRMED',
+                    to: targetEmail,
+                    wonData: item
+                });
+            }
+
+            // Create system notification for agent
+            if (!data.notifications) data.notifications = [];
+            data.notifications.unshift({
+                id: Date.now(),
+                targetAgentCode: item.agentCode,
+                title: `Xác nhận thanh toán đơn ${item.wonId} thành công!`,
+                message: `Ban Điều hành đã xác nhận nhận đủ ${formatCurrency(item.totalAmountVND)} cho đơn hàng chuyến ${item.flightNumber} (${item.route}). Mã AWB: ${item.awbNumber}.`,
+                time: 'Vừa xong',
+                type: 'SYSTEM',
+                read: false,
+                link: '07-WonAuction.html'
+            });
+
+            saveData(data);
+            return { success: true, message: `Đã xác nhận nhận thanh toán thành công cho đơn ${wonId}! Email thông báo đã tự động gửi đến đại lý.`, item: item };
+        },
+
+        notifyPaymentSent: function(wonId) {
+            const data = loadData();
+            if (!data.wonAuctions) data.wonAuctions = [];
+            const item = data.wonAuctions.find(w => w.wonId === wonId);
+            if (!item) {
+                return { success: false, message: `Không tìm thấy đơn thắng thầu "${wonId}".` };
+            }
+
+            item.paymentStatus = 'PENDING_VERIFICATION';
+            item.notifiedAt = new Date().toLocaleString('vi-VN');
+            saveData(data);
+
+            return { success: true, message: `Đã gửi thông báo chuyển khoản cho đơn ${wonId}! Ban Điều hành sẽ kiểm tra và xác nhận trong ít phút.` };
         },
 
         changePassword: function(oldPassword, newPassword) {

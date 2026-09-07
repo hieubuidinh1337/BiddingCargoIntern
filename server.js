@@ -627,6 +627,79 @@ const server = http.createServer((req, res) => {
                             <p style="margin-top:16px;">Quý doanh nghiệp vui lòng kiểm tra lại hồ sơ và liên hệ bộ phận hỗ trợ đại lý qua Hotline <strong>1900 6699</strong> để được hướng dẫn bổ sung.</p>
                         `
                     });
+                } else if (type === 'AUCTION_WON') {
+                    const wonData = reqData.wonData || {};
+                    const wonId = wonData.wonId || 'WON-ORDER';
+                    const flightNum = wonData.flightNumber || (reqData.auctionData && reqData.auctionData.flightNumber) || '';
+                    const route = wonData.route || (reqData.auctionData && reqData.auctionData.route) || '';
+                    const capacityKg = wonData.capacityKg || 0;
+                    const priceKg = wonData.priceKg || 0;
+                    const totalVnd = wonData.totalAmountVND || (priceKg * capacityKg);
+                    const awb = wonData.awbNumber || '998-XXXXXXXX';
+                    const fmtNum = (n) => new Intl.NumberFormat('vi-VN').format(n);
+
+                    subject = `[Vietravel Airlines Cargo] CHÚC MỪNG TRÚNG THẦU! Đơn hàng ${wonId} - Chuyến ${flightNum} (${route})`;
+                    html = buildEmailHtml({
+                        title: 'Chúc mừng Quý đại lý đã TRÚNG THẦU!',
+                        subtitle: `Mã đơn trúng thầu: ${wonId} &middot; Chuyến bay ${flightNum}`,
+                        contentHtml: `
+                            <p>Kính gửi Quý đại lý <strong>${reqData.agentName || 'Ủy quyền'}</strong> (${reqData.agentCode || 'AG'}),</p>
+                            <p style="color:#2e7d32;font-weight:bold;">Vietravel Airlines Cargo trân trọng thông báo Quý công ty đã chính thức THẮNG THẦU lô hàng tải trọng đường hàng không.</p>
+
+                            <table role="presentation" width="100%" cellpadding="8" cellspacing="0" style="background:#f0f7f0;border:1px solid #c8e6c9;border-radius:6px;margin:16px 0;">
+                                <tr><td style="color:#555;border-bottom:1px solid #e0e0e0;">Mã đơn thắng thầu:</td><td style="font-weight:bold;color:#1565c0;font-family:monospace;">${wonId}</td></tr>
+                                <tr><td style="color:#555;border-bottom:1px solid #e0e0e0;">Chuyến bay / Tuyến:</td><td style="font-weight:bold;color:#333;">${flightNum} (${route})</td></tr>
+                                <tr><td style="color:#555;border-bottom:1px solid #e0e0e0;">Tải trọng chốt thắng:</td><td style="font-weight:bold;color:#1565c0;">${fmtNum(capacityKg)} Kg</td></tr>
+                                <tr><td style="color:#555;border-bottom:1px solid #e0e0e0;">Mức giá chốt:</td><td style="font-weight:bold;color:#2e7d32;">${fmtNum(priceKg)} đ / Kg</td></tr>
+                                <tr><td style="color:#555;border-bottom:1px solid #e0e0e0;">Tổng tiền thanh toán:</td><td style="font-weight:bold;color:#d32f2f;font-size:16px;">${fmtNum(totalVnd)} đ</td></tr>
+                                <tr><td style="color:#555;border-bottom:1px solid #e0e0e0;">Mã vận đơn (AWB):</td><td style="font-family:monospace;font-weight:bold;color:#1565c0;">${awb}</td></tr>
+                                <tr><td style="color:#555;">Hạn chót thanh toán:</td><td style="color:#d32f2f;font-weight:bold;">Trong vòng 24 giờ kể từ thời điểm chốt thầu</td></tr>
+                            </table>
+
+                            <p style="margin-top:16px;"><strong>Hướng dẫn tiếp theo:</strong></p>
+                            <ol style="padding-left:20px;line-height:1.7;">
+                                <li>Đăng nhập hệ thống Sàn Đấu giá Cargo và truy cập mục <strong>Thắng thầu (Won Auctions)</strong>.</li>
+                                <li>Hoàn tất chuyển khoản thanh toán và bấm <em>Báo đã chuyển khoản</em> để Ban Điều hành xác nhận.</li>
+                                <li>Tải Phiếu Xác Nhận Trúng Thầu (PDF) và bàn giao hàng hóa tại kho theo đúng giờ Cut-off.</li>
+                            </ol>
+
+                            <p style="text-align:center;margin:24px 0;">
+                                <a href="http://localhost:8085/07-WonAuction.html" style="display:inline-block;background-color:#2e7d32;color:#ffffff;font-weight:bold;padding:12px 28px;border-radius:6px;text-decoration:none;">XEM ĐƠN TRÚNG THẦU & VẬN ĐƠN</a>
+                            </p>
+                        `
+                    });
+                } else if (type === 'PAYMENT_CONFIRMED') {
+                    const wonData = reqData.wonData || {};
+                    const wonId = wonData.wonId || 'WON-ORDER';
+                    const flightNum = wonData.flightNumber || '';
+                    const route = wonData.route || '';
+                    const totalVnd = wonData.totalAmountVND || 0;
+                    const awb = wonData.awbNumber || '998-XXXXXXXX';
+                    const fmtNum = (n) => new Intl.NumberFormat('vi-VN').format(n);
+
+                    subject = `[Vietravel Airlines Cargo] XÁC NHẬN ĐÃ NHẬN THANH TOÁN - Đơn hàng ${wonId}`;
+                    html = buildEmailHtml({
+                        title: 'Xác nhận Đã Nhận Thanh Toán Thành Công',
+                        subtitle: `Mã đơn: ${wonId} &middot; Chuyến bay ${flightNum}`,
+                        contentHtml: `
+                            <p>Kính gửi Quý đại lý,</p>
+                            <p style="color:#2e7d32;font-weight:bold;">Ban Tài chính & Điều hành Vietravel Airlines Cargo xác nhận đã nhận đủ số tiền thanh toán cho đơn hàng thắng thầu của Quý công ty.</p>
+
+                            <table role="presentation" width="100%" cellpadding="8" cellspacing="0" style="background:#f0f7f0;border:1px solid #c8e6c9;border-radius:6px;margin:16px 0;">
+                                <tr><td style="color:#555;border-bottom:1px solid #e0e0e0;">Mã đơn thắng thầu:</td><td style="font-weight:bold;color:#1565c0;font-family:monospace;">${wonId}</td></tr>
+                                <tr><td style="color:#555;border-bottom:1px solid #e0e0e0;">Chuyến bay / Tuyến:</td><td>${flightNum} (${route})</td></tr>
+                                <tr><td style="color:#555;border-bottom:1px solid #e0e0e0;">Số tiền đã nhận:</td><td style="font-weight:bold;color:#2e7d32;font-size:16px;">${fmtNum(totalVnd)} đ</td></tr>
+                                <tr><td style="color:#555;border-bottom:1px solid #e0e0e0;">Mã AWB điện tử:</td><td style="font-family:monospace;font-weight:bold;color:#1565c0;">${awb}</td></tr>
+                                <tr><td style="color:#555;">Trạng thái thanh toán:</td><td style="font-weight:bold;color:#2e7d32;">ĐÃ THANH TOÁN (PAID)</td></tr>
+                            </table>
+
+                            <p style="margin-top:16px;">Slot vận chuyển của Quý đại lý đã được giữ chính thức. Vui lòng in/xuất trình Phiếu xác nhận khi bàn giao hàng tại kho.</p>
+
+                            <p style="text-align:center;margin:24px 0;">
+                                <a href="http://localhost:8085/07-WonAuction.html" style="display:inline-block;background-color:#1565c0;color:#ffffff;font-weight:bold;padding:12px 28px;border-radius:6px;text-decoration:none;">XEM TẢI PHIẾU BÀN GIAO KHO</a>
+                            </p>
+                        `
+                    });
                 }
 
                 const transporter = await getMailTransporter();

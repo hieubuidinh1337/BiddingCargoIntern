@@ -547,12 +547,24 @@
 
             container.innerHTML = list.map(item => {
                 const isPaid = item.paymentStatus === 'PAID';
+                const isPending = item.paymentStatus === 'PENDING_VERIFICATION';
+
+                let statusBadgeText = 'CHỜ THANH TOÁN (TRONG 24H)';
+                let statusBadgeClass = 'bg-amber-400 text-amber-950';
+                if (isPaid) {
+                    statusBadgeText = 'ĐÃ HOÀN TẤT THANH TOÁN';
+                    statusBadgeClass = 'bg-emerald-400 text-emerald-950';
+                } else if (isPending) {
+                    statusBadgeText = 'ĐÃ BÁO CHUYỂN KHOẢN (CHỜ ADMIN XÁC NHẬN)';
+                    statusBadgeClass = 'bg-blue-400 text-blue-950 animate-pulse';
+                }
+
                 return `
                     <div class="bg-white rounded-2xl border shadow-sm overflow-hidden hover:shadow-md transition">
-                        <div class="bg-gradient-to-r ${isPaid ? 'from-emerald-700 to-teal-800' : 'from-blue-700 to-indigo-800'} p-5 text-white flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+                        <div class="bg-gradient-to-r ${isPaid ? 'from-emerald-700 to-teal-800' : (isPending ? 'from-indigo-700 to-blue-800' : 'from-blue-700 to-indigo-800')} p-5 text-white flex flex-col sm:flex-row sm:items-center justify-between gap-4">
                             <div class="flex items-center gap-3">
                                 <div class="w-12 h-12 bg-white/10 rounded-2xl flex items-center justify-center text-2xl font-bold shadow-inner">
-                                    <i class="fa-solid ${isPaid ? 'fa-check' : 'fa-clock'}"></i>
+                                    <i class="fa-solid ${isPaid ? 'fa-check' : (isPending ? 'fa-spinner fa-spin' : 'fa-clock')}"></i>
                                 </div>
                                 <div>
                                     <span class="bg-white/20 text-xs font-semibold px-2.5 py-0.5 rounded-full font-mono">
@@ -562,10 +574,11 @@
                                 </div>
                             </div>
                             <div class="text-left sm:text-right">
-                                <span class="inline-block ${isPaid ? 'bg-emerald-400 text-emerald-950' : 'bg-amber-400 text-amber-950'} text-xs font-bold px-3 py-1 rounded-full shadow">
-                                    ${isPaid ? 'ĐÃ HOÀN TẤT THANH TOÁN' : 'CHỜ THANH TOÁN (TRONG 24H)'}
+                                <span class="inline-block ${statusBadgeClass} text-xs font-bold px-3 py-1 rounded-full shadow">
+                                    ${statusBadgeText}
                                 </span>
                                 ${isPaid ? `<p class="text-xs text-white/80 mt-1">Thanh toán lúc: ${item.paidAt || 'Hợp lệ'}</p>` : ''}
+                                ${isPending ? `<p class="text-xs text-white/80 mt-1">Đã báo lúc: ${item.notifiedAt || 'Vừa xong'}</p>` : ''}
                             </div>
                         </div>
 
@@ -610,7 +623,17 @@
                                 <span class="text-gray-400 flex items-center gap-1.5">
                                     <i class="fa-solid fa-shield-check text-emerald-500"></i> Đơn vị phát hành: Ban Dịch vụ Vận chuyển Hàng hóa Vietravel Airlines
                                 </span>
-                                <div class="flex items-center gap-2">
+                                <div class="flex flex-wrap items-center gap-2">
+                                    ${!isPaid && !isPending ? `
+                                        <button onclick="handleNotifyPaymentSent('${item.wonId}')" class="bg-amber-500 hover:bg-amber-600 text-white font-bold px-4 py-2.5 rounded-xl transition flex items-center gap-2 shadow cursor-pointer">
+                                            <i class="fa-solid fa-paper-plane"></i> Tôi đã chuyển khoản (Báo Admin)
+                                        </button>
+                                    ` : ''}
+                                    ${isPending ? `
+                                        <span class="bg-amber-100 text-amber-900 border border-amber-300 font-bold px-3 py-2 rounded-xl flex items-center gap-1.5">
+                                            <i class="fa-solid fa-spinner fa-spin text-amber-600"></i> Đã báo chuyển khoản - Đang chờ Admin xác nhận
+                                        </span>
+                                    ` : ''}
                                     <button onclick="previewAwardSlip('${item.wonId}')" class="bg-white border border-slate-300 hover:bg-slate-50 text-slate-700 font-semibold px-3.5 py-2.5 rounded-xl transition flex items-center gap-1.5 shadow-xs cursor-pointer">
                                         <i class="fa-solid fa-eye text-blue-600"></i> Xem trước phiếu
                                     </button>
@@ -623,6 +646,21 @@
                     </div>
                 `;
             }).join('');
+        }
+
+        function handleNotifyPaymentSent(wonId) {
+            if (confirm(`Xác nhận Quý đại lý đã hoàn tất chuyển khoản cho đơn thắng thầu ${wonId}?\n\nBan Điều hành sẽ kiểm tra sao kê ngân hàng và xác nhận trong ít phút.`)) {
+                const store = getStore();
+                if (store && store.notifyPaymentSent) {
+                    const res = store.notifyPaymentSent(wonId);
+                    if (res.success) {
+                        showToast(res.message, true);
+                        renderWonAuctions();
+                    } else {
+                        showToast(res.message, false);
+                    }
+                }
+            }
         }
 
         document.addEventListener('DOMContentLoaded', renderWonAuctions);
