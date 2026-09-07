@@ -1,5 +1,5 @@
 {
-  "version": 1788764195925,
+  "version": 1788764555127,
   "auctions": [
     {
       "id": 6,
@@ -274,7 +274,7 @@
       "priceKg": 24500,
       "totalAmountVND": 73500000,
       "paymentDeadline": "2026-09-08T06:55:56.843Z",
-      "paymentStatus": "UNPAID",
+      "paymentStatus": "PENDING_VERIFICATION",
       "paidAt": null,
       "awbNumber": "998-84820914",
       "cutOffTime": "Trước ETD 3 giờ",
@@ -291,7 +291,8 @@
         "consigneeAddress": "qdqdqe",
         "specialNotes": "efeee",
         "updatedAt": "13:56:35 7/9/2026"
-      }
+      },
+      "notifiedAt": "14:02:35 7/9/2026"
     },
     {
       "wonId": "WON-20260903-03",

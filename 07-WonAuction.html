@@ -551,6 +551,44 @@
             modal.classList.add('hidden');
         }
 
+        // Gibberish / Keyboard Mash text detector
+        function isGibberishText(str) {
+            if (!str || typeof str !== 'string') return true;
+            const trimmed = str.trim();
+            if (trimmed.length < 3) return true;
+            
+            // Check repeating single characters e.g. "aaaaa", "11111"
+            if (/^(.)\1+$/i.test(trimmed)) return true;
+            
+            // Check common meaningless character mashes
+            const lower = trimmed.toLowerCase();
+            const commonMashes = ['asdf', 'qwer', 'zxcv', 'gfgj', 'fbvb', 'fgdb', 'hjkl', 'tyui', '1234', 'test1', 'abcde', 'fbvbf', 'gfgjgf', 'fgdbcv', 'asdfgh', 'qwerty'];
+            if (commonMashes.some(m => lower === m || (lower.length <= 8 && lower.includes(m)))) return true;
+            
+            // For short single words without space, check character variety
+            if (!trimmed.includes(' ') && trimmed.length <= 8) {
+                const uniqueChars = new Set(lower.split('')).size;
+                if (uniqueChars <= 3 && trimmed.length >= 4) return true;
+            }
+            
+            return false;
+        }
+
+        function highlightCargoInputError(inputId, hasError) {
+            const input = document.getElementById(inputId);
+            if (!input) return;
+            if (hasError) {
+                input.classList.add('border-red-500', 'ring-2', 'ring-red-200', 'bg-red-50/50');
+            } else {
+                input.classList.remove('border-red-500', 'ring-2', 'ring-red-200', 'bg-red-50/50');
+            }
+        }
+
+        function resetCargoInputErrors() {
+            const ids = ['declHawb', 'declCargoName', 'declPieces', 'declGrossWeight', 'declVolume', 'declShipper', 'declConsignee', 'declConsigneeAddress', 'declNotes'];
+            ids.forEach(id => highlightCargoInputError(id, false));
+        }
+
         // Modal cargo declaration functions & validation
         function showCargoModalError(msg) {
             let errBox = document.getElementById('cargoModalErrorBox');
@@ -588,6 +626,7 @@
             if (hintEl) hintEl.textContent = `${store ? store.formatNumber(item.capacityKg) : item.capacityKg} Kg`;
 
             hideCargoModalError();
+            resetCargoInputErrors();
 
             const decl = item.cargoDeclaration || {};
             document.getElementById('declCargoType').value = decl.cargoType || 'Hàng bưu kiện / E-commerce';
@@ -606,11 +645,13 @@
 
         function closeCargoModal() {
             document.getElementById('cargoDeclarationModal').classList.add('hidden');
+            resetCargoInputErrors();
         }
 
         function handleSaveCargoDeclaration(e) {
             e.preventDefault();
             hideCargoModalError();
+            resetCargoInputErrors();
 
             const wonId = document.getElementById('modalTargetWonId').value;
             if (!wonId) return;
@@ -622,7 +663,8 @@
             const cargoType = document.getElementById('declCargoType').value;
             const hawbNumber = document.getElementById('declHawb').value.trim();
             const cargoName = document.getElementById('declCargoName').value.trim();
-            const piecesCount = Number(document.getElementById('declPieces').value);
+            const piecesVal = document.getElementById('declPieces').value.trim();
+            const piecesCount = Number(piecesVal);
             const grossWeightKg = Number(document.getElementById('declGrossWeight').value);
             const volumeCbm = Number(document.getElementById('declVolume').value);
             const shipperName = document.getElementById('declShipper').value.trim();
@@ -630,51 +672,89 @@
             const consigneeAddress = document.getElementById('declConsigneeAddress').value.trim();
             const specialNotes = document.getElementById('declNotes').value.trim();
 
-            // 1. Kiểm tra tên hàng hóa
-            if (!cargoName || cargoName.length < 3) {
-                showCargoModalError('Vui lòng nhập Tên & Mô tả chi tiết mặt hàng (tối thiểu 3 ký tự).');
+            // 1. Kiểm tra Mã HAWB (nếu có nhập)
+            if (hawbNumber) {
+                if (hawbNumber.length < 4 || hawbNumber.length > 30 || !/^[A-Za-z0-9\-\/]{4,30}$/.test(hawbNumber) || isGibberishText(hawbNumber)) {
+                    highlightCargoInputError('declHawb', true);
+                    showCargoModalError('Mã Vận đơn House (HAWB) không đúng định dạng (Ví dụ hợp lệ: HAWB-SGN-88901, VU-12345). Không nhập chuỗi ký tự gõ phím ngẫu nhiên!');
+                    document.getElementById('declHawb').focus();
+                    return;
+                }
+            }
+
+            // 2. Kiểm tra Tên & Mô tả chi tiết mặt hàng (Cargo Name)
+            if (!cargoName || cargoName.length < 4 || isGibberishText(cargoName)) {
+                highlightCargoInputError('declCargoName', true);
+                showCargoModalError('Vui lòng nhập Tên & Mô tả chi tiết mặt hàng rõ ràng (tối thiểu 4 ký tự, Ví dụ: Linh kiện điện thoại, Thủy hải sản tươi sống, Quần áo dệt may...). Không nhập chuỗi ký tự gõ phím ngẫu nhiên!');
                 document.getElementById('declCargoName').focus();
                 return;
             }
 
-            // 2. Kiểm tra số kiện
-            if (!piecesCount || isNaN(piecesCount) || piecesCount <= 0 || !Number.isInteger(piecesCount)) {
-                showCargoModalError('Tổng số kiện đóng gói phải là số nguyên lớn hơn 0 (Ví dụ: 10, 45).');
+            // 3. Kiểm tra Số kiện / Thùng (Pieces Count)
+            if (!piecesVal || isNaN(piecesCount) || piecesCount <= 0 || !Number.isInteger(piecesCount)) {
+                highlightCargoInputError('declPieces', true);
+                showCargoModalError('Tổng số kiện đóng gói phải là số nguyên dương lớn hơn 0 (Ví dụ: 10, 45, 100).');
+                document.getElementById('declPieces').focus();
+                return;
+            }
+            if (piecesCount > 50000) {
+                highlightCargoInputError('declPieces', true);
+                showCargoModalError(`Số kiện đóng gói (${piecesCount.toLocaleString('vi-VN')} kiện) vượt quá giới hạn tối đa cho phép của lô hàng vận tải hàng không (Tối đa 50.000 kiện). Vui lòng kiểm tra lại!`);
                 document.getElementById('declPieces').focus();
                 return;
             }
 
-            // 3. Kiểm tra khối lượng hàng hóa (Kg)
+            // 4. Kiểm tra Khối lượng hàng hóa (Gross Weight Kg)
             if (!grossWeightKg || isNaN(grossWeightKg) || grossWeightKg <= 0) {
+                highlightCargoInputError('declGrossWeight', true);
                 showCargoModalError('Khối lượng hàng hóa (Kg) phải là số dương lớn hơn 0.');
                 document.getElementById('declGrossWeight').focus();
                 return;
             }
 
-            if (item && item.capacityKg && grossWeightKg > item.capacityKg * 1.15) {
-                showCargoModalError(`Cảnh báo: Khối lượng hàng hóa khai báo (${grossWeightKg} Kg) vượt quá nhiều so với tải trọng trúng thầu (${item.capacityKg} Kg) của chuyến bay! Vui lòng kiểm tra lại.`);
+            const maxAllowedKg = item && item.capacityKg ? Math.round(item.capacityKg * 1.15) : 50000;
+            if (grossWeightKg > maxAllowedKg) {
+                highlightCargoInputError('declGrossWeight', true);
+                showCargoModalError(`Khối lượng khai báo (${grossWeightKg.toLocaleString('vi-VN')} Kg) vượt quá mức cho phép tối đa (${maxAllowedKg.toLocaleString('vi-VN')} Kg - 115% tải trọng trúng thầu) của chuyến bay! Vui lòng kiểm tra lại.`);
                 document.getElementById('declGrossWeight').focus();
                 return;
             }
 
-            // 4. Kiểm tra thể tích (CBM)
+            // 5. Kiểm tra Thể tích hàng hóa (Volume CBM)
             if (!volumeCbm || isNaN(volumeCbm) || volumeCbm <= 0) {
-                showCargoModalError('Thể tích hàng hóa (CBM - m³) phải là số dương lớn hơn 0 (Ví dụ: 3.2).');
+                highlightCargoInputError('declVolume', true);
+                showCargoModalError('Thể tích hàng hóa (CBM - m³) phải là số hợp lệ lớn hơn 0 (Ví dụ: 3.2, 12.5).');
+                document.getElementById('declVolume').focus();
+                return;
+            }
+            if (volumeCbm > 500) {
+                highlightCargoInputError('declVolume', true);
+                showCargoModalError(`Thể tích hàng hóa (${volumeCbm} m³) vượt quá dung tích tối đa chứa hàng của tàu bay (Tối đa 500 m³). Vui lòng kiểm tra lại!`);
                 document.getElementById('declVolume').focus();
                 return;
             }
 
-            // 5. Kiểm tra mã HAWB (nếu có nhập)
-            if (hawbNumber && !/^[A-Za-z0-9\-\/]{3,30}$/.test(hawbNumber)) {
-                showCargoModalError('Mã Vận đơn House (HAWB) chỉ được dùng chữ cái, số, dấu gạch (-) hoặc xuyệt (/). Ví dụ: HAWB-SGN-88901');
-                document.getElementById('declHawb').focus();
+            // 6. Kiểm tra Tên Đơn vị Gửi hàng (Shipper - nếu nhập)
+            if (shipperName && (shipperName.length < 3 || isGibberishText(shipperName))) {
+                highlightCargoInputError('declShipper', true);
+                showCargoModalError('Tên Đơn vị Gửi hàng (Shipper) không hợp lệ (tối thiểu 3 ký tự, Ví dụ: Công ty TNHH Vận tải ABC). Không nhập chuỗi ký tự gõ phím ngẫu nhiên!');
+                document.getElementById('declShipper').focus();
                 return;
             }
 
-            // 6. Kiểm tra tên Consignee
-            if (!consigneeName || consigneeName.length < 2) {
-                showCargoModalError('Vui lòng nhập tên Đơn vị Nhận hàng (Consignee) hợp lệ (tối thiểu 2 ký tự).');
+            // 7. Kiểm tra Tên Đơn vị Nhận hàng (Consignee)
+            if (!consigneeName || consigneeName.length < 3 || isGibberishText(consigneeName)) {
+                highlightCargoInputError('declConsignee', true);
+                showCargoModalError('Vui lòng nhập Tên Đơn vị Nhận hàng (Consignee) hợp lệ (tối thiểu 3 ký tự, Ví dụ: Công ty CP Đầu tư Hà Nội, Nguyễn Văn A...). Không nhập chuỗi ký tự gõ phím ngẫu nhiên!');
                 document.getElementById('declConsignee').focus();
+                return;
+            }
+
+            // 8. Kiểm tra Địa chỉ kho nhận (nếu nhập)
+            if (consigneeAddress && consigneeAddress.length < 5) {
+                highlightCargoInputError('declConsigneeAddress', true);
+                showCargoModalError('Địa chỉ kho nhận hàng tại sân bay quá ngắn (tối thiểu 5 ký tự).');
+                document.getElementById('declConsigneeAddress').focus();
                 return;
             }
 
