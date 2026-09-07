@@ -273,6 +273,14 @@ function loadServerData() {
             if (a.status === 'OPEN') {
                 const endMs = Date.parse(a.endTime);
                 if (isNaN(endMs) || endMs <= now) {
+                    if (a.etdIso) {
+                        const etdMs = Date.parse(a.etdIso);
+                        if (!isNaN(etdMs) && etdMs > now) {
+                            a.endTime = new Date(Math.max(now + 120 * 60 * 1000, etdMs - 3 * 3600 * 1000)).toISOString();
+                            changed = true;
+                            return;
+                        }
+                    }
                     a.endTime = new Date(now + (idx === 0 ? 45 : (idx === 1 ? 90 : 120)) * 60 * 1000).toISOString();
                     changed = true;
                 }
@@ -469,7 +477,12 @@ const server = http.createServer((req, res) => {
         req.on('end', () => {
             try {
                 const incoming = JSON.parse(body);
-                if (incoming.auctions) serverData.auctions = incoming.auctions;
+                if (incoming.auctions && Array.isArray(incoming.auctions)) {
+                    const map = new Map();
+                    (serverData.auctions || []).forEach(a => map.set(a.id, a));
+                    incoming.auctions.forEach(a => map.set(a.id, a));
+                    serverData.auctions = Array.from(map.values()).sort((a, b) => (b.id || 0) - (a.id || 0));
+                }
                 if (incoming.bids) serverData.bids = incoming.bids;
                 if (incoming.wonAuctions) serverData.wonAuctions = incoming.wonAuctions;
                 if (incoming.notifications) serverData.notifications = incoming.notifications;

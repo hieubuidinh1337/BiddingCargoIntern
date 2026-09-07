@@ -416,17 +416,23 @@ const CargoStore = (function() {
             const now = Date.now();
             if (data.auctions && Array.isArray(data.auctions)) {
                 const seenIds = new Set();
-                const seenCodes = new Set();
                 const uniqueAuctions = [];
                 data.auctions.forEach((a, idx) => {
                     const idKey = a.id;
-                    const codeKey = (a.flightCode || '').trim().toUpperCase();
-                    if (!seenIds.has(idKey) && (!codeKey || !seenCodes.has(codeKey))) {
+                    if (!seenIds.has(idKey)) {
                         seenIds.add(idKey);
-                        if (codeKey) seenCodes.add(codeKey);
                         if (a.status === 'OPEN') {
                             const endTimeMs = Date.parse(a.endTime);
                             if (isNaN(endTimeMs) || endTimeMs <= now) {
+                                if (a.etdIso) {
+                                    const etdMs = Date.parse(a.etdIso);
+                                    if (!isNaN(etdMs) && etdMs > now) {
+                                        a.endTime = new Date(Math.max(now + 120 * 60 * 1000, etdMs - 3 * 3600 * 1000)).toISOString();
+                                        updated = true;
+                                        uniqueAuctions.push(a);
+                                        return;
+                                    }
+                                }
                                 const addMinutes = (idx === 0 ? 45 : (idx === 1 ? 90 : 120));
                                 a.endTime = new Date(now + addMinutes * 60 * 1000).toISOString();
                                 updated = true;
@@ -458,6 +464,8 @@ const CargoStore = (function() {
     let lastServerVersion = 0;
     let isSyncing = false;
 
+    let lastLocalSaveTimestamp = 0;
+
     function saveData(data, skipServerSync = false) {
         try {
             localStorage.setItem(STORAGE_KEY, JSON.stringify(data));
@@ -472,6 +480,7 @@ const CargoStore = (function() {
 
         // Push changes to server if running over HTTP/HTTPS or local dev server
         if (!skipServerSync && typeof window !== 'undefined') {
+            lastLocalSaveTimestamp = Date.now();
             const apiUrl = (window.location && window.location.protocol.startsWith('http'))
                 ? '/api/data'
                 : 'http://localhost:8085/api/data';
@@ -501,6 +510,9 @@ const CargoStore = (function() {
 
     async function syncWithServer() {
         if (isSyncing || typeof window === 'undefined') return;
+        // Prevent sync race condition if local save occurred in the last 3000ms
+        if (Date.now() - lastLocalSaveTimestamp < 3000) return;
+
         try {
             isSyncing = true;
             const apiUrl = (window.location && window.location.protocol.startsWith('http'))
@@ -514,8 +526,18 @@ const CargoStore = (function() {
                 lastServerVersion = serverData.version;
                 const local = loadData();
 
-                // Merge shared collections from server while preserving browser-specific login
-                local.auctions = serverData.auctions || local.auctions;
+                // Merge shared collections from server by ID to preserve local created items
+                if (serverData.auctions && Array.isArray(serverData.auctions)) {
+                    const auctionMap = new Map();
+                    serverData.auctions.forEach(a => auctionMap.set(a.id, a));
+                    (local.auctions || []).forEach(a => {
+                        if (!auctionMap.has(a.id)) {
+                            auctionMap.set(a.id, a);
+                        }
+                    });
+                    local.auctions = Array.from(auctionMap.values()).sort((a, b) => (b.id || 0) - (a.id || 0));
+                }
+
                 local.bids = serverData.bids || local.bids;
                 local.wonAuctions = serverData.wonAuctions || local.wonAuctions;
                 local.notifications = serverData.notifications || local.notifications;
@@ -810,7 +832,7 @@ const CargoStore = (function() {
                 }
             }
 
-            const newId = data.auctions.length > 0 ? Math.max(...data.auctions.map(a => a.id || 0)) + 1 : 1;
+            const newId = (data.auctions || []).reduce((max, a) => Math.max(max, Number(a.id) || 0), 0) + 1;
             const flightNumber = (auctionData.flightNumber || 'VU999').trim().toUpperCase();
             const origin = (auctionData.origin || 'SGN').trim().toUpperCase();
             const dest = (auctionData.destination || 'HAN').trim().toUpperCase();
@@ -855,7 +877,20 @@ const CargoStore = (function() {
             const formattedEtd = this.formatFlightDateDisplay(parsedEtd);
             const formattedEta = auctionData.eta ? this.formatFlightDateDisplay(auctionData.eta) : 'Chưa cập nhật';
 
-            const endTime = new Date(now.getTime() + 120 * 60 * 1000).toISOString();
+            // Calculate End Time (Thời gian đóng thầu): 3 hours before ETD if ETD is in future, or at least 24h
+            const cutoffHours = (data.settings && data.settings.cutoffHours) || 3;
+            let endTimeDate;
+            if (parsedEtd && !isNaN(parsedEtd.getTime())) {
+                const etdCutoff = new Date(parsedEtd.getTime() - cutoffHours * 60 * 60 * 1000);
+                if (etdCutoff.getTime() > now.getTime()) {
+                    endTimeDate = etdCutoff;
+                } else {
+                    endTimeDate = new Date(now.getTime() + 12 * 60 * 60 * 1000);
+                }
+            } else {
+                endTimeDate = new Date(now.getTime() + 24 * 60 * 60 * 1000);
+            }
+            const endTime = endTimeDate.toISOString();
 
             const newAuction = {
                 id: newId,
