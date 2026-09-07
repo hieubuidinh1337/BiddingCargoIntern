@@ -179,7 +179,8 @@
                 <div class="grid grid-cols-2 gap-3">
                     <div>
                         <label class="block font-semibold text-slate-700 mb-1">Tải trọng thầu (Kg)</label>
-                        <input type="number" id="editCapacity" required step="100" class="w-full border rounded-xl px-3 py-2 font-bold outline-none focus:ring-2 focus:ring-blue-500">
+                        <input type="number" id="editCapacity" required min="100" max="50000" step="100" class="w-full border rounded-xl px-3 py-2 font-bold outline-none focus:ring-2 focus:ring-blue-500">
+                        <p class="text-[10px] text-slate-400 mt-0.5">Giới hạn: 100 đến 50.000 Kg (Tối đa 50 tấn)</p>
                     </div>
                     <div>
                         <label class="block font-semibold text-slate-700 mb-1">Giá khởi điểm sàn (đ/Kg)</label>

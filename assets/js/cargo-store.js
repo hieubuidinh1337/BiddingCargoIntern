@@ -913,6 +913,13 @@ const CargoStore = (function() {
             }
 
             const capacityKg = Number(auctionData.capacityKg) || 3000;
+            if (isNaN(capacityKg) || capacityKg < 100 || capacityKg > 50000) {
+                return {
+                    success: false,
+                    message: `Tải trọng chào thầu (${capacityKg ? capacityKg.toLocaleString('vi-VN') : 0} Kg) không hợp lệ! Tải trọng một chuyến bay vận tải hàng không cho phép từ 100 Kg đến tối đa 50.000 Kg (50 tấn).`
+                };
+            }
+
             const startingPriceKg = Number(auctionData.startingPriceKg) || 18000;
             const minStep = Number(auctionData.minStep) || 500;
 
@@ -1782,7 +1789,16 @@ const CargoStore = (function() {
                 };
             }
 
-            if (updateData.capacityKg) auction.capacityKg = Number(updateData.capacityKg);
+            if (updateData.capacityKg) {
+                const cap = Number(updateData.capacityKg);
+                if (isNaN(cap) || cap < 100 || cap > 50000) {
+                    return {
+                        success: false,
+                        message: `Tải trọng chào thầu (${cap ? cap.toLocaleString('vi-VN') : 0} Kg) không hợp lệ! Tải trọng một chuyến bay vận tải hàng không cho phép từ 100 Kg đến tối đa 50.000 Kg (50 tấn).`
+                    };
+                }
+                auction.capacityKg = cap;
+            }
             if (updateData.startingPriceKg) {
                 auction.startingPriceKg = Number(updateData.startingPriceKg);
                 // If currentPriceKg is at or below new startingPriceKg, update it
