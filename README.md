@@ -63,7 +63,7 @@ graph TD
    - **Kiểm tra tính hợp lệ & Tiêu chuẩn IATA Air Cargo**:
      - 📌 **Trọng lượng trung bình / Kiện**: Tối thiểu $\ge 1.0\text{ Kg/kiện}$ (1.000g). Hệ thống tự động chặn các thông số phi lý như 60g/kiện (ví dụ 50.000 kiện cho 3.000 Kg).
      - 📌 **Tỷ trọng cồng kềnh (Volumetric Density)**: Tối thiểu $\ge 20\text{ Kg/m}^3$. Với $3.000\text{ Kg}$, thể tích tối đa hợp lệ là $150\text{ m}^3$. Hệ thống từ chối các khai báo cồng kềnh quá mức như $500\text{ m}^3$ ($6.0\text{ Kg/m}^3$).
-     - 📌 **Giới hạn tải trọng cất cánh**: Không vượt quá $115\%$ tải trọng đăng ký của chuyến bay.
+     - 📌 **Giới hạn tải trọng cất cánh**: Không vượt quá $100\%$ tải trọng đăng ký của chuyến bay.
      - 📌 **Thẻ Hướng dẫn & Giải thích lý do thời gian thực**: Trực tiếp giải thích nguyên nhân vi phạm và hướng dẫn điều chỉnh ngay trên giao diện Modal.
      - 📌 **Chống gõ chuỗi ngẫu nhiên (Gibberish Validation)**: Kiểm định tên mặt hàng, HAWB, Shipper/Consignee nhằm ngăn chặn việc gõ phím vô nghĩa.
    - Đại lý thực hiện thanh toán và bấm *"Tôi đã chuyển khoản"*.

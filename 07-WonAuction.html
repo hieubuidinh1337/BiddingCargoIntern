@@ -220,7 +220,7 @@
                                 <strong>2. Kiện hàng quá nhỏ:</strong> Trọng lượng trung bình mỗi kiện = <code>Tổng Kg ÷ Số kiện</code>. Tối thiểu phải đạt <strong>1.0 Kg/kiện</strong> (1.000g). Ví dụ: 3.000 Kg không thể chia thành 50.000 kiện (vì trung bình mỗi kiện chỉ có 60g - quá nhỏ so với đóng gói thùng carton thương mại).
                             </li>
                             <li>
-                                <strong>3. Giới hạn tải trọng trúng thầu:</strong> Khai báo khối lượng không được vượt quá <strong>115%</strong> tải trọng đăng ký của chuyến bay để đảm bảo tải trọng cất cánh (MTOW) & phân bổ cân bằng trọng tâm máy bay.
+                                <strong>3. Giới hạn tải trọng trúng thầu:</strong> Khai báo khối lượng không được vượt quá <strong>100%</strong> tải trọng đăng ký của chuyến bay để đảm bảo tải trọng cất cánh (MTOW) & phân bổ cân bằng trọng tâm máy bay.
                             </li>
                         </ul>
                     </div>
@@ -862,10 +862,10 @@
                 return;
             }
 
-            const maxAllowedKg = item && item.capacityKg ? Math.round(item.capacityKg * 1.15) : 50000;
+            const maxAllowedKg = item && item.capacityKg ? item.capacityKg : 50000;
             if (grossWeightKg > maxAllowedKg) {
                 highlightCargoInputError('declGrossWeight', true);
-                showCargoModalError(`Khối lượng khai báo (${grossWeightKg.toLocaleString('vi-VN')} Kg) vượt quá mức cho phép tối đa (${maxAllowedKg.toLocaleString('vi-VN')} Kg - 115% tải trọng trúng thầu) của chuyến bay! Vui lòng kiểm tra lại.`);
+                showCargoModalError(`Khối lượng khai báo (${grossWeightKg.toLocaleString('vi-VN')} Kg) vượt quá tải trọng trúng thầu tối đa (${maxAllowedKg.toLocaleString('vi-VN')} Kg - 100% tải trọng đăng ký) của chuyến bay! Vui lòng kiểm tra lại.`);
                 document.getElementById('declGrossWeight').focus();
                 return;
             }
