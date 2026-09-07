@@ -1,5 +1,5 @@
 {
-  "version": 1788764555127,
+  "version": 1788765201659,
   "auctions": [
     {
       "id": 6,
@@ -45,16 +45,19 @@
       "aircraft": "Airbus A321neo Cargo",
       "capacityKg": 3000,
       "startingPriceKg": 18000,
-      "currentPriceKg": 40000,
+      "currentPriceKg": 56500,
       "minStep": 500,
       "endTime": "2026-09-07T07:27:49.516Z",
-      "status": "OPEN",
-      "leadingAgentCode": "AG-0341",
-      "leadingAgentName": "Công ty TNHH SkyFreight Logistics Việt Nam",
-      "bidsCount": 2,
+      "status": "CLOSED",
+      "leadingAgentCode": "AG-1024",
+      "leadingAgentName": "Công ty CP Giao nhận Kho vận Vinatrans",
+      "bidsCount": 3,
       "specialNotes": "Tải trọng tổng hợp tiêu chuẩn IATA. Có hỗ trợ xe nâng hàng pallet tại sân bay.",
       "cutOffTime": "Trước ETD 3 giờ",
-      "isAnonymous": true
+      "isAnonymous": true,
+      "winnerAgentCode": "AG-1024",
+      "winnerAgentName": "Công ty CP Giao nhận Kho vận Vinatrans",
+      "winningPriceKg": 56500
     },
     {
       "id": 4,
@@ -161,6 +164,18 @@
   ],
   "bids": [
     {
+      "id": 1788765051789,
+      "timestamp": 1788765051789,
+      "auctionId": 5,
+      "agentCode": "AG-1024",
+      "agentName": "Công ty CP Giao nhận Kho vận Vinatrans",
+      "isAnonymous": true,
+      "priceKg": 56500,
+      "time": "Vừa xong",
+      "status": "WON",
+      "weightKg": 3000
+    },
+    {
       "id": 1788429559431,
       "auctionId": 3,
       "agentCode": "AG-1024",
@@ -261,9 +276,63 @@
       "time": "20 phút trước",
       "status": "WON",
       "weightKg": 3000
+    },
+    {
+      "id": 1788762646923,
+      "timestamp": 1788762646923,
+      "auctionId": 5,
+      "agentCode": "AG-1024",
+      "agentName": "Công ty CP Giao nhận Kho vận Vinatrans",
+      "isAnonymous": true,
+      "priceKg": 18000,
+      "time": "40 phút trước",
+      "status": "OUTBID",
+      "weightKg": 3000
+    },
+    {
+      "id": 1788763846923,
+      "timestamp": 1788763846923,
+      "auctionId": 5,
+      "agentCode": "AG-0892",
+      "agentName": "Công ty TNHH Vận tải ABC Logistics",
+      "isAnonymous": true,
+      "priceKg": 40000,
+      "time": "20 phút trước",
+      "status": "OUTBID",
+      "weightKg": 3000
     }
   ],
   "wonAuctions": [
+    {
+      "wonId": "WON-20260907-05",
+      "auctionId": 5,
+      "agentCode": "AG-1024",
+      "flightNumber": "VU3245",
+      "route": "SGN - HAN",
+      "capacityKg": 3000,
+      "priceKg": 56500,
+      "totalAmountVND": 169500000,
+      "paymentDeadline": "2026-09-08T07:11:06.358Z",
+      "paymentStatus": "PAID",
+      "paidAt": "14:13:21 7/9/2026",
+      "awbNumber": "998-67136583",
+      "cutOffTime": "Trước ETD 3 giờ",
+      "warehouse": "Kho hàng SCSC / TCS Tân Sơn Nhất (Cửa số 4)",
+      "cargoDeclaration": {
+        "cargoType": "Hàng linh kiện điện tử (VAL/AVI)",
+        "cargoName": "abcdef12344",
+        "piecesCount": 5555,
+        "grossWeightKg": 3,
+        "volumeCbm": 3,
+        "hawbNumber": "abscd",
+        "shipperName": "cong ty tnhh",
+        "consigneeName": "abc dè geh",
+        "consigneeAddress": "1231 lign oekro qqe ad",
+        "specialNotes": "",
+        "updatedAt": "14:12:44 7/9/2026"
+      },
+      "notifiedAt": "14:13:16 7/9/2026"
+    },
     {
       "wonId": "WON-20260907-06",
       "auctionId": 6,
@@ -274,8 +343,8 @@
       "priceKg": 24500,
       "totalAmountVND": 73500000,
       "paymentDeadline": "2026-09-08T06:55:56.843Z",
-      "paymentStatus": "PENDING_VERIFICATION",
-      "paidAt": null,
+      "paymentStatus": "PAID",
+      "paidAt": "14:13:18 7/9/2026",
       "awbNumber": "998-84820914",
       "cutOffTime": "Trước ETD 3 giờ",
       "warehouse": "Kho hàng SCSC / TCS Tân Sơn Nhất (Cửa số 4)",
@@ -328,6 +397,58 @@
     }
   ],
   "notifications": [
+    {
+      "id": 1788765201650,
+      "targetAgentCode": "AG-1024",
+      "title": "Xác nhận thanh toán đơn WON-20260907-05 thành công!",
+      "message": "Ban Điều hành đã xác nhận nhận đủ 169.500.000 đ cho đơn hàng chuyến VU3245 (SGN - HAN). Mã AWB: 998-67136583.",
+      "time": "Vừa xong",
+      "type": "SYSTEM",
+      "read": false,
+      "link": "07-WonAuction.html"
+    },
+    {
+      "id": 1788765198597,
+      "targetAgentCode": "AG-1024",
+      "title": "Xác nhận thanh toán đơn WON-20260907-06 thành công!",
+      "message": "Ban Điều hành đã xác nhận nhận đủ 73.500.000 đ cho đơn hàng chuyến VU32453 (SGN - HAN). Mã AWB: 998-84820914.",
+      "time": "Vừa xong",
+      "type": "SYSTEM",
+      "read": false,
+      "link": "07-WonAuction.html"
+    },
+    {
+      "id": 1788765066358,
+      "targetAgentCode": "AG-1024",
+      "title": "Phiên VU3245 đã chốt kết quả!",
+      "message": "Đại lý Công ty CP Giao nhận Kho vận Vinatrans (AG-1024) đã trúng thầu chuyến VU3245 (SGN - HAN) mức giá 56.500 đ/Kg.",
+      "time": "Vừa xong",
+      "type": "WON",
+      "read": false,
+      "link": "07-WonAuction.html"
+    },
+    {
+      "id": 1788765051790,
+      "timestamp": 1788765051790,
+      "targetAgentCode": "AG-0341",
+      "title": "Cảnh báo bị vượt giá chuyến VU3245!",
+      "message": "Một đại lý đối thủ (Ẩn danh) vừa đặt mức giá mới 56.500 đ/Kg cho chặng SGN - HAN.",
+      "time": "Vừa xong",
+      "type": "OUTBID",
+      "read": false,
+      "link": "04-Detail.html?id=5"
+    },
+    {
+      "id": 1788765051789,
+      "timestamp": 1788765051789,
+      "targetAgentCode": "AG-1024",
+      "title": "Đặt giá thành công chuyến VU3245",
+      "message": "Bạn (AG-1024) đang dẫn đầu mức giá 56.500 đ/Kg cho chặng SGN - HAN. (Tên công ty được che ẩn danh đối với các đối thủ)",
+      "time": "Vừa xong",
+      "type": "HIGHEST",
+      "read": false,
+      "link": "04-Detail.html?id=5"
+    },
     {
       "id": 1788764156844,
       "targetAgentCode": "AG-1024",
@@ -601,6 +722,36 @@
     "supportEmail": "cargo-bidding@airline.vn"
   },
   "emailLogs": [
+    {
+      "id": 1788765204673,
+      "to": "khang.le@vinatrans.com.vn",
+      "type": "PAYMENT_CONFIRMED",
+      "subject": "[Vietravel Airlines Cargo] XÁC NHẬN ĐÃ NHẬN THANH TOÁN - Đơn hàng WON-20260907-05",
+      "messageId": "<d98becc0-f07d-b59a-7661-315be9159a07@gmail.com>",
+      "isRealSmtp": true,
+      "previewUrl": null,
+      "sentAt": "14:13:24 7/9/2026"
+    },
+    {
+      "id": 1788765201162,
+      "to": "khang.le@vinatrans.com.vn",
+      "type": "PAYMENT_CONFIRMED",
+      "subject": "[Vietravel Airlines Cargo] XÁC NHẬN ĐÃ NHẬN THANH TOÁN - Đơn hàng WON-20260907-06",
+      "messageId": "<3664a94f-7303-e0b6-ea84-1f8552184f92@gmail.com>",
+      "isRealSmtp": true,
+      "previewUrl": null,
+      "sentAt": "14:13:21 7/9/2026"
+    },
+    {
+      "id": 1788765068926,
+      "to": "khang.le@vinatrans.com.vn",
+      "type": "AUCTION_WON",
+      "subject": "[Vietravel Airlines Cargo] CHÚC MỪNG TRÚNG THẦU! Đơn hàng WON-20260907-05 - Chuyến VU3245 (SGN - HAN)",
+      "messageId": "<f005b4ad-f51a-db92-1811-3fb260a5be20@gmail.com>",
+      "isRealSmtp": true,
+      "previewUrl": null,
+      "sentAt": "14:11:08 7/9/2026"
+    },
     {
       "id": 1788764159523,
       "to": "khang.le@vinatrans.com.vn",

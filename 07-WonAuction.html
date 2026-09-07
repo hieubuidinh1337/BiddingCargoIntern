@@ -177,6 +177,23 @@
                     </div>
                 </div>
 
+                <!-- Summary & Density Check Banner -->
+                <div id="declMetricsSummary" class="bg-blue-50/70 border border-blue-200 rounded-xl p-3 text-xs text-slate-700 flex flex-wrap items-center justify-between gap-2">
+                    <div class="flex items-center gap-4">
+                        <div>
+                            <span class="text-[10px] text-slate-500 block">Trọng lượng TB / Kiện:</span>
+                            <strong id="liveAvgWeight" class="text-blue-700 font-bold">- Kg/kiện</strong>
+                        </div>
+                        <div class="border-l border-slate-200 pl-4">
+                            <span class="text-[10px] text-slate-500 block">Tỷ trọng Air Cargo (IATA):</span>
+                            <strong id="liveDensity" class="text-emerald-700 font-bold">- Kg/m³</strong>
+                        </div>
+                    </div>
+                    <div id="liveDensityStatus" class="text-[10px] font-bold px-2.5 py-0.5 rounded-full bg-slate-100 text-slate-600 flex items-center gap-1">
+                        <i class="fa-solid fa-circle-info"></i> Vui lòng nhập đủ 3 thông số
+                    </div>
+                </div>
+
                 <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
                     <div>
                         <label class="block font-semibold text-slate-700 mb-1">Tên Đơn vị Gửi hàng (Shipper)</label>
@@ -612,6 +629,64 @@
             if (errBox) errBox.classList.add('hidden');
         }
 
+        function updateLiveCargoMetrics() {
+            const pieces = Number(document.getElementById('declPieces').value) || 0;
+            const weight = Number(document.getElementById('declGrossWeight').value) || 0;
+            const volume = Number(document.getElementById('declVolume').value) || 0;
+
+            const elAvg = document.getElementById('liveAvgWeight');
+            const elDensity = document.getElementById('liveDensity');
+            const elStatus = document.getElementById('liveDensityStatus');
+
+            if (!elAvg || !elDensity || !elStatus) return;
+
+            if (pieces <= 0 || weight <= 0 || volume <= 0) {
+                elAvg.textContent = '- Kg/kiện';
+                elDensity.textContent = '- Kg/m³';
+                elStatus.className = 'text-[10px] font-bold px-2.5 py-0.5 rounded-full bg-slate-100 text-slate-600 flex items-center gap-1';
+                elStatus.innerHTML = '<i class="fa-solid fa-circle-info"></i> Nhập đủ 3 thông số';
+                return;
+            }
+
+            const avgWeight = weight / pieces;
+            const density = weight / volume;
+
+            if (avgWeight < 0.001) {
+                elAvg.textContent = `${(avgWeight * 1000).toFixed(2)} g/kiện`;
+            } else if (avgWeight < 1) {
+                elAvg.textContent = `${(avgWeight * 1000).toFixed(0)} g/kiện`;
+            } else {
+                elAvg.textContent = `${avgWeight.toFixed(2)} Kg/kiện`;
+            }
+
+            elDensity.textContent = `${density.toFixed(1)} Kg/m³`;
+
+            if (avgWeight < 0.05) {
+                elStatus.className = 'text-[10px] font-bold px-2.5 py-0.5 rounded-full bg-red-100 text-red-800 flex items-center gap-1';
+                elStatus.innerHTML = '<i class="fa-solid fa-triangle-exclamation text-red-600"></i> Quá nhiều kiện so với khối lượng!';
+            } else if (density < 5) {
+                elStatus.className = 'text-[10px] font-bold px-2.5 py-0.5 rounded-full bg-red-100 text-red-800 flex items-center gap-1';
+                elStatus.innerHTML = '<i class="fa-solid fa-triangle-exclamation text-red-600"></i> Tỷ trọng quá nhẹ so với thể tích!';
+            } else if (density > 1200) {
+                elStatus.className = 'text-[10px] font-bold px-2.5 py-0.5 rounded-full bg-amber-100 text-amber-800 flex items-center gap-1';
+                elStatus.innerHTML = '<i class="fa-solid fa-triangle-exclamation text-amber-600"></i> Tỷ trọng rất nặng (Hàng kim loại/máy móc)';
+            } else {
+                elStatus.className = 'text-[10px] font-bold px-2.5 py-0.5 rounded-full bg-emerald-100 text-emerald-800 flex items-center gap-1';
+                elStatus.innerHTML = '<i class="fa-solid fa-circle-check text-emerald-600"></i> Thông số phù hợp tiêu chuẩn IATA';
+            }
+        }
+
+        // Attach event listeners for real-time calculation
+        document.addEventListener('DOMContentLoaded', function() {
+            ['declPieces', 'declGrossWeight', 'declVolume'].forEach(id => {
+                const el = document.getElementById(id);
+                if (el) {
+                    el.addEventListener('input', updateLiveCargoMetrics);
+                    el.addEventListener('change', updateLiveCargoMetrics);
+                }
+            });
+        });
+
         function openCargoModal(wonId) {
             const store = getStore();
             const data = store ? store.getData() : {};
@@ -640,6 +715,7 @@
             document.getElementById('declConsigneeAddress').value = decl.consigneeAddress || '';
             document.getElementById('declNotes').value = decl.specialNotes || '';
 
+            updateLiveCargoMetrics();
             document.getElementById('cargoDeclarationModal').classList.remove('hidden');
         }
 
@@ -734,7 +810,37 @@
                 return;
             }
 
-            // 6. Kiểm tra Tên Đơn vị Gửi hàng (Shipper - nếu nhập)
+            // 6. Kiểm tra tính tương thích giữa 3 thông số (Số kiện - Khối lượng - Thể tích CBM)
+            const avgWeightPerPiece = grossWeightKg / piecesCount;
+            if (avgWeightPerPiece < 0.05) {
+                highlightCargoInputError('declPieces', true);
+                highlightCargoInputError('declGrossWeight', true);
+                const avgText = avgWeightPerPiece < 0.001 ? (avgWeightPerPiece * 1000).toFixed(2) + 'g' : avgWeightPerPiece.toFixed(3) + ' Kg';
+                const maxPieces = Math.max(1, Math.floor(grossWeightKg / 0.05));
+                showCargoModalError(`Khối lượng trung bình mỗi kiện quá nhỏ (${avgText}/kiện). Với tổng khối lượng ${grossWeightKg.toLocaleString('vi-VN')} Kg, số kiện tối đa hợp lệ là ${maxPieces.toLocaleString('vi-VN')} kiện. Vui lòng kiểm tra lại!`);
+                document.getElementById('declPieces').focus();
+                return;
+            }
+
+            const densityKgCbm = grossWeightKg / volumeCbm;
+            if (densityKgCbm < 5) {
+                highlightCargoInputError('declVolume', true);
+                highlightCargoInputError('declGrossWeight', true);
+                const maxCbm = (grossWeightKg / 5).toFixed(2);
+                showCargoModalError(`Tỷ trọng hàng hóa không hợp lệ (${densityKgCbm < 0.01 ? densityKgCbm.toFixed(4) : densityKgCbm.toFixed(2)} Kg/m³ - quá nhẹ so với thể tích ${volumeCbm} m³). Với khối lượng ${grossWeightKg.toLocaleString('vi-VN')} Kg, thể tích tối đa hợp lệ là ${maxCbm} m³!`);
+                document.getElementById('declVolume').focus();
+                return;
+            }
+
+            if (densityKgCbm > 1200) {
+                highlightCargoInputError('declVolume', true);
+                highlightCargoInputError('declGrossWeight', true);
+                showCargoModalError(`Tỷ trọng hàng hóa quá nặng (${Math.round(densityKgCbm).toLocaleString('vi-VN')} Kg/m³). Thể tích ${volumeCbm} m³ quá nhỏ so với khối lượng ${grossWeightKg.toLocaleString('vi-VN')} Kg!`);
+                document.getElementById('declVolume').focus();
+                return;
+            }
+
+            // 7. Kiểm tra Tên Đơn vị Gửi hàng (Shipper - nếu nhập)
             if (shipperName && (shipperName.length < 3 || isGibberishText(shipperName))) {
                 highlightCargoInputError('declShipper', true);
                 showCargoModalError('Tên Đơn vị Gửi hàng (Shipper) không hợp lệ (tối thiểu 3 ký tự, Ví dụ: Công ty TNHH Vận tải ABC). Không nhập chuỗi ký tự gõ phím ngẫu nhiên!');
@@ -742,7 +848,7 @@
                 return;
             }
 
-            // 7. Kiểm tra Tên Đơn vị Nhận hàng (Consignee)
+            // 8. Kiểm tra Tên Đơn vị Nhận hàng (Consignee)
             if (!consigneeName || consigneeName.length < 3 || isGibberishText(consigneeName)) {
                 highlightCargoInputError('declConsignee', true);
                 showCargoModalError('Vui lòng nhập Tên Đơn vị Nhận hàng (Consignee) hợp lệ (tối thiểu 3 ký tự, Ví dụ: Công ty CP Đầu tư Hà Nội, Nguyễn Văn A...). Không nhập chuỗi ký tự gõ phím ngẫu nhiên!');
@@ -750,7 +856,7 @@
                 return;
             }
 
-            // 8. Kiểm tra Địa chỉ kho nhận (nếu nhập)
+            // 9. Kiểm tra Địa chỉ kho nhận (nếu nhập)
             if (consigneeAddress && consigneeAddress.length < 5) {
                 highlightCargoInputError('declConsigneeAddress', true);
                 showCargoModalError('Địa chỉ kho nhận hàng tại sân bay quá ngắn (tối thiểu 5 ký tự).');
