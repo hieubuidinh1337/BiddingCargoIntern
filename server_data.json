@@ -1,5 +1,5 @@
 {
-  "version": 1788765201659,
+  "version": 1788767903836,
   "auctions": [
     {
       "id": 6,
@@ -153,7 +153,7 @@
       "startingPriceKg": 18000,
       "currentPriceKg": 41500,
       "minStep": 500,
-      "endTime": "2026-09-07T07:57:49.516Z",
+      "endTime": "2026-09-07T09:58:23.822Z",
       "status": "OPEN",
       "leadingAgentCode": "AG-0556",
       "leadingAgentName": "Công ty TNHH Tiếp vận Toàn Cầu Golden Star",

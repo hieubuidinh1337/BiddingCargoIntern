@@ -642,36 +642,48 @@
 
             if (pieces <= 0 || weight <= 0 || volume <= 0) {
                 elAvg.textContent = '- Kg/kiện';
+                elAvg.className = 'text-slate-700 font-bold';
                 elDensity.textContent = '- Kg/m³';
+                elDensity.className = 'text-slate-700 font-bold';
                 elStatus.className = 'text-[10px] font-bold px-2.5 py-0.5 rounded-full bg-slate-100 text-slate-600 flex items-center gap-1';
-                elStatus.innerHTML = '<i class="fa-solid fa-circle-info"></i> Nhập đủ 3 thông số';
+                elStatus.innerHTML = '<i class="fa-solid fa-circle-info"></i> Vui lòng nhập đủ 3 thông số';
                 return;
             }
 
             const avgWeight = weight / pieces;
             const density = weight / volume;
 
+            let avgStr = '';
             if (avgWeight < 0.001) {
-                elAvg.textContent = `${(avgWeight * 1000).toFixed(2)} g/kiện`;
+                avgStr = `${(avgWeight * 1000).toFixed(2)} g/kiện`;
             } else if (avgWeight < 1) {
-                elAvg.textContent = `${(avgWeight * 1000).toFixed(0)} g/kiện`;
+                avgStr = `${(avgWeight * 1000).toFixed(0)} g/kiện`;
             } else {
-                elAvg.textContent = `${avgWeight.toFixed(2)} Kg/kiện`;
+                avgStr = `${avgWeight.toFixed(2)} Kg/kiện`;
             }
 
+            elAvg.textContent = avgStr;
             elDensity.textContent = `${density.toFixed(1)} Kg/m³`;
 
-            if (avgWeight < 0.05) {
-                elStatus.className = 'text-[10px] font-bold px-2.5 py-0.5 rounded-full bg-red-100 text-red-800 flex items-center gap-1';
-                elStatus.innerHTML = '<i class="fa-solid fa-triangle-exclamation text-red-600"></i> Quá nhiều kiện so với khối lượng!';
-            } else if (density < 5) {
-                elStatus.className = 'text-[10px] font-bold px-2.5 py-0.5 rounded-full bg-red-100 text-red-800 flex items-center gap-1';
-                elStatus.innerHTML = '<i class="fa-solid fa-triangle-exclamation text-red-600"></i> Tỷ trọng quá nhẹ so với thể tích!';
-            } else if (density > 1200) {
-                elStatus.className = 'text-[10px] font-bold px-2.5 py-0.5 rounded-full bg-amber-100 text-amber-800 flex items-center gap-1';
-                elStatus.innerHTML = '<i class="fa-solid fa-triangle-exclamation text-amber-600"></i> Tỷ trọng rất nặng (Hàng kim loại/máy móc)';
+            const isAvgWeightInvalid = avgWeight < 1.0; // Min 1.0 Kg (1000g) per package
+            const isDensityTooLow = density < 20.0;     // Min 20 Kg/m³ (IATA)
+            const isDensityTooHigh = density > 1200.0;
+
+            // Color code individual metric elements
+            elAvg.className = isAvgWeightInvalid ? 'text-red-600 font-bold' : 'text-blue-700 font-bold';
+            elDensity.className = (isDensityTooLow || isDensityTooHigh) ? 'text-red-600 font-bold' : 'text-emerald-700 font-bold';
+
+            if (isAvgWeightInvalid) {
+                elStatus.className = 'text-[10px] font-bold px-2.5 py-0.5 rounded-full bg-red-100 text-red-800 border border-red-200 flex items-center gap-1';
+                elStatus.innerHTML = `<i class="fa-solid fa-triangle-exclamation text-red-600"></i> Kiện quá nhỏ (${avgStr} < 1 Kg/kiện)!`;
+            } else if (isDensityTooLow) {
+                elStatus.className = 'text-[10px] font-bold px-2.5 py-0.5 rounded-full bg-red-100 text-red-800 border border-red-200 flex items-center gap-1';
+                elStatus.innerHTML = `<i class="fa-solid fa-triangle-exclamation text-red-600"></i> Hàng quá cồng kềnh (${density.toFixed(1)} < 20 Kg/m³)!`;
+            } else if (isDensityTooHigh) {
+                elStatus.className = 'text-[10px] font-bold px-2.5 py-0.5 rounded-full bg-amber-100 text-amber-800 border border-amber-200 flex items-center gap-1';
+                elStatus.innerHTML = `<i class="fa-solid fa-triangle-exclamation text-amber-600"></i> Tỷ trọng rất nặng (${Math.round(density)} Kg/m³)`;
             } else {
-                elStatus.className = 'text-[10px] font-bold px-2.5 py-0.5 rounded-full bg-emerald-100 text-emerald-800 flex items-center gap-1';
+                elStatus.className = 'text-[10px] font-bold px-2.5 py-0.5 rounded-full bg-emerald-100 text-emerald-800 border border-emerald-200 flex items-center gap-1';
                 elStatus.innerHTML = '<i class="fa-solid fa-circle-check text-emerald-600"></i> Thông số phù hợp tiêu chuẩn IATA';
             }
         }
@@ -812,22 +824,22 @@
 
             // 6. Kiểm tra tính tương thích giữa 3 thông số (Số kiện - Khối lượng - Thể tích CBM)
             const avgWeightPerPiece = grossWeightKg / piecesCount;
-            if (avgWeightPerPiece < 0.05) {
+            if (avgWeightPerPiece < 1.0) {
                 highlightCargoInputError('declPieces', true);
                 highlightCargoInputError('declGrossWeight', true);
-                const avgText = avgWeightPerPiece < 0.001 ? (avgWeightPerPiece * 1000).toFixed(2) + 'g' : avgWeightPerPiece.toFixed(3) + ' Kg';
-                const maxPieces = Math.max(1, Math.floor(grossWeightKg / 0.05));
-                showCargoModalError(`Khối lượng trung bình mỗi kiện quá nhỏ (${avgText}/kiện). Với tổng khối lượng ${grossWeightKg.toLocaleString('vi-VN')} Kg, số kiện tối đa hợp lệ là ${maxPieces.toLocaleString('vi-VN')} kiện. Vui lòng kiểm tra lại!`);
+                const avgText = avgWeightPerPiece < 0.001 ? (avgWeightPerPiece * 1000).toFixed(2) + 'g' : (avgWeightPerPiece < 1 ? (avgWeightPerPiece * 1000).toFixed(0) + 'g' : avgWeightPerPiece.toFixed(2) + ' Kg');
+                const maxPieces = Math.max(1, Math.floor(grossWeightKg / 1.0));
+                showCargoModalError(`Khối lượng trung bình mỗi kiện quá nhỏ (${avgText}/kiện - tối thiểu 1,0 Kg/kiện trong vận tải hàng không). Với tổng khối lượng ${grossWeightKg.toLocaleString('vi-VN')} Kg, số kiện tối đa hợp lệ là ${maxPieces.toLocaleString('vi-VN')} kiện. Vui lòng kiểm tra lại!`);
                 document.getElementById('declPieces').focus();
                 return;
             }
 
             const densityKgCbm = grossWeightKg / volumeCbm;
-            if (densityKgCbm < 5) {
+            if (densityKgCbm < 20) {
                 highlightCargoInputError('declVolume', true);
                 highlightCargoInputError('declGrossWeight', true);
-                const maxCbm = (grossWeightKg / 5).toFixed(2);
-                showCargoModalError(`Tỷ trọng hàng hóa không hợp lệ (${densityKgCbm < 0.01 ? densityKgCbm.toFixed(4) : densityKgCbm.toFixed(2)} Kg/m³ - quá nhẹ so với thể tích ${volumeCbm} m³). Với khối lượng ${grossWeightKg.toLocaleString('vi-VN')} Kg, thể tích tối đa hợp lệ là ${maxCbm} m³!`);
+                const maxCbm = (grossWeightKg / 20).toFixed(2);
+                showCargoModalError(`Tỷ trọng hàng hóa không hợp lệ (${densityKgCbm.toFixed(1)} Kg/m³ - quá nhẹ so với thể tích ${volumeCbm} m³). Theo tiêu chuẩn IATA Air Cargo (tối thiểu 20 Kg/m³), với khối lượng ${grossWeightKg.toLocaleString('vi-VN')} Kg thể tích tối đa hợp lệ là ${maxCbm} m³!`);
                 document.getElementById('declVolume').focus();
                 return;
             }
