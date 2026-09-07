@@ -2053,40 +2053,51 @@ if (typeof window !== 'undefined') {
         if (typeof CargoStore === 'undefined') return;
 
         const pathname = window.location.pathname.toLowerCase();
-        const isAdminPage = pathname.includes('/admin/');
         
-        // Agent Pages Guard
-        const isAgentProtectedPage = (
-            pathname.includes('02-dashboard') ||
-            pathname.includes('03-index') ||
-            pathname.includes('04-detail') ||
-            pathname.includes('05-watchlist') ||
-            pathname.includes('06-mybids') ||
-            pathname.includes('07-wonauction') ||
-            pathname.includes('08-notifications') ||
-            pathname.includes('09-profile')
+        // Never trigger lock/logout alerts or redirects on public, login, or register pages!
+        const isPublicOrLoginPage = (
+            pathname.endsWith('/') ||
+            pathname.includes('00-home') ||
+            pathname.includes('01-login') ||
+            pathname.includes('adminlogin') ||
+            pathname.includes('register') ||
+            pathname.includes('10-terms')
         );
 
-        if (!isAdminPage) {
-            // Call getCurrentUser() which auto-checks if agent is locked in agentsList and clears currentUser
-            const user = CargoStore.getCurrentUser();
+        if (isPublicOrLoginPage) return;
 
-            // If on an agent protected page and currentUser became null (was locked or logged out)
-            if (isAgentProtectedPage && !user) {
+        const isAdminPage = pathname.includes('/admin/');
+
+        if (isAdminPage) {
+            // Guard protected Admin pages (02-AdminDashboard, 03-AuctionList, 04-CreateAuction, 05-AuctionDetail, 06-AgentList, 07-Reports, 08-Settings)
+            const admin = CargoStore.getCurrentAdmin();
+            if (!admin) {
                 isRedirecting = true;
-                alert('⛔ TÀI KHOẢN ĐẠI LÝ ĐÃ BỊ KHÓA HOẶC ĐĂNG XUẤT!\n\nTài khoản của bạn đã bị Quản trị viên KHÓA hoặc đã đăng xuất. Hệ thống sẽ tự động chuyển hướng về trang Đăng nhập.');
-                window.location.href = '01-Login.html';
+                alert('⛔ PHIÊN LÀM VIỆC HẾT HẠN HOẶC TÀI KHOẢN ĐÃ BỊ KHÓA!\n\nBạn chưa đăng nhập hoặc tài khoản Quản trị vừa bị khóa. Hệ thống sẽ tự động chuyển đến trang Đăng nhập Quản trị.');
+                window.location.href = '01-AdminLogin.html';
                 return;
             }
         } else {
-            // Admin Pages Guard
-            const admin = CargoStore.getCurrentAdmin();
-            const isAdminLoginPage = pathname.includes('01-login');
-            if (!isAdminLoginPage && !admin) {
-                isRedirecting = true;
-                alert('⛔ TÀI KHOẢN QUẢN TRỊ ĐÃ BỊ KHÓA HOẶC ĐĂNG XUẤT!\n\nTài khoản của bạn đã bị KHÓA hoặc đã đăng xuất khỏi trang Quản trị.');
-                window.location.href = '01-Login.html';
-                return;
+            // Guard protected Agent pages (02-Dashboard, 03-Index, 04-Detail, 05-Watchlist, 06-MyBids, 07-WonAuction, 08-Notifications, 09-Profile)
+            const isAgentProtectedPage = (
+                pathname.includes('02-dashboard') ||
+                pathname.includes('03-index') ||
+                pathname.includes('04-detail') ||
+                pathname.includes('05-watchlist') ||
+                pathname.includes('06-mybids') ||
+                pathname.includes('07-wonauction') ||
+                pathname.includes('08-notifications') ||
+                pathname.includes('09-profile')
+            );
+
+            if (isAgentProtectedPage) {
+                const user = CargoStore.getCurrentUser();
+                if (!user) {
+                    isRedirecting = true;
+                    alert('⛔ PHIÊN LÀM VIỆC HẾT HẠN HOẶC TÀI KHOẢN ĐÃ BỊ KHÓA!\n\nTài khoản đại lý của bạn đã bị Quản trị viên KHÓA hoặc vừa đăng xuất. Hệ thống sẽ tự động chuyển hướng về trang Đăng nhập.');
+                    window.location.href = '01-Login.html';
+                    return;
+                }
             }
         }
     }
