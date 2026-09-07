@@ -194,6 +194,38 @@
                     </div>
                 </div>
 
+                <!-- Detailed Explanation Card for IATA Cargo Standard & Invalid Reasons -->
+                <div id="declExplanationBox" class="bg-amber-50/90 border border-amber-200 rounded-xl p-3 text-xs text-amber-900 space-y-2">
+                    <div class="flex items-center justify-between cursor-pointer" onclick="toggleCargoRuleExplanation()">
+                        <span class="font-bold flex items-center gap-1.5 text-amber-900 text-[11px]">
+                            <i class="fa-solid fa-circle-question text-amber-600 text-sm"></i> Giải thích vì sao thông số chưa đúng? (Tiêu chuẩn IATA)
+                        </span>
+                        <span id="declExplanationToggleIcon" class="text-amber-700 text-xs font-bold"><i class="fa-solid fa-chevron-down"></i> Hướng dẫn</span>
+                    </div>
+
+                    <!-- Dynamic Realtime Reason Alert -->
+                    <div id="declDynamicReason" class="text-[11px] font-medium text-red-800 bg-red-50 p-2.5 rounded-lg border border-red-200 hidden leading-relaxed">
+                        <!-- Filled dynamically by updateLiveCargoMetrics -->
+                    </div>
+
+                    <!-- Detailed Collapsible Guide Content -->
+                    <div id="declExplanationContent" class="space-y-1.5 pt-2 text-[11px] leading-relaxed border-t border-amber-200/80">
+                        <p class="font-bold text-slate-800">Quy tắc chuẩn hóa 3 thông số (Số kiện - Khối lượng - Thể tích):</p>
+                        <ul class="list-disc pl-4 space-y-1.5 text-slate-700">
+                            <li>
+                                <strong>1. Hàng cồng kềnh (Tỷ trọng quá nhẹ):</strong> Tỷ trọng được tính bằng <code>Tổng Khối lượng (Kg) ÷ Thể tích (CBM - m³)</code>. 
+                                Hàng không quy định tỷ trọng tối thiểu là <strong>20 Kg/m³</strong>. Ví dụ: Với <strong>3.000 Kg</strong>, thể tích chứa tối đa hợp lệ là <strong>150 m³</strong>. Nếu nhập 500 m³ (cho ra 6.0 Kg/m³) sẽ bị từ chối vì chiếm quá nhiều diện tích hầm hàng máy bay.
+                            </li>
+                            <li>
+                                <strong>2. Kiện hàng quá nhỏ:</strong> Trọng lượng trung bình mỗi kiện = <code>Tổng Kg ÷ Số kiện</code>. Tối thiểu phải đạt <strong>1.0 Kg/kiện</strong> (1.000g). Ví dụ: 3.000 Kg không thể chia thành 50.000 kiện (vì trung bình mỗi kiện chỉ có 60g - quá nhỏ so với đóng gói thùng carton thương mại).
+                            </li>
+                            <li>
+                                <strong>3. Giới hạn tải trọng trúng thầu:</strong> Khai báo khối lượng không được vượt quá <strong>115%</strong> tải trọng đăng ký của chuyến bay để đảm bảo tải trọng cất cánh (MTOW) & phân bổ cân bằng trọng tâm máy bay.
+                            </li>
+                        </ul>
+                    </div>
+                </div>
+
                 <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
                     <div>
                         <label class="block font-semibold text-slate-700 mb-1">Tên Đơn vị Gửi hàng (Shipper)</label>
@@ -629,6 +661,19 @@
             if (errBox) errBox.classList.add('hidden');
         }
 
+        function toggleCargoRuleExplanation() {
+            const content = document.getElementById('declExplanationContent');
+            const icon = document.getElementById('declExplanationToggleIcon');
+            if (!content || !icon) return;
+            if (content.classList.contains('hidden')) {
+                content.classList.remove('hidden');
+                icon.innerHTML = '<i class="fa-solid fa-chevron-up"></i> Thu gọn';
+            } else {
+                content.classList.add('hidden');
+                icon.innerHTML = '<i class="fa-solid fa-chevron-down"></i> Hướng dẫn';
+            }
+        }
+
         function updateLiveCargoMetrics() {
             const pieces = Number(document.getElementById('declPieces').value) || 0;
             const weight = Number(document.getElementById('declGrossWeight').value) || 0;
@@ -637,6 +682,7 @@
             const elAvg = document.getElementById('liveAvgWeight');
             const elDensity = document.getElementById('liveDensity');
             const elStatus = document.getElementById('liveDensityStatus');
+            const dynamicReason = document.getElementById('declDynamicReason');
 
             if (!elAvg || !elDensity || !elStatus) return;
 
@@ -647,6 +693,7 @@
                 elDensity.className = 'text-slate-700 font-bold';
                 elStatus.className = 'text-[10px] font-bold px-2.5 py-0.5 rounded-full bg-slate-100 text-slate-600 flex items-center gap-1';
                 elStatus.innerHTML = '<i class="fa-solid fa-circle-info"></i> Vui lòng nhập đủ 3 thông số';
+                if (dynamicReason) dynamicReason.classList.add('hidden');
                 return;
             }
 
@@ -676,15 +723,32 @@
             if (isAvgWeightInvalid) {
                 elStatus.className = 'text-[10px] font-bold px-2.5 py-0.5 rounded-full bg-red-100 text-red-800 border border-red-200 flex items-center gap-1';
                 elStatus.innerHTML = `<i class="fa-solid fa-triangle-exclamation text-red-600"></i> Kiện quá nhỏ (${avgStr} < 1 Kg/kiện)!`;
+                if (dynamicReason) {
+                    const maxAllowedPieces = Math.max(1, Math.floor(weight / 1.0));
+                    dynamicReason.innerHTML = `⚠️ <strong>Vì sao không đúng?</strong> Với ${pieces.toLocaleString('vi-VN')} kiện cho ${weight.toLocaleString('vi-VN')} Kg, trọng lượng trung bình mỗi kiện chỉ có <strong>${avgStr}</strong> (dưới mức tối thiểu 1.0 Kg/kiện). Với tổng khối lượng ${weight.toLocaleString('vi-VN')} Kg, số kiện tối đa cho phép là <strong>${maxAllowedPieces.toLocaleString('vi-VN')} kiện</strong>!`;
+                    dynamicReason.classList.remove('hidden');
+                }
             } else if (isDensityTooLow) {
                 elStatus.className = 'text-[10px] font-bold px-2.5 py-0.5 rounded-full bg-red-100 text-red-800 border border-red-200 flex items-center gap-1';
                 elStatus.innerHTML = `<i class="fa-solid fa-triangle-exclamation text-red-600"></i> Hàng quá cồng kềnh (${density.toFixed(1)} < 20 Kg/m³)!`;
+                if (dynamicReason) {
+                    const maxAllowedCbm = (weight / 20).toFixed(1);
+                    dynamicReason.innerHTML = `⚠️ <strong>Vì sao không đúng?</strong> Thể tích ${volume} m³ cho ${weight.toLocaleString('vi-VN')} Kg tạo ra tỷ trọng chỉ <strong>${density.toFixed(1)} Kg/m³</strong> (nhẹ hơn tiêu chuẩn IATA tối thiểu 20 Kg/m³). Với tổng khối lượng ${weight.toLocaleString('vi-VN')} Kg, thể tích chứa tối đa cho phép là <strong>${maxAllowedCbm} m³</strong>!`;
+                    dynamicReason.classList.remove('hidden');
+                }
             } else if (isDensityTooHigh) {
                 elStatus.className = 'text-[10px] font-bold px-2.5 py-0.5 rounded-full bg-amber-100 text-amber-800 border border-amber-200 flex items-center gap-1';
                 elStatus.innerHTML = `<i class="fa-solid fa-triangle-exclamation text-amber-600"></i> Tỷ trọng rất nặng (${Math.round(density)} Kg/m³)`;
+                if (dynamicReason) {
+                    dynamicReason.innerHTML = `ℹ️ <strong>Cảnh báo tỷ trọng nặng:</strong> Tỷ trọng <strong>${Math.round(density)} Kg/m³</strong> là khá nặng (thường là máy móc / kim loại nặng). Vui lòng kiểm tra lại thông số.`;
+                    dynamicReason.classList.remove('hidden');
+                }
             } else {
                 elStatus.className = 'text-[10px] font-bold px-2.5 py-0.5 rounded-full bg-emerald-100 text-emerald-800 border border-emerald-200 flex items-center gap-1';
                 elStatus.innerHTML = '<i class="fa-solid fa-circle-check text-emerald-600"></i> Thông số phù hợp tiêu chuẩn IATA';
+                if (dynamicReason) {
+                    dynamicReason.classList.add('hidden');
+                }
             }
         }
 
