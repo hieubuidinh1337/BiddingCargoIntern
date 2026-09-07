@@ -1,5 +1,5 @@
 {
-  "version": 1788747011209,
+  "version": 1788747136179,
   "auctions": [
     {
       "id": 6,
@@ -398,8 +398,8 @@
       "priceKg": 30000,
       "totalAmountVND": 120000000,
       "paymentDeadline": "2026-09-04T09:59:28.819Z",
-      "paymentStatus": "UNPAID",
-      "paidAt": null,
+      "paymentStatus": "PAID",
+      "paidAt": "09:12:16 7/9/2026",
       "awbNumber": "998-68142002",
       "cutOffTime": "16:00 · 15/08/2026",
       "warehouse": "Kho hàng SCSC / TCS Tân Sơn Nhất (Cửa số 4)"
@@ -422,6 +422,16 @@
     }
   ],
   "notifications": [
+    {
+      "id": 1788747136155,
+      "targetAgentCode": "AG-1024",
+      "title": "Xác nhận thanh toán đơn WON-20260903-03 thành công!",
+      "message": "Ban Điều hành đã xác nhận nhận đủ 120.000.000 đ cho đơn hàng chuyến VU340 (HAN - PQC). Mã AWB: 998-68142002.",
+      "time": "Vừa xong",
+      "type": "SYSTEM",
+      "read": false,
+      "link": "07-WonAuction.html"
+    },
     {
       "id": 1788747011168,
       "targetAgentCode": "AG-1024",
@@ -1327,9 +1337,40 @@
       "fromName": "Vietravel Airlines Cargo",
       "secure": true
     },
-    "platformFee": 50
+    "platformFee": 50,
+    "hideAgentCredentials": true
   },
   "emailLogs": [
+    {
+      "id": 1788747237652,
+      "to": "jome7093@gmail.com",
+      "type": "AUCTION_WON",
+      "subject": "[Vietravel Airlines Cargo] CHÚC MỪNG TRÚNG THẦU! Đơn hàng WON-20260904-01 - Chuyến VU130 (SGN - HAN)",
+      "messageId": "<8eb38bf5-a8d7-da9b-44d5-65d647911df5@gmail.com>",
+      "isRealSmtp": true,
+      "previewUrl": null,
+      "sentAt": "09:13:57 7/9/2026"
+    },
+    {
+      "id": 1788747235502,
+      "to": "jome7093@gmail.com",
+      "type": "PAYMENT_CONFIRMED",
+      "subject": "[Vietravel Airlines Cargo] XÁC NHẬN ĐÃ NHẬN THANH TOÁN - Đơn hàng WON-20260904-01",
+      "messageId": "<0ca0c1e2-9613-ed32-04e5-24d978c79489@gmail.com>",
+      "isRealSmtp": true,
+      "previewUrl": null,
+      "sentAt": "09:13:55 7/9/2026"
+    },
+    {
+      "id": 1788747138587,
+      "to": "khang.le@vinatrans.com.vn",
+      "type": "PAYMENT_CONFIRMED",
+      "subject": "[Vietravel Airlines Cargo] Thông báo hệ thống",
+      "messageId": "<14de14b6-f05a-5560-2b37-35ccdea2e74a@gmail.com>",
+      "isRealSmtp": true,
+      "previewUrl": null,
+      "sentAt": "09:12:18 7/9/2026"
+    },
     {
       "id": 1788747013875,
       "to": "khang.le@vinatrans.com.vn",
