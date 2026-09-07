@@ -1037,15 +1037,16 @@ const CargoStore = (function() {
             return bids.sort((a, b) => b.priceKg - a.priceKg);
         },
 
-        getPublicAgentName: function(agentCode, agentName, isAnonymous = false, viewerContext = null) {
+        getPublicAgentName: function(agentCode, agentName, isAnonymous = true, viewerContext = null) {
             const data = loadData();
             const currentUser = viewerContext || data.currentUser;
             const pathname = (typeof window !== 'undefined' && window.location && window.location.pathname) ? window.location.pathname : '';
             const isAdminPage = pathname.includes('/Admin/') || pathname.includes('/admin/');
+            const anon = isAnonymous !== false;
 
             // 1. Admin or Staff viewing on Admin Portal -> Full visibility + tag if anonymous
             if (isAdminPage && data.currentAdmin) {
-                if (isAnonymous) {
+                if (anon) {
                     return `${agentName || 'Đại lý'} (${agentCode || '-'}) [ẨN DANH]`;
                 }
                 return `${agentName || 'Đại lý'} (${agentCode || '-'})`;
@@ -1057,7 +1058,7 @@ const CargoStore = (function() {
             }
 
             // 3. Competitor agent viewing an anonymous bid -> Mask identity completely!
-            if (isAnonymous) {
+            if (anon) {
                 const maskedCode = agentCode ? (agentCode.slice(0, 3) + '***') : 'AG-***';
                 return `Đại lý ẩn danh (${maskedCode})`;
             }

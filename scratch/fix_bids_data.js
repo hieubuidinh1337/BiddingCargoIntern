@@ -53,8 +53,14 @@ function generateBidsForAuction(auction) {
 
 if (!data.bids) data.bids = [];
 
+// Enforce isAnonymous: true for ALL existing bids
+data.bids.forEach(b => {
+    b.isAnonymous = true;
+});
+
 // Check each auction
 (data.auctions || []).forEach(auction => {
+    auction.isAnonymous = true;
     const existingBids = data.bids.filter(b => b.auctionId == auction.id);
     if (existingBids.length === 0 && (auction.bidsCount || 0) > 0) {
         console.log(`Generating ${auction.bidsCount} sample bids for Auction ID ${auction.id} (${auction.flightNumber})...`);
@@ -67,4 +73,4 @@ if (!data.bids) data.bids = [];
 
 data.version = Date.now();
 fs.writeFileSync(dbPath, JSON.stringify(data, null, 2), 'utf8');
-console.log('Successfully updated server_data.json bids!');
+console.log('Successfully updated server_data.json bids to be 100% anonymous!');
