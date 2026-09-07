@@ -702,6 +702,24 @@ const server = http.createServer((req, res) => {
                     });
                 }
 
+                // Fallback HTML builder if html is still empty
+                if (!html || html.trim() === '') {
+                    const fallbackTitle = customSubject || reqData.title || '[Vietravel Airlines Cargo] Thông báo hệ thống';
+                    const fallbackMsg = reqData.message || reqData.content || reqData.text || 'Vietravel Airlines Cargo trân trọng thông báo: Quý vị có một thông báo mới từ hệ thống Sàn Đấu giá Cargo.';
+                    subject = customSubject || `[Vietravel Airlines Cargo] ${reqData.title || 'Thông báo mới'}`;
+                    html = buildEmailHtml({
+                        title: fallbackTitle,
+                        subtitle: 'Thông báo từ Ban Điều hành Sàn Đấu giá Cargo',
+                        contentHtml: `
+                            <p>Kính gửi Quý đại lý / Khách hàng,</p>
+                            <p style="font-size:14px;color:#333;line-height:1.6;margin:16px 0;">${fallbackMsg}</p>
+                            <p style="text-align:center;margin:24px 0;">
+                                <a href="http://localhost:8085/02-Dashboard.html" style="display:inline-block;background-color:#1565c0;color:#ffffff;font-weight:bold;padding:12px 28px;border-radius:6px;text-decoration:none;">VÀO HỆ THỐNG SÀN ĐẤU GIÁ</a>
+                            </p>
+                        `
+                    });
+                }
+
                 const transporter = await getMailTransporter();
                 const smtpSettings = (serverData.settings && serverData.settings.smtp) || {};
                 const fromAddress = smtpSettings.user || process.env.SMTP_USER || 'ops-cargo@vietravelairlines.vn';

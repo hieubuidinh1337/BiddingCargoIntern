@@ -1400,18 +1400,18 @@ const CargoStore = (function() {
                 }
 
                 // Dispatch automated AUCTION_WON email notification to winner
+                const defaultTargetEmail = (data.currentUser && data.currentUser.email) ? data.currentUser.email : 'jome7093@gmail.com';
                 const winningAgentAccount = (data.agentsList || []).find(a => (a.code || '').toUpperCase() === (highestBid.agentCode || '').toUpperCase());
-                const winnerEmail = winningAgentAccount ? winningAgentAccount.email : null;
-                if (winnerEmail) {
-                    CargoStore.sendEmailNotification({
-                        type: 'AUCTION_WON',
-                        to: winnerEmail,
-                        wonData: newWonItem,
-                        auctionData: auction,
-                        agentName: highestBid.agentName,
-                        agentCode: highestBid.agentCode
-                    });
-                }
+                const winnerEmail = (winningAgentAccount && winningAgentAccount.email) ? winningAgentAccount.email : defaultTargetEmail;
+                
+                CargoStore.sendEmailNotification({
+                    type: 'AUCTION_WON',
+                    to: winnerEmail,
+                    wonData: newWonItem,
+                    auctionData: auction,
+                    agentName: highestBid.agentName,
+                    agentCode: highestBid.agentCode
+                });
 
                 if (!data.notifications) data.notifications = [];
                 data.notifications.unshift({
@@ -1442,15 +1442,15 @@ const CargoStore = (function() {
             item.paidAt = new Date().toLocaleString('vi-VN');
 
             // Find agent email to dispatch PAYMENT_CONFIRMED email
+            const defaultTargetEmail = (data.currentUser && data.currentUser.email) ? data.currentUser.email : 'jome7093@gmail.com';
             const agentAccount = (data.agentsList || []).find(a => (a.code || '').toUpperCase() === (item.agentCode || '').toUpperCase());
-            const targetEmail = agentAccount ? agentAccount.email : null;
-            if (targetEmail) {
-                CargoStore.sendEmailNotification({
-                    type: 'PAYMENT_CONFIRMED',
-                    to: targetEmail,
-                    wonData: item
-                });
-            }
+            const targetEmail = (agentAccount && agentAccount.email) ? agentAccount.email : defaultTargetEmail;
+            
+            CargoStore.sendEmailNotification({
+                type: 'PAYMENT_CONFIRMED',
+                to: targetEmail,
+                wonData: item
+            });
 
             // Create system notification for agent
             if (!data.notifications) data.notifications = [];
