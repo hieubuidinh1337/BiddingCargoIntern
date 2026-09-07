@@ -140,8 +140,39 @@
                 <span class="text-[11px] text-gray-400">Cập nhật tự động theo lịch sử đặt thầu</span>
             </div>
 
-            <div class="grid grid-cols-1 sm:grid-cols-3 gap-4 text-xs" id="topAgentsContainer">
-                <div class="col-span-3 text-center py-6 text-gray-400">Đang tổng hợp dữ liệu đại lý...</div>
+        </div>
+
+        <!-- Cargo Manifest Reports Table -->
+        <div class="bg-white rounded-2xl border shadow-sm p-6 space-y-4">
+            <div class="flex items-center justify-between">
+                <div>
+                    <h2 class="text-base font-bold text-slate-900 flex items-center gap-2">
+                        <i class="fa-solid fa-boxes-packing text-emerald-600"></i> Báo cáo Chi tiết Hồ sơ Khai báo Hàng hóa (Cargo Manifest)
+                    </h2>
+                    <p class="text-xs text-slate-500 mt-0.5">Danh sách toàn bộ lô hàng được đại lý trúng thầu điền thông tin quy cách vận chuyển</p>
+                </div>
+                <span class="text-xs bg-emerald-50 text-emerald-700 border border-emerald-200 px-3 py-1 rounded-lg font-bold" id="cargoManifestCountBadge">0 lô hàng</span>
+            </div>
+
+            <div class="overflow-x-auto">
+                <table class="w-full text-left text-xs">
+                    <thead class="bg-slate-50 text-slate-500 font-semibold border-b">
+                        <tr>
+                            <th class="py-3 px-4">Mã đơn & Chuyến</th>
+                            <th class="py-3 px-4">Đại lý trúng</th>
+                            <th class="py-3 px-4">Mặt hàng & HAWB</th>
+                            <th class="py-3 px-4">Khối lượng / Kiện / Thể tích</th>
+                            <th class="py-3 px-4">Shipper & Consignee</th>
+                            <th class="py-3 px-4">Địa chỉ kho nhận</th>
+                            <th class="py-3 px-4 text-right">Trạng thái khai báo</th>
+                        </tr>
+                    </thead>
+                    <tbody class="divide-y divide-gray-100" id="reportCargoTableBody">
+                        <tr>
+                            <td colspan="7" class="py-8 text-center text-gray-400">Đang tổng hợp dữ liệu khai báo hàng hóa...</td>
+                        </tr>
+                    </tbody>
+                </table>
             </div>
         </div>
 
@@ -631,18 +662,88 @@
                     }).join('');
                 }
             }
+
+            // 4. Render Cargo Manifest Table
+            const cargoTbody = document.getElementById('reportCargoTableBody');
+            const cargoBadge = document.getElementById('cargoManifestCountBadge');
+            const store = getStore();
+            const storeData = passedData || (store ? store.getData() : {});
+            const wonList = storeData.wonAuctions || [];
+
+            if (cargoBadge) cargoBadge.textContent = `${wonList.length} lô hàng`;
+
+            if (cargoTbody) {
+                if (wonList.length === 0) {
+                    cargoTbody.innerHTML = `<tr><td colspan="7" class="py-8 text-center text-gray-400">Chưa có đơn trúng thầu nào trong hệ thống</td></tr>`;
+                } else {
+                    cargoTbody.innerHTML = wonList.map(item => {
+                        const decl = item.cargoDeclaration;
+                        const agentInfo = (storeData.agentsList || []).find(a => (a.code || '').toUpperCase() === (item.agentCode || '').toUpperCase());
+                        const agentName = agentInfo ? agentInfo.companyName : (item.agentCode || 'Đại lý');
+
+                        return `
+                            <tr class="hover:bg-slate-50 transition">
+                                <td class="py-3 px-4 font-mono">
+                                    <strong class="text-blue-600 block">${item.wonId}</strong>
+                                    <span class="text-slate-500 font-normal text-[11px]">Chuyến ${item.flightNumber} (${item.route})</span>
+                                </td>
+                                <td class="py-3 px-4 font-medium text-slate-800">
+                                    <p class="font-bold text-slate-900">${agentName}</p>
+                                    <p class="text-[10px] text-blue-600 font-mono font-semibold">${item.agentCode}</p>
+                                </td>
+                                <td class="py-3 px-4">
+                                    ${decl ? `
+                                        <p class="font-bold text-slate-900">${decl.cargoName}</p>
+                                        <span class="text-[10px] text-emerald-700 font-semibold bg-emerald-50 px-1.5 py-0.5 rounded border border-emerald-200">${decl.cargoType}</span>
+                                        <p class="text-[10px] text-blue-600 font-mono font-semibold mt-0.5">HAWB: ${decl.hawbNumber || 'Chưa gắn'}</p>
+                                    ` : '<span class="text-gray-400 italic">Chưa khai báo</span>'}
+                                </td>
+                                <td class="py-3 px-4">
+                                    ${decl ? `
+                                        <p class="font-bold text-blue-600">${CargoStore.formatNumber(decl.grossWeightKg || 0)} Kg</p>
+                                        <p class="text-[10px] text-slate-500">${decl.piecesCount || 0} kiện · ${decl.volumeCbm || 0} m³</p>
+                                    ` : '<span class="text-gray-400">-</span>'}
+                                </td>
+                                <td class="py-3 px-4 text-slate-800">
+                                    ${decl ? `
+                                        <p class="text-[11px]"><span class="text-slate-400">Gửi:</span> <strong>${decl.shipperName || '-'}</strong></p>
+                                        <p class="text-[11px]"><span class="text-slate-400">Nhận:</span> <strong>${decl.consigneeName || '-'}</strong></p>
+                                    ` : '<span class="text-gray-400">-</span>'}
+                                </td>
+                                <td class="py-3 px-4 max-w-[180px] text-slate-700">
+                                    ${decl && decl.consigneeAddress ? `
+                                        <p class="line-clamp-2 text-[11px]"><i class="fa-solid fa-location-dot text-red-500"></i> ${decl.consigneeAddress}</p>
+                                    ` : '<span class="text-gray-400">-</span>'}
+                                </td>
+                                <td class="py-3 px-4 text-right">
+                                    ${decl ? `
+                                        <span class="inline-flex items-center gap-1 bg-emerald-100 text-emerald-800 text-[10px] font-bold px-2 py-0.5 rounded-md">
+                                            <i class="fa-solid fa-circle-check text-emerald-600"></i> Đã khai báo
+                                        </span>
+                                        ${decl.updatedAt ? `<p class="text-[9px] text-slate-400 mt-0.5">${decl.updatedAt}</p>` : ''}
+                                    ` : `
+                                        <span class="inline-flex items-center gap-1 bg-amber-100 text-amber-800 text-[10px] font-semibold px-2 py-0.5 rounded-md">
+                                            <i class="fa-solid fa-clock text-amber-600"></i> Chưa điền
+                                        </span>
+                                    `}
+                                </td>
+                            </tr>
+                        `;
+                    }).join('');
+                }
+            }
         }
 
         // 1. Export to Excel (.xlsx) using dynamic metrics
         function exportToExcel(btn) {
             const originalContent = btn.innerHTML;
             btn.disabled = true;
-            btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin text-sm"></i> <span>Đang xuất Excel...</span>';
+            btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin text-sm text-emerald-500"></i> <span>Đang tạo Excel...</span>';
 
             setTimeout(() => {
                 try {
                     if (typeof XLSX === 'undefined') {
-                        alert('Thư viện Excel đang tải, vui lòng thử lại sau giây lát!');
+                        alert('Thư viện XLSX đang tải, vui lòng thử lại sau giây lát!');
                         btn.disabled = false;
                         btn.innerHTML = originalContent;
                         return;
@@ -650,28 +751,23 @@
 
                     const metrics = computeReportMetrics();
 
-                    // Sheet 1: Route details from store
-                    const routeData = metrics.routes.map((r, idx) => {
-                        const fillRate = r.totalOfferedKg > 0 ? (r.totalWonKg / r.totalOfferedKg * 100) : 0;
-                        const avgPrice = r.totalWonKg > 0 ? Math.round(r.totalRevenue / r.totalWonKg) : 0;
-                        return {
-                            "STT": idx + 1,
-                            "Tuyến đường bay": r.route,
-                            "Số chuyến đấu giá": r.flightCount,
-                            "Tổng tải chào (Kg)": r.totalOfferedKg,
-                            "Tải trúng thầu (Kg)": r.totalWonKg,
-                            "Tỷ lệ lấp đầy": `${fillRate.toFixed(1)}%`,
-                            "Giá bình quân (VND/Kg)": avgPrice,
-                            "Tổng doanh thu (VND)": r.totalRevenue
-                        };
-                    });
+                    // Sheet 1: Route Revenue Overview
+                    const routeData = metrics.routes.map((r, idx) => ({
+                        "STT": idx + 1,
+                        "Đường bay": r.route,
+                        "Số chuyến": r.flightCount,
+                        "Tải chào (Kg)": r.totalOfferedKg,
+                        "Tải trúng (Kg)": r.totalWonKg,
+                        "Tỷ lệ lấp đầy": `${(r.totalOfferedKg > 0 ? (r.totalWonKg / r.totalOfferedKg * 100) : 0).toFixed(1)}%`,
+                        "Giá bình quân (VND/Kg)": r.totalWonKg > 0 ? Math.round(r.totalRevenue / r.totalWonKg) : 0,
+                        "Tổng doanh thu (VND)": r.totalRevenue
+                    }));
 
-                    // Add total row
                     routeData.push({
                         "STT": "TỔNG CỘNG",
-                        "Tuyến đường bay": "Toàn mạng bay khai thác Cargo",
-                        "Số chuyến đấu giá": metrics.routes.reduce((sum, r) => sum + r.flightCount, 0),
-                        "Tổng tải chào (Kg)": metrics.grandTotalOfferedKg,
+                        "Đường bay": "Toàn mạng bay",
+                        "Số chuyến": metrics.routes.reduce((sum, r) => sum + r.flightCount, 0),
+                        "Tải chào (Kg)": metrics.grandTotalOfferedKg,
                         "Tải trúng thầu (Kg)": metrics.grandTotalWonKg,
                         "Tỷ lệ lấp đầy": `${metrics.grandFillRate.toFixed(1)}%`,
                         "Giá bình quân (VND/Kg)": metrics.grandAvgPrice,
@@ -707,18 +803,50 @@
                         "Trạng thái": a.status === 'OPEN' ? 'ĐANG MỞ' : (a.status === 'CLOSED' ? 'ĐÃ ĐÓNG' : a.status)
                     }));
 
+                    // Sheet 4: Cargo Manifest Declarations
+                    const wonAuctionsList = storeData.wonAuctions || [];
+                    const cargoRows = wonAuctionsList.map((item, idx) => {
+                        const decl = item.cargoDeclaration || {};
+                        return {
+                            "STT": idx + 1,
+                            "Mã đơn thắng thầu": item.wonId,
+                            "Số hiệu chuyến": item.flightNumber,
+                            "Tuyến bay": item.route,
+                            "Mã đại lý": item.agentCode,
+                            "Tải trọng trúng (Kg)": item.capacityKg,
+                            "Giá chốt (đ/Kg)": item.priceKg,
+                            "Tổng tiền (VND)": item.totalAmountVND,
+                            "Master AWB": item.awbNumber || '-',
+                            "Trạng thái khai báo": decl.cargoName ? "Đã khai báo" : "Chưa điền",
+                            "Mã HAWB": decl.hawbNumber || '-',
+                            "Loại hàng hóa": decl.cargoType || '-',
+                            "Tên mặt hàng": decl.cargoName || '-',
+                            "Khối lượng khai báo (Kg)": decl.grossWeightKg || 0,
+                            "Số kiện / Thùng": decl.piecesCount || 0,
+                            "Thể tích (CBM)": decl.volumeCbm || 0,
+                            "Shipper (Người gửi)": decl.shipperName || '-',
+                            "Consignee (Người nhận)": decl.consigneeName || '-',
+                            "Địa chỉ kho nhận": decl.consigneeAddress || '-',
+                            "Yêu cầu bảo quản đặc biệt": decl.specialNotes || '-',
+                            "Thời gian cập nhật": decl.updatedAt || '-'
+                        };
+                    });
+
                     const wb = XLSX.utils.book_new();
                     const wsRoutes = XLSX.utils.json_to_sheet(routeData);
                     const wsAgents = XLSX.utils.json_to_sheet(agentData);
                     const wsAuctions = XLSX.utils.json_to_sheet(auctionRows);
+                    const wsCargo = XLSX.utils.json_to_sheet(cargoRows);
 
                     wsRoutes['!cols'] = [{wch: 10}, {wch: 32}, {wch: 18}, {wch: 20}, {wch: 20}, {wch: 16}, {wch: 24}, {wch: 24}];
                     wsAgents['!cols'] = [{wch: 10}, {wch: 14}, {wch: 34}, {wch: 14}, {wch: 18}, {wch: 20}, {wch: 22}, {wch: 20}];
                     wsAuctions['!cols'] = [{wch: 6}, {wch: 20}, {wch: 16}, {wch: 18}, {wch: 22}, {wch: 14}, {wch: 20}, {wch: 24}, {wch: 16}, {wch: 24}, {wch: 14}];
+                    wsCargo['!cols'] = [{wch: 6}, {wch: 16}, {wch: 14}, {wch: 14}, {wch: 12}, {wch: 16}, {wch: 14}, {wch: 18}, {wch: 16}, {wch: 16}, {wch: 18}, {wch: 20}, {wch: 24}, {wch: 18}, {wch: 12}, {wch: 12}, {wch: 22}, {wch: 22}, {wch: 30}, {wch: 25}, {wch: 20}];
 
                     XLSX.utils.book_append_sheet(wb, wsRoutes, "DoanhThu_TuyenBay");
                     XLSX.utils.book_append_sheet(wb, wsAgents, "Top_DaiLy");
                     XLSX.utils.book_append_sheet(wb, wsAuctions, "ChiTiet_ChuyenBay");
+                    XLSX.utils.book_append_sheet(wb, wsCargo, "KhaiBao_HangHoa");
 
                     const now = new Date();
                     const fileName = `BaoCao_HieuQua_KhaiThac_Cargo_VU_Thang${String(now.getMonth() + 1).padStart(2, '0')}_${now.getFullYear()}.xlsx`;

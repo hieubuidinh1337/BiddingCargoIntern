@@ -112,19 +112,26 @@
 
         <!-- Won Auctions Payment Verification Table -->
         <div class="bg-white rounded-2xl border shadow-sm overflow-hidden mt-8">
-            <div class="px-6 py-4 border-b bg-slate-900 text-white flex items-center justify-between">
+            <div class="px-6 py-4 border-b bg-slate-900 text-white flex flex-col md:flex-row md:items-center justify-between gap-3">
                 <div class="flex items-center gap-2.5">
                     <div class="w-8 h-8 bg-emerald-500 rounded-lg flex items-center justify-center font-bold text-white text-sm">
-                        <i class="fa-solid fa-receipt"></i>
+                        <i class="fa-solid fa-boxes-packing"></i>
                     </div>
                     <div>
-                        <h2 class="font-bold text-sm">Quản lý Thanh toán & Chốt đơn thắng thầu (Won Auctions)</h2>
-                        <p class="text-[11px] text-slate-300">Xác nhận tiền chuyển khoản của đại lý và kích hoạt phiếu bàn giao slot</p>
+                        <h2 class="font-bold text-sm">Quản lý Đơn thắng thầu & Hồ sơ Khai báo Hàng hóa</h2>
+                        <p class="text-[11px] text-slate-300">Xem hồ sơ quy cách lô hàng, xác nhận thanh toán chuyển khoản & kích hoạt phiếu bàn giao slot</p>
                     </div>
                 </div>
-                <span class="text-xs font-semibold bg-emerald-500/20 text-emerald-300 border border-emerald-500/30 px-3 py-1 rounded-full flex items-center gap-1.5">
-                    <i class="fa-solid fa-circle-info"></i> <span id="wonCountText">0 đơn thắng thầu</span>
-                </span>
+                <div class="flex items-center gap-2">
+                    <div class="inline-flex rounded-lg bg-slate-800 p-1 border border-slate-700 text-[11px]" id="wonFilterGroup">
+                        <button type="button" onclick="setWonCargoFilter('ALL')" id="wonFilterAll" class="px-2.5 py-1 rounded-md font-semibold text-white bg-blue-600 transition">Tất cả</button>
+                        <button type="button" onclick="setWonCargoFilter('DECLARED')" id="wonFilterDeclared" class="px-2.5 py-1 rounded-md font-semibold text-slate-300 hover:text-white transition">Đã khai báo</button>
+                        <button type="button" onclick="setWonCargoFilter('UNDECLARED')" id="wonFilterUndeclared" class="px-2.5 py-1 rounded-md font-semibold text-slate-300 hover:text-white transition">Chưa khai báo</button>
+                    </div>
+                    <span class="text-xs font-semibold bg-emerald-500/20 text-emerald-300 border border-emerald-500/30 px-3 py-1 rounded-full flex items-center gap-1.5 whitespace-nowrap">
+                        <i class="fa-solid fa-circle-info"></i> <span id="wonCountText">0 đơn thắng thầu</span>
+                    </span>
+                </div>
             </div>
             <div class="overflow-x-auto">
                 <table class="w-full text-xs text-left">
@@ -133,8 +140,8 @@
                             <th class="py-3.5 px-4">Mã đơn & Chuyến bay</th>
                             <th class="py-3.5 px-4">Đại lý trúng thầu</th>
                             <th class="py-3.5 px-4">Tải trọng & Giá chốt</th>
-                            <th class="py-3.5 px-4">Tổng tiền (VND)</th>
-                            <th class="py-3.5 px-4">Mã AWB & Cut-off</th>
+                            <th class="py-3.5 px-4">Hồ sơ hàng hóa khai báo</th>
+                            <th class="py-3.5 px-4">Tổng tiền & AWB</th>
                             <th class="py-3.5 px-4">Trạng thái thanh toán</th>
                             <th class="py-3.5 px-4 text-right">Xác nhận thanh toán</th>
                         </tr>
@@ -296,6 +303,28 @@
                     </button>
                 </div>
             </form>
+        </div>
+    <!-- Modal 3: Xem chi tiết Khai báo hàng hóa dành cho Admin -->
+    <div id="adminCargoViewModal" class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-50 hidden flex items-center justify-center p-4">
+        <div class="bg-white rounded-2xl shadow-xl max-w-xl w-full overflow-hidden animate-in fade-in zoom-in-95 duration-200">
+            <div class="bg-slate-900 text-white px-6 py-4 flex items-center justify-between">
+                <div class="flex items-center gap-2.5">
+                    <div class="w-8 h-8 bg-blue-500/20 text-blue-400 rounded-xl flex items-center justify-center font-bold text-sm border border-blue-500/30">
+                        <i class="fa-solid fa-boxes-packing"></i>
+                    </div>
+                    <div>
+                        <h3 class="font-bold text-sm">Chi tiết Hồ sơ Hàng hóa Khai báo</h3>
+                        <p class="text-[11px] text-slate-400">Đơn thắng thầu: <strong id="adminCargoWonId" class="text-blue-300 font-mono">-</strong></p>
+                    </div>
+                </div>
+                <button onclick="closeAdminCargoModal()" class="text-slate-400 hover:text-white text-lg cursor-pointer"><i class="fa-solid fa-xmark"></i></button>
+            </div>
+            <div class="p-6 space-y-4 text-xs" id="adminCargoModalContent">
+                <!-- Rendered by JS -->
+            </div>
+            <div class="bg-slate-50 px-6 py-3 border-t flex items-center justify-end gap-2">
+                <button onclick="closeAdminCargoModal()" class="px-4 py-2 border rounded-xl text-slate-600 hover:bg-slate-100 font-medium cursor-pointer">Đóng</button>
+            </div>
         </div>
     </div>
 
@@ -498,12 +527,37 @@
             }
         }
 
+        let currentWonCargoFilter = 'ALL';
+
+        function setWonCargoFilter(filter) {
+            currentWonCargoFilter = filter;
+            const btnAll = document.getElementById('wonFilterAll');
+            const btnDec = document.getElementById('wonFilterDeclared');
+            const btnUndec = document.getElementById('wonFilterUndeclared');
+
+            if (btnAll && btnDec && btnUndec) {
+                const activeClasses = 'px-2.5 py-1 rounded-md font-semibold text-white bg-blue-600 transition';
+                const inactiveClasses = 'px-2.5 py-1 rounded-md font-semibold text-slate-300 hover:text-white transition';
+
+                btnAll.className = filter === 'ALL' ? activeClasses : inactiveClasses;
+                btnDec.className = filter === 'DECLARED' ? activeClasses : inactiveClasses;
+                btnUndec.className = filter === 'UNDECLARED' ? activeClasses : inactiveClasses;
+            }
+            renderWonAuctionsAdminTable();
+        }
+
         function renderWonAuctionsAdminTable() {
             const data = CargoStore.getData();
-            const list = data.wonAuctions || [];
+            let list = data.wonAuctions || [];
             const tbody = document.getElementById('wonAuctionsTableBody');
             const countText = document.getElementById('wonCountText');
             if (!tbody) return;
+
+            if (currentWonCargoFilter === 'DECLARED') {
+                list = list.filter(w => !!w.cargoDeclaration);
+            } else if (currentWonCargoFilter === 'UNDECLARED') {
+                list = list.filter(w => !w.cargoDeclaration);
+            }
 
             if (countText) countText.textContent = `${list.length} đơn thắng thầu`;
 
@@ -512,7 +566,7 @@
                     <tr>
                         <td colspan="7" class="py-8 text-center text-slate-400">
                             <i class="fa-solid fa-inbox text-3xl mb-2 block"></i>
-                            Chưa có đơn hàng trúng thầu nào được tạo trong hệ thống.
+                            Không có đơn hàng trúng thầu nào khớp với bộ lọc.
                         </td>
                     </tr>
                 `;
@@ -522,6 +576,7 @@
             tbody.innerHTML = list.map(item => {
                 const isPaid = item.paymentStatus === 'PAID';
                 const isPending = item.paymentStatus === 'PENDING_VERIFICATION';
+                const decl = item.cargoDeclaration;
 
                 let statusBadgeHtml = '';
                 if (isPaid) {
@@ -534,6 +589,28 @@
 
                 const agentInfo = (data.agentsList || []).find(a => (a.code || '').toUpperCase() === (item.agentCode || '').toUpperCase());
                 const agentNameDisplay = agentInfo ? agentInfo.companyName : (item.agentCode || 'Đại lý');
+
+                let cargoHtml = '';
+                if (decl) {
+                    cargoHtml = `
+                        <div class="space-y-1">
+                            <span class="inline-flex items-center gap-1 bg-emerald-100 text-emerald-800 text-[10px] font-bold px-2 py-0.5 rounded-md">
+                                <i class="fa-solid fa-boxes-packing text-emerald-600"></i> Đã khai báo
+                            </span>
+                            <p class="font-bold text-slate-800 line-clamp-1 text-[11px]">${decl.cargoName}</p>
+                            <p class="text-[10px] text-blue-600 font-semibold">${decl.grossWeightKg ? CargoStore.formatNumber(decl.grossWeightKg) + ' Kg' : '-'} · ${decl.piecesCount || 0} kiện · ${decl.volumeCbm || 0} m³</p>
+                            <button onclick="viewAdminCargoModal('${item.wonId}')" class="text-[10px] text-blue-600 hover:text-blue-800 font-bold underline cursor-pointer inline-flex items-center gap-1">
+                                <i class="fa-solid fa-eye"></i> Xem hồ sơ hàng
+                            </button>
+                        </div>
+                    `;
+                } else {
+                    cargoHtml = `
+                        <span class="inline-flex items-center gap-1 bg-amber-100 text-amber-800 text-[10px] font-semibold px-2 py-0.5 rounded-md">
+                            <i class="fa-solid fa-clock text-amber-600"></i> Chưa khai báo
+                        </span>
+                    `;
+                }
 
                 return `
                     <tr class="hover:bg-slate-50/80 transition">
@@ -549,12 +626,12 @@
                             <p class="font-semibold text-slate-800">${CargoStore.formatNumber(item.capacityKg)} Kg</p>
                             <p class="text-[11px] text-emerald-600 font-bold">${CargoStore.formatCurrency(item.priceKg)}/Kg</p>
                         </td>
-                        <td class="py-3.5 px-4 font-bold text-red-600 text-sm">
-                            ${CargoStore.formatCurrency(item.totalAmountVND)}
+                        <td class="py-3.5 px-4 max-w-[200px]">
+                            ${cargoHtml}
                         </td>
-                        <td class="py-3.5 px-4 text-slate-600">
-                            <p class="font-mono font-bold text-blue-600 text-[11px]">${item.awbNumber || '-'}</p>
-                            <p class="text-[10px] text-slate-400">Cut-off: ${item.cutOffTime || 'Tiêu chuẩn'}</p>
+                        <td class="py-3.5 px-4">
+                            <p class="font-bold text-red-600 text-xs">${CargoStore.formatCurrency(item.totalAmountVND)}</p>
+                            <p class="font-mono font-bold text-blue-600 text-[11px] mt-0.5">AWB: ${item.awbNumber || '-'}</p>
                         </td>
                         <td class="py-3.5 px-4">
                             ${statusBadgeHtml}
@@ -574,6 +651,95 @@
                     </tr>
                 `;
             }).join('');
+        }
+
+        function viewAdminCargoModal(wonId) {
+            const data = CargoStore.getData();
+            const list = data.wonAuctions || [];
+            const item = list.find(w => w.wonId === wonId);
+            if (!item) return;
+
+            document.getElementById('adminCargoWonId').textContent = wonId;
+            const decl = item.cargoDeclaration;
+            const content = document.getElementById('adminCargoModalContent');
+            if (!content) return;
+
+            if (!decl) {
+                content.innerHTML = `
+                    <div class="text-center py-8 text-slate-400 space-y-2">
+                        <i class="fa-solid fa-triangle-exclamation text-3xl text-amber-500"></i>
+                        <p class="font-bold text-slate-700">Đại lý trúng thầu chưa khai báo thông tin hàng hóa!</p>
+                        <p class="text-[11px]">Đại lý ${item.agentCode} chưa điền thông tin quy cách lô hàng cho đơn ${wonId}.</p>
+                    </div>
+                `;
+            } else {
+                content.innerHTML = `
+                    <div class="bg-blue-50 border border-blue-200 rounded-xl p-3 flex items-center justify-between">
+                        <div>
+                            <span class="text-[11px] text-blue-700 font-semibold block">Loại hàng hóa vận chuyển:</span>
+                            <strong class="text-slate-900 text-sm">${decl.cargoType || 'Chưa phân loại'}</strong>
+                        </div>
+                        <div class="text-right font-mono">
+                            <span class="text-[11px] text-slate-500 block">House AWB (HAWB):</span>
+                            <strong class="text-blue-600 text-sm">${decl.hawbNumber || 'Chưa gắn HAWB'}</strong>
+                        </div>
+                    </div>
+
+                    <div class="space-y-1">
+                        <label class="font-bold text-slate-700 block">Tên & Mô tả chi tiết mặt hàng:</label>
+                        <p class="bg-slate-50 border rounded-xl p-2.5 font-semibold text-slate-900 text-xs">${decl.cargoName || '-'}</p>
+                    </div>
+
+                    <div class="grid grid-cols-3 gap-3">
+                        <div class="bg-slate-50 border p-3 rounded-xl">
+                            <span class="text-[11px] text-slate-500 block">Khối lượng khai báo:</span>
+                            <strong class="text-blue-600 text-sm block mt-0.5">${CargoStore.formatNumber(decl.grossWeightKg || 0)} Kg</strong>
+                            <span class="text-[10px] text-slate-400">Tải trúng: ${CargoStore.formatNumber(item.capacityKg)} Kg</span>
+                        </div>
+                        <div class="bg-slate-50 border p-3 rounded-xl">
+                            <span class="text-[11px] text-slate-500 block">Tổng số kiện / thùng:</span>
+                            <strong class="text-slate-900 text-sm block mt-0.5">${decl.piecesCount || 0} kiện</strong>
+                        </div>
+                        <div class="bg-slate-50 border p-3 rounded-xl">
+                            <span class="text-[11px] text-slate-500 block">Thể tích (CBM - m³):</span>
+                            <strong class="text-slate-900 text-sm block mt-0.5">${decl.volumeCbm || 0} m³</strong>
+                        </div>
+                    </div>
+
+                    <div class="grid grid-cols-2 gap-3">
+                        <div class="border p-3 rounded-xl bg-slate-50">
+                            <span class="text-[11px] text-slate-500 block font-semibold">Đơn vị Gửi hàng (Shipper):</span>
+                            <p class="font-bold text-slate-800 mt-1">${decl.shipperName || '-'}</p>
+                        </div>
+                        <div class="border p-3 rounded-xl bg-slate-50">
+                            <span class="text-[11px] text-slate-500 block font-semibold">Đơn vị Nhận hàng (Consignee):</span>
+                            <p class="font-bold text-slate-800 mt-1">${decl.consigneeName || '-'}</p>
+                        </div>
+                    </div>
+
+                    ${decl.consigneeAddress ? `
+                        <div>
+                            <span class="text-slate-500 font-semibold block mb-0.5">Địa chỉ kho nhận hàng tại sân bay đích:</span>
+                            <p class="bg-slate-50 border rounded-xl p-2.5 text-slate-800">${decl.consigneeAddress}</p>
+                        </div>
+                    ` : ''}
+
+                    ${decl.specialNotes ? `
+                        <div class="bg-amber-50 border border-amber-200 rounded-xl p-3 text-amber-900 space-y-1">
+                            <span class="font-bold flex items-center gap-1.5 text-amber-800">
+                                <i class="fa-solid fa-triangle-exclamation text-amber-600"></i> Yêu cầu bảo quản & vận chuyển đặc biệt:
+                            </span>
+                            <p class="font-medium">${decl.specialNotes}</p>
+                        </div>
+                    ` : ''}
+                `;
+            }
+
+            document.getElementById('adminCargoViewModal').classList.remove('hidden');
+        }
+
+        function closeAdminCargoModal() {
+            document.getElementById('adminCargoViewModal').classList.add('hidden');
         }
 
         function handleAdminConfirmPayment(wonId) {
