@@ -1951,12 +1951,14 @@ const CargoStore = (function() {
         },
 
         logoutAgent: function() {
+            if (typeof window !== 'undefined') window._isManualLogout = true;
             const data = loadData();
             data.currentUser = null;
             saveData(data);
         },
 
         logoutAdmin: function() {
+            if (typeof window !== 'undefined') window._isManualLogout = true;
             const data = loadData();
             data.currentAdmin = null;
             saveData(data);
@@ -2049,7 +2051,7 @@ if (typeof window !== 'undefined') {
     let isRedirecting = false;
 
     function checkAccountLockGuard() {
-        if (isRedirecting) return;
+        if (isRedirecting || (typeof window !== 'undefined' && window._isManualLogout)) return;
         if (typeof CargoStore === 'undefined') return;
 
         const pathname = window.location.pathname.toLowerCase();
