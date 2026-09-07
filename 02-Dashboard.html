@@ -79,7 +79,7 @@
                 <div>
                     <div class="inline-flex items-center gap-2 bg-white/10 text-xs px-2.5 py-1 rounded-full mb-2">
                         <span class="w-2 h-2 rounded-full bg-emerald-400 animate-ping"></span>
-                        <span id="dashTierLabel">Đại lý TIER 1 ủy quyền chính thức</span>
+                        <span id="dashTierLabel">Đại lý ủy quyền chính thức</span>
                     </div>
                     <h2 id="dashWelcomeName" class="text-2xl font-bold tracking-tight">Xin chào, Nguyễn Văn An</h2>
                     <p id="dashCompanyInfo" class="text-slate-300 text-sm mt-1">Công ty TNHH Vận tải ABC Logistics · Hôm nay có <strong>28 chuyến bay</strong> mở thầu tải trọng cargo.</p>
@@ -225,7 +225,7 @@
                 if (hdrAvatar) hdrAvatar.textContent = (u.agentCode || 'AG').slice(0,2);
                 document.getElementById('dashWelcomeName').textContent = `Xin chào, ${u.fullName || 'Đại lý'}`;
                 document.getElementById('dashCompanyInfo').innerHTML = `${u.companyName} (${u.agentCode}) · Hôm nay có <strong>${openAuctions.length} chuyến bay</strong> mở thầu tải trọng cargo.`;
-                document.getElementById('dashTierLabel').textContent = `Đại lý ${u.tier || 'TIER 1'} ủy quyền chính thức`;
+                document.getElementById('dashTierLabel').textContent = 'Đại lý ủy quyền chính thức';
             }
 
             // === KPI 1: Phiên đang mở ===

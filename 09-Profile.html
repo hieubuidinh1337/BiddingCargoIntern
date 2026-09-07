@@ -45,7 +45,6 @@
                         <h2 id="profCompanyName" class="text-xl font-bold text-slate-900">Công ty TNHH Vận tải ABC Logistics</h2>
                         <p class="text-sm text-gray-500 mt-0.5">
                             Mã đại lý: <span id="profAgentCode" class="font-bold text-blue-600 font-mono">AG-0892</span>
-                            · Hạng: <span id="profTier" class="bg-amber-100 text-amber-800 font-bold px-2 py-0.5 rounded text-xs ml-1">TIER 1</span>
                         </p>
                         <div class="mt-1.5 flex items-center gap-2">
                             <span class="inline-flex items-center gap-1.5 bg-emerald-50 text-emerald-700 text-xs font-semibold px-2.5 py-0.5 rounded-full border border-emerald-200">
@@ -233,7 +232,6 @@
 
         document.getElementById('profCompanyName').textContent = u.companyName || 'Đại lý Cargo';
         document.getElementById('profAgentCode').textContent = u.agentCode || 'AG-0000';
-        document.getElementById('profTier').textContent = u.tier || 'TIER1';
         document.getElementById('profAvatar').textContent = (u.agentCode || 'AG').slice(0,2);
         document.getElementById('profStatus').textContent = u.status || 'Đang hoạt động';
         document.getElementById('profJoinedDate').textContent = u.joinedDate || '15/03/2024';

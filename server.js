@@ -592,7 +592,6 @@ const server = http.createServer((req, res) => {
                             <table role="presentation" width="100%" cellpadding="8" cellspacing="0" style="background:#f0f7f0;border:1px solid #c8e6c9;border-radius:6px;margin:16px 0;">
                                 <tr><td style="color:#555;border-bottom:1px solid #e0e0e0;">Mã Đại lý:</td><td style="font-weight:bold;color:#2e7d32;font-family:monospace;font-size:16px;">${finalCode}</td></tr>
                                 <tr><td style="color:#555;border-bottom:1px solid #e0e0e0;">Tên doanh nghiệp:</td><td>${companyName}</td></tr>
-                                <tr><td style="color:#555;border-bottom:1px solid #e0e0e0;">Phân hạng:</td><td style="font-weight:bold;color:#1565c0;">TIER 2 (Đại lý Tiêu chuẩn)</td></tr>
                                 <tr><td style="color:#555;border-bottom:1px solid #e0e0e0;">Tên đăng nhập:</td><td style="font-family:monospace;font-weight:bold;">${finalCode} hoặc MST (${(regData && regData.taxCode) || ''})</td></tr>
                                 <tr><td style="color:#555;border-bottom:1px solid #e0e0e0;">Mật khẩu:</td><td style="font-family:monospace;">Mật khẩu Quý vị đã đăng ký</td></tr>
                                 <tr><td style="color:#555;border-bottom:1px solid #e0e0e0;">Mã PIN:</td><td style="font-family:monospace;">Mã PIN Quý vị đã đăng ký</td></tr>

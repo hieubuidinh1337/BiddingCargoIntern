@@ -260,7 +260,6 @@
                             <th style="padding: 6px 8px; text-align: center; width: 40px;">Hạng</th>
                             <th style="padding: 6px 8px; text-align: left;">Mã đại lý</th>
                             <th style="padding: 6px 8px; text-align: left;">Tên doanh nghiệp</th>
-                            <th style="padding: 6px 8px; text-align: center;">Phân hạng</th>
                             <th style="padding: 6px 8px; text-align: center;">Tổng lượt thầu</th>
                             <th style="padding: 6px 8px; text-align: center;">Thắng thầu</th>
                             <th style="padding: 6px 8px; text-align: right;">Tổng chi tiêu</th>
@@ -271,7 +270,6 @@
                             <td style="padding: 6px 8px; text-align: center; font-weight: 700; color: #d97706;">#1</td>
                             <td style="padding: 6px 8px; font-family: monospace; font-weight: 700; color: #2563eb;">AG-1024</td>
                             <td style="padding: 6px 8px; font-weight: 700; color: #0f172a;">Vinatrans Express Logistics</td>
-                            <td style="padding: 6px 8px; text-align: center;">TIER 1</td>
                             <td style="padding: 6px 8px; text-align: center;">45 lượt</td>
                             <td style="padding: 6px 8px; text-align: center; color: #16a34a; font-weight: 700;">16 chuyến</td>
                             <td style="padding: 6px 8px; text-align: right; font-weight: 700; color: #2563eb;">28,500 USD</td>
@@ -280,7 +278,6 @@
                             <td style="padding: 6px 8px; text-align: center; font-weight: 700; color: #64748b;">#2</td>
                             <td style="padding: 6px 8px; font-family: monospace; font-weight: 700; color: #2563eb;">AG-0892</td>
                             <td style="padding: 6px 8px; font-weight: 700; color: #0f172a;">Công ty TNHH Vận tải ABC</td>
-                            <td style="padding: 6px 8px; text-align: center;">TIER 1</td>
                             <td style="padding: 6px 8px; text-align: center;">24 lượt</td>
                             <td style="padding: 6px 8px; text-align: center; color: #16a34a; font-weight: 700;">8 chuyến</td>
                             <td style="padding: 6px 8px; text-align: right; font-weight: 700; color: #2563eb;">12,400 USD</td>
@@ -289,7 +286,6 @@
                             <td style="padding: 6px 8px; text-align: center; font-weight: 700; color: #b45309;">#3</td>
                             <td style="padding: 6px 8px; font-family: monospace; font-weight: 700; color: #2563eb;">AG-0556</td>
                             <td style="padding: 6px 8px; font-weight: 700; color: #0f172a;">Golden Star Forwarding Corp</td>
-                            <td style="padding: 6px 8px; text-align: center;">TIER 2</td>
                             <td style="padding: 6px 8px; text-align: center;">18 lượt</td>
                             <td style="padding: 6px 8px; text-align: center; color: #16a34a; font-weight: 700;">5 chuyến</td>
                             <td style="padding: 6px 8px; text-align: right; font-weight: 700; color: #2563eb;">8,200 USD</td>
@@ -620,7 +616,6 @@
                             <div class="p-4 rounded-xl border ${m.cardBg} space-y-2 hover:shadow-sm transition">
                                 <div class="flex items-center justify-between">
                                     <span class="w-6 h-6 rounded-full ${m.bg} text-white font-bold flex items-center justify-center text-[10px] shadow-2xs">${m.num}</span>
-                                    <span class="bg-blue-100 text-blue-800 text-[10px] font-bold px-2 py-0.5 rounded">${ag.tier || 'TIER2'}</span>
                                 </div>
                                 <p class="font-bold text-slate-900 text-sm truncate" title="${ag.companyName}">${ag.companyName}</p>
                                 <p class="text-gray-500 font-mono text-[11px]">${ag.code}</p>
@@ -688,7 +683,6 @@
                         "Xếp hạng": idx + 1,
                         "Mã đại lý": ag.code,
                         "Tên doanh nghiệp": ag.companyName,
-                        "Phân hạng": ag.tier || 'TIER2',
                         "Tổng lượt đấu giá": ag.totalBids || 0,
                         "Số chuyến thắng thầu": ag.wonCount || 0,
                         "Tổng chi tiêu (VND)": ag.totalSpentVND || 0,
@@ -856,7 +850,6 @@
                                             <th style="padding: 6px 8px; text-align: center; width: 40px;">Hạng</th>
                                             <th style="padding: 6px 8px; text-align: left;">Mã đại lý</th>
                                             <th style="padding: 6px 8px; text-align: left;">Tên doanh nghiệp</th>
-                                            <th style="padding: 6px 8px; text-align: center;">Phân hạng</th>
                                             <th style="padding: 6px 8px; text-align: center;">Lượt thầu</th>
                                             <th style="padding: 6px 8px; text-align: center;">Thắng thầu</th>
                                             <th style="padding: 6px 8px; text-align: right;">Tổng chi tiêu</th>
@@ -868,7 +861,6 @@
                                                 <td style="padding: 6px 8px; text-align: center; font-weight: 700; color: ${idx === 0 ? '#d97706' : '#64748b'};">#${idx + 1}</td>
                                                 <td style="padding: 6px 8px; font-family: monospace; font-weight: 700; color: #2563eb;">${ag.code}</td>
                                                 <td style="padding: 6px 8px; font-weight: 700; color: #0f172a;">${ag.companyName}</td>
-                                                <td style="padding: 6px 8px; text-align: center;">${ag.tier || 'TIER2'}</td>
                                                 <td style="padding: 6px 8px; text-align: center;">${ag.totalBids || 0} lượt</td>
                                                 <td style="padding: 6px 8px; text-align: center; color: #16a34a; font-weight: 700;">${ag.wonCount || 0} chuyến</td>
                                                 <td style="padding: 6px 8px; text-align: right; font-weight: 700; color: #2563eb;">${CargoStore.formatCurrency(ag.totalSpentVND)}</td>

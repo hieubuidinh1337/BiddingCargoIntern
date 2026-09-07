@@ -99,7 +99,7 @@
         <div id="sectionAgents" class="hidden bg-white rounded-2xl border shadow-sm overflow-hidden">
             <div class="p-4 bg-slate-50/70 border-b flex items-center justify-between">
                 <span class="text-xs text-slate-600 font-semibold">Danh sách đại lý đang tham gia sàn đấu giá tải trọng</span>
-                <span class="text-[11px] text-slate-500">Thao tác: Khóa / Kích hoạt mở khóa và Phân hạng đại lý</span>
+                <span class="text-[11px] text-slate-500">Thao tác: Khóa / Mở khóa kích hoạt tài khoản đại lý</span>
             </div>
             <div class="overflow-x-auto">
                 <table class="w-full text-left text-xs">
@@ -110,7 +110,6 @@
                             <th class="py-3.5 px-4">Người đại diện</th>
                             <th class="py-3.5 px-4">Liên hệ & Email</th>
                             <th class="py-3.5 px-4">MST</th>
-                            <th class="py-3.5 px-4">Hạng đại lý</th>
                             <th class="py-3.5 px-4">Trạng thái</th>
                             <th class="py-3.5 px-4 text-right">Thao tác quản trị</th>
                         </tr>
@@ -500,25 +499,16 @@
                         <td class="py-3.5 px-4 text-slate-600">${ag.phone}<br><span class="text-[10px] text-gray-400">${ag.email}</span></td>
                         <td class="py-3.5 px-4 font-mono text-slate-600">${ag.taxCode}</td>
                         <td class="py-3.5 px-4">
-                            <span class="bg-amber-100 text-amber-800 font-bold px-2 py-0.5 rounded text-[10px]">${ag.tier}</span>
-                        </td>
-                        <td class="py-3.5 px-4">
                             ${isLocked ? 
                                 '<span class="bg-red-100 text-red-700 font-bold px-2.5 py-1 rounded-full text-[10px] inline-flex items-center gap-1"><i class="fa-solid fa-ban"></i> ĐÃ KHÓA</span>' : 
                                 '<span class="bg-emerald-100 text-emerald-700 font-bold px-2.5 py-1 rounded-full text-[10px] inline-flex items-center gap-1"><i class="fa-solid fa-circle-check"></i> HOẠT ĐỘNG</span>'}
                         </td>
                         <td class="py-3.5 px-4 text-right space-x-1.5 whitespace-nowrap">
                             ${isStaff ? `
-                                <button disabled class="inline-flex items-center gap-1 bg-slate-100 text-slate-400 font-semibold px-2 py-1 rounded-lg opacity-60 cursor-not-allowed" title="Chỉ ADMIN mới có quyền chuyển phân hạng">
-                                    <i class="fa-solid fa-layer-group text-[10px]"></i> Đổi ${ag.tier === 'TIER1' ? 'Tier 2' : 'Tier 1'}
-                                </button>
                                 <button disabled class="inline-flex items-center gap-1 bg-slate-100 text-slate-400 font-semibold px-2 py-1 rounded-lg opacity-60 cursor-not-allowed" title="Chỉ ADMIN mới có quyền khóa/kích hoạt tài khoản đại lý">
                                     <i class="fa-solid ${isLocked ? 'fa-lock-open' : 'fa-lock'} text-[10px]"></i> ${isLocked ? 'Kích hoạt' : 'Khóa'}
                                 </button>
                             ` : `
-                                <button onclick="handleToggleTier('${ag.code}', '${ag.tier === 'TIER1' ? 'TIER2' : 'TIER1'}')" class="inline-flex items-center gap-1 bg-slate-100 hover:bg-slate-200 text-slate-700 font-semibold px-2 py-1 rounded-lg transition" title="Chuyển đổi phân hạng">
-                                    <i class="fa-solid fa-layer-group text-[10px]"></i> Đổi ${ag.tier === 'TIER1' ? 'Tier 2' : 'Tier 1'}
-                                </button>
                                 <button onclick="handleToggleLock('${ag.code}', 'agent')" class="inline-flex items-center gap-1 ${isLocked ? 'bg-emerald-50 hover:bg-emerald-100 text-emerald-700' : 'bg-red-50 hover:bg-red-100 text-red-600'} font-semibold px-2 py-1 rounded-lg transition" title="${isLocked ? 'Mở khóa / Kích hoạt tài khoản' : 'Khóa tài khoản đại lý'}">
                                     <i class="fa-solid ${isLocked ? 'fa-lock-open' : 'fa-lock'} text-[10px]"></i> ${isLocked ? 'Kích hoạt' : 'Khóa'}
                                 </button>
@@ -615,17 +605,6 @@
             }
         }
 
-        function handleToggleTier(code, newTier) {
-            if (confirm(`Xác nhận chuyển phân hạng đại lý ${code} sang ${newTier}?`)) {
-                const res = CargoStore.updateUserRole(code, newTier, 'agent');
-                if (res.success) {
-                    alert(res.message);
-                    renderData();
-                } else {
-                    alert(res.message);
-                }
-            }
-        }
 
         function handleToggleRole(username, newRole) {
             if (confirm(`Xác nhận chuyển vai trò tài khoản "${username}" sang ${newRole}?`)) {
