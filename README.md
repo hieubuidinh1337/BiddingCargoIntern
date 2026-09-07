@@ -44,21 +44,28 @@ graph TD
     J -->|Gửi Email Xác nhận| K[Đại lý Tải Phiếu Thắng Thầu PDF & Bàn giao Kho]
 ```
 
-### 📋 Chi Tiết 4 Luồng Nghiệp Vụ Chính:
+### 📋 Chi Tiết Các Luồng Nghiệp Vụ Chính:
 
 1. **Luồng 1: Đăng ký & Phê duyệt Đại lý Cargo**
-   - Đại lý truy cập `05-Register.html` điền thông tin công ty, MST, người đại diện, email, SĐT, thiết lập Mật khẩu & Mã PIN 6 số.
+   - Đại lý truy cập `Register.html` điền thông tin công ty, MST, người đại diện, email, SĐT, thiết lập Mật khẩu & Mã PIN 6 số.
    - Hệ thống ghi nhận hồ sơ ở trạng thái `PENDING` và gửi email tự động thông báo tiếp nhận.
    - Admin truy cập `Admin/04-AgentApproval.html` duyệt hồ sơ -> Hệ thống cấp Mã Đại lý dạng `AG-xxxx` và gửi Email kích hoạt tài khoản.
 
-2. **Luồng 2: Đấu giá Tải trọng Realtime (Air Cargo Bidding)**
+2. **Luồng 2: Đấu giá Tải trọng Realtime (Air Cargo Bidding) & Ẩn danh 100%**
    - Admin khởi tạo phiên đấu giá (`Admin/02-AuctionMgmt.html`) thiết lập Chuyến bay, Tuyến đường, Tải trọng (Kg), Giá khởi điểm (VND/Kg), Bước giá tối thiểu và Thời gian đếm ngược.
    - Đại lý theo dõi tại `03-Index.html` và đặt thầu tại `04-Detail.html`.
-   - Các đại lý cạnh tranh bước giá real-time. Hệ thống kiểm tra và cập nhật giá dẫn đầu ngay lập tức.
+   - **Cơ chế Ẩn danh 100%**: Mọi phiếu đặt giá thầu được tự động ẩn danh tên công ty đối với các đối thủ cạnh tranh (hiển thị `Đại lý ẩn danh (AG-***)`). Đại lý chính chủ sẽ thấy nhãn `(Bạn)`, trong khi Admin giữ toàn quyền đối soát.
+   - **Đồng hồ đếm ngược mượt mà (1s)**: Chuẩn hóa tần số làm tươi đếm ngược về `1000ms` (1 giây/lần), giúp các con số thời gian nhảy mượt mà từng giây.
 
-3. **Luồng 3: Khai báo Hàng hóa (Cargo Declaration) & Bàn giao Kho**
+3. **Luồng 3: Khai báo Hàng hóa (Cargo Declaration) & Kiểm định Tiêu chuẩn IATA**
    - Đại lý trúng thầu truy cập `07-WonAuction.html`.
    - **Khai báo Hồ sơ Hàng hóa**: Đại lý điền thông tin chi tiết lô hàng qua Modal (Loại hàng General/PER/VAL/DGR, Mã House AWB, Số kiện, Thể tích CBM, Shipper, Consignee, Kho đích, Yêu cầu bảo quản đặc biệt).
+   - **Kiểm tra tính hợp lệ & Tiêu chuẩn IATA Air Cargo**:
+     - 📌 **Trọng lượng trung bình / Kiện**: Tối thiểu $\ge 1.0\text{ Kg/kiện}$ (1.000g). Hệ thống tự động chặn các thông số phi lý như 60g/kiện (ví dụ 50.000 kiện cho 3.000 Kg).
+     - 📌 **Tỷ trọng cồng kềnh (Volumetric Density)**: Tối thiểu $\ge 20\text{ Kg/m}^3$. Với $3.000\text{ Kg}$, thể tích tối đa hợp lệ là $150\text{ m}^3$. Hệ thống từ chối các khai báo cồng kềnh quá mức như $500\text{ m}^3$ ($6.0\text{ Kg/m}^3$).
+     - 📌 **Giới hạn tải trọng cất cánh**: Không vượt quá $115\%$ tải trọng đăng ký của chuyến bay.
+     - 📌 **Thẻ Hướng dẫn & Giải thích lý do thời gian thực**: Trực tiếp giải thích nguyên nhân vi phạm và hướng dẫn điều chỉnh ngay trên giao diện Modal.
+     - 📌 **Chống gõ chuỗi ngẫu nhiên (Gibberish Validation)**: Kiểm định tên mặt hàng, HAWB, Shipper/Consignee nhằm ngăn chặn việc gõ phím vô nghĩa.
    - Đại lý thực hiện thanh toán và bấm *"Tôi đã chuyển khoản"*.
    - Admin xác nhận thanh toán tại `Admin/05-Payments.html` -> Đơn hàng chuyển sang `PAID`, hệ thống cấp mã AWB điện tử chính thức và gửi email xác nhận.
    - Đại lý Xem trước hoặc Tải về **Phiếu Xác Nhận Thắng Thầu & Lệnh Bàn Giao Tải Trọng (PDF)** đã có đầy đủ Mục IV (Thông tin Hàng hóa Khai báo) để xuất trình tại kho hàng sân bay (TCS, SCSC, ALSC...).
@@ -109,22 +116,28 @@ bidding-cargo-app/
 ├── 02-Dashboard.html        # Tổng quan thị trường & Thống kê cá nhân
 ├── 03-Index.html            # Sàn đấu giá chính (Bidding Hall) & Bộ lọc tuyến bay
 ├── 04-Detail.html           # Chi tiết phiên thầu & Đặt giá thầu Realtime
-├── 05-Register.html         # Đăng ký tài khoản Đại lý mới (Validate định dạng chuẩn)
-├── 06-ForgotPass.html       # Khôi phục & Đặt lại Mật khẩu qua OTP/Email
-├── 07-WonAuction.html       # Đơn thắng thầu, Form Khai báo Hàng hóa & Tải PDF
+├── 05-Watchlist.html        # Danh sách các phiên thầu đang theo dõi
+├── 06-MyBids.html           # Lịch sử đặt thầu của đại lý
+├── 07-WonAuction.html       # Đơn thắng thầu, Form Khai báo Hàng hóa IATA & Tải PDF
+├── 08-Notifications.html    # Trung tâm thông báo hệ thống
+├── 09-Profile.html          # Thông tin tài khoản & Đổi mật khẩu
+├── 10-Terms.html            # Điều khoản sử dụng & Quy định đấu giá
+├── Register.html            # Đăng ký tài khoản Đại lý mới (Validate chuẩn)
 ├── assets/
 │   ├── css/                 # CSS tùy biến & Style sheet
 │   └── js/
 │       └── cargo-store.js   # Shared Store, LocalStorage & Synchronizer Logic
 ├── Admin/
 │   ├── 01-Overview.html     # Dashboard Quản trị viên (Admin Overview)
-│   ├── 02-AuctionMgmt.html  # Quản lý Phiên đấu giá (Tạo/Sửa/Đóng phiên)
-│   ├── 03-BidsHistory.html  # Lịch sử tất cả lượt đặt thầu trên sàn
+│   ├── 02-AdminDashboard.html# Tổng quan Quản trị & Theo dõi Khai báo Hàng hóa
+│   ├── 03-AuctionList.html  # Quản lý Phiên đấu giá (Tạo/Sửa/Đóng phiên)
 │   ├── 04-AgentApproval.html# Phê duyệt/Từ chối Hồ sơ Đăng ký Đại lý
 │   ├── 05-Payments.html     # Xác nhận Thanh toán Chuyển khoản & Cấp AWB
 │   ├── 06-AgentsList.html   # Quản lý Đại lý (Khóa/Mở khóa & Auto Logout)
 │   ├── 07-Reports.html      # Báo cáo Doanh thu & Sản lượng tải trọng
 │   └── 08-Settings.html     # Cấu hình Tham số Đấu giá & SMTP Mail Server
+├── scratch/
+│   └── fix_bids_data.js     # Script sinh & chuẩn hóa dữ liệu thầu ẩn danh
 ├── server.js                # Node.js Server Backend API & Nodemailer SMTP Service
 ├── server_data.json         # Database JSON lưu trữ dữ liệu tập trung
 └── README.md                # Tài liệu hướng dẫn chi tiết hệ thống
