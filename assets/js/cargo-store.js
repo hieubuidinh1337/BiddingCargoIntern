@@ -2177,10 +2177,6 @@ const CargoStore = (function() {
             return { success: true, message: 'Đổi mật khẩu Admin thành công! Mật khẩu mặc định/cũ đã bị vô hiệu hóa.' };
         },
 
-        getCurrentAdmin: function() {
-            return loadData().currentAdmin;
-        },
-
         updateAgentProfile: function(profileData) {
             const data = loadData();
             const user = data.currentUser;
@@ -2460,8 +2456,14 @@ const CargoStore = (function() {
         },
 
         syncHeaderUI: function() {
-            const user = loadData().currentUser;
-            if (!user) return;
+            const user = this.getCurrentUser();
+            if (!user) {
+                if (typeof window !== 'undefined' && !window.location.pathname.includes('01-Login.html') && !window.location.pathname.includes('02-Register.html') && !window.location.pathname.includes('01-AdminLogin.html')) {
+                    alert('Phiên làm việc đã hết hạn hoặc tài khoản đại lý đã bị khóa!');
+                    window.location.href = '01-Login.html';
+                }
+                return;
+            }
 
             document.querySelectorAll('.agent-company-name').forEach(el => {
                 el.textContent = user.companyName;
@@ -2483,8 +2485,14 @@ const CargoStore = (function() {
         },
 
         syncAdminHeaderUI: function() {
-            const admin = loadData().currentAdmin;
-            if (!admin) return;
+            const admin = this.getCurrentAdmin();
+            if (!admin) {
+                if (typeof window !== 'undefined' && !window.location.pathname.includes('01-AdminLogin.html') && !window.location.pathname.includes('01-Login.html')) {
+                    alert('Phiên làm việc Quản trị đã hết hạn hoặc tài khoản nhân viên đã bị KHÓA bởi Quản trị viên hệ thống!');
+                    window.location.href = '01-AdminLogin.html';
+                }
+                return;
+            }
 
             const isStaff = admin.role === 'STAFF';
             const roleName = isStaff ? 'NHÂN VIÊN ĐIỀU HÀNH' : 'QUẢN TRỊ VIÊN';
