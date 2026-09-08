@@ -776,6 +776,36 @@ const CargoStore = (function() {
         return `${dlFormatted} (Hạn 24 tiếng)`;
     }
 
+    const ROUTE_DURATIONS_MINUTES = {
+        'SGN-HAN': 135, // 2h 15m
+        'HAN-SGN': 135,
+        'SGN-DAD': 80,  // 1h 20m
+        'DAD-SGN': 80,
+        'HAN-DAD': 80,  // 1h 20m
+        'DAD-HAN': 80,
+        'SGN-PQC': 60,  // 1h 00m
+        'PQC-SGN': 60,
+        'HAN-PQC': 135, // 2h 15m
+        'PQC-HAN': 135,
+        'DAD-PQC': 105, // 1h 45m
+        'PQC-DAD': 105
+    };
+
+    function getFlightDurationMinutes(origin, destination) {
+        if (!origin || !destination) return 90;
+        const key = `${String(origin).trim().toUpperCase()}-${String(destination).trim().toUpperCase()}`;
+        return ROUTE_DURATIONS_MINUTES[key] || 90;
+    }
+
+    function calculateETA(etdStr, origin, destination) {
+        if (!etdStr) return null;
+        const etdDate = new Date(etdStr);
+        if (isNaN(etdDate.getTime())) return null;
+
+        const durationMins = getFlightDurationMinutes(origin, destination);
+        return new Date(etdDate.getTime() + durationMins * 60 * 1000);
+    }
+
     return {
         getData: loadData,
         saveData: saveData,
@@ -786,6 +816,8 @@ const CargoStore = (function() {
         calculateCutOffTime: calculateCutOffTime,
         calculatePaymentDeadline: calculatePaymentDeadline,
         formatPaymentDeadlineText: formatPaymentDeadlineText,
+        getFlightDurationMinutes: getFlightDurationMinutes,
+        calculateETA: calculateETA,
 
         /**
          * Dynamic Agent Login checking each agent's SPECIFIC password
