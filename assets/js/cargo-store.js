@@ -1089,11 +1089,17 @@ const CargoStore = (function() {
                 return { success: false, message: 'Phiên đấu giá này đã đóng thầu, không thể đặt thêm giá.' };
             }
 
-            const minAcceptable = auction.currentPriceKg + auction.minStep;
+            const hasBids = (auction.bidsCount && auction.bidsCount > 0);
+            const minAcceptable = hasBids
+                ? (auction.currentPriceKg + auction.minStep)
+                : (auction.startingPriceKg || auction.currentPriceKg);
+
             if (bidPriceKg < minAcceptable) {
                 return {
                     success: false,
-                    message: `Giá đặt phải tối thiểu bằng ${formatCurrency(minAcceptable)}/Kg (Giá hiện tại + bước giá tối thiểu)`
+                    message: hasBids
+                        ? `Giá đặt phải tối thiểu bằng ${formatCurrency(minAcceptable)}/Kg (Giá hiện tại + bước giá tối thiểu ${formatCurrency(auction.minStep)})`
+                        : `Lượt đặt giá đầu tiên phải tối thiểu bằng giá khởi điểm ${formatCurrency(minAcceptable)}/Kg`
                 };
             }
 

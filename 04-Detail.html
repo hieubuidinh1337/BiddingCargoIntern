@@ -171,7 +171,7 @@
                     <div class="text-center pb-4 border-b">
                         <p class="text-xs text-gray-500">Mức giá đặt thầu tối thiểu</p>
                         <p class="text-2xl font-bold text-blue-600 mt-1" id="minAcceptablePrice">22.000 đ<span class="text-xs font-normal text-gray-500">/Kg</span></p>
-                        <p class="text-[11px] text-gray-400 mt-0.5">(Giá hiện tại + bước giá tối thiểu)</p>
+                        <p class="text-[11px] text-gray-400 mt-0.5" id="minAcceptableHint">(Giá hiện tại + bước giá tối thiểu)</p>
                     </div>
 
                     <form id="bidForm" class="space-y-4 pt-4">
@@ -288,10 +288,16 @@
             document.getElementById('specCurrentPrice').textContent = CargoStore.formatCurrency(currentAuction.currentPriceKg) + '/Kg';
             
             document.getElementById('specNotes').textContent = currentAuction.specialNotes;
-            document.getElementById('cutOffTimeDisplay').textContent = currentAuction.cutOffTime;
+            const hasBids = (currentAuction.bidsCount && currentAuction.bidsCount > 0);
+            const minAcceptable = hasBids
+                ? (currentAuction.currentPriceKg + currentAuction.minStep)
+                : (currentAuction.startingPriceKg || currentAuction.currentPriceKg);
 
-            const minAcceptable = currentAuction.currentPriceKg + currentAuction.minStep;
             document.getElementById('minAcceptablePrice').textContent = CargoStore.formatCurrency(minAcceptable) + '/Kg';
+            const hintEl = document.getElementById('minAcceptableHint');
+            if (hintEl) {
+                hintEl.textContent = hasBids ? '(Giá hiện tại + bước giá tối thiểu)' : '(Bằng giá khởi điểm cho lượt đặt đầu tiên)';
+            }
 
             // Top Status Badge
             const topBadge = document.getElementById('topStatusBadge');

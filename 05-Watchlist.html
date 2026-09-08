@@ -461,8 +461,8 @@
         if (!data) return;
         const a = (data.auctions || []).find(x => x.id === auctionId);
         if (!a) return;
-        currentBidAuction = a;
-        modalMinPrice = a.currentPriceKg + (a.minStep || 500);
+        const hasBids = (a.bidsCount && a.bidsCount > 0);
+        modalMinPrice = hasBids ? (a.currentPriceKg + (a.minStep || 500)) : (a.startingPriceKg || a.currentPriceKg);
         document.getElementById('modalFlightLabel').textContent = a.flightNumber + ' · ' + a.route;
         document.getElementById('modalCurrentPrice').textContent = a.currentPriceKg.toLocaleString('vi-VN') + ' đ/Kg';
         document.getElementById('modalMinPrice').textContent = modalMinPrice.toLocaleString('vi-VN') + ' đ/Kg';
