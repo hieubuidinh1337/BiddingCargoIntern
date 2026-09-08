@@ -136,6 +136,7 @@
             </div>
             <form onsubmit="handleSaveCargoDeclaration(event)" class="p-6 space-y-4 text-xs overflow-y-auto max-h-[calc(92vh-70px)] flex-1">
                 <input type="hidden" id="modalTargetWonId">
+                <div id="cargoModalLockAlert" class="hidden bg-red-50 border border-red-200 text-red-800 p-3 rounded-xl text-xs font-semibold flex items-center gap-2 mb-2"></div>
                 
                 <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
                     <div>
@@ -250,7 +251,7 @@
 
                 <div class="flex items-center justify-end gap-2.5 pt-3 border-t">
                     <button type="button" onclick="closeCargoModal()" class="px-4 py-2 border rounded-xl text-slate-600 hover:bg-slate-50 font-medium cursor-pointer">Hủy bỏ</button>
-                    <button type="submit" class="px-6 py-2.5 bg-blue-600 hover:bg-blue-700 text-white font-bold rounded-xl shadow flex items-center gap-1.5 cursor-pointer">
+                    <button type="submit" id="btnSubmitCargoModal" class="px-6 py-2.5 bg-blue-600 hover:bg-blue-700 text-white font-bold rounded-xl shadow flex items-center gap-1.5 cursor-pointer">
                         <i class="fa-solid fa-floppy-disk"></i> Lưu & Cập nhật hồ sơ
                     </button>
                 </div>
@@ -770,6 +771,49 @@
             });
         });
 
+        function isCargoDeclarationLocked(item) {
+            if (!item) return { isLocked: true, reason: 'Không tìm thấy thông tin đơn hàng.' };
+
+            // 1. Trạng thái ĐÃ THANH TOÁN (PAID) -> Đã chốt AWB chính thức với kho hàng
+            if (item.paymentStatus === 'PAID') {
+                return {
+                    isLocked: true,
+                    reason: 'Hồ sơ đã được Admin xác nhận thanh toán & chốt mã AWB điện tử chính thức. Không thể chỉnh sửa.'
+                };
+            }
+
+            // 2. Kiểm tra thời gian Cut-off / ETD chuyến bay
+            const store = getStore();
+            let etdDate = null;
+            if (item.etdIso) {
+                etdDate = new Date(item.etdIso);
+            } else if (item.etd && store && store.parseFlightDate) {
+                etdDate = store.parseFlightDate(item.etd);
+            }
+
+            if (etdDate && !isNaN(etdDate.getTime())) {
+                // Cut-off deadline: 3 hours before ETD
+                const cutoffDeadline = new Date(etdDate.getTime() - 3 * 3600 * 1000);
+                const now = Date.now();
+
+                if (now >= etdDate.getTime()) {
+                    return {
+                        isLocked: true,
+                        reason: 'Chuyến bay đã cất cánh (Đã quá thời gian ETD khởi hành).'
+                    };
+                }
+
+                if (now >= cutoffDeadline.getTime()) {
+                    return {
+                        isLocked: true,
+                        reason: 'Đã quá hạn chót Cut-off tiếp nhận hồ sơ chứng từ (Trước ETD 3 giờ) của chuyến bay.'
+                    };
+                }
+            }
+
+            return { isLocked: false, reason: '' };
+        }
+
         function openCargoModal(wonId) {
             const store = getStore();
             const data = store ? store.getData() : {};
@@ -798,6 +842,42 @@
             document.getElementById('declConsigneeAddress').value = decl.consigneeAddress || '';
             document.getElementById('declNotes').value = decl.specialNotes || '';
 
+            // Check locking status
+            const lockCheck = isCargoDeclarationLocked(item);
+            const submitBtn = document.getElementById('btnSubmitCargoModal');
+            const lockAlert = document.getElementById('cargoModalLockAlert');
+
+            const formInputs = ['declCargoType', 'declHawb', 'declCargoName', 'declPieces', 'declGrossWeight', 'declVolume', 'declShipper', 'declConsignee', 'declConsigneeAddress', 'declNotes'];
+
+            if (lockCheck.isLocked) {
+                formInputs.forEach(id => {
+                    const el = document.getElementById(id);
+                    if (el) el.disabled = true;
+                });
+                if (submitBtn) {
+                    submitBtn.disabled = true;
+                    submitBtn.className = 'px-6 py-2.5 bg-slate-300 text-slate-500 font-bold rounded-xl cursor-not-allowed flex items-center gap-1.5 shadow-none';
+                    submitBtn.innerHTML = '<i class="fa-solid fa-lock"></i> Hồ sơ đã khóa (Không thể sửa)';
+                }
+                if (lockAlert) {
+                    lockAlert.innerHTML = `<i class="fa-solid fa-lock text-red-500 text-sm"></i> <span>Hồ sơ đã bị khóa: ${lockCheck.reason}</span>`;
+                    lockAlert.classList.remove('hidden');
+                }
+            } else {
+                formInputs.forEach(id => {
+                    const el = document.getElementById(id);
+                    if (el) el.disabled = false;
+                });
+                if (submitBtn) {
+                    submitBtn.disabled = false;
+                    submitBtn.className = 'px-6 py-2.5 bg-blue-600 hover:bg-blue-700 text-white font-bold rounded-xl shadow flex items-center gap-1.5 cursor-pointer';
+                    submitBtn.innerHTML = '<i class="fa-solid fa-floppy-disk"></i> Lưu & Cập nhật hồ sơ';
+                }
+                if (lockAlert) {
+                    lockAlert.classList.add('hidden');
+                }
+            }
+
             updateLiveCargoMetrics();
             document.getElementById('cargoDeclarationModal').classList.remove('hidden');
         }
@@ -818,6 +898,13 @@
             const store = getStore();
             const data = store ? store.getData() : {};
             const item = (data.wonAuctions || []).find(w => w.wonId === wonId);
+
+            // Guard check for locked declaration
+            const lockCheck = isCargoDeclarationLocked(item);
+            if (lockCheck.isLocked) {
+                showCargoModalError(`Không thể lưu! ${lockCheck.reason}`);
+                return;
+            }
 
             const cargoType = document.getElementById('declCargoType').value;
             const hawbNumber = document.getElementById('declHawb').value.trim();
@@ -1163,44 +1250,108 @@
                             </div>
 
                             <!-- Khai báo thông tin hàng hóa -->
-                            <div class="rounded-xl p-4 border text-xs ${decl ? 'bg-emerald-50/70 border-emerald-200' : 'bg-amber-50/70 border-amber-200'} space-y-2">
-                                <div class="flex flex-wrap items-center justify-between gap-2">
-                                    <h3 class="font-bold flex items-center gap-2 text-sm ${decl ? 'text-emerald-900' : 'text-amber-900'}">
-                                        <i class="fa-solid ${decl ? 'fa-boxes-packing text-emerald-600' : 'fa-triangle-exclamation text-amber-600'}"></i>
-                                        ${decl ? 'Thông tin hàng hóa khai báo vận chuyển' : 'Khai báo thông tin hàng hóa vận chuyển'}
-                                    </h3>
-                                    <button onclick="openCargoModal('${item.wonId}')" class="px-3.5 py-1.5 rounded-xl text-xs font-bold ${decl ? 'bg-emerald-600 hover:bg-emerald-700 text-white' : 'bg-amber-600 hover:bg-amber-700 text-white'} transition shadow flex items-center gap-1.5 cursor-pointer">
-                                        <i class="fa-solid ${decl ? 'fa-pen-to-square' : 'fa-plus'}"></i>
-                                        ${decl ? 'Chỉnh sửa khai báo' : 'Điền thông tin hàng hóa'}
-                                    </button>
-                                </div>
-
-                                ${decl ? `
-                                    <div class="grid grid-cols-1 md:grid-cols-3 gap-3 pt-1 text-slate-700">
-                                        <div>
-                                            <p class="text-gray-500 text-[11px]">Mặt hàng & Loại hàng:</p>
-                                            <p class="font-bold text-slate-900">${decl.cargoName} <span class="text-emerald-700 font-medium">(${decl.cargoType})</span></p>
+                            ${(() => {
+                                const lockCheck = isCargoDeclarationLocked(item);
+                                if (lockCheck.isLocked) {
+                                    if (decl) {
+                                        return `
+                                            <div class="rounded-xl p-4 border text-xs bg-slate-50 border-slate-200 space-y-2">
+                                                <div class="flex flex-wrap items-center justify-between gap-2">
+                                                    <h3 class="font-bold flex items-center gap-2 text-sm text-slate-800">
+                                                        <i class="fa-solid fa-lock text-slate-500"></i>
+                                                        Thông tin hàng hóa (Đã khóa hồ sơ cố định)
+                                                    </h3>
+                                                    <button onclick="openCargoModal('${item.wonId}')" class="px-3.5 py-1.5 rounded-xl text-xs font-semibold bg-white border border-slate-300 hover:bg-slate-100 text-slate-700 transition flex items-center gap-1.5 cursor-pointer">
+                                                        <i class="fa-solid fa-eye text-slate-500"></i> Xem hồ sơ (Đã khóa)
+                                                    </button>
+                                                </div>
+                                                <div class="grid grid-cols-1 md:grid-cols-3 gap-3 pt-1 text-slate-700">
+                                                    <div>
+                                                        <p class="text-gray-500 text-[11px]">Mặt hàng & Loại hàng:</p>
+                                                        <p class="font-bold text-slate-900">${decl.cargoName} <span class="text-slate-600 font-medium">(${decl.cargoType})</span></p>
+                                                    </div>
+                                                    <div>
+                                                        <p class="text-gray-500 text-[11px]">Trọng lượng & Quy cách:</p>
+                                                        <p class="font-bold text-blue-600">${store ? store.formatNumber(decl.grossWeightKg || 0) : decl.grossWeightKg} Kg <span class="text-slate-700 font-normal text-[11px]">(${decl.piecesCount} kiện / ${decl.volumeCbm} m³)</span></p>
+                                                    </div>
+                                                    <div>
+                                                        <p class="text-gray-500 text-[11px]">Đơn vị Nhận hàng / HAWB:</p>
+                                                        <p class="font-bold text-slate-900">${decl.consigneeName} <span class="font-mono text-blue-600 font-bold">(${decl.hawbNumber || 'Chưa gắn HAWB'})</span></p>
+                                                    </div>
+                                                </div>
+                                                <p class="text-[11px] text-slate-500 italic border-t pt-1 mt-1"><i class="fa-solid fa-circle-info"></i> ${lockCheck.reason}</p>
+                                            </div>
+                                        `;
+                                    } else {
+                                        return `
+                                            <div class="rounded-xl p-4 border text-xs bg-red-50/80 border-red-200 space-y-2">
+                                                <div class="flex flex-wrap items-center justify-between gap-2">
+                                                    <h3 class="font-bold flex items-center gap-2 text-sm text-red-900">
+                                                        <i class="fa-solid fa-circle-xmark text-red-600"></i>
+                                                        Chưa khai báo - ĐÃ QUÁ HẠN CUT-OFF
+                                                    </h3>
+                                                    <button disabled class="px-3.5 py-1.5 rounded-xl text-xs font-bold bg-red-100 text-red-700 border border-red-200 cursor-not-allowed flex items-center gap-1.5">
+                                                        <i class="fa-solid fa-ban text-red-500"></i> Đã hết hạn khai báo
+                                                    </button>
+                                                </div>
+                                                <p class="text-red-800 font-medium">
+                                                    ❌ Đơn hàng chưa được khai báo và đã <strong>quá hạn chót Cut-off tiếp nhận chứng từ</strong>. Quý đại lý không thể gửi khai báo mới. Vui lòng liên hệ trực tiếp Ban Quản trị Vietravel Airlines nếu cần hỗ trợ khẩn cấp.
+                                                </p>
+                                            </div>
+                                        `;
+                                    }
+                                } else if (decl) {
+                                    return `
+                                        <div class="rounded-xl p-4 border text-xs bg-emerald-50/70 border-emerald-200 space-y-2">
+                                            <div class="flex flex-wrap items-center justify-between gap-2">
+                                                <h3 class="font-bold flex items-center gap-2 text-sm text-emerald-900">
+                                                    <i class="fa-solid fa-boxes-packing text-emerald-600"></i>
+                                                    Thông tin hàng hóa khai báo vận chuyển
+                                                </h3>
+                                                <button onclick="openCargoModal('${item.wonId}')" class="px-3.5 py-1.5 rounded-xl text-xs font-bold bg-emerald-600 hover:bg-emerald-700 text-white transition shadow flex items-center gap-1.5 cursor-pointer">
+                                                    <i class="fa-solid fa-pen-to-square"></i> Chỉnh sửa khai báo
+                                                </button>
+                                            </div>
+                                            <div class="grid grid-cols-1 md:grid-cols-3 gap-3 pt-1 text-slate-700">
+                                                <div>
+                                                    <p class="text-gray-500 text-[11px]">Mặt hàng & Loại hàng:</p>
+                                                    <p class="font-bold text-slate-900">${decl.cargoName} <span class="text-emerald-700 font-medium">(${decl.cargoType})</span></p>
+                                                </div>
+                                                <div>
+                                                    <p class="text-gray-500 text-[11px]">Trọng lượng & Quy cách:</p>
+                                                    <p class="font-bold text-blue-600">${store ? store.formatNumber(decl.grossWeightKg || 0) : decl.grossWeightKg} Kg <span class="text-slate-700 font-normal text-[11px]">(${decl.piecesCount} kiện / ${decl.volumeCbm} m³)</span></p>
+                                                </div>
+                                                <div>
+                                                    <p class="text-gray-500 text-[11px]">Đơn vị Nhận hàng / HAWB:</p>
+                                                    <p class="font-bold text-slate-900">${decl.consigneeName} <span class="font-mono text-blue-600 font-bold">(${decl.hawbNumber || 'Chưa gắn HAWB'})</span></p>
+                                                </div>
+                                            </div>
+                                            ${decl.specialNotes ? `
+                                                <div class="mt-1 text-amber-900 font-semibold text-[11px] bg-amber-100/70 border border-amber-200/80 rounded-lg px-2.5 py-1.5 inline-block">
+                                                    <i class="fa-solid fa-triangle-exclamation text-amber-600"></i> Yêu cầu đặc biệt: ${decl.specialNotes}
+                                                </div>
+                                            ` : ''}
                                         </div>
-                                        <div>
-                                            <p class="text-gray-500 text-[11px]">Trọng lượng & Quy cách:</p>
-                                            <p class="font-bold text-blue-600">${store ? store.formatNumber(decl.grossWeightKg || 0) : decl.grossWeightKg} Kg <span class="text-slate-700 font-normal text-[11px]">(${decl.piecesCount} kiện / ${decl.volumeCbm} m³)</span></p>
+                                    `;
+                                } else {
+                                    return `
+                                        <div class="rounded-xl p-4 border text-xs bg-amber-50/70 border-amber-200 space-y-2">
+                                            <div class="flex flex-wrap items-center justify-between gap-2">
+                                                <h3 class="font-bold flex items-center gap-2 text-sm text-amber-900">
+                                                    <i class="fa-solid fa-triangle-exclamation text-amber-600"></i>
+                                                    Khai báo thông tin hàng hóa vận chuyển
+                                                </h3>
+                                                <button onclick="openCargoModal('${item.wonId}')" class="px-3.5 py-1.5 rounded-xl text-xs font-bold bg-amber-600 hover:bg-amber-700 text-white transition shadow flex items-center gap-1.5 cursor-pointer">
+                                                    <i class="fa-solid fa-plus"></i> Điền thông tin hàng hóa
+                                                </button>
+                                            </div>
+                                            <p class="text-amber-800 font-medium">
+                                                Quý đại lý chưa khai báo chi tiết lô hàng! Vui lòng điền thông tin hàng hóa trước hạn chót Cut-off để Ban Khai thác Vietravel Airlines sắp xếp slot và phát hành lệnh giao nhận kho.
+                                            </p>
                                         </div>
-                                        <div>
-                                            <p class="text-gray-500 text-[11px]">Đơn vị Nhận hàng / HAWB:</p>
-                                            <p class="font-bold text-slate-900">${decl.consigneeName} <span class="font-mono text-blue-600 font-bold">(${decl.hawbNumber || 'Chưa gắn HAWB'})</span></p>
-                                        </div>
-                                    </div>
-                                    ${decl.specialNotes ? `
-                                        <div class="mt-1 text-amber-900 font-semibold text-[11px] bg-amber-100/70 border border-amber-200/80 rounded-lg px-2.5 py-1.5 inline-block">
-                                            <i class="fa-solid fa-triangle-exclamation text-amber-600"></i> Yêu cầu đặc biệt: ${decl.specialNotes}
-                                        </div>
-                                    ` : ''}
-                                ` : `
-                                    <p class="text-amber-800 font-medium">
-                                        Quý đại lý chưa khai báo chi tiết lô hàng! Vui lòng điền thông tin hàng hóa (loại hàng, số kiện, CBM, House AWB, Consignee...) để Ban Khai thác Vietravel Airlines sắp xếp slot và phát hành lệnh giao nhận kho.
-                                    </p>
-                                `}
-                            </div>
+                                    `;
+                                }
+                            })()}
 
                             <!-- Cut-off & Delivery instructions -->
                             <div class="bg-blue-50/60 border border-blue-200/80 rounded-xl p-4 text-xs space-y-2">
