@@ -177,6 +177,8 @@
 
                 <div class="space-y-3" id="adminPendingRegistrations">
                     <!-- Populated by JS -->
+                </div>
+            </div>
         </div>
 
         <!-- Latest Cargo Declarations Section -->
@@ -315,19 +317,27 @@
 
             // 6. Pending Registrations queue
             const regBox = document.getElementById('adminPendingRegistrations');
-            if (pendings.length === 0) {
-                regBox.innerHTML = `<p class="text-xs text-gray-400 text-center py-6">Không có hồ sơ nào chờ duyệt</p>`;
-            } else {
-                regBox.innerHTML = pendings.slice(0, 3).map(r => `
-                    <div class="p-3.5 rounded-xl border border-slate-200 bg-slate-50 hover:bg-white transition text-xs space-y-2">
-                        <div class="flex items-center justify-between">
-                            <span class="font-mono font-bold text-blue-600">${r.regId}</span>
-                            <span class="text-[10px] text-gray-400">${r.submittedAt}</span>
+            if (regBox) {
+                if (pendings.length === 0) {
+                    regBox.innerHTML = `<p class="text-xs text-gray-400 text-center py-6">Không có hồ sơ nào chờ duyệt</p>`;
+                } else {
+                    regBox.innerHTML = pendings.slice(0, 3).map(r => `
+                        <div class="p-3.5 rounded-xl border border-slate-200 bg-slate-50 hover:bg-white transition text-xs space-y-2">
+                            <div class="flex items-center justify-between">
+                                <span class="font-mono font-bold text-blue-600">${r.regId}</span>
+                                <span class="text-[10px] text-gray-400">${r.submittedAt}</span>
+                            </div>
+                            <div>
+                                <p class="font-bold text-slate-800">${r.companyName}</p>
+                                <p class="text-[11px] text-gray-500">Người đại diện: ${r.repName} · ${r.phone}</p>
+                            </div>
+                            <div class="flex items-center justify-end gap-2 pt-1 border-t border-slate-200/60">
+                                <a href="06-AgentList.html" class="px-2.5 py-1 bg-blue-600 text-white rounded-lg font-semibold hover:bg-blue-700 transition">Xét duyệt</a>
+                            </div>
                         </div>
-                        <div>
-                            <p class="font-bold text-slate-800">${r.companyName}</p>
-                            <p class="text-[11px] text-gray-500">Người đại diện: ${r.repName} · ${r.phone}</p>
-            // 7. Won Auctions Cargo Declarations table
+                    `).join('');
+                }
+            }
             const cargoTbody = document.getElementById('dashCargoTableBody');
             if (cargoTbody) {
                 const wonList = data.wonAuctions || [];
