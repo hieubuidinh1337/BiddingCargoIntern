@@ -573,6 +573,20 @@ const CargoStore = (function() {
                 });
             }
 
+            // Purge credentials from any existing notifications
+            if (data.notifications && Array.isArray(data.notifications)) {
+                data.notifications.forEach(n => {
+                    if (n && n.message && n.message.includes('Mật khẩu đăng nhập:')) {
+                        n.message = n.message.replace(/Mật khẩu đăng nhập:.*?(?=Quý công ty|$)/, 'Quý công ty vui lòng sử dụng Mã Đại lý cùng Mật khẩu và Mã PIN đã đăng ký để đăng nhập vào Sàn Đấu giá Cargo. ');
+                        n.message = n.message.replace(/\s+/g, ' ').trim();
+                        if (n.title && n.title.includes('[EMAIL THÔNG BÁO]')) {
+                            n.title = n.title.replace('[EMAIL THÔNG BÁO] ', '');
+                        }
+                        updated = true;
+                    }
+                });
+            }
+
             if (!raw || updated) {
                 saveData(data);
             }
@@ -1642,7 +1656,18 @@ const CargoStore = (function() {
         getNotifications: function() {
             const data = loadData();
             const user = data.currentUser;
-            const allNotifs = data.notifications || [];
+            let allNotifs = data.notifications || [];
+            allNotifs = allNotifs.map(n => {
+                if (n && n.message && n.message.includes('Mật khẩu đăng nhập:')) {
+                    const cleanedMessage = n.message.replace(/Mật khẩu đăng nhập:.*?(?=Quý công ty|$)/, 'Quý công ty vui lòng sử dụng Mã Đại lý cùng Mật khẩu và Mã PIN đã đăng ký để đăng nhập vào Sàn Đấu giá Cargo. ');
+                    return { 
+                        ...n, 
+                        title: (n.title || '').replace('[EMAIL THÔNG BÁO] ', ''),
+                        message: cleanedMessage.replace(/\s+/g, ' ').trim() 
+                    };
+                }
+                return n;
+            });
             if (!user || !user.agentCode) return allNotifs;
             // Only return notifications intended for this specific agent, or system broadcasts
             return allNotifs.filter(n => !n.targetAgentCode || n.targetAgentCode === user.agentCode);
@@ -1823,8 +1848,8 @@ const CargoStore = (function() {
                 timestamp: now,
                 targetAgentCode: newCode,
                 targetEmail: reg.email,
-                title: `[EMAIL THÔNG BÁO] Phê duyệt Hồ sơ & Cấp Mã Đại lý ${newCode}`,
-                message: `Kính gửi ${reg.repName} (${reg.companyName}), Ban Điều hành Hãng hàng không xin thông báo: Hồ sơ đăng ký của Quý doanh nghiệp đã được PHÊ DUYỆT thành công! Mã Đại lý chính thức của Quý công ty là: ${newCode}. Mật khẩu đăng nhập: ${agentPwd} (Mã PIN Security: ${agentPin}). Quý công ty có thể sử dụng Mã Đại lý này để đăng nhập vào Sàn Đấu giá Cargo.`,
+                title: `Phê duyệt Hồ sơ & Cấp Mã Đại lý ${newCode}`,
+                message: `Kính gửi ${reg.repName} (${reg.companyName}), Ban Điều hành Hãng hàng không xin thông báo: Hồ sơ đăng ký của Quý doanh nghiệp đã được PHÊ DUYỆT thành công! Mã Đại lý chính thức của Quý công ty là: ${newCode}. Quý công ty vui lòng sử dụng Mã Đại lý cùng Mật khẩu và Mã PIN đã đăng ký để đăng nhập vào Sàn Đấu giá Cargo.`,
                 time: formatTimeAgo(now),
                 type: 'SYSTEM',
                 read: false,
