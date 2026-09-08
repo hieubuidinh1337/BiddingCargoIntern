@@ -129,6 +129,9 @@
                         </tbody>
                     </table>
                 </div>
+                <!-- Pagination Container for Tab 1 -->
+                <div id="allPaginationContainer" class="px-6 py-3 bg-slate-50 border-t flex flex-col sm:flex-row items-center justify-between gap-3 text-xs">
+                </div>
             </div>
         </div>
 
@@ -163,6 +166,9 @@
                             <!-- Populated by JS -->
                         </tbody>
                     </table>
+                </div>
+                <!-- Pagination Container for Tab 2 -->
+                <div id="openPaginationContainer" class="px-6 py-3 bg-slate-50 border-t flex flex-col sm:flex-row items-center justify-between gap-3 text-xs">
                 </div>
             </div>
         </div>
@@ -526,6 +532,119 @@
             `;
         }
 
+        // --- Pagination State & Helper ---
+        let allCurrentPage = 1;
+        let allPageSize = 10;
+
+        let openCurrentPage = 1;
+        let openPageSize = 10;
+
+        function setAllPageSize(size) {
+            allPageSize = Number(size) || 10;
+            allCurrentPage = 1;
+            renderAuctionsTable();
+        }
+
+        function goToAllPage(page) {
+            allCurrentPage = page;
+            renderAuctionsTable();
+        }
+
+        function setOpenPageSize(size) {
+            openPageSize = Number(size) || 10;
+            openCurrentPage = 1;
+            renderAuctionsTable();
+        }
+
+        function goToOpenPage(page) {
+            openCurrentPage = page;
+            renderAuctionsTable();
+        }
+
+        function renderPaginationControls({ currentPage, totalItems, pageSize, onPageChangeName, onPageSizeChangeName, containerId, itemUnitLabel = 'phiên' }) {
+            const container = document.getElementById(containerId);
+            if (!container) return;
+
+            if (totalItems === 0) {
+                container.innerHTML = '';
+                return;
+            }
+
+            const totalPages = Math.ceil(totalItems / pageSize) || 1;
+            let page = currentPage;
+            if (page > totalPages) page = totalPages;
+            if (page < 1) page = 1;
+
+            const startItem = (page - 1) * pageSize + 1;
+            const endItem = Math.min(page * pageSize, totalItems);
+
+            const pages = [];
+            if (totalPages <= 7) {
+                for (let i = 1; i <= totalPages; i++) pages.push(i);
+            } else {
+                pages.push(1);
+                if (page > 3) pages.push('...');
+                const start = Math.max(2, page - 1);
+                const end = Math.min(totalPages - 1, page + 1);
+                for (let i = start; i <= end; i++) {
+                    if (!pages.includes(i)) pages.push(i);
+                }
+                if (page < totalPages - 2) pages.push('...');
+                if (!pages.includes(totalPages)) pages.push(totalPages);
+            }
+
+            const pageButtonsHtml = pages.map(p => {
+                if (p === '...') {
+                    return `<span class="px-2 py-1 text-slate-400 font-semibold select-none">...</span>`;
+                }
+                const isActive = p === page;
+                if (isActive) {
+                    return `<button class="w-7 h-7 rounded-full bg-blue-600 text-white font-bold text-xs flex items-center justify-center shadow-xs cursor-default">${p}</button>`;
+                } else {
+                    return `<button onclick="${onPageChangeName}(${p})" class="w-7 h-7 rounded-full text-slate-600 hover:bg-slate-200 font-semibold text-xs flex items-center justify-center transition cursor-pointer">${p}</button>`;
+                }
+            }).join('');
+
+            const prevDisabled = page <= 1;
+            const nextDisabled = page >= totalPages;
+
+            const prevBtn = `
+                <button ${prevDisabled ? 'disabled' : `onclick="${onPageChangeName}(${page - 1})"`} 
+                        class="px-2.5 py-1 text-slate-600 hover:text-blue-600 disabled:opacity-30 disabled:hover:text-slate-600 font-bold transition flex items-center gap-1 cursor-pointer disabled:cursor-not-allowed" title="Trang trước">
+                    <i class="fa-solid fa-arrow-left text-xs"></i>
+                </button>
+            `;
+
+            const nextBtn = `
+                <button ${nextDisabled ? 'disabled' : `onclick="${onPageChangeName}(${page + 1})"`} 
+                        class="px-2.5 py-1 text-slate-600 hover:text-blue-600 disabled:opacity-30 disabled:hover:text-slate-600 font-bold transition flex items-center gap-1 cursor-pointer disabled:cursor-not-allowed" title="Trang sau">
+                    <i class="fa-solid fa-arrow-right text-xs"></i>
+                </button>
+            `;
+
+            container.innerHTML = `
+                <div class="flex items-center gap-3 text-slate-500">
+                    <span>Hiển thị <strong>${startItem} - ${endItem}</strong> trên tổng số <strong>${totalItems}</strong> ${itemUnitLabel}</span>
+                    <div class="flex items-center gap-1 ml-2">
+                        <span class="text-[11px] text-slate-400">Dòng/Trang:</span>
+                        <select onchange="${onPageSizeChangeName}(this.value)" class="border rounded-lg px-2 py-1 text-xs bg-white text-slate-700 font-semibold outline-none focus:ring-1 focus:ring-blue-500 cursor-pointer">
+                            <option value="5" ${pageSize === 5 ? 'selected' : ''}>5</option>
+                            <option value="10" ${pageSize === 10 ? 'selected' : ''}>10</option>
+                            <option value="20" ${pageSize === 20 ? 'selected' : ''}>20</option>
+                            <option value="50" ${pageSize === 50 ? 'selected' : ''}>50</option>
+                        </select>
+                    </div>
+                </div>
+                <div class="inline-flex items-center gap-1 bg-white border border-slate-300 rounded-xl p-1 shadow-2xs">
+                    ${prevBtn}
+                    <div class="flex items-center gap-1 px-1">
+                        ${pageButtonsHtml}
+                    </div>
+                    ${nextBtn}
+                </div>
+            `;
+        }
+
         function renderAuctionsTable() {
             if (typeof CargoStore === 'undefined') return;
             const data = CargoStore.getData();
@@ -550,24 +669,63 @@
                 );
             }
 
+            // Pagination for Tab 1: All Auctions
+            const totalAllItems = list.length;
+            const totalAllPages = Math.ceil(totalAllItems / allPageSize) || 1;
+            if (allCurrentPage > totalAllPages) allCurrentPage = totalAllPages;
+            if (allCurrentPage < 1) allCurrentPage = 1;
+
+            const startIndex = (allCurrentPage - 1) * allPageSize;
+            const endIndex = Math.min(startIndex + allPageSize, totalAllItems);
+            const paginatedList = list.slice(startIndex, endIndex);
+
             const tbody = document.getElementById('auctionsTableBody');
             if (tbody) {
-                if (list.length === 0) {
+                if (totalAllItems === 0) {
                     tbody.innerHTML = `<tr><td colspan="7" class="py-12 text-center text-gray-400">Không tìm thấy phiên đấu giá nào</td></tr>`;
                 } else {
-                    tbody.innerHTML = list.map(a => renderAuctionRow(a, data)).join('');
+                    tbody.innerHTML = paginatedList.map(a => renderAuctionRow(a, data)).join('');
                 }
             }
+
+            renderPaginationControls({
+                currentPage: allCurrentPage,
+                totalItems: totalAllItems,
+                pageSize: allPageSize,
+                onPageChangeName: 'goToAllPage',
+                onPageSizeChangeName: 'setAllPageSize',
+                containerId: 'allPaginationContainer',
+                itemUnitLabel: 'phiên'
+            });
 
             // Populate Tab 2: Open auctions table
             const tbodyOpen = document.getElementById('openAuctionsTableBody');
             if (tbodyOpen) {
                 const openList = (data.auctions || []).filter(a => a.status === 'OPEN');
-                if (openList.length === 0) {
+                const totalOpenItems = openList.length;
+                const totalOpenPages = Math.ceil(totalOpenItems / openPageSize) || 1;
+                if (openCurrentPage > totalOpenPages) openCurrentPage = totalOpenPages;
+                if (openCurrentPage < 1) openCurrentPage = 1;
+
+                const openStartIndex = (openCurrentPage - 1) * openPageSize;
+                const openEndIndex = Math.min(openStartIndex + openPageSize, totalOpenItems);
+                const paginatedOpenList = openList.slice(openStartIndex, openEndIndex);
+
+                if (totalOpenItems === 0) {
                     tbodyOpen.innerHTML = `<tr><td colspan="7" class="py-12 text-center text-gray-400"><i class="fa-solid fa-inbox text-2xl mb-1 block"></i>Hiện tại không có chuyến bay nào đang mở đấu giá.</td></tr>`;
                 } else {
-                    tbodyOpen.innerHTML = openList.map(a => renderAuctionRow(a, data)).join('');
+                    tbodyOpen.innerHTML = paginatedOpenList.map(a => renderAuctionRow(a, data)).join('');
                 }
+
+                renderPaginationControls({
+                    currentPage: openCurrentPage,
+                    totalItems: totalOpenItems,
+                    pageSize: openPageSize,
+                    onPageChangeName: 'goToOpenPage',
+                    onPageSizeChangeName: 'setOpenPageSize',
+                    containerId: 'openPaginationContainer',
+                    itemUnitLabel: 'phiên đang mở'
+                });
             }
         }
 
@@ -910,6 +1068,16 @@
                     </tr>
                 `;
             }).join('');
+
+            renderPaginationControls({
+                currentPage: wonCurrentPage,
+                totalItems: totalItems,
+                pageSize: wonPageSize,
+                onPageChangeName: 'goToWonPage',
+                onPageSizeChangeName: 'setWonPageSize',
+                containerId: 'wonPaginationContainer',
+                itemUnitLabel: 'đơn thắng thầu'
+            });
         }
 
         function viewAdminCargoModal(wonId) {
