@@ -84,12 +84,15 @@
                     <h2 id="dashWelcomeName" class="text-2xl font-bold tracking-tight">Xin chào, Nguyễn Văn An</h2>
                     <p id="dashCompanyInfo" class="text-slate-300 text-sm mt-1">Công ty TNHH Vận tải ABC Logistics · Hôm nay có <strong>28 chuyến bay</strong> mở thầu tải trọng cargo.</p>
                 </div>
-                <div class="flex items-center gap-3">
-                    <a href="03-Index.html" class="bg-blue-500 hover:bg-blue-400 text-white font-semibold text-sm px-5 py-2.5 rounded-xl transition shadow flex items-center gap-2">
+                <div class="flex flex-wrap items-center gap-2.5">
+                    <a href="03-Index.html" class="bg-blue-500 hover:bg-blue-400 text-white font-semibold text-xs sm:text-sm px-4 py-2.5 rounded-xl transition shadow flex items-center gap-2">
                         <i class="fa-solid fa-gavel"></i> Vào Sàn Đấu Giá
                     </a>
-                    <a href="07-WonAuction.html" class="bg-white/10 hover:bg-white/20 border border-white/20 text-white text-sm font-medium px-4 py-2.5 rounded-xl transition">
-                        Đơn hàng cần thanh toán (<span id="dashUnpaidCount">1</span>)
+                    <a href="07-WonAuction.html?status=UNPAID" class="bg-white/10 hover:bg-white/20 border border-white/20 text-white text-xs sm:text-sm font-medium px-3.5 py-2.5 rounded-xl transition flex items-center gap-1.5" title="Đơn thắng thầu chưa thanh toán">
+                        <i class="fa-solid fa-credit-card text-emerald-400"></i> Đơn hàng cần thanh toán (<span id="dashUnpaidCount" class="font-bold text-white">0</span>)
+                    </a>
+                    <a href="07-WonAuction.html?status=UNDECLARED" class="bg-amber-500/20 hover:bg-amber-500/30 border border-amber-400/40 text-amber-200 text-xs sm:text-sm font-medium px-3.5 py-2.5 rounded-xl transition flex items-center gap-1.5" title="Đơn thắng thầu chưa khai báo hàng hóa">
+                        <i class="fa-solid fa-boxes-packing text-amber-400"></i> Đơn hàng cần khai báo (<span id="dashUndeclaredCount" class="font-bold text-amber-300">0</span>)
                     </a>
                 </div>
             </div>
@@ -247,10 +250,15 @@
             const kpiWins = document.getElementById('kpiWins');
             if (kpiWins) kpiWins.innerHTML = `${wonAuctions.length} <span class="text-xs text-gray-400 font-normal">đơn</span>`;
 
-            // === Unpaid count ===
-            const unpaidCount = wonAuctions.filter(w => w.paymentStatus === 'UNPAID').length;
+            // === Unpaid & Undeclared counts ===
+            const unpaidCount = wonAuctions.filter(w => w.paymentStatus !== 'PAID').length;
+            const undeclaredCount = wonAuctions.filter(w => !w.cargoDeclaration).length;
+
             const dashUnpaid = document.getElementById('dashUnpaidCount');
             if (dashUnpaid) dashUnpaid.textContent = unpaidCount;
+
+            const dashUndeclared = document.getElementById('dashUndeclaredCount');
+            if (dashUndeclared) dashUndeclared.textContent = undeclaredCount;
 
             // === Render Featured Open Auctions ===
             const container = document.getElementById('dashboardAuctionList');

@@ -89,12 +89,14 @@
                        class="w-full border rounded-xl pl-9 pr-4 py-2 text-xs focus:ring-2 focus:ring-blue-500 outline-none">
             </div>
 
-            <div class="w-full md:w-48">
+            <div class="w-full md:w-56">
                 <select id="wonStatusFilter" onchange="renderWonAuctions()" class="w-full border rounded-xl px-3 py-2 text-xs focus:ring-2 focus:ring-blue-500 outline-none bg-white font-medium">
                     <option value="ALL">Tất cả trạng thái</option>
-                    <option value="PAID">Đã thanh toán</option>
-                    <option value="PENDING">Chờ Admin xác nhận</option>
                     <option value="UNPAID">Chưa thanh toán</option>
+                    <option value="UNDECLARED">Chưa khai báo hàng hóa</option>
+                    <option value="DECLARED">Đã khai báo hàng hóa</option>
+                    <option value="PENDING">Chờ Admin xác nhận thanh toán</option>
+                    <option value="PAID">Đã hoàn tất thanh toán</option>
                 </select>
             </div>
 
@@ -1232,13 +1234,17 @@
                 });
             }
 
-            // Payment Status Filter
+            // Payment & Cargo Declaration Status Filter
             if (statusFilter === 'PAID') {
                 list = list.filter(item => item.paymentStatus === 'PAID');
             } else if (statusFilter === 'PENDING') {
                 list = list.filter(item => item.paymentStatus === 'PENDING_VERIFICATION');
             } else if (statusFilter === 'UNPAID') {
                 list = list.filter(item => item.paymentStatus !== 'PAID' && item.paymentStatus !== 'PENDING_VERIFICATION');
+            } else if (statusFilter === 'UNDECLARED') {
+                list = list.filter(item => !item.cargoDeclaration);
+            } else if (statusFilter === 'DECLARED') {
+                list = list.filter(item => !!item.cargoDeclaration);
             }
 
             // Sorting Logic
@@ -1498,7 +1504,14 @@
             }
         }
 
-        document.addEventListener('DOMContentLoaded', renderWonAuctions);
+        document.addEventListener('DOMContentLoaded', function() {
+            const urlParams = new URLSearchParams(window.location.search);
+            const statusParam = urlParams.get('status') || urlParams.get('filter');
+            if (statusParam && document.getElementById('wonStatusFilter')) {
+                document.getElementById('wonStatusFilter').value = statusParam;
+            }
+            renderWonAuctions();
+        });
 
         // Cross-tab sync
         window.addEventListener('storage', function(e) {
