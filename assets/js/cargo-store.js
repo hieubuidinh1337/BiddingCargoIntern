@@ -685,6 +685,97 @@ const CargoStore = (function() {
         return `Trước ETD ${offsetHours} giờ`;
     }
 
+    function calculatePaymentDeadline(auction, nowDate = new Date()) {
+        const nowMs = nowDate.getTime();
+        const default24hMs = nowMs + 24 * 60 * 60 * 1000;
+
+        if (!auction || !auction.etd) return new Date(default24hMs).toISOString();
+
+        const cleanStr = String(auction.etd).replace(/·|-/g, ' ').replace(/\s+/g, ' ').trim();
+        let hours = null, minutes = null, day = null, month = null, year = null;
+
+        const p1 = cleanStr.match(/^(\d{1,2}):(\d{2})\s+(\d{1,2})\/(\d{1,2})\/(\d{4})$/);
+        const p2 = cleanStr.match(/^(\d{1,2})\/(\d{1,2})\/(\d{4})\s+(\d{1,2}):(\d{2})$/);
+        const p3 = cleanStr.match(/^(\d{4})-(\d{2})-(\d{2})T(\d{2}):(\d{2})/);
+
+        if (p1) {
+            hours = parseInt(p1[1], 10);
+            minutes = parseInt(p1[2], 10);
+            day = parseInt(p1[3], 10);
+            month = parseInt(p1[4], 10) - 1;
+            year = parseInt(p1[5], 10);
+        } else if (p2) {
+            day = parseInt(p2[1], 10);
+            month = parseInt(p2[2], 10) - 1;
+            year = parseInt(p2[3], 10);
+            hours = parseInt(p2[4], 10);
+            minutes = parseInt(p2[5], 10);
+        } else if (p3) {
+            year = parseInt(p3[1], 10);
+            month = parseInt(p3[2], 10) - 1;
+            day = parseInt(p3[3], 10);
+            hours = parseInt(p3[4], 10);
+            minutes = parseInt(p3[5], 10);
+        }
+
+        let cutOffMs = null;
+        if (hours !== null && day !== null && year !== null) {
+            const cutOffDate = new Date(year, month, day, hours, minutes);
+            cutOffDate.setHours(cutOffDate.getHours() - 3);
+            cutOffMs = cutOffDate.getTime();
+        } else {
+            const d = new Date(auction.etd);
+            if (!isNaN(d.getTime())) {
+                d.setHours(d.getHours() - 3);
+                cutOffMs = d.getTime();
+            }
+        }
+
+        if (cutOffMs) {
+            if (cutOffMs - nowMs < 24 * 60 * 60 * 1000) {
+                if (cutOffMs > nowMs) {
+                    return new Date(cutOffMs).toISOString();
+                } else {
+                    return new Date(nowMs + 2 * 60 * 60 * 1000).toISOString();
+                }
+            }
+        }
+
+        return new Date(default24hMs).toISOString();
+    }
+
+    function formatPaymentDeadlineText(auction, paymentDeadlineIso) {
+        if (!paymentDeadlineIso) return 'Trong vòng 24 giờ kể từ thời điểm chốt thầu';
+        const dlDate = new Date(paymentDeadlineIso);
+        if (isNaN(dlDate.getTime())) return 'Trong vòng 24 giờ kể me thời điểm chốt thầu';
+
+        const pad = n => String(n).padStart(2, '0');
+        const dlFormatted = `${pad(dlDate.getHours())}:${pad(dlDate.getMinutes())} ngày ${pad(dlDate.getDate())}/${pad(dlDate.getMonth() + 1)}/${dlDate.getFullYear()}`;
+
+        if (auction && auction.etd) {
+            const etdClean = String(auction.etd).replace(/·|-/g, ' ').replace(/\s+/g, ' ').trim();
+            const p1 = etdClean.match(/^(\d{1,2}):(\d{2})\s+(\d{1,2})\/(\d{1,2})\/(\d{4})$/);
+            const p2 = etdClean.match(/^(\d{1,2})\/(\d{1,2})\/(\d{4})\s+(\d{1,2}):(\d{2})$/);
+            const p3 = etdClean.match(/^(\d{4})-(\d{2})-(\d{2})T(\d{2}):(\d{2})/);
+            let h = null, d = null, m = null, y = null, mins = null;
+
+            if (p1) { h = parseInt(p1[1], 10); mins = parseInt(p1[2], 10); d = parseInt(p1[3], 10); m = parseInt(p1[4], 10)-1; y = parseInt(p1[5], 10); }
+            else if (p2) { d = parseInt(p2[1], 10); m = parseInt(p2[2], 10)-1; y = parseInt(p2[3], 10); h = parseInt(p2[4], 10); mins = parseInt(p2[5], 10); }
+            else if (p3) { y = parseInt(p3[1], 10); m = parseInt(p3[2], 10)-1; d = parseInt(p3[3], 10); h = parseInt(p3[4], 10); mins = parseInt(p3[5], 10); }
+
+            if (h !== null && d !== null) {
+                const etdDate = new Date(y, m, d, h, mins);
+                const cutOffMs = etdDate.getTime() - 3 * 3600 * 1000;
+                const diffHoursFromNow = (cutOffMs - Date.now()) / (3600 * 1000);
+                if (diffHoursFromNow < 24) {
+                    return `${dlFormatted} (Trước Cut-off kho do bay trong ngày)`;
+                }
+            }
+        }
+
+        return `${dlFormatted} (Hạn 24 tiếng)`;
+    }
+
     return {
         getData: loadData,
         saveData: saveData,
@@ -693,6 +784,8 @@ const CargoStore = (function() {
         getTimeRemaining: getTimeRemaining,
         formatTimeAgo: formatTimeAgo,
         calculateCutOffTime: calculateCutOffTime,
+        calculatePaymentDeadline: calculatePaymentDeadline,
+        formatPaymentDeadlineText: formatPaymentDeadlineText,
 
         /**
          * Dynamic Agent Login checking each agent's SPECIFIC password
