@@ -185,93 +185,97 @@ const CargoStore = (function() {
         auctions: [
             {
                 id: 1,
-                flightCode: 'FL-VU130-260815',
+                flightCode: 'FL-VU130-260909',
                 flightNumber: 'VU130',
                 route: 'SGN - HAN',
                 origin: 'SGN',
                 destination: 'HAN',
                 originName: 'TP. Hồ Chí Minh',
                 destName: 'Hà Nội',
-                etd: '14:30 · 15/08/2026',
-                eta: '16:45 · 15/08/2026',
+                etd: '14:30 · 09/09/2026',
+                eta: '16:45 · 09/09/2026',
+                etdIso: '2026-09-09T07:30:00.000Z',
                 aircraft: 'Airbus A321neo Cargo',
                 capacityKg: 3500,
                 startingPriceKg: 18000,
                 currentPriceKg: 21500,
                 minStep: 500,
-                endTime: new Date(Date.now() + 42 * 60 * 1000).toISOString(),
+                endTime: new Date(Date.now() + 4 * 3600 * 1000).toISOString(),
                 status: 'OPEN',
                 leadingAgentCode: 'AG-0892',
                 leadingAgentName: 'ABC Logistics',
                 bidsCount: 7,
                 specialNotes: 'Hàng tổng hợp, hỗ trợ kho lạnh bảo quản thực phẩm & dược phẩm.',
-                cutOffTime: '11:30 · 15/08/2026'
+                cutOffTime: '11:30 · 09/09/2026'
             },
             {
                 id: 2,
-                flightCode: 'FL-VU224-260815',
+                flightCode: 'FL-VU224-260909',
                 flightNumber: 'VU224',
                 route: 'SGN - DAD',
                 origin: 'SGN',
                 destination: 'DAD',
                 originName: 'TP. Hồ Chí Minh',
                 destName: 'Đà Nẵng',
-                etd: '16:00 · 15/08/2026',
-                eta: '17:20 · 15/08/2026',
+                etd: '16:00 · 09/09/2026',
+                eta: '17:20 · 09/09/2026',
+                etdIso: '2026-09-09T09:00:00.000Z',
                 aircraft: 'Airbus A320-200',
                 capacityKg: 2000,
                 startingPriceKg: 12000,
                 currentPriceKg: 14500,
                 minStep: 500,
-                endTime: new Date(Date.now() + 85 * 60 * 1000).toISOString(),
+                endTime: new Date(Date.now() + 6 * 3600 * 1000).toISOString(),
                 status: 'OPEN',
                 leadingAgentCode: 'AG-1024',
                 leadingAgentName: 'Vinatrans',
                 bidsCount: 4,
                 specialNotes: 'Ưu tiên bưu kiện bưu phẩm thương mại điện tử chuyển phát nhanh.',
-                cutOffTime: '13:00 · 15/08/2026'
+                cutOffTime: '13:00 · 09/09/2026'
             },
             {
                 id: 3,
-                flightCode: 'FL-VU340-260815',
+                flightCode: 'FL-VU340-260909',
                 flightNumber: 'VU340',
                 route: 'HAN - PQC',
                 origin: 'HAN',
                 destination: 'PQC',
                 originName: 'Hà Nội',
                 destName: 'Phú Quốc',
-                etd: '19:15 · 15/08/2026',
-                eta: '21:30 · 15/08/2026',
+                etd: '19:15 · 09/09/2026',
+                eta: '21:30 · 09/09/2026',
+                etdIso: '2026-09-09T12:15:00.000Z',
                 aircraft: 'Airbus A321neo Cargo',
                 capacityKg: 4000,
                 startingPriceKg: 22000,
                 currentPriceKg: 25000,
                 minStep: 1000,
-                endTime: new Date(Date.now() + 210 * 60 * 1000).toISOString(),
+                endTime: new Date(Date.now() + 8 * 3600 * 1000).toISOString(),
                 status: 'OPEN',
                 leadingAgentCode: 'AG-0556',
                 leadingAgentName: 'Golden Star',
                 bidsCount: 5,
                 specialNotes: 'Hàng hải sản đông lạnh tươi sống đóng thùng xốp tiêu chuẩn IATA.',
-                cutOffTime: '16:00 · 15/08/2026'
+                cutOffTime: '16:15 · 09/09/2026'
             },
             {
                 id: 4,
-                flightCode: 'FL-VU132-260814',
+                flightCode: 'FL-VU132-260908',
                 flightNumber: 'VU132',
                 route: 'SGN - HAN',
                 origin: 'SGN',
                 destination: 'HAN',
                 originName: 'TP. Hồ Chí Minh',
                 destName: 'Hà Nội',
-                etd: '10:00 · 14/08/2026',
-                eta: '12:15 · 14/08/2026',
+                etd: '10:00 · 08/09/2026',
+                eta: '12:15 · 08/09/2026',
+                etdIso: '2026-09-08T03:00:00.000Z',
                 aircraft: 'Airbus A321-200',
                 capacityKg: 3000,
                 startingPriceKg: 18000,
                 currentPriceKg: 22000,
                 minStep: 500,
-                endTime: new Date(Date.now() - 12 * 60 * 60 * 1000).toISOString(),
+                endTime: new Date(Date.now() - 6 * 60 * 60 * 1000).toISOString(),
                 status: 'CLOSED',
                 leadingAgentCode: 'AG-0892',
                 leadingAgentName: 'ABC Logistics',
@@ -279,8 +283,8 @@ const CargoStore = (function() {
                 winnerAgentCode: 'AG-0892',
                 winnerAgentName: 'ABC Logistics',
                 winningPriceKg: 22000,
-                specialNotes: 'Phiên đã đóng hôm qua, thắng thầu chính thức.',
-                cutOffTime: '07:00 · 14/08/2026'
+                specialNotes: 'Phiên đã đóng hôm nay, thắng thầu chính thức.',
+                cutOffTime: '07:00 · 08/09/2026'
             }
         ],
         bids: [
@@ -597,6 +601,37 @@ const CargoStore = (function() {
                         const correctDlMs = new Date(correctDl).getTime();
                         if (curDlMs > correctDlMs) {
                             w.paymentDeadline = correctDl;
+                            updated = true;
+                        }
+                    }
+                });
+            }
+
+            // Migrate any old August 2026 or outdated auction dates to current/upcoming September 2026 dates
+            if (data.auctions && Array.isArray(data.auctions)) {
+                data.auctions.forEach(a => {
+                    if (a.etd && a.etd.includes('15/08/2026')) {
+                        a.etd = a.etd.replace('15/08/2026', '09/09/2026');
+                        if (a.eta) a.eta = a.eta.replace('15/08/2026', '09/09/2026');
+                        if (a.cutOffTime) a.cutOffTime = a.cutOffTime.replace('15/08/2026', '09/09/2026');
+                        if (a.flightCode) a.flightCode = a.flightCode.replace('260815', '260909');
+                        if (a.flightNumber === 'VU130') a.etdIso = '2026-09-09T07:30:00.000Z';
+                        if (a.flightNumber === 'VU224') a.etdIso = '2026-09-09T09:00:00.000Z';
+                        if (a.flightNumber === 'VU340') a.etdIso = '2026-09-09T12:15:00.000Z';
+                        updated = true;
+                    } else if (a.etd && a.etd.includes('14/08/2026')) {
+                        a.etd = a.etd.replace('14/08/2026', '08/09/2026');
+                        if (a.eta) a.eta = a.eta.replace('14/08/2026', '08/09/2026');
+                        if (a.cutOffTime) a.cutOffTime = a.cutOffTime.replace('14/08/2026', '08/09/2026');
+                        if (a.flightCode) a.flightCode = a.flightCode.replace('260814', '260908');
+                        if (a.flightNumber === 'VU132') a.etdIso = '2026-09-08T03:00:00.000Z';
+                        updated = true;
+                    }
+                    // If open auction has expired endTime, refresh endTime to future so countdown is live
+                    if (a.status === 'OPEN') {
+                        const endMs = new Date(a.endTime).getTime();
+                        if (isNaN(endMs) || endMs <= Date.now()) {
+                            a.endTime = new Date(Date.now() + 4 * 3600 * 1000).toISOString();
                             updated = true;
                         }
                     }
