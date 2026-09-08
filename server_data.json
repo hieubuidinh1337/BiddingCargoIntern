@@ -1,5 +1,5 @@
 {
-  "version": 1788850878747,
+  "version": 1788851208173,
   "auctions": [
     {
       "id": 9,
@@ -94,19 +94,19 @@
       "aircraft": "Airbus A321neo Cargo",
       "capacityKg": 3000,
       "startingPriceKg": 18000,
-      "currentPriceKg": 24500,
+      "currentPriceKg": 25000,
       "minStep": 500,
       "endTime": "2026-09-08T08:59:15.976Z",
-      "status": "OPEN",
-      "leadingAgentCode": "AG-1024",
-      "leadingAgentName": "Công ty CP Giao nhận Kho vận Vinatrans",
-      "bidsCount": 1,
+      "status": "CLOSED",
+      "leadingAgentCode": "AG-0892",
+      "leadingAgentName": "Công ty TNHH Vận tải ABC Logistics",
+      "bidsCount": 2,
       "specialNotes": "Tải trọng tổng hợp tiêu chuẩn IATA. Có hỗ trợ xe nâng hàng pallet tại sân bay.",
       "cutOffTime": "Trước ETD 3 giờ",
       "isAnonymous": true,
-      "winnerAgentCode": "AG-1024",
-      "winnerAgentName": "Công ty CP Giao nhận Kho vận Vinatrans",
-      "winningPriceKg": 24500
+      "winnerAgentCode": "AG-0892",
+      "winnerAgentName": "Công ty TNHH Vận tải ABC Logistics",
+      "winningPriceKg": 25000
     },
     {
       "id": 5,
@@ -245,6 +245,18 @@
     }
   ],
   "bids": [
+    {
+      "id": 1788851201746,
+      "timestamp": 1788851201746,
+      "auctionId": 6,
+      "agentCode": "AG-0892",
+      "agentName": "Công ty TNHH Vận tải ABC Logistics",
+      "isAnonymous": true,
+      "priceKg": 25000,
+      "time": "Vừa xong",
+      "status": "WON",
+      "weightKg": 3000
+    },
     {
       "id": 1788850860132,
       "timestamp": 1788850860132,
@@ -518,6 +530,23 @@
   ],
   "wonAuctions": [
     {
+      "wonId": "WON-20260908-06",
+      "auctionId": 6,
+      "agentCode": "AG-0892",
+      "agentName": "Công ty TNHH Vận tải ABC Logistics",
+      "flightNumber": "VU32453",
+      "route": "SGN - HAN",
+      "capacityKg": 3000,
+      "priceKg": 25000,
+      "totalAmountVND": 75000000,
+      "paymentDeadline": "2026-09-09T07:06:48.151Z",
+      "paymentStatus": "UNPAID",
+      "paidAt": null,
+      "awbNumber": "998-18929204",
+      "cutOffTime": "Trước ETD 3 giờ",
+      "warehouse": "Kho hàng SCSC / TCS Tân Sơn Nhất (Cửa số 4)"
+    },
+    {
       "wonId": "WON-2026-0814-01",
       "auctionId": 4,
       "agentCode": "AG-0892",
@@ -528,12 +557,23 @@
       "priceKg": 22000,
       "totalAmountVND": 66000000,
       "paymentDeadline": "2026-09-08T21:42:16.166Z",
-      "paymentStatus": "UNPAID",
-      "paidAt": null,
+      "paymentStatus": "PAID",
+      "paidAt": "14/08/2026 14:20",
       "awbNumber": "998-12345678",
       "cutOffTime": "15/08/2026 06:00",
       "warehouse": "Kho hàng TCS Tân Sơn Nhất (Cửa số 4)",
-      "cargoDeclaration": null
+      "cargoDeclaration": {
+        "cargoType": "Hàng bưu kiện / E-commerce",
+        "cargoName": "Linh kiện điện tử & Bưu phẩm TĐH",
+        "piecesCount": 45,
+        "grossWeightKg": 2850,
+        "volumeCbm": 3.2,
+        "hawbNumber": "HAWB-SGN-88901",
+        "shipperName": "Công ty TNHH Vận tải ABC Logistics",
+        "consigneeName": "Công ty CP Đầu tư & Công nghệ Hà Nội",
+        "consigneeAddress": "Kho Cargo Nội Bài, Sóc Sơn, Hà Nội",
+        "specialNotes": "Hàng giá trị cao. Bảo quản nơi khô ráo, không đè nặng quá 50kg/thùng."
+      }
     },
     {
       "wonId": "WON-2026-0815-02",
@@ -546,12 +586,24 @@
       "priceKg": 14500,
       "totalAmountVND": 29000000,
       "paymentDeadline": "2026-09-08T15:42:16.166Z",
-      "paymentStatus": "UNPAID",
-      "paidAt": null,
+      "paymentStatus": "PENDING_VERIFICATION",
       "awbNumber": "998-22409811",
       "cutOffTime": "16/08/2026 13:00",
       "warehouse": "Kho hàng TCS Tân Sơn Nhất (Cửa số 2)",
-      "cargoDeclaration": null
+      "cargoDeclaration": {
+        "cargoType": "Hàng bưu kiện / E-commerce",
+        "cargoName": "213 fioew fjeiow wiew",
+        "piecesCount": 11,
+        "grossWeightKg": 2000,
+        "volumeCbm": 12,
+        "hawbNumber": "HAWB-sgn-88911",
+        "shipperName": "",
+        "consigneeName": "abc dè geh",
+        "consigneeAddress": "",
+        "specialNotes": "",
+        "updatedAt": "13:58:53 8/9/2026"
+      },
+      "notifiedAt": "13:59:00 8/9/2026"
     },
     {
       "wonId": "WON-2026-0815-03",
@@ -564,8 +616,8 @@
       "priceKg": 56000,
       "totalAmountVND": 196000000,
       "paymentDeadline": "2026-09-08T23:42:16.166Z",
-      "paymentStatus": "UNPAID",
-      "paidAt": null,
+      "paymentStatus": "PAID",
+      "paidAt": "15/08/2026 10:15",
       "awbNumber": "998-13098722",
       "cutOffTime": "15/08/2026 11:30",
       "warehouse": "Kho hàng SCSC Tân Sơn Nhất",
@@ -582,9 +634,8 @@
       "priceKg": 25000,
       "totalAmountVND": 100000000,
       "paymentDeadline": "2026-09-08T19:42:16.166Z",
-      "paymentStatus": "UNPAID",
-      "paidAt": null,
-      "notifiedAt": null,
+      "paymentStatus": "PENDING_VERIFICATION",
+      "notifiedAt": "15/08/2026 11:00",
       "awbNumber": "998-34077611",
       "cutOffTime": "15/08/2026 16:00",
       "warehouse": "Kho hàng Cargo Nội Bài (Cửa số 1)",
@@ -601,8 +652,8 @@
       "priceKg": 57000,
       "totalAmountVND": 171000000,
       "paymentDeadline": "2026-09-08T17:42:16.166Z",
-      "paymentStatus": "UNPAID",
-      "paidAt": null,
+      "paymentStatus": "PAID",
+      "paidAt": "16/08/2026 09:30",
       "awbNumber": "998-22688192",
       "cutOffTime": "16/08/2026 18:00",
       "warehouse": "Kho hàng TCS Tân Sơn Nhất (Cửa số 3)",
@@ -610,6 +661,38 @@
     }
   ],
   "notifications": [
+    {
+      "id": 1788851208151,
+      "targetAgentCode": "AG-0892",
+      "title": "Phiên VU32453 đã chốt kết quả!",
+      "message": "Đại lý Công ty TNHH Vận tải ABC Logistics (AG-0892) đã trúng thầu chuyến VU32453 (SGN - HAN) mức giá 25.000 đ/Kg.",
+      "time": "Vừa xong",
+      "type": "WON",
+      "read": false,
+      "link": "07-WonAuction.html"
+    },
+    {
+      "id": 1788851201747,
+      "timestamp": 1788851201747,
+      "targetAgentCode": "AG-1024",
+      "title": "Cảnh báo bị vượt giá chuyến VU32453!",
+      "message": "Một đại lý đối thủ (Ẩn danh) vừa đặt mức giá mới 25.000 đ/Kg cho chặng SGN - HAN.",
+      "time": "Vừa xong",
+      "type": "OUTBID",
+      "read": false,
+      "link": "04-Detail.html?id=6"
+    },
+    {
+      "id": 1788851201746,
+      "timestamp": 1788851201746,
+      "targetAgentCode": "AG-0892",
+      "title": "Đặt giá thành công chuyến VU32453",
+      "message": "Bạn (AG-0892) đang dẫn đầu mức giá 25.000 đ/Kg cho chặng SGN - HAN. (Tên công ty được che ẩn danh đối với các đối thủ)",
+      "time": "Vừa xong",
+      "type": "HIGHEST",
+      "read": false,
+      "link": "04-Detail.html?id=6"
+    },
     {
       "id": 1788850872881,
       "targetAgentCode": "AG-0892",
@@ -1149,6 +1232,16 @@
     }
   },
   "emailLogs": [
+    {
+      "id": 1788851210855,
+      "to": "an.nguyen@abccargo.vn",
+      "type": "AUCTION_WON",
+      "subject": "[Vietravel Airlines Cargo] CHÚC MỪNG TRÚNG THẦU! Đơn hàng WON-20260908-06 - Chuyến VU32453 (SGN - HAN)",
+      "messageId": "<8299048c-68fc-ad2b-a93b-0b0cb6ad9ccf@gmail.com>",
+      "isRealSmtp": true,
+      "previewUrl": null,
+      "sentAt": "14:06:50 8/9/2026"
+    },
     {
       "id": 1788850876109,
       "to": "an.nguyen@abccargo.vn",
