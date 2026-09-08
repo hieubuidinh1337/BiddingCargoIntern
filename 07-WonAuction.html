@@ -1318,9 +1318,9 @@
             } else if (statusFilter === 'UNPAID') {
                 list = list.filter(item => item.paymentStatus !== 'PAID' && item.paymentStatus !== 'PENDING_VERIFICATION');
             } else if (statusFilter === 'UNDECLARED') {
-                list = list.filter(item => !item.cargoDeclaration);
+                list = list.filter(item => (store && store.isCargoUndeclared) ? store.isCargoUndeclared(item) : (!item.cargoDeclaration || !item.cargoDeclaration.cargoName));
             } else if (statusFilter === 'DECLARED') {
-                list = list.filter(item => !!item.cargoDeclaration);
+                list = list.filter(item => (store && store.isCargoDeclared) ? store.isCargoDeclared(item) : (item.cargoDeclaration && !!item.cargoDeclaration.cargoName));
             }
 
             // Sorting Logic

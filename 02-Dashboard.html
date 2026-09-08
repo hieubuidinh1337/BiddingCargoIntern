@@ -252,7 +252,7 @@
 
             // === Unpaid & Undeclared counts ===
             const unpaidCount = wonAuctions.filter(w => w.paymentStatus !== 'PAID').length;
-            const undeclaredCount = wonAuctions.filter(w => !w.cargoDeclaration).length;
+            const undeclaredCount = wonAuctions.filter(w => (CargoStore.isCargoUndeclared ? CargoStore.isCargoUndeclared(w) : (!w.cargoDeclaration || !w.cargoDeclaration.cargoName))).length;
 
             const dashUnpaid = document.getElementById('dashUnpaidCount');
             if (dashUnpaid) dashUnpaid.textContent = unpaidCount;

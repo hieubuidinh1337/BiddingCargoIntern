@@ -401,6 +401,24 @@ const CargoStore = (function() {
                 cutOffTime: '15/08/2026 16:00',
                 warehouse: 'Kho hàng Cargo Nội Bài (Cửa số 1)',
                 cargoDeclaration: null
+            },
+            {
+                wonId: 'WON-2026-0816-05',
+                auctionId: 5,
+                agentCode: 'AG-0892',
+                agentName: 'ABC Logistics',
+                flightNumber: 'VU226',
+                route: 'SGN - DAD',
+                capacityKg: 2500,
+                priceKg: 18500,
+                totalAmountVND: 46250000,
+                paymentDeadline: new Date(Date.now() + 14 * 60 * 60 * 1000).toISOString(),
+                paymentStatus: 'PAID',
+                paidAt: '16/08/2026 09:30',
+                awbNumber: '998-22688192',
+                cutOffTime: '16/08/2026 18:00',
+                warehouse: 'Kho hàng TCS Tân Sơn Nhất (Cửa số 3)',
+                cargoDeclaration: null
             }
         ],
         notifications: [
@@ -517,7 +535,7 @@ const CargoStore = (function() {
                 updated = true;
             }
 
-            if (!data.wonAuctions || !Array.isArray(data.wonAuctions) || data.wonAuctions.length < 3) {
+            if (!data.wonAuctions || !Array.isArray(data.wonAuctions) || data.wonAuctions.length < 5) {
                 data.wonAuctions = JSON.parse(JSON.stringify(defaultData.wonAuctions));
                 updated = true;
             }
@@ -1502,6 +1520,16 @@ const CargoStore = (function() {
             const data = loadData();
             const code = data.currentUser ? data.currentUser.agentCode : 'AG-0892';
             return data.wonAuctions.filter(w => !w.agentCode || w.agentCode === code);
+        },
+
+        isCargoDeclared: function(item) {
+            if (!item || !item.cargoDeclaration) return false;
+            const decl = item.cargoDeclaration;
+            return !!((decl.cargoName && String(decl.cargoName).trim() !== '') || (decl.hawbNumber && String(decl.hawbNumber).trim() !== ''));
+        },
+
+        isCargoUndeclared: function(item) {
+            return !this.isCargoDeclared(item);
         },
 
         getNotifications: function() {

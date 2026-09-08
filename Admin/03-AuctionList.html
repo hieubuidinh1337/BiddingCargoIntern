@@ -958,9 +958,9 @@
 
             // 1. Cargo Declaration Filter
             if (currentWonCargoFilter === 'DECLARED') {
-                list = list.filter(w => !!w.cargoDeclaration);
+                list = list.filter(w => (window.CargoStore && CargoStore.isCargoDeclared) ? CargoStore.isCargoDeclared(w) : (w.cargoDeclaration && !!w.cargoDeclaration.cargoName));
             } else if (currentWonCargoFilter === 'UNDECLARED') {
-                list = list.filter(w => !w.cargoDeclaration);
+                list = list.filter(w => (window.CargoStore && CargoStore.isCargoUndeclared) ? CargoStore.isCargoUndeclared(w) : (!w.cargoDeclaration || !w.cargoDeclaration.cargoName));
             }
 
             // 2. Payment Status Filter
