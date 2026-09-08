@@ -646,10 +646,10 @@
                     alert(res.message);
                 } else if (res && res.code) {
                     alert(`ĐÃ PHÊ DUYỆT HỒ SƠ THÀNH CÔNG!\n\n• Mã Đại lý được cấp: ${res.code}\n• Doanh nghiệp: ${res.companyName}\n\nEmail thông báo cấp Mã đại lý (${res.code}) kèm hướng dẫn đăng nhập đã được hệ thống TỰ ĐỘNG GỬI tới địa chỉ Email: ${res.email}!`);
-                    renderData();
+                    renderAgentsList();
                 } else if (res) {
                     alert(`Đã phê duyệt thành công! Mã đại lý cấp mới: ${res}`);
-                    renderData();
+                    renderAgentsList();
                 }
             }
         }
@@ -660,7 +660,7 @@
                 if (typeof res === 'object' && res && !res.success) {
                     alert(res.message);
                 } else {
-                    renderData();
+                    renderAgentsList();
                 }
             }
         }
@@ -673,7 +673,7 @@
             const res = CargoStore.toggleUserLock(identifier, type);
             if (res.success) {
                 alert(res.message);
-                renderData();
+                renderAgentsList();
             } else {
                 alert(res.message);
             }
@@ -685,7 +685,7 @@
                 const res = CargoStore.updateUserRole(username, newRole, 'staff');
                 if (res.success) {
                     alert(res.message);
-                    renderData();
+                    renderAgentsList();
                 } else {
                     alert(res.message);
                 }
@@ -748,7 +748,7 @@
             if (res.success) {
                 alert(res.message);
                 closeAddStaffModal();
-                renderData();
+                renderAgentsList();
             } else {
                 alert(res.message);
             }
@@ -1121,15 +1121,15 @@
         }
 
         document.addEventListener('DOMContentLoaded', function() {
-            renderData();
+            renderAgentsList();
             if (window.CargoStore && CargoStore.syncAdminHeaderUI) CargoStore.syncAdminHeaderUI();
         });
 
         // Cross-tab sync
         window.addEventListener('storage', function(e) {
-            if (e.key === 'CARGO_BIDDING_DATA_V3') renderData();
+            if (e.key === 'CARGO_BIDDING_DATA_V3') renderAgentsList();
         });
-        window.addEventListener('cargostore_updated', renderData);
+        window.addEventListener('cargostore_updated', renderAgentsList);
     </script>
 </body>
 </html>

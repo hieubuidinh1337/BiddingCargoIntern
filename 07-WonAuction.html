@@ -401,7 +401,7 @@
 
             const decl = item.cargoDeclaration;
 
-            const auctionMatch = (storeData.auctions || []).find(a => a.id == item.auctionId || a.flightNumber === item.flightNumber);
+            const auctionMatch = (data.auctions || []).find(a => a.id == item.auctionId || a.flightNumber === item.flightNumber);
             const etdStr = item.etd || (auctionMatch ? auctionMatch.etd : null);
             const cutOffDisplay = (store && store.calculateCutOffTime)
                 ? store.calculateCutOffTime(etdStr || item.cutOffTime)
@@ -1344,6 +1344,7 @@
             });
 
             if (!list || list.length === 0) {
+                renderWonPaginationControls(0);
                 container.innerHTML = `
                     <div class="bg-white rounded-2xl border p-12 text-center text-gray-400 shadow-sm">
                         <i class="fa-solid fa-magnifying-glass text-4xl mb-3 text-slate-300"></i>
@@ -1357,7 +1358,13 @@
                 return;
             }
 
-            container.innerHTML = list.map(item => {
+            renderWonPaginationControls(list.length);
+            const startIdx = (currentWonPage - 1) * wonItemsPerPage;
+            const paginatedList = list.slice(startIdx, startIdx + wonItemsPerPage);
+
+            const allAuctions = (store ? store.getData().auctions : []) || [];
+
+            container.innerHTML = paginatedList.map(item => {
                 const isPaid = item.paymentStatus === 'PAID';
                 const isPending = item.paymentStatus === 'PENDING_VERIFICATION';
                 const decl = item.cargoDeclaration;
@@ -1529,7 +1536,7 @@
                                         <p>• <strong>Địa điểm giao hàng:</strong> ${item.warehouse || 'Kho hàng TCS / SCSC Tân Sơn Nhất'}</p>
                                         <p class="mt-1">• <strong>Hạn chót nhập kho (Cut-off):</strong> <span class="font-bold text-red-600">${(() => {
                                             const storeInst = getStore();
-                                            const aMatch = (storeData.auctions || []).find(a => a.id == item.auctionId || a.flightNumber === item.flightNumber);
+                                            const aMatch = allAuctions.find(a => a.id == item.auctionId || a.flightNumber === item.flightNumber);
                                             const eStr = item.etd || (aMatch ? aMatch.etd : null);
                                             return (storeInst && storeInst.calculateCutOffTime)
                                                 ? storeInst.calculateCutOffTime(eStr || item.cutOffTime)
