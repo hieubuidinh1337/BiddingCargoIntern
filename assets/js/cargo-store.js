@@ -185,78 +185,81 @@ const CargoStore = (function() {
         auctions: [
             {
                 id: 1,
-                flightCode: 'FL-VU130-260909',
+                flightCode: 'FL-VU130-260908',
                 flightNumber: 'VU130',
                 route: 'SGN - HAN',
                 origin: 'SGN',
                 destination: 'HAN',
                 originName: 'TP. Hồ Chí Minh',
                 destName: 'Hà Nội',
-                etd: '14:30 · 09/09/2026',
-                eta: '16:45 · 09/09/2026',
-                etdIso: '2026-09-09T07:30:00.000Z',
+                etd: '20:45 · 08/09/2026',
+                eta: '23:00 · 08/09/2026',
+                etdIso: new Date(Date.now() + 3 * 3600 * 1000 + 48 * 60 * 1000).toISOString(),
                 aircraft: 'Airbus A321neo Cargo',
                 capacityKg: 3500,
                 startingPriceKg: 18000,
-                currentPriceKg: 21500,
+                currentPriceKg: 56500,
                 minStep: 500,
-                endTime: new Date(Date.now() + 4 * 3600 * 1000).toISOString(),
+                endTime: new Date(Date.now() + 48 * 60 * 1000).toISOString(),
                 status: 'OPEN',
                 leadingAgentCode: 'AG-0892',
                 leadingAgentName: 'ABC Logistics',
-                bidsCount: 7,
+                bidsCount: 10,
                 specialNotes: 'Hàng tổng hợp, hỗ trợ kho lạnh bảo quản thực phẩm & dược phẩm.',
-                cutOffTime: '11:30 · 09/09/2026'
+                cutOffTime: '17:45 · 08/09/2026',
+                isAnonymous: true
             },
             {
                 id: 2,
-                flightCode: 'FL-VU224-260909',
+                flightCode: 'FL-VU224-260908',
                 flightNumber: 'VU224',
                 route: 'SGN - DAD',
                 origin: 'SGN',
                 destination: 'DAD',
                 originName: 'TP. Hồ Chí Minh',
                 destName: 'Đà Nẵng',
-                etd: '16:00 · 09/09/2026',
-                eta: '17:20 · 09/09/2026',
-                etdIso: '2026-09-09T09:00:00.000Z',
+                etd: '21:30 · 08/09/2026',
+                eta: '22:50 · 08/09/2026',
+                etdIso: new Date(Date.now() + 4 * 3600 * 1000 + 35 * 60 * 1000).toISOString(),
                 aircraft: 'Airbus A320-200',
                 capacityKg: 2000,
                 startingPriceKg: 12000,
                 currentPriceKg: 14500,
                 minStep: 500,
-                endTime: new Date(Date.now() + 6 * 3600 * 1000).toISOString(),
+                endTime: new Date(Date.now() + 95 * 60 * 1000).toISOString(),
                 status: 'OPEN',
                 leadingAgentCode: 'AG-1024',
                 leadingAgentName: 'Vinatrans',
                 bidsCount: 4,
                 specialNotes: 'Ưu tiên bưu kiện bưu phẩm thương mại điện tử chuyển phát nhanh.',
-                cutOffTime: '13:00 · 09/09/2026'
+                cutOffTime: '18:30 · 08/09/2026',
+                isAnonymous: true
             },
             {
                 id: 3,
-                flightCode: 'FL-VU340-260909',
+                flightCode: 'FL-VU340-260908',
                 flightNumber: 'VU340',
                 route: 'HAN - PQC',
                 origin: 'HAN',
                 destination: 'PQC',
                 originName: 'Hà Nội',
                 destName: 'Phú Quốc',
-                etd: '19:15 · 09/09/2026',
-                eta: '21:30 · 09/09/2026',
-                etdIso: '2026-09-09T12:15:00.000Z',
+                etd: '22:45 · 08/09/2026',
+                eta: '01:00 · 09/09/2026',
+                etdIso: new Date(Date.now() + 5 * 3600 * 1000 + 50 * 60 * 1000).toISOString(),
                 aircraft: 'Airbus A321neo Cargo',
                 capacityKg: 4000,
                 startingPriceKg: 22000,
-                currentPriceKg: 25000,
+                currentPriceKg: 30000,
                 minStep: 1000,
-                endTime: new Date(Date.now() + 8 * 3600 * 1000).toISOString(),
+                endTime: new Date(Date.now() + 170 * 60 * 1000).toISOString(),
                 status: 'OPEN',
                 leadingAgentCode: 'AG-0556',
                 leadingAgentName: 'Golden Star',
-                bidsCount: 5,
+                bidsCount: 6,
                 specialNotes: 'Hàng hải sản đông lạnh tươi sống đóng thùng xốp tiêu chuẩn IATA.',
-                cutOffTime: '16:15 · 09/09/2026'
+                cutOffTime: '19:45 · 08/09/2026',
+                isAnonymous: true
             },
             {
                 id: 4,
@@ -284,12 +287,122 @@ const CargoStore = (function() {
                 winnerAgentName: 'ABC Logistics',
                 winningPriceKg: 22000,
                 specialNotes: 'Phiên đã đóng hôm nay, thắng thầu chính thức.',
-                cutOffTime: '07:00 · 08/09/2026'
+                cutOffTime: '07:00 · 08/09/2026',
+                isAnonymous: true
             }
         ],
         bids: [
             {
-                id: 101,
+                id: Date.now() - 3 * 60 * 1000,
+                timestamp: Date.now() - 3 * 60 * 1000,
+                auctionId: 1,
+                agentCode: 'AG-0892',
+                agentName: 'ABC Logistics',
+                isAnonymous: true,
+                priceKg: 56500,
+                time: '3 phút trước',
+                status: 'HIGHEST',
+                weightKg: 3500
+            },
+            {
+                id: Date.now() - 6 * 60 * 1000,
+                timestamp: Date.now() - 6 * 60 * 1000,
+                auctionId: 1,
+                agentCode: 'AG-0892',
+                agentName: 'ABC Logistics',
+                isAnonymous: true,
+                priceKg: 56000,
+                time: '6 phút trước',
+                status: 'OUTBID',
+                weightKg: 3500
+            },
+            {
+                id: Date.now() - 15 * 60 * 1000,
+                timestamp: Date.now() - 15 * 60 * 1000,
+                auctionId: 1,
+                agentCode: 'AG-0556',
+                agentName: 'Golden Star Forwarding',
+                isAnonymous: true,
+                priceKg: 41500,
+                time: '15 phút trước',
+                status: 'OUTBID',
+                weightKg: 3500
+            },
+            {
+                id: Date.now() - 25 * 60 * 1000,
+                timestamp: Date.now() - 25 * 60 * 1000,
+                auctionId: 1,
+                agentCode: 'AG-1024',
+                agentName: 'Vinatrans Express',
+                isAnonymous: true,
+                priceKg: 39000,
+                time: '25 phút trước',
+                status: 'OUTBID',
+                weightKg: 3500
+            },
+            {
+                id: Date.now() - 35 * 60 * 1000,
+                timestamp: Date.now() - 35 * 60 * 1000,
+                auctionId: 1,
+                agentCode: 'AG-0556',
+                agentName: 'Golden Star Forwarding',
+                isAnonymous: true,
+                priceKg: 25000,
+                time: '35 phút trước',
+                status: 'OUTBID',
+                weightKg: 3500
+            },
+            {
+                id: Date.now() - 42 * 60 * 1000,
+                timestamp: Date.now() - 42 * 60 * 1000,
+                auctionId: 1,
+                agentCode: 'AG-1024',
+                agentName: 'Vinatrans Express',
+                isAnonymous: true,
+                priceKg: 24500,
+                time: '42 phút trước',
+                status: 'OUTBID',
+                weightKg: 3500
+            },
+            {
+                id: Date.now() - 48 * 60 * 1000,
+                timestamp: Date.now() - 48 * 60 * 1000,
+                auctionId: 1,
+                agentCode: 'AG-0556',
+                agentName: 'Golden Star Forwarding',
+                isAnonymous: true,
+                priceKg: 23000,
+                time: '48 phút trước',
+                status: 'OUTBID',
+                weightKg: 3500
+            },
+            {
+                id: Date.now() - 52 * 60 * 1000,
+                timestamp: Date.now() - 52 * 60 * 1000,
+                auctionId: 1,
+                agentCode: 'AG-0892',
+                agentName: 'ABC Logistics',
+                isAnonymous: true,
+                priceKg: 21500,
+                time: '52 phút trước',
+                status: 'OUTBID',
+                weightKg: 3500
+            },
+            {
+                id: Date.now() - 56 * 60 * 1000,
+                timestamp: Date.now() - 56 * 60 * 1000,
+                auctionId: 1,
+                agentCode: 'AG-0556',
+                agentName: 'Golden Star Forwarding',
+                isAnonymous: true,
+                priceKg: 20000,
+                time: '56 phút trước',
+                status: 'OUTBID',
+                weightKg: 3500
+            },
+            {
+                id: Date.now() - 60 * 60 * 1000,
+                timestamp: Date.now() - 60 * 60 * 1000,
                 auctionId: 1,
                 agentCode: 'AG-1024',
                 agentName: 'Vinatrans Express',
@@ -297,28 +410,6 @@ const CargoStore = (function() {
                 priceKg: 19000,
                 time: '1 giờ trước',
                 status: 'OUTBID',
-                weightKg: 3500
-            },
-            {
-                id: 102,
-                auctionId: 1,
-                agentCode: 'AG-0556',
-                agentName: 'Golden Star Forwarding',
-                isAnonymous: true,
-                priceKg: 20000,
-                time: '35 phút trước',
-                status: 'OUTBID',
-                weightKg: 3500
-            },
-            {
-                id: 103,
-                auctionId: 1,
-                agentCode: 'AG-0892',
-                agentName: 'ABC Logistics',
-                isAnonymous: true,
-                priceKg: 21500,
-                time: '12 phút trước',
-                status: 'HIGHEST',
                 weightKg: 3500
             }
         ],
@@ -652,19 +743,7 @@ const CargoStore = (function() {
                 });
             }
 
-            // Restore / unlock any agent accounts previously locked by auto-lock rule
-            if (data.agentsList && Array.isArray(data.agentsList)) {
-                data.agentsList.forEach(a => {
-                    if (a.status === 'Đã khóa' || a.status === 'LOCKED') {
-                        if (!a.lockedReason || a.lockedReason.includes('quá hạn') || a.lockedReason.includes('tự động khóa') || a.lockedReason.includes('WON-')) {
-                            a.status = 'Đang hoạt động';
-                            a.lockedReason = null;
-                            a.lockedAt = null;
-                            updated = true;
-                        }
-                    }
-                });
-            }
+            // Migration cleanup complete
 
             // Clean up obsolete lock notifications
             if (data.notifications && Array.isArray(data.notifications)) {
@@ -852,13 +931,19 @@ const CargoStore = (function() {
     function formatTimeAgo(ts, defaultFallback) {
         if (!ts) return defaultFallback || 'Vừa xong';
         let timeMs = Number(ts);
-        if (isNaN(timeMs) || timeMs <= 0) {
+        // Epoch timestamp lower bound: year 2020 (1577836800000)
+        if (isNaN(timeMs) || timeMs < 1577836800000) {
             if (typeof ts === 'string') {
                 const parsed = Date.parse(ts);
-                if (!isNaN(parsed)) timeMs = parsed;
+                if (!isNaN(parsed) && parsed > 1577836800000) {
+                    timeMs = parsed;
+                } else {
+                    return defaultFallback || 'Vừa xong';
+                }
+            } else {
+                return defaultFallback || 'Vừa xong';
             }
         }
-        if (isNaN(timeMs) || timeMs <= 0) return defaultFallback || 'Vừa xong';
 
         const now = Date.now();
         const diffSec = Math.floor((now - timeMs) / 1000);
@@ -876,6 +961,7 @@ const CargoStore = (function() {
         if (days < 30) {
             return `${days} ngày trước`;
         }
+        if (defaultFallback && defaultFallback !== 'Vừa xong') return defaultFallback;
         const d = new Date(timeMs);
         const pad = n => String(n).padStart(2, '0');
         return `${pad(d.getHours())}:${pad(d.getMinutes())} ${pad(d.getDate())}/${pad(d.getMonth() + 1)}/${d.getFullYear()}`;

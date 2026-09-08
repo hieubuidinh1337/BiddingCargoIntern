@@ -10,7 +10,8 @@ global.localStorage = {
 };
 global.window = {
     location: { protocol: 'http:', href: '' },
-    dispatchEvent: () => {}
+    dispatchEvent: () => {},
+    addEventListener: () => {}
 };
 global.CustomEvent = class {};
 global.StorageEvent = class {};
@@ -44,18 +45,26 @@ console.log('Xác minh dữ liệu người dùng:', userAfter.fullName, '|', us
 
 // 2. USE CASE NHÂN VIÊN / ADMIN: Sửa thông số chuyến bay đấu giá
 console.log('\n--- 2. Kiểm tra Sửa thông số chuyến bay đấu giá ---');
-const auctionList = CargoStore.getAuctions();
-const firstAuction = auctionList[0];
-console.log(`Chuyến bay ban đầu: ${firstAuction.flightNumber} - Tải trọng: ${firstAuction.capacityKg}Kg - Giá sàn: ${firstAuction.startingPriceKg}đ`);
+const testCreateAuction = CargoStore.createAuction({
+    flightNumber: 'VU888',
+    origin: 'SGN',
+    destination: 'DAD',
+    etd: new Date(Date.now() + 24 * 3600 * 1000).toISOString(),
+    capacityKg: 3000,
+    startingPriceKg: 15000,
+    minStep: 500
+});
+const testAuctionId = testCreateAuction.auction ? testCreateAuction.auction.id : testCreateAuction.id;
+console.log(`Chuyến bay ban đầu: VU888 - Tải trọng: 3000Kg - Giá sàn: 15000đ`);
 
-const updateAuctionRes = CargoStore.updateAuction(firstAuction.id, {
+const updateAuctionRes = CargoStore.updateAuction(testAuctionId, {
     capacityKg: 4500,
     startingPriceKg: 19500,
     minStep: 1000,
     specialNotes: 'Ưu tiên hàng linh kiện điện tử cao cấp'
 });
-console.log('Sửa thông số chuyến bay:', updateAuctionRes.success ? 'THÀNH CÔNG' : 'THẤT BÀI');
-const updatedAuction = CargoStore.getAuctionById(firstAuction.id);
+console.log('Sửa thông số chuyến bay:', updateAuctionRes.success ? 'THÀNH CÔNG' : 'THẤT BÀI - ' + updateAuctionRes.message);
+const updatedAuction = CargoStore.getAuctionById(testAuctionId);
 if (updatedAuction.capacityKg !== 4500 || updatedAuction.startingPriceKg !== 19500 || updatedAuction.minStep !== 1000) {
     throw new Error('Thông số chuyến bay không cập nhật chính xác!');
 }
@@ -78,7 +87,7 @@ if (pastCreateRes.success) {
 
 const futureEtd = new Date(Date.now() + 24 * 3600 * 1000).toISOString();
 const futureCreateRes = CargoStore.createAuction({
-    flightNumber: 'VU888',
+    flightNumber: 'VU777',
     origin: 'SGN',
     destination: 'HAN',
     etd: futureEtd,
@@ -184,7 +193,7 @@ if (staffCreateAccount.success) throw new Error('Lỗi phân quyền: STAFF vẫ
 // 8. USE CASE NHÂN VIÊN / ADMIN: Xóa chuyến bay đấu giá
 console.log('\n--- 8. Kiểm tra Xóa chuyến bay đấu giá ---');
 const countBefore = CargoStore.getAuctions().length;
-const deleteRes = CargoStore.deleteAuction(firstAuction.id);
+const deleteRes = CargoStore.deleteAuction(testAuctionId);
 console.log('Xóa chuyến bay:', deleteRes.message);
 const countAfter = CargoStore.getAuctions().length;
 if (countAfter !== countBefore - 1) {

@@ -415,7 +415,7 @@
                             ${CargoStore.formatCurrency(b.priceKg * b.weightKg)}
                         </td>
                         <td class="py-3 px-4 text-gray-400 text-[11px]">
-                            ${CargoStore.formatTimeAgo(b.timestamp || b.id, b.time)}
+                            ${CargoStore.formatTimeAgo(b.timestamp, b.time)}
                         </td>
                         <td class="py-3 px-4 text-right">
                             ${isFirst ? `
