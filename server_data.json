@@ -1,5 +1,5 @@
 {
-  "version": 1788851208173,
+  "version": 1788852553714,
   "auctions": [
     {
       "id": 9,
@@ -1044,6 +1044,44 @@
   ],
   "registrations": [
     {
+      "regId": "REG-20260908-02",
+      "companyName": "yyggug",
+      "taxCode": "8979879999",
+      "businessLicense": "",
+      "address": "879798",
+      "field": "Freight Forwarder",
+      "repName": "yuy uy",
+      "repPosition": "ui87",
+      "email": "duyn61412@gmail.com",
+      "phone": "0323232323",
+      "citizenId": "",
+      "notifEmail": "",
+      "password": "12345678aA@",
+      "pin": "1234",
+      "documents": [
+        {
+          "name": "GPKD_TanSonNhat_Scan.pdf",
+          "dataUrl": null,
+          "type": "application/pdf",
+          "size": 0
+        },
+        {
+          "name": "UyQuyen_Cargo_IATA.pdf",
+          "dataUrl": null,
+          "type": "application/pdf",
+          "size": 0
+        },
+        {
+          "name": "CCCD_TranHoangNam.pdf",
+          "dataUrl": null,
+          "type": "application/pdf",
+          "size": 0
+        }
+      ],
+      "status": "PENDING",
+      "submittedAt": "8/9/2026 14:29"
+    },
+    {
       "regId": "REG-2026-0805-01",
       "companyName": "Công ty TNHH Giao nhận Sao Mai Express",
       "taxCode": "0315998877",
@@ -1232,6 +1270,16 @@
     }
   },
   "emailLogs": [
+    {
+      "id": 1788852556057,
+      "to": "duyn61412@gmail.com",
+      "type": "REGISTRATION_SUBMITTED",
+      "subject": "[Vietravel Airlines Cargo] Tiếp nhận hồ sơ đăng ký đại lý - REG-20260908-02",
+      "messageId": "<da14d869-a4c1-8a3a-99f9-8bc598fa563c@gmail.com>",
+      "isRealSmtp": true,
+      "previewUrl": null,
+      "sentAt": "14:29:16 8/9/2026"
+    },
     {
       "id": 1788851210855,
       "to": "an.nguyen@abccargo.vn",

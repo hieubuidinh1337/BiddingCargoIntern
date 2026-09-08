@@ -544,7 +544,7 @@
             return isValid;
         }
 
-        function validateFormInputs(showErrors = false) {
+        function validateFormInputs(showErrors = false, shouldFocus = false) {
             let isValid = true;
             let firstInvalidEl = null;
 
@@ -641,7 +641,7 @@
                 if (!firstInvalidEl && p2Input) firstInvalidEl = p2Input;
             }
 
-            if (!isValid && showErrors && firstInvalidEl) {
+            if (!isValid && showErrors && shouldFocus && firstInvalidEl) {
                 firstInvalidEl.focus();
                 firstInvalidEl.scrollIntoView({ behavior: 'smooth', block: 'center' });
             }
@@ -675,12 +675,12 @@
             p2Input.addEventListener('input', checkPasswordMatch);
         }
 
-        // Live format checks on blur / input
+        // Live format checks on blur / input (never steals focus or jumps cursor)
         ['companyName', 'address', 'repPosition', 'taxCode', 'repName', 'email', 'phone', 'citizenId', 'notifEmail', 'pinCode'].forEach(id => {
             const el = document.getElementById(id);
             if (el) {
-                el.addEventListener('blur', () => validateFormInputs(true));
-                el.addEventListener('input', () => validateFormInputs(false));
+                el.addEventListener('blur', () => validateFormInputs(true, false));
+                el.addEventListener('input', () => validateFormInputs(false, false));
             }
         });
 
@@ -706,7 +706,7 @@
 
                 updatePasswordChecklist();
                 checkPasswordMatch();
-                validateFormInputs(false);
+                validateFormInputs(false, false);
 
                 document.querySelectorAll('#registerForm input[type="checkbox"]').forEach(c => {
                     if (c !== cb) c.checked = true;
@@ -730,8 +730,8 @@
         document.getElementById('registerForm').addEventListener('submit', function(e) {
             e.preventDefault();
 
-            // Run full form validation
-            const isFormValid = validateFormInputs(true);
+            // Run full form validation (focus first invalid element on submit only)
+            const isFormValid = validateFormInputs(true, true);
             if (!isFormValid) {
                 alert('⚠️ Thông tin đăng ký chưa đúng định dạng hoặc chưa đủ tiêu chuẩn bảo mật. Vui lòng kiểm tra lại các trường được đánh dấu đỏ!');
                 return;
