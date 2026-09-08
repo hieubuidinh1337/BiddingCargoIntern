@@ -184,8 +184,8 @@ const defaultSharedData = {
             priceKg: 22000,
             totalAmountVND: 66000000,
             paymentDeadline: new Date(Date.now() + 18 * 60 * 60 * 1000).toISOString(),
-            paymentStatus: 'PAID',
-            paidAt: '14/08/2026 14:20',
+            paymentStatus: 'UNPAID',
+            paidAt: null,
             awbNumber: '998-12345678',
             cutOffTime: '15/08/2026 06:00',
             warehouse: 'Kho hàng TCS Tân Sơn Nhất (Cửa số 4)'

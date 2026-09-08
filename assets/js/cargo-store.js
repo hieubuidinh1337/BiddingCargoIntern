@@ -331,23 +331,12 @@ const CargoStore = (function() {
                 priceKg: 22000,
                 totalAmountVND: 66000000,
                 paymentDeadline: new Date(Date.now() + 18 * 60 * 60 * 1000).toISOString(),
-                paymentStatus: 'PAID',
-                paidAt: '14/08/2026 14:20',
+                paymentStatus: 'UNPAID',
+                paidAt: null,
                 awbNumber: '998-12345678',
                 cutOffTime: '15/08/2026 06:00',
                 warehouse: 'Kho hàng TCS Tân Sơn Nhất (Cửa số 4)',
-                cargoDeclaration: {
-                    cargoType: 'Hàng bưu kiện / E-commerce',
-                    cargoName: 'Linh kiện điện tử & Bưu phẩm TĐH',
-                    piecesCount: 45,
-                    grossWeightKg: 2850,
-                    volumeCbm: 3.2,
-                    hawbNumber: 'HAWB-SGN-88901',
-                    shipperName: 'Công ty TNHH Vận tải ABC Logistics',
-                    consigneeName: 'Công ty CP Đầu tư & Công nghệ Hà Nội',
-                    consigneeAddress: 'Kho Cargo Nội Bài, Sóc Sơn, Hà Nội',
-                    specialNotes: 'Hàng giá trị cao. Bảo quản nơi khô ráo, không đè nặng quá 50kg/thùng.'
-                }
+                cargoDeclaration: null
             },
             {
                 wonId: 'WON-2026-0815-02',
@@ -361,6 +350,7 @@ const CargoStore = (function() {
                 totalAmountVND: 29000000,
                 paymentDeadline: new Date(Date.now() + 12 * 60 * 60 * 1000).toISOString(),
                 paymentStatus: 'UNPAID',
+                paidAt: null,
                 awbNumber: '998-22409811',
                 cutOffTime: '16/08/2026 13:00',
                 warehouse: 'Kho hàng TCS Tân Sơn Nhất (Cửa số 2)',
@@ -377,8 +367,8 @@ const CargoStore = (function() {
                 priceKg: 56000,
                 totalAmountVND: 196000000,
                 paymentDeadline: new Date(Date.now() + 20 * 60 * 60 * 1000).toISOString(),
-                paymentStatus: 'PAID',
-                paidAt: '15/08/2026 10:15',
+                paymentStatus: 'UNPAID',
+                paidAt: null,
                 awbNumber: '998-13098722',
                 cutOffTime: '15/08/2026 11:30',
                 warehouse: 'Kho hàng SCSC Tân Sơn Nhất',
@@ -395,8 +385,9 @@ const CargoStore = (function() {
                 priceKg: 25000,
                 totalAmountVND: 100000000,
                 paymentDeadline: new Date(Date.now() + 16 * 60 * 60 * 1000).toISOString(),
-                paymentStatus: 'PENDING_VERIFICATION',
-                notifiedAt: '15/08/2026 11:00',
+                paymentStatus: 'UNPAID',
+                paidAt: null,
+                notifiedAt: null,
                 awbNumber: '998-34077611',
                 cutOffTime: '15/08/2026 16:00',
                 warehouse: 'Kho hàng Cargo Nội Bài (Cửa số 1)',
@@ -413,8 +404,8 @@ const CargoStore = (function() {
                 priceKg: 18500,
                 totalAmountVND: 46250000,
                 paymentDeadline: new Date(Date.now() + 14 * 60 * 60 * 1000).toISOString(),
-                paymentStatus: 'PAID',
-                paidAt: '16/08/2026 09:30',
+                paymentStatus: 'UNPAID',
+                paidAt: null,
                 awbNumber: '998-22688192',
                 cutOffTime: '16/08/2026 18:00',
                 warehouse: 'Kho hàng TCS Tân Sơn Nhất (Cửa số 3)',
@@ -1954,8 +1945,15 @@ const CargoStore = (function() {
                 if (newWonItem) {
                     newWonItem.agentCode = highestBid.agentCode;
                     newWonItem.agentName = highestBid.agentName;
+                    newWonItem.flightNumber = auction.flightNumber;
+                    newWonItem.route = auction.route;
+                    newWonItem.capacityKg = auction.capacityKg;
                     newWonItem.priceKg = highestBid.priceKg;
                     newWonItem.totalAmountVND = highestBid.priceKg * auction.capacityKg;
+                    newWonItem.paymentStatus = 'UNPAID';
+                    newWonItem.paidAt = null;
+                    newWonItem.notifiedAt = null;
+                    newWonItem.cargoDeclaration = null;
                 } else {
                     const now = new Date();
                     const dateStr = now.toISOString().slice(0, 10).replace(/-/g, '');
@@ -1973,9 +1971,11 @@ const CargoStore = (function() {
                         paymentDeadline: payDeadline,
                         paymentStatus: 'UNPAID',
                         paidAt: null,
+                        notifiedAt: null,
                         awbNumber: `998-${Math.floor(10000000 + Math.random() * 90000000)}`,
                         cutOffTime: auction.cutOffTime || 'Hôm nay 18:00',
-                        warehouse: 'Kho hàng SCSC / TCS Tân Sơn Nhất (Cửa số 4)'
+                        warehouse: 'Kho hàng SCSC / TCS Tân Sơn Nhất (Cửa số 4)',
+                        cargoDeclaration: null
                     };
                     data.wonAuctions.unshift(newWonItem);
                 }
