@@ -265,6 +265,31 @@
                 list = list.filter(a => a.flightNumber.toLowerCase().includes(searchVal) || a.route.toLowerCase().includes(searchVal));
             }
 
+            // Sorting: Watched/Followed auctions are ALWAYS pinned to top!
+            const sortVal = document.getElementById('sortFilter')?.value || 'CLOSING_SOON';
+            list.sort((a, b) => {
+                const isWatchedA = CargoStore.isWatched(a.id) ? 1 : 0;
+                const isWatchedB = CargoStore.isWatched(b.id) ? 1 : 0;
+
+                // Priority 1: Watched/Bookmarked auctions pinned to the top
+                if (isWatchedA !== isWatchedB) {
+                    return isWatchedB - isWatchedA; // 1 before 0
+                }
+
+                // Priority 2: Selected sorting mode
+                if (sortVal === 'PRICE_HIGH') {
+                    const priceA = a.currentPrice || a.startingPriceKg || 0;
+                    const priceB = b.currentPrice || b.startingPriceKg || 0;
+                    return priceB - priceA;
+                } else if (sortVal === 'CAPACITY_HIGH') {
+                    return (b.capacityKg || 0) - (a.capacityKg || 0);
+                } else { // CLOSING_SOON (default)
+                    const endA = new Date(a.endTime).getTime();
+                    const endB = new Date(b.endTime).getTime();
+                    return endA - endB;
+                }
+            });
+
             const totalItems = list.length;
             const totalPages = Math.ceil(totalItems / indexPageSize) || 1;
             if (indexCurrentPage > totalPages) indexCurrentPage = totalPages;
@@ -300,17 +325,18 @@
                 const isLeading = a.leadingAgentCode === currentAgentCode;
 
                 return `
-                    <div class="bg-white rounded-2xl border shadow-sm hover:shadow-md hover:border-blue-300 transition flex flex-col justify-between overflow-hidden">
+                    <div class="bg-white rounded-2xl border ${isWatched ? 'border-amber-400 ring-2 ring-amber-400/20 shadow-md' : 'border-slate-200 shadow-sm'} hover:shadow-lg transition flex flex-col justify-between overflow-hidden relative">
                         <!-- Card Header -->
-                        <div class="p-5 pb-4 border-b">
+                        <div class="p-5 pb-4 border-b ${isWatched ? 'bg-amber-50/30' : ''}">
                             <div class="flex items-center justify-between mb-3">
                                 <div class="flex items-center gap-2">
                                     <span class="bg-blue-600 text-white font-bold text-xs px-2.5 py-1 rounded-lg shadow-sm">
                                         ${a.flightNumber}
                                     </span>
                                     <span class="text-xs font-semibold text-gray-500">${a.aircraft}</span>
+                                    ${isWatched ? '<span class="bg-amber-100 text-amber-800 font-bold text-[10px] px-2 py-0.5 rounded-md flex items-center gap-1 border border-amber-300 shadow-2xs"><i class="fa-solid fa-thumbtack text-amber-600"></i> Đang theo dõi</span>' : ''}
                                 </div>
-                                <button onclick="toggleWatch(${a.id})" class="text-base ${isWatched ? 'text-amber-500' : 'text-gray-300 hover:text-amber-400'} transition" title="Theo dõi chuyến bay">
+                                <button onclick="toggleWatch(${a.id})" class="text-base ${isWatched ? 'text-amber-500 hover:text-amber-600' : 'text-gray-300 hover:text-amber-400'} transition" title="${isWatched ? 'Bỏ theo dõi' : 'Ghim theo dõi phiên này lên đầu'}">
                                     <i class="fa-solid fa-star"></i>
                                 </button>
                             </div>
@@ -407,6 +433,7 @@
             renderAuctions();
             document.getElementById('routeFilter').addEventListener('change', () => { indexCurrentPage = 1; renderAuctions(); });
             document.getElementById('statusFilter').addEventListener('change', () => { indexCurrentPage = 1; renderAuctions(); });
+            document.getElementById('sortFilter')?.addEventListener('change', () => { indexCurrentPage = 1; renderAuctions(); });
             document.getElementById('searchInput').addEventListener('input', () => { indexCurrentPage = 1; renderAuctions(); });
 
             // Timer update
