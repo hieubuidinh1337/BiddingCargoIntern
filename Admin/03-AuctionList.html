@@ -169,7 +169,7 @@
 
         <!-- Tab 3: Đơn thắng thầu & Khai báo Hàng hóa -->
         <div id="sectionWonAuctions" class="hidden bg-white rounded-2xl border shadow-sm overflow-hidden">
-            <div class="px-6 py-4 border-b bg-slate-900 text-white flex flex-col md:flex-row md:items-center justify-between gap-3">
+            <div class="px-6 py-4 border-b bg-slate-900 text-white flex flex-col xl:flex-row xl:items-center justify-between gap-3">
                 <div class="flex items-center gap-2.5">
                     <div class="w-8 h-8 bg-emerald-500 rounded-lg flex items-center justify-center font-bold text-white text-sm">
                         <i class="fa-solid fa-boxes-packing"></i>
@@ -179,12 +179,23 @@
                         <p class="text-[11px] text-slate-300">Xem hồ sơ quy cách lô hàng, xác nhận thanh toán chuyển khoản & kích hoạt phiếu bàn giao slot</p>
                     </div>
                 </div>
-                <div class="flex items-center gap-2">
-                    <div class="inline-flex rounded-lg bg-slate-800 p-1 border border-slate-700 text-[11px]" id="wonFilterGroup">
+                <div class="flex flex-wrap items-center gap-2">
+                    <!-- Filter 1: Khai báo hàng -->
+                    <div class="inline-flex items-center rounded-lg bg-slate-800 p-1 border border-slate-700 text-[11px]" id="wonFilterGroup">
+                        <span class="text-slate-400 font-semibold px-2 py-0.5 flex items-center gap-1"><i class="fa-solid fa-boxes-stacked text-[10px]"></i> Khai báo:</span>
                         <button type="button" onclick="setWonCargoFilter('ALL')" id="wonFilterAll" class="px-2.5 py-1 rounded-md font-semibold text-white bg-blue-600 transition">Tất cả</button>
                         <button type="button" onclick="setWonCargoFilter('DECLARED')" id="wonFilterDeclared" class="px-2.5 py-1 rounded-md font-semibold text-slate-300 hover:text-white transition">Đã khai báo</button>
                         <button type="button" onclick="setWonCargoFilter('UNDECLARED')" id="wonFilterUndeclared" class="px-2.5 py-1 rounded-md font-semibold text-slate-300 hover:text-white transition">Chưa khai báo</button>
                     </div>
+
+                    <!-- Filter 2: Thanh toán -->
+                    <div class="inline-flex items-center rounded-lg bg-slate-800 p-1 border border-slate-700 text-[11px]" id="wonPayFilterGroup">
+                        <span class="text-slate-400 font-semibold px-2 py-0.5 flex items-center gap-1"><i class="fa-solid fa-credit-card text-[10px]"></i> Thanh toán:</span>
+                        <button type="button" onclick="setWonPayFilter('ALL')" id="wonPayFilterAll" class="px-2.5 py-1 rounded-md font-semibold text-white bg-blue-600 transition">Tất cả</button>
+                        <button type="button" onclick="setWonPayFilter('PAID')" id="wonPayFilterPaid" class="px-2.5 py-1 rounded-md font-semibold text-slate-300 hover:text-white transition">Đã thanh toán</button>
+                        <button type="button" onclick="setWonPayFilter('UNPAID')" id="wonPayFilterUnpaid" class="px-2.5 py-1 rounded-md font-semibold text-slate-300 hover:text-white transition">Chưa thanh toán</button>
+                    </div>
+
                     <span class="text-xs font-semibold bg-emerald-500/20 text-emerald-300 border border-emerald-500/30 px-3 py-1 rounded-full flex items-center gap-1.5 whitespace-nowrap">
                         <i class="fa-solid fa-circle-info"></i> <span id="wonCountText">0 đơn thắng thầu</span>
                     </span>
@@ -207,6 +218,11 @@
                         <!-- Populated by JS -->
                     </tbody>
                 </table>
+            </div>
+
+            <!-- Won Auctions Pagination Controls -->
+            <div id="wonPaginationContainer" class="px-6 py-3 bg-slate-50 border-t flex flex-col sm:flex-row items-center justify-between gap-3 text-xs">
+                <!-- Javascript populated -->
             </div>
         </div>
 
@@ -647,22 +663,58 @@
         }
 
         let currentWonCargoFilter = 'ALL';
+        let currentWonPayFilter = 'ALL';
+        let wonCurrentPage = 1;
+        let wonPageSize = 5;
 
         function setWonCargoFilter(filter) {
             currentWonCargoFilter = filter;
-            const btnAll = document.getElementById('wonFilterAll');
-            const btnDec = document.getElementById('wonFilterDeclared');
-            const btnUndec = document.getElementById('wonFilterUndeclared');
-
-            if (btnAll && btnDec && btnUndec) {
-                const activeClasses = 'px-2.5 py-1 rounded-md font-semibold text-white bg-blue-600 transition';
-                const inactiveClasses = 'px-2.5 py-1 rounded-md font-semibold text-slate-300 hover:text-white transition';
-
-                btnAll.className = filter === 'ALL' ? activeClasses : inactiveClasses;
-                btnDec.className = filter === 'DECLARED' ? activeClasses : inactiveClasses;
-                btnUndec.className = filter === 'UNDECLARED' ? activeClasses : inactiveClasses;
-            }
+            wonCurrentPage = 1;
+            updateFilterButtonsUI();
             renderWonAuctionsAdminTable();
+        }
+
+        function setWonPayFilter(filter) {
+            currentWonPayFilter = filter;
+            wonCurrentPage = 1;
+            updateFilterButtonsUI();
+            renderWonAuctionsAdminTable();
+        }
+
+        function setWonPageSize(size) {
+            wonPageSize = Number(size) || 5;
+            wonCurrentPage = 1;
+            renderWonAuctionsAdminTable();
+        }
+
+        function goToWonPage(page) {
+            wonCurrentPage = page;
+            renderWonAuctionsAdminTable();
+        }
+
+        function updateFilterButtonsUI() {
+            const btnCargoAll = document.getElementById('wonFilterAll');
+            const btnCargoDec = document.getElementById('wonFilterDeclared');
+            const btnCargoUndec = document.getElementById('wonFilterUndeclared');
+
+            const btnPayAll = document.getElementById('wonPayFilterAll');
+            const btnPayPaid = document.getElementById('wonPayFilterPaid');
+            const btnPayUnpaid = document.getElementById('wonPayFilterUnpaid');
+
+            const activeClass = 'px-2.5 py-1 rounded-md font-semibold text-white bg-blue-600 transition';
+            const inactiveClass = 'px-2.5 py-1 rounded-md font-semibold text-slate-300 hover:text-white transition';
+
+            if (btnCargoAll && btnCargoDec && btnCargoUndec) {
+                btnCargoAll.className = currentWonCargoFilter === 'ALL' ? activeClass : inactiveClass;
+                btnCargoDec.className = currentWonCargoFilter === 'DECLARED' ? activeClass : inactiveClass;
+                btnCargoUndec.className = currentWonCargoFilter === 'UNDECLARED' ? activeClass : inactiveClass;
+            }
+
+            if (btnPayAll && btnPayPaid && btnPayUnpaid) {
+                btnPayAll.className = currentWonPayFilter === 'ALL' ? activeClass : inactiveClass;
+                btnPayPaid.className = currentWonPayFilter === 'PAID' ? activeClass : inactiveClass;
+                btnPayUnpaid.className = currentWonPayFilter === 'UNPAID' ? activeClass : inactiveClass;
+            }
         }
 
         function renderWonAuctionsAdminTable() {
@@ -670,17 +722,27 @@
             let list = data.wonAuctions || [];
             const tbody = document.getElementById('wonAuctionsTableBody');
             const countText = document.getElementById('wonCountText');
+            const pagContainer = document.getElementById('wonPaginationContainer');
             if (!tbody) return;
 
+            // 1. Cargo Declaration Filter
             if (currentWonCargoFilter === 'DECLARED') {
                 list = list.filter(w => !!w.cargoDeclaration);
             } else if (currentWonCargoFilter === 'UNDECLARED') {
                 list = list.filter(w => !w.cargoDeclaration);
             }
 
-            if (countText) countText.textContent = `${list.length} đơn thắng thầu`;
+            // 2. Payment Status Filter
+            if (currentWonPayFilter === 'PAID') {
+                list = list.filter(w => w.paymentStatus === 'PAID');
+            } else if (currentWonPayFilter === 'UNPAID') {
+                list = list.filter(w => w.paymentStatus !== 'PAID');
+            }
 
-            if (list.length === 0) {
+            const totalItems = list.length;
+            if (countText) countText.textContent = `${totalItems} đơn thắng thầu`;
+
+            if (totalItems === 0) {
                 tbody.innerHTML = `
                     <tr>
                         <td colspan="7" class="py-8 text-center text-slate-400">
@@ -689,10 +751,20 @@
                         </td>
                     </tr>
                 `;
+                if (pagContainer) pagContainer.innerHTML = '';
                 return;
             }
 
-            tbody.innerHTML = list.map(item => {
+            // 3. Pagination Logic
+            const totalPages = Math.ceil(totalItems / wonPageSize) || 1;
+            if (wonCurrentPage > totalPages) wonCurrentPage = totalPages;
+            if (wonCurrentPage < 1) wonCurrentPage = 1;
+
+            const startIndex = (wonCurrentPage - 1) * wonPageSize;
+            const endIndex = Math.min(startIndex + wonPageSize, totalItems);
+            const paginatedList = list.slice(startIndex, endIndex);
+
+            tbody.innerHTML = paginatedList.map(item => {
                 const isPaid = item.paymentStatus === 'PAID';
                 const isPending = item.paymentStatus === 'PENDING_VERIFICATION';
                 const decl = item.cargoDeclaration;
