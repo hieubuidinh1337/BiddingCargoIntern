@@ -72,46 +72,103 @@
             </div>
         </div>
 
-        <!-- Filter bar -->
-        <div class="bg-white rounded-2xl border shadow-sm p-4 flex flex-col sm:flex-row items-center gap-3">
-            <div class="relative flex-1 w-full">
-                <i class="fa-solid fa-magnifying-glass absolute left-3.5 top-1/2 -translate-y-1/2 text-gray-400 text-xs"></i>
-                <input type="text" id="auctionSearch" placeholder="Tìm theo số hiệu chuyến bay (VU130...), chặng bay..."
-                       class="w-full border rounded-xl pl-9 pr-4 py-2 text-xs focus:ring-2 focus:ring-blue-500 outline-none">
+        <!-- Navigation Tabs (Phân cách bảng giống AgentList) -->
+        <div class="flex flex-wrap items-center gap-2 border-b pb-2">
+            <button onclick="switchAuctionTab('ALL_AUCTIONS')" id="tabAllAuctionsBtn" class="px-4 py-2 rounded-xl text-xs font-bold bg-blue-600 text-white shadow-sm flex items-center gap-2 transition">
+                <i class="fa-solid fa-layer-group"></i> Tất cả phiên đấu giá (<span id="allCountBadge">0</span>)
+            </button>
+            <button onclick="switchAuctionTab('OPEN_AUCTIONS')" id="tabOpenAuctionsBtn" class="px-4 py-2 rounded-xl text-xs font-bold bg-white text-slate-600 hover:bg-slate-50 border flex items-center gap-2 transition">
+                <i class="fa-solid fa-tower-broadcast"></i> Đang mở đấu giá (<span id="openCountBadge">0</span>)
+            </button>
+            <button onclick="switchAuctionTab('WON_AUCTIONS')" id="tabWonAuctionsBtn" class="px-4 py-2 rounded-xl text-xs font-bold bg-white text-slate-600 hover:bg-slate-50 border flex items-center gap-2 transition">
+                <i class="fa-solid fa-boxes-packing"></i> Đơn thắng thầu & Khai báo Hàng hóa (<span id="wonCountBadge">0</span>)
+            </button>
+        </div>
+
+        <!-- Tab 1: Tất cả phiên đấu giá -->
+        <div id="sectionAllAuctions" class="space-y-4">
+            <!-- Filter bar -->
+            <div class="bg-white rounded-2xl border shadow-sm p-4 flex flex-col sm:flex-row items-center gap-3">
+                <div class="relative flex-1 w-full">
+                    <i class="fa-solid fa-magnifying-glass absolute left-3.5 top-1/2 -translate-y-1/2 text-gray-400 text-xs"></i>
+                    <input type="text" id="auctionSearch" placeholder="Tìm theo số hiệu chuyến bay (VU130...), chặng bay..."
+                           class="w-full border rounded-xl pl-9 pr-4 py-2 text-xs focus:ring-2 focus:ring-blue-500 outline-none">
+                </div>
+                <div class="w-full sm:w-48">
+                    <select id="statusSelect" class="w-full border rounded-xl px-3 py-2 text-xs focus:ring-2 focus:ring-blue-500 outline-none bg-white">
+                        <option value="ALL">Tất cả trạng thái</option>
+                        <option value="OPEN">Đang mở đấu giá</option>
+                        <option value="CLOSED">Đã đóng / Chốt thầu</option>
+                    </select>
+                </div>
             </div>
-            <div class="w-full sm:w-48">
-                <select id="statusSelect" class="w-full border rounded-xl px-3 py-2 text-xs focus:ring-2 focus:ring-blue-500 outline-none bg-white">
-                    <option value="ALL">Tất cả trạng thái</option>
-                    <option value="OPEN">Đang mở đấu giá</option>
-                    <option value="CLOSED">Đã đóng / Chốt thầu</option>
-                </select>
+
+            <!-- Table 1: All Auctions -->
+            <div class="bg-white rounded-2xl border shadow-sm overflow-hidden">
+                <div class="p-4 bg-slate-50/70 border-b flex items-center justify-between">
+                    <span class="text-xs text-slate-600 font-semibold flex items-center gap-1.5">
+                        <i class="fa-solid fa-list-check text-blue-600"></i> Danh sách tất cả các phiên đấu giá tải trọng trên hệ thống
+                    </span>
+                    <span class="text-[11px] text-slate-500">Thao tác: Xem chi tiết, Chỉnh sửa thông số, Chốt thầu hoặc Xóa</span>
+                </div>
+                <div class="overflow-x-auto">
+                    <table class="w-full text-xs text-left">
+                        <thead class="bg-slate-50 text-slate-600 font-semibold border-b">
+                            <tr>
+                                <th class="py-3.5 px-4">Mã phiên & Số hiệu</th>
+                                <th class="py-3.5 px-4">Tuyến bay</th>
+                                <th class="py-3.5 px-4">Tàu bay & Giờ ETD</th>
+                                <th class="py-3.5 px-4">Tải trọng chào thầu</th>
+                                <th class="py-3.5 px-4">Giá hiện tại (đ/Kg)</th>
+                                <th class="py-3.5 px-4">Trạng thái</th>
+                                <th class="py-3.5 px-4 text-right">Thao tác</th>
+                            </tr>
+                        </thead>
+                        <tbody class="divide-y divide-gray-100" id="auctionsTableBody">
+                            <!-- Populated by JS -->
+                        </tbody>
+                    </table>
+                </div>
             </div>
         </div>
 
-        <!-- Table -->
-        <div class="bg-white rounded-2xl border shadow-sm overflow-hidden">
-            <div class="overflow-x-auto">
-                <table class="w-full text-xs text-left">
-                    <thead class="bg-slate-50 text-slate-600 font-semibold border-b">
-                        <tr>
-                            <th class="py-3.5 px-4">Mã phiên & Số hiệu</th>
-                            <th class="py-3.5 px-4">Tuyến bay</th>
-                            <th class="py-3.5 px-4">Tàu bay & Giờ ETD</th>
-                            <th class="py-3.5 px-4">Tải trọng chào thầu</th>
-                            <th class="py-3.5 px-4">Giá hiện tại (đ/Kg)</th>
-                            <th class="py-3.5 px-4">Trạng thái</th>
-                            <th class="py-3.5 px-4 text-right">Thao tác</th>
-                        </tr>
-                    </thead>
-                    <tbody class="divide-y divide-gray-100" id="auctionsTableBody">
-                        <!-- Populated by JS -->
-                    </tbody>
-                </table>
+        <!-- Tab 2: Các phiên đang MỞ đấu giá (Live Open Auctions) -->
+        <div id="sectionOpenAuctions" class="hidden space-y-4">
+            <div class="bg-blue-50 border border-blue-200 text-blue-800 rounded-xl p-3.5 text-xs flex items-center gap-2">
+                <i class="fa-solid fa-tower-broadcast text-blue-600 text-sm"></i>
+                <span>Danh sách các chuyến bay <strong>đang mở đấu giá thời gian thực</strong>. Quản trị viên có thể theo dõi biến động giá thầu hoặc chủ động <strong>Chốt thầu</strong> sớm.</span>
+            </div>
+
+            <div class="bg-white rounded-2xl border shadow-sm overflow-hidden">
+                <div class="p-4 bg-slate-50/70 border-b flex items-center justify-between">
+                    <span class="text-xs text-slate-600 font-semibold flex items-center gap-1.5">
+                        <i class="fa-solid fa-signal text-emerald-600"></i> Các phiên thầu đang đếm ngược trực tuyến
+                    </span>
+                    <span class="text-[11px] text-slate-500">Cập nhật tự động realtime từng giây</span>
+                </div>
+                <div class="overflow-x-auto">
+                    <table class="w-full text-xs text-left">
+                        <thead class="bg-slate-50 text-slate-600 font-semibold border-b">
+                            <tr>
+                                <th class="py-3.5 px-4">Mã phiên & Số hiệu</th>
+                                <th class="py-3.5 px-4">Tuyến bay</th>
+                                <th class="py-3.5 px-4">Tàu bay & Giờ ETD</th>
+                                <th class="py-3.5 px-4">Tải trọng chào thầu</th>
+                                <th class="py-3.5 px-4">Giá hiện tại (đ/Kg)</th>
+                                <th class="py-3.5 px-4">Trạng thái</th>
+                                <th class="py-3.5 px-4 text-right">Thao tác</th>
+                            </tr>
+                        </thead>
+                        <tbody class="divide-y divide-gray-100" id="openAuctionsTableBody">
+                            <!-- Populated by JS -->
+                        </tbody>
+                    </table>
+                </div>
             </div>
         </div>
 
-        <!-- Won Auctions Payment Verification Table -->
-        <div class="bg-white rounded-2xl border shadow-sm overflow-hidden mt-8">
+        <!-- Tab 3: Đơn thắng thầu & Khai báo Hàng hóa -->
+        <div id="sectionWonAuctions" class="hidden bg-white rounded-2xl border shadow-sm overflow-hidden">
             <div class="px-6 py-4 border-b bg-slate-900 text-white flex flex-col md:flex-row md:items-center justify-between gap-3">
                 <div class="flex items-center gap-2.5">
                     <div class="w-8 h-8 bg-emerald-500 rounded-lg flex items-center justify-center font-bold text-white text-sm">
@@ -332,11 +389,116 @@
     </div>
 
     <script>
+        let activeAuctionTab = 'ALL_AUCTIONS';
+
+        function switchAuctionTab(tab) {
+            activeAuctionTab = tab;
+            const btnAll = document.getElementById('tabAllAuctionsBtn');
+            const btnOpen = document.getElementById('tabOpenAuctionsBtn');
+            const btnWon = document.getElementById('tabWonAuctionsBtn');
+
+            const secAll = document.getElementById('sectionAllAuctions');
+            const secOpen = document.getElementById('sectionOpenAuctions');
+            const secWon = document.getElementById('sectionWonAuctions');
+
+            if (!btnAll || !btnOpen || !btnWon) return;
+
+            const activeClasses = 'px-4 py-2 rounded-xl text-xs font-bold bg-blue-600 text-white shadow-sm flex items-center gap-2 transition';
+            const inactiveClasses = 'px-4 py-2 rounded-xl text-xs font-bold bg-white text-slate-600 hover:bg-slate-50 border flex items-center gap-2 transition';
+
+            btnAll.className = tab === 'ALL_AUCTIONS' ? activeClasses : inactiveClasses;
+            btnOpen.className = tab === 'OPEN_AUCTIONS' ? activeClasses : inactiveClasses;
+            btnWon.className = tab === 'WON_AUCTIONS' ? activeClasses : inactiveClasses;
+
+            if (secAll) secAll.classList.toggle('hidden', tab !== 'ALL_AUCTIONS');
+            if (secOpen) secOpen.classList.toggle('hidden', tab !== 'OPEN_AUCTIONS');
+            if (secWon) secWon.classList.toggle('hidden', tab !== 'WON_AUCTIONS');
+        }
+
+        function updateTabBadges() {
+            if (typeof CargoStore === 'undefined') return;
+            const data = CargoStore.getData();
+            const auctions = data.auctions || [];
+            const wonAuctions = data.wonAuctions || [];
+
+            const bAll = document.getElementById('allCountBadge');
+            const bOpen = document.getElementById('openCountBadge');
+            const bWon = document.getElementById('wonCountBadge');
+
+            if (bAll) bAll.textContent = auctions.length;
+            if (bOpen) bOpen.textContent = auctions.filter(a => a.status === 'OPEN').length;
+            if (bWon) bWon.textContent = wonAuctions.length;
+        }
+
+        function renderAuctionRow(a, data) {
+            const isOpen = a.status === 'OPEN';
+            return `
+                <tr class="hover:bg-slate-50 transition">
+                    <td class="py-3.5 px-4">
+                        <div class="flex items-center gap-2">
+                            <span class="bg-blue-600 text-white font-bold px-2 py-0.5 rounded text-[11px]">${a.flightNumber}</span>
+                            <span class="font-mono text-gray-400 text-[11px]">${a.flightCode}</span>
+                        </div>
+                    </td>
+                    <td class="py-3.5 px-4 font-bold text-slate-800">
+                        ${a.route}
+                    </td>
+                    <td class="py-3.5 px-4 text-gray-600">
+                        <p class="font-medium">${a.aircraft}</p>
+                        <p class="text-[11px] text-gray-400">${a.etd}</p>
+                    </td>
+                    <td class="py-3.5 px-4 font-semibold text-slate-900">
+                        ${CargoStore.formatNumber(a.capacityKg)} Kg
+                    </td>
+                    <td class="py-3.5 px-4 font-bold text-blue-600">
+                        ${CargoStore.formatCurrency(a.currentPriceKg)}
+                    </td>
+                    <td class="py-3.5 px-4">
+                        <span class="${isOpen ? 'bg-green-100 text-green-700' : 'bg-gray-100 text-gray-500'} font-bold px-2.5 py-1 rounded-full text-[10px]">
+                            ${isOpen ? 'ĐANG MỞ' : 'ĐÃ ĐÓNG'}
+                        </span>
+                    </td>
+                    <td class="py-3.5 px-4 text-right space-x-1.5 whitespace-nowrap">
+                        <a href="05-AuctionDetail.html?id=${a.id}" class="inline-flex items-center gap-1 bg-blue-50 hover:bg-blue-100 text-blue-700 font-semibold px-2 py-1 rounded-lg transition" title="Xem chi tiết & lịch sử">
+                            <i class="fa-solid fa-eye text-[10px]"></i> Xem
+                        </a>
+                        ${(a.bidsCount && a.bidsCount > 0) ? `
+                            <button disabled class="inline-flex items-center gap-1 bg-gray-100 text-gray-400 font-semibold px-2 py-1 rounded-lg cursor-not-allowed opacity-60" title="Không thể sửa – đã có ${a.bidsCount} lượt đặt giá">
+                                <i class="fa-solid fa-lock text-[10px]"></i> Sửa
+                            </button>
+                        ` : `
+                            <button onclick="openEditModal(${a.id})" class="inline-flex items-center gap-1 bg-amber-50 hover:bg-amber-100 text-amber-700 font-semibold px-2 py-1 rounded-lg transition" title="Chỉnh sửa thông số">
+                                <i class="fa-solid fa-pen-to-square text-[10px]"></i> Sửa
+                            </button>
+                        `}
+                        ${(isOpen && data.currentAdmin && data.currentAdmin.role !== 'STAFF') ? `
+                            <button onclick="handleCloseAuction(${a.id})" class="inline-flex items-center gap-1 bg-emerald-50 hover:bg-emerald-100 text-emerald-700 font-semibold px-2 py-1 rounded-lg transition" title="Chốt thầu">
+                                <i class="fa-solid fa-gavel text-[10px]"></i> Chốt
+                            </button>
+                        ` : ''}
+                        ${(a.bidsCount && a.bidsCount > 0) ? `
+                            <button disabled class="inline-flex items-center gap-1 bg-gray-100 text-gray-400 font-semibold px-2 py-1 rounded-lg cursor-not-allowed opacity-60" title="Không thể xóa – đã có ${a.bidsCount} lượt đặt giá">
+                                <i class="fa-solid fa-lock text-[10px]"></i> Xóa
+                            </button>
+                        ` : `
+                            <button onclick="handleDeleteAuction(${a.id}, '${a.flightNumber}')" class="inline-flex items-center gap-1 bg-red-50 hover:bg-red-100 text-red-600 font-semibold px-2 py-1 rounded-lg transition" title="Xóa chuyến bay">
+                                <i class="fa-solid fa-trash text-[10px]"></i> Xóa
+                            </button>
+                        `}
+                    </td>
+                </tr>
+            `;
+        }
+
         function renderAuctionsTable() {
             if (typeof CargoStore === 'undefined') return;
             const data = CargoStore.getData();
-            const search = (document.getElementById('auctionSearch').value || '').toLowerCase();
-            const status = document.getElementById('statusSelect').value;
+            updateTabBadges();
+
+            const searchEl = document.getElementById('auctionSearch');
+            const statusEl = document.getElementById('statusSelect');
+            const search = (searchEl ? searchEl.value : '').toLowerCase();
+            const status = statusEl ? statusEl.value : 'ALL';
 
             let list = data.auctions || [];
 
@@ -353,70 +515,24 @@
             }
 
             const tbody = document.getElementById('auctionsTableBody');
-            if (list.length === 0) {
-                tbody.innerHTML = `<tr><td colspan="7" class="py-12 text-center text-gray-400">Không tìm thấy phiên đấu giá nào</td></tr>`;
-                return;
+            if (tbody) {
+                if (list.length === 0) {
+                    tbody.innerHTML = `<tr><td colspan="7" class="py-12 text-center text-gray-400">Không tìm thấy phiên đấu giá nào</td></tr>`;
+                } else {
+                    tbody.innerHTML = list.map(a => renderAuctionRow(a, data)).join('');
+                }
             }
 
-            tbody.innerHTML = list.map(a => {
-                const isOpen = a.status === 'OPEN';
-                return `
-                    <tr class="hover:bg-slate-50 transition">
-                        <td class="py-3.5 px-4">
-                            <div class="flex items-center gap-2">
-                                <span class="bg-blue-600 text-white font-bold px-2 py-0.5 rounded text-[11px]">${a.flightNumber}</span>
-                                <span class="font-mono text-gray-400 text-[11px]">${a.flightCode}</span>
-                            </div>
-                        </td>
-                        <td class="py-3.5 px-4 font-bold text-slate-800">
-                            ${a.route}
-                        </td>
-                        <td class="py-3.5 px-4 text-gray-600">
-                            <p class="font-medium">${a.aircraft}</p>
-                            <p class="text-[11px] text-gray-400">${a.etd}</p>
-                        </td>
-                        <td class="py-3.5 px-4 font-semibold text-slate-900">
-                            ${CargoStore.formatNumber(a.capacityKg)} Kg
-                        </td>
-                        <td class="py-3.5 px-4 font-bold text-blue-600">
-                            ${CargoStore.formatCurrency(a.currentPriceKg)}
-                        </td>
-                        <td class="py-3.5 px-4">
-                            <span class="${isOpen ? 'bg-green-100 text-green-700' : 'bg-gray-100 text-gray-500'} font-bold px-2.5 py-1 rounded-full text-[10px]">
-                                ${isOpen ? 'ĐANG MỞ' : 'ĐÃ ĐÓNG'}
-                            </span>
-                        </td>
-                        <td class="py-3.5 px-4 text-right space-x-1.5 whitespace-nowrap">
-                            <a href="05-AuctionDetail.html?id=${a.id}" class="inline-flex items-center gap-1 bg-blue-50 hover:bg-blue-100 text-blue-700 font-semibold px-2 py-1 rounded-lg transition" title="Xem chi tiết & lịch sử">
-                                <i class="fa-solid fa-eye text-[10px]"></i> Xem
-                            </a>
-                            ${(a.bidsCount && a.bidsCount > 0) ? `
-                                <button disabled class="inline-flex items-center gap-1 bg-gray-100 text-gray-400 font-semibold px-2 py-1 rounded-lg cursor-not-allowed opacity-60" title="Không thể sửa – đã có ${a.bidsCount} lượt đặt giá">
-                                    <i class="fa-solid fa-lock text-[10px]"></i> Sửa
-                                </button>
-                            ` : `
-                                <button onclick="openEditModal(${a.id})" class="inline-flex items-center gap-1 bg-amber-50 hover:bg-amber-100 text-amber-700 font-semibold px-2 py-1 rounded-lg transition" title="Chỉnh sửa thông số">
-                                    <i class="fa-solid fa-pen-to-square text-[10px]"></i> Sửa
-                                </button>
-                            `}
-                            ${(isOpen && data.currentAdmin && data.currentAdmin.role !== 'STAFF') ? `
-                                <button onclick="handleCloseAuction(${a.id})" class="inline-flex items-center gap-1 bg-emerald-50 hover:bg-emerald-100 text-emerald-700 font-semibold px-2 py-1 rounded-lg transition" title="Chốt thầu">
-                                    <i class="fa-solid fa-gavel text-[10px]"></i> Chốt
-                                </button>
-                            ` : ''}
-                            ${(a.bidsCount && a.bidsCount > 0) ? `
-                                <button disabled class="inline-flex items-center gap-1 bg-gray-100 text-gray-400 font-semibold px-2 py-1 rounded-lg cursor-not-allowed opacity-60" title="Không thể xóa – đã có ${a.bidsCount} lượt đặt giá">
-                                    <i class="fa-solid fa-lock text-[10px]"></i> Xóa
-                                </button>
-                            ` : `
-                                <button onclick="handleDeleteAuction(${a.id}, '${a.flightNumber}')" class="inline-flex items-center gap-1 bg-red-50 hover:bg-red-100 text-red-600 font-semibold px-2 py-1 rounded-lg transition" title="Xóa chuyến bay">
-                                    <i class="fa-solid fa-trash text-[10px]"></i> Xóa
-                                </button>
-                            `}
-                        </td>
-                    </tr>
-                `;
-            }).join('');
+            // Populate Tab 2: Open auctions table
+            const tbodyOpen = document.getElementById('openAuctionsTableBody');
+            if (tbodyOpen) {
+                const openList = (data.auctions || []).filter(a => a.status === 'OPEN');
+                if (openList.length === 0) {
+                    tbodyOpen.innerHTML = `<tr><td colspan="7" class="py-12 text-center text-gray-400"><i class="fa-solid fa-inbox text-2xl mb-1 block"></i>Hiện tại không có chuyến bay nào đang mở đấu giá.</td></tr>`;
+                } else {
+                    tbodyOpen.innerHTML = openList.map(a => renderAuctionRow(a, data)).join('');
+                }
+            }
         }
 
         function handleCloseAuction(id) {

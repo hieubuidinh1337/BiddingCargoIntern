@@ -1,5 +1,5 @@
 {
-  "version": 1788775104134,
+  "version": 1788831810806,
   "auctions": [
     {
       "id": 6,
@@ -153,7 +153,7 @@
       "startingPriceKg": 18000,
       "currentPriceKg": 41500,
       "minStep": 500,
-      "endTime": "2026-09-07T11:58:24.130Z",
+      "endTime": "2026-09-08T03:33:56.091Z",
       "status": "OPEN",
       "leadingAgentCode": "AG-0556",
       "leadingAgentName": "Công ty TNHH Tiếp vận Toàn Cầu Golden Star",
@@ -321,15 +321,15 @@
       "cargoDeclaration": {
         "cargoType": "Hàng linh kiện điện tử (VAL/AVI)",
         "cargoName": "abcdef12344",
-        "piecesCount": 5555,
-        "grossWeightKg": 3,
-        "volumeCbm": 3,
+        "piecesCount": 55,
+        "grossWeightKg": 399,
+        "volumeCbm": 19.9,
         "hawbNumber": "abscd",
         "shipperName": "cong ty tnhh",
         "consigneeName": "abc dè geh",
         "consigneeAddress": "1231 lign oekro qqe ad",
         "specialNotes": "",
-        "updatedAt": "14:12:44 7/9/2026"
+        "updatedAt": "08:35:44 8/9/2026"
       },
       "notifiedAt": "14:13:16 7/9/2026"
     },
