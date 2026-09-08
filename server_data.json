@@ -1,6 +1,31 @@
 {
-  "version": 1788849238090,
+  "version": 1788849563408,
   "auctions": [
+    {
+      "id": 8,
+      "flightCode": "FL-VU510-260908",
+      "flightNumber": "VU510",
+      "route": "DAD - PQC",
+      "origin": "DAD",
+      "destination": "PQC",
+      "originName": "Đà Nẵng",
+      "destName": "Phú Quốc",
+      "etd": "21:00 · 08/09/2026",
+      "eta": "23:00 · 08/09/2026",
+      "etdIso": "2026-09-08T14:00:00.000Z",
+      "aircraft": "Airbus A321neo Cargo",
+      "capacityKg": 3000,
+      "startingPriceKg": 18000,
+      "currentPriceKg": 18000,
+      "minStep": 500,
+      "endTime": "2026-09-08T09:00:00.000Z",
+      "status": "OPEN",
+      "leadingAgentCode": "Chưa có",
+      "leadingAgentName": "Chưa có đại lý nào đặt giá",
+      "bidsCount": 0,
+      "specialNotes": "Tải trọng tổng hợp tiêu chuẩn IATA. Có hỗ trợ xe nâng hàng pallet tại sân bay.",
+      "cutOffTime": "Trước ETD 3 giờ"
+    },
     {
       "id": 7,
       "flightCode": "FL-VU450-260908",
@@ -176,13 +201,13 @@
       "aircraft": "Airbus A321neo Cargo",
       "capacityKg": 3500,
       "startingPriceKg": 18000,
-      "currentPriceKg": 56000,
+      "currentPriceKg": 56500,
       "minStep": 500,
       "endTime": "2026-09-08T12:58:38.266Z",
       "status": "OPEN",
       "leadingAgentCode": "AG-0892",
       "leadingAgentName": "Công ty TNHH Vận tải ABC Logistics",
-      "bidsCount": 13,
+      "bidsCount": 14,
       "specialNotes": "Hàng tổng hợp, hỗ trợ kho lạnh bảo quản thực phẩm & dược phẩm.",
       "cutOffTime": "11:30 · 15/08/2026",
       "isAnonymous": true,
@@ -192,6 +217,18 @@
     }
   ],
   "bids": [
+    {
+      "id": 1788849563402,
+      "timestamp": 1788849563402,
+      "auctionId": 1,
+      "agentCode": "AG-0892",
+      "agentName": "Công ty TNHH Vận tải ABC Logistics",
+      "isAnonymous": true,
+      "priceKg": 56500,
+      "time": "Vừa xong",
+      "status": "HIGHEST",
+      "weightKg": 3500
+    },
     {
       "id": 1788839144948,
       "timestamp": 1788839144948,
@@ -495,6 +532,38 @@
   ],
   "notifications": [
     {
+      "id": 1788849563402,
+      "timestamp": 1788849563402,
+      "targetAgentCode": "AG-0892",
+      "title": "Đặt giá thành công chuyến VU130",
+      "message": "Bạn (AG-0892) đang dẫn đầu mức giá 56.500 đ/Kg cho chặng SGN - HAN. (Tên công ty được che ẩn danh đối với các đối thủ)",
+      "time": "Vừa xong",
+      "type": "HIGHEST",
+      "read": false,
+      "link": "04-Detail.html?id=1"
+    },
+    {
+      "id": 1788849521315,
+      "title": "1",
+      "message": "2",
+      "time": "Vừa xong",
+      "type": "SYSTEM",
+      "read": true,
+      "link": "03-Index.html",
+      "targetAgentCode": null
+    },
+    {
+      "id": 1788849375930,
+      "timestamp": 1788849375930,
+      "targetAgentCode": null,
+      "title": "Mở phiên đấu giá mới: Chuyến VU510 (DAD - PQC)",
+      "message": "Chuyến bay VU510 (Đà Nẵng - Phú Quốc) với tải trọng 3.000 Kg, giá khởi điểm 18.000 đ/Kg đã chính thức mở nhận giá thầu.",
+      "time": "Vừa xong",
+      "type": "AUCTION_OPEN",
+      "read": true,
+      "link": "04-Detail.html?id=8"
+    },
+    {
       "id": 1788841489082,
       "timestamp": 1788841489082,
       "targetAgentCode": null,
@@ -502,7 +571,7 @@
       "message": "Chuyến bay VU450 (TP. Hồ Chí Minh - Phú Quốc) với tải trọng 3.000 Kg, giá khởi điểm 18.000 đ/Kg đã chính thức mở nhận giá thầu.",
       "time": "Vừa xong",
       "type": "AUCTION_OPEN",
-      "read": false,
+      "read": true,
       "link": "04-Detail.html?id=7"
     },
     {
@@ -534,7 +603,7 @@
       "message": "Bạn (AG-0892) đang dẫn đầu mức giá 56.000 đ/Kg cho chặng SGN - HAN. (Tên công ty được che ẩn danh đối với các đối thủ)",
       "time": "Vừa xong",
       "type": "HIGHEST",
-      "read": false,
+      "read": true,
       "link": "04-Detail.html?id=1"
     },
     {
@@ -603,7 +672,7 @@
       "id": 1788762366121,
       "targetAgentCode": "AG-1024",
       "title": "Xác nhận thanh toán đơn WON-20260903-03 thành công!",
-      "message": "Ban Điều hành đã xác nhận nhận đủ 120.000.000 đ cho đơn hàng chuyến VU340 (HAN - PQC). Mã AWB: 998-68142002.",
+      "message": "Ban Điều hành đã xác nhận nhận đủ 120.000.000 đ cho đ��n hàng chuyến VU340 (HAN - PQC). Mã AWB: 998-68142002.",
       "time": "Vừa xong",
       "type": "SYSTEM",
       "read": true,

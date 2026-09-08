@@ -247,13 +247,25 @@
 
     <script>
         let adminOpenCurrentPage = 1;
-        const adminOpenPageSize = 5;
+        let adminOpenPageSize = 5;
 
         let adminCargoCurrentPage = 1;
-        const adminCargoPageSize = 5;
+        let adminCargoPageSize = 5;
+
+        function setAdminOpenPageSize(size) {
+            adminOpenPageSize = Number(size) || 5;
+            adminOpenCurrentPage = 1;
+            loadDashboard();
+        }
 
         function goToAdminOpenPage(p) {
             adminOpenCurrentPage = p;
+            loadDashboard();
+        }
+
+        function setAdminCargoPageSize(size) {
+            adminCargoPageSize = Number(size) || 5;
+            adminCargoCurrentPage = 1;
             loadDashboard();
         }
 
@@ -346,7 +358,7 @@
 
             const openPagEl = document.getElementById('adminOpenPagination');
             if (openPagEl) {
-                if (totalOpen <= adminOpenPageSize) {
+                if (totalOpen === 0) {
                     openPagEl.innerHTML = '';
                 } else {
                     const pages = [];
@@ -355,21 +367,33 @@
                         if (p === adminOpenCurrentPage) {
                             return `<button type="button" class="w-6 h-6 rounded bg-blue-600 text-white font-bold text-xs flex items-center justify-center shadow-xs cursor-default">${p}</button>`;
                         }
-                        return `<button type="button" onclick="goToAdminOpenPage(${p})" class="w-6 h-6 rounded border border-slate-200 bg-white hover:bg-slate-50 text-slate-700 font-semibold text-xs flex items-center justify-center transition cursor-pointer">${p}</button>`;
+                        return `<button type="button" onclick="goToAdminOpenPage(${p})" class="w-6 h-6 rounded border border-slate-200 bg-white hover:bg-slate-100 text-slate-700 font-semibold text-xs flex items-center justify-center transition cursor-pointer">${p}</button>`;
                     }).join('');
 
                     openPagEl.innerHTML = `
-                        <div class="border-t pt-3 flex items-center justify-between text-xs text-slate-500">
-                            <span>Hiển thị <strong>${openStartIndex + 1} - ${openEndIndex}</strong> / <strong>${totalOpen}</strong> phiên đang mở</span>
-                            <div class="flex items-center gap-1">
+                        <div class="border-t pt-3 flex flex-col sm:flex-row items-center justify-between gap-3 text-xs text-slate-500">
+                            <div class="flex items-center gap-3">
+                                <span>Hiển thị <strong>${openStartIndex + 1} - ${openEndIndex}</strong> trên tổng số <strong>${totalOpen}</strong> phiên</span>
+                                <div class="flex items-center gap-1">
+                                    <span class="text-[11px] text-slate-400">Dòng/Trang:</span>
+                                    <select onchange="setAdminOpenPageSize(this.value)" class="border rounded-lg px-2 py-0.5 text-xs bg-white text-slate-700 font-semibold outline-none focus:ring-1 focus:ring-blue-500 cursor-pointer">
+                                        <option value="5" ${adminOpenPageSize === 5 ? 'selected' : ''}>5</option>
+                                        <option value="10" ${adminOpenPageSize === 10 ? 'selected' : ''}>10</option>
+                                        <option value="20" ${adminOpenPageSize === 20 ? 'selected' : ''}>20</option>
+                                    </select>
+                                </div>
+                            </div>
+                            <div class="inline-flex items-center gap-1 bg-white border border-slate-200 rounded-xl p-1 shadow-2xs">
                                 <button type="button" ${adminOpenCurrentPage <= 1 ? 'disabled' : `onclick="goToAdminOpenPage(${adminOpenCurrentPage - 1})"`} 
-                                        class="px-2 py-0.5 border rounded bg-white text-slate-600 hover:bg-slate-50 disabled:opacity-40 disabled:cursor-not-allowed text-xs">
-                                    <i class="fa-solid fa-chevron-left text-[9px]"></i>
+                                        class="px-2 py-0.5 text-slate-600 hover:text-blue-600 disabled:opacity-30 font-bold transition flex items-center gap-1 cursor-pointer disabled:cursor-not-allowed" title="Trang trước">
+                                    <i class="fa-solid fa-arrow-left text-[10px]"></i>
                                 </button>
-                                ${btns}
+                                <div class="flex items-center gap-1 px-1">
+                                    ${btns}
+                                </div>
                                 <button type="button" ${adminOpenCurrentPage >= totalOpenPages ? 'disabled' : `onclick="goToAdminOpenPage(${adminOpenCurrentPage + 1})"`} 
-                                        class="px-2 py-0.5 border rounded bg-white text-slate-600 hover:bg-slate-50 disabled:opacity-40 disabled:cursor-not-allowed text-xs">
-                                    <i class="fa-solid fa-chevron-right text-[9px]"></i>
+                                        class="px-2 py-0.5 text-slate-600 hover:text-blue-600 disabled:opacity-30 font-bold transition flex items-center gap-1 cursor-pointer disabled:cursor-not-allowed" title="Trang sau">
+                                    <i class="fa-solid fa-arrow-right text-[10px]"></i>
                                 </button>
                             </div>
                         </div>
@@ -472,7 +496,7 @@
 
                 const cargoPagEl = document.getElementById('adminCargoPagination');
                 if (cargoPagEl) {
-                    if (totalWon <= adminCargoPageSize) {
+                    if (totalWon === 0) {
                         cargoPagEl.innerHTML = '';
                     } else {
                         const pages = [];
@@ -481,21 +505,33 @@
                             if (p === adminCargoCurrentPage) {
                                 return `<button type="button" class="w-6 h-6 rounded bg-emerald-600 text-white font-bold text-xs flex items-center justify-center shadow-xs cursor-default">${p}</button>`;
                             }
-                            return `<button type="button" onclick="goToAdminCargoPage(${p})" class="w-6 h-6 rounded border border-slate-200 bg-white hover:bg-slate-50 text-slate-700 font-semibold text-xs flex items-center justify-center transition cursor-pointer">${p}</button>`;
+                            return `<button type="button" onclick="goToAdminCargoPage(${p})" class="w-6 h-6 rounded border border-slate-200 bg-white hover:bg-slate-100 text-slate-700 font-semibold text-xs flex items-center justify-center transition cursor-pointer">${p}</button>`;
                         }).join('');
 
                         cargoPagEl.innerHTML = `
-                            <div class="border-t pt-3 flex items-center justify-between text-xs text-slate-500">
-                                <span>Hiển thị <strong>${cargoStartIndex + 1} - ${cargoEndIndex}</strong> / <strong>${totalWon}</strong> hồ sơ trúng thầu</span>
-                                <div class="flex items-center gap-1">
+                            <div class="border-t pt-3 flex flex-col sm:flex-row items-center justify-between gap-3 text-xs text-slate-500">
+                                <div class="flex items-center gap-3">
+                                    <span>Hiển thị <strong>${cargoStartIndex + 1} - ${cargoEndIndex}</strong> trên tổng số <strong>${totalWon}</strong> hồ sơ</span>
+                                    <div class="flex items-center gap-1">
+                                        <span class="text-[11px] text-slate-400">Dòng/Trang:</span>
+                                        <select onchange="setAdminCargoPageSize(this.value)" class="border rounded-lg px-2 py-0.5 text-xs bg-white text-slate-700 font-semibold outline-none focus:ring-1 focus:ring-emerald-500 cursor-pointer">
+                                            <option value="5" ${adminCargoPageSize === 5 ? 'selected' : ''}>5</option>
+                                            <option value="10" ${adminCargoPageSize === 10 ? 'selected' : ''}>10</option>
+                                            <option value="20" ${adminCargoPageSize === 20 ? 'selected' : ''}>20</option>
+                                        </select>
+                                    </div>
+                                </div>
+                                <div class="inline-flex items-center gap-1 bg-white border border-slate-200 rounded-xl p-1 shadow-2xs">
                                     <button type="button" ${adminCargoCurrentPage <= 1 ? 'disabled' : `onclick="goToAdminCargoPage(${adminCargoCurrentPage - 1})"`} 
-                                            class="px-2 py-0.5 border rounded bg-white text-slate-600 hover:bg-slate-50 disabled:opacity-40 disabled:cursor-not-allowed text-xs">
-                                        <i class="fa-solid fa-chevron-left text-[9px]"></i>
+                                            class="px-2 py-0.5 text-slate-600 hover:text-emerald-600 disabled:opacity-30 font-bold transition flex items-center gap-1 cursor-pointer disabled:cursor-not-allowed" title="Trang trước">
+                                        <i class="fa-solid fa-arrow-left text-[10px]"></i>
                                     </button>
-                                    ${btns}
+                                    <div class="flex items-center gap-1 px-1">
+                                        ${btns}
+                                    </div>
                                     <button type="button" ${adminCargoCurrentPage >= totalCargoPages ? 'disabled' : `onclick="goToAdminCargoPage(${adminCargoCurrentPage + 1})"`} 
-                                            class="px-2 py-0.5 border rounded bg-white text-slate-600 hover:bg-slate-50 disabled:opacity-40 disabled:cursor-not-allowed text-xs">
-                                        <i class="fa-solid fa-chevron-right text-[9px]"></i>
+                                            class="px-2 py-0.5 text-slate-600 hover:text-emerald-600 disabled:opacity-30 font-bold transition flex items-center gap-1 cursor-pointer disabled:cursor-not-allowed" title="Trang sau">
+                                        <i class="fa-solid fa-arrow-right text-[10px]"></i>
                                     </button>
                                 </div>
                             </div>
