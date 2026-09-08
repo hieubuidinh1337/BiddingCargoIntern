@@ -334,11 +334,11 @@ const CargoStore = (function() {
                 capacityKg: 3000,
                 priceKg: 22000,
                 totalAmountVND: 66000000,
-                paymentDeadline: new Date(Date.now() + 18 * 60 * 60 * 1000).toISOString(),
-                paymentStatus: 'UNPAID',
-                paidAt: null,
+                paymentDeadline: '2026-09-08T00:00:00.000Z',
+                paymentStatus: 'PAID',
+                paidAt: '08/09/2026 08:30',
                 awbNumber: '998-12345678',
-                cutOffTime: '15/08/2026 06:00',
+                cutOffTime: '07:00 · 08/09/2026',
                 warehouse: 'Kho hàng TCS Tân Sơn Nhất (Cửa số 4)',
                 cargoDeclaration: null
             },
@@ -352,11 +352,11 @@ const CargoStore = (function() {
                 capacityKg: 2000,
                 priceKg: 14500,
                 totalAmountVND: 29000000,
-                paymentDeadline: new Date(Date.now() + 12 * 60 * 60 * 1000).toISOString(),
+                paymentDeadline: '2026-09-09T06:00:00.000Z',
                 paymentStatus: 'UNPAID',
                 paidAt: null,
                 awbNumber: '998-22409811',
-                cutOffTime: '16/08/2026 13:00',
+                cutOffTime: '13:00 · 09/09/2026',
                 warehouse: 'Kho hàng TCS Tân Sơn Nhất (Cửa số 2)',
                 cargoDeclaration: null
             },
@@ -370,11 +370,11 @@ const CargoStore = (function() {
                 capacityKg: 3500,
                 priceKg: 56000,
                 totalAmountVND: 196000000,
-                paymentDeadline: new Date(Date.now() + 20 * 60 * 60 * 1000).toISOString(),
-                paymentStatus: 'UNPAID',
-                paidAt: null,
+                paymentDeadline: '2026-09-09T04:30:00.000Z',
+                paymentStatus: 'PAID',
+                paidAt: '08/09/2026 14:15',
                 awbNumber: '998-13098722',
-                cutOffTime: '15/08/2026 11:30',
+                cutOffTime: '11:30 · 09/09/2026',
                 warehouse: 'Kho hàng SCSC Tân Sơn Nhất',
                 cargoDeclaration: null
             },
@@ -388,12 +388,12 @@ const CargoStore = (function() {
                 capacityKg: 4000,
                 priceKg: 25000,
                 totalAmountVND: 100000000,
-                paymentDeadline: new Date(Date.now() + 16 * 60 * 60 * 1000).toISOString(),
+                paymentDeadline: '2026-09-09T09:15:00.000Z',
                 paymentStatus: 'UNPAID',
                 paidAt: null,
                 notifiedAt: null,
                 awbNumber: '998-34077611',
-                cutOffTime: '15/08/2026 16:00',
+                cutOffTime: '16:15 · 09/09/2026',
                 warehouse: 'Kho hàng Cargo Nội Bài (Cửa số 1)',
                 cargoDeclaration: null
             },
@@ -407,12 +407,30 @@ const CargoStore = (function() {
                 capacityKg: 2500,
                 priceKg: 18500,
                 totalAmountVND: 46250000,
-                paymentDeadline: new Date(Date.now() + 14 * 60 * 60 * 1000).toISOString(),
+                paymentDeadline: '2026-09-09T11:00:00.000Z',
+                paymentStatus: 'PAID',
+                paidAt: '08/09/2026 15:45',
+                awbNumber: '998-22688192',
+                cutOffTime: '18:00 · 09/09/2026',
+                warehouse: 'Kho hàng TCS Tân Sơn Nhất (Cửa số 3)',
+                cargoDeclaration: null
+            },
+            {
+                wonId: 'WON-20260908-06',
+                auctionId: 6,
+                agentCode: 'AG-0892',
+                agentName: 'ABC Logistics',
+                flightNumber: 'VU32453',
+                route: 'SGN - HAN',
+                capacityKg: 3000,
+                priceKg: 25000,
+                totalAmountVND: 75000000,
+                paymentDeadline: '2026-09-09T00:57:00.000Z',
                 paymentStatus: 'UNPAID',
                 paidAt: null,
-                awbNumber: '998-22688192',
-                cutOffTime: '16/08/2026 18:00',
-                warehouse: 'Kho hàng TCS Tân Sơn Nhất (Cửa số 3)',
+                awbNumber: '998-18929204',
+                cutOffTime: '07:57 · 09/09/2026',
+                warehouse: 'Kho hàng SCSC / TCS Tân Sơn Nhất (Cửa số 4)',
                 cargoDeclaration: null
             }
         ],
@@ -591,20 +609,55 @@ const CargoStore = (function() {
                 });
             }
 
-            // Normalize wonAuctions paymentDeadline to accurately reflect Cut-off time
+            // Normalize wonAuctions and migrate August dates & un-cancel expired won orders
             if (data.wonAuctions && Array.isArray(data.wonAuctions)) {
                 data.wonAuctions.forEach(w => {
                     const auction = (data.auctions || []).find(a => a.id == w.auctionId || a.flightNumber === w.flightNumber);
-                    if (auction) {
+                    
+                    if (w.cutOffTime) {
+                        if (w.cutOffTime.includes('15/08/2026')) w.cutOffTime = w.cutOffTime.replace('15/08/2026', '09/09/2026');
+                        if (w.cutOffTime.includes('16/08/2026')) w.cutOffTime = w.cutOffTime.replace('16/08/2026', '09/09/2026');
+                        if (w.cutOffTime.includes('14/08/2026')) w.cutOffTime = w.cutOffTime.replace('14/08/2026', '08/09/2026');
+                    }
+
+                    const curDlMs = w.paymentDeadline ? new Date(w.paymentDeadline).getTime() : 0;
+                    if (auction && (isNaN(curDlMs) || curDlMs < Date.now() || (w.paymentDeadline && w.paymentDeadline.includes('2026-08')))) {
                         const correctDl = calculatePaymentDeadline(auction, new Date());
-                        const curDlMs = w.paymentDeadline ? new Date(w.paymentDeadline).getTime() : Infinity;
-                        const correctDlMs = new Date(correctDl).getTime();
-                        if (curDlMs > correctDlMs) {
-                            w.paymentDeadline = correctDl;
+                        w.paymentDeadline = correctDl;
+                        updated = true;
+                    }
+
+                    // Restore won auctions from EXPIRED back to UNPAID
+                    if (w.paymentStatus === 'EXPIRED') {
+                        w.paymentStatus = 'UNPAID';
+                        updated = true;
+                    }
+                });
+            }
+
+            // Restore / unlock any agent accounts previously locked by auto-lock rule
+            if (data.agentsList && Array.isArray(data.agentsList)) {
+                data.agentsList.forEach(a => {
+                    if (a.status === 'Đã khóa' || a.status === 'LOCKED') {
+                        if (!a.lockedReason || a.lockedReason.includes('quá hạn') || a.lockedReason.includes('tự động khóa') || a.lockedReason.includes('WON-')) {
+                            a.status = 'Đang hoạt động';
+                            a.lockedReason = null;
+                            a.lockedAt = null;
                             updated = true;
                         }
                     }
                 });
+            }
+
+            // Clean up obsolete lock notifications
+            if (data.notifications && Array.isArray(data.notifications)) {
+                const originalLen = data.notifications.length;
+                data.notifications = data.notifications.filter(n => {
+                    if (!n) return false;
+                    const isLockAlert = (n.type === 'ALERT' && (n.title || '').includes('TÀI KHOẢN ĐÃ BỊ KHÓA')) || ((n.message || '').includes('tự động KHÓA'));
+                    return !isLockAlert;
+                });
+                if (data.notifications.length !== originalLen) updated = true;
             }
 
             // Migrate any old August 2026 or outdated auction dates to current/upcoming September 2026 dates
@@ -834,7 +887,7 @@ const CargoStore = (function() {
     function isWonAuctionExpired(item, passedData = null) {
         if (!item) return false;
         if (item.paymentStatus === 'PAID') return false;
-        if (item.paymentStatus === 'CANCELLED' || item.paymentStatus === 'EXPIRED') return true;
+        if (item.paymentStatus === 'CANCELLED') return true;
 
         const now = Date.now();
 
@@ -911,6 +964,12 @@ const CargoStore = (function() {
                     }
                 }
             } else if (!isExpired && item.paymentStatus !== 'PAID') {
+                // If previously marked EXPIRED erroneously, restore to UNPAID
+                if (item.paymentStatus === 'EXPIRED') {
+                    item.paymentStatus = 'UNPAID';
+                    modified = true;
+                }
+
                 // Ensure warning notification exists for this unpaid order
                 const existingWarning = data.notifications.find(n => 
                     (n.targetAgentCode || '').toUpperCase() === targetCode && 
