@@ -806,6 +806,39 @@ const CargoStore = (function() {
         return new Date(etdDate.getTime() + durationMins * 60 * 1000);
     }
 
+    function generateNextFlightNumber(origin, destination, skipCount = 0) {
+        const data = loadData();
+        const existingNumbers = new Set(
+            (data.auctions || [])
+                .map(a => (a.flightNumber || '').trim().toUpperCase())
+                .filter(Boolean)
+        );
+
+        let baseNumber = 100;
+        const key = `${String(origin || '').toUpperCase()}-${String(destination || '').toUpperCase()}`;
+        if (key.includes('SGN') && key.includes('HAN')) baseNumber = 134;
+        else if (key.includes('SGN') && key.includes('DAD')) baseNumber = 226;
+        else if (key.includes('HAN') && key.includes('PQC')) baseNumber = 342;
+        else if (key.includes('SGN') && key.includes('PQC')) baseNumber = 412;
+        else if (key.includes('HAN') && key.includes('DAD')) baseNumber = 512;
+        else baseNumber = 612;
+
+        let candidateNum = baseNumber;
+        let skipped = 0;
+        while (existingNumbers.has(`VU${candidateNum}`) || skipped < skipCount) {
+            if (existingNumbers.has(`VU${candidateNum}`)) {
+                candidateNum += 2;
+            } else {
+                if (skipped < skipCount) {
+                    skipped++;
+                    candidateNum += 2;
+                }
+            }
+        }
+
+        return `VU${candidateNum}`;
+    }
+
     return {
         getData: loadData,
         saveData: saveData,
@@ -818,6 +851,7 @@ const CargoStore = (function() {
         formatPaymentDeadlineText: formatPaymentDeadlineText,
         getFlightDurationMinutes: getFlightDurationMinutes,
         calculateETA: calculateETA,
+        generateNextFlightNumber: generateNextFlightNumber,
 
         /**
          * Dynamic Agent Login checking each agent's SPECIFIC password
