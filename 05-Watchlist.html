@@ -366,7 +366,7 @@
                             </h3>
                             <p class="text-xs text-gray-500 mt-0.5 flex items-center gap-3">
                                 <span><i class="fa-regular fa-clock mr-1 text-gray-400"></i>ETD: ${a.etd}</span>
-                                <span><i class="fa-solid fa-weight-hanging mr-1 text-gray-400"></i>Tải trọng: <strong class="text-gray-700">${formatNum(a.capacityKg)} Kg</strong></span>
+                                <span><i class="fa-solid fa-weight-hanging mr-1 text-gray-400"></i>Tải trọng: <strong class="text-gray-700">${formatNum(a.capacityKg)} Kg</strong> <span class="text-emerald-600 font-bold ml-1">(Tối đa ${formatNum((a.capacityKg / 20).toFixed(1))} m³)</span></span>
                                 <span class="hidden md:inline"><i class="fa-solid fa-hashtag mr-1 text-gray-400"></i>${a.bidsCount} lượt thầu</span>
                             </p>
                         </div>

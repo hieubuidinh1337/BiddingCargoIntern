@@ -201,7 +201,10 @@
                                 </div>
                                 <div>
                                     <p class="text-gray-400 text-[11px]">Tải trọng chào thầu</p>
-                                    <p class="font-bold text-blue-600 text-sm">${CargoStore.formatNumber(a.capacityKg)} Kg</p>
+                                    <p class="font-bold text-blue-600 text-sm">
+                                        ${CargoStore.formatNumber(a.capacityKg)} Kg
+                                        <span class="text-[11px] font-bold text-emerald-600 block mt-0.5"><i class="fa-solid fa-cube text-[10px]"></i> Tối đa: ${Number((a.capacityKg / 20).toFixed(1)).toLocaleString('vi-VN')} m³</span>
+                                    </p>
                                 </div>
                             </div>
                         </div>
