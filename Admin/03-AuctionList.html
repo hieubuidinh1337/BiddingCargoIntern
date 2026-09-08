@@ -542,22 +542,30 @@
         function setAllPageSize(size) {
             allPageSize = Number(size) || 10;
             allCurrentPage = 1;
+            const c = document.getElementById('allPaginationContainer');
+            if (c) delete c.dataset.pageSize;
             renderAuctionsTable();
         }
 
         function goToAllPage(page) {
             allCurrentPage = page;
+            const c = document.getElementById('allPaginationContainer');
+            if (c) delete c.dataset.currentPage;
             renderAuctionsTable();
         }
 
         function setOpenPageSize(size) {
             openPageSize = Number(size) || 10;
             openCurrentPage = 1;
+            const c = document.getElementById('openPaginationContainer');
+            if (c) delete c.dataset.pageSize;
             renderAuctionsTable();
         }
 
         function goToOpenPage(page) {
             openCurrentPage = page;
+            const c = document.getElementById('openPaginationContainer');
+            if (c) delete c.dataset.currentPage;
             renderAuctionsTable();
         }
 
@@ -566,7 +574,10 @@
             if (!container) return;
 
             if (totalItems === 0) {
-                container.innerHTML = '';
+                if (container.innerHTML !== '') container.innerHTML = '';
+                delete container.dataset.currentPage;
+                delete container.dataset.totalItems;
+                delete container.dataset.pageSize;
                 return;
             }
 
@@ -574,6 +585,20 @@
             let page = currentPage;
             if (page > totalPages) page = totalPages;
             if (page < 1) page = 1;
+
+            const isFocusedInside = document.activeElement && container.contains(document.activeElement);
+            if (
+                isFocusedInside ||
+                (container.dataset.currentPage == String(page) &&
+                 container.dataset.totalItems == String(totalItems) &&
+                 container.dataset.pageSize == String(pageSize))
+            ) {
+                return;
+            }
+
+            container.dataset.currentPage = String(page);
+            container.dataset.totalItems = String(totalItems);
+            container.dataset.pageSize = String(pageSize);
 
             const startItem = (page - 1) * pageSize + 1;
             const endItem = Math.min(page * pageSize, totalItems);
@@ -1188,6 +1213,9 @@
             document.getElementById('auctionSearch').addEventListener('input', renderAuctionsTable);
             document.getElementById('statusSelect').addEventListener('change', renderAuctionsTable);
             setInterval(function() {
+                if (document.activeElement && (document.activeElement.tagName === 'SELECT' || document.activeElement.tagName === 'INPUT')) {
+                    return;
+                }
                 renderAuctionsTable();
                 renderWonAuctionsAdminTable();
             }, 1000);

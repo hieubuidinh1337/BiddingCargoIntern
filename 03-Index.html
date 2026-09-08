@@ -129,11 +129,15 @@
         function setIndexPageSize(size) {
             indexPageSize = Number(size) || 9;
             indexCurrentPage = 1;
+            const c = document.getElementById('indexPaginationContainer');
+            if (c) delete c.dataset.pageSize;
             renderAuctions();
         }
 
         function goToIndexPage(page) {
             indexCurrentPage = page;
+            const c = document.getElementById('indexPaginationContainer');
+            if (c) delete c.dataset.currentPage;
             renderAuctions();
         }
 
@@ -142,7 +146,10 @@
             if (!container) return;
 
             if (totalItems === 0) {
-                container.innerHTML = '';
+                if (container.innerHTML !== '') container.innerHTML = '';
+                delete container.dataset.currentPage;
+                delete container.dataset.totalItems;
+                delete container.dataset.pageSize;
                 return;
             }
 
@@ -150,6 +157,20 @@
             let page = currentPage;
             if (page > totalPages) page = totalPages;
             if (page < 1) page = 1;
+
+            const isFocusedInside = document.activeElement && container.contains(document.activeElement);
+            if (
+                isFocusedInside ||
+                (container.dataset.currentPage == String(page) &&
+                 container.dataset.totalItems == String(totalItems) &&
+                 container.dataset.pageSize == String(pageSize))
+            ) {
+                return;
+            }
+
+            container.dataset.currentPage = String(page);
+            container.dataset.totalItems = String(totalItems);
+            container.dataset.pageSize = String(pageSize);
 
             const startItem = (page - 1) * pageSize + 1;
             const endItem = Math.min(page * pageSize, totalItems);
@@ -389,7 +410,12 @@
             document.getElementById('searchInput').addEventListener('input', () => { indexCurrentPage = 1; renderAuctions(); });
 
             // Timer update
-            setInterval(renderAuctions, 1000);
+            setInterval(function() {
+                if (document.activeElement && (document.activeElement.tagName === 'SELECT' || document.activeElement.tagName === 'INPUT')) {
+                    return;
+                }
+                renderAuctions();
+            }, 1000);
         });
 
         // Cross-browser & Cross-tab sync
