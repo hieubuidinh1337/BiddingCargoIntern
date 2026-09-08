@@ -178,6 +178,8 @@
                     </tbody>
                 </table>
             </div>
+            <!-- Pagination Container for Cargo Manifest -->
+            <div id="reportCargoPagination"></div>
         </div>
 
     </main>
@@ -546,6 +548,20 @@
             };
         }
 
+        let reportCargoCurrentPage = 1;
+        let reportCargoPageSize = 5;
+
+        function setReportCargoPageSize(size) {
+            reportCargoPageSize = Number(size) || 5;
+            reportCargoCurrentPage = 1;
+            renderReportUI();
+        }
+
+        function goToReportCargoPage(p) {
+            reportCargoCurrentPage = p;
+            renderReportUI();
+        }
+
         // Render dynamic UI from store
         function renderReportUI(e) {
             const passedData = (e && e.detail) ? e.detail : (window.CargoStore ? CargoStore.getData() : null);
@@ -667,20 +683,29 @@
                 }
             }
 
-            // 4. Render Cargo Manifest Table
+            // 4. Render Cargo Manifest Table (Paginated)
             const cargoTbody = document.getElementById('reportCargoTableBody');
             const cargoBadge = document.getElementById('cargoManifestCountBadge');
             const store = getStore();
             const storeData = passedData || (store ? store.getData() : {});
             const wonList = storeData.wonAuctions || [];
+            const totalWon = wonList.length;
 
-            if (cargoBadge) cargoBadge.textContent = `${wonList.length} lô hàng`;
+            if (cargoBadge) cargoBadge.textContent = `${totalWon} lô hàng`;
+
+            const totalPages = Math.max(1, Math.ceil(totalWon / reportCargoPageSize));
+            if (reportCargoCurrentPage > totalPages) reportCargoCurrentPage = totalPages;
+            if (reportCargoCurrentPage < 1) reportCargoCurrentPage = 1;
+
+            const startIndex = (reportCargoCurrentPage - 1) * reportCargoPageSize;
+            const endIndex = Math.min(startIndex + reportCargoPageSize, totalWon);
+            const paginatedWonList = wonList.slice(startIndex, endIndex);
 
             if (cargoTbody) {
-                if (wonList.length === 0) {
+                if (totalWon === 0) {
                     cargoTbody.innerHTML = `<tr><td colspan="7" class="py-8 text-center text-gray-400">Chưa có đơn trúng thầu nào trong hệ thống</td></tr>`;
                 } else {
-                    cargoTbody.innerHTML = wonList.map(item => {
+                    cargoTbody.innerHTML = paginatedWonList.map(item => {
                         const decl = item.cargoDeclaration;
                         const agentInfo = (storeData.agentsList || []).find(a => (a.code || '').toUpperCase() === (item.agentCode || '').toUpperCase());
                         const agentName = agentInfo ? agentInfo.companyName : (item.agentCode || 'Đại lý');
@@ -734,6 +759,52 @@
                             </tr>
                         `;
                     }).join('');
+                }
+            }
+
+            // Render Pagination Controls
+            const cargoPagEl = document.getElementById('reportCargoPagination');
+            if (cargoPagEl) {
+                if (totalWon === 0) {
+                    cargoPagEl.innerHTML = '';
+                } else {
+                    const pages = [];
+                    for (let i = 1; i <= totalPages; i++) pages.push(i);
+                    const btns = pages.map(p => {
+                        if (p === reportCargoCurrentPage) {
+                            return `<button type="button" class="w-6 h-6 rounded bg-emerald-600 text-white font-bold text-xs flex items-center justify-center shadow-xs cursor-default">${p}</button>`;
+                        }
+                        return `<button type="button" onclick="goToReportCargoPage(${p})" class="w-6 h-6 rounded border border-slate-200 bg-white hover:bg-slate-100 text-slate-700 font-semibold text-xs flex items-center justify-center transition cursor-pointer">${p}</button>`;
+                    }).join('');
+
+                    cargoPagEl.innerHTML = `
+                        <div class="border-t pt-3 flex flex-col sm:flex-row items-center justify-between gap-3 text-xs text-slate-500">
+                            <div class="flex items-center gap-3">
+                                <span>Hiển thị <strong>${startIndex + 1} - ${endIndex}</strong> trên tổng số <strong>${totalWon}</strong> lô hàng</span>
+                                <div class="flex items-center gap-1">
+                                    <span class="text-[11px] text-slate-400">Dòng/Trang:</span>
+                                    <select onchange="setReportCargoPageSize(this.value)" class="border rounded-lg px-2 py-0.5 text-xs bg-white text-slate-700 font-semibold outline-none focus:ring-1 focus:ring-emerald-500 cursor-pointer">
+                                        <option value="5" ${reportCargoPageSize === 5 ? 'selected' : ''}>5</option>
+                                        <option value="10" ${reportCargoPageSize === 10 ? 'selected' : ''}>10</option>
+                                        <option value="20" ${reportCargoPageSize === 20 ? 'selected' : ''}>20</option>
+                                    </select>
+                                </div>
+                            </div>
+                            <div class="inline-flex items-center gap-1 bg-white border border-slate-200 rounded-xl p-1 shadow-2xs">
+                                <button type="button" ${reportCargoCurrentPage <= 1 ? 'disabled' : `onclick="goToReportCargoPage(${reportCargoCurrentPage - 1})"`} 
+                                        class="px-2 py-0.5 text-slate-600 hover:text-emerald-600 disabled:opacity-30 font-bold transition flex items-center gap-1 cursor-pointer disabled:cursor-not-allowed" title="Trang trước">
+                                    <i class="fa-solid fa-arrow-left text-[10px]"></i>
+                                </button>
+                                <div class="flex items-center gap-1 px-1">
+                                    ${btns}
+                                </div>
+                                <button type="button" ${reportCargoCurrentPage >= totalPages ? 'disabled' : `onclick="goToReportCargoPage(${reportCargoCurrentPage + 1})"`} 
+                                        class="px-2 py-0.5 text-slate-600 hover:text-emerald-600 disabled:opacity-30 font-bold transition flex items-center gap-1 cursor-pointer disabled:cursor-not-allowed" title="Trang sau">
+                                    <i class="fa-solid fa-arrow-right text-[10px]"></i>
+                                </button>
+                            </div>
+                        </div>
+                    `;
                 }
             }
         }
