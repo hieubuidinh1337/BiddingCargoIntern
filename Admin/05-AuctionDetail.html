@@ -268,7 +268,7 @@
             document.getElementById('detAircraft').textContent = auction.aircraft;
             document.getElementById('detEtd').textContent = auction.etd;
             document.getElementById('detEta').textContent = auction.eta;
-            document.getElementById('detCutOff').textContent = auction.cutOffTime;
+            document.getElementById('detCutOff').textContent = (CargoStore && CargoStore.calculateCutOffTime) ? CargoStore.calculateCutOffTime(auction.etd) : (auction.cutOffTime || 'Trước ETD 3 giờ');
             document.getElementById('detNotes').textContent = auction.specialNotes;
 
             // Declared Cargo section for winner

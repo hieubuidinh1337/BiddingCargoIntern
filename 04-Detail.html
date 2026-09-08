@@ -278,6 +278,13 @@
             document.getElementById('routeTitle').textContent = `${currentAuction.route} (${currentAuction.originName} - ${currentAuction.destName})`;
             document.getElementById('flightTimes').textContent = `ETD: ${currentAuction.etd} | ETA: ${currentAuction.eta}`;
 
+            const cutOffEl = document.getElementById('cutOffTimeDisplay');
+            if (cutOffEl) {
+                cutOffEl.textContent = (CargoStore && CargoStore.calculateCutOffTime)
+                    ? CargoStore.calculateCutOffTime(currentAuction.etd)
+                    : (currentAuction.cutOffTime || 'Trước ETD 3 giờ');
+            }
+
             document.getElementById('specCapacity').innerHTML = `${CargoStore.formatNumber(currentAuction.capacityKg)} Kg <span class="block text-[11px] font-bold text-emerald-600 mt-0.5"><i class="fa-solid fa-cube text-[10px]"></i> Tối đa: ${Number((currentAuction.capacityKg / 20).toFixed(1)).toLocaleString('vi-VN')} m³</span>`;
             document.getElementById('specStarting').textContent = CargoStore.formatCurrency(currentAuction.startingPriceKg) + '/Kg';
             document.getElementById('specMinStep').textContent = '+' + CargoStore.formatCurrency(currentAuction.minStep) + '/Kg';

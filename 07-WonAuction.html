@@ -384,6 +384,12 @@
 
             const decl = item.cargoDeclaration;
 
+            const auctionMatch = (storeData.auctions || []).find(a => a.id == item.auctionId || a.flightNumber === item.flightNumber);
+            const etdStr = item.etd || (auctionMatch ? auctionMatch.etd : null);
+            const cutOffDisplay = (store && store.calculateCutOffTime)
+                ? store.calculateCutOffTime(etdStr || item.cutOffTime)
+                : (item.cutOffTime || 'Trước ETD 3 giờ');
+
             return `
                 <div style="padding: 18px 24px; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; color: #1e293b; background: #ffffff; width: 720px; max-width: 720px; margin: 0 auto; font-size: 10px; line-height: 1.35; box-sizing: border-box;">
                     <!-- Header with Airline logo and Department -->
@@ -526,7 +532,7 @@
                             <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 8px;">
                                 <div>
                                     <p style="margin: 0;">• <strong>Kho tiếp nhận:</strong> ${item.warehouse || 'Kho hàng SCSC / TCS Tân Sơn Nhất'}</p>
-                                    <p style="margin: 2px 0 0 0;">• <strong>Hạn chót nhập kho (Cut-off Time):</strong> <span style="font-weight: 800; color: #dc2626;">${item.cutOffTime || '3 tiếng trước giờ bay'}</span></p>
+                                    <p style="margin: 2px 0 0 0;">• <strong>Hạn chót nhập kho (Cut-off Time):</strong> <span style="font-weight: 800; color: #dc2626;">${cutOffDisplay}</span></p>
                                 </div>
                                 <div>
                                     <p style="margin: 0;">• <strong>Mã vận đơn AWB:</strong> <span style="font-family: monospace; font-weight: 800; color: #16a34a;">${item.awbNumber || '-'}</span></p>
@@ -1451,7 +1457,14 @@
                                 <div class="grid grid-cols-1 md:grid-cols-2 gap-3 text-blue-800">
                                     <div>
                                         <p>• <strong>Địa điểm giao hàng:</strong> ${item.warehouse || 'Kho hàng TCS / SCSC Tân Sơn Nhất'}</p>
-                                        <p class="mt-1">• <strong>Hạn chót nhập kho (Cut-off):</strong> <span class="font-bold text-red-600">${item.cutOffTime || '3 tiếng trước ETD'}</span></p>
+                                        <p class="mt-1">• <strong>Hạn chót nhập kho (Cut-off):</strong> <span class="font-bold text-red-600">${(() => {
+                                            const storeInst = getStore();
+                                            const aMatch = (storeData.auctions || []).find(a => a.id == item.auctionId || a.flightNumber === item.flightNumber);
+                                            const eStr = item.etd || (aMatch ? aMatch.etd : null);
+                                            return (storeInst && storeInst.calculateCutOffTime)
+                                                ? storeInst.calculateCutOffTime(eStr || item.cutOffTime)
+                                                : (item.cutOffTime || 'Trước ETD 3 giờ');
+                                        })()}</span></p>
                                     </div>
                                     <div>
                                         <p>• Xuất trình mã trúng thầu <strong>${item.wonId}</strong> kèm phiếu xác nhận PDF tại quầy tiếp nhận.</p>

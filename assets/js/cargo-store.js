@@ -630,6 +630,61 @@ const CargoStore = (function() {
         return `${pad(d.getHours())}:${pad(d.getMinutes())} ${pad(d.getDate())}/${pad(d.getMonth() + 1)}/${d.getFullYear()}`;
     }
 
+    function calculateCutOffTime(etdStr, offsetHours = 3) {
+        if (!etdStr) return `Trước ETD ${offsetHours} giờ`;
+
+        const cleanStr = String(etdStr).replace(/·|-/g, ' ').replace(/\s+/g, ' ').trim();
+
+        let hours = null, minutes = null, day = null, month = null, year = null;
+
+        const p1 = cleanStr.match(/^(\d{1,2}):(\d{2})\s+(\d{1,2})\/(\d{1,2})\/(\d{4})$/);
+        const p2 = cleanStr.match(/^(\d{1,2})\/(\d{1,2})\/(\d{4})\s+(\d{1,2}):(\d{2})$/);
+        const p3 = cleanStr.match(/^(\d{4})-(\d{2})-(\d{2})T(\d{2}):(\d{2})/);
+
+        if (p1) {
+            hours = parseInt(p1[1], 10);
+            minutes = parseInt(p1[2], 10);
+            day = parseInt(p1[3], 10);
+            month = parseInt(p1[4], 10) - 1;
+            year = parseInt(p1[5], 10);
+        } else if (p2) {
+            day = parseInt(p2[1], 10);
+            month = parseInt(p2[2], 10) - 1;
+            year = parseInt(p2[3], 10);
+            hours = parseInt(p2[4], 10);
+            minutes = parseInt(p2[5], 10);
+        } else if (p3) {
+            year = parseInt(p3[1], 10);
+            month = parseInt(p3[2], 10) - 1;
+            day = parseInt(p3[3], 10);
+            hours = parseInt(p3[4], 10);
+            minutes = parseInt(p3[5], 10);
+        }
+
+        if (hours !== null && day !== null && year !== null) {
+            const dt = new Date(year, month, day, hours, minutes);
+            dt.setHours(dt.getHours() - offsetHours);
+
+            const pad = n => String(n).padStart(2, '0');
+            const cutH = pad(dt.getHours());
+            const cutM = pad(dt.getMinutes());
+            const cutD = pad(dt.getDate());
+            const cutMo = pad(dt.getMonth() + 1);
+            const cutY = dt.getFullYear();
+
+            return `${cutH}:${cutM} · ${cutD}/${cutMo}/${cutY} (Trước ETD ${offsetHours}h)`;
+        }
+
+        const d = new Date(etdStr);
+        if (!isNaN(d.getTime())) {
+            d.setHours(d.getHours() - offsetHours);
+            const pad = n => String(n).padStart(2, '0');
+            return `${pad(d.getHours())}:${pad(d.getMinutes())} · ${pad(d.getDate())}/${pad(d.getMonth() + 1)}/${d.getFullYear()} (Trước ETD ${offsetHours}h)`;
+        }
+
+        return `Trước ETD ${offsetHours} giờ`;
+    }
+
     return {
         getData: loadData,
         saveData: saveData,
@@ -637,6 +692,7 @@ const CargoStore = (function() {
         formatNumber: formatNumber,
         getTimeRemaining: getTimeRemaining,
         formatTimeAgo: formatTimeAgo,
+        calculateCutOffTime: calculateCutOffTime,
 
         /**
          * Dynamic Agent Login checking each agent's SPECIFIC password
