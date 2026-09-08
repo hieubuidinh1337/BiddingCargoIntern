@@ -345,13 +345,32 @@
             if (isNaN(etdDate.getTime())) return;
 
             const closeOffsetHours = Number(offsetSelect?.value) || 5;
-            const closeDate = new Date(etdDate.getTime() - closeOffsetHours * 3600 * 1000);
+            const minLeadHours = closeOffsetHours + 1;
+            const now = new Date();
+            const minLeadMs = minLeadHours * 3600 * 1000;
+            const minEtdDate = new Date(now.getTime() + minLeadMs);
 
             const pad = n => String(n).padStart(2, '0');
+            const minEtdStr = `${pad(minEtdDate.getHours())}:${pad(minEtdDate.getMinutes())} · ${pad(minEtdDate.getDate())}/${pad(minEtdDate.getMonth() + 1)}/${minEtdDate.getFullYear()}`;
+
+            if (etdDate.getTime() < now.getTime() + minLeadMs) {
+                previewBox.className = 'p-3.5 rounded-xl border border-red-300 bg-red-50 text-xs text-red-900 shadow-xs';
+                previewEl.innerHTML = `
+                    <div class="flex items-center gap-1.5 font-bold text-red-700 mb-1">
+                        <span class="px-2 py-0.5 rounded-md bg-red-200 text-red-900 text-[10px] uppercase tracking-wide">⚠️ ETD Quá ngắn - Không thể tạo phiên</span>
+                    </div>
+                    <div class="space-y-1 text-red-800">
+                        <p>• <strong>Yêu cầu quy trình:</strong> ETD phải cách thời điểm hiện tại ít nhất <strong>${minLeadHours} giờ</strong> (gồm ${closeOffsetHours}h chốt thầu + 1h đấu giá).</p>
+                        <p>• <strong>Gợi ý ETD hợp lệ sớm nhất:</strong> <span class="font-bold text-emerald-700">${minEtdStr}</span></p>
+                    </div>
+                `;
+                return;
+            }
+
+            const closeDate = new Date(etdDate.getTime() - closeOffsetHours * 3600 * 1000);
             const closeStr = `${pad(closeDate.getHours())}:${pad(closeDate.getMinutes())} · ${pad(closeDate.getDate())}/${pad(closeDate.getMonth() + 1)}/${closeDate.getFullYear()} (Trước ETD ${closeOffsetHours}h)`;
 
             const cutOffStr = CargoStore.calculateCutOffTime(val, 3);
-            const now = new Date();
             const cutOffMs = etdDate.getTime() - 3 * 3600 * 1000;
             const diffHoursFromNow = (cutOffMs - now.getTime()) / (3600 * 1000);
             const bufferHours = Math.max(1, closeOffsetHours - 3);
@@ -487,10 +506,18 @@
             const etaVal = document.getElementById('etaInput').value;
 
             // Extra client-side validation check
+            const offsetSelect = document.getElementById('auctionCloseOffsetSelect');
+            const closeOffsetHours = Number(offsetSelect?.value) || 5;
+            const minLeadHours = closeOffsetHours + 1;
+            const minEtdMs = Date.now() + minLeadHours * 3600 * 1000;
+
             if (etdVal) {
                 const selectedEtd = new Date(etdVal);
-                if (selectedEtd.getTime() <= Date.now()) {
-                    alert('❌ Không thể tạo chuyến bay trong quá khứ! Thời gian cất cánh dự kiến (ETD) phải ở thời điểm tương lai.');
+                if (selectedEtd.getTime() < minEtdMs) {
+                    const pad = n => String(n).padStart(2, '0');
+                    const minDate = new Date(minEtdMs);
+                    const minFormatted = `${pad(minDate.getHours())}:${pad(minDate.getMinutes())} · ${pad(minDate.getDate())}/${pad(minDate.getMonth() + 1)}/${minDate.getFullYear()}`;
+                    alert(`❌ Thời gian cất cánh (ETD) quá ngắn!\n\nETD phải cách thời điểm hiện tại ít nhất ${minLeadHours} giờ (bao gồm ${closeOffsetHours}h chốt thầu trước ETD + 1h thời gian đấu giá cho các đại lý).\n\nThời gian ETD hợp lệ sớm nhất: ${minFormatted}`);
                     return;
                 }
 

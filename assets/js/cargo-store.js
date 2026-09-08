@@ -1129,11 +1129,18 @@ const CargoStore = (function() {
                 return { success: false, message: 'Thời gian cất cánh dự kiến (ETD) không đúng định dạng hợp lệ.' };
             }
 
-            // Check if ETD is in the past
-            if (parsedEtd.getTime() <= now.getTime()) {
+            const closeOffsetHours = Number(auctionData.auctionCloseOffsetHours) || 5;
+            const minLeadHours = closeOffsetHours + 1; // At least closeOffset + 1h active bidding window
+            const minEtdMs = now.getTime() + (minLeadHours * 3600 * 1000);
+
+            // Check if ETD has sufficient lead time
+            if (parsedEtd.getTime() < minEtdMs) {
+                const pad = n => String(n).padStart(2, '0');
+                const minEtdDate = new Date(minEtdMs);
+                const minEtdFormatted = `${pad(minEtdDate.getHours())}:${pad(minEtdDate.getMinutes())} · ${pad(minEtdDate.getDate())}/${pad(minEtdDate.getMonth() + 1)}/${minEtdDate.getFullYear()}`;
                 return {
                     success: false,
-                    message: 'Không thể tạo chuyến bay trong quá khứ! Thời gian cất cánh dự kiến (ETD) phải ở thời điểm tương lai.'
+                    message: `❌ Thời gian cất cánh (ETD) không đủ thời gian vận hành!\n\nTheo quy định: Hạn chốt thầu là trước ETD ${closeOffsetHours} giờ, thời gian Cut-off kho là trước ETD 3 giờ.\nĐể đủ tối thiểu 1 giờ cho đại lý tham gia đấu giá, thời gian ETD mới phải cách hiện tại ít nhất ${minLeadHours} giờ (Sớm nhất có thể chọn: ${minEtdFormatted}).`
                 };
             }
 
@@ -1201,7 +1208,6 @@ const CargoStore = (function() {
             const formattedEta = auctionData.eta ? this.formatFlightDateDisplay(auctionData.eta) : 'Chưa cập nhật';
 
             // Calculate End Time (Thời gian đóng thầu): e.g. 5 hours before ETD so agent has time to pay & declare before warehouse Cut-off (ETD - 3h)
-            const closeOffsetHours = Number(auctionData.auctionCloseOffsetHours) || 5;
             let endTimeDate;
             if (parsedEtd && !isNaN(parsedEtd.getTime())) {
                 const etdCloseTime = new Date(parsedEtd.getTime() - closeOffsetHours * 60 * 60 * 1000);
