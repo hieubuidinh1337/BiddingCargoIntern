@@ -120,8 +120,8 @@
             <button onclick="setFilter('WON')" class="filter-btn text-gray-600 text-xs font-semibold px-3 py-1.5 rounded-lg whitespace-nowrap" id="f-WON">
                 <i class="fa-solid fa-trophy mr-1 text-emerald-500"></i>Trúng thầu
             </button>
-            <button onclick="setFilter('CLOSING_SOON')" class="filter-btn text-gray-600 text-xs font-semibold px-3 py-1.5 rounded-lg whitespace-nowrap" id="f-CLOSING_SOON">
-                <i class="fa-solid fa-clock mr-1 text-orange-500"></i>Sắp đóng
+            <button onclick="setFilter('AUCTION_OPEN')" class="filter-btn text-gray-600 text-xs font-semibold px-3 py-1.5 rounded-lg whitespace-nowrap" id="f-AUCTION_OPEN">
+                <i class="fa-solid fa-plane-departure mr-1 text-indigo-500"></i>Phiên mới
             </button>
             <button onclick="setFilter('SYSTEM')" class="filter-btn text-gray-600 text-xs font-semibold px-3 py-1.5 rounded-lg whitespace-nowrap" id="f-SYSTEM">
                 <i class="fa-solid fa-gear mr-1 text-gray-400"></i>Hệ thống
@@ -174,6 +174,16 @@
             icon: 'fa-credit-card', iconColor: 'text-rose-600', iconBg: 'bg-rose-100',
             borderClass: 'urgent', dotColor: 'bg-rose-400', label: 'Thanh toán',
             labelBg: 'bg-rose-100 text-rose-700'
+        },
+        'AUCTION_OPEN': {
+            icon: 'fa-plane-departure', iconColor: 'text-indigo-600', iconBg: 'bg-indigo-100',
+            borderClass: 'unread', dotColor: 'bg-indigo-500', label: 'Phiên mới mở',
+            labelBg: 'bg-indigo-100 text-indigo-700'
+        },
+        'NEW_AUCTION': {
+            icon: 'fa-plane-departure', iconColor: 'text-indigo-600', iconBg: 'bg-indigo-100',
+            borderClass: 'unread', dotColor: 'bg-indigo-500', label: 'Phiên mới mở',
+            labelBg: 'bg-indigo-100 text-indigo-700'
         }
     };
 
