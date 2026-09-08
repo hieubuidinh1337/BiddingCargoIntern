@@ -509,8 +509,9 @@ const CargoStore = (function() {
                 updated = true;
             }
 
-            // Auto-refresh end time for OPEN auctions if expired in localStorage & deduplicate
+            // Auto-refresh ETD and end time for OPEN auctions if expired & deduplicate
             const now = Date.now();
+            const pad = n => String(n).padStart(2, '0');
             if (data.auctions && Array.isArray(data.auctions)) {
                 const seenIds = new Set();
                 const uniqueAuctions = [];
@@ -520,18 +521,34 @@ const CargoStore = (function() {
                         seenIds.add(idKey);
                         if (a.status === 'OPEN') {
                             const endTimeMs = Date.parse(a.endTime);
-                            if (isNaN(endTimeMs) || endTimeMs <= now) {
-                                if (a.etdIso) {
-                                    const etdMs = Date.parse(a.etdIso);
-                                    if (!isNaN(etdMs) && etdMs > now) {
-                                        a.endTime = new Date(Math.max(now + 120 * 60 * 1000, etdMs - 3 * 3600 * 1000)).toISOString();
-                                        updated = true;
-                                        uniqueAuctions.push(a);
-                                        return;
-                                    }
-                                }
-                                const addMinutes = (idx === 0 ? 45 : (idx === 1 ? 90 : 120));
-                                a.endTime = new Date(now + addMinutes * 60 * 1000).toISOString();
+                            let etdDate = a.etdIso ? new Date(a.etdIso) : parseFlightDate(a.etd);
+                            
+                            // Check if ETD is in the past or less than 3h from now (Cut-off is 3h before ETD)
+                            const isEtdPastOrTooClose = !etdDate || isNaN(etdDate.getTime()) || etdDate.getTime() <= (now + 3 * 3600 * 1000);
+                            
+                            if (isEtdPastOrTooClose) {
+                                // Calculate a realistic upcoming departure ETD (tomorrow or later with sufficient lead time)
+                                const durationMins = getFlightDurationMinutes(a.origin, a.destination);
+                                const futureEtdDate = new Date(now + 8 * 3600 * 1000 + (idx % 5) * 3 * 3600 * 1000);
+                                futureEtdDate.setMinutes(Math.round(futureEtdDate.getMinutes() / 15) * 15, 0, 0);
+
+                                a.etd = `${pad(futureEtdDate.getHours())}:${pad(futureEtdDate.getMinutes())} · ${pad(futureEtdDate.getDate())}/${pad(futureEtdDate.getMonth() + 1)}/${futureEtdDate.getFullYear()}`;
+                                a.etdIso = futureEtdDate.toISOString();
+
+                                const etaDate = new Date(futureEtdDate.getTime() + durationMins * 60 * 1000);
+                                a.eta = `${pad(etaDate.getHours())}:${pad(etaDate.getMinutes())} · ${pad(etaDate.getDate())}/${pad(etaDate.getMonth() + 1)}/${etaDate.getFullYear()}`;
+
+                                const cutOffDate = new Date(futureEtdDate.getTime() - 3 * 3600 * 1000);
+                                a.cutOffTime = `${pad(cutOffDate.getHours())}:${pad(cutOffDate.getMinutes())} · ${pad(cutOffDate.getDate())}/${pad(cutOffDate.getMonth() + 1)}/${cutOffDate.getFullYear()}`;
+
+                                // Auction closes 5h before ETD (or at least 2h from now)
+                                const closeMs = Math.max(now + 2 * 3600 * 1000, futureEtdDate.getTime() - 5 * 3600 * 1000);
+                                a.endTime = new Date(closeMs).toISOString();
+                                updated = true;
+                            } else if (isNaN(endTimeMs) || endTimeMs <= now) {
+                                // If ETD is valid future date, but endTime expired: set endTime to close safely before cut-off
+                                const safeClose = Math.min(now + 3 * 3600 * 1000, etdDate.getTime() - 4 * 3600 * 1000);
+                                a.endTime = new Date(Math.max(now + 30 * 60 * 1000, safeClose)).toISOString();
                                 updated = true;
                             }
                         }
@@ -2795,10 +2812,11 @@ if (typeof window !== 'undefined') {
     let isRedirecting = false;
 
     function checkAccountLockGuard() {
-        if (isRedirecting || (typeof window !== 'undefined' && window._isManualLogout)) return;
+        if (typeof window === 'undefined' || !window.location || !window.location.pathname) return;
+        if (isRedirecting || window._isManualLogout) return;
         if (typeof CargoStore === 'undefined') return;
 
-        const pathname = window.location.pathname.toLowerCase();
+        const pathname = (window.location.pathname || '').toLowerCase();
         
         // Never trigger lock/logout alerts or redirects on public, login, or register pages!
         const isPublicOrLoginPage = (
