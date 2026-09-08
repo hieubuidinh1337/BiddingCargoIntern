@@ -241,12 +241,13 @@
                                class="w-full border rounded-xl px-3.5 py-2.5 text-xs focus:ring-2 focus:ring-blue-500 outline-none">
                     </div>
                     <div>
-                        <label class="block text-xs font-semibold text-slate-700 mb-1">Hạn chót đóng nhận giá (Trước ETD)</label>
-                        <select class="w-full border rounded-xl px-3 py-2.5 text-xs focus:ring-2 focus:ring-blue-500 outline-none bg-white">
-                            <option>Trước ETD 3 giờ (Khuyến nghị tiêu chuẩn)</option>
-                            <option>Trước ETD 2 giờ (Gấp)</option>
-                            <option>Trước ETD 4 giờ</option>
+                        <label class="block text-xs font-semibold text-slate-700 mb-1">Hạn chót đóng nhận giá thầu (Trước ETD) <span class="text-red-500">*</span></label>
+                        <select id="auctionCloseOffsetSelect" onchange="updateEtdRulesPreview()" class="w-full border rounded-xl px-3 py-2.5 text-xs focus:ring-2 focus:ring-blue-500 outline-none bg-white font-medium">
+                            <option value="5" selected>Trước ETD 5 giờ (Tiêu chuẩn - Dành 2h làm thủ tục khai báo)</option>
+                            <option value="4">Trước ETD 4 giờ (Gấp - Dành 1h làm thủ tục khai báo)</option>
+                            <option value="6">Trước ETD 6 giờ (Thoải mái thời gian thủ tục)</option>
                         </select>
+                        <p class="text-[10px] text-slate-400 mt-1">Đóng thầu trước Cut-off kho (ETD - 3h) để đại lý có thời gian nộp tiền & khai báo hàng hóa.</p>
                     </div>
                 </div>
 
@@ -320,6 +321,7 @@
             const etdInput = document.getElementById('etdInput');
             const previewEl = document.getElementById('etdRulesPreviewContent');
             const previewBox = document.getElementById('etdRulesPreviewBox');
+            const offsetSelect = document.getElementById('auctionCloseOffsetSelect');
             if (!etdInput || !previewEl) return;
 
             const val = etdInput.value;
@@ -331,10 +333,17 @@
             const etdDate = new Date(val);
             if (isNaN(etdDate.getTime())) return;
 
+            const closeOffsetHours = Number(offsetSelect?.value) || 5;
+            const closeDate = new Date(etdDate.getTime() - closeOffsetHours * 3600 * 1000);
+
+            const pad = n => String(n).padStart(2, '0');
+            const closeStr = `${pad(closeDate.getHours())}:${pad(closeDate.getMinutes())} · ${pad(closeDate.getDate())}/${pad(closeDate.getMonth() + 1)}/${closeDate.getFullYear()} (Trước ETD ${closeOffsetHours}h)`;
+
             const cutOffStr = CargoStore.calculateCutOffTime(val, 3);
             const now = new Date();
             const cutOffMs = etdDate.getTime() - 3 * 3600 * 1000;
             const diffHoursFromNow = (cutOffMs - now.getTime()) / (3600 * 1000);
+            const bufferHours = Math.max(1, closeOffsetHours - 3);
 
             const dummyAuction = { etd: val };
             const paymentDlIso = CargoStore.calculatePaymentDeadline(dummyAuction, now);
@@ -347,11 +356,10 @@
                         <span class="px-2 py-0.5 rounded-md bg-amber-200/80 text-amber-800 text-[10px] uppercase tracking-wide">⚡ Chuyến bay gấp trong ngày (&lt; 24h)</span>
                     </div>
                     <div class="space-y-1 text-slate-700">
-                        <p>• <strong>Giờ Cut-off kho (ETD - 3h):</strong> <span class="font-bold text-slate-900">${cutOffStr}</span></p>
-                        <p>• <strong>Hạn thanh toán:</strong> <span class="font-bold text-red-600">${paymentDlFormatted}</span></p>
-                        <p class="text-[11px] text-amber-800 italic bg-amber-100/60 p-2 rounded-lg border border-amber-200/50 mt-1">
-                            <i class="fa-solid fa-triangle-exclamation text-amber-600 mr-1"></i> Do chuyến bay cất cánh trong ngày (&lt; 24h), quy định thanh toán được siết chặt về trước Cut-off kho để kịp hoàn tất thủ tục bàn giao hàng lên máy bay.
-                        </p>
+                        <p>• <strong>Hạn đóng nhận giá thầu (Chốt thầu):</strong> <span class="font-bold text-blue-700">${closeStr}</span></p>
+                        <p>• <strong>Hạn khai báo hàng & Cut-off kho (ETD - 3h):</strong> <span class="font-bold text-slate-900">${cutOffStr}</span></p>
+                        <p>• <strong>Thời gian cho đại lý làm thủ tục:</strong> <span class="font-bold text-emerald-700">${bufferHours} giờ</span> (từ khi chốt thầu đến Cut-off kho)</p>
+                        <p>• <strong>Hạn thanh toán tối đa:</strong> <span class="font-bold text-red-600">${paymentDlFormatted}</span></p>
                     </div>
                 `;
             } else {
@@ -361,7 +369,9 @@
                         <span class="px-2 py-0.5 rounded-md bg-blue-100 text-blue-800 text-[10px] uppercase tracking-wide">Chuyến bay tiêu chuẩn</span>
                     </div>
                     <div class="space-y-1 text-slate-700">
-                        <p>• <strong>Giờ Cut-off kho (ETD - 3h):</strong> <span class="font-bold text-slate-900">${cutOffStr}</span></p>
+                        <p>• <strong>Hạn đóng nhận giá thầu (Chốt thầu):</strong> <span class="font-bold text-blue-700">${closeStr}</span></p>
+                        <p>• <strong>Hạn khai báo hàng & Cut-off kho (ETD - 3h):</strong> <span class="font-bold text-slate-900">${cutOffStr}</span></p>
+                        <p>• <strong>Thời gian cho đại lý làm thủ tục:</strong> <span class="font-bold text-emerald-700">${bufferHours} giờ</span> (từ khi chốt thầu đến Cut-off kho)</p>
                         <p>• <strong>Hạn thanh toán:</strong> <span class="font-bold text-emerald-700">${paymentDlFormatted}</span></p>
                     </div>
                 `;
@@ -460,6 +470,7 @@
                 }
             }
 
+            const offsetSelect = document.getElementById('auctionCloseOffsetSelect');
             const res = CargoStore.createAuction({
                 flightNumber: fn,
                 origin: origin,
@@ -471,6 +482,7 @@
                 startingPriceKg: document.getElementById('startingPriceKg').value,
                 minStep: document.getElementById('minStep').value,
                 specialNotes: document.getElementById('specialNotes').value,
+                auctionCloseOffsetHours: offsetSelect ? offsetSelect.value : 5,
                 cutOffTime: 'Trước ETD 3 giờ'
             });
 

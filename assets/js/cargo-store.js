@@ -1107,15 +1107,15 @@ const CargoStore = (function() {
             const formattedEtd = this.formatFlightDateDisplay(parsedEtd);
             const formattedEta = auctionData.eta ? this.formatFlightDateDisplay(auctionData.eta) : 'Chưa cập nhật';
 
-            // Calculate End Time (Thời gian đóng thầu): 3 hours before ETD if ETD is in future, or at least 24h
-            const cutoffHours = (data.settings && data.settings.cutoffHours) || 3;
+            // Calculate End Time (Thời gian đóng thầu): e.g. 5 hours before ETD so agent has time to pay & declare before warehouse Cut-off (ETD - 3h)
+            const closeOffsetHours = Number(auctionData.auctionCloseOffsetHours) || 5;
             let endTimeDate;
             if (parsedEtd && !isNaN(parsedEtd.getTime())) {
-                const etdCutoff = new Date(parsedEtd.getTime() - cutoffHours * 60 * 60 * 1000);
-                if (etdCutoff.getTime() > now.getTime()) {
-                    endTimeDate = etdCutoff;
+                const etdCloseTime = new Date(parsedEtd.getTime() - closeOffsetHours * 60 * 60 * 1000);
+                if (etdCloseTime.getTime() > now.getTime()) {
+                    endTimeDate = etdCloseTime;
                 } else {
-                    endTimeDate = new Date(now.getTime() + 12 * 60 * 60 * 1000);
+                    endTimeDate = new Date(now.getTime() + 30 * 60 * 1000);
                 }
             } else {
                 endTimeDate = new Date(now.getTime() + 24 * 60 * 60 * 1000);
