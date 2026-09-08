@@ -199,7 +199,8 @@
                         <span class="text-slate-400 font-semibold px-2 py-0.5 flex items-center gap-1"><i class="fa-solid fa-credit-card text-[10px]"></i> Thanh toán:</span>
                         <button type="button" onclick="setWonPayFilter('ALL')" id="wonPayFilterAll" class="px-2.5 py-1 rounded-md font-semibold text-white bg-blue-600 transition">Tất cả</button>
                         <button type="button" onclick="setWonPayFilter('PAID')" id="wonPayFilterPaid" class="px-2.5 py-1 rounded-md font-semibold text-slate-300 hover:text-white transition">Đã thanh toán</button>
-                        <button type="button" onclick="setWonPayFilter('UNPAID')" id="wonPayFilterUnpaid" class="px-2.5 py-1 rounded-md font-semibold text-slate-300 hover:text-white transition">Chưa thanh toán</button>
+                        <button type="button" onclick="setWonPayFilter('UNPAID')" id="wonPayFilterUnpaid" class="px-2.5 py-1 rounded-md font-semibold text-slate-300 hover:text-white transition">Chờ thanh toán</button>
+                        <button type="button" onclick="setWonPayFilter('EXPIRED')" id="wonPayFilterExpired" class="px-2.5 py-1 rounded-md font-semibold text-slate-300 hover:text-white transition">Quá hạn / Hủy</button>
                     </div>
 
                     <span class="text-xs font-semibold bg-emerald-500/20 text-emerald-300 border border-emerald-500/30 px-3 py-1 rounded-full flex items-center gap-1.5 whitespace-nowrap">
@@ -878,6 +879,7 @@
             const btnPayAll = document.getElementById('wonPayFilterAll');
             const btnPayPaid = document.getElementById('wonPayFilterPaid');
             const btnPayUnpaid = document.getElementById('wonPayFilterUnpaid');
+            const btnPayExpired = document.getElementById('wonPayFilterExpired');
 
             const activeClass = 'px-2.5 py-1 rounded-md font-semibold text-white bg-blue-600 transition';
             const inactiveClass = 'px-2.5 py-1 rounded-md font-semibold text-slate-300 hover:text-white transition';
@@ -892,6 +894,7 @@
                 btnPayAll.className = currentWonPayFilter === 'ALL' ? activeClass : inactiveClass;
                 btnPayPaid.className = currentWonPayFilter === 'PAID' ? activeClass : inactiveClass;
                 btnPayUnpaid.className = currentWonPayFilter === 'UNPAID' ? activeClass : inactiveClass;
+                if (btnPayExpired) btnPayExpired.className = currentWonPayFilter === 'EXPIRED' ? activeClass : inactiveClass;
             }
         }
 
@@ -942,7 +945,9 @@
             if (currentWonPayFilter === 'PAID') {
                 list = list.filter(w => w.paymentStatus === 'PAID');
             } else if (currentWonPayFilter === 'UNPAID') {
-                list = list.filter(w => w.paymentStatus !== 'PAID');
+                list = list.filter(w => w.paymentStatus !== 'PAID' && !((window.CargoStore && CargoStore.isWonAuctionExpired) ? CargoStore.isWonAuctionExpired(w) : false));
+            } else if (currentWonPayFilter === 'EXPIRED') {
+                list = list.filter(w => (window.CargoStore && CargoStore.isWonAuctionExpired) ? CargoStore.isWonAuctionExpired(w) : false);
             }
 
             // 2b. Sorting Logic
@@ -991,12 +996,15 @@
             const paginatedList = list.slice(startIndex, endIndex);
 
             tbody.innerHTML = paginatedList.map(item => {
+                const isExpired = (window.CargoStore && CargoStore.isWonAuctionExpired) ? CargoStore.isWonAuctionExpired(item) : false;
                 const isPaid = item.paymentStatus === 'PAID';
                 const isPending = item.paymentStatus === 'PENDING_VERIFICATION';
                 const decl = item.cargoDeclaration;
 
                 let statusBadgeHtml = '';
-                if (isPaid) {
+                if (isExpired) {
+                    statusBadgeHtml = `<span class="bg-rose-100 text-rose-800 font-bold px-2.5 py-1 rounded-full text-[10px] inline-flex items-center gap-1 border border-rose-200"><i class="fa-solid fa-ban text-rose-600"></i> QUÁ HẠN / ĐÃ HỦY</span>`;
+                } else if (isPaid) {
                     statusBadgeHtml = `<span class="bg-emerald-100 text-emerald-800 font-bold px-2.5 py-1 rounded-full text-[10px] inline-flex items-center gap-1"><i class="fa-solid fa-circle-check text-emerald-600"></i> ĐÃ THANH TOÁN</span>`;
                 } else if (isPending) {
                     statusBadgeHtml = `<span class="bg-amber-100 text-amber-900 font-bold px-2.5 py-1 rounded-full text-[10px] inline-flex items-center gap-1 animate-pulse"><i class="fa-solid fa-spinner fa-spin text-amber-600"></i> ĐẠI LÝ BÁO ĐÃ CK</span>`;
@@ -1030,9 +1038,9 @@
                 }
 
                 return `
-                    <tr class="hover:bg-slate-50/80 transition">
+                    <tr class="hover:bg-slate-50/80 transition ${isExpired ? 'opacity-80 bg-rose-50/20' : ''}">
                         <td class="py-3.5 px-4 font-mono font-bold text-slate-900">
-                            <span class="text-blue-600 font-bold block">${item.wonId}</span>
+                            <span class="${isExpired ? 'text-rose-600 line-through' : 'text-blue-600'} font-bold block">${item.wonId}</span>
                             <span class="text-slate-500 font-normal text-[11px]">Chuyến ${item.flightNumber} (${item.route})</span>
                         </td>
                         <td class="py-3.5 px-4 font-medium text-slate-800">
@@ -1047,7 +1055,7 @@
                             ${cargoHtml}
                         </td>
                         <td class="py-3.5 px-4">
-                            <p class="font-bold text-red-600 text-xs">${CargoStore.formatCurrency(item.totalAmountVND)}</p>
+                            <p class="font-bold ${isExpired ? 'text-slate-400 line-through' : 'text-red-600'} text-xs">${CargoStore.formatCurrency(item.totalAmountVND)}</p>
                             <p class="font-mono font-bold text-blue-600 text-[11px] mt-0.5">AWB: ${item.awbNumber || '-'}</p>
                         </td>
                         <td class="py-3.5 px-4">
@@ -1055,7 +1063,11 @@
                             ${item.paidAt ? `<p class="text-[10px] text-slate-400 mt-0.5">Xác nhận: ${item.paidAt}</p>` : ''}
                         </td>
                         <td class="py-3.5 px-4 text-right">
-                            ${isPaid ? `
+                            ${isExpired ? `
+                                <span class="inline-flex items-center gap-1 text-slate-400 font-bold text-xs bg-slate-100 px-3 py-1.5 rounded-xl border border-slate-200 cursor-not-allowed">
+                                    <i class="fa-solid fa-ban"></i> Đã hủy (Quá hạn)
+                                </span>
+                            ` : (isPaid ? `
                                 <span class="inline-flex items-center gap-1 text-emerald-700 font-bold text-xs bg-emerald-50 px-3 py-1.5 rounded-xl border border-emerald-200">
                                     <i class="fa-solid fa-check"></i> Đã nhận đủ tiền
                                 </span>
@@ -1063,7 +1075,7 @@
                                 <button onclick="handleAdminConfirmPayment('${item.wonId}')" class="inline-flex items-center gap-1.5 bg-emerald-600 hover:bg-emerald-700 text-white font-bold px-3 py-1.5 rounded-xl text-xs transition shadow-sm cursor-pointer">
                                     <i class="fa-solid fa-receipt"></i> Xác nhận Đã nhận tiền
                                 </button>
-                            `}
+                            `)}
                         </td>
                     </tr>
                 `;

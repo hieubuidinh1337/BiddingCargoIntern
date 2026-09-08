@@ -754,6 +754,61 @@ const CargoStore = (function() {
         return `${pad(d.getHours())}:${pad(d.getMinutes())} ${pad(d.getDate())}/${pad(d.getMonth() + 1)}/${d.getFullYear()}`;
     }
 
+    function parseFlightDate(dateStr) {
+        if (!dateStr) return null;
+        if (dateStr instanceof Date) return isNaN(dateStr.getTime()) ? null : dateStr;
+        const cleanStr = String(dateStr).replace(/·|-/g, ' ').replace(/\s+/g, ' ').trim();
+
+        const p1 = cleanStr.match(/^(\d{1,2}):(\d{2})\s+(\d{1,2})\/(\d{1,2})\/(\d{4})$/);
+        const p2 = cleanStr.match(/^(\d{1,2})\/(\d{1,2})\/(\d{4})\s+(\d{1,2}):(\d{2})$/);
+        const p3 = cleanStr.match(/^(\d{4})-(\d{2})-(\d{2})T(\d{2}):(\d{2})/);
+
+        if (p1) {
+            return new Date(parseInt(p1[5], 10), parseInt(p1[4], 10) - 1, parseInt(p1[3], 10), parseInt(p1[1], 10), parseInt(p1[2], 10));
+        } else if (p2) {
+            return new Date(parseInt(p2[3], 10), parseInt(p2[2], 10) - 1, parseInt(p2[1], 10), parseInt(p2[4], 10), parseInt(p2[5], 10));
+        } else if (p3) {
+            const d = new Date(dateStr);
+            return isNaN(d.getTime()) ? null : d;
+        }
+        const d = new Date(dateStr);
+        return isNaN(d.getTime()) ? null : d;
+    }
+
+    function isWonAuctionExpired(item) {
+        if (!item) return false;
+        if (item.paymentStatus === 'PAID') return false;
+        if (item.paymentStatus === 'CANCELLED' || item.paymentStatus === 'EXPIRED') return true;
+
+        const now = Date.now();
+
+        // 1. Check explicit paymentDeadline timestamp
+        if (item.paymentDeadline) {
+            const dlMs = new Date(item.paymentDeadline).getTime();
+            if (!isNaN(dlMs) && now > dlMs) return true;
+        }
+
+        // 2. Check Cut-off time (3h before ETD) or ETD from auction
+        const data = loadData();
+        const allAuctions = data.auctions || [];
+        const auctionMatch = allAuctions.find(a => a.id == item.auctionId || a.flightNumber === item.flightNumber);
+        const etdStr = item.etd || (auctionMatch ? auctionMatch.etd : null);
+        
+        let etdDate = null;
+        if (item.etdIso) {
+            etdDate = new Date(item.etdIso);
+        } else if (etdStr) {
+            etdDate = parseFlightDate(etdStr);
+        }
+
+        if (etdDate && !isNaN(etdDate.getTime())) {
+            const cutoffDeadlineMs = etdDate.getTime() - 3 * 3600 * 1000;
+            if (now >= cutoffDeadlineMs) return true;
+        }
+
+        return false;
+    }
+
     function calculateCutOffTime(etdStr, offsetHours = 3) {
         if (!etdStr) return `Trước ETD ${offsetHours} giờ`;
 
@@ -973,6 +1028,8 @@ const CargoStore = (function() {
         calculateCutOffTime: calculateCutOffTime,
         calculatePaymentDeadline: calculatePaymentDeadline,
         formatPaymentDeadlineText: formatPaymentDeadlineText,
+        parseFlightDate: parseFlightDate,
+        isWonAuctionExpired: isWonAuctionExpired,
         getFlightDurationMinutes: getFlightDurationMinutes,
         calculateETA: calculateETA,
         generateNextFlightNumber: generateNextFlightNumber,
@@ -2044,6 +2101,10 @@ const CargoStore = (function() {
                 return { success: false, message: `Không tìm thấy đơn thắng thầu "${wonId}".` };
             }
 
+            if (this.isWonAuctionExpired(item)) {
+                return { success: false, message: `Đơn hàng "${wonId}" đã quá hạn thanh toán / Cut-off và đã bị hủy bởi hệ thống.` };
+            }
+
             item.paymentStatus = 'PAID';
             item.paidAt = new Date().toLocaleString('vi-VN');
 
@@ -2083,6 +2144,10 @@ const CargoStore = (function() {
                 return { success: false, message: `Không tìm thấy đơn thắng thầu "${wonId}".` };
             }
 
+            if (this.isWonAuctionExpired(item)) {
+                return { success: false, message: `Đơn hàng "${wonId}" đã quá hạn thanh toán / Cut-off và đã bị hủy bởi hệ thống. Không thể gửi thông báo chuyển khoản.` };
+            }
+
             item.paymentStatus = 'PENDING_VERIFICATION';
             item.notifiedAt = new Date().toLocaleString('vi-VN');
             saveData(data);
@@ -2096,6 +2161,10 @@ const CargoStore = (function() {
             const item = data.wonAuctions.find(w => w.wonId === wonId);
             if (!item) {
                 return { success: false, message: `Không tìm thấy đơn thắng thầu "${wonId}".` };
+            }
+
+            if (this.isWonAuctionExpired(item)) {
+                return { success: false, message: `Đơn hàng "${wonId}" đã quá hạn thanh toán / Cut-off và đã bị hủy. Không thể cập nhật thông tin hàng hóa.` };
             }
 
             item.cargoDeclaration = {

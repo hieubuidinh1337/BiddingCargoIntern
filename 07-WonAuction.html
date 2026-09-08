@@ -92,7 +92,8 @@
             <div class="w-full md:w-56">
                 <select id="wonStatusFilter" onchange="renderWonAuctions()" class="w-full border rounded-xl px-3 py-2 text-xs focus:ring-2 focus:ring-blue-500 outline-none bg-white font-medium">
                     <option value="ALL">Tất cả trạng thái</option>
-                    <option value="UNPAID">Chưa thanh toán</option>
+                    <option value="UNPAID">Chờ thanh toán (Trong hạn)</option>
+                    <option value="EXPIRED">Đã hủy do quá hạn</option>
                     <option value="UNDECLARED">Chưa khai báo hàng hóa</option>
                     <option value="DECLARED">Đã khai báo hàng hóa</option>
                     <option value="PENDING">Chờ Admin xác nhận thanh toán</option>
@@ -395,6 +396,7 @@
             const auction = auctions.find(a => a.id == item.auctionId || a.flightNumber === item.flightNumber) || {};
 
             const isPaid = item.paymentStatus === 'PAID';
+            const isExpired = (store && store.isWonAuctionExpired) ? store.isWonAuctionExpired(item) : false;
             const now = new Date();
             const nowStr = `${now.toLocaleDateString('vi-VN')} ${now.toLocaleTimeString('vi-VN', {hour:'2-digit', minute:'2-digit'})}`;
             const deadlineStr = item.paymentDeadline ? new Date(item.paymentDeadline).toLocaleString('vi-VN') : 'Trong vòng 24 giờ kể từ thời điểm chốt thầu';
@@ -445,17 +447,17 @@
                     </div>
 
                     <!-- Status Banner -->
-                    <div style="background: ${isPaid ? '#ecfdf5' : '#fffbeb'}; border: 1px solid ${isPaid ? '#10b981' : '#f59e0b'}; border-radius: 6px; padding: 6px 10px; margin-bottom: 10px; display: flex; justify-content: space-between; align-items: center;">
+                    <div style="background: ${isPaid ? '#ecfdf5' : (isExpired ? '#fef2f2' : '#fffbeb')}; border: 1px solid ${isPaid ? '#10b981' : (isExpired ? '#ef4444' : '#f59e0b')}; border-radius: 6px; padding: 6px 10px; margin-bottom: 10px; display: flex; justify-content: space-between; align-items: center;">
                         <div>
-                            <span style="font-size: 9px; font-weight: 800; color: ${isPaid ? '#047857' : '#b45309'}; text-transform: uppercase;">
-                                TRẠNG THÁI: ${isPaid ? 'ĐÃ HOÀN TẤT THANH TOÁN (PAYMENT CONFIRMED)' : 'CHỜ THANH TOÁN (AWAITING PAYMENT)'}
+                            <span style="font-size: 9px; font-weight: 800; color: ${isPaid ? '#047857' : (isExpired ? '#b91c1c' : '#b45309')}; text-transform: uppercase;">
+                                TRẠNG THÁI: ${isPaid ? 'ĐÃ HOÀN TẤT THANH TOÁN (PAYMENT CONFIRMED)' : (isExpired ? 'ĐÃ HỦY DO QUÁ HẠN THANH TOÁN (EXPIRED / VOID)' : 'CHỜ THANH TOÁN (AWAITING PAYMENT)')}
                             </span>
-                            <span style="font-size: 8px; color: ${isPaid ? '#065f46' : '#92400e'}; margin-left: 6px;">
-                                ${isPaid ? `(Thời gian thanh toán: ${item.paidAt || 'Hợp lệ'})` : `(Hạn thanh toán: ${deadlineStr})`}
+                            <span style="font-size: 8px; color: ${isPaid ? '#065f46' : (isExpired ? '#991b1b' : '#92400e')}; margin-left: 6px;">
+                                ${isPaid ? `(Thời gian thanh toán: ${item.paidAt || 'Hợp lệ'})` : (isExpired ? `(Quá hạn chót: ${deadlineStr})` : `(Hạn thanh toán: ${deadlineStr})`)}
                             </span>
                         </div>
-                        <div style="font-size: 8.5px; font-weight: 700; color: ${isPaid ? '#047857' : '#b45309'};">
-                            SLOT TẢI TRỌNG: HỢP LỆ
+                        <div style="font-size: 8.5px; font-weight: 700; color: ${isPaid ? '#047857' : (isExpired ? '#b91c1c' : '#b45309')};">
+                            SLOT TẢI TRỌNG: ${isExpired ? 'ĐÃ HỦY' : 'HỢP LỆ'}
                         </div>
                     </div>
 
@@ -1315,8 +1317,10 @@
                 list = list.filter(item => item.paymentStatus === 'PAID');
             } else if (statusFilter === 'PENDING') {
                 list = list.filter(item => item.paymentStatus === 'PENDING_VERIFICATION');
+            } else if (statusFilter === 'EXPIRED') {
+                list = list.filter(item => (store && store.isWonAuctionExpired) ? store.isWonAuctionExpired(item) : false);
             } else if (statusFilter === 'UNPAID') {
-                list = list.filter(item => item.paymentStatus !== 'PAID' && item.paymentStatus !== 'PENDING_VERIFICATION');
+                list = list.filter(item => item.paymentStatus !== 'PAID' && item.paymentStatus !== 'PENDING_VERIFICATION' && !((store && store.isWonAuctionExpired) ? store.isWonAuctionExpired(item) : false));
             } else if (statusFilter === 'UNDECLARED') {
                 list = list.filter(item => (store && store.isCargoUndeclared) ? store.isCargoUndeclared(item) : (!item.cargoDeclaration || !item.cargoDeclaration.cargoName));
             } else if (statusFilter === 'DECLARED') {
@@ -1367,24 +1371,37 @@
             container.innerHTML = paginatedList.map(item => {
                 const isPaid = item.paymentStatus === 'PAID';
                 const isPending = item.paymentStatus === 'PENDING_VERIFICATION';
+                const isExpired = (store && store.isWonAuctionExpired) ? store.isWonAuctionExpired(item) : false;
                 const decl = item.cargoDeclaration;
 
                 let statusBadgeText = 'CHỜ THANH TOÁN (AWAITING PAYMENT)';
                 let statusBadgeClass = 'bg-amber-400 text-amber-950';
+                let headerGradient = 'from-blue-700 to-indigo-800';
+                let headerIcon = 'fa-clock';
+
                 if (isPaid) {
                     statusBadgeText = 'ĐÃ HOÀN TẤT THANH TOÁN';
                     statusBadgeClass = 'bg-emerald-400 text-emerald-950';
+                    headerGradient = 'from-emerald-700 to-teal-800';
+                    headerIcon = 'fa-check';
+                } else if (isExpired) {
+                    statusBadgeText = 'QUÁ HẠN THANH TOÁN - ĐÃ HỦY ĐƠN';
+                    statusBadgeClass = 'bg-rose-500 text-white font-bold';
+                    headerGradient = 'from-slate-800 to-rose-950';
+                    headerIcon = 'fa-ban';
                 } else if (isPending) {
                     statusBadgeText = 'ĐÃ BÁO CHUYỂN KHOẢN (CHỜ ADMIN XÁC NHẬN)';
                     statusBadgeClass = 'bg-blue-400 text-blue-950 animate-pulse';
+                    headerGradient = 'from-indigo-700 to-blue-800';
+                    headerIcon = 'fa-spinner fa-spin';
                 }
 
                 return `
                     <div class="bg-white rounded-2xl border shadow-sm overflow-hidden hover:shadow-md transition">
-                        <div class="bg-gradient-to-r ${isPaid ? 'from-emerald-700 to-teal-800' : (isPending ? 'from-indigo-700 to-blue-800' : 'from-blue-700 to-indigo-800')} p-5 text-white flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+                        <div class="bg-gradient-to-r ${headerGradient} p-5 text-white flex flex-col sm:flex-row sm:items-center justify-between gap-4">
                             <div class="flex items-center gap-3">
                                 <div class="w-12 h-12 bg-white/10 rounded-2xl flex items-center justify-center text-2xl font-bold shadow-inner">
-                                    <i class="fa-solid ${isPaid ? 'fa-check' : (isPending ? 'fa-spinner fa-spin' : 'fa-clock')}"></i>
+                                    <i class="fa-solid ${headerIcon}"></i>
                                 </div>
                                 <div>
                                     <span class="bg-white/20 text-xs font-semibold px-2.5 py-0.5 rounded-full font-mono">
@@ -1398,6 +1415,7 @@
                                     ${statusBadgeText}
                                 </span>
                                 ${isPaid ? `<p class="text-xs text-white/80 mt-1">Thanh toán lúc: ${item.paidAt || 'Hợp lệ'}</p>` : ''}
+                                ${isExpired ? `<p class="text-xs text-rose-300 font-semibold mt-1">Hạn chót: ${item.paymentDeadline ? new Date(item.paymentDeadline).toLocaleString('vi-VN') : 'Đã quá hạn'}</p>` : ''}
                                 ${isPending ? `<p class="text-xs text-white/80 mt-1">Đã báo lúc: ${item.notifiedAt || 'Vừa xong'}</p>` : ''}
                             </div>
                         </div>
@@ -1414,16 +1432,33 @@
                                 </div>
                                 <div class="bg-slate-50 p-4 rounded-xl border">
                                     <p class="text-xs text-gray-500 mb-1">Tổng tiền thanh toán</p>
-                                    <p class="text-lg font-bold text-slate-900">${store ? store.formatCurrency(item.totalAmountVND) : item.totalAmountVND + ' đ'}</p>
+                                    <p class="text-lg font-bold ${isExpired ? 'text-slate-400 line-through' : 'text-slate-900'}">${store ? store.formatCurrency(item.totalAmountVND) : item.totalAmountVND + ' đ'}</p>
                                 </div>
                                 <div class="bg-slate-50 p-4 rounded-xl border">
                                     <p class="text-xs text-gray-500 mb-1">Mã vận đơn (AWB)</p>
-                                    <p class="text-sm font-mono font-bold text-emerald-600 mt-1">${item.awbNumber || '-'}</p>
+                                    <p class="text-sm font-mono font-bold ${isExpired ? 'text-rose-500' : 'text-emerald-600'} mt-1">${item.awbNumber || '-'}</p>
                                 </div>
                             </div>
 
                             <!-- Khai báo thông tin hàng hóa -->
                             ${(() => {
+                                if (isExpired) {
+                                    return `
+                                        <div class="rounded-xl p-4 border text-xs bg-rose-50/90 border-rose-200 text-rose-900 space-y-1.5">
+                                            <div class="flex items-center justify-between gap-2">
+                                                <h3 class="font-bold flex items-center gap-2 text-sm text-rose-900">
+                                                    <i class="fa-solid fa-ban text-rose-600"></i>
+                                                    Đơn hàng đã bị hủy do quá hạn thanh toán
+                                                </h3>
+                                                <span class="px-3 py-1 rounded-lg bg-rose-100 text-rose-800 border border-rose-300 font-bold text-[11px]">HỦY SLOT</span>
+                                            </div>
+                                            <p class="text-rose-700 leading-relaxed">
+                                                Đơn hàng không hoàn tất thanh toán trước thời hạn quy định / hạn chót Cut-off tiếp nhận hàng. Quyền vận chuyển đã bị hủy theo quy chế sàn đấu giá.
+                                            </p>
+                                        </div>
+                                    `;
+                                }
+
                                 const lockCheck = isCargoDeclarationLocked(item);
                                 if (lockCheck.isLocked) {
                                     if (decl) {
@@ -1555,11 +1590,15 @@
                                     <i class="fa-solid fa-shield-check text-emerald-500"></i> Đơn vị phát hành: Ban Dịch vụ Vận chuyển Hàng hóa Vietravel Airlines
                                 </span>
                                 <div class="flex flex-wrap items-center gap-2">
-                                    ${!isPaid && !isPending ? `
+                                    ${isExpired ? `
+                                        <span class="bg-rose-100 text-rose-800 border border-rose-300 font-bold px-4 py-2.5 rounded-xl flex items-center gap-2 text-xs">
+                                            <i class="fa-solid fa-circle-xmark text-rose-600"></i> Đã hủy thanh toán (Quá hạn)
+                                        </span>
+                                    ` : (!isPaid && !isPending ? `
                                         <button onclick="handleNotifyPaymentSent('${item.wonId}')" class="bg-amber-500 hover:bg-amber-600 text-white font-bold px-4 py-2.5 rounded-xl transition flex items-center gap-2 shadow cursor-pointer">
                                             <i class="fa-solid fa-paper-plane"></i> Tôi đã chuyển khoản (Báo Admin)
                                         </button>
-                                    ` : ''}
+                                    ` : '')}
                                     ${isPending ? `
                                         <span class="bg-amber-100 text-amber-900 border border-amber-300 font-bold px-3 py-2 rounded-xl flex items-center gap-1.5">
                                             <i class="fa-solid fa-spinner fa-spin text-amber-600"></i> Đã báo chuyển khoản - Đang chờ Admin xác nhận
