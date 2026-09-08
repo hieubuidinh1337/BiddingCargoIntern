@@ -2482,13 +2482,7 @@ const CargoStore = (function() {
 
         syncHeaderUI: function() {
             const user = this.getCurrentUser();
-            if (!user) {
-                if (typeof window !== 'undefined' && !window.location.pathname.includes('01-Login.html') && !window.location.pathname.includes('02-Register.html') && !window.location.pathname.includes('01-AdminLogin.html')) {
-                    alert('Phiên làm việc đã hết hạn hoặc tài khoản đại lý đã bị khóa!');
-                    window.location.href = '01-Login.html';
-                }
-                return;
-            }
+            if (!user) return;
 
             document.querySelectorAll('.agent-company-name').forEach(el => {
                 el.textContent = user.companyName;
@@ -2510,14 +2504,12 @@ const CargoStore = (function() {
         },
 
         syncAdminHeaderUI: function() {
+            const pathname = (typeof window !== 'undefined' && window.location.pathname) ? window.location.pathname.toLowerCase() : '';
+            const isAdminPage = pathname.includes('/admin/') || pathname.includes('\\admin\\');
+            if (!isAdminPage) return;
+
             const admin = this.getCurrentAdmin();
-            if (!admin) {
-                if (typeof window !== 'undefined' && !window.location.pathname.includes('01-AdminLogin.html') && !window.location.pathname.includes('01-Login.html')) {
-                    alert('Phiên làm việc Quản trị đã hết hạn hoặc tài khoản nhân viên đã bị KHÓA bởi Quản trị viên hệ thống!');
-                    window.location.href = '01-AdminLogin.html';
-                }
-                return;
-            }
+            if (!admin) return;
 
             const isStaff = admin.role === 'STAFF';
             const roleName = isStaff ? 'NHÂN VIÊN ĐIỀU HÀNH' : 'QUẢN TRỊ VIÊN';
@@ -2559,6 +2551,10 @@ const CargoStore = (function() {
                     `;
                 }
             }
+        },
+
+        getCurrentTime: function() {
+            return new Date().toLocaleTimeString('vi-VN', { hour: '2-digit', minute: '2-digit' });
         }
     };
 })();
@@ -2583,7 +2579,9 @@ if (typeof window !== 'undefined') {
         
         // Never trigger lock/logout alerts or redirects on public, login, or register pages!
         const isPublicOrLoginPage = (
+            pathname === '/' ||
             pathname.endsWith('/') ||
+            pathname.endsWith('/index.html') ||
             pathname.includes('00-home') ||
             pathname.includes('01-login') ||
             pathname.includes('adminlogin') ||
@@ -2593,14 +2591,14 @@ if (typeof window !== 'undefined') {
 
         if (isPublicOrLoginPage) return;
 
-        const isAdminPage = pathname.includes('/admin/');
+        const isAdminPage = pathname.includes('/admin/') || pathname.includes('\\admin\\');
 
         if (isAdminPage) {
             // Guard protected Admin pages (02-AdminDashboard, 03-AuctionList, 04-CreateAuction, 05-AuctionDetail, 06-AgentList, 07-Reports, 08-Settings)
+            if (pathname.includes('01-adminlogin')) return;
             const admin = CargoStore.getCurrentAdmin();
             if (!admin) {
                 isRedirecting = true;
-                alert('⛔ PHIÊN LÀM VIỆC HẾT HẠN HOẶC TÀI KHOẢN ĐÃ BỊ KHÓA!\n\nBạn chưa đăng nhập hoặc tài khoản Quản trị vừa bị khóa. Hệ thống sẽ tự động chuyển đến trang Đăng nhập Quản trị.');
                 window.location.href = '01-AdminLogin.html';
                 return;
             }
@@ -2621,7 +2619,6 @@ if (typeof window !== 'undefined') {
                 const user = CargoStore.getCurrentUser();
                 if (!user) {
                     isRedirecting = true;
-                    alert('⛔ PHIÊN LÀM VIỆC HẾT HẠN HOẶC TÀI KHOẢN ĐÃ BỊ KHÓA!\n\nTài khoản đại lý của bạn đã bị Quản trị viên KHÓA hoặc vừa đăng xuất. Hệ thống sẽ tự động chuyển hướng về trang Đăng nhập.');
                     window.location.href = '01-Login.html';
                     return;
                 }
