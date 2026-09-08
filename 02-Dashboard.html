@@ -159,6 +159,7 @@
                 <div id="dashboardAuctionList" class="space-y-3">
                     <!-- Rendered by JS -->
                 </div>
+                <div id="dashAuctionPagination"></div>
             </div>
 
             <!-- Right 1 Col: Notifications & Quick Guide -->
@@ -210,6 +211,14 @@
     </main>
 
     <script>
+        let dashAuctionCurrentPage = 1;
+        const dashAuctionPageSize = 4;
+
+        function goToDashAuctionPage(page) {
+            dashAuctionCurrentPage = page;
+            renderDashboard();
+        }
+
         function renderDashboard() {
             if (typeof CargoStore === 'undefined') return;
 
@@ -260,13 +269,22 @@
             const dashUndeclared = document.getElementById('dashUndeclaredCount');
             if (dashUndeclared) dashUndeclared.textContent = undeclaredCount;
 
-            // === Render Featured Open Auctions ===
+            // === Render Featured Open Auctions (Paginated) ===
+            const totalOpen = openAuctions.length;
+            const totalPages = Math.max(1, Math.ceil(totalOpen / dashAuctionPageSize));
+            if (dashAuctionCurrentPage > totalPages) dashAuctionCurrentPage = totalPages;
+            if (dashAuctionCurrentPage < 1) dashAuctionCurrentPage = 1;
+
+            const startIndex = (dashAuctionCurrentPage - 1) * dashAuctionPageSize;
+            const endIndex = Math.min(startIndex + dashAuctionPageSize, totalOpen);
+            const paginatedAuctions = openAuctions.slice(startIndex, endIndex);
+
             const container = document.getElementById('dashboardAuctionList');
             if (container) {
-                if (openAuctions.length === 0) {
-                    container.innerHTML = `<div class="p-6 text-center text-gray-400 text-sm">Hiện chưa có phiên đấu giá nào đang mở.</div>`;
+                if (totalOpen === 0) {
+                    container.innerHTML = `<div class="p-6 text-center text-gray-400 text-sm bg-white rounded-2xl border">Hiện chưa có phiên đấu giá nào đang mở.</div>`;
                 } else {
-                    container.innerHTML = openAuctions.map(a => {
+                    container.innerHTML = paginatedAuctions.map(a => {
                         const timer = CargoStore.getTimeRemaining(a.endTime);
                         const isLeading = a.leadingAgentCode === myCode;
                         return `
@@ -296,6 +314,45 @@
                             </div>
                         `;
                     }).join('');
+                }
+            }
+
+            // Render Pagination Controls for open auctions on Dashboard
+            const pagContainer = document.getElementById('dashAuctionPagination');
+            if (pagContainer) {
+                if (totalOpen <= dashAuctionPageSize) {
+                    pagContainer.innerHTML = '';
+                } else {
+                    const pages = [];
+                    for (let i = 1; i <= totalPages; i++) pages.push(i);
+
+                    const pageBtns = pages.map(p => {
+                        const isActive = p === dashAuctionCurrentPage;
+                        if (isActive) {
+                            return `<button type="button" class="w-7 h-7 rounded-lg bg-blue-600 text-white font-bold text-xs flex items-center justify-center shadow-xs cursor-default">${p}</button>`;
+                        } else {
+                            return `<button type="button" onclick="goToDashAuctionPage(${p})" class="w-7 h-7 rounded-lg border border-slate-200 bg-white hover:bg-slate-50 text-slate-700 font-semibold text-xs flex items-center justify-center transition cursor-pointer">${p}</button>`;
+                        }
+                    }).join('');
+
+                    pagContainer.innerHTML = `
+                        <div class="bg-white rounded-xl border border-slate-200 px-4 py-2.5 flex items-center justify-between text-xs text-slate-500 shadow-2xs">
+                            <span>Hiển thị <strong>${startIndex + 1} - ${endIndex}</strong> trên <strong>${totalOpen}</strong> phiên đang mở</span>
+                            <div class="flex items-center gap-1.5">
+                                <button type="button" ${dashAuctionCurrentPage <= 1 ? 'disabled' : `onclick="goToDashAuctionPage(${dashAuctionCurrentPage - 1})"`} 
+                                        class="px-2.5 py-1 border rounded-lg bg-white text-slate-600 hover:bg-slate-50 disabled:opacity-40 disabled:cursor-not-allowed font-medium text-xs flex items-center gap-1">
+                                    <i class="fa-solid fa-chevron-left text-[10px]"></i> Trước
+                                </button>
+                                <div class="flex items-center gap-1">
+                                    ${pageBtns}
+                                </div>
+                                <button type="button" ${dashAuctionCurrentPage >= totalPages ? 'disabled' : `onclick="goToDashAuctionPage(${dashAuctionCurrentPage + 1})"`} 
+                                        class="px-2.5 py-1 border rounded-lg bg-white text-slate-600 hover:bg-slate-50 disabled:opacity-40 disabled:cursor-not-allowed font-medium text-xs flex items-center gap-1">
+                                    Sau <i class="fa-solid fa-chevron-right text-[10px]"></i>
+                                </button>
+                            </div>
+                        </div>
+                    `;
                 }
             }
 

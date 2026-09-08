@@ -161,6 +161,8 @@
                         </tbody>
                     </table>
                 </div>
+                <!-- Pagination for Live Open Auctions -->
+                <div id="adminOpenPagination"></div>
             </div>
 
             <!-- Pending Registrations Queue (1 col) -->
@@ -213,6 +215,8 @@
                     </tbody>
                 </table>
             </div>
+            <!-- Pagination for Declarations -->
+            <div id="adminCargoPagination"></div>
         </div>
 
     </main>
@@ -242,6 +246,22 @@
     </div>
 
     <script>
+        let adminOpenCurrentPage = 1;
+        const adminOpenPageSize = 5;
+
+        let adminCargoCurrentPage = 1;
+        const adminCargoPageSize = 5;
+
+        function goToAdminOpenPage(p) {
+            adminOpenCurrentPage = p;
+            loadDashboard();
+        }
+
+        function goToAdminCargoPage(p) {
+            adminCargoCurrentPage = p;
+            loadDashboard();
+        }
+
         function loadDashboard() {
             if (typeof CargoStore === 'undefined') return;
 
@@ -279,12 +299,21 @@
             const totalCapacity = auctions.reduce((sum, a) => sum + (a.capacityKg || 0), 0);
             document.getElementById('kpiTotalCapacity').textContent = CargoStore.formatNumber(totalCapacity) + ' Kg';
 
-            // 5. Open Auctions table
+            // 5. Open Auctions table (Paginated)
+            const totalOpen = openAuctions.length;
+            const totalOpenPages = Math.max(1, Math.ceil(totalOpen / adminOpenPageSize));
+            if (adminOpenCurrentPage > totalOpenPages) adminOpenCurrentPage = totalOpenPages;
+            if (adminOpenCurrentPage < 1) adminOpenCurrentPage = 1;
+
+            const openStartIndex = (adminOpenCurrentPage - 1) * adminOpenPageSize;
+            const openEndIndex = Math.min(openStartIndex + adminOpenPageSize, totalOpen);
+            const paginatedOpen = openAuctions.slice(openStartIndex, openEndIndex);
+
             const tbody = document.getElementById('adminAuctionsTable');
             if (openAuctions.length === 0) {
                 tbody.innerHTML = `<tr><td colspan="6" class="py-8 text-center text-gray-400">Không có phiên nào đang mở</td></tr>`;
             } else {
-                tbody.innerHTML = openAuctions.map(a => {
+                tbody.innerHTML = paginatedOpen.map(a => {
                     const timer = CargoStore.getTimeRemaining(a.endTime);
                     return `
                         <tr class="hover:bg-slate-50 transition">
@@ -315,6 +344,39 @@
                 }).join('');
             }
 
+            const openPagEl = document.getElementById('adminOpenPagination');
+            if (openPagEl) {
+                if (totalOpen <= adminOpenPageSize) {
+                    openPagEl.innerHTML = '';
+                } else {
+                    const pages = [];
+                    for (let i = 1; i <= totalOpenPages; i++) pages.push(i);
+                    const btns = pages.map(p => {
+                        if (p === adminOpenCurrentPage) {
+                            return `<button type="button" class="w-6 h-6 rounded bg-blue-600 text-white font-bold text-xs flex items-center justify-center shadow-xs cursor-default">${p}</button>`;
+                        }
+                        return `<button type="button" onclick="goToAdminOpenPage(${p})" class="w-6 h-6 rounded border border-slate-200 bg-white hover:bg-slate-50 text-slate-700 font-semibold text-xs flex items-center justify-center transition cursor-pointer">${p}</button>`;
+                    }).join('');
+
+                    openPagEl.innerHTML = `
+                        <div class="border-t pt-3 flex items-center justify-between text-xs text-slate-500">
+                            <span>Hiển thị <strong>${openStartIndex + 1} - ${openEndIndex}</strong> / <strong>${totalOpen}</strong> phiên đang mở</span>
+                            <div class="flex items-center gap-1">
+                                <button type="button" ${adminOpenCurrentPage <= 1 ? 'disabled' : `onclick="goToAdminOpenPage(${adminOpenCurrentPage - 1})"`} 
+                                        class="px-2 py-0.5 border rounded bg-white text-slate-600 hover:bg-slate-50 disabled:opacity-40 disabled:cursor-not-allowed text-xs">
+                                    <i class="fa-solid fa-chevron-left text-[9px]"></i>
+                                </button>
+                                ${btns}
+                                <button type="button" ${adminOpenCurrentPage >= totalOpenPages ? 'disabled' : `onclick="goToAdminOpenPage(${adminOpenCurrentPage + 1})"`} 
+                                        class="px-2 py-0.5 border rounded bg-white text-slate-600 hover:bg-slate-50 disabled:opacity-40 disabled:cursor-not-allowed text-xs">
+                                    <i class="fa-solid fa-chevron-right text-[9px]"></i>
+                                </button>
+                            </div>
+                        </div>
+                    `;
+                }
+            }
+
             // 6. Pending Registrations queue
             const regBox = document.getElementById('adminPendingRegistrations');
             if (regBox) {
@@ -338,13 +400,24 @@
                     `).join('');
                 }
             }
+
+            // 7. Latest Cargo Declarations Section (Paginated)
             const cargoTbody = document.getElementById('dashCargoTableBody');
             if (cargoTbody) {
                 const wonList = data.wonAuctions || [];
-                if (wonList.length === 0) {
+                const totalWon = wonList.length;
+                const totalCargoPages = Math.max(1, Math.ceil(totalWon / adminCargoPageSize));
+                if (adminCargoCurrentPage > totalCargoPages) adminCargoCurrentPage = totalCargoPages;
+                if (adminCargoCurrentPage < 1) adminCargoCurrentPage = 1;
+
+                const cargoStartIndex = (adminCargoCurrentPage - 1) * adminCargoPageSize;
+                const cargoEndIndex = Math.min(cargoStartIndex + adminCargoPageSize, totalWon);
+                const paginatedWon = wonList.slice(cargoStartIndex, cargoEndIndex);
+
+                if (totalWon === 0) {
                     cargoTbody.innerHTML = `<tr><td colspan="7" class="py-8 text-center text-gray-400">Chưa có đơn trúng thầu nào</td></tr>`;
                 } else {
-                    cargoTbody.innerHTML = wonList.slice(0, 5).map(item => {
+                    cargoTbody.innerHTML = paginatedWon.map(item => {
                         const decl = item.cargoDeclaration;
                         const agentInfo = (data.agentsList || []).find(a => (a.code || '').toUpperCase() === (item.agentCode || '').toUpperCase());
                         const agentName = agentInfo ? agentInfo.companyName : (item.agentCode || 'Đại lý');
@@ -386,7 +459,7 @@
                                 <td class="py-3 px-3 text-right">
                                     ${decl ? `
                                         <button onclick="openDashCargoModal('${item.wonId}')" class="bg-blue-50 hover:bg-blue-100 text-blue-700 font-bold px-2.5 py-1 rounded-lg text-xs transition inline-flex items-center gap-1 cursor-pointer">
-                                            <i class="fa-solid fa-eye"></i> Xem hồ sơ
+                                             Xem hồ sơ
                                         </button>
                                     ` : `
                                         <span class="text-gray-400 text-[11px]">Chưa có dữ liệu</span>
@@ -395,6 +468,39 @@
                             </tr>
                         `;
                     }).join('');
+                }
+
+                const cargoPagEl = document.getElementById('adminCargoPagination');
+                if (cargoPagEl) {
+                    if (totalWon <= adminCargoPageSize) {
+                        cargoPagEl.innerHTML = '';
+                    } else {
+                        const pages = [];
+                        for (let i = 1; i <= totalCargoPages; i++) pages.push(i);
+                        const btns = pages.map(p => {
+                            if (p === adminCargoCurrentPage) {
+                                return `<button type="button" class="w-6 h-6 rounded bg-emerald-600 text-white font-bold text-xs flex items-center justify-center shadow-xs cursor-default">${p}</button>`;
+                            }
+                            return `<button type="button" onclick="goToAdminCargoPage(${p})" class="w-6 h-6 rounded border border-slate-200 bg-white hover:bg-slate-50 text-slate-700 font-semibold text-xs flex items-center justify-center transition cursor-pointer">${p}</button>`;
+                        }).join('');
+
+                        cargoPagEl.innerHTML = `
+                            <div class="border-t pt-3 flex items-center justify-between text-xs text-slate-500">
+                                <span>Hiển thị <strong>${cargoStartIndex + 1} - ${cargoEndIndex}</strong> / <strong>${totalWon}</strong> hồ sơ trúng thầu</span>
+                                <div class="flex items-center gap-1">
+                                    <button type="button" ${adminCargoCurrentPage <= 1 ? 'disabled' : `onclick="goToAdminCargoPage(${adminCargoCurrentPage - 1})"`} 
+                                            class="px-2 py-0.5 border rounded bg-white text-slate-600 hover:bg-slate-50 disabled:opacity-40 disabled:cursor-not-allowed text-xs">
+                                        <i class="fa-solid fa-chevron-left text-[9px]"></i>
+                                    </button>
+                                    ${btns}
+                                    <button type="button" ${adminCargoCurrentPage >= totalCargoPages ? 'disabled' : `onclick="goToAdminCargoPage(${adminCargoCurrentPage + 1})"`} 
+                                            class="px-2 py-0.5 border rounded bg-white text-slate-600 hover:bg-slate-50 disabled:opacity-40 disabled:cursor-not-allowed text-xs">
+                                        <i class="fa-solid fa-chevron-right text-[9px]"></i>
+                                    </button>
+                                </div>
+                            </div>
+                        `;
+                    }
                 }
             }
         }
