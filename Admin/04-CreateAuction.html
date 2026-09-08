@@ -284,6 +284,63 @@
     </main>
 
     <script>
+        function formatToDatetimeLocal(date) {
+            if (!date || isNaN(date.getTime())) return '';
+            const pad = n => String(n).padStart(2, '0');
+            const y = date.getFullYear();
+            const m = pad(date.getMonth() + 1);
+            const d = pad(date.getDate());
+            const h = pad(date.getHours());
+            const min = pad(date.getMinutes());
+            return `${y}-${m}-${d}T${h}:${min}`;
+        }
+
+        function parseDatetimeLocal(str) {
+            if (!str) return null;
+            const parts = str.split('T');
+            if (parts.length < 2) return new Date(str);
+            const dateParts = parts[0].split('-').map(Number);
+            const timeParts = parts[1].split(':').map(Number);
+            if (dateParts.length < 3 || timeParts.length < 2) return new Date(str);
+            return new Date(dateParts[0], dateParts[1] - 1, dateParts[2], timeParts[0], timeParts[1], 0, 0);
+        }
+
+        function getFlightDuration(origin, dest) {
+            if (window.CargoStore && CargoStore.getFlightDurationMinutes) {
+                return CargoStore.getFlightDurationMinutes(origin, dest);
+            }
+            const pair = `${(origin || '').toUpperCase()}-${(dest || '').toUpperCase()}`;
+            const map = {
+                'SGN-HAN': 135, 'HAN-SGN': 135,
+                'SGN-DAD': 80,  'DAD-SGN': 80,
+                'HAN-DAD': 80,  'DAD-HAN': 80,
+                'HAN-PQC': 135, 'PQC-HAN': 135,
+                'SGN-PQC': 60,  'PQC-SGN': 60
+            };
+            return map[pair] || 120;
+        }
+
+        function getNextFlightNum(origin, dest, skip = 0) {
+            if (window.CargoStore && CargoStore.generateNextFlightNumber) {
+                return CargoStore.generateNextFlightNumber(origin, dest, skip);
+            }
+            const pair = `${(origin || '').toUpperCase()}-${(dest || '').toUpperCase()}`;
+            const map = {
+                'SGN-HAN': ['VU130', 'VU132', 'VU134', 'VU136', 'VU138'],
+                'HAN-SGN': ['VU131', 'VU133', 'VU135', 'VU137', 'VU139'],
+                'SGN-DAD': ['VU220', 'VU222', 'VU224', 'VU226', 'VU228'],
+                'DAD-SGN': ['VU221', 'VU223', 'VU225', 'VU227', 'VU229'],
+                'HAN-DAD': ['VU240', 'VU242', 'VU244', 'VU246'],
+                'DAD-HAN': ['VU241', 'VU243', 'VU245', 'VU247'],
+                'HAN-PQC': ['VU340', 'VU342', 'VU344', 'VU346'],
+                'PQC-HAN': ['VU341', 'VU343', 'VU345', 'VU347'],
+                'SGN-PQC': ['VU450', 'VU452', 'VU454', 'VU456'],
+                'PQC-SGN': ['VU451', 'VU453', 'VU455', 'VU457']
+            };
+            const list = map[pair] || ['VU500', 'VU502', 'VU504'];
+            return list[Math.max(0, skip) % list.length];
+        }
+
         function updateVolumePreview() {
             const input = document.getElementById('capacityKg');
             const display = document.getElementById('maxVolumeDisplay');
@@ -341,8 +398,8 @@
                 return;
             }
 
-            const etdDate = new Date(val);
-            if (isNaN(etdDate.getTime())) return;
+            const etdDate = parseDatetimeLocal(val);
+            if (!etdDate || isNaN(etdDate.getTime())) return;
 
             const closeOffsetHours = Number(offsetSelect?.value) || 5;
             const minLeadHours = closeOffsetHours + 1;
@@ -370,14 +427,20 @@
             const closeDate = new Date(etdDate.getTime() - closeOffsetHours * 3600 * 1000);
             const closeStr = `${pad(closeDate.getHours())}:${pad(closeDate.getMinutes())} · ${pad(closeDate.getDate())}/${pad(closeDate.getMonth() + 1)}/${closeDate.getFullYear()} (Trước ETD ${closeOffsetHours}h)`;
 
-            const cutOffStr = CargoStore.calculateCutOffTime(val, 3);
+            const cutOffStr = (window.CargoStore && CargoStore.calculateCutOffTime)
+                ? CargoStore.calculateCutOffTime(val, 3)
+                : `${pad(new Date(etdDate.getTime() - 3 * 3600 * 1000).getHours())}:${pad(new Date(etdDate.getTime() - 3 * 3600 * 1000).getMinutes())} · ${pad(etdDate.getDate())}/${pad(etdDate.getMonth() + 1)}/${etdDate.getFullYear()}`;
             const cutOffMs = etdDate.getTime() - 3 * 3600 * 1000;
             const diffHoursFromNow = (cutOffMs - now.getTime()) / (3600 * 1000);
             const bufferHours = Math.max(1, closeOffsetHours - 3);
 
             const dummyAuction = { etd: val };
-            const paymentDlIso = CargoStore.calculatePaymentDeadline(dummyAuction, now);
-            const paymentDlFormatted = CargoStore.formatPaymentDeadlineText(dummyAuction, paymentDlIso);
+            const paymentDlIso = (window.CargoStore && CargoStore.calculatePaymentDeadline)
+                ? CargoStore.calculatePaymentDeadline(dummyAuction, now)
+                : new Date(cutOffMs).toISOString();
+            const paymentDlFormatted = (window.CargoStore && CargoStore.formatPaymentDeadlineText)
+                ? CargoStore.formatPaymentDeadlineText(dummyAuction, paymentDlIso)
+                : cutOffStr;
 
             if (diffHoursFromNow < 24) {
                 previewBox.className = 'p-3.5 rounded-xl border border-amber-200 bg-amber-50/70 text-xs text-amber-900 shadow-xs';
@@ -415,10 +478,7 @@
             const etaInput = document.getElementById('etaInput');
             const hintEl = document.getElementById('etaDurationHint');
 
-            const durationMins = (window.CargoStore && CargoStore.getFlightDurationMinutes)
-                ? CargoStore.getFlightDurationMinutes(origin, dest)
-                : 135;
-
+            const durationMins = getFlightDuration(origin, dest);
             const hours = Math.floor(durationMins / 60);
             const mins = durationMins % 60;
             const durationText = (hours > 0)
@@ -430,11 +490,10 @@
             }
 
             if (etdInput && etdInput.value && etaInput) {
-                const etdDate = new Date(etdInput.value);
-                if (!isNaN(etdDate.getTime())) {
+                const etdDate = parseDatetimeLocal(etdInput.value);
+                if (etdDate && !isNaN(etdDate.getTime())) {
                     const etaDate = new Date(etdDate.getTime() + durationMins * 60 * 1000);
-                    const tzOffset = etaDate.getTimezoneOffset() * 60000;
-                    etaInput.value = new Date(etaDate.getTime() - tzOffset).toISOString().slice(0, 16);
+                    etaInput.value = formatToDatetimeLocal(etaDate);
                 }
             }
 
@@ -448,8 +507,8 @@
             const origin = document.getElementById('originAirport')?.value || 'SGN';
             const dest = document.getElementById('destinationAirport')?.value || 'HAN';
             const fnInput = document.getElementById('flightNumber');
-            if (fnInput && window.CargoStore && CargoStore.generateNextFlightNumber) {
-                fnInput.value = CargoStore.generateNextFlightNumber(origin, dest, flightNumberSkipCount);
+            if (fnInput) {
+                fnInput.value = getNextFlightNum(origin, dest, flightNumberSkipCount);
             }
         }
 
@@ -459,37 +518,70 @@
         }
 
         function onRouteOrDateChanged() {
+            const originSelect = document.getElementById('originAirport');
+            const destSelect = document.getElementById('destinationAirport');
+            if (originSelect && destSelect && originSelect.value === destSelect.value) {
+                // Auto switch destination if same as origin
+                const opts = Array.from(destSelect.options).map(o => o.value);
+                const nextOpt = opts.find(v => v !== originSelect.value) || 'HAN';
+                destSelect.value = nextOpt;
+            }
+
             updateAutoGeneratedFlightNumber(true);
             updateAutoCalculatedETA();
         }
 
         function initDateInputs() {
             const now = new Date();
-            const toLocalISO = (d) => {
-                const tzOffset = d.getTimezoneOffset() * 60000;
-                return new Date(d.getTime() - tzOffset).toISOString().slice(0, 16);
-            };
-
             const etdEl = document.getElementById('etdInput');
 
             if (etdEl) {
-                const minStr = toLocalISO(now);
-                etdEl.min = minStr;
+                etdEl.min = formatToDatetimeLocal(now);
 
-                // Default ETD: +8 hours from now rounded to next full hour (compliant with 6h minimum lead rule)
+                // Default ETD: +8 hours from now rounded to top of hour
                 const etdDefault = new Date(now.getTime() + 8 * 3600 * 1000);
                 etdDefault.setMinutes(0, 0, 0);
-                etdEl.value = toLocalISO(etdDefault);
+                etdEl.value = formatToDatetimeLocal(etdDefault);
             }
 
             onRouteOrDateChanged();
         }
 
+        function attachFieldListeners() {
+            const etdInput = document.getElementById('etdInput');
+            if (etdInput) {
+                etdInput.addEventListener('input', updateAutoCalculatedETA);
+                etdInput.addEventListener('change', updateAutoCalculatedETA);
+            }
+
+            const originAirport = document.getElementById('originAirport');
+            if (originAirport) {
+                originAirport.addEventListener('change', onRouteOrDateChanged);
+            }
+
+            const destinationAirport = document.getElementById('destinationAirport');
+            if (destinationAirport) {
+                destinationAirport.addEventListener('change', onRouteOrDateChanged);
+            }
+
+            const offsetSelect = document.getElementById('auctionCloseOffsetSelect');
+            if (offsetSelect) {
+                offsetSelect.addEventListener('change', updateEtdRulesPreview);
+            }
+        }
+
         document.addEventListener('DOMContentLoaded', function() {
             initDateInputs();
+            attachFieldListeners();
             updateVolumePreview();
             if (window.CargoStore && CargoStore.syncAdminHeaderUI) CargoStore.syncAdminHeaderUI();
         });
+
+        // Run immediately in case DOM is already ready
+        if (document.readyState === 'complete' || document.readyState === 'interactive') {
+            initDateInputs();
+            attachFieldListeners();
+        }
 
         document.getElementById('createAuctionForm').addEventListener('submit', function(e) {
             e.preventDefault();
@@ -513,7 +605,7 @@
             const minEtdMs = Date.now() + minLeadHours * 3600 * 1000;
 
             if (etdVal) {
-                const selectedEtd = new Date(etdVal);
+                const selectedEtd = parseDatetimeLocal(etdVal);
                 if (selectedEtd.getTime() < minEtdMs) {
                     const pad = n => String(n).padStart(2, '0');
                     const minDate = new Date(minEtdMs);
@@ -523,7 +615,7 @@
                 }
 
                 if (etaVal) {
-                    const selectedEta = new Date(etaVal);
+                    const selectedEta = parseDatetimeLocal(etaVal);
                     if (selectedEta.getTime() <= selectedEtd.getTime()) {
                         alert('❌ Thời gian hạ cánh dự kiến (ETA) phải sau thời gian cất cánh dự kiến (ETD).');
                         return;
@@ -531,21 +623,22 @@
                 }
             }
 
-            const offsetSelect = document.getElementById('auctionCloseOffsetSelect');
-            const res = CargoStore.createAuction({
-                flightNumber: fn,
-                origin: origin,
-                destination: dest,
-                etd: etdVal,
-                eta: etaVal,
-                aircraft: document.getElementById('aircraftType').value,
-                capacityKg: document.getElementById('capacityKg').value,
-                startingPriceKg: document.getElementById('startingPriceKg').value,
-                minStep: document.getElementById('minStep').value,
-                specialNotes: document.getElementById('specialNotes').value,
-                auctionCloseOffsetHours: offsetSelect ? offsetSelect.value : 5,
-                cutOffTime: 'Trước ETD 3 giờ'
-            });
+            const res = (window.CargoStore && CargoStore.createAuction)
+                ? CargoStore.createAuction({
+                    flightNumber: fn,
+                    origin: origin,
+                    destination: dest,
+                    etd: etdVal,
+                    eta: etaVal,
+                    aircraft: document.getElementById('aircraftType').value,
+                    capacityKg: document.getElementById('capacityKg').value,
+                    startingPriceKg: document.getElementById('startingPriceKg').value,
+                    minStep: document.getElementById('minStep').value,
+                    specialNotes: document.getElementById('specialNotes').value,
+                    auctionCloseOffsetHours: offsetSelect ? offsetSelect.value : 5,
+                    cutOffTime: 'Trước ETD 3 giờ'
+                })
+                : { success: false, message: 'Hệ thống lưu trữ chưa sẵn sàng.' };
 
             if (res.success) {
                 alert(res.message);
