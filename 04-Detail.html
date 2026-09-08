@@ -482,20 +482,28 @@
 
         document.addEventListener('DOMContentLoaded', function() {
             loadAuctionDetail();
-            setInterval(updateClock, 1000);
+            setInterval(function() {
+                if (typeof document !== 'undefined' && document.hidden) return;
+                updateClock();
+            }, 1000);
             // Auto-refresh auction data every 3 seconds for realtime sync
-            setInterval(loadAuctionDetail, 3000);
+            setInterval(function() {
+                if (typeof document !== 'undefined' && document.hidden) return;
+                loadAuctionDetail();
+            }, 3000);
         });
 
         // Cross-browser & Cross-tab sync: re-render when store updates
+        let detailUpdateTimeout = null;
+        function onDetailStoreUpdate() {
+            if (detailUpdateTimeout) clearTimeout(detailUpdateTimeout);
+            detailUpdateTimeout = setTimeout(loadAuctionDetail, 100);
+        }
+
         window.addEventListener('storage', function(e) {
-            if (e.key === 'CARGO_BIDDING_DATA_V3') {
-                loadAuctionDetail();
-            }
+            if (e.key === 'CARGO_BIDDING_DATA_V3') onDetailStoreUpdate();
         });
-        window.addEventListener('cargostore_updated', function() {
-            loadAuctionDetail();
-        });
+        window.addEventListener('cargostore_updated', onDetailStoreUpdate);
     </script>
 </body>
 </html>

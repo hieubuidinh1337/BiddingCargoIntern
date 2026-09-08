@@ -1,5 +1,5 @@
 {
-  "version": 1788859570299,
+  "version": 1788859820950,
   "auctions": [
     {
       "id": 9,
@@ -810,7 +810,7 @@
   ],
   "notifications": [
     {
-      "id": 1788859566956,
+      "id": 1788859817915,
       "targetAgentCode": "AG-0892",
       "title": "⚠️ TÀI KHOẢN ĐÃ BỊ KHÓA DO QUÁ HẠN THANH TOÁN",
       "message": "Tài khoản đại lý AG-0892 đã bị hệ thống tự động KHÓA do không hoàn tất thanh toán đơn hàng thắng thầu WON-20260908-06 (Chuyến bay VU32453) trước hạn chót. Quyền tham gia đấu giá trên sàn đã bị tạm ngưng. Vui lòng liên hệ Ban Điều hành Cargo để xử lý.",
@@ -1300,7 +1300,7 @@
       "totalSpentUSD": "12.4k",
       "totalSpentVND": 1600000000,
       "lockedReason": "Hệ thống tự động khóa do quá hạn thanh toán đơn WON-20260908-06 (VU32453 - SGN - HAN)",
-      "lockedAt": "16:26:06 8/9/2026"
+      "lockedAt": "16:30:17 8/9/2026"
     },
     {
       "id": 2,

@@ -697,7 +697,9 @@ const CargoStore = (function() {
             }
 
             if (!raw || updated) {
-                saveData(data);
+                try {
+                    localStorage.setItem(STORAGE_KEY, JSON.stringify(data));
+                } catch (e) {}
             }
             return data;
         } catch (e) {
@@ -708,7 +710,7 @@ const CargoStore = (function() {
 
     let lastServerVersion = 0;
     let isSyncing = false;
-
+    let saveServerTimeout = null;
     let lastLocalSaveTimestamp = 0;
 
     function saveData(data, skipServerSync = false) {
@@ -723,40 +725,45 @@ const CargoStore = (function() {
             window.dispatchEvent(new CustomEvent('cargostore_updated', { detail: data }));
         } catch (e) {}
 
-        // Push changes to server if running over HTTP/HTTPS or local dev server
+        // Debounced push to server if running over HTTP/HTTPS or local dev server
         if (!skipServerSync && typeof window !== 'undefined') {
             lastLocalSaveTimestamp = Date.now();
-            const apiUrl = (window.location && window.location.protocol.startsWith('http'))
-                ? '/api/data'
-                : 'http://localhost:8085/api/data';
+            if (saveServerTimeout) clearTimeout(saveServerTimeout);
 
-            fetch(apiUrl, {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({
-                    auctions: data.auctions,
-                    bids: data.bids,
-                    wonAuctions: data.wonAuctions,
-                    notifications: data.notifications,
-                    registrations: data.registrations,
-                    agentsList: data.agentsList,
-                    adminsList: data.adminsList,
-                    settings: data.settings
-                })
-            }).then(r => r.json()).then(res => {
-                if (res && res.version) {
-                    lastServerVersion = res.version;
-                }
-            }).catch(err => {
-                // Offline fallback
-            });
+            saveServerTimeout = setTimeout(() => {
+                const apiUrl = (window.location && window.location.protocol.startsWith('http'))
+                    ? '/api/data'
+                    : 'http://localhost:8085/api/data';
+
+                fetch(apiUrl, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        auctions: data.auctions,
+                        bids: data.bids,
+                        wonAuctions: data.wonAuctions,
+                        notifications: data.notifications,
+                        registrations: data.registrations,
+                        agentsList: data.agentsList,
+                        adminsList: data.adminsList,
+                        settings: data.settings
+                    })
+                }).then(r => r.json()).then(res => {
+                    if (res && res.version) {
+                        lastServerVersion = res.version;
+                    }
+                }).catch(err => {
+                    // Offline fallback
+                });
+            }, 300);
         }
     }
 
     async function syncWithServer() {
         if (isSyncing || typeof window === 'undefined') return;
-        // Prevent sync race condition if local save occurred in the last 3000ms
-        if (Date.now() - lastLocalSaveTimestamp < 3000) return;
+        if (typeof document !== 'undefined' && document.hidden) return; // Save CPU when tab is in background
+        // Prevent sync race condition if local save occurred in the last 2000ms
+        if (Date.now() - lastLocalSaveTimestamp < 2000) return;
 
         try {
             isSyncing = true;
@@ -793,12 +800,6 @@ const CargoStore = (function() {
 
                 // Save locally without re-sending to server
                 saveData(local, true);
-
-                // Notify UI components to re-render
-                try {
-                    window.dispatchEvent(new CustomEvent('cargostore_updated', { detail: local }));
-                    window.dispatchEvent(new StorageEvent('storage', { key: STORAGE_KEY }));
-                } catch (e) {}
             }
         } catch (e) {
         } finally {
@@ -806,10 +807,10 @@ const CargoStore = (function() {
         }
     }
 
-    // Auto-poll server every 1000ms to stay in sync across different browsers
+    // Auto-poll server every 3500ms to stay in sync across different browsers without lagging
     if (typeof window !== 'undefined') {
-        setTimeout(syncWithServer, 50);
-        setInterval(syncWithServer, 1000);
+        setTimeout(syncWithServer, 200);
+        setInterval(syncWithServer, 3500);
     }
 
     function formatCurrency(amount) {
@@ -2858,10 +2859,9 @@ if (typeof window !== 'undefined') {
         });
     }
 
-    // Periodically check every 1.5s & on store updates
-    setInterval(checkAccountLockGuard, 1500);
+    // Periodically check every 5s on protected pages
+    setInterval(checkAccountLockGuard, 5000);
     window.addEventListener('storage', checkAccountLockGuard);
-    window.addEventListener('cargostore_updated', checkAccountLockGuard);
 }
 
 if (typeof module !== 'undefined' && module.exports) {

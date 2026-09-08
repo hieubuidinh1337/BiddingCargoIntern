@@ -629,19 +629,34 @@
             document.getElementById('dashCargoModal').classList.add('hidden');
         }
 
+        let isAdminDashRendering = false;
+        function safeLoadDashboard() {
+            if (isAdminDashRendering || (typeof document !== 'undefined' && document.hidden)) return;
+            isAdminDashRendering = true;
+            try {
+                loadDashboard();
+            } finally {
+                isAdminDashRendering = false;
+            }
+        }
+
         document.addEventListener('DOMContentLoaded', function() {
-            loadDashboard();
-            setInterval(loadDashboard, 1000);
+            safeLoadDashboard();
+            setInterval(safeLoadDashboard, 1000);
             if (window.CargoStore && CargoStore.syncAdminHeaderUI) CargoStore.syncAdminHeaderUI();
         });
 
         // Cross-tab sync
+        let adminDashUpdateTimeout = null;
+        function onAdminStoreUpdate() {
+            if (adminDashUpdateTimeout) clearTimeout(adminDashUpdateTimeout);
+            adminDashUpdateTimeout = setTimeout(safeLoadDashboard, 100);
+        }
+
         window.addEventListener('storage', function(e) {
-            if (e.key === 'CARGO_BIDDING_DATA_V3') {
-                loadDashboard();
-            }
+            if (e.key === 'CARGO_BIDDING_DATA_V3') onAdminStoreUpdate();
         });
-        window.addEventListener('cargostore_updated', loadDashboard);
+        window.addEventListener('cargostore_updated', onAdminStoreUpdate);
     </script>
 </body>
 </html>

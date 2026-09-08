@@ -1288,7 +1288,7 @@
             controls.innerHTML = html;
         }
 
-        async function renderWonAuctions() {
+        function renderWonAuctions() {
             const store = getStore();
             const u = store && store.getCurrentUser ? store.getCurrentUser() : null;
             if (u) {
@@ -1298,26 +1298,6 @@
                 if (hdrCompany) hdrCompany.textContent = u.companyName || 'ABC Logistics';
                 if (hdrCode) hdrCode.textContent = u.agentCode || 'AG-0892';
                 if (hdrAvatar) hdrAvatar.textContent = (u.agentCode || 'AG').slice(0,2);
-            }
-
-            // Sync with backend if needed
-            if (store) {
-                const cur = store.getData();
-                if (!cur.wonAuctions || cur.wonAuctions.length === 0) {
-                    try {
-                        const apiUrl = (window.location && window.location.protocol.startsWith('http'))
-                            ? '/api/data'
-                            : 'http://localhost:8085/api/data';
-                        const res = await fetch(apiUrl);
-                        if (res.ok) {
-                            const sData = await res.json();
-                            if (sData && sData.wonAuctions && sData.wonAuctions.length > 0) {
-                                cur.wonAuctions = sData.wonAuctions;
-                                store.saveData(cur, true);
-                            }
-                        }
-                    } catch (e) {}
-                }
             }
 
             let list = (store && store.getWonAuctions) ? store.getWonAuctions() : [];

@@ -1200,6 +1200,7 @@
             document.getElementById('auctionSearch').addEventListener('input', renderAuctionsTable);
             document.getElementById('statusSelect').addEventListener('change', renderAuctionsTable);
             setInterval(function() {
+                if (typeof document !== 'undefined' && document.hidden) return;
                 if (document.activeElement && (document.activeElement.tagName === 'SELECT' || document.activeElement.tagName === 'INPUT')) {
                     return;
                 }
@@ -1210,16 +1211,19 @@
         });
 
         // Cross-browser & Cross-tab sync
-        window.addEventListener('storage', function(e) {
-            if (e.key === 'CARGO_BIDDING_DATA_V3') {
+        let adminListUpdateTimeout = null;
+        function onAdminListStoreUpdate() {
+            if (adminListUpdateTimeout) clearTimeout(adminListUpdateTimeout);
+            adminListUpdateTimeout = setTimeout(() => {
                 renderAuctionsTable();
                 renderWonAuctionsAdminTable();
-            }
+            }, 100);
+        }
+
+        window.addEventListener('storage', function(e) {
+            if (e.key === 'CARGO_BIDDING_DATA_V3') onAdminListStoreUpdate();
         });
-        window.addEventListener('cargostore_updated', function() {
-            renderAuctionsTable();
-            renderWonAuctionsAdminTable();
-        });
+        window.addEventListener('cargostore_updated', onAdminListStoreUpdate);
     </script>
 </body>
 </html>

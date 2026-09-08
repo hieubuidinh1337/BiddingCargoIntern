@@ -566,17 +566,24 @@
 
         document.addEventListener('DOMContentLoaded', function() {
             loadAdminDetail();
-            setInterval(loadAdminDetail, 1000);
+            setInterval(function() {
+                if (typeof document !== 'undefined' && document.hidden) return;
+                loadAdminDetail();
+            }, 1000);
             if (window.CargoStore && CargoStore.syncAdminHeaderUI) CargoStore.syncAdminHeaderUI();
         });
 
         // Cross-tab sync
+        let adminDetailUpdateTimeout = null;
+        function onAdminDetailStoreUpdate() {
+            if (adminDetailUpdateTimeout) clearTimeout(adminDetailUpdateTimeout);
+            adminDetailUpdateTimeout = setTimeout(loadAdminDetail, 100);
+        }
+
         window.addEventListener('storage', function(e) {
-            if (e.key === 'CARGO_BIDDING_DATA_V3') loadAdminDetail();
+            if (e.key === 'CARGO_BIDDING_DATA_V3') onAdminDetailStoreUpdate();
         });
-        window.addEventListener('cargostore_updated', function() {
-            loadAdminDetail();
-        });
+        window.addEventListener('cargostore_updated', onAdminDetailStoreUpdate);
     </script>
 </body>
 </html>

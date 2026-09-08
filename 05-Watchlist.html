@@ -595,7 +595,11 @@
     document.addEventListener('DOMContentLoaded', function() {
         renderWatchlist();
         updateNotifDot();
-        setInterval(() => { renderWatchlist(); updateNotifDot(); }, 1000);
+        setInterval(() => {
+            if (typeof document !== 'undefined' && document.hidden) return;
+            renderWatchlist();
+            updateNotifDot();
+        }, 1000);
     });
 
     // Cross-tab sync
