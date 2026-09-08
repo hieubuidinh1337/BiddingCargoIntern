@@ -377,6 +377,13 @@
                     ` : (n.type === 'WON' ? `
                     <a href="07-WonAuction.html" onclick="markReadById(${n.id})" class="flex-shrink-0 bg-emerald-500 hover:bg-emerald-600 text-white text-xs font-bold px-3 py-2 rounded-xl transition shadow flex items-center gap-1.5 whitespace-nowrap">
                         <i class="fa-solid fa-circle-check text-[10px]"></i> Xem đơn
+                    </a>
+                    ` : '')}
+                </div>
+            </div>
+            `;
+        }).join('');
+
         renderNotifSubscribedBadges();
     }
 
