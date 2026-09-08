@@ -1,5 +1,5 @@
 {
-  "version": 1788840039140,
+  "version": 1788841059273,
   "auctions": [
     {
       "id": 6,
@@ -316,6 +316,54 @@
       "time": "20 phút trước",
       "status": "OUTBID",
       "weightKg": 3000
+    },
+    {
+      "id": 1788836230211,
+      "timestamp": 1788836230211,
+      "auctionId": 2,
+      "agentCode": "AG-1024",
+      "agentName": "Công ty CP Giao nhận Kho vận Vinatrans",
+      "isAnonymous": true,
+      "priceKg": 12000,
+      "time": "80 phút trước",
+      "status": "OUTBID",
+      "weightKg": 2000
+    },
+    {
+      "id": 1788837430211,
+      "timestamp": 1788837430211,
+      "auctionId": 2,
+      "agentCode": "AG-0892",
+      "agentName": "Công ty TNHH Vận tải ABC Logistics",
+      "isAnonymous": true,
+      "priceKg": 12800,
+      "time": "60 phút trước",
+      "status": "OUTBID",
+      "weightKg": 2000
+    },
+    {
+      "id": 1788838630211,
+      "timestamp": 1788838630211,
+      "auctionId": 2,
+      "agentCode": "AG-0556",
+      "agentName": "Công ty TNHH Tiếp vận Toàn Cầu Golden Star",
+      "isAnonymous": true,
+      "priceKg": 13700,
+      "time": "40 phút trước",
+      "status": "OUTBID",
+      "weightKg": 2000
+    },
+    {
+      "id": 1788839830211,
+      "timestamp": 1788839830211,
+      "auctionId": 2,
+      "agentCode": "AG-0341",
+      "agentName": "Công ty TNHH SkyFreight Logistics Việt Nam",
+      "isAnonymous": true,
+      "priceKg": 14500,
+      "time": "20 phút trước",
+      "status": "HIGHEST",
+      "weightKg": 2000
     }
   ],
   "wonAuctions": [

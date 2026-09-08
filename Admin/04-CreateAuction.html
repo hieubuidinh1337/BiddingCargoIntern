@@ -476,8 +476,9 @@
                 const minStr = toLocalISO(now);
                 etdEl.min = minStr;
 
-                // Default ETD: +2 hours from now
-                const etdDefault = new Date(now.getTime() + 2 * 3600 * 1000);
+                // Default ETD: +8 hours from now rounded to next full hour (compliant with 6h minimum lead rule)
+                const etdDefault = new Date(now.getTime() + 8 * 3600 * 1000);
+                etdDefault.setMinutes(0, 0, 0);
                 etdEl.value = toLocalISO(etdDefault);
             }
 

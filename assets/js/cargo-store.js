@@ -1308,6 +1308,21 @@ const CargoStore = (function() {
             };
 
             data.auctions.unshift(newAuction);
+
+            // Broadcast notification for all agents
+            if (!data.notifications) data.notifications = [];
+            data.notifications.unshift({
+                id: Date.now(),
+                timestamp: Date.now(),
+                targetAgentCode: null, // Broadcast to all agents
+                title: `Mở phiên đấu giá mới: Chuyến ${flightNumber} (${origin} - ${dest})`,
+                message: `Chuyến bay ${flightNumber} (${originName} - ${destName}) với tải trọng ${this.formatNumber(capacityKg)} Kg, giá khởi điểm ${this.formatCurrency(startingPriceKg)}/Kg đã chính thức mở nhận giá thầu.`,
+                time: 'Vừa xong',
+                type: 'AUCTION_OPEN',
+                read: false,
+                link: `04-Detail.html?id=${newId}`
+            });
+
             saveData(data);
 
             return {
@@ -1316,6 +1331,61 @@ const CargoStore = (function() {
                 auction: newAuction,
                 ...newAuction
             };
+        },
+
+        getFlightDurationMinutes: function(origin, dest) {
+            const pair = `${(origin || '').trim().toUpperCase()}-${(dest || '').trim().toUpperCase()}`;
+            const routeDurations = {
+                'SGN-HAN': 135, // 2h15m
+                'HAN-SGN': 135,
+                'SGN-DAD': 80,  // 1h20m
+                'DAD-SGN': 80,
+                'HAN-DAD': 80,  // 1h20m
+                'DAD-HAN': 80,
+                'HAN-PQC': 135, // 2h15m
+                'PQC-HAN': 135,
+                'SGN-PQC': 60,  // 1h00m
+                'PQC-SGN': 60,
+                'SGN-CXR': 60,  // 1h00m
+                'CXR-SGN': 60,
+                'HAN-CXR': 110, // 1h50m
+                'CXR-HAN': 110
+            };
+            return routeDurations[pair] || 120;
+        },
+
+        generateNextFlightNumber: function(origin, dest, skipCount = 0) {
+            const data = loadData();
+            const existingFlightNumbers = new Set(
+                (data.auctions || []).map(a => (a.flightNumber || '').trim().toUpperCase())
+            );
+
+            const pair = `${(origin || '').trim().toUpperCase()}-${(dest || '').trim().toUpperCase()}`;
+            const routeBases = {
+                'SGN-HAN': [130, 132, 134, 136, 138, 140, 142, 144, 146, 148],
+                'HAN-SGN': [131, 133, 135, 137, 139, 141, 143, 145, 147, 149],
+                'SGN-DAD': [220, 222, 224, 226, 228, 230, 232, 234],
+                'DAD-SGN': [221, 223, 225, 227, 229, 231, 233, 235],
+                'HAN-DAD': [240, 242, 244, 246, 248, 250],
+                'DAD-HAN': [241, 243, 245, 247, 249, 251],
+                'HAN-PQC': [340, 342, 344, 346, 348, 350],
+                'PQC-HAN': [341, 343, 345, 347, 349, 351],
+                'SGN-PQC': [450, 452, 454, 456, 458],
+                'PQC-SGN': [451, 453, 455, 457, 459]
+            };
+
+            const candidates = routeBases[pair] || [510, 512, 514, 516, 518, 520];
+            const available = candidates.filter(num => !existingFlightNumbers.has(`VU${num}`));
+
+            if (available.length > 0) {
+                const idx = (Math.max(0, skipCount)) % available.length;
+                return `VU${available[idx]}`;
+            }
+
+            // Fallback if all standard candidates exist
+            const baseNum = candidates[0] || 500;
+            const nextNum = baseNum + (Math.max(0, skipCount) + 1) * 2;
+            return `VU${nextNum}`;
         },
 
         getAuctions: function() {
