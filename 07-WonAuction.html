@@ -448,7 +448,7 @@
                     <div style="background: ${isPaid ? '#ecfdf5' : '#fffbeb'}; border: 1px solid ${isPaid ? '#10b981' : '#f59e0b'}; border-radius: 6px; padding: 6px 10px; margin-bottom: 10px; display: flex; justify-content: space-between; align-items: center;">
                         <div>
                             <span style="font-size: 9px; font-weight: 800; color: ${isPaid ? '#047857' : '#b45309'}; text-transform: uppercase;">
-                                TRẠNG THÁI: ${isPaid ? 'ĐÃ HOÀN TẤT THANH TOÁN (PAYMENT CONFIRMED)' : 'CHỜ THANH TOÁN (TRONG VÒNG 24H)'}
+                                TRẠNG THÁI: ${isPaid ? 'ĐÃ HOÀN TẤT THANH TOÁN (PAYMENT CONFIRMED)' : 'CHỜ THANH TOÁN (AWAITING PAYMENT)'}
                             </span>
                             <span style="font-size: 8px; color: ${isPaid ? '#065f46' : '#92400e'}; margin-left: 6px;">
                                 ${isPaid ? `(Thời gian thanh toán: ${item.paidAt || 'Hợp lệ'})` : `(Hạn thanh toán: ${deadlineStr})`}
@@ -1369,7 +1369,7 @@
                 const isPending = item.paymentStatus === 'PENDING_VERIFICATION';
                 const decl = item.cargoDeclaration;
 
-                let statusBadgeText = 'CHỜ THANH TOÁN (TRONG 24H)';
+                let statusBadgeText = 'CHỜ THANH TOÁN (AWAITING PAYMENT)';
                 let statusBadgeClass = 'bg-amber-400 text-amber-950';
                 if (isPaid) {
                     statusBadgeText = 'ĐÃ HOÀN TẤT THANH TOÁN';
