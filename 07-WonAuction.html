@@ -1421,6 +1421,42 @@
                         </div>
 
                         <div class="p-6 space-y-6">
+                            <!-- Cảnh báo chế tài khóa tài khoản / Thông báo khóa -->
+                            ${isExpired ? `
+                                <div class="bg-rose-50 border-2 border-rose-300 rounded-2xl p-4 flex items-start gap-3.5 text-xs text-rose-950 shadow-sm">
+                                    <div class="w-10 h-10 rounded-xl bg-rose-600 text-white flex items-center justify-center font-bold text-lg flex-shrink-0 shadow-sm">
+                                        <i class="fa-solid fa-lock"></i>
+                                    </div>
+                                    <div class="flex-1 space-y-1">
+                                        <strong class="text-rose-900 text-sm flex items-center gap-2 font-extrabold uppercase">
+                                            <i class="fa-solid fa-ban text-rose-600"></i> Đơn hàng đã quá hạn thanh toán · Tài khoản đại lý bị khóa
+                                        </strong>
+                                        <p class="text-rose-800 leading-relaxed font-medium">
+                                            Đơn hàng đã quá thời hạn quy định mà chưa hoàn tất thanh toán. Theo quy chế sàn đấu giá Vietravel Airlines, hệ thống đã <span class="font-extrabold underline">TỰ ĐỘNG KHÓA TÀI KHOẢN ĐẠI LÝ</span> và thu hồi quyền tham gia đấu giá cũng như toàn bộ slot tải trọng của đơn hàng này.
+                                        </p>
+                                    </div>
+                                </div>
+                            ` : (!isPaid ? `
+                                <div class="bg-gradient-to-r from-amber-500/10 via-rose-500/10 to-amber-500/10 border-2 border-dashed border-amber-400 rounded-2xl p-4 flex items-start gap-3.5 text-xs text-amber-950 shadow-sm">
+                                    <div class="w-10 h-10 rounded-xl bg-amber-500 text-white flex items-center justify-center font-bold text-lg flex-shrink-0 shadow-sm">
+                                        <i class="fa-solid fa-triangle-exclamation"></i>
+                                    </div>
+                                    <div class="flex-1 space-y-1">
+                                        <div class="flex flex-wrap items-center justify-between gap-2">
+                                            <strong class="text-amber-900 text-sm flex items-center gap-2 font-extrabold uppercase">
+                                                <i class="fa-solid fa-shield-halved text-rose-600"></i> Cảnh báo thanh toán & Chế tài khóa tài khoản
+                                            </strong>
+                                            <span class="bg-rose-600 text-white font-mono font-bold px-2.5 py-1 rounded-full text-[11px] shadow-sm">
+                                                Hạn chót: ${item.paymentDeadline ? new Date(item.paymentDeadline).toLocaleString('vi-VN') : 'Trước Cut-off 3h'}
+                                            </span>
+                                        </div>
+                                        <p class="text-slate-700 leading-relaxed font-medium">
+                                            Quý đại lý vui lòng hoàn tất chuyển khoản trước thời gian hạn chót. <span class="text-rose-700 font-extrabold underline decoration-rose-400">LƯU Ý QUAN TRỌNG: NẾU QUÁ HẠN MÀ CHƯA THANH TOÁN, HỆ THỐNG SẼ TỰ ĐỘNG KHÓA TÀI KHOẢN ĐẠI LÝ</span> và ngắt toàn bộ quyền tham gia sàn đấu giá Vietravel Airlines!
+                                        </p>
+                                    </div>
+                                </div>
+                            ` : '')}
+
                             <div class="grid grid-cols-2 md:grid-cols-4 gap-4">
                                 <div class="bg-slate-50 p-4 rounded-xl border">
                                     <p class="text-xs text-gray-500 mb-1">Tải trọng trúng thầu</p>

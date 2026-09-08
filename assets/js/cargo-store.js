@@ -582,9 +582,9 @@ const CargoStore = (function() {
                         if (n.title && n.title.includes('[EMAIL THÔNG BÁO]')) {
                             n.title = n.title.replace('[EMAIL THÔNG BÁO] ', '');
                         }
-                        updated = true;
-                    }
-                });
+            // Check and auto-lock agents with overdue/expired won auction payments
+            if (checkAndAutoLockExpiredWonAuctions(data)) {
+                updated = true;
             }
 
             if (!raw || updated) {
@@ -775,7 +775,7 @@ const CargoStore = (function() {
         return isNaN(d.getTime()) ? null : d;
     }
 
-    function isWonAuctionExpired(item) {
+    function isWonAuctionExpired(item, passedData = null) {
         if (!item) return false;
         if (item.paymentStatus === 'PAID') return false;
         if (item.paymentStatus === 'CANCELLED' || item.paymentStatus === 'EXPIRED') return true;
@@ -789,8 +789,7 @@ const CargoStore = (function() {
         }
 
         // 2. Check Cut-off time (3h before ETD) or ETD from auction
-        const data = loadData();
-        const allAuctions = data.auctions || [];
+        const allAuctions = (passedData && passedData.auctions) ? passedData.auctions : ((typeof loadData === 'function') ? (loadData().auctions || []) : []);
         const auctionMatch = allAuctions.find(a => a.id == item.auctionId || a.flightNumber === item.flightNumber);
         const etdStr = item.etd || (auctionMatch ? auctionMatch.etd : null);
         
@@ -807,6 +806,79 @@ const CargoStore = (function() {
         }
 
         return false;
+    }
+
+    function checkAndAutoLockExpiredWonAuctions(data) {
+        if (!data) return false;
+        let modified = false;
+        const wonAuctions = data.wonAuctions || [];
+        const agentsList = data.agentsList || [];
+        if (!data.notifications) data.notifications = [];
+
+        wonAuctions.forEach(item => {
+            const isExpired = isWonAuctionExpired(item, data);
+            const targetCode = (item.agentCode || '').toUpperCase();
+            const agent = agentsList.find(a => (a.code || '').toUpperCase() === targetCode);
+
+            if (isExpired && item.paymentStatus !== 'PAID') {
+                if (item.paymentStatus !== 'EXPIRED' && item.paymentStatus !== 'CANCELLED') {
+                    item.paymentStatus = 'EXPIRED';
+                    modified = true;
+                }
+
+                // Auto-lock agent account if not already locked
+                if (agent && agent.status !== 'Đã khóa' && agent.status !== 'LOCKED') {
+                    agent.status = 'Đã khóa';
+                    agent.lockedReason = `Hệ thống tự động khóa do quá hạn thanh toán đơn ${item.wonId} (${item.flightNumber} - ${item.route})`;
+                    agent.lockedAt = new Date().toLocaleString('vi-VN');
+                    modified = true;
+
+                    // Push high-priority lock notification
+                    const notifId = Date.now() + Math.floor(Math.random() * 1000);
+                    data.notifications.unshift({
+                        id: notifId,
+                        targetAgentCode: item.agentCode,
+                        title: `⚠️ TÀI KHOẢN ĐÃ BỊ KHÓA DO QUÁ HẠN THANH TOÁN`,
+                        message: `Tài khoản đại lý ${item.agentCode} đã bị hệ thống tự động KHÓA do không hoàn tất thanh toán đơn hàng thắng thầu ${item.wonId} (Chuyến bay ${item.flightNumber}) trước hạn chót. Quyền tham gia đấu giá trên sàn đã bị tạm ngưng. Vui lòng liên hệ Ban Điều hành Cargo để xử lý.`,
+                        time: 'Vừa xong',
+                        type: 'ALERT',
+                        read: false,
+                        link: '07-WonAuction.html'
+                    });
+
+                    // Clear session if logged in
+                    if (data.currentUser) {
+                        const currentCode = (data.currentUser.agentCode || data.currentUser.code || '').toUpperCase();
+                        if (currentCode === targetCode || data.currentUser.id == agent.id) {
+                            data.currentUser = null;
+                        }
+                    }
+                }
+            } else if (!isExpired && item.paymentStatus !== 'PAID') {
+                // Ensure warning notification exists for this unpaid order
+                const existingWarning = data.notifications.find(n => 
+                    (n.targetAgentCode || '').toUpperCase() === targetCode && 
+                    n.type === 'PAYMENT_REMINDER' && 
+                    (n.message || '').includes(item.wonId)
+                );
+                if (!existingWarning) {
+                    const payDl = item.paymentDeadline ? new Date(item.paymentDeadline).toLocaleString('vi-VN') : (item.cutOffTime || 'Hạn chót Cut-off');
+                    data.notifications.unshift({
+                        id: Date.now() + Math.floor(Math.random() * 1000),
+                        targetAgentCode: item.agentCode,
+                        title: `⏰ CẢNH BÁO THANH TOÁN: Đơn ${item.wonId} (${item.flightNumber})`,
+                        message: `Quý đại lý vui lòng hoàn tất chuyển khoản cho đơn hàng ${item.wonId} trước ${payDl}. LƯU Ý: Nếu không thanh toán đúng hạn, hệ thống sẽ TỰ ĐỘNG KHÓA TÀI KHOẢN ĐẠI LÝ và hủy quyền đấu giá.`,
+                        time: 'Vừa xong',
+                        type: 'PAYMENT_REMINDER',
+                        read: false,
+                        link: '07-WonAuction.html'
+                    });
+                    modified = true;
+                }
+            }
+        });
+
+        return modified;
     }
 
     function calculateCutOffTime(etdStr, offsetHours = 3) {
@@ -1030,6 +1102,7 @@ const CargoStore = (function() {
         formatPaymentDeadlineText: formatPaymentDeadlineText,
         parseFlightDate: parseFlightDate,
         isWonAuctionExpired: isWonAuctionExpired,
+        checkAndAutoLockExpiredWonAuctions: checkAndAutoLockExpiredWonAuctions,
         getFlightDurationMinutes: getFlightDurationMinutes,
         calculateETA: calculateETA,
         generateNextFlightNumber: generateNextFlightNumber,
