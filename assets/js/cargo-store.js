@@ -582,6 +582,27 @@ const CargoStore = (function() {
                         if (n.title && n.title.includes('[EMAIL THÔNG BÁO]')) {
                             n.title = n.title.replace('[EMAIL THÔNG BÁO] ', '');
                         }
+                        updated = true;
+                    }
+                });
+            }
+
+            // Normalize wonAuctions paymentDeadline to accurately reflect Cut-off time
+            if (data.wonAuctions && Array.isArray(data.wonAuctions)) {
+                data.wonAuctions.forEach(w => {
+                    const auction = (data.auctions || []).find(a => a.id == w.auctionId || a.flightNumber === w.flightNumber);
+                    if (auction) {
+                        const correctDl = calculatePaymentDeadline(auction, new Date());
+                        const curDlMs = w.paymentDeadline ? new Date(w.paymentDeadline).getTime() : Infinity;
+                        const correctDlMs = new Date(correctDl).getTime();
+                        if (curDlMs > correctDlMs) {
+                            w.paymentDeadline = correctDl;
+                            updated = true;
+                        }
+                    }
+                });
+            }
+
             // Check and auto-lock agents with overdue/expired won auction payments
             if (checkAndAutoLockExpiredWonAuctions(data)) {
                 updated = true;
@@ -937,59 +958,23 @@ const CargoStore = (function() {
     }
 
     function calculatePaymentDeadline(auction, nowDate = new Date()) {
-        const nowMs = nowDate.getTime();
+        const nowMs = (nowDate instanceof Date) ? nowDate.getTime() : new Date(nowDate).getTime();
         const default24hMs = nowMs + 24 * 60 * 60 * 1000;
 
-        if (!auction || !auction.etd) return new Date(default24hMs).toISOString();
+        if (!auction) return new Date(default24hMs).toISOString();
 
-        const cleanStr = String(auction.etd).replace(/·|-/g, ' ').replace(/\s+/g, ' ').trim();
-        let hours = null, minutes = null, day = null, month = null, year = null;
-
-        const p1 = cleanStr.match(/^(\d{1,2}):(\d{2})\s+(\d{1,2})\/(\d{1,2})\/(\d{4})$/);
-        const p2 = cleanStr.match(/^(\d{1,2})\/(\d{1,2})\/(\d{4})\s+(\d{1,2}):(\d{2})$/);
-        const p3 = cleanStr.match(/^(\d{4})-(\d{2})-(\d{2})T(\d{2}):(\d{2})/);
-
-        if (p1) {
-            hours = parseInt(p1[1], 10);
-            minutes = parseInt(p1[2], 10);
-            day = parseInt(p1[3], 10);
-            month = parseInt(p1[4], 10) - 1;
-            year = parseInt(p1[5], 10);
-        } else if (p2) {
-            day = parseInt(p2[1], 10);
-            month = parseInt(p2[2], 10) - 1;
-            year = parseInt(p2[3], 10);
-            hours = parseInt(p2[4], 10);
-            minutes = parseInt(p2[5], 10);
-        } else if (p3) {
-            year = parseInt(p3[1], 10);
-            month = parseInt(p3[2], 10) - 1;
-            day = parseInt(p3[3], 10);
-            hours = parseInt(p3[4], 10);
-            minutes = parseInt(p3[5], 10);
+        let etdDate = null;
+        if (auction.etdIso) {
+            etdDate = new Date(auction.etdIso);
+        } else if (auction.etd) {
+            etdDate = parseFlightDate(auction.etd);
         }
 
-        let cutOffMs = null;
-        if (hours !== null && day !== null && year !== null) {
-            const cutOffDate = new Date(year, month, day, hours, minutes);
-            cutOffDate.setHours(cutOffDate.getHours() - 3);
-            cutOffMs = cutOffDate.getTime();
-        } else {
-            const d = new Date(auction.etd);
-            if (!isNaN(d.getTime())) {
-                d.setHours(d.getHours() - 3);
-                cutOffMs = d.getTime();
-            }
-        }
-
-        if (cutOffMs) {
-            if (cutOffMs - nowMs < 24 * 60 * 60 * 1000) {
-                if (cutOffMs > nowMs) {
-                    return new Date(cutOffMs).toISOString();
-                } else {
-                    return new Date(nowMs + 2 * 60 * 60 * 1000).toISOString();
-                }
-            }
+        if (etdDate && !isNaN(etdDate.getTime())) {
+            const cutOffMs = etdDate.getTime() - 3 * 3600 * 1000;
+            // The effective payment deadline is Cut-off time (or 24h from close if earlier)
+            const effectiveMs = Math.min(cutOffMs, default24hMs);
+            return new Date(effectiveMs).toISOString();
         }
 
         return new Date(default24hMs).toISOString();
@@ -2105,6 +2090,7 @@ const CargoStore = (function() {
                     newWonItem.capacityKg = auction.capacityKg;
                     newWonItem.priceKg = highestBid.priceKg;
                     newWonItem.totalAmountVND = highestBid.priceKg * auction.capacityKg;
+                    newWonItem.paymentDeadline = calculatePaymentDeadline(auction, new Date());
                     newWonItem.paymentStatus = 'UNPAID';
                     newWonItem.paidAt = null;
                     newWonItem.notifiedAt = null;
@@ -2112,7 +2098,7 @@ const CargoStore = (function() {
                 } else {
                     const now = new Date();
                     const dateStr = now.toISOString().slice(0, 10).replace(/-/g, '');
-                    const payDeadline = new Date(now.getTime() + 24 * 60 * 60 * 1000).toISOString();
+                    const payDeadline = calculatePaymentDeadline(auction, now);
                     newWonItem = {
                         wonId: `WON-${dateStr}-${String(auction.id).padStart(2, '0')}`,
                         auctionId: auction.id,

@@ -381,6 +381,50 @@
             return str.charAt(0).toUpperCase() + str.slice(1) + ' đồng chẵn.';
         }
 
+        // Calculate and format effective deadline (whichever is earlier: paymentDeadline or flight Cut-off 3h before ETD)
+        function getEffectivePaymentDeadline(item) {
+            if (!item) return null;
+            const store = getStore();
+            const data = store ? store.getData() : {};
+            const allAuctions = data.auctions || [];
+            const auctionMatch = allAuctions.find(a => a.id == item.auctionId || a.flightNumber === item.flightNumber);
+            const etdStr = item.etd || (auctionMatch ? auctionMatch.etd : null);
+            
+            let etdDate = null;
+            if (item.etdIso) {
+                etdDate = new Date(item.etdIso);
+            } else if (etdStr && store && store.parseFlightDate) {
+                etdDate = store.parseFlightDate(etdStr);
+            }
+
+            let cutoffMs = null;
+            if (etdDate && !isNaN(etdDate.getTime())) {
+                cutoffMs = etdDate.getTime() - 3 * 3600 * 1000;
+            }
+
+            let payDlMs = null;
+            if (item.paymentDeadline) {
+                const d = new Date(item.paymentDeadline);
+                if (!isNaN(d.getTime())) payDlMs = d.getTime();
+            }
+
+            if (cutoffMs && payDlMs) {
+                return new Date(Math.min(cutoffMs, payDlMs));
+            } else if (cutoffMs) {
+                return new Date(cutoffMs);
+            } else if (payDlMs) {
+                return new Date(payDlMs);
+            }
+            return null;
+        }
+
+        function formatEffectiveDeadline(item) {
+            const dl = getEffectivePaymentDeadline(item);
+            if (!dl) return 'Trước giờ Cut-off (ETD 3h)';
+            const pad = n => String(n).padStart(2, '0');
+            return `${pad(dl.getHours())}:${pad(dl.getMinutes())} · ${pad(dl.getDate())}/${pad(dl.getMonth() + 1)}/${dl.getFullYear()}`;
+        }
+
         // Build HTML template for official PDF award slip
         function buildAwardSlipHtml(wonId) {
             const store = getStore();
@@ -399,7 +443,7 @@
             const isExpired = (store && store.isWonAuctionExpired) ? store.isWonAuctionExpired(item) : false;
             const now = new Date();
             const nowStr = `${now.toLocaleDateString('vi-VN')} ${now.toLocaleTimeString('vi-VN', {hour:'2-digit', minute:'2-digit'})}`;
-            const deadlineStr = item.paymentDeadline ? new Date(item.paymentDeadline).toLocaleString('vi-VN') : 'Trong vòng 24 giờ kể từ thời điểm chốt thầu';
+            const deadlineStr = formatEffectiveDeadline(item);
 
             const decl = item.cargoDeclaration;
 
@@ -1415,7 +1459,8 @@
                                     ${statusBadgeText}
                                 </span>
                                 ${isPaid ? `<p class="text-xs text-white/80 mt-1">Thanh toán lúc: ${item.paidAt || 'Hợp lệ'}</p>` : ''}
-                                ${isExpired ? `<p class="text-xs text-rose-300 font-semibold mt-1">Hạn chót: ${item.paymentDeadline ? new Date(item.paymentDeadline).toLocaleString('vi-VN') : 'Đã quá hạn'}</p>` : ''}
+                                ${isExpired ? `<p class="text-xs text-rose-300 font-semibold mt-1">Hạn chót: ${formatEffectiveDeadline(item)}</p>` : ''}
+                                ${!isPaid && !isExpired ? `<p class="text-xs text-amber-200 font-semibold mt-1">Hạn thanh toán: ${formatEffectiveDeadline(item)}</p>` : ''}
                                 ${isPending ? `<p class="text-xs text-white/80 mt-1">Đã báo lúc: ${item.notifiedAt || 'Vừa xong'}</p>` : ''}
                             </div>
                         </div>
@@ -1432,7 +1477,7 @@
                                             <i class="fa-solid fa-ban text-rose-600"></i> Đơn hàng đã quá hạn thanh toán · Tài khoản đại lý bị khóa
                                         </strong>
                                         <p class="text-rose-800 leading-relaxed font-medium">
-                                            Đơn hàng đã quá thời hạn quy định mà chưa hoàn tất thanh toán. Theo quy chế sàn đấu giá Vietravel Airlines, hệ thống đã <span class="font-extrabold underline">TỰ ĐỘNG KHÓA TÀI KHOẢN ĐẠI LÝ</span> và thu hồi quyền tham gia đấu giá cũng như toàn bộ slot tải trọng của đơn hàng này.
+                                            Đơn hàng đã quá thời hạn quy định (Hạn chót Cut-off: <strong class="text-rose-950 underline">${formatEffectiveDeadline(item)}</strong>) mà chưa hoàn tất thanh toán. Theo quy chế sàn đấu giá Vietravel Airlines, hệ thống đã <span class="font-extrabold underline">TỰ ĐỘNG KHÓA TÀI KHOẢN ĐẠI LÝ</span> và thu hồi quyền tham gia đấu giá cũng như toàn bộ slot tải trọng của đơn hàng này.
                                         </p>
                                     </div>
                                 </div>
@@ -1447,7 +1492,7 @@
                                                 <i class="fa-solid fa-shield-halved text-rose-600"></i> Cảnh báo thanh toán & Chế tài khóa tài khoản
                                             </strong>
                                             <span class="bg-rose-600 text-white font-mono font-bold px-2.5 py-1 rounded-full text-[11px] shadow-sm">
-                                                Hạn chót: ${item.paymentDeadline ? new Date(item.paymentDeadline).toLocaleString('vi-VN') : 'Trước Cut-off 3h'}
+                                                Hạn chót: ${formatEffectiveDeadline(item)}
                                             </span>
                                         </div>
                                         <p class="text-slate-700 leading-relaxed font-medium">
