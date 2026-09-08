@@ -320,6 +320,24 @@ const defaultSharedData = {
             pass: 'fcjuktvwjqhgilzb',
             fromName: 'Vietravel Airlines Cargo'
         }
+    },
+    bankConfig: {
+        bankName: 'Ngân hàng TMCP Ngoại Thương Việt Nam (Vietcombank)',
+        accountNumber: '1029384756',
+        accountName: 'CONG TY CP HANG KHONG VIETRAVEL',
+        branch: 'Chi nhánh Tân Bình - TP. Hồ Chí Minh',
+        memoPrefix: 'CARGO',
+        bankBin: '970436'
+    },
+    routeSubscriptions: {
+        'AG-0892': {
+            routes: ['HAN - SGN', 'SGN - HAN', 'SGN - DAD'],
+            notifyOnNewAuction: true,
+            notifyOnOutbid: true,
+            notifyOnClosingSoon: true,
+            emailAlerts: true,
+            updatedAt: '2026-09-08 15:30'
+        }
     }
 };
 
@@ -340,6 +358,15 @@ function loadServerData() {
     }
 
     let changed = false;
+
+    if (!serverData.bankConfig) {
+        serverData.bankConfig = defaultSharedData.bankConfig;
+        changed = true;
+    }
+    if (!serverData.routeSubscriptions) {
+        serverData.routeSubscriptions = defaultSharedData.routeSubscriptions;
+        changed = true;
+    }
 
     // Ensure SMTP & Privacy settings exist with default credentials if unconfigured
     if (!serverData.settings) {
@@ -583,6 +610,8 @@ const server = http.createServer((req, res) => {
                     serverData.settings = incoming.settings;
                     mailTransporter = null; // Clear cached transporter so new SMTP credentials take effect immediately
                 }
+                if (incoming.bankConfig) serverData.bankConfig = incoming.bankConfig;
+                if (incoming.routeSubscriptions) serverData.routeSubscriptions = incoming.routeSubscriptions;
 
                 serverData.version = Date.now();
                 saveServerData();

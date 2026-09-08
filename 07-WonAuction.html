@@ -308,6 +308,189 @@
         </div>
     </div>
 
+    <!-- Modal: Thông tin Chuyển khoản Thanh toán, Quét VietQR & Nộp Biên lai Đối soát Admin -->
+    <div id="paymentInstructionModal" class="fixed inset-0 bg-slate-900/65 backdrop-blur-sm z-50 flex items-center justify-center p-3 sm:p-4 hidden">
+        <div class="bg-white rounded-3xl max-w-4xl w-full max-h-[92vh] flex flex-col shadow-2xl overflow-hidden animate-in fade-in zoom-in duration-200">
+            <!-- Modal Header -->
+            <div class="bg-gradient-to-r from-slate-900 via-blue-950 to-slate-900 text-white px-6 py-4 flex items-center justify-between flex-shrink-0 border-b border-slate-700">
+                <div class="flex items-center gap-3">
+                    <div class="w-10 h-10 rounded-2xl bg-gradient-to-br from-amber-400 to-orange-500 text-white flex items-center justify-center text-lg font-bold shadow-md">
+                        <i class="fa-solid fa-qrcode"></i>
+                    </div>
+                    <div>
+                        <h3 class="font-bold text-base leading-tight flex items-center gap-2">
+                            Thông tin Chuyển khoản & Xác nhận Thanh toán
+                            <span id="payModalStatusBadge" class="text-[10px] font-bold px-2 py-0.5 rounded-full bg-amber-500/20 text-amber-300 border border-amber-400/30">Chờ thanh toán</span>
+                        </h3>
+                        <p class="text-xs text-slate-300 mt-0.5">
+                            Mã đơn: <strong id="payModalWonId" class="text-amber-400 font-mono">-</strong> &middot; Chuyến bay: <strong id="payModalFlight" class="text-white">-</strong> (<span id="payModalRoute">-</span>)
+                        </p>
+                    </div>
+                </div>
+                <button onclick="closePaymentModal()" class="w-8 h-8 rounded-full bg-slate-800 hover:bg-slate-700 text-slate-300 hover:text-white flex items-center justify-center transition cursor-pointer">
+                    <i class="fa-solid fa-xmark text-base"></i>
+                </button>
+            </div>
+
+            <!-- Modal Body Scrollable -->
+            <div class="p-6 overflow-y-auto space-y-6 flex-1 text-xs">
+                
+                <!-- Notice Banner -->
+                <div id="payModalNoticeBox" class="p-3.5 rounded-2xl bg-amber-50 border border-amber-200 text-amber-900 flex items-start gap-3">
+                    <i class="fa-solid fa-circle-exclamation text-amber-600 text-base mt-0.5 flex-shrink-0"></i>
+                    <div class="space-y-0.5">
+                        <p class="font-bold text-slate-900">Quy định chuyển khoản & Đối soát sao kê tự động:</p>
+                        <p class="text-slate-700">Quý đại lý vui lòng quét mã <strong>VietQR</strong> hoặc sao chép chính xác <strong>Số tài khoản</strong> và <strong>Cú pháp chuyển khoản</strong> bên dưới. Sau khi hoàn tất chuyển tiền, hãy đính kèm Mã giao dịch ngân hàng hoặc ảnh chụp biên lai để Ban Điều hành xác nhận nhanh nhất.</p>
+                    </div>
+                </div>
+
+                <div class="grid grid-cols-1 lg:grid-cols-12 gap-6">
+                    <!-- Left: VietQR Code Box (5 cols) -->
+                    <div class="lg:col-span-5 bg-gradient-to-b from-slate-50 to-blue-50/40 rounded-2xl border p-4 flex flex-col items-center justify-between text-center space-y-3">
+                        <div class="w-full">
+                            <div class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-blue-100 text-blue-800 font-bold text-[11px] mb-2">
+                                <i class="fa-solid fa-bolt text-amber-500"></i> Quét mã VietQR Chuyển nhanh 24/7
+                            </div>
+                            <p class="text-[11px] text-gray-500">Tự động điền đúng Số tài khoản, Số tiền & Cú pháp</p>
+                        </div>
+
+                        <!-- Live VietQR Code Canvas / Image -->
+                        <div class="relative bg-white p-3 rounded-2xl border shadow-sm flex flex-col items-center justify-center">
+                            <img id="payModalQrImg" src="" alt="Mã VietQR Chuyển khoản" class="w-52 h-52 object-contain rounded-lg">
+                            <div id="payModalQrLoading" class="absolute inset-0 bg-white/90 flex flex-col items-center justify-center gap-2 rounded-2xl">
+                                <i class="fa-solid fa-spinner fa-spin text-blue-600 text-2xl"></i>
+                                <span class="text-[11px] text-gray-500">Đang khởi tạo VietQR...</span>
+                            </div>
+                        </div>
+
+                        <div class="space-y-2 w-full">
+                            <button type="button" onclick="downloadQrImage()" class="w-full bg-white border border-slate-300 hover:bg-slate-100 text-slate-700 font-semibold py-2 px-3 rounded-xl transition flex items-center justify-center gap-2 text-xs shadow-xs cursor-pointer">
+                                <i class="fa-solid fa-download text-blue-600"></i> Tải ảnh VietQR về máy
+                            </button>
+                            <p class="text-[10px] text-gray-400">Hỗ trợ App tất cả các ngân hàng (VCB, MB, TCB, VPB, BIDV, ACB, Momo, VNPay...)</p>
+                        </div>
+                    </div>
+
+                    <!-- Right: Bank Details & Verification Form (7 cols) -->
+                    <div class="lg:col-span-7 space-y-4">
+                        <h4 class="font-bold text-sm text-slate-900 flex items-center gap-2 pb-1 border-b">
+                            <i class="fa-solid fa-building-columns text-blue-600"></i>
+                            Tài khoản Ngân hàng Thụ hưởng Vietravel Airlines Cargo
+                        </h4>
+
+                        <div class="bg-white rounded-2xl border divide-y divide-slate-100 shadow-xs">
+                            <!-- Bank Name -->
+                            <div class="p-3 flex items-center justify-between gap-2">
+                                <span class="text-gray-500 font-medium">Ngân hàng thụ hưởng:</span>
+                                <span id="payModalBankName" class="font-bold text-slate-900 text-right">Vietcombank (VCB)</span>
+                            </div>
+
+                            <!-- Account Number with Copy -->
+                            <div class="p-3 flex items-center justify-between gap-2 bg-blue-50/40">
+                                <span class="text-gray-600 font-semibold">Số tài khoản (STK):</span>
+                                <div class="flex items-center gap-2">
+                                    <span id="payModalAccNum" class="font-mono font-bold text-sm text-blue-700">1029384756</span>
+                                    <button type="button" onclick="copyPaymentText('payModalAccNum', 'Số tài khoản')" class="px-2.5 py-1 rounded-lg bg-blue-600 hover:bg-blue-700 text-white font-semibold text-[11px] transition flex items-center gap-1 shadow-xs cursor-pointer" title="Sao chép số tài khoản">
+                                        <i class="fa-solid fa-copy"></i> Copy
+                                    </button>
+                                </div>
+                            </div>
+
+                            <!-- Account Holder -->
+                            <div class="p-3 flex items-center justify-between gap-2">
+                                <span class="text-gray-500 font-medium">Chủ tài khoản:</span>
+                                <span id="payModalAccName" class="font-bold text-slate-900 text-right uppercase">CONG TY CP HANG KHONG VIETRAVEL</span>
+                            </div>
+
+                            <!-- Branch -->
+                            <div class="p-3 flex items-center justify-between gap-2">
+                                <span class="text-gray-500 font-medium">Chi nhánh:</span>
+                                <span id="payModalBranch" class="font-medium text-slate-700 text-right">Chi nhánh Tân Bình - TP. Hồ Chí Minh</span>
+                            </div>
+
+                            <!-- Amount with Copy -->
+                            <div class="p-3 flex items-center justify-between gap-2 bg-amber-50/50">
+                                <span class="text-gray-700 font-semibold">Số tiền cần chuyển:</span>
+                                <div class="flex items-center gap-2">
+                                    <span id="payModalAmount" class="font-bold text-base text-red-600">0 đ</span>
+                                    <button type="button" onclick="copyPaymentAmount()" class="px-2.5 py-1 rounded-lg bg-red-600 hover:bg-red-700 text-white font-semibold text-[11px] transition flex items-center gap-1 shadow-xs cursor-pointer" title="Sao chép số tiền">
+                                        <i class="fa-solid fa-copy"></i> Copy
+                                    </button>
+                                </div>
+                            </div>
+
+                            <!-- Transfer Memo with Copy -->
+                            <div class="p-3.5 flex flex-col sm:flex-row sm:items-center justify-between gap-2 bg-emerald-50/60">
+                                <div>
+                                    <span class="text-emerald-900 font-bold block">Nội dung chuyển khoản (Bắt buộc):</span>
+                                    <span class="text-[10px] text-emerald-700">Dùng đúng cú pháp để Admin nhận diện và khớp đơn tức thì</span>
+                                </div>
+                                <div class="flex items-center gap-2">
+                                    <span id="payModalMemo" class="font-mono font-bold text-xs bg-white px-2.5 py-1.5 rounded-lg border border-emerald-300 text-emerald-800 shadow-xs">CARGO WON-XXXX AG-0892</span>
+                                    <button type="button" onclick="copyPaymentText('payModalMemo', 'Cú pháp nội dung')" class="px-3 py-1.5 rounded-lg bg-emerald-700 hover:bg-emerald-800 text-white font-semibold text-[11px] transition flex items-center gap-1 shadow-xs cursor-pointer" title="Sao chép nội dung chuyển khoản">
+                                        <i class="fa-solid fa-copy"></i> Copy
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Form Báo đã chuyển khoản (Để Admin tra soát nhanh) -->
+                        <form id="payNotifyForm" onsubmit="handleSubmitPaymentProof(event)" class="bg-slate-50 border rounded-2xl p-4 space-y-3">
+                            <h5 class="font-bold text-slate-900 flex items-center gap-2 text-xs">
+                                <i class="fa-solid fa-receipt text-blue-600"></i>
+                                Gửi Xác nhận Đã chuyển tiền & Nộp Biên lai đối soát
+                            </h5>
+
+                            <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                                <div>
+                                    <label class="block font-semibold text-slate-700 mb-1">Mã giao dịch / Số FT ngân hàng (Nếu có):</label>
+                                    <input type="text" id="payInputTxRef" placeholder="VD: FT26090888910 hoặc Trace No"
+                                           class="w-full border rounded-xl px-3 py-2 bg-white text-xs font-mono outline-none focus:ring-2 focus:ring-blue-500">
+                                </div>
+                                <div>
+                                    <label class="block font-semibold text-slate-700 mb-1">Tải ảnh chụp biên lai / Ủy nhiệm chi:</label>
+                                    <input type="file" id="payInputProofFile" accept="image/*" onchange="handleProofFileSelected(event)"
+                                           class="w-full border rounded-xl px-2 py-1.5 bg-white text-[11px] outline-none focus:ring-2 focus:ring-blue-500 cursor-pointer">
+                                </div>
+                            </div>
+
+                            <!-- Image Preview Area -->
+                            <div id="payProofPreviewBox" class="hidden relative border rounded-xl p-2 bg-white flex items-center gap-3">
+                                <img id="payProofPreviewImg" src="" alt="Biên lai chuyển khoản" class="w-16 h-16 object-cover rounded-lg border">
+                                <div class="flex-1">
+                                    <p class="font-bold text-slate-800 text-xs" id="payProofFileName">bien-lai-chuyen-khoan.jpg</p>
+                                    <p class="text-[10px] text-emerald-600 font-semibold"><i class="fa-solid fa-check"></i> Đã chọn ảnh biên lai hợp lệ</p>
+                                </div>
+                                <button type="button" onclick="removeProofImage()" class="text-slate-400 hover:text-red-500 p-2 cursor-pointer" title="Xóa ảnh này">
+                                    <i class="fa-solid fa-trash"></i>
+                                </button>
+                            </div>
+
+                            <div>
+                                <label class="block font-semibold text-slate-700 mb-1">Ghi chú thêm cho Ban Điều hành (Tùy chọn):</label>
+                                <input type="text" id="payInputNote" placeholder="VD: Đã chuyển từ tài khoản công ty ABC qua App VCB lúc 14:20..."
+                                       class="w-full border rounded-xl px-3 py-2 bg-white text-xs outline-none focus:ring-2 focus:ring-blue-500">
+                            </div>
+
+                            <!-- Status message if already submitted -->
+                            <div id="payAlreadySubmittedInfo" class="hidden p-3 rounded-xl bg-amber-100/70 border border-amber-300 text-amber-950 font-medium text-[11px] leading-relaxed">
+                                <i class="fa-solid fa-clock-rotate-left mr-1 text-amber-700"></i>
+                                Bạn đã nộp thông báo chuyển khoản lúc <strong id="payPrevSubmittedAt">-</strong>. Ban Điều hành đang tra soát và sẽ phê duyệt sau ít phút.
+                            </div>
+
+                            <div class="flex items-center justify-end gap-2 pt-2 border-t">
+                                <button type="button" onclick="closePaymentModal()" class="px-4 py-2 border rounded-xl text-slate-600 hover:bg-slate-100 font-medium cursor-pointer">Đóng</button>
+                                <button type="submit" id="btnSubmitPayment" class="px-5 py-2.5 bg-gradient-to-r from-amber-500 to-orange-500 hover:from-amber-600 hover:to-orange-600 text-white font-bold rounded-xl shadow transition flex items-center gap-2 cursor-pointer">
+                                    <i class="fa-solid fa-paper-plane"></i> Xác nhận Đã Chuyển Khoản & Báo Admin
+                                </button>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
     <!-- Notification Toast -->
     <div id="toastWon" class="fixed bottom-5 right-5 bg-slate-900 text-white text-xs font-semibold px-4 py-3 rounded-xl shadow-xl flex items-center gap-2.5 z-50 transform translate-y-20 opacity-0 transition-all duration-300 pointer-events-none">
         <i class="fa-solid fa-circle-check text-emerald-400 text-base" id="toastWonIcon"></i>
@@ -1656,14 +1839,19 @@
                                             <i class="fa-solid fa-circle-xmark text-rose-600"></i> Đã hủy thanh toán (Quá hạn)
                                         </span>
                                     ` : (!isPaid && !isPending ? `
-                                        <button onclick="handleNotifyPaymentSent('${item.wonId}')" class="bg-amber-500 hover:bg-amber-600 text-white font-bold px-4 py-2.5 rounded-xl transition flex items-center gap-2 shadow cursor-pointer">
-                                            <i class="fa-solid fa-paper-plane"></i> Tôi đã chuyển khoản (Báo Admin)
+                                        <button onclick="openPaymentModal('${item.wonId}')" class="bg-gradient-to-r from-amber-500 to-orange-500 hover:from-amber-600 hover:to-orange-600 text-white font-bold px-4 py-2.5 rounded-xl transition flex items-center gap-2 shadow cursor-pointer text-xs">
+                                            <i class="fa-solid fa-qrcode text-sm"></i> Chuyển khoản (VietQR / STK)
                                         </button>
                                     ` : '')}
                                     ${isPending ? `
-                                        <span class="bg-amber-100 text-amber-900 border border-amber-300 font-bold px-3 py-2 rounded-xl flex items-center gap-1.5">
-                                            <i class="fa-solid fa-spinner fa-spin text-amber-600"></i> Đã báo chuyển khoản - Đang chờ Admin xác nhận
-                                        </span>
+                                        <button onclick="openPaymentModal('${item.wonId}')" class="bg-amber-100 hover:bg-amber-200 text-amber-900 border border-amber-300 font-bold px-3 py-2 rounded-xl flex items-center gap-1.5 text-xs transition cursor-pointer">
+                                            <i class="fa-solid fa-spinner fa-spin text-amber-600"></i> Đã báo chuyển khoản - Xem chi tiết / Biên lai
+                                        </button>
+                                    ` : ''}
+                                    ${isPaid ? `
+                                        <button onclick="openPaymentModal('${item.wonId}')" class="bg-emerald-50 hover:bg-emerald-100 text-emerald-800 border border-emerald-300 font-bold px-3 py-2 rounded-xl flex items-center gap-1.5 text-xs transition cursor-pointer">
+                                            <i class="fa-solid fa-receipt text-emerald-600"></i> Xem thông tin thanh toán
+                                        </button>
                                     ` : ''}
                                     <button onclick="previewAwardSlip('${item.wonId}')" class="bg-white border border-slate-300 hover:bg-slate-50 text-slate-700 font-semibold px-3.5 py-2.5 rounded-xl transition flex items-center gap-1.5 shadow-xs cursor-pointer">
                                         <i class="fa-solid fa-eye text-blue-600"></i> Xem trước phiếu
@@ -1679,18 +1867,223 @@
             }).join('');
         }
 
-        function handleNotifyPaymentSent(wonId) {
-            if (confirm(`Xác nhận Quý đại lý đã hoàn tất chuyển khoản cho đơn thắng thầu ${wonId}?\n\nBan Điều hành sẽ kiểm tra sao kê ngân hàng và xác nhận trong ít phút.`)) {
-                const store = getStore();
-                if (store && store.notifyPaymentSent) {
-                    const res = store.notifyPaymentSent(wonId);
-                    if (res.success) {
-                        showToast(res.message, true);
-                        renderWonAuctions();
-                    } else {
-                        showToast(res.message, false);
-                    }
+        let currentActivePayWonId = null;
+        let currentUploadedProofBase64 = null;
+        let currentActiveAmountRaw = 0;
+
+        function openPaymentModal(wonId) {
+            const store = getStore();
+            if (!store) return;
+            const allWon = store.getWonAuctions ? store.getWonAuctions() : [];
+            const item = allWon.find(w => w.wonId === wonId);
+            if (!item) {
+                alert('Không tìm thấy đơn hàng thắng thầu: ' + wonId);
+                return;
+            }
+
+            currentActivePayWonId = wonId;
+            currentUploadedProofBase64 = null;
+            currentActiveAmountRaw = item.totalAmountVND || 0;
+
+            const bankCfg = (store.getBankConfig) ? store.getBankConfig() : {
+                bankName: 'Vietcombank (VCB)',
+                accountNumber: '1029384756',
+                accountName: 'CONG TY CP HANG KHONG VIETRAVEL',
+                branch: 'Chi nhánh Tân Bình - TP. Hồ Chí Minh'
+            };
+
+            const memo = (store.generatePaymentMemo) ? store.generatePaymentMemo(item.wonId, item.agentCode) : `CARGO ${item.wonId} ${item.agentCode || 'AG-0892'}`;
+
+            // Populate Modal Fields
+            document.getElementById('payModalWonId').textContent = item.wonId;
+            document.getElementById('payModalFlight').textContent = item.flightNumber;
+            document.getElementById('payModalRoute').textContent = item.route;
+            document.getElementById('payModalBankName').textContent = bankCfg.bankName;
+            document.getElementById('payModalAccNum').textContent = bankCfg.accountNumber;
+            document.getElementById('payModalAccName').textContent = bankCfg.accountName;
+            document.getElementById('payModalBranch').textContent = bankCfg.branch || 'Hội sở chính / CN Tân Bình';
+            document.getElementById('payModalAmount').textContent = fmtNum(item.totalAmountVND) + ' đ';
+            document.getElementById('payModalMemo').textContent = memo;
+
+            // Status badge in modal
+            const isPaid = item.paymentStatus === 'PAID';
+            const isPending = item.paymentStatus === 'PENDING_VERIFICATION' || item.paymentStatus === 'PENDING';
+            const statusBadge = document.getElementById('payModalStatusBadge');
+            const noticeBox = document.getElementById('payModalNoticeBox');
+            const submitBtn = document.getElementById('btnSubmitPayment');
+            const alreadySubmittedBox = document.getElementById('payAlreadySubmittedInfo');
+
+            if (isPaid) {
+                statusBadge.className = 'text-[10px] font-bold px-2 py-0.5 rounded-full bg-emerald-500/20 text-emerald-300 border border-emerald-400/30';
+                statusBadge.textContent = 'ĐÃ THANH TOÁN (PAID)';
+                noticeBox.className = 'p-3.5 rounded-2xl bg-emerald-50 border border-emerald-200 text-emerald-900 flex items-start gap-3';
+                noticeBox.innerHTML = `
+                    <i class="fa-solid fa-circle-check text-emerald-600 text-base mt-0.5 flex-shrink-0"></i>
+                    <div class="space-y-0.5">
+                        <p class="font-bold text-emerald-900">Đơn hàng đã được Ban Điều hành xác nhận thanh toán thành công!</p>
+                        <p class="text-emerald-800">Thời gian xác nhận: <strong>${item.paidAt || 'Vừa xong'}</strong> &middot; Mã AWB điện tử chính thức: <strong>${item.awbNumber || 'Chưa cấp'}</strong>.</p>
+                    </div>
+                `;
+                submitBtn.style.display = 'none';
+            } else if (isPending) {
+                statusBadge.className = 'text-[10px] font-bold px-2 py-0.5 rounded-full bg-amber-500/20 text-amber-300 border border-amber-400/30';
+                statusBadge.textContent = 'ĐANG ĐỐI SOÁT';
+                noticeBox.className = 'p-3.5 rounded-2xl bg-amber-50 border border-amber-200 text-amber-900 flex items-start gap-3';
+                noticeBox.innerHTML = `
+                    <i class="fa-solid fa-spinner fa-spin text-amber-600 text-base mt-0.5 flex-shrink-0"></i>
+                    <div class="space-y-0.5">
+                        <p class="font-bold text-amber-900">Đã gửi thông báo chuyển khoản - Đang chờ Admin xác nhận</p>
+                        <p class="text-amber-800">Ban Điều hành đang kiểm tra sao kê ngân hàng và sẽ duyệt đơn trong ít phút. Bạn có thể cập nhật lại mã giao dịch hoặc biên lai nếu cần.</p>
+                    </div>
+                `;
+                submitBtn.style.display = 'flex';
+                submitBtn.innerHTML = '<i class="fa-solid fa-rotate"></i> Cập nhật lại thông tin chuyển khoản';
+            } else {
+                statusBadge.className = 'text-[10px] font-bold px-2 py-0.5 rounded-full bg-amber-500/20 text-amber-300 border border-amber-400/30';
+                statusBadge.textContent = 'Chờ thanh toán';
+                noticeBox.className = 'p-3.5 rounded-2xl bg-amber-50 border border-amber-200 text-amber-900 flex items-start gap-3';
+                noticeBox.innerHTML = `
+                    <i class="fa-solid fa-circle-exclamation text-amber-600 text-base mt-0.5 flex-shrink-0"></i>
+                    <div class="space-y-0.5">
+                        <p class="font-bold text-slate-900">Quy định chuyển khoản & Đối soát sao kê tự động:</p>
+                        <p class="text-slate-700">Quý đại lý vui lòng quét mã <strong>VietQR</strong> hoặc sao chép chính xác <strong>Số tài khoản</strong> và <strong>Cú pháp chuyển khoản</strong> bên dưới. Sau khi hoàn tất chuyển tiền, hãy đính kèm Mã giao dịch ngân hàng hoặc ảnh chụp biên lai để Ban Điều hành xác nhận nhanh nhất.</p>
+                    </div>
+                `;
+                submitBtn.style.display = 'flex';
+                submitBtn.innerHTML = '<i class="fa-solid fa-paper-plane"></i> Xác nhận Đã Chuyển Khoản & Báo Admin';
+            }
+
+            // Fill existing proof if any
+            const prevProof = item.paymentProof;
+            if (prevProof) {
+                document.getElementById('payInputTxRef').value = prevProof.transactionRef || '';
+                document.getElementById('payInputNote').value = prevProof.note || '';
+                if (prevProof.proofImageUrl) {
+                    currentUploadedProofBase64 = prevProof.proofImageUrl;
+                    document.getElementById('payProofPreviewImg').src = prevProof.proofImageUrl;
+                    document.getElementById('payProofFileName').textContent = 'Biên lai chuyển khoản đã nộp';
+                    document.getElementById('payProofPreviewBox').classList.remove('hidden');
+                } else {
+                    document.getElementById('payProofPreviewBox').classList.add('hidden');
                 }
+                if (isPending && prevProof.submittedAt) {
+                    alreadySubmittedBox.classList.remove('hidden');
+                    document.getElementById('payPrevSubmittedAt').textContent = prevProof.submittedAt;
+                } else {
+                    alreadySubmittedBox.classList.add('hidden');
+                }
+            } else {
+                document.getElementById('payInputTxRef').value = '';
+                document.getElementById('payInputNote').value = '';
+                document.getElementById('payProofPreviewBox').classList.add('hidden');
+                alreadySubmittedBox.classList.add('hidden');
+            }
+
+            // Generate VietQR URL
+            const qrUrl = (store.generateVietQRUrl)
+                ? store.generateVietQRUrl(item.totalAmountVND, memo)
+                : `https://img.vietqr.io/image/970436-1029384756-compact2.png?amount=${Math.round(item.totalAmountVND)}&addInfo=${encodeURIComponent(memo)}&accountName=${encodeURIComponent(bankCfg.accountName)}`;
+            
+            const qrImg = document.getElementById('payModalQrImg');
+            const qrLoading = document.getElementById('payModalQrLoading');
+            qrLoading.classList.remove('hidden');
+            qrImg.onload = () => qrLoading.classList.add('hidden');
+            qrImg.onerror = () => qrLoading.classList.add('hidden');
+            qrImg.src = qrUrl;
+
+            document.getElementById('paymentInstructionModal').classList.remove('hidden');
+        }
+
+        function closePaymentModal() {
+            document.getElementById('paymentInstructionModal').classList.add('hidden');
+            currentActivePayWonId = null;
+            currentUploadedProofBase64 = null;
+        }
+
+        function copyPaymentText(elementId, labelName) {
+            const el = document.getElementById(elementId);
+            if (!el) return;
+            const txt = el.textContent.trim();
+            navigator.clipboard.writeText(txt).then(() => {
+                showToast(`Đã sao chép ${labelName}: ${txt}`, true);
+            }).catch(() => {
+                const temp = document.createElement('textarea');
+                temp.value = txt;
+                document.body.appendChild(temp);
+                temp.select();
+                document.execCommand('copy');
+                document.body.removeChild(temp);
+                showToast(`Đã sao chép ${labelName}: ${txt}`, true);
+            });
+        }
+
+        function copyPaymentAmount() {
+            if (!currentActiveAmountRaw) return;
+            navigator.clipboard.writeText(String(currentActiveAmountRaw)).then(() => {
+                showToast(`Đã sao chép số tiền: ${fmtNum(currentActiveAmountRaw)} đ`, true);
+            });
+        }
+
+        function handleProofFileSelected(e) {
+            const file = e.target.files[0];
+            if (!file) return;
+
+            if (file.size > 5 * 1024 * 1024) {
+                alert('Dung lượng ảnh biên lai không được vượt quá 5MB!');
+                e.target.value = '';
+                return;
+            }
+
+            const reader = new FileReader();
+            reader.onload = function(evt) {
+                currentUploadedProofBase64 = evt.target.result;
+                document.getElementById('payProofPreviewImg').src = currentUploadedProofBase64;
+                document.getElementById('payProofFileName').textContent = file.name;
+                document.getElementById('payProofPreviewBox').classList.remove('hidden');
+            };
+            reader.readAsDataURL(file);
+        }
+
+        function removeProofImage() {
+            currentUploadedProofBase64 = null;
+            document.getElementById('payInputProofFile').value = '';
+            document.getElementById('payProofPreviewBox').classList.add('hidden');
+        }
+
+        function downloadQrImage() {
+            const img = document.getElementById('payModalQrImg');
+            if (!img || !img.src) return;
+            const a = document.createElement('a');
+            a.href = img.src;
+            a.download = `VietQR-VietravelCargo-${currentActivePayWonId || 'Payment'}.png`;
+            a.target = '_blank';
+            a.click();
+            showToast('Đang tải ảnh mã VietQR...', true);
+        }
+
+        function handleSubmitPaymentProof(e) {
+            e.preventDefault();
+            if (!currentActivePayWonId) return;
+
+            const txRef = (document.getElementById('payInputTxRef').value || '').trim();
+            const note = (document.getElementById('payInputNote').value || '').trim();
+            const store = getStore();
+
+            if (!store || !store.notifyPaymentSent) return;
+
+            const res = store.notifyPaymentSent(currentActivePayWonId, {
+                transactionRef: txRef,
+                proofImageUrl: currentUploadedProofBase64,
+                note: note,
+                transferredAmount: currentActiveAmountRaw
+            });
+
+            if (res.success) {
+                showToast(res.message, true);
+                closePaymentModal();
+                renderWonAuctions();
+            } else {
+                showToast(res.message, false);
             }
         }
 

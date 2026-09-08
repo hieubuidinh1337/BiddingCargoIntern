@@ -124,6 +124,59 @@
                 </div>
             </div>
 
+            <!-- Company Bank Account Configuration Card -->
+            <div class="bg-white rounded-2xl border shadow-sm p-6 space-y-4">
+                <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-2 border-b pb-2">
+                    <h2 class="font-bold text-sm text-slate-900 flex items-center gap-2">
+                        <i class="fa-solid fa-building-columns text-emerald-600"></i> Cấu hình Tài khoản Ngân hàng Thụ hưởng & Tra soát Thanh toán
+                    </h2>
+                    <span class="text-[11px] font-semibold text-emerald-700 bg-emerald-50 border border-emerald-200 px-2.5 py-0.5 rounded-full flex items-center gap-1">
+                        <i class="fa-solid fa-qrcode"></i> Tự động tích hợp VietQR 24/7
+                    </span>
+                </div>
+                <p class="text-xs text-slate-500">Thông tin này hiển thị trên phiếu thanh toán của đại lý và dùng để sinh mã VietQR chuyển khoản nhanh kèm cú pháp tự động.</p>
+
+                <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4 text-xs">
+                    <div>
+                        <label class="block font-semibold text-slate-700 mb-1">Ngân hàng thụ hưởng</label>
+                        <input type="text" id="bankName" value="Ngân hàng TMCP Ngoại thương Việt Nam (Vietcombank)" required
+                               class="w-full border rounded-xl px-3.5 py-2.5 font-medium focus:ring-2 focus:ring-blue-500 outline-none">
+                    </div>
+
+                    <div>
+                        <label class="block font-semibold text-slate-700 mb-1">Số tài khoản ngân hàng (STK)</label>
+                        <input type="text" id="bankAccNum" value="1029384756" required
+                               class="w-full border rounded-xl px-3.5 py-2.5 font-mono font-bold text-blue-700 focus:ring-2 focus:ring-blue-500 outline-none">
+                    </div>
+
+                    <div>
+                        <label class="block font-semibold text-slate-700 mb-1">Tên chủ tài khoản (In hoa)</label>
+                        <input type="text" id="bankAccName" value="CONG TY CP HANG KHONG VIETRAVEL" required
+                               class="w-full border rounded-xl px-3.5 py-2.5 font-bold uppercase focus:ring-2 focus:ring-blue-500 outline-none">
+                    </div>
+
+                    <div>
+                        <label class="block font-semibold text-slate-700 mb-1">Chi nhánh ngân hàng</label>
+                        <input type="text" id="bankBranch" value="Chi nhánh Tân Bình - TP. Hồ Chí Minh" required
+                               class="w-full border rounded-xl px-3.5 py-2.5 font-medium focus:ring-2 focus:ring-blue-500 outline-none">
+                    </div>
+
+                    <div>
+                        <label class="block font-semibold text-slate-700 mb-1">Tiền tố cú pháp chuyển khoản</label>
+                        <input type="text" id="bankMemoPrefix" value="CARGO" required placeholder="CARGO"
+                               class="w-full border rounded-xl px-3.5 py-2.5 font-mono font-bold text-emerald-700 uppercase focus:ring-2 focus:ring-blue-500 outline-none">
+                        <p class="text-[10px] text-gray-400 mt-1">Cú pháp mẫu: <code class="text-emerald-700 font-bold">CARGO [MÃ_ĐƠN] [MÃ_ĐẠI_LÝ]</code></p>
+                    </div>
+
+                    <div>
+                        <label class="block font-semibold text-slate-700 mb-1">Mã BIN Ngân hàng (Dành cho VietQR)</label>
+                        <input type="text" id="bankBin" value="970436" required placeholder="970436 (Vietcombank)"
+                               class="w-full border rounded-xl px-3.5 py-2.5 font-mono focus:ring-2 focus:ring-blue-500 outline-none">
+                        <p class="text-[10px] text-gray-400 mt-1">970436: VCB, 970422: MB, 970407: Techcombank</p>
+                    </div>
+                </div>
+            </div>
+
             <!-- Privacy & Security Policy Settings Card -->
             <div class="bg-white rounded-2xl border shadow-sm p-6 space-y-4">
                 <h2 class="font-bold text-sm text-slate-900 border-b pb-2 flex items-center justify-between">
@@ -374,6 +427,16 @@
                 }
             }
 
+            const bankCfg = CargoStore.getBankConfig ? CargoStore.getBankConfig() : null;
+            if (bankCfg) {
+                if (bankCfg.bankName) document.getElementById('bankName').value = bankCfg.bankName;
+                if (bankCfg.accountNumber) document.getElementById('bankAccNum').value = bankCfg.accountNumber;
+                if (bankCfg.accountName) document.getElementById('bankAccName').value = bankCfg.accountName;
+                if (bankCfg.branch) document.getElementById('bankBranch').value = bankCfg.branch;
+                if (bankCfg.memoPrefix) document.getElementById('bankMemoPrefix').value = bankCfg.memoPrefix;
+                if (bankCfg.bankBin) document.getElementById('bankBin').value = bankCfg.bankBin;
+            }
+
             const admin = CargoStore.getCurrentAdmin();
             if (admin && admin.role === 'STAFF') {
                 const noticeEl = document.getElementById('staffPermissionNotice');
@@ -390,7 +453,7 @@
                     `;
                 }
 
-                ['cfgMinIncrement', 'cfgCutoffHours', 'cfgPaymentWindow', 'cfgPlatformFee', 'cfgHotline', 'cfgSupportEmail', 'cfgHideAgentCredentials', 'smtpProvider', 'smtpHost', 'smtpPort', 'smtpUser', 'smtpPass', 'smtpFromName'].forEach(id => {
+                ['cfgMinIncrement', 'cfgCutoffHours', 'cfgPaymentWindow', 'cfgPlatformFee', 'cfgHotline', 'cfgSupportEmail', 'cfgHideAgentCredentials', 'bankName', 'bankAccNum', 'bankAccName', 'bankBranch', 'bankMemoPrefix', 'bankBin', 'smtpProvider', 'smtpHost', 'smtpPort', 'smtpUser', 'smtpPass', 'smtpFromName'].forEach(id => {
                     const el = document.getElementById(id);
                     if (el) {
                         el.disabled = true;
@@ -512,6 +575,15 @@
                 fromName: document.getElementById('smtpFromName').value
             };
 
+            const bankData = {
+                bankName: document.getElementById('bankName').value,
+                accountNumber: document.getElementById('bankAccNum').value,
+                accountName: document.getElementById('bankAccName').value,
+                branch: document.getElementById('bankBranch').value,
+                memoPrefix: document.getElementById('bankMemoPrefix').value,
+                bankBin: document.getElementById('bankBin').value
+            };
+
             const res = CargoStore.updateSystemSettings({
                 minIncrement: document.getElementById('cfgMinIncrement').value,
                 cutoffHours: document.getElementById('cfgCutoffHours').value,
@@ -522,6 +594,10 @@
                 hideAgentCredentials: document.getElementById('cfgHideAgentCredentials').checked,
                 smtp: smtpData
             });
+
+            if (CargoStore.updateBankConfig) {
+                CargoStore.updateBankConfig(bankData);
+            }
 
             if (res.success) {
                 updateSmtpStatusBadge(smtpData);

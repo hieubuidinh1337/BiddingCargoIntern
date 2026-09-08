@@ -579,6 +579,35 @@ const CargoStore = (function() {
                 pass: 'fcjuktvwjqhgilzb',
                 fromName: 'Vietravel Airlines Cargo'
             }
+        },
+        bankConfig: {
+            bankName: 'Ngân hàng TMCP Ngoại thương Việt Nam (Vietcombank)',
+            bankCode: 'VCB',
+            bankBin: '970436',
+            accountNumber: '1029384756',
+            accountName: 'CONG TY CP HANG KHONG VIETRAVEL',
+            branch: 'Chi nhánh Tân Bình - TP. Hồ Chí Minh',
+            memoPrefix: 'CARGO'
+        },
+        routeSubscriptions: {
+            'AG-0892': {
+                routes: ['HAN-SGN', 'SGN-HAN', 'SGN-DAD'],
+                notifyOnNewAuction: true,
+                notifyOnOutbid: true,
+                notifyOnClosingSoon: true,
+                notifyOnWon: true,
+                emailAlert: true,
+                soundAlert: true
+            },
+            'AG-1024': {
+                routes: ['SGN-DAD', 'DAD-SGN'],
+                notifyOnNewAuction: true,
+                notifyOnOutbid: true,
+                notifyOnClosingSoon: true,
+                notifyOnWon: true,
+                emailAlert: true,
+                soundAlert: true
+            }
         }
     };
 
@@ -593,6 +622,16 @@ const CargoStore = (function() {
             }
 
             let updated = false;
+
+            if (!data.bankConfig) {
+                data.bankConfig = JSON.parse(JSON.stringify(defaultData.bankConfig));
+                updated = true;
+            }
+
+            if (!data.routeSubscriptions) {
+                data.routeSubscriptions = JSON.parse(JSON.stringify(defaultData.routeSubscriptions));
+                updated = true;
+            }
 
             // Ensure data.auctions has default seed if missing or empty
             if (!data.auctions || !Array.isArray(data.auctions) || data.auctions.length === 0) {
@@ -842,7 +881,9 @@ const CargoStore = (function() {
                         registrations: data.registrations,
                         agentsList: data.agentsList,
                         adminsList: data.adminsList,
-                        settings: data.settings
+                        settings: data.settings,
+                        bankConfig: data.bankConfig,
+                        routeSubscriptions: data.routeSubscriptions
                     })
                 }).then(r => r.json()).then(res => {
                     if (res && res.version) {
@@ -893,6 +934,8 @@ const CargoStore = (function() {
                 local.agentsList = serverData.agentsList || local.agentsList;
                 local.adminsList = serverData.adminsList || local.adminsList;
                 if (serverData.settings) local.settings = serverData.settings;
+                if (serverData.bankConfig) local.bankConfig = serverData.bankConfig;
+                if (serverData.routeSubscriptions) local.routeSubscriptions = serverData.routeSubscriptions;
 
                 // Save locally without re-sending to server
                 saveData(local, true);
@@ -1639,6 +1682,29 @@ const CargoStore = (function() {
                 type: 'AUCTION_OPEN',
                 read: false,
                 link: `04-Detail.html?id=${newId}`
+            });
+
+            // Targeted Route Subscription Notifications for agents who subscribed to this specific route
+            const routePair = `${origin}-${dest}`.toUpperCase();
+            const subMap = data.routeSubscriptions || {};
+            Object.keys(subMap).forEach(agentCode => {
+                const sub = subMap[agentCode];
+                if (sub && sub.notifyOnNewAuction !== false) {
+                    const cleanList = (sub.routes || []).map(r => String(r).replace(/\s+/g, '').toUpperCase());
+                    if (cleanList.includes(routePair)) {
+                        data.notifications.unshift({
+                            id: Date.now() + Math.floor(Math.random() * 1000) + 1,
+                            timestamp: Date.now(),
+                            targetAgentCode: agentCode,
+                            title: `🔔 [TUYẾN BẠN QUAN TÂM] Phiên mới: ${flightNumber} (${origin} - ${dest})`,
+                            message: `Chuyến bay ${flightNumber} tuyến ${originName} ➔ ${destName} mà Quý đại lý đang theo dõi vừa mở đấu giá tải trọng ${this.formatNumber(capacityKg)} Kg (Giá khởi điểm: ${this.formatCurrency(startingPriceKg)}/Kg). Đặt giá ngay để không bỏ lỡ slot!`,
+                            time: 'Vừa xong',
+                            type: 'AUCTION_OPEN',
+                            read: false,
+                            link: `04-Detail.html?id=${newId}`
+                        });
+                    }
+                }
             });
 
             saveData(data);
@@ -2393,7 +2459,7 @@ const CargoStore = (function() {
             return { success: true, message: `Đã xác nhận nhận thanh toán thành công cho đơn ${wonId}! Email thông báo đã tự động gửi đến đại lý.`, item: item };
         },
 
-        notifyPaymentSent: function(wonId) {
+        notifyPaymentSent: function(wonId, paymentDetails = {}) {
             const data = loadData();
             if (!data.wonAuctions) data.wonAuctions = [];
             const item = data.wonAuctions.find(w => w.wonId === wonId);
@@ -2405,11 +2471,48 @@ const CargoStore = (function() {
                 return { success: false, message: `Đơn hàng "${wonId}" đã quá hạn thanh toán / Cut-off và đã bị hủy bởi hệ thống. Không thể gửi thông báo chuyển khoản.` };
             }
 
+            const bankCfg = data.bankConfig || defaultData.bankConfig;
+            const memo = paymentDetails.memo || this.generatePaymentMemo(item.wonId, item.agentCode);
+            const transferredAmount = Number(paymentDetails.transferredAmount) || item.totalAmountVND || 0;
+            const transactionRef = (paymentDetails.transactionRef || '').trim();
+            const proofImageUrl = paymentDetails.proofImageUrl || null;
+            const note = (paymentDetails.note || '').trim();
+            const bankName = paymentDetails.bankName || bankCfg.bankName;
+
             item.paymentStatus = 'PENDING_VERIFICATION';
             item.notifiedAt = new Date().toLocaleString('vi-VN');
+            item.paymentProof = {
+                memo: memo,
+                transactionRef: transactionRef,
+                proofImageUrl: proofImageUrl,
+                note: note,
+                transferredAmount: transferredAmount,
+                bankName: bankName,
+                submittedAt: new Date().toLocaleString('vi-VN')
+            };
+
+            // Create notification for Admin reconciliation
+            if (!data.notifications) data.notifications = [];
+            data.notifications.unshift({
+                id: Date.now() + Math.floor(Math.random() * 1000),
+                timestamp: Date.now(),
+                targetAgentCode: null, // Admin & Staff visible
+                title: `💳 ĐẠI LÝ BÁO CHUYỂN KHOẢN: Đơn ${item.wonId}`,
+                message: `Đại lý ${item.agentCode} (${item.agentName || 'ABC Logistics'}) đã báo chuyển khoản ${this.formatCurrency(transferredAmount)} cho đơn ${item.wonId} (Chuyến ${item.flightNumber}). Cú pháp: [${memo}]${transactionRef ? ` | Mã GD: ${transactionRef}` : ''}. Vui lòng đối soát sao kê ngân hàng và xác nhận.`,
+                time: 'Vừa xong',
+                type: 'PAYMENT',
+                read: false,
+                wonId: item.wonId,
+                link: `07-WonAuction.html?search=${item.wonId}`
+            });
+
             saveData(data);
 
-            return { success: true, message: `Đã gửi thông báo chuyển khoản cho đơn ${wonId}! Ban Điều hành sẽ kiểm tra và xác nhận trong ít phút.` };
+            return {
+                success: true,
+                message: `Đã gửi thông báo chuyển khoản đơn ${wonId} thành công! Ban Điều hành sẽ kiểm tra sao kê ngân hàng và xác nhận trong ít phút.`,
+                item: item
+            };
         },
 
         updateCargoDeclaration: function(wonId, cargoData) {
@@ -2877,6 +2980,132 @@ const CargoStore = (function() {
                     `;
                 }
             }
+        },
+
+        getBankConfig: function() {
+            const data = loadData();
+            if (!data.bankConfig) {
+                data.bankConfig = JSON.parse(JSON.stringify(defaultData.bankConfig));
+                saveData(data);
+            }
+            return data.bankConfig;
+        },
+
+        updateBankConfig: function(cfg) {
+            const data = loadData();
+            data.bankConfig = {
+                ...(data.bankConfig || defaultData.bankConfig),
+                ...cfg
+            };
+            saveData(data);
+            return {
+                success: true,
+                message: 'Đã cập nhật thông tin tài khoản ngân hàng thụ hưởng thành công!',
+                bankConfig: data.bankConfig
+            };
+        },
+
+        generatePaymentMemo: function(wonId, agentCode) {
+            const cfg = this.getBankConfig();
+            const prefix = (cfg.memoPrefix || 'CARGO').trim().toUpperCase();
+            const wId = (wonId || '').trim();
+            const aCode = (agentCode || '').trim().toUpperCase();
+            return `${prefix} ${wId} ${aCode}`.trim();
+        },
+
+        generateVietQRUrl: function(amount, memo) {
+            const cfg = this.getBankConfig();
+            const bin = cfg.bankBin || '970436';
+            const acc = cfg.accountNumber || '1029384756';
+            const amt = Math.round(Number(amount) || 0);
+            const desc = encodeURIComponent(memo || '');
+            const accName = encodeURIComponent(cfg.accountName || 'CONG TY CP HANG KHONG VIETRAVEL');
+            return `https://img.vietqr.io/image/${bin}-${acc}-compact2.png?amount=${amt}&addInfo=${desc}&accountName=${accName}`;
+        },
+
+        getAvailableRoutes: function() {
+            return [
+                { pair: 'HAN-SGN', name: 'Hà Nội (HAN) ➔ TP.HCM (SGN)', origin: 'HAN', dest: 'SGN' },
+                { pair: 'SGN-HAN', name: 'TP.HCM (SGN) ➔ Hà Nội (HAN)', origin: 'SGN', dest: 'HAN' },
+                { pair: 'SGN-DAD', name: 'TP.HCM (SGN) ➔ Đà Nẵng (DAD)', origin: 'SGN', dest: 'DAD' },
+                { pair: 'DAD-SGN', name: 'Đà Nẵng (DAD) ➔ TP.HCM (SGN)', origin: 'DAD', dest: 'SGN' },
+                { pair: 'HAN-DAD', name: 'Hà Nội (HAN) ➔ Đà Nẵng (DAD)', origin: 'HAN', dest: 'DAD' },
+                { pair: 'DAD-HAN', name: 'Đà Nẵng (DAD) ➔ Hà Nội (HAN)', origin: 'DAD', dest: 'HAN' },
+                { pair: 'HAN-PQC', name: 'Hà Nội (HAN) ➔ Phú Quốc (PQC)', origin: 'HAN', dest: 'PQC' },
+                { pair: 'PQC-HAN', name: 'Phú Quốc (PQC) ➔ Hà Nội (HAN)', origin: 'PQC', dest: 'HAN' },
+                { pair: 'SGN-PQC', name: 'TP.HCM (SGN) ➔ Phú Quốc (PQC)', origin: 'SGN', dest: 'PQC' },
+                { pair: 'PQC-SGN', name: 'Phú Quốc (PQC) ➔ TP.HCM (SGN)', origin: 'PQC', dest: 'SGN' },
+                { pair: 'SGN-CXR', name: 'TP.HCM (SGN) ➔ Cam Ranh (CXR)', origin: 'SGN', dest: 'CXR' },
+                { pair: 'CXR-SGN', name: 'Cam Ranh (CXR) ➔ TP.HCM (SGN)', origin: 'CXR', dest: 'SGN' }
+            ];
+        },
+
+        getRouteSubscriptions: function(agentCode) {
+            const data = loadData();
+            if (!data.routeSubscriptions) data.routeSubscriptions = {};
+            const code = (agentCode || (data.currentUser ? data.currentUser.agentCode : 'AG-0892') || 'AG-0892').trim().toUpperCase();
+            if (!data.routeSubscriptions[code]) {
+                data.routeSubscriptions[code] = {
+                    routes: ['HAN-SGN', 'SGN-HAN'],
+                    notifyOnNewAuction: true,
+                    notifyOnOutbid: true,
+                    notifyOnClosingSoon: true,
+                    notifyOnWon: true,
+                    emailAlert: true,
+                    soundAlert: true
+                };
+                saveData(data);
+            }
+            return data.routeSubscriptions[code];
+        },
+
+        saveRouteSubscriptions: function(agentCode, settings) {
+            const data = loadData();
+            if (!data.routeSubscriptions) data.routeSubscriptions = {};
+            const code = (agentCode || (data.currentUser ? data.currentUser.agentCode : 'AG-0892') || 'AG-0892').trim().toUpperCase();
+            data.routeSubscriptions[code] = {
+                ...(data.routeSubscriptions[code] || {}),
+                ...settings
+            };
+            saveData(data);
+            return {
+                success: true,
+                message: 'Đã lưu cài đặt thông báo tuyến bay thành công!',
+                settings: data.routeSubscriptions[code]
+            };
+        },
+
+        toggleRouteSubscription: function(agentCode, routePair) {
+            const data = loadData();
+            const code = (agentCode || (data.currentUser ? data.currentUser.agentCode : 'AG-0892') || 'AG-0892').trim().toUpperCase();
+            const subs = this.getRouteSubscriptions(code);
+            const pair = (routePair || '').trim().toUpperCase().replace(/\s+/g, '');
+            let routes = (subs.routes || []).map(r => String(r).replace(/\s+/g, '').toUpperCase());
+            let isSubscribed = false;
+            if (routes.includes(pair)) {
+                routes = routes.filter(r => r !== pair);
+                isSubscribed = false;
+            } else {
+                routes.push(pair);
+                isSubscribed = true;
+            }
+            subs.routes = routes;
+            this.saveRouteSubscriptions(code, subs);
+            return {
+                success: true,
+                isSubscribed: isSubscribed,
+                routes: routes,
+                message: isSubscribed
+                    ? `🔔 Đã bật nhận thông báo phiên đấu giá mới cho tuyến ${pair}!`
+                    : `🔕 Đã tắt thông báo cho tuyến ${pair}.`
+            };
+        },
+
+        isRouteSubscribed: function(agentCode, routePair) {
+            const subs = this.getRouteSubscriptions(agentCode);
+            const pair = (routePair || '').trim().toUpperCase().replace(/\s+/g, '');
+            const routes = (subs.routes || []).map(r => String(r).replace(/\s+/g, '').toUpperCase());
+            return routes.includes(pair);
         },
 
         getCurrentTime: function() {

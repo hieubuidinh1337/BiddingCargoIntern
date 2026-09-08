@@ -115,6 +115,21 @@
                     </select>
                 </div>
             </div>
+
+            <!-- Route Alert Subscriptions Bar -->
+            <div class="bg-gradient-to-r from-indigo-50/80 via-blue-50/60 to-slate-50 rounded-xl border border-indigo-100 p-3 flex flex-col sm:flex-row sm:items-center justify-between gap-2.5 text-xs">
+                <div class="flex items-center gap-2 flex-wrap">
+                    <span class="font-bold text-indigo-900 flex items-center gap-1.5">
+                        <i class="fa-solid fa-bell text-indigo-600 animate-pulse"></i> Chuông báo tuyến bay:
+                    </span>
+                    <div id="subscribedRoutesBadges" class="flex items-center gap-1.5 flex-wrap">
+                        <!-- Rendered by JS -->
+                    </div>
+                </div>
+                <button type="button" onclick="openRouteAlertModal()" class="bg-indigo-600 hover:bg-indigo-700 text-white font-bold px-3.5 py-1.5 rounded-lg transition shadow-xs flex items-center justify-center gap-1.5 text-xs whitespace-nowrap cursor-pointer">
+                    <i class="fa-solid fa-sliders text-[11px]"></i> Cài đặt chuông báo tuyến
+                </button>
+            </div>
         </div>
 
         <!-- Auctions Grid -->
@@ -127,6 +142,77 @@
         </div>
 
     </main>
+
+    <!-- Modal: Cài đặt Chuông báo Tuyến bay & Sự kiện Đấu giá -->
+    <div id="routeAlertModal" class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-50 flex items-center justify-center p-3 sm:p-4 hidden">
+        <div class="bg-white rounded-3xl max-w-2xl w-full max-h-[90vh] flex flex-col shadow-2xl overflow-hidden animate-in fade-in zoom-in duration-200">
+            <div class="bg-gradient-to-r from-slate-900 to-indigo-950 text-white px-6 py-4 flex items-center justify-between flex-shrink-0">
+                <div class="flex items-center gap-3">
+                    <div class="w-10 h-10 rounded-2xl bg-indigo-500/20 text-indigo-300 flex items-center justify-center text-lg font-bold border border-indigo-500/30">
+                        <i class="fa-solid fa-bell"></i>
+                    </div>
+                    <div>
+                        <h3 class="font-bold text-base leading-tight">Cài đặt Thông báo Tuyến bay Quan tâm</h3>
+                        <p class="text-xs text-indigo-200 mt-0.5">Hệ thống sẽ gửi thông báo real-time ngay khi có phiên đấu giá mới</p>
+                    </div>
+                </div>
+                <button onclick="closeRouteAlertModal()" class="text-slate-400 hover:text-white text-lg cursor-pointer">
+                    <i class="fa-solid fa-xmark"></i>
+                </button>
+            </div>
+
+            <form onsubmit="handleSaveRouteAlertForm(event)" class="p-6 space-y-5 text-xs overflow-y-auto flex-1">
+                <!-- Select Routes Grid -->
+                <div class="space-y-2">
+                    <div class="flex items-center justify-between">
+                        <label class="font-bold text-slate-900 text-xs">Chọn các tuyến bay bạn muốn theo dõi:</label>
+                        <span class="text-[11px] text-gray-500">Bấm chọn để bật chuông báo</span>
+                    </div>
+
+                    <div class="grid grid-cols-1 sm:grid-cols-2 gap-2.5" id="routeCheckboxesGrid">
+                        <!-- Populated by JS -->
+                    </div>
+                </div>
+
+                <!-- Event notification triggers -->
+                <div class="border-t pt-4 space-y-3">
+                    <label class="font-bold text-slate-900 text-xs block">Tùy chọn loại thông báo nhận:</label>
+
+                    <div class="space-y-2.5 bg-slate-50 p-3.5 rounded-2xl border">
+                        <label class="flex items-center justify-between cursor-pointer">
+                            <span class="text-slate-700 font-medium">🔔 Thông báo ngay khi có phiên mới mở trên tuyến đã chọn</span>
+                            <input type="checkbox" id="subNotifyNewAuction" checked class="w-4 h-4 text-indigo-600 rounded border-slate-300 focus:ring-indigo-500">
+                        </label>
+                        <label class="flex items-center justify-between cursor-pointer">
+                            <span class="text-slate-700 font-medium">⚠️ Thông báo khi bị đại lý khác vượt giá thầu (Outbid)</span>
+                            <input type="checkbox" id="subNotifyOutbid" checked class="w-4 h-4 text-indigo-600 rounded border-slate-300 focus:ring-indigo-500">
+                        </label>
+                        <label class="flex items-center justify-between cursor-pointer">
+                            <span class="text-slate-700 font-medium">⏳ Nhắc nhở khi phiên thầu sắp đóng (30 phút trước giờ chốt)</span>
+                            <input type="checkbox" id="subNotifyClosingSoon" checked class="w-4 h-4 text-indigo-600 rounded border-slate-300 focus:ring-indigo-500">
+                        </label>
+                        <label class="flex items-center justify-between cursor-pointer">
+                            <span class="text-slate-700 font-medium">📧 Đồng thời gửi thông báo qua Email đại lý</span>
+                            <input type="checkbox" id="subEmailAlert" checked class="w-4 h-4 text-indigo-600 rounded border-slate-300 focus:ring-indigo-500">
+                        </label>
+                    </div>
+                </div>
+
+                <div class="flex items-center justify-end gap-2.5 pt-3 border-t">
+                    <button type="button" onclick="closeRouteAlertModal()" class="px-4 py-2 border rounded-xl text-slate-600 hover:bg-slate-50 font-medium cursor-pointer">Hủy</button>
+                    <button type="submit" class="px-5 py-2.5 bg-indigo-600 hover:bg-indigo-700 text-white font-bold rounded-xl shadow transition flex items-center gap-1.5 cursor-pointer">
+                        <i class="fa-solid fa-floppy-disk"></i> Lưu Cài đặt Chuông báo
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Notification Toast -->
+    <div id="toastIndex" class="fixed bottom-5 right-5 bg-slate-900 text-white text-xs font-semibold px-4 py-3 rounded-xl shadow-xl flex items-center gap-2.5 z-50 transform translate-y-20 opacity-0 transition-all duration-300 pointer-events-none">
+        <i class="fa-solid fa-circle-check text-emerald-400 text-base" id="toastIndexIcon"></i>
+        <span id="toastIndexMsg">Đã cập nhật</span>
+    </div>
 
     <script>
         let indexCurrentPage = 1;
@@ -407,6 +493,118 @@
                 containerId: 'indexPaginationContainer',
                 itemUnitLabel: 'phiên'
             });
+
+            renderSubscribedRoutesBadges();
+        }
+
+        function showIndexToast(msg, isSuccess = true) {
+            const toast = document.getElementById('toastIndex');
+            const icon = document.getElementById('toastIndexIcon');
+            const txt = document.getElementById('toastIndexMsg');
+            if (!toast || !txt) return;
+
+            txt.textContent = msg;
+            icon.className = isSuccess ? 'fa-solid fa-circle-check text-emerald-400 text-base' : 'fa-solid fa-circle-exclamation text-amber-400 text-base';
+            toast.classList.remove('translate-y-20', 'opacity-0', 'pointer-events-none');
+
+            setTimeout(() => {
+                toast.classList.add('translate-y-20', 'opacity-0', 'pointer-events-none');
+            }, 3000);
+        }
+
+        function renderSubscribedRoutesBadges() {
+            const container = document.getElementById('subscribedRoutesBadges');
+            if (!container || typeof CargoStore === 'undefined') return;
+
+            const subs = CargoStore.getRouteSubscriptions ? CargoStore.getRouteSubscriptions() : { routes: [] };
+            const routes = subs.routes || [];
+
+            if (routes.length === 0) {
+                container.innerHTML = `
+                    <span class="text-slate-400 italic text-[11px]">Chưa đăng ký tuyến nào (Bấm "Cài đặt" để bật)</span>
+                `;
+                return;
+            }
+
+            container.innerHTML = routes.map(r => `
+                <span class="inline-flex items-center gap-1.5 bg-white border border-indigo-200 text-indigo-900 font-bold px-2.5 py-1 rounded-lg text-[11px] shadow-2xs">
+                    <span class="w-1.5 h-1.5 rounded-full bg-indigo-500 animate-pulse"></span>
+                    <span>${r}</span>
+                    <button type="button" onclick="handleQuickToggleRoute('${r}')" class="text-slate-400 hover:text-red-500 ml-0.5 cursor-pointer" title="Tắt thông báo tuyến ${r}">
+                        <i class="fa-solid fa-xmark text-[10px]"></i>
+                    </button>
+                </span>
+            `).join('');
+        }
+
+        function handleQuickToggleRoute(routePair) {
+            if (typeof CargoStore === 'undefined' || !CargoStore.toggleRouteSubscription) return;
+            const res = CargoStore.toggleRouteSubscription(null, routePair);
+            showIndexToast(res.message, res.isSubscribed);
+            renderSubscribedRoutesBadges();
+        }
+
+        function openRouteAlertModal() {
+            if (typeof CargoStore === 'undefined') return;
+
+            const subs = CargoStore.getRouteSubscriptions ? CargoStore.getRouteSubscriptions() : { routes: [] };
+            const availableRoutes = CargoStore.getAvailableRoutes ? CargoStore.getAvailableRoutes() : [];
+            const curRoutes = (subs.routes || []).map(r => r.replace(/\s+/g, '').toUpperCase());
+
+            const grid = document.getElementById('routeCheckboxesGrid');
+            if (grid) {
+                grid.innerHTML = availableRoutes.map(r => {
+                    const cleanPair = r.pair.replace(/\s+/g, '').toUpperCase();
+                    const isChecked = curRoutes.includes(cleanPair);
+                    return `
+                        <label class="flex items-center justify-between p-3 rounded-xl border ${isChecked ? 'border-indigo-500 bg-indigo-50/60' : 'border-slate-200 bg-white hover:bg-slate-50'} transition cursor-pointer select-none">
+                            <div class="flex items-center gap-2">
+                                <i class="fa-solid fa-plane-departure ${isChecked ? 'text-indigo-600' : 'text-slate-400'} text-xs"></i>
+                                <span class="font-bold text-slate-900 text-xs">${r.pair}</span>
+                                <span class="text-[10px] text-slate-500 hidden sm:inline">(${r.origin} ➔ ${r.dest})</span>
+                            </div>
+                            <input type="checkbox" name="routeSubCheckbox" value="${r.pair}" ${isChecked ? 'checked' : ''} class="w-4 h-4 text-indigo-600 rounded border-slate-300 focus:ring-indigo-500">
+                        </label>
+                    `;
+                }).join('');
+            }
+
+            document.getElementById('subNotifyNewAuction').checked = subs.notifyOnNewAuction !== false;
+            document.getElementById('subNotifyOutbid').checked = subs.notifyOnOutbid !== false;
+            document.getElementById('subNotifyClosingSoon').checked = subs.notifyOnClosingSoon !== false;
+            document.getElementById('subEmailAlert').checked = subs.emailAlert !== false;
+
+            document.getElementById('routeAlertModal').classList.remove('hidden');
+        }
+
+        function closeRouteAlertModal() {
+            document.getElementById('routeAlertModal').classList.add('hidden');
+        }
+
+        function handleSaveRouteAlertForm(e) {
+            e.preventDefault();
+            if (typeof CargoStore === 'undefined' || !CargoStore.saveRouteSubscriptions) return;
+
+            const checkedBoxes = Array.from(document.querySelectorAll('input[name="routeSubCheckbox"]:checked')).map(cb => cb.value);
+            const notifyNew = document.getElementById('subNotifyNewAuction').checked;
+            const notifyOutbid = document.getElementById('subNotifyOutbid').checked;
+            const notifyClosing = document.getElementById('subNotifyClosingSoon').checked;
+            const emailAlert = document.getElementById('subEmailAlert').checked;
+
+            const res = CargoStore.saveRouteSubscriptions(null, {
+                routes: checkedBoxes,
+                notifyOnNewAuction: notifyNew,
+                notifyOnOutbid: notifyOutbid,
+                notifyOnClosingSoon: notifyClosing,
+                emailAlert: emailAlert,
+                soundAlert: true
+            });
+
+            if (res.success) {
+                showIndexToast(res.message, true);
+                closeRouteAlertModal();
+                renderSubscribedRoutesBadges();
+            }
         }
 
         function toggleWatch(id) {

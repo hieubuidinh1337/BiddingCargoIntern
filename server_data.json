@@ -17,7 +17,7 @@
       "startingPriceKg": 18000,
       "currentPriceKg": 56500,
       "minStep": 500,
-      "endTime": "2026-09-08T10:45:11.350Z",
+      "endTime": "2026-09-08T14:51:32.611Z",
       "status": "OPEN",
       "leadingAgentCode": "AG-0892",
       "leadingAgentName": "Công ty TNHH Vận tải ABC Logistics",
@@ -43,7 +43,7 @@
       "startingPriceKg": 12000,
       "currentPriceKg": 14500,
       "minStep": 500,
-      "endTime": "2026-09-08T11:32:11.350Z",
+      "endTime": "2026-09-08T16:06:32.611Z",
       "status": "OPEN",
       "leadingAgentCode": "AG-1024",
       "leadingAgentName": "Công ty CP Giao nhận Kho vận Vinatrans",
@@ -69,7 +69,7 @@
       "startingPriceKg": 22000,
       "currentPriceKg": 30000,
       "minStep": 1000,
-      "endTime": "2026-09-08T12:47:11.350Z",
+      "endTime": "2026-09-08T16:06:32.611Z",
       "status": "OPEN",
       "leadingAgentCode": "AG-1024",
       "leadingAgentName": "Công ty CP Giao nhận Kho vận Vinatrans",
@@ -1526,5 +1526,27 @@
       "previewUrl": "https://ethereal.email/message/appr6wlT7djryGQNappr794vWvYlxQHSAAAAAU0C-.uX8drab0-Fr4R4IPk",
       "sentAt": "13:57:51 4/9/2026"
     }
-  ]
+  ],
+  "bankConfig": {
+    "bankName": "Ngân hàng TMCP Ngoại Thương Việt Nam (Vietcombank)",
+    "accountNumber": "1029384756",
+    "accountName": "CONG TY CP HANG KHONG VIETRAVEL",
+    "branch": "Chi nhánh Tân Bình - TP. Hồ Chí Minh",
+    "memoPrefix": "CARGO",
+    "bankBin": "970436"
+  },
+  "routeSubscriptions": {
+    "AG-0892": {
+      "routes": [
+        "HAN - SGN",
+        "SGN - HAN",
+        "SGN - DAD"
+      ],
+      "notifyOnNewAuction": true,
+      "notifyOnOutbid": true,
+      "notifyOnClosingSoon": true,
+      "emailAlerts": true,
+      "updatedAt": "2026-09-08 15:30"
+    }
+  }
 }

@@ -103,6 +103,24 @@
             </div>
         </div>
 
+        <!-- Route Notification Preferences Card -->
+        <div class="bg-gradient-to-r from-indigo-50/90 via-blue-50/70 to-slate-50 border border-indigo-100 rounded-2xl p-4 flex flex-col sm:flex-row sm:items-center justify-between gap-3 text-xs shadow-xs">
+            <div class="space-y-1">
+                <div class="flex items-center gap-2 flex-wrap">
+                    <span class="font-bold text-indigo-900 flex items-center gap-1.5 text-xs">
+                        <i class="fa-solid fa-bell text-indigo-600 animate-pulse"></i> Tuyến bay đăng ký nhận chuông báo:
+                    </span>
+                    <div id="notifSubscribedBadges" class="flex items-center gap-1.5 flex-wrap">
+                        <!-- Rendered by JS -->
+                    </div>
+                </div>
+                <p class="text-[11px] text-gray-500">Hệ thống sẽ gửi thông báo ưu tiên ngay khi có phiên đấu giá mới mở trên các tuyến này.</p>
+            </div>
+            <button type="button" onclick="openRouteAlertModal()" class="bg-indigo-600 hover:bg-indigo-700 text-white font-bold px-3.5 py-2 rounded-xl transition shadow flex items-center justify-center gap-1.5 text-xs whitespace-nowrap cursor-pointer">
+                <i class="fa-solid fa-sliders"></i> Cài đặt tuyến quan tâm
+            </button>
+        </div>
+
         <!-- Filter Bar -->
         <div class="bg-white rounded-xl border p-1.5 shadow-sm flex items-center gap-1 overflow-x-auto">
             <button onclick="setFilter('all')" class="filter-btn active text-xs font-semibold px-3 py-1.5 rounded-lg whitespace-nowrap" id="f-all">
@@ -132,6 +150,71 @@
         <div id="notifList" class="space-y-3"></div>
 
     </main>
+
+    <!-- Modal: Cài đặt Chuông báo Tuyến bay & Sự kiện Đấu giá -->
+    <div id="routeAlertModal" class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-50 flex items-center justify-center p-3 sm:p-4 hidden">
+        <div class="bg-white rounded-3xl max-w-2xl w-full max-h-[90vh] flex flex-col shadow-2xl overflow-hidden animate-in fade-in zoom-in duration-200">
+            <div class="bg-gradient-to-r from-slate-900 to-indigo-950 text-white px-6 py-4 flex items-center justify-between flex-shrink-0">
+                <div class="flex items-center gap-3">
+                    <div class="w-10 h-10 rounded-2xl bg-indigo-500/20 text-indigo-300 flex items-center justify-center text-lg font-bold border border-indigo-500/30">
+                        <i class="fa-solid fa-bell"></i>
+                    </div>
+                    <div>
+                        <h3 class="font-bold text-base leading-tight">Cài đặt Thông báo Tuyến bay Quan tâm</h3>
+                        <p class="text-xs text-indigo-200 mt-0.5">Hệ thống sẽ gửi thông báo real-time ngay khi có phiên đấu giá mới</p>
+                    </div>
+                </div>
+                <button onclick="closeRouteAlertModal()" class="text-slate-400 hover:text-white text-lg cursor-pointer">
+                    <i class="fa-solid fa-xmark"></i>
+                </button>
+            </div>
+
+            <form onsubmit="handleSaveRouteAlertForm(event)" class="p-6 space-y-5 text-xs overflow-y-auto flex-1">
+                <!-- Select Routes Grid -->
+                <div class="space-y-2">
+                    <div class="flex items-center justify-between">
+                        <label class="font-bold text-slate-900 text-xs">Chọn các tuyến bay bạn muốn theo dõi:</label>
+                        <span class="text-[11px] text-gray-500">Bấm chọn để bật chuông báo</span>
+                    </div>
+
+                    <div class="grid grid-cols-1 sm:grid-cols-2 gap-2.5" id="routeCheckboxesGrid">
+                        <!-- Populated by JS -->
+                    </div>
+                </div>
+
+                <!-- Event notification triggers -->
+                <div class="border-t pt-4 space-y-3">
+                    <label class="font-bold text-slate-900 text-xs block">Tùy chọn loại thông báo nhận:</label>
+
+                    <div class="space-y-2.5 bg-slate-50 p-3.5 rounded-2xl border">
+                        <label class="flex items-center justify-between cursor-pointer">
+                            <span class="text-slate-700 font-medium">🔔 Thông báo ngay khi có phiên mới mở trên tuyến đã chọn</span>
+                            <input type="checkbox" id="subNotifyNewAuction" checked class="w-4 h-4 text-indigo-600 rounded border-slate-300 focus:ring-indigo-500">
+                        </label>
+                        <label class="flex items-center justify-between cursor-pointer">
+                            <span class="text-slate-700 font-medium">⚠️ Thông báo khi bị đại lý khác vượt giá thầu (Outbid)</span>
+                            <input type="checkbox" id="subNotifyOutbid" checked class="w-4 h-4 text-indigo-600 rounded border-slate-300 focus:ring-indigo-500">
+                        </label>
+                        <label class="flex items-center justify-between cursor-pointer">
+                            <span class="text-slate-700 font-medium">⏳ Nhắc nhở khi phiên thầu sắp đóng (30 phút trước giờ chốt)</span>
+                            <input type="checkbox" id="subNotifyClosingSoon" checked class="w-4 h-4 text-indigo-600 rounded border-slate-300 focus:ring-indigo-500">
+                        </label>
+                        <label class="flex items-center justify-between cursor-pointer">
+                            <span class="text-slate-700 font-medium">📧 Đồng thời gửi thông báo qua Email đại lý</span>
+                            <input type="checkbox" id="subEmailAlert" checked class="w-4 h-4 text-indigo-600 rounded border-slate-300 focus:ring-indigo-500">
+                        </label>
+                    </div>
+                </div>
+
+                <div class="flex items-center justify-end gap-2.5 pt-3 border-t">
+                    <button type="button" onclick="closeRouteAlertModal()" class="px-4 py-2 border rounded-xl text-slate-600 hover:bg-slate-50 font-medium cursor-pointer">Hủy</button>
+                    <button type="submit" class="px-5 py-2.5 bg-indigo-600 hover:bg-indigo-700 text-white font-bold rounded-xl shadow transition flex items-center gap-1.5 cursor-pointer">
+                        <i class="fa-solid fa-floppy-disk"></i> Lưu Cài đặt Chuông báo
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
 
     <!-- Toast -->
     <div id="toast" class="fixed bottom-6 right-6 z-50 hidden">
@@ -294,11 +377,100 @@
                     ` : (n.type === 'WON' ? `
                     <a href="07-WonAuction.html" onclick="markReadById(${n.id})" class="flex-shrink-0 bg-emerald-500 hover:bg-emerald-600 text-white text-xs font-bold px-3 py-2 rounded-xl transition shadow flex items-center gap-1.5 whitespace-nowrap">
                         <i class="fa-solid fa-circle-check text-[10px]"></i> Xem đơn
-                    </a>
-                    ` : '')}
-                </div>
-            </div>`;
-        }).join('');
+        renderNotifSubscribedBadges();
+    }
+
+    function renderNotifSubscribedBadges() {
+        const container = document.getElementById('notifSubscribedBadges');
+        if (!container || typeof CargoStore === 'undefined') return;
+
+        const subs = CargoStore.getRouteSubscriptions ? CargoStore.getRouteSubscriptions() : { routes: [] };
+        const routes = subs.routes || [];
+
+        if (routes.length === 0) {
+            container.innerHTML = `<span class="text-slate-400 italic text-[11px]">Chưa chọn tuyến nào</span>`;
+            return;
+        }
+
+        container.innerHTML = routes.map(r => `
+            <span class="inline-flex items-center gap-1.5 bg-white border border-indigo-200 text-indigo-900 font-bold px-2 py-0.5 rounded-lg text-[10px] shadow-2xs">
+                <span class="w-1.5 h-1.5 rounded-full bg-indigo-500 animate-pulse"></span>
+                <span>${r}</span>
+                <button type="button" onclick="handleQuickToggleRoute('${r}')" class="text-slate-400 hover:text-red-500 ml-0.5 cursor-pointer" title="Tắt thông báo tuyến ${r}">
+                    <i class="fa-solid fa-xmark text-[9px]"></i>
+                </button>
+            </span>
+        `).join('');
+    }
+
+    function handleQuickToggleRoute(routePair) {
+        if (typeof CargoStore === 'undefined' || !CargoStore.toggleRouteSubscription) return;
+        const res = CargoStore.toggleRouteSubscription(null, routePair);
+        showToast(res.message);
+        renderNotifSubscribedBadges();
+    }
+
+    function openRouteAlertModal() {
+        if (typeof CargoStore === 'undefined') return;
+
+        const subs = CargoStore.getRouteSubscriptions ? CargoStore.getRouteSubscriptions() : { routes: [] };
+        const availableRoutes = CargoStore.getAvailableRoutes ? CargoStore.getAvailableRoutes() : [];
+        const curRoutes = (subs.routes || []).map(r => r.replace(/\s+/g, '').toUpperCase());
+
+        const grid = document.getElementById('routeCheckboxesGrid');
+        if (grid) {
+            grid.innerHTML = availableRoutes.map(r => {
+                const cleanPair = r.pair.replace(/\s+/g, '').toUpperCase();
+                const isChecked = curRoutes.includes(cleanPair);
+                return `
+                    <label class="flex items-center justify-between p-3 rounded-xl border ${isChecked ? 'border-indigo-500 bg-indigo-50/60' : 'border-slate-200 bg-white hover:bg-slate-50'} transition cursor-pointer select-none">
+                        <div class="flex items-center gap-2">
+                            <i class="fa-solid fa-plane-departure ${isChecked ? 'text-indigo-600' : 'text-slate-400'} text-xs"></i>
+                            <span class="font-bold text-slate-900 text-xs">${r.pair}</span>
+                            <span class="text-[10px] text-slate-500 hidden sm:inline">(${r.origin} ➔ ${r.dest})</span>
+                        </div>
+                        <input type="checkbox" name="routeSubCheckbox" value="${r.pair}" ${isChecked ? 'checked' : ''} class="w-4 h-4 text-indigo-600 rounded border-slate-300 focus:ring-indigo-500">
+                    </label>
+                `;
+            }).join('');
+        }
+
+        document.getElementById('subNotifyNewAuction').checked = subs.notifyOnNewAuction !== false;
+        document.getElementById('subNotifyOutbid').checked = subs.notifyOnOutbid !== false;
+        document.getElementById('subNotifyClosingSoon').checked = subs.notifyOnClosingSoon !== false;
+        document.getElementById('subEmailAlert').checked = subs.emailAlert !== false;
+
+        document.getElementById('routeAlertModal').classList.remove('hidden');
+    }
+
+    function closeRouteAlertModal() {
+        document.getElementById('routeAlertModal').classList.add('hidden');
+    }
+
+    function handleSaveRouteAlertForm(e) {
+        e.preventDefault();
+        if (typeof CargoStore === 'undefined' || !CargoStore.saveRouteSubscriptions) return;
+
+        const checkedBoxes = Array.from(document.querySelectorAll('input[name="routeSubCheckbox"]:checked')).map(cb => cb.value);
+        const notifyNew = document.getElementById('subNotifyNewAuction').checked;
+        const notifyOutbid = document.getElementById('subNotifyOutbid').checked;
+        const notifyClosing = document.getElementById('subNotifyClosingSoon').checked;
+        const emailAlert = document.getElementById('subEmailAlert').checked;
+
+        const res = CargoStore.saveRouteSubscriptions(null, {
+            routes: checkedBoxes,
+            notifyOnNewAuction: notifyNew,
+            notifyOnOutbid: notifyOutbid,
+            notifyOnClosingSoon: notifyClosing,
+            emailAlert: emailAlert,
+            soundAlert: true
+        });
+
+        if (res.success) {
+            showToast(res.message);
+            closeRouteAlertModal();
+            renderNotifSubscribedBadges();
+        }
     }
 
     function markReadById(id) {
@@ -352,6 +524,7 @@
             renderNotifications();
         }
     });
+    window.addEventListener('cargostore_updated', renderNotifications);
     </script>
 </body>
 </html>

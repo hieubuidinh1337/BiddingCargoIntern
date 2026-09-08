@@ -366,6 +366,65 @@
                             </div>
                         `;
                     }
+
+                    // Append Payment Proof & Reconciliation Card
+                    const isPaid = wonItem.paymentStatus === 'PAID';
+                    const isPending = wonItem.paymentStatus === 'PENDING_VERIFICATION';
+                    const isExpired = (window.CargoStore && CargoStore.isWonAuctionExpired) ? CargoStore.isWonAuctionExpired(wonItem) : false;
+                    const proof = wonItem.paymentProof;
+                    const expectedMemo = CargoStore.generatePaymentMemo ? CargoStore.generatePaymentMemo(wonItem.wonId, wonItem.agentCode) : `CARGO ${wonItem.wonId} ${wonItem.agentCode}`;
+
+                    secCargo.innerHTML += `
+                        <div class="bg-white border rounded-2xl p-5 text-xs space-y-3 shadow-sm mt-3">
+                            <div class="flex items-center justify-between border-b pb-2.5">
+                                <h3 class="font-bold text-sm text-slate-900 flex items-center gap-2">
+                                    <i class="fa-solid fa-file-invoice-dollar text-emerald-600 text-base"></i>
+                                    Tình trạng Thanh toán & Đối soát Chuyển khoản (Đơn ${wonItem.wonId})
+                                </h3>
+                                <div>
+                                    ${isPaid ? `<span class="bg-emerald-100 text-emerald-800 font-bold px-2.5 py-1 rounded-full text-[10px] inline-flex items-center gap-1"><i class="fa-solid fa-circle-check text-emerald-600"></i> ĐÃ THANH TOÁN (${wonItem.paidAt || 'Đã khớp'})</span>` :
+                                      (isPending ? `<span class="bg-amber-100 text-amber-900 font-bold px-2.5 py-1 rounded-full text-[10px] inline-flex items-center gap-1 animate-pulse"><i class="fa-solid fa-spinner fa-spin text-amber-600"></i> ĐẠI LÝ BÁO ĐÃ CK - CHỜ DUYỆT</span>` :
+                                      (isExpired ? `<span class="bg-rose-100 text-rose-800 font-bold px-2.5 py-1 rounded-full text-[10px] inline-flex items-center gap-1"><i class="fa-solid fa-ban text-rose-600"></i> ĐƠN QUÁ HẠN</span>` :
+                                      `<span class="bg-red-100 text-red-700 font-bold px-2.5 py-1 rounded-full text-[10px] inline-flex items-center gap-1"><i class="fa-solid fa-clock text-red-500"></i> CHỜ THANH TOÁN</span>`))}
+                                </div>
+                            </div>
+
+                            <div class="grid grid-cols-1 sm:grid-cols-3 gap-3">
+                                <div class="bg-slate-50 p-3 rounded-xl border">
+                                    <span class="text-[11px] text-slate-500 block">Số tiền cần thanh toán:</span>
+                                    <p class="font-bold text-emerald-700 text-base mt-0.5">${CargoStore.formatCurrency(wonItem.totalAmountVND)}</p>
+                                </div>
+                                <div class="bg-slate-50 p-3 rounded-xl border">
+                                    <span class="text-[11px] text-slate-500 block">Cú pháp chuyển khoản:</span>
+                                    <p class="font-mono font-bold text-blue-700 text-xs mt-0.5">${expectedMemo}</p>
+                                </div>
+                                <div class="bg-slate-50 p-3 rounded-xl border">
+                                    <span class="text-[11px] text-slate-500 block">Mã GD / FT Ngân hàng:</span>
+                                    <p class="font-mono font-bold text-slate-900 text-xs mt-0.5">${proof?.transactionRef || '<span class="text-slate-400 font-normal italic">Chưa nhập mã</span>'}</p>
+                                </div>
+                            </div>
+
+                            ${proof?.proofImageUrl ? `
+                                <div class="border rounded-xl p-3 bg-slate-50 space-y-2">
+                                    <div class="flex items-center justify-between">
+                                        <span class="font-bold text-slate-800 text-[11px] flex items-center gap-1.5">
+                                            <i class="fa-solid fa-image text-blue-600"></i> Ảnh biên lai chuyển tiền:
+                                        </span>
+                                        <a href="${proof.proofImageUrl}" target="_blank" class="text-blue-600 hover:text-blue-800 text-[11px] underline font-bold">Mở ảnh lớn</a>
+                                    </div>
+                                    <img src="${proof.proofImageUrl}" alt="Biên lai" class="max-h-48 rounded-lg object-contain">
+                                </div>
+                            ` : ''}
+
+                            ${!isPaid && !isExpired ? `
+                                <div class="pt-2 flex justify-end">
+                                    <button onclick="handleDetailConfirmPayment('${wonItem.wonId}')" class="bg-emerald-600 hover:bg-emerald-700 text-white font-bold px-4 py-2 rounded-xl text-xs transition shadow flex items-center gap-1.5 cursor-pointer">
+                                        <i class="fa-solid fa-circle-check"></i> Xác nhận Đã nhận tiền (Khớp lệnh)
+                                    </button>
+                                </div>
+                            ` : ''}
+                        </div>
+                    `;
                 } else {
                     secCargo.classList.add('hidden');
                 }
@@ -561,6 +620,18 @@
             if (res.success) {
                 alert(res.message);
                 closeDetailBroadcastModal();
+            }
+        }
+
+        function handleDetailConfirmPayment(wonId) {
+            if (confirm(`Xác nhận đã nhận đủ số tiền thanh toán cho đơn hàng thắng thầu ${wonId}?\n\nHệ thống sẽ tự động cập nhật trạng thái PAID và gửi Email xác nhận kèm chứng từ cho đại lý.`)) {
+                const res = CargoStore.confirmPayment(wonId);
+                if (res.success) {
+                    alert(res.message);
+                    loadAdminDetail();
+                } else {
+                    alert(res.message);
+                }
             }
         }
 
