@@ -62,16 +62,17 @@ graph TD
    - **Khai báo Hồ sơ Hàng hóa**: Đại lý điền thông tin chi tiết lô hàng qua Modal (Loại hàng General/PER/VAL/DGR, Mã House AWB, Số kiện, Thể tích CBM, Shipper, Consignee, Kho đích, Yêu cầu bảo quản đặc biệt).
    - **Kiểm tra tính hợp lệ & Tiêu chuẩn IATA Air Cargo**:
      - 📌 **Trọng lượng trung bình / Kiện**: Tối thiểu $\ge 1.0\text{ Kg/kiện}$ (1.000g). Hệ thống tự động chặn các thông số phi lý như 60g/kiện (ví dụ 50.000 kiện cho 3.000 Kg).
-     - 📌 **Tỷ trọng cồng kềnh (Volumetric Density)**: Tối thiểu $\ge 20\text{ Kg/m}^3$. Với $3.000\text{ Kg}$, thể tích tối đa hợp lệ là $150\text{ m}^3$. Hệ thống từ chối các khai báo cồng kềnh quá mức như $500\text{ m}^3$ ($6.0\text{ Kg/m}^3$).
+     - 📌 **Tỷ trọng cồng kềnh (Volumetric Density) & Thể tích tối đa**: Tỷ trọng tối thiểu $\ge 20\text{ Kg/m}^3$. Thể tích tối đa cho phép được tính bằng $\text{Gross Weight} / 20$. Với $3.000\text{ Kg}$, thể tích tối đa hợp lệ là $150\text{ m}^3$. Hệ thống từ chối các khai báo cồng kềnh quá mức như $500\text{ m}^3$ ($6.0\text{ Kg/m}^3$).
+     - 📌 **Tỷ trọng tối đa**: Không vượt quá $1.200\text{ Kg/m}^3$ (cảnh báo tỷ trọng quá nặng).
      - 📌 **Giới hạn tải trọng cất cánh**: Không vượt quá $100\%$ tải trọng đăng ký của chuyến bay.
      - 📌 **Thẻ Hướng dẫn & Giải thích lý do thời gian thực**: Trực tiếp giải thích nguyên nhân vi phạm và hướng dẫn điều chỉnh ngay trên giao diện Modal.
      - 📌 **Chống gõ chuỗi ngẫu nhiên (Gibberish Validation)**: Kiểm định tên mặt hàng, HAWB, Shipper/Consignee nhằm ngăn chặn việc gõ phím vô nghĩa.
    - Đại lý thực hiện thanh toán và bấm *"Tôi đã chuyển khoản"*.
-   - Admin xác nhận thanh toán tại `Admin/05-Payments.html` -> Đơn hàng chuyển sang `PAID`, hệ thống cấp mã AWB điện tử chính thức và gửi email xác nhận.
+   - Admin xác nhận thanh toán tại `Admin/05-AuctionDetail.html` hoặc `Admin/02-AdminDashboard.html` -> Đơn hàng chuyển sang `PAID`, hệ thống cấp mã AWB điện tử chính thức và gửi email xác nhận.
    - Đại lý Xem trước hoặc Tải về **Phiếu Xác Nhận Thắng Thầu & Lệnh Bàn Giao Tải Trọng (PDF)** đã có đầy đủ Mục IV (Thông tin Hàng hóa Khai báo) để xuất trình tại kho hàng sân bay (TCS, SCSC, ALSC...).
 
 4. **Luồng 4: An toàn Bảo mật & Đăng xuất Thời gian thực**
-   - Khi Admin thực hiện **Khóa tài khoản Đại lý** tại `Admin/06-AgentsList.html`, hệ thống lập tức cập nhật trạng thái. Nếu đại lý đó đang đăng nhập sử dụng trên bất kỳ cửa sổ/tab nào, hệ thống sẽ tự động kích hoạt **Đăng xuất thời gian thực** và thông báo lý do tài khoản bị tạm khóa.
+   - Khi Admin thực hiện **Khóa tài khoản Đại lý** tại `Admin/06-AgentList.html`, hệ thống lập tức cập nhật trạng thái. Nếu đại lý đó đang đăng nhập sử dụng trên bất kỳ cửa sổ/tab nào, hệ thống sẽ tự động kích hoạt **Đăng xuất thời gian thực** và thông báo lý do tài khoản bị tạm khóa.
 
 ---
 
@@ -128,16 +129,18 @@ bidding-cargo-app/
 │   └── js/
 │       └── cargo-store.js   # Shared Store, LocalStorage & Synchronizer Logic
 ├── Admin/
-│   ├── 01-Overview.html     # Dashboard Quản trị viên (Admin Overview)
-│   ├── 02-AdminDashboard.html# Tổng quan Quản trị & Theo dõi Khai báo Hàng hóa
-│   ├── 03-AuctionList.html  # Quản lý Phiên đấu giá (Tạo/Sửa/Đóng phiên)
-│   ├── 04-AgentApproval.html# Phê duyệt/Từ chối Hồ sơ Đăng ký Đại lý
-│   ├── 05-Payments.html     # Xác nhận Thanh toán Chuyển khoản & Cấp AWB
-│   ├── 06-AgentsList.html   # Quản lý Đại lý (Khóa/Mở khóa & Auto Logout)
-│   ├── 07-Reports.html      # Báo cáo Doanh thu & Sản lượng tải trọng
-│   └── 08-Settings.html     # Cấu hình Tham số Đấu giá & SMTP Mail Server
+│   ├── 01-AdminLogin.html     # Trang Đăng nhập Quản trị viên (Admin Login)
+│   ├── 02-AdminDashboard.html # Tổng quan Quản trị & Theo dõi Khai báo Hàng hóa
+│   ├── 03-AuctionList.html    # Quản lý Danh sách Phiên đấu giá (Mở/Đóng phiên)
+│   ├── 04-CreateAuction.html  # Khởi tạo Phiên đấu giá Tải trọng mới
+│   ├── 05-AuctionDetail.html  # Chi tiết Phiên đấu giá & Quản lý Thầu / Đơn trúng
+│   ├── 06-AgentList.html      # Quản lý Danh sách Đại lý (Duyệt/Khóa/Mở khóa & Auto Logout)
+│   ├── 07-Reports.html        # Báo cáo Doanh thu & Thống kê Sản lượng Tải trọng
+│   └── 08-Settings.html       # Cấu hình Tham số Đấu giá & SMTP Mail Server
 ├── scratch/
-│   └── fix_bids_data.js     # Script sinh & chuẩn hóa dữ liệu thầu ẩn danh
+│   ├── fix_bids_data.js       # Script sinh & chuẩn hóa dữ liệu thầu ẩn danh
+│   ├── test_email_send.js     # Script kiểm tra tích hợp gửi email Nodemailer SMTP
+│   └── test_use_cases.js      # Script kiểm tra tự động các kịch bản nghiệp vụ (Use Cases)
 ├── server.js                # Node.js Server Backend API & Nodemailer SMTP Service
 ├── server_data.json         # Database JSON lưu trữ dữ liệu tập trung
 └── README.md                # Tài liệu hướng dẫn chi tiết hệ thống

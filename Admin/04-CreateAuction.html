@@ -122,13 +122,92 @@
                     <i class="fa-solid fa-coins text-amber-500"></i> 2. Tải trọng & Tham số đấu giá
                 </h2>
 
-                <div class="grid grid-cols-1 sm:grid-cols-3 gap-4">
-                    <div>
-                        <label class="block text-xs font-semibold text-slate-700 mb-1">Tải trọng chào thầu (Kg) <span class="text-red-500">*</span></label>
-                        <input type="number" id="capacityKg" required value="3000" min="100" max="50000" step="100" placeholder="100 - 50,000 Kg"
-                               class="w-full border rounded-xl px-3.5 py-2.5 text-xs font-bold focus:ring-2 focus:ring-blue-500 outline-none">
-                        <p class="text-[10px] text-slate-400 mt-0.5">Giới hạn: 100 đến 50.000 Kg (Tối đa 50 tấn/chuyến)</p>
+                <!-- Tải trọng chọn lựa & Thể tích tối đa -->
+                <div class="space-y-3">
+                    <label class="block text-xs font-semibold text-slate-700">
+                        Tải trọng chào thầu (Kg) & Thể tích chứa tối đa (CBM - m³) <span class="text-red-500">*</span>
+                    </label>
+
+                    <!-- Tab 2 Chế độ chọn -->
+                    <div class="flex items-center gap-2 border-b pb-3">
+                        <button type="button" id="btnModePreset" onclick="setCapacityMode('preset')" class="px-3.5 py-1.5 rounded-lg text-xs font-bold transition bg-blue-600 text-white shadow-sm flex items-center gap-1.5">
+                            <i class="fa-solid fa-cubes"></i> 1. Chọn Gói tải trọng định sẵn
+                        </button>
+                        <button type="button" id="btnModeCustom" onclick="setCapacityMode('custom')" class="px-3.5 py-1.5 rounded-lg text-xs font-bold transition bg-slate-100 text-slate-600 hover:bg-slate-200 flex items-center gap-1.5">
+                            <i class="fa-solid fa-sliders"></i> 2. Tùy chỉnh số Kg bất kỳ
+                        </button>
                     </div>
+
+                    <!-- 1. Danh sách các gói tải trọng định sẵn kèm thể tích tối đa -->
+                    <div id="capacityPresetContainer" class="grid grid-cols-2 sm:grid-cols-4 gap-3">
+                        <!-- Card 1.000 Kg -->
+                        <div onclick="selectPresetCapacity(1000)" id="preset-1000" class="capacity-preset-card border-2 border-slate-200 rounded-xl p-3 cursor-pointer hover:border-blue-500 hover:bg-blue-50/50 transition relative bg-white">
+                            <div class="flex items-center justify-between mb-1">
+                                <span class="text-[10px] font-bold text-slate-400">GÓI NHỎ</span>
+                                <i class="fa-solid fa-box text-blue-500 text-xs"></i>
+                            </div>
+                            <div class="text-base font-black text-slate-900">1.000 Kg</div>
+                            <div class="text-[11px] font-bold text-emerald-600 mt-0.5"><i class="fa-solid fa-cube text-[10px]"></i> Tối đa: 50 m³</div>
+                        </div>
+
+                        <!-- Card 3.000 Kg (Default selected) -->
+                        <div onclick="selectPresetCapacity(3000)" id="preset-3000" class="capacity-preset-card border-2 border-blue-600 bg-blue-50/80 rounded-xl p-3 cursor-pointer transition relative shadow-sm">
+                            <div class="flex items-center justify-between mb-1">
+                                <span class="text-[10px] font-bold text-blue-600">PHỔ BIẾN</span>
+                                <i class="fa-solid fa-boxes-stacked text-blue-600 text-xs"></i>
+                            </div>
+                            <div class="text-base font-black text-blue-900">3.000 Kg</div>
+                            <div class="text-[11px] font-bold text-emerald-700 mt-0.5"><i class="fa-solid fa-cube text-[10px]"></i> Tối đa: 150 m³</div>
+                        </div>
+
+                        <!-- Card 5.000 Kg -->
+                        <div onclick="selectPresetCapacity(5000)" id="preset-5000" class="capacity-preset-card border-2 border-slate-200 rounded-xl p-3 cursor-pointer hover:border-blue-500 hover:bg-blue-50/50 transition relative bg-white">
+                            <div class="flex items-center justify-between mb-1">
+                                <span class="text-[10px] font-bold text-slate-400">GÓI TRUNG</span>
+                                <i class="fa-solid fa-truck-ramp-box text-amber-500 text-xs"></i>
+                            </div>
+                            <div class="text-base font-black text-slate-900">5.000 Kg</div>
+                            <div class="text-[11px] font-bold text-emerald-600 mt-0.5"><i class="fa-solid fa-cube text-[10px]"></i> Tối đa: 250 m³</div>
+                        </div>
+
+                        <!-- Card 10.000 Kg -->
+                        <div onclick="selectPresetCapacity(10000)" id="preset-10000" class="capacity-preset-card border-2 border-slate-200 rounded-xl p-3 cursor-pointer hover:border-blue-500 hover:bg-blue-50/50 transition relative bg-white">
+                            <div class="flex items-center justify-between mb-1">
+                                <span class="text-[10px] font-bold text-slate-400">GÓI LỚN</span>
+                                <i class="fa-solid fa-plane-cargo text-indigo-500 text-xs"></i>
+                            </div>
+                            <div class="text-base font-black text-slate-900">10.000 Kg</div>
+                            <div class="text-[11px] font-bold text-emerald-600 mt-0.5"><i class="fa-solid fa-cube text-[10px]"></i> Tối đa: 500 m³</div>
+                        </div>
+                    </div>
+
+                    <!-- Input Khối lượng Kg + Live calculation preview -->
+                    <div class="grid grid-cols-1 sm:grid-cols-3 gap-4 pt-1">
+                        <div class="sm:col-span-1">
+                            <label class="block text-xs font-semibold text-slate-700 mb-1">Số Kg chào thầu <span class="text-red-500">*</span></label>
+                            <input type="number" id="capacityKg" required value="3000" min="100" max="50000" step="100" placeholder="100 - 50,000 Kg"
+                                   oninput="updateVolumePreview()"
+                                   class="w-full border rounded-xl px-3.5 py-2.5 text-xs font-bold focus:ring-2 focus:ring-blue-500 outline-none">
+                            <p class="text-[10px] text-slate-400 mt-0.5">Giới hạn: 100 đến 50.000 Kg</p>
+                        </div>
+                        <div class="sm:col-span-2 flex items-center">
+                            <div class="w-full bg-slate-50 border border-slate-200 rounded-xl p-3 flex items-center justify-between">
+                                <div class="flex items-center gap-2.5">
+                                    <div class="w-9 h-9 rounded-lg bg-emerald-100 text-emerald-700 flex items-center justify-center font-bold text-sm shadow-xs">
+                                        <i class="fa-solid fa-cube"></i>
+                                    </div>
+                                    <div>
+                                        <span class="text-[11px] text-slate-500 block">Thể tích chứa tối đa cho phép</span>
+                                        <span id="maxVolumeDisplay" class="text-sm font-black text-emerald-700">150 m³</span>
+                                    </div>
+                                </div>
+                                <span class="text-[10px] font-medium text-slate-500 bg-white border border-slate-200 px-2 py-1 rounded-md shadow-xs">IATA: 20 Kg/m³</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
                     <div>
                         <label class="block text-xs font-semibold text-slate-700 mb-1">Giá khởi điểm sàn (VND/Kg) <span class="text-red-500">*</span></label>
                         <input type="number" id="startingPriceKg" required value="18000" step="500"
@@ -179,6 +258,50 @@
     </main>
 
     <script>
+        function updateVolumePreview() {
+            const input = document.getElementById('capacityKg');
+            const display = document.getElementById('maxVolumeDisplay');
+            if (!input || !display) return;
+            const kg = Number(input.value) || 0;
+            if (kg > 0) {
+                const maxVol = (kg / 20).toFixed(1);
+                display.textContent = `${Number(maxVol).toLocaleString('vi-VN')} m³`;
+            } else {
+                display.textContent = '- m³';
+            }
+        }
+
+        function selectPresetCapacity(kg) {
+            const input = document.getElementById('capacityKg');
+            if (input) {
+                input.value = kg;
+                updateVolumePreview();
+            }
+            document.querySelectorAll('.capacity-preset-card').forEach(card => {
+                card.className = 'capacity-preset-card border-2 border-slate-200 rounded-xl p-3 cursor-pointer hover:border-blue-500 hover:bg-blue-50/50 transition relative bg-white';
+            });
+            const selectedCard = document.getElementById(`preset-${kg}`);
+            if (selectedCard) {
+                selectedCard.className = 'capacity-preset-card border-2 border-blue-600 bg-blue-50/80 rounded-xl p-3 cursor-pointer transition relative shadow-sm';
+            }
+        }
+
+        function setCapacityMode(mode) {
+            const btnPreset = document.getElementById('btnModePreset');
+            const btnCustom = document.getElementById('btnModeCustom');
+            const container = document.getElementById('capacityPresetContainer');
+            
+            if (mode === 'preset') {
+                btnPreset.className = 'px-3.5 py-1.5 rounded-lg text-xs font-bold transition bg-blue-600 text-white shadow-sm flex items-center gap-1.5';
+                btnCustom.className = 'px-3.5 py-1.5 rounded-lg text-xs font-bold transition bg-slate-100 text-slate-600 hover:bg-slate-200 flex items-center gap-1.5';
+                if (container) container.classList.remove('hidden');
+            } else {
+                btnCustom.className = 'px-3.5 py-1.5 rounded-lg text-xs font-bold transition bg-blue-600 text-white shadow-sm flex items-center gap-1.5';
+                btnPreset.className = 'px-3.5 py-1.5 rounded-lg text-xs font-bold transition bg-slate-100 text-slate-600 hover:bg-slate-200 flex items-center gap-1.5';
+                if (container) container.classList.add('hidden');
+            }
+        }
+
         function initDateInputs() {
             const now = new Date();
             // Format to YYYY-MM-DDTHH:mm for datetime-local
@@ -207,6 +330,7 @@
 
         document.addEventListener('DOMContentLoaded', function() {
             initDateInputs();
+            updateVolumePreview();
             if (window.CargoStore && CargoStore.syncAdminHeaderUI) CargoStore.syncAdminHeaderUI();
         });
 
