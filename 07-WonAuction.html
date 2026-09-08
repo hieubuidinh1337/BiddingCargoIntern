@@ -1590,8 +1590,13 @@
         document.addEventListener('DOMContentLoaded', function() {
             const urlParams = new URLSearchParams(window.location.search);
             const statusParam = urlParams.get('status') || urlParams.get('filter');
+            const searchParam = urlParams.get('search') || urlParams.get('wonId') || urlParams.get('flight') || urlParams.get('flightNumber');
+            
             if (statusParam && document.getElementById('wonStatusFilter')) {
                 document.getElementById('wonStatusFilter').value = statusParam;
+            }
+            if (searchParam && document.getElementById('wonSearchInput')) {
+                document.getElementById('wonSearchInput').value = searchParam;
             }
             renderWonAuctions();
         });

@@ -369,13 +369,13 @@ const CargoStore = (function() {
             {
                 wonId: 'WON-2026-0815-03',
                 auctionId: 1,
-                agentCode: 'AG-1024',
-                agentName: 'Vinatrans Express',
+                agentCode: 'AG-0892',
+                agentName: 'ABC Logistics',
                 flightNumber: 'VU130',
                 route: 'SGN - HAN',
                 capacityKg: 3500,
-                priceKg: 21500,
-                totalAmountVND: 75250000,
+                priceKg: 56000,
+                totalAmountVND: 196000000,
                 paymentDeadline: new Date(Date.now() + 20 * 60 * 60 * 1000).toISOString(),
                 paymentStatus: 'PAID',
                 paidAt: '15/08/2026 10:15',
@@ -1518,8 +1518,8 @@ const CargoStore = (function() {
 
         getWonAuctions: function() {
             const data = loadData();
-            const code = data.currentUser ? data.currentUser.agentCode : 'AG-0892';
-            return data.wonAuctions.filter(w => !w.agentCode || w.agentCode === code);
+            const code = (data.currentUser && data.currentUser.agentCode) ? String(data.currentUser.agentCode).trim().toUpperCase() : 'AG-0892';
+            return (data.wonAuctions || []).filter(w => !w.agentCode || String(w.agentCode).trim().toUpperCase() === code);
         },
 
         isCargoDeclared: function(item) {
@@ -1835,7 +1835,12 @@ const CargoStore = (function() {
 
                 if (!data.wonAuctions) data.wonAuctions = [];
                 let newWonItem = data.wonAuctions.find(w => w.auctionId == auction.id);
-                if (!newWonItem) {
+                if (newWonItem) {
+                    newWonItem.agentCode = highestBid.agentCode;
+                    newWonItem.agentName = highestBid.agentName;
+                    newWonItem.priceKg = highestBid.priceKg;
+                    newWonItem.totalAmountVND = highestBid.priceKg * auction.capacityKg;
+                } else {
                     const now = new Date();
                     const dateStr = now.toISOString().slice(0, 10).replace(/-/g, '');
                     const payDeadline = new Date(now.getTime() + 24 * 60 * 60 * 1000).toISOString();
@@ -1843,6 +1848,7 @@ const CargoStore = (function() {
                         wonId: `WON-${dateStr}-${String(auction.id).padStart(2, '0')}`,
                         auctionId: auction.id,
                         agentCode: highestBid.agentCode,
+                        agentName: highestBid.agentName,
                         flightNumber: auction.flightNumber,
                         route: auction.route,
                         capacityKg: auction.capacityKg,
