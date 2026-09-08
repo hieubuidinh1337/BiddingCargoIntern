@@ -1,6 +1,31 @@
 {
-  "version": 1788841059273,
+  "version": 1788845356166,
   "auctions": [
+    {
+      "id": 7,
+      "flightCode": "FL-VU450-260908",
+      "flightNumber": "VU450",
+      "route": "SGN - PQC",
+      "origin": "SGN",
+      "destination": "PQC",
+      "originName": "TP. Hồ Chí Minh",
+      "destName": "Phú Quốc",
+      "etd": "12:10 · 02/10/2026",
+      "eta": "13:10 · 02/10/2026",
+      "etdIso": "2026-10-02T05:10:00.000Z",
+      "aircraft": "Airbus A321neo Cargo",
+      "capacityKg": 3000,
+      "startingPriceKg": 18000,
+      "currentPriceKg": 18000,
+      "minStep": 500,
+      "endTime": "2026-10-02T00:10:00.000Z",
+      "status": "OPEN",
+      "leadingAgentCode": "Chưa có",
+      "leadingAgentName": "Chưa có đại lý nào đặt giá",
+      "bidsCount": 0,
+      "specialNotes": "Tải trọng tổng hợp tiêu chuẩn IATA. Có hỗ trợ xe nâng hàng pallet tại sân bay.",
+      "cutOffTime": "Trước ETD 3 giờ"
+    },
     {
       "id": 6,
       "flightCode": "FL-VU32453-260907",
@@ -18,7 +43,7 @@
       "startingPriceKg": 18000,
       "currentPriceKg": 24500,
       "minStep": 500,
-      "endTime": "2026-09-08T05:28:38.266Z",
+      "endTime": "2026-09-08T06:59:15.139Z",
       "status": "OPEN",
       "leadingAgentCode": "AG-1024",
       "leadingAgentName": "Công ty CP Giao nhận Kho vận Vinatrans",
@@ -469,6 +494,17 @@
     }
   ],
   "notifications": [
+    {
+      "id": 1788841489082,
+      "timestamp": 1788841489082,
+      "targetAgentCode": null,
+      "title": "Mở phiên đấu giá mới: Chuyến VU450 (SGN - PQC)",
+      "message": "Chuyến bay VU450 (TP. Hồ Chí Minh - Phú Quốc) với tải trọng 3.000 Kg, giá khởi điểm 18.000 đ/Kg đã chính thức mở nhận giá thầu.",
+      "time": "Vừa xong",
+      "type": "AUCTION_OPEN",
+      "read": false,
+      "link": "04-Detail.html?id=7"
+    },
     {
       "id": 1788839150276,
       "targetAgentCode": "AG-0892",

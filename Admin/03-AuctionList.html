@@ -542,30 +542,22 @@
         function setAllPageSize(size) {
             allPageSize = Number(size) || 10;
             allCurrentPage = 1;
-            const c = document.getElementById('allPaginationContainer');
-            if (c) delete c.dataset.pageSize;
             renderAuctionsTable();
         }
 
         function goToAllPage(page) {
             allCurrentPage = page;
-            const c = document.getElementById('allPaginationContainer');
-            if (c) delete c.dataset.currentPage;
             renderAuctionsTable();
         }
 
         function setOpenPageSize(size) {
             openPageSize = Number(size) || 10;
             openCurrentPage = 1;
-            const c = document.getElementById('openPaginationContainer');
-            if (c) delete c.dataset.pageSize;
             renderAuctionsTable();
         }
 
         function goToOpenPage(page) {
             openCurrentPage = page;
-            const c = document.getElementById('openPaginationContainer');
-            if (c) delete c.dataset.currentPage;
             renderAuctionsTable();
         }
 
@@ -574,31 +566,14 @@
             if (!container) return;
 
             if (totalItems === 0) {
-                if (container.innerHTML !== '') container.innerHTML = '';
-                delete container.dataset.currentPage;
-                delete container.dataset.totalItems;
-                delete container.dataset.pageSize;
+                container.innerHTML = '';
                 return;
             }
 
-            const totalPages = Math.ceil(totalItems / pageSize) || 1;
-            let page = currentPage;
+            const totalPages = Math.max(1, Math.ceil(totalItems / pageSize));
+            let page = Number(currentPage) || 1;
             if (page > totalPages) page = totalPages;
             if (page < 1) page = 1;
-
-            const isFocusedInside = document.activeElement && container.contains(document.activeElement);
-            if (
-                isFocusedInside ||
-                (container.dataset.currentPage == String(page) &&
-                 container.dataset.totalItems == String(totalItems) &&
-                 container.dataset.pageSize == String(pageSize))
-            ) {
-                return;
-            }
-
-            container.dataset.currentPage = String(page);
-            container.dataset.totalItems = String(totalItems);
-            container.dataset.pageSize = String(pageSize);
 
             const startItem = (page - 1) * pageSize + 1;
             const endItem = Math.min(page * pageSize, totalItems);
@@ -624,9 +599,9 @@
                 }
                 const isActive = p === page;
                 if (isActive) {
-                    return `<button class="w-7 h-7 rounded-full bg-blue-600 text-white font-bold text-xs flex items-center justify-center shadow-xs cursor-default">${p}</button>`;
+                    return `<button type="button" class="w-7 h-7 rounded-full bg-blue-600 text-white font-bold text-xs flex items-center justify-center shadow-xs cursor-default">${p}</button>`;
                 } else {
-                    return `<button onclick="${onPageChangeName}(${p})" class="w-7 h-7 rounded-full text-slate-600 hover:bg-slate-200 font-semibold text-xs flex items-center justify-center transition cursor-pointer">${p}</button>`;
+                    return `<button type="button" onclick="${onPageChangeName}(${p})" class="w-7 h-7 rounded-full text-slate-600 hover:bg-slate-200 font-semibold text-xs flex items-center justify-center transition cursor-pointer">${p}</button>`;
                 }
             }).join('');
 
@@ -634,14 +609,14 @@
             const nextDisabled = page >= totalPages;
 
             const prevBtn = `
-                <button ${prevDisabled ? 'disabled' : `onclick="${onPageChangeName}(${page - 1})"`} 
+                <button type="button" ${prevDisabled ? 'disabled' : `onclick="${onPageChangeName}(${page - 1})"`} 
                         class="px-2.5 py-1 text-slate-600 hover:text-blue-600 disabled:opacity-30 disabled:hover:text-slate-600 font-bold transition flex items-center gap-1 cursor-pointer disabled:cursor-not-allowed" title="Trang trước">
                     <i class="fa-solid fa-arrow-left text-xs"></i>
                 </button>
             `;
 
             const nextBtn = `
-                <button ${nextDisabled ? 'disabled' : `onclick="${onPageChangeName}(${page + 1})"`} 
+                <button type="button" ${nextDisabled ? 'disabled' : `onclick="${onPageChangeName}(${page + 1})"`} 
                         class="px-2.5 py-1 text-slate-600 hover:text-blue-600 disabled:opacity-30 disabled:hover:text-slate-600 font-bold transition flex items-center gap-1 cursor-pointer disabled:cursor-not-allowed" title="Trang sau">
                     <i class="fa-solid fa-arrow-right text-xs"></i>
                 </button>
