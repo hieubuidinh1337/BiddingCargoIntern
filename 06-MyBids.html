@@ -116,13 +116,83 @@
             </div>
         </div>
 
+        <!-- Pagination Bar -->
+        <div class="bg-white rounded-2xl border shadow-sm p-4 flex flex-col sm:flex-row items-center justify-between gap-3 text-xs text-slate-600">
+            <div class="flex items-center gap-2">
+                <span>Hiển thị</span>
+                <select id="myBidsItemsPerPage" onchange="changeMyBidsItemsPerPage(this.value)" class="border rounded-lg px-2.5 py-1 text-xs bg-white font-medium focus:ring-2 focus:ring-blue-500 outline-none">
+                    <option value="5">5 lượt / trang</option>
+                    <option value="10" selected>10 lượt / trang</option>
+                    <option value="20">20 lượt / trang</option>
+                    <option value="50">50 lượt / trang</option>
+                </select>
+                <span id="myBidsTotalCountText" class="text-slate-500">(Tổng số: 0 lượt)</span>
+            </div>
+            <div id="myBidsPaginationControls" class="flex items-center gap-1.5">
+                <!-- JS rendered -->
+            </div>
+        </div>
+
     </main>
 
     <script>
         let currentTab = 'ALL';
+        let currentMyBidsPage = 1;
+        let myBidsItemsPerPage = 10;
+
+        function changeMyBidsItemsPerPage(val) {
+            myBidsItemsPerPage = Number(val) || 10;
+            currentMyBidsPage = 1;
+            renderBids();
+        }
+
+        function setMyBidsPage(p) {
+            currentMyBidsPage = p;
+            renderBids();
+        }
+
+        function renderMyBidsPaginationControls(totalItems) {
+            const controls = document.getElementById('myBidsPaginationControls');
+            const totalText = document.getElementById('myBidsTotalCountText');
+            if (totalText) totalText.textContent = `(Tổng số: ${totalItems} lượt)`;
+            if (!controls) return;
+
+            if (totalItems === 0) {
+                controls.innerHTML = '';
+                return;
+            }
+
+            const totalPages = Math.ceil(totalItems / myBidsItemsPerPage) || 1;
+            if (currentMyBidsPage > totalPages) currentMyBidsPage = totalPages;
+
+            let html = `
+                <button onclick="setMyBidsPage(${Math.max(1, currentMyBidsPage - 1)})" ${currentMyBidsPage === 1 ? 'disabled' : ''}
+                        class="px-3 py-1.5 rounded-lg border text-xs font-medium transition ${currentMyBidsPage === 1 ? 'bg-slate-100 text-slate-400 cursor-not-allowed border-slate-200' : 'bg-white hover:bg-slate-50 text-slate-700 border-slate-300'}">
+                    <i class="fa-solid fa-chevron-left"></i> Trước
+                </button>
+            `;
+
+            for (let i = 1; i <= totalPages; i++) {
+                if (i === currentMyBidsPage) {
+                    html += `<button class="w-8 h-8 rounded-lg bg-blue-600 text-white font-bold text-xs shadow-xs">${i}</button>`;
+                } else {
+                    html += `<button onclick="setMyBidsPage(${i})" class="w-8 h-8 rounded-lg border border-slate-300 bg-white hover:bg-slate-50 text-slate-700 font-medium text-xs transition">${i}</button>`;
+                }
+            }
+
+            html += `
+                <button onclick="setMyBidsPage(${Math.min(totalPages, currentMyBidsPage + 1)})" ${currentMyBidsPage === totalPages ? 'disabled' : ''}
+                        class="px-3 py-1.5 rounded-lg border text-xs font-medium transition ${currentMyBidsPage === totalPages ? 'bg-slate-100 text-slate-400 cursor-not-allowed border-slate-200' : 'bg-white hover:bg-slate-50 text-slate-700 border-slate-300'}">
+                    Sau <i class="fa-solid fa-chevron-right"></i>
+                </button>
+            `;
+
+            controls.innerHTML = html;
+        }
 
         function setTab(tab) {
             currentTab = tab;
+            currentMyBidsPage = 1;
             document.querySelectorAll('.tab-btn').forEach(b => {
                 if (b.getAttribute('data-tab') === tab) {
                     b.className = 'tab-btn active px-4 py-2 rounded-xl text-xs font-semibold bg-blue-600 text-white shadow-sm';
@@ -150,8 +220,11 @@
                 filtered = myBids.filter(b => b.status === currentTab);
             }
 
+            const totalItems = filtered.length;
+            renderMyBidsPaginationControls(totalItems);
+
             const tbody = document.getElementById('myBidsTableBody');
-            if (filtered.length === 0) {
+            if (totalItems === 0) {
                 tbody.innerHTML = `
                     <tr>
                         <td colspan="7" class="py-12 text-center text-gray-400">
@@ -163,7 +236,10 @@
                 return;
             }
 
-            tbody.innerHTML = filtered.map(b => {
+            const startIdx = (currentMyBidsPage - 1) * myBidsItemsPerPage;
+            const paginatedList = filtered.slice(startIdx, startIdx + myBidsItemsPerPage);
+
+            tbody.innerHTML = paginatedList.map(b => {
                 const auction = auctions.find(a => a.id == b.auctionId) || {};
                 let statusBadge = '';
                 if (b.status === 'HIGHEST') {

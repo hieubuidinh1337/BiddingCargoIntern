@@ -137,6 +137,23 @@
                     </tbody>
                 </table>
             </div>
+
+            <!-- Pagination Bar for Bids -->
+            <div id="bidsPaginationBar" class="bg-white border-t p-4 flex flex-col sm:flex-row items-center justify-between gap-3 text-xs text-slate-600">
+                <div class="flex items-center gap-2">
+                    <span>Hiển thị</span>
+                    <select id="bidsItemsPerPage" onchange="changeBidsItemsPerPage(this.value)" class="border rounded-lg px-2.5 py-1 text-xs bg-white font-medium focus:ring-2 focus:ring-blue-500 outline-none">
+                        <option value="5">5 lượt / trang</option>
+                        <option value="10" selected>10 lượt / trang</option>
+                        <option value="20">20 lượt / trang</option>
+                        <option value="50">50 lượt / trang</option>
+                    </select>
+                    <span id="bidsTotalCountText" class="text-slate-500">(Tổng số: 0 lượt)</span>
+                </div>
+                <div id="bidsPaginationControls" class="flex items-center gap-1.5">
+                    <!-- JS rendered -->
+                </div>
+            </div>
         </div>
 
     </main>
@@ -383,6 +400,59 @@
                 ` : '')}
             `;
 
+        let currentBidsPage = 1;
+        let bidsItemsPerPage = 10;
+
+        function changeBidsItemsPerPage(val) {
+            bidsItemsPerPage = Number(val) || 10;
+            currentBidsPage = 1;
+            loadAdminDetail();
+        }
+
+        function setBidsPage(p) {
+            currentBidsPage = p;
+            loadAdminDetail();
+        }
+
+        function renderBidsPaginationControls(totalItems) {
+            const controls = document.getElementById('bidsPaginationControls');
+            const totalText = document.getElementById('bidsTotalCountText');
+            if (totalText) totalText.textContent = `(Tổng số: ${totalItems} lượt)`;
+            if (!controls) return;
+
+            if (totalItems === 0) {
+                controls.innerHTML = '';
+                return;
+            }
+
+            const totalPages = Math.ceil(totalItems / bidsItemsPerPage) || 1;
+            if (currentBidsPage > totalPages) currentBidsPage = totalPages;
+
+            let html = `
+                <button onclick="setBidsPage(${Math.max(1, currentBidsPage - 1)})" ${currentBidsPage === 1 ? 'disabled' : ''}
+                        class="px-3 py-1.5 rounded-lg border text-xs font-medium transition ${currentBidsPage === 1 ? 'bg-slate-100 text-slate-400 cursor-not-allowed border-slate-200' : 'bg-white hover:bg-slate-50 text-slate-700 border-slate-300'}">
+                    <i class="fa-solid fa-chevron-left"></i> Trước
+                </button>
+            `;
+
+            for (let i = 1; i <= totalPages; i++) {
+                if (i === currentBidsPage) {
+                    html += `<button class="w-8 h-8 rounded-lg bg-blue-600 text-white font-bold text-xs shadow-xs">${i}</button>`;
+                } else {
+                    html += `<button onclick="setBidsPage(${i})" class="w-8 h-8 rounded-lg border border-slate-300 bg-white hover:bg-slate-50 text-slate-700 font-medium text-xs transition">${i}</button>`;
+                }
+            }
+
+            html += `
+                <button onclick="setBidsPage(${Math.min(totalPages, currentBidsPage + 1)})" ${currentBidsPage === totalPages ? 'disabled' : ''}
+                        class="px-3 py-1.5 rounded-lg border text-xs font-medium transition ${currentBidsPage === totalPages ? 'bg-slate-100 text-slate-400 cursor-not-allowed border-slate-200' : 'bg-white hover:bg-slate-50 text-slate-700 border-slate-300'}">
+                    Sau <i class="fa-solid fa-chevron-right"></i>
+                </button>
+            `;
+
+            controls.innerHTML = html;
+        }
+
             document.getElementById('detBidsCount').textContent = bids.length + ' lượt đặt';
             const tbody = document.getElementById('adminBidsBody');
             
@@ -391,13 +461,19 @@
                 return;
             }
 
-            if (bids.length === 0) {
+            const totalItems = bids.length;
+            renderBidsPaginationControls(totalItems);
+
+            if (totalItems === 0) {
                 tbody.innerHTML = `<tr><td colspan="6" class="py-8 text-center text-gray-400">Chưa có đại lý nào đặt giá</td></tr>`;
                 return;
             }
 
-            tbody.innerHTML = bids.map((b, i) => `
-                <tr class="${i === 0 ? 'bg-blue-50/50 font-medium' : 'hover:bg-slate-50'} transition">
+            const startIdx = (currentBidsPage - 1) * bidsItemsPerPage;
+            const paginatedBids = bids.slice(startIdx, startIdx + bidsItemsPerPage);
+
+            tbody.innerHTML = paginatedBids.map((b, i) => `
+                <tr class="${(startIdx + i) === 0 ? 'bg-blue-50/50 font-medium' : 'hover:bg-slate-50'} transition">
                     <td class="py-3 px-4 font-mono font-bold text-blue-600">${b.agentCode}</td>
                     <td class="py-3 px-4 font-bold text-slate-800">${b.agentName}</td>
                     <td class="py-3 px-4 font-bold text-slate-900">${CargoStore.formatCurrency(b.priceKg)}</td>

@@ -119,6 +119,23 @@
                     </tbody>
                 </table>
             </div>
+
+            <!-- Pagination Bar for Agents -->
+            <div id="agentsPaginationBar" class="bg-white border-t p-4 flex flex-col sm:flex-row items-center justify-between gap-3 text-xs text-slate-600">
+                <div class="flex items-center gap-2">
+                    <span>Hiển thị</span>
+                    <select id="agentsItemsPerPage" onchange="changeAgentsItemsPerPage(this.value)" class="border rounded-lg px-2.5 py-1 text-xs bg-white font-medium focus:ring-2 focus:ring-blue-500 outline-none">
+                        <option value="5">5 đại lý / trang</option>
+                        <option value="10" selected>10 đại lý / trang</option>
+                        <option value="20">20 đại lý / trang</option>
+                        <option value="50">50 đại lý / trang</option>
+                    </select>
+                    <span id="agentsTotalCountText" class="text-slate-500">(Tổng số: 0 đại lý)</span>
+                </div>
+                <div id="agentsPaginationControls" class="flex items-center gap-1.5">
+                    <!-- JS rendered -->
+                </div>
+            </div>
         </div>
 
         <!-- Tab 3: Staff & Internal Users -->
@@ -283,7 +300,60 @@
             }
         }
 
-        function renderData() {
+        let currentAgentsPage = 1;
+        let agentsItemsPerPage = 10;
+
+        function changeAgentsItemsPerPage(val) {
+            agentsItemsPerPage = Number(val) || 10;
+            currentAgentsPage = 1;
+            renderAgentsList();
+        }
+
+        function setAgentsPage(p) {
+            currentAgentsPage = p;
+            renderAgentsList();
+        }
+
+        function renderAgentsPaginationControls(totalItems) {
+            const controls = document.getElementById('agentsPaginationControls');
+            const totalText = document.getElementById('agentsTotalCountText');
+            if (totalText) totalText.textContent = `(Tổng số: ${totalItems} đại lý)`;
+            if (!controls) return;
+
+            if (totalItems === 0) {
+                controls.innerHTML = '';
+                return;
+            }
+
+            const totalPages = Math.ceil(totalItems / agentsItemsPerPage) || 1;
+            if (currentAgentsPage > totalPages) currentAgentsPage = totalPages;
+
+            let html = `
+                <button onclick="setAgentsPage(${Math.max(1, currentAgentsPage - 1)})" ${currentAgentsPage === 1 ? 'disabled' : ''}
+                        class="px-3 py-1.5 rounded-lg border text-xs font-medium transition ${currentAgentsPage === 1 ? 'bg-slate-100 text-slate-400 cursor-not-allowed border-slate-200' : 'bg-white hover:bg-slate-50 text-slate-700 border-slate-300'}">
+                    <i class="fa-solid fa-chevron-left"></i> Trước
+                </button>
+            `;
+
+            for (let i = 1; i <= totalPages; i++) {
+                if (i === currentAgentsPage) {
+                    html += `<button class="w-8 h-8 rounded-lg bg-blue-600 text-white font-bold text-xs shadow-xs">${i}</button>`;
+                } else {
+                    html += `<button onclick="setAgentsPage(${i})" class="w-8 h-8 rounded-lg border border-slate-300 bg-white hover:bg-slate-50 text-slate-700 font-medium text-xs transition">${i}</button>`;
+                }
+            }
+
+            html += `
+                <button onclick="setAgentsPage(${Math.min(totalPages, currentAgentsPage + 1)})" ${currentAgentsPage === totalPages ? 'disabled' : ''}
+                        class="px-3 py-1.5 rounded-lg border text-xs font-medium transition ${currentAgentsPage === totalPages ? 'bg-slate-100 text-slate-400 cursor-not-allowed border-slate-200' : 'bg-white hover:bg-slate-50 text-slate-700 border-slate-300'}">
+                    Sau <i class="fa-solid fa-chevron-right"></i>
+                </button>
+            `;
+
+            controls.innerHTML = html;
+        }
+
+        function renderAgentsList() {
             if (typeof CargoStore === 'undefined') return;
             const data = CargoStore.getData();
             const currentAdmin = CargoStore.getCurrentAdmin();
@@ -487,9 +557,13 @@
             // 2. Render Active Agents
             const agents = data.agentsList || [];
             document.getElementById('agentCountBadge').textContent = agents.length;
+            renderAgentsPaginationControls(agents.length);
 
             const tbody = document.getElementById('agentsTableBody');
-            tbody.innerHTML = agents.map(ag => {
+            const startIdx = (currentAgentsPage - 1) * agentsItemsPerPage;
+            const paginatedAgents = agents.slice(startIdx, startIdx + agentsItemsPerPage);
+
+            tbody.innerHTML = paginatedAgents.map(ag => {
                 const isLocked = ag.status === 'Đã khóa' || ag.status === 'LOCKED';
                 return `
                     <tr class="hover:bg-slate-50 transition">

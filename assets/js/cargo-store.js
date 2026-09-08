@@ -324,6 +324,7 @@ const CargoStore = (function() {
                 wonId: 'WON-2026-0814-01',
                 auctionId: 4,
                 agentCode: 'AG-0892',
+                agentName: 'ABC Logistics',
                 flightNumber: 'VU132',
                 route: 'SGN - HAN',
                 capacityKg: 3000,
@@ -347,6 +348,59 @@ const CargoStore = (function() {
                     consigneeAddress: 'Kho Cargo Nội Bài, Sóc Sơn, Hà Nội',
                     specialNotes: 'Hàng giá trị cao. Bảo quản nơi khô ráo, không đè nặng quá 50kg/thùng.'
                 }
+            },
+            {
+                wonId: 'WON-2026-0815-02',
+                auctionId: 2,
+                agentCode: 'AG-1024',
+                agentName: 'Vinatrans Express',
+                flightNumber: 'VU224',
+                route: 'SGN - DAD',
+                capacityKg: 2000,
+                priceKg: 14500,
+                totalAmountVND: 29000000,
+                paymentDeadline: new Date(Date.now() + 12 * 60 * 60 * 1000).toISOString(),
+                paymentStatus: 'UNPAID',
+                awbNumber: '998-22409811',
+                cutOffTime: '16/08/2026 13:00',
+                warehouse: 'Kho hàng TCS Tân Sơn Nhất (Cửa số 2)',
+                cargoDeclaration: null
+            },
+            {
+                wonId: 'WON-2026-0815-03',
+                auctionId: 1,
+                agentCode: 'AG-1024',
+                agentName: 'Vinatrans Express',
+                flightNumber: 'VU130',
+                route: 'SGN - HAN',
+                capacityKg: 3500,
+                priceKg: 21500,
+                totalAmountVND: 75250000,
+                paymentDeadline: new Date(Date.now() + 20 * 60 * 60 * 1000).toISOString(),
+                paymentStatus: 'PAID',
+                paidAt: '15/08/2026 10:15',
+                awbNumber: '998-13098722',
+                cutOffTime: '15/08/2026 11:30',
+                warehouse: 'Kho hàng SCSC Tân Sơn Nhất',
+                cargoDeclaration: null
+            },
+            {
+                wonId: 'WON-2026-0815-04',
+                auctionId: 3,
+                agentCode: 'AG-0556',
+                agentName: 'Golden Star Logistics',
+                flightNumber: 'VU340',
+                route: 'HAN - PQC',
+                capacityKg: 4000,
+                priceKg: 25000,
+                totalAmountVND: 100000000,
+                paymentDeadline: new Date(Date.now() + 16 * 60 * 60 * 1000).toISOString(),
+                paymentStatus: 'PENDING_VERIFICATION',
+                notifiedAt: '15/08/2026 11:00',
+                awbNumber: '998-34077611',
+                cutOffTime: '15/08/2026 16:00',
+                warehouse: 'Kho hàng Cargo Nội Bài (Cửa số 1)',
+                cargoDeclaration: null
             }
         ],
         notifications: [
@@ -460,6 +514,11 @@ const CargoStore = (function() {
 
             if (!data.agentsList || data.agentsList.length === 0) {
                 data.agentsList = seedAgents;
+                updated = true;
+            }
+
+            if (!data.wonAuctions || !Array.isArray(data.wonAuctions) || data.wonAuctions.length < 3) {
+                data.wonAuctions = JSON.parse(JSON.stringify(defaultData.wonAuctions));
                 updated = true;
             }
 

@@ -171,6 +171,23 @@
         <!-- Watchlist Cards -->
         <div id="watchlistContainer" class="space-y-4"></div>
 
+        <!-- Pagination Bar -->
+        <div class="bg-white rounded-2xl border shadow-sm p-4 flex flex-col sm:flex-row items-center justify-between gap-3 text-xs text-slate-600">
+            <div class="flex items-center gap-2">
+                <span>Hiển thị</span>
+                <select id="watchItemsPerPage" onchange="changeWatchItemsPerPage(this.value)" class="border rounded-lg px-2.5 py-1 text-xs bg-white font-medium focus:ring-2 focus:ring-blue-500 outline-none">
+                    <option value="5">5 chuyến / trang</option>
+                    <option value="10" selected>10 chuyến / trang</option>
+                    <option value="20">20 chuyến / trang</option>
+                    <option value="50">50 chuyến / trang</option>
+                </select>
+                <span id="watchTotalCountText" class="text-slate-500">(Tổng số: 0 chuyến)</span>
+            </div>
+            <div id="watchPaginationControls" class="flex items-center gap-1.5">
+                <!-- JS rendered -->
+            </div>
+        </div>
+
     </main>
 
     <!-- Quick Bid Modal -->
@@ -274,6 +291,59 @@
         </span>`;
     }
 
+    let currentWatchPage = 1;
+    let watchItemsPerPage = 10;
+
+    function changeWatchItemsPerPage(val) {
+        watchItemsPerPage = Number(val) || 10;
+        currentWatchPage = 1;
+        renderWatchlist();
+    }
+
+    function setWatchPage(p) {
+        currentWatchPage = p;
+        renderWatchlist();
+    }
+
+    function renderWatchPaginationControls(totalItems) {
+        const controls = document.getElementById('watchPaginationControls');
+        const totalText = document.getElementById('watchTotalCountText');
+        if (totalText) totalText.textContent = `(Tổng số: ${totalItems} chuyến)`;
+        if (!controls) return;
+
+        if (totalItems === 0) {
+            controls.innerHTML = '';
+            return;
+        }
+
+        const totalPages = Math.ceil(totalItems / watchItemsPerPage) || 1;
+        if (currentWatchPage > totalPages) currentWatchPage = totalPages;
+
+        let html = `
+            <button onclick="setWatchPage(${Math.max(1, currentWatchPage - 1)})" ${currentWatchPage === 1 ? 'disabled' : ''}
+                    class="px-3 py-1.5 rounded-lg border text-xs font-medium transition ${currentWatchPage === 1 ? 'bg-slate-100 text-slate-400 cursor-not-allowed border-slate-200' : 'bg-white hover:bg-slate-50 text-slate-700 border-slate-300'}">
+                <i class="fa-solid fa-chevron-left"></i> Trước
+            </button>
+        `;
+
+        for (let i = 1; i <= totalPages; i++) {
+            if (i === currentWatchPage) {
+                html += `<button class="w-8 h-8 rounded-lg bg-blue-600 text-white font-bold text-xs shadow-xs">${i}</button>`;
+            } else {
+                html += `<button onclick="setWatchPage(${i})" class="w-8 h-8 rounded-lg border border-slate-300 bg-white hover:bg-slate-50 text-slate-700 font-medium text-xs transition">${i}</button>`;
+            }
+        }
+
+        html += `
+            <button onclick="setWatchPage(${Math.min(totalPages, currentWatchPage + 1)})" ${currentWatchPage === totalPages ? 'disabled' : ''}
+                    class="px-3 py-1.5 rounded-lg border text-xs font-medium transition ${currentWatchPage === totalPages ? 'bg-slate-100 text-slate-400 cursor-not-allowed border-slate-200' : 'bg-white hover:bg-slate-50 text-slate-700 border-slate-300'}">
+                Sau <i class="fa-solid fa-chevron-right"></i>
+            </button>
+        `;
+
+        controls.innerHTML = html;
+    }
+
     function getPriceIncreasePercent(a) {
         if (!a.startingPriceKg) return 0;
         return Math.round((a.currentPriceKg - a.startingPriceKg) / a.startingPriceKg * 100);
@@ -311,6 +381,9 @@
         document.getElementById('countOpen').textContent = openCount;
         document.getElementById('countLeading').textContent = leadingCount;
 
+        const totalItems = list.length;
+        renderWatchPaginationControls(totalItems);
+
         const container = document.getElementById('watchlistContainer');
 
         if (list.length === 0) {
@@ -329,7 +402,10 @@
             return;
         }
 
-        container.innerHTML = list.map(a => {
+        const startIdx = (currentWatchPage - 1) * watchItemsPerPage;
+        const paginatedList = list.slice(startIdx, startIdx + watchItemsPerPage);
+
+        container.innerHTML = paginatedList.map(a => {
             const isLeading = a.leadingAgentCode === currentAgentCode && a.status === 'OPEN';
             const incPct = getPriceIncreasePercent(a);
             const t = getTimeRemaining(a.endTime);

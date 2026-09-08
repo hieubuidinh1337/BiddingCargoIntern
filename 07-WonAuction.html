@@ -116,6 +116,23 @@
             <!-- Rendered by JS -->
         </div>
 
+        <!-- Pagination Bar -->
+        <div class="bg-white rounded-2xl border shadow-sm p-4 flex flex-col sm:flex-row items-center justify-between gap-3 text-xs text-slate-600">
+            <div class="flex items-center gap-2">
+                <span>Hiển thị</span>
+                <select id="wonItemsPerPage" onchange="changeWonItemsPerPage(this.value)" class="border rounded-lg px-2.5 py-1 text-xs bg-white font-medium focus:ring-2 focus:ring-blue-500 outline-none">
+                    <option value="5">5 đơn / trang</option>
+                    <option value="10" selected>10 đơn / trang</option>
+                    <option value="20">20 đơn / trang</option>
+                    <option value="50">50 đơn / trang</option>
+                </select>
+                <span id="wonTotalCountText" class="text-slate-500">(Tổng số: 0 đơn)</span>
+            </div>
+            <div id="wonPaginationControls" class="flex items-center gap-1.5">
+                <!-- JS rendered page numbers & Next/Prev buttons -->
+            </div>
+        </div>
+
     </main>
 
     <!-- Hidden Container for PDF export rendering -->
@@ -1170,6 +1187,59 @@
                     if (btn) { btn.disabled = false; btn.innerHTML = originalContent; }
                 }
             }, 250);
+        }
+
+        let currentWonPage = 1;
+        let wonItemsPerPage = 10;
+
+        function changeWonItemsPerPage(val) {
+            wonItemsPerPage = Number(val) || 10;
+            currentWonPage = 1;
+            renderWonAuctions();
+        }
+
+        function setWonPage(p) {
+            currentWonPage = p;
+            renderWonAuctions();
+        }
+
+        function renderWonPaginationControls(totalItems) {
+            const controls = document.getElementById('wonPaginationControls');
+            const totalText = document.getElementById('wonTotalCountText');
+            if (totalText) totalText.textContent = `(Tổng số: ${totalItems} đơn)`;
+            if (!controls) return;
+
+            if (totalItems === 0) {
+                controls.innerHTML = '';
+                return;
+            }
+
+            const totalPages = Math.ceil(totalItems / wonItemsPerPage) || 1;
+            if (currentWonPage > totalPages) currentWonPage = totalPages;
+
+            let html = `
+                <button onclick="setWonPage(${Math.max(1, currentWonPage - 1)})" ${currentWonPage === 1 ? 'disabled' : ''}
+                        class="px-3 py-1.5 rounded-lg border text-xs font-medium transition ${currentWonPage === 1 ? 'bg-slate-100 text-slate-400 cursor-not-allowed border-slate-200' : 'bg-white hover:bg-slate-50 text-slate-700 border-slate-300'}">
+                    <i class="fa-solid fa-chevron-left"></i> Trước
+                </button>
+            `;
+
+            for (let i = 1; i <= totalPages; i++) {
+                if (i === currentWonPage) {
+                    html += `<button class="w-8 h-8 rounded-lg bg-blue-600 text-white font-bold text-xs shadow-xs">${i}</button>`;
+                } else {
+                    html += `<button onclick="setWonPage(${i})" class="w-8 h-8 rounded-lg border border-slate-300 bg-white hover:bg-slate-50 text-slate-700 font-medium text-xs transition">${i}</button>`;
+                }
+            }
+
+            html += `
+                <button onclick="setWonPage(${Math.min(totalPages, currentWonPage + 1)})" ${currentWonPage === totalPages ? 'disabled' : ''}
+                        class="px-3 py-1.5 rounded-lg border text-xs font-medium transition ${currentWonPage === totalPages ? 'bg-slate-100 text-slate-400 cursor-not-allowed border-slate-200' : 'bg-white hover:bg-slate-50 text-slate-700 border-slate-300'}">
+                    Sau <i class="fa-solid fa-chevron-right"></i>
+                </button>
+            `;
+
+            controls.innerHTML = html;
         }
 
         async function renderWonAuctions() {
