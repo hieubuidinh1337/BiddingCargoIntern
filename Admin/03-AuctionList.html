@@ -201,6 +201,26 @@
                     </span>
                 </div>
             </div>
+
+            <!-- Won Auctions Search & Sort Bar -->
+            <div class="bg-slate-50 border-b p-3 flex flex-col sm:flex-row items-center gap-3">
+                <div class="relative flex-1 w-full">
+                    <i class="fa-solid fa-magnifying-glass absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 text-xs"></i>
+                    <input type="text" id="adminWonSearch" oninput="wonCurrentPage=1; renderWonAuctionsAdminTable()" placeholder="Tìm theo Mã đơn (WON-...), Mã đại lý (AG-...), Tên đại lý, Chuyến bay, AWB..."
+                           class="w-full border rounded-xl pl-8 pr-3 py-1.5 text-xs focus:ring-2 focus:ring-blue-500 outline-none bg-white">
+                </div>
+                <div class="w-full sm:w-52">
+                    <select id="adminWonSort" onchange="wonCurrentPage=1; renderWonAuctionsAdminTable()" class="w-full border rounded-xl px-3 py-1.5 text-xs focus:ring-2 focus:ring-blue-500 outline-none bg-white font-medium">
+                        <option value="NEWEST">Sắp xếp: Mới nhất</option>
+                        <option value="OLDEST">Sắp xếp: Cũ nhất</option>
+                        <option value="AMOUNT_DESC">Tổng tiền: Cao đến thấp</option>
+                        <option value="AMOUNT_ASC">Tổng tiền: Thấp đến cao</option>
+                        <option value="CAPACITY_DESC">Tải trọng: Cao đến thấp</option>
+                        <option value="CAPACITY_ASC">Tải trọng: Thấp đến cao</option>
+                    </select>
+                </div>
+            </div>
+
             <div class="overflow-x-auto">
                 <table class="w-full text-xs text-left">
                     <thead class="bg-slate-50 text-slate-600 font-semibold border-b">
@@ -725,6 +745,34 @@
             const pagContainer = document.getElementById('wonPaginationContainer');
             if (!tbody) return;
 
+            // 0. Search Keyword Filter
+            const adminSearch = (document.getElementById('adminWonSearch')?.value || '').trim().toLowerCase();
+            const adminSort = document.getElementById('adminWonSort')?.value || 'NEWEST';
+
+            if (adminSearch) {
+                list = list.filter(w => {
+                    const wonId = (w.wonId || '').toLowerCase();
+                    const flightNumber = (w.flightNumber || '').toLowerCase();
+                    const route = (w.route || '').toLowerCase();
+                    const agentCode = (w.agentCode || '').toLowerCase();
+                    const awb = (w.awbNumber || '').toLowerCase();
+                    const decl = w.cargoDeclaration || {};
+                    const cargoName = (decl.cargoName || '').toLowerCase();
+                    const hawb = (decl.hawbNumber || '').toLowerCase();
+                    const agentInfo = (data.agentsList || []).find(a => (a.code || '').toUpperCase() === (w.agentCode || '').toUpperCase());
+                    const agentName = agentInfo ? (agentInfo.companyName || '').toLowerCase() : '';
+
+                    return wonId.includes(adminSearch) ||
+                        flightNumber.includes(adminSearch) ||
+                        route.includes(adminSearch) ||
+                        agentCode.includes(adminSearch) ||
+                        agentName.includes(adminSearch) ||
+                        awb.includes(adminSearch) ||
+                        cargoName.includes(adminSearch) ||
+                        hawb.includes(adminSearch);
+                });
+            }
+
             // 1. Cargo Declaration Filter
             if (currentWonCargoFilter === 'DECLARED') {
                 list = list.filter(w => !!w.cargoDeclaration);
@@ -738,6 +786,26 @@
             } else if (currentWonPayFilter === 'UNPAID') {
                 list = list.filter(w => w.paymentStatus !== 'PAID');
             }
+
+            // 2b. Sorting Logic
+            list.sort((a, b) => {
+                const getAmount = x => Number(x.totalAmountVND) || ((Number(x.priceKg) || 0) * (Number(x.capacityKg) || 0));
+                const getCap = x => Number(x.capacityKg) || 0;
+                
+                if (adminSort === 'OLDEST') {
+                    return (a.wonId || '').localeCompare(b.wonId || '');
+                } else if (adminSort === 'AMOUNT_DESC') {
+                    return getAmount(b) - getAmount(a);
+                } else if (adminSort === 'AMOUNT_ASC') {
+                    return getAmount(a) - getAmount(b);
+                } else if (adminSort === 'CAPACITY_DESC') {
+                    return getCap(b) - getCap(a);
+                } else if (adminSort === 'CAPACITY_ASC') {
+                    return getCap(a) - getCap(b);
+                } else { // NEWEST
+                    return (b.wonId || '').localeCompare(a.wonId || '');
+                }
+            });
 
             const totalItems = list.length;
             if (countText) countText.textContent = `${totalItems} đơn thắng thầu`;

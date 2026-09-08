@@ -81,6 +81,35 @@
             </div>
         </div>
 
+        <!-- Search, Filter & Sort Controls Bar -->
+        <div class="bg-white rounded-2xl border shadow-sm p-4 flex flex-col md:flex-row items-center justify-between gap-3">
+            <div class="relative flex-1 w-full">
+                <i class="fa-solid fa-magnifying-glass absolute left-3.5 top-1/2 -translate-y-1/2 text-gray-400 text-xs"></i>
+                <input type="text" id="wonSearchInput" oninput="renderWonAuctions()" placeholder="Tìm theo Mã đơn (WON-...), Số hiệu chuyến (VU130...), Tuyến bay (SGN-HAN), AWB hoặc HAWB..."
+                       class="w-full border rounded-xl pl-9 pr-4 py-2 text-xs focus:ring-2 focus:ring-blue-500 outline-none">
+            </div>
+
+            <div class="w-full md:w-48">
+                <select id="wonStatusFilter" onchange="renderWonAuctions()" class="w-full border rounded-xl px-3 py-2 text-xs focus:ring-2 focus:ring-blue-500 outline-none bg-white font-medium">
+                    <option value="ALL">Tất cả trạng thái</option>
+                    <option value="PAID">Đã thanh toán</option>
+                    <option value="PENDING">Chờ Admin xác nhận</option>
+                    <option value="UNPAID">Chưa thanh toán</option>
+                </select>
+            </div>
+
+            <div class="w-full md:w-56">
+                <select id="wonSortSelect" onchange="renderWonAuctions()" class="w-full border rounded-xl px-3 py-2 text-xs focus:ring-2 focus:ring-blue-500 outline-none bg-white font-medium">
+                    <option value="NEWEST">Sắp xếp: Mới nhất</option>
+                    <option value="OLDEST">Sắp xếp: Cũ nhất</option>
+                    <option value="AMOUNT_DESC">Tổng tiền: Cao đến thấp</option>
+                    <option value="AMOUNT_ASC">Tổng tiền: Thấp đến cao</option>
+                    <option value="CAPACITY_DESC">Tải trọng: Cao đến thấp</option>
+                    <option value="CAPACITY_ASC">Tải trọng: Thấp đến cao</option>
+                </select>
+            </div>
+        </div>
+
         <div class="space-y-6" id="wonAuctionsContainer">
             <!-- Rendered by JS -->
         </div>
@@ -1177,15 +1206,70 @@
             const container = document.getElementById('wonAuctionsContainer');
             if (!container) return;
 
+            // Search Keyword Filter
+            const searchKeyword = (document.getElementById('wonSearchInput')?.value || '').trim().toLowerCase();
+            const statusFilter = document.getElementById('wonStatusFilter')?.value || 'ALL';
+            const sortMode = document.getElementById('wonSortSelect')?.value || 'NEWEST';
+
+            if (searchKeyword) {
+                list = list.filter(item => {
+                    const wonId = (item.wonId || '').toLowerCase();
+                    const flightNumber = (item.flightNumber || '').toLowerCase();
+                    const route = (item.route || '').toLowerCase();
+                    const awb = (item.awbNumber || '').toLowerCase();
+                    const decl = item.cargoDeclaration || {};
+                    const cargoName = (decl.cargoName || '').toLowerCase();
+                    const hawb = (decl.hawbNumber || '').toLowerCase();
+                    const consignee = (decl.consigneeName || '').toLowerCase();
+
+                    return wonId.includes(searchKeyword) ||
+                        flightNumber.includes(searchKeyword) ||
+                        route.includes(searchKeyword) ||
+                        awb.includes(searchKeyword) ||
+                        cargoName.includes(searchKeyword) ||
+                        hawb.includes(searchKeyword) ||
+                        consignee.includes(searchKeyword);
+                });
+            }
+
+            // Payment Status Filter
+            if (statusFilter === 'PAID') {
+                list = list.filter(item => item.paymentStatus === 'PAID');
+            } else if (statusFilter === 'PENDING') {
+                list = list.filter(item => item.paymentStatus === 'PENDING_VERIFICATION');
+            } else if (statusFilter === 'UNPAID') {
+                list = list.filter(item => item.paymentStatus !== 'PAID' && item.paymentStatus !== 'PENDING_VERIFICATION');
+            }
+
+            // Sorting Logic
+            list.sort((a, b) => {
+                const getAmount = x => Number(x.totalAmountVND) || ((Number(x.priceKg) || 0) * (Number(x.capacityKg) || 0));
+                const getCap = x => Number(x.capacityKg) || 0;
+                
+                if (sortMode === 'OLDEST') {
+                    return (a.wonId || '').localeCompare(b.wonId || '');
+                } else if (sortMode === 'AMOUNT_DESC') {
+                    return getAmount(b) - getAmount(a);
+                } else if (sortMode === 'AMOUNT_ASC') {
+                    return getAmount(a) - getAmount(b);
+                } else if (sortMode === 'CAPACITY_DESC') {
+                    return getCap(b) - getCap(a);
+                } else if (sortMode === 'CAPACITY_ASC') {
+                    return getCap(a) - getCap(b);
+                } else { // NEWEST (default)
+                    return (b.wonId || '').localeCompare(a.wonId || '');
+                }
+            });
+
             if (!list || list.length === 0) {
                 container.innerHTML = `
-                    <div class="bg-white rounded-2xl border p-16 text-center text-gray-400 shadow-sm">
-                        <i class="fa-solid fa-award text-5xl mb-3 text-amber-400"></i>
-                        <p class="font-bold text-slate-700 text-lg">Chưa có kết quả thắng thầu nào</p>
-                        <p class="text-xs text-gray-400 mt-1 mb-4">Tham gia đặt giá trên sàn đấu giá để sở hữu slot tải trọng tốt nhất</p>
-                        <a href="03-Index.html" class="inline-flex items-center gap-2 bg-blue-600 text-white font-semibold text-xs px-4 py-2.5 rounded-xl shadow">
-                            <i class="fa-solid fa-gavel"></i> Khám phá sàn đấu giá
-                        </a>
+                    <div class="bg-white rounded-2xl border p-12 text-center text-gray-400 shadow-sm">
+                        <i class="fa-solid fa-magnifying-glass text-4xl mb-3 text-slate-300"></i>
+                        <p class="font-bold text-slate-700 text-base">Không tìm thấy đơn thắng thầu nào phù hợp</p>
+                        <p class="text-xs text-gray-400 mt-1 mb-3">Vui lòng thử tìm kiếm bằng từ khóa khác hoặc điều chỉnh bộ lọc</p>
+                        <button onclick="document.getElementById('wonSearchInput').value=''; document.getElementById('wonStatusFilter').value='ALL'; document.getElementById('wonSortSelect').value='NEWEST'; renderWonAuctions();" class="inline-flex items-center gap-1.5 bg-slate-100 hover:bg-slate-200 text-slate-700 font-semibold text-xs px-3.5 py-2 rounded-xl transition">
+                            <i class="fa-solid fa-rotate-left"></i> Xóa bộ lọc tìm kiếm
+                        </button>
                     </div>
                 `;
                 return;
