@@ -530,8 +530,35 @@ const CargoStore = (function() {
                 data.auctions = uniqueAuctions;
             }
 
-            if (!data.agentsList || data.agentsList.length === 0) {
-                data.agentsList = seedAgents;
+            // Self-healing: Ensure at least 3 active OPEN auctions exist for the live portal demo
+            const openAuctionsList = (data.auctions || []).filter(a => a.status === 'OPEN');
+            if (openAuctionsList.length < 2) {
+                if (!data.auctions || data.auctions.length < 3) {
+                    data.auctions = JSON.parse(JSON.stringify(defaultData.auctions));
+                    updated = true;
+                } else {
+                    data.auctions.forEach((a, idx) => {
+                        if (a.id === 1 || a.id === 2 || a.id === 3 || idx < 3) {
+                            a.status = 'OPEN';
+                            a.endTime = new Date(now + (idx + 1) * 90 * 60 * 1000).toISOString();
+                            updated = true;
+                        }
+                    });
+                }
+            }
+
+            if (!data.agentsList || !Array.isArray(data.agentsList) || data.agentsList.length === 0) {
+                data.agentsList = JSON.parse(JSON.stringify(seedAgents));
+                updated = true;
+            }
+
+            if (!data.adminsList || !Array.isArray(data.adminsList) || data.adminsList.length === 0) {
+                data.adminsList = JSON.parse(JSON.stringify(seedAdmins));
+                updated = true;
+            }
+
+            if (!data.registrations || !Array.isArray(data.registrations) || data.registrations.length === 0) {
+                data.registrations = JSON.parse(JSON.stringify(defaultData.registrations));
                 updated = true;
             }
 
