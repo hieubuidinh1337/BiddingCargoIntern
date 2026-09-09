@@ -16,13 +16,18 @@
 
     <!-- Top Navigation Bar for Agent -->
     <header class="bg-white border-b shadow-sm sticky top-0 z-50">
-        <div class="max-w-7xl mx-auto px-4 py-3 flex items-center justify-between">
-            <div class="flex items-center gap-6">
-                <a href="02-Dashboard.html" class="flex items-center gap-2.5">
-                    <div class="w-9 h-9 bg-gradient-to-br from-blue-600 to-indigo-700 rounded-xl flex items-center justify-center text-white font-bold text-base shadow">VN</div>
+        <div class="max-w-7xl mx-auto px-3 sm:px-4 py-2.5 sm:py-3 flex items-center justify-between">
+            <div class="flex items-center gap-2.5 sm:gap-6">
+                <!-- Mobile Menu Toggle Button -->
+                <button type="button" onclick="toggleAgentMobileNav()" class="md:hidden text-gray-600 hover:text-blue-600 p-1.5 rounded-xl hover:bg-gray-100 transition focus:outline-none" aria-label="Menu">
+                    <i class="fa-solid fa-bars text-base"></i>
+                </button>
+
+                <a href="02-Dashboard.html" class="flex items-center gap-2">
+                    <div class="w-8 h-8 sm:w-9 sm:h-9 bg-gradient-to-br from-blue-600 to-indigo-700 rounded-xl flex items-center justify-center text-white font-bold text-sm sm:text-base shadow">VN</div>
                     <div>
-                        <span class="font-bold text-base text-slate-900 block leading-tight">Cargo Bidding</span>
-                        <span class="text-[10px] text-gray-400 uppercase tracking-wider block font-semibold">Agent Portal</span>
+                        <span class="font-bold text-sm sm:text-base text-slate-900 block leading-tight">Cargo Bidding</span>
+                        <span class="text-[9px] sm:text-[10px] text-gray-400 uppercase tracking-wider block font-semibold">Agent Portal</span>
                     </div>
                 </a>
                 <nav class="hidden md:flex items-center gap-1 text-sm font-medium">
@@ -45,99 +50,130 @@
             </div>
 
             <!-- Right Actions: Notifications & Profile -->
-            <div class="flex items-center gap-3">
-                <a href="08-Notifications.html" class="relative p-2 text-gray-500 hover:text-blue-600 rounded-xl hover:bg-gray-100 transition">
-                    <i class="fa-solid fa-bell text-lg"></i>
-                    <span id="headerNotifDot" class="absolute top-1.5 right-1.5 w-2.5 h-2.5 bg-red-500 rounded-full border-2 border-white animate-pulse"></span>
+            <div class="flex items-center gap-1.5 sm:gap-3">
+                <a href="08-Notifications.html" class="relative p-1.5 sm:p-2 text-gray-500 hover:text-blue-600 rounded-xl hover:bg-gray-100 transition" title="Thông báo">
+                    <i class="fa-solid fa-bell text-base sm:text-lg"></i>
+                    <span id="headerNotifDot" class="absolute top-1 sm:top-1.5 right-1 sm:right-1.5 w-2.5 h-2.5 bg-red-500 rounded-full border-2 border-white animate-pulse"></span>
                 </a>
 
                 <div class="h-6 w-px bg-gray-200 hidden sm:block"></div>
 
-                <a href="09-Profile.html" class="flex items-center gap-2.5 hover:bg-gray-50 p-1.5 rounded-xl transition">
-                    <div id="hdrAvatar" class="w-8 h-8 rounded-lg bg-blue-100 text-blue-700 flex items-center justify-center font-bold text-xs">
+                <a href="09-Profile.html" class="flex items-center gap-2 hover:bg-gray-50 p-1 sm:p-1.5 rounded-xl transition">
+                    <div id="hdrAvatar" class="w-7 h-7 sm:w-8 sm:h-8 rounded-lg bg-blue-100 text-blue-700 flex items-center justify-center font-bold text-xs">
                         AG
                     </div>
                     <div class="hidden sm:block text-left">
-                        <p id="hdrCompany" class="text-xs font-bold text-slate-800 leading-tight">ABC Logistics</p>
+                        <p id="hdrCompany" class="text-xs font-bold text-slate-800 leading-tight truncate max-w-[120px]">ABC Logistics</p>
                         <p class="text-[11px] text-gray-500 leading-none">Mã: <span id="hdrCode" class="text-blue-600 font-semibold font-mono">AG-0892</span></p>
                     </div>
                 </a>
 
-                <a href="01-Login.html" title="Đăng xuất" class="text-gray-400 hover:text-red-600 p-2 transition">
-                    <i class="fa-solid fa-right-from-bracket"></i>
+                <a href="01-Login.html" title="Đăng xuất" class="text-gray-400 hover:text-red-600 p-1.5 sm:p-2 transition">
+                    <i class="fa-solid fa-right-from-bracket text-sm sm:text-base"></i>
                 </a>
             </div>
+        </div>
+
+        <!-- Mobile Navigation Menu Dropdown -->
+        <div id="agentMobileNav" class="hidden md:hidden bg-white border-t px-4 py-2.5 space-y-1 text-xs font-medium shadow-lg">
+            <a href="02-Dashboard.html" class="flex items-center gap-2 px-3 py-2 rounded-lg bg-blue-50 text-blue-600 font-semibold">
+                <i class="fa-solid fa-gauge-high w-4"></i> Tổng quan Dashboard
+            </a>
+            <a href="03-Index.html" class="flex items-center gap-2 px-3 py-2 rounded-lg text-gray-700 hover:bg-gray-50 hover:text-blue-600 transition">
+                <i class="fa-solid fa-gavel w-4"></i> Sàn đấu giá trực tiếp
+            </a>
+            <a href="05-Watchlist.html" class="flex items-center gap-2 px-3 py-2 rounded-lg text-gray-700 hover:bg-gray-50 hover:text-blue-600 transition">
+                <i class="fa-solid fa-star w-4"></i> Tuyến bay theo dõi
+            </a>
+            <a href="06-MyBids.html" class="flex items-center gap-2 px-3 py-2 rounded-lg text-gray-700 hover:bg-gray-50 hover:text-blue-600 transition">
+                <i class="fa-solid fa-clock-rotate-left w-4"></i> Lịch sử đặt thầu
+            </a>
+            <a href="07-WonAuction.html" class="flex items-center gap-2 px-3 py-2 rounded-lg text-gray-700 hover:bg-gray-50 hover:text-blue-600 transition">
+                <i class="fa-solid fa-trophy w-4"></i> Đơn hàng thắng thầu
+            </a>
+            <a href="08-Notifications.html" class="flex items-center gap-2 px-3 py-2 rounded-lg text-gray-700 hover:bg-gray-50 hover:text-blue-600 transition">
+                <i class="fa-solid fa-bell w-4"></i> Trung tâm thông báo
+            </a>
+            <a href="09-Profile.html" class="flex items-center gap-2 px-3 py-2 rounded-lg text-gray-700 hover:bg-gray-50 hover:text-blue-600 transition">
+                <i class="fa-solid fa-user-shield w-4"></i> Hồ sơ đại lý & Mã PIN
+            </a>
+            <a href="10-Terms.html" class="flex items-center gap-2 px-3 py-2 rounded-lg text-gray-500 hover:bg-gray-50 hover:text-gray-800 transition border-t pt-2 mt-1">
+                <i class="fa-solid fa-file-contract w-4"></i> Quy chế & Điều khoản
+            </a>
         </div>
     </header>
 
     <!-- Main Content -->
-    <main class="max-w-7xl mx-auto px-4 py-6 space-y-6">
+    <main class="max-w-7xl mx-auto px-3 sm:px-4 py-4 sm:py-6 space-y-4 sm:space-y-6">
 
         <!-- Welcome Banner -->
-        <div class="bg-gradient-to-r from-slate-900 via-blue-900 to-indigo-900 rounded-2xl text-white p-6 shadow-md relative overflow-hidden">
+        <div class="bg-gradient-to-r from-slate-900 via-blue-900 to-indigo-900 rounded-2xl text-white p-4 sm:p-6 shadow-md relative overflow-hidden">
             <div class="relative z-10 flex flex-col md:flex-row md:items-center justify-between gap-4">
                 <div>
-                    <div class="inline-flex items-center gap-2 bg-white/10 text-xs px-2.5 py-1 rounded-full mb-2">
+                    <div class="inline-flex items-center gap-2 bg-white/10 text-[11px] sm:text-xs px-2.5 py-0.5 sm:py-1 rounded-full mb-1.5 sm:mb-2">
                         <span class="w-2 h-2 rounded-full bg-emerald-400 animate-ping"></span>
                         <span id="dashTierLabel">Đại lý ủy quyền chính thức</span>
                     </div>
-                    <h2 id="dashWelcomeName" class="text-2xl font-bold tracking-tight">Xin chào, Nguyễn Văn An</h2>
-                    <p id="dashCompanyInfo" class="text-slate-300 text-sm mt-1">Công ty TNHH Vận tải ABC Logistics · Hôm nay có <strong>28 chuyến bay</strong> mở thầu tải trọng cargo.</p>
+                    <h2 id="dashWelcomeName" class="text-xl sm:text-2xl font-bold tracking-tight">Xin chào, Nguyễn Văn An</h2>
+                    <p id="dashCompanyInfo" class="text-slate-300 text-xs sm:text-sm mt-0.5 sm:mt-1">Công ty TNHH Vận tải ABC Logistics · Hôm nay có <strong>28 chuyến bay</strong> mở thầu tải trọng cargo.</p>
                 </div>
-                <div class="flex flex-wrap items-center gap-2.5">
-                    <a href="03-Index.html" class="bg-blue-500 hover:bg-blue-400 text-white font-semibold text-xs sm:text-sm px-4 py-2.5 rounded-xl transition shadow flex items-center gap-2">
+                <div class="grid grid-cols-1 sm:flex sm:flex-wrap items-center gap-2 sm:gap-2.5">
+                    <a href="03-Index.html" class="bg-blue-500 hover:bg-blue-400 text-white font-semibold text-xs sm:text-sm px-4 py-2.5 rounded-xl transition shadow flex items-center justify-center gap-2 text-center">
                         <i class="fa-solid fa-gavel"></i> Vào Sàn Đấu Giá
                     </a>
-                    <a href="07-WonAuction.html?status=UNPAID" class="bg-white/10 hover:bg-white/20 border border-white/20 text-white text-xs sm:text-sm font-medium px-3.5 py-2.5 rounded-xl transition flex items-center gap-1.5" title="Đơn thắng thầu chưa thanh toán">
-                        <i class="fa-solid fa-credit-card text-emerald-400"></i> Đơn hàng cần thanh toán (<span id="dashUnpaidCount" class="font-bold text-white">0</span>)
+                    <a href="07-WonAuction.html?status=UNPAID" class="bg-white/10 hover:bg-white/20 border border-white/20 text-white text-xs sm:text-sm font-medium px-3.5 py-2.5 rounded-xl transition flex items-center justify-center gap-1.5 text-center" title="Đơn thắng thầu chưa thanh toán">
+                        <i class="fa-solid fa-credit-card text-emerald-400"></i> Đơn cần thanh toán (<span id="dashUnpaidCount" class="font-bold text-white">0</span>)
                     </a>
-                    <a href="07-WonAuction.html?status=UNDECLARED" class="bg-amber-500/20 hover:bg-amber-500/30 border border-amber-400/40 text-amber-200 text-xs sm:text-sm font-medium px-3.5 py-2.5 rounded-xl transition flex items-center gap-1.5" title="Đơn thắng thầu chưa khai báo hàng hóa">
-                        <i class="fa-solid fa-boxes-packing text-amber-400"></i> Đơn hàng cần khai báo (<span id="dashUndeclaredCount" class="font-bold text-amber-300">0</span>)
+                    <a href="07-WonAuction.html?status=UNDECLARED" class="bg-amber-500/20 hover:bg-amber-500/30 border border-amber-400/40 text-amber-200 text-xs sm:text-sm font-medium px-3.5 py-2.5 rounded-xl transition flex items-center justify-center gap-1.5 text-center" title="Đơn thắng thầu chưa khai báo hàng hóa">
+                        <i class="fa-solid fa-boxes-packing text-amber-400"></i> Đơn cần khai báo (<span id="dashUndeclaredCount" class="font-bold text-amber-300">0</span>)
                     </a>
                 </div>
             </div>
         </div>
 
-        <!-- 4 KPI Cards -->
-        <div class="grid grid-cols-2 lg:grid-cols-4 gap-4">
-            <div class="bg-white rounded-2xl p-5 border shadow-sm flex items-center gap-4">
-                <div class="w-12 h-12 rounded-xl bg-blue-50 text-blue-600 flex items-center justify-center text-xl flex-shrink-0">
+        <!-- 4 KPI Cards (2 cols on mobile, 4 cols on desktop) -->
+        <div class="grid grid-cols-2 lg:grid-cols-4 gap-2.5 sm:gap-4">
+            <div class="bg-white rounded-xl sm:rounded-2xl p-3.5 sm:p-5 border shadow-sm flex flex-col sm:flex-row items-start sm:items-center gap-2.5 sm:gap-4">
+                <div class="w-9 h-9 sm:w-12 sm:h-12 rounded-xl bg-blue-50 text-blue-600 flex items-center justify-center text-lg sm:text-xl flex-shrink-0">
                     <i class="fa-solid fa-plane-departure"></i>
                 </div>
-                <div>
-                    <p class="text-xs text-gray-500 font-medium">Phiên đang mở</p>
-                    <p id="kpiOpenSessions" class="text-2xl font-bold text-slate-900 mt-0.5">0</p>
-                    <span class="text-xs text-green-600 font-semibold font-normal">Hôm nay</span>
+                <div class="min-w-0 flex-1">
+                    <p class="text-[10px] sm:text-xs text-gray-500 font-medium truncate">Phiên đang mở</p>
+                    <p id="kpiOpenSessions" class="text-base sm:text-2xl font-bold text-slate-900 mt-0.5">0</p>
+                    <span class="text-[10px] sm:text-xs text-green-600 font-semibold block truncate">Hôm nay</span>
                 </div>
             </div>
 
-            <div class="bg-white rounded-2xl p-5 border shadow-sm flex items-center gap-4">
-                <div class="w-12 h-12 rounded-xl bg-emerald-50 text-emerald-600 flex items-center justify-center text-xl flex-shrink-0">
+            <div class="bg-white rounded-xl sm:rounded-2xl p-3.5 sm:p-5 border shadow-sm flex flex-col sm:flex-row items-start sm:items-center gap-2.5 sm:gap-4">
+                <div class="w-9 h-9 sm:w-12 sm:h-12 rounded-xl bg-emerald-50 text-emerald-600 flex items-center justify-center text-lg sm:text-xl flex-shrink-0">
                     <i class="fa-solid fa-crown"></i>
                 </div>
-                <div>
-                    <p class="text-xs text-gray-500 font-medium">Đang dẫn đầu</p>
-                    <p id="kpiLeading" class="text-2xl font-bold text-emerald-600 mt-0.5">0 <span class="text-xs text-gray-400 font-normal">chuyến</span></p>
+                <div class="min-w-0 flex-1">
+                    <p class="text-[10px] sm:text-xs text-gray-500 font-medium truncate">Đang dẫn đầu</p>
+                    <p id="kpiLeading" class="text-base sm:text-2xl font-bold text-emerald-600 mt-0.5 truncate">0 <span class="text-[10px] sm:text-xs text-gray-400 font-normal">chuyến</span></p>
+                    <span class="text-[10px] sm:text-xs text-emerald-600 font-medium block truncate">Giá cao nhất</span>
                 </div>
             </div>
 
-            <div class="bg-white rounded-2xl p-5 border shadow-sm flex items-center gap-4">
-                <div class="w-12 h-12 rounded-xl bg-amber-50 text-amber-600 flex items-center justify-center text-xl flex-shrink-0">
+            <div class="bg-white rounded-xl sm:rounded-2xl p-3.5 sm:p-5 border shadow-sm flex flex-col sm:flex-row items-start sm:items-center gap-2.5 sm:gap-4">
+                <div class="w-9 h-9 sm:w-12 sm:h-12 rounded-xl bg-amber-50 text-amber-600 flex items-center justify-center text-lg sm:text-xl flex-shrink-0">
                     <i class="fa-solid fa-star"></i>
                 </div>
-                <div>
-                    <p class="text-xs text-gray-500 font-medium">Đang theo dõi</p>
-                    <p id="kpiWatchlist" class="text-2xl font-bold text-amber-600 mt-0.5">3 <span class="text-xs text-gray-400 font-normal">chuyến</span></p>
+                <div class="min-w-0 flex-1">
+                    <p class="text-[10px] sm:text-xs text-gray-500 font-medium truncate">Đang theo dõi</p>
+                    <p id="kpiWatchlist" class="text-base sm:text-2xl font-bold text-amber-600 mt-0.5 truncate">0 <span class="text-[10px] sm:text-xs text-gray-400 font-normal">chuyến</span></p>
+                    <span class="text-[10px] sm:text-xs text-amber-600 font-medium block truncate">Tuyến quan tâm</span>
                 </div>
             </div>
 
-            <div class="bg-white rounded-2xl p-5 border shadow-sm flex items-center gap-4">
-                <div class="w-12 h-12 rounded-xl bg-indigo-50 text-indigo-600 flex items-center justify-center text-xl flex-shrink-0">
+            <div class="bg-white rounded-xl sm:rounded-2xl p-3.5 sm:p-5 border shadow-sm flex flex-col sm:flex-row items-start sm:items-center gap-2.5 sm:gap-4">
+                <div class="w-9 h-9 sm:w-12 sm:h-12 rounded-xl bg-purple-50 text-purple-600 flex items-center justify-center text-lg sm:text-xl flex-shrink-0">
                     <i class="fa-solid fa-trophy"></i>
                 </div>
-                <div>
-                    <p class="text-xs text-gray-500 font-medium">Thắng thầu tháng này</p>
-                    <p id="kpiWins" class="text-2xl font-bold text-indigo-600 mt-0.5">8 <span class="text-xs text-gray-400 font-normal">đơn</span></p>
+                <div class="min-w-0 flex-1">
+                    <p class="text-[10px] sm:text-xs text-gray-500 font-medium truncate">Đã trúng thầu</p>
+                    <p id="kpiWon" class="text-base sm:text-2xl font-bold text-purple-600 mt-0.5 truncate">0 <span class="text-[10px] sm:text-xs text-gray-400 font-normal">đơn</span></p>
+                    <span class="text-[10px] sm:text-xs text-purple-600 font-medium block truncate">Đã chốt phiên</span>
                 </div>
             </div>
         </div>
@@ -211,6 +247,11 @@
     </main>
 
     <script>
+        function toggleAgentMobileNav() {
+            const nav = document.getElementById('agentMobileNav');
+            if (nav) nav.classList.toggle('hidden');
+        }
+
         let dashAuctionCurrentPage = 1;
         const dashAuctionPageSize = 4;
 

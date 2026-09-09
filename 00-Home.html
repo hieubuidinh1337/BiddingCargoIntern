@@ -40,17 +40,21 @@
 
     <!-- Main Header -->
     <header class="bg-white border-b shadow-sm sticky top-0 z-50">
-        <div class="max-w-7xl mx-auto px-4 py-3 flex items-center justify-between">
-            <a href="00-Home.html" class="flex items-center gap-3">
-                <div
-                    class="w-11 h-11 bg-blue-600 rounded-xl flex items-center justify-center text-white font-bold text-lg shadow-md hover:scale-105 transition">
-                    VN
-                </div>
-                <div>
-                    <h1 class="font-bold text-lg leading-tight text-slate-900">Cargo Bidding</h1>
-                    <p class="text-xs text-gray-500">Sàn đấu giá hàng hóa hàng không</p>
-                </div>
-            </a>
+        <div class="max-w-7xl mx-auto px-3 sm:px-4 py-2.5 sm:py-3 flex items-center justify-between">
+            <div class="flex items-center gap-2.5">
+                <button type="button" onclick="toggleHomeMobileNav()" class="md:hidden text-gray-600 hover:text-blue-600 p-1.5 rounded-xl hover:bg-gray-100 transition focus:outline-none" aria-label="Menu">
+                    <i class="fa-solid fa-bars text-base"></i>
+                </button>
+                <a href="00-Home.html" class="flex items-center gap-2.5">
+                    <div class="w-9 h-9 sm:w-11 sm:h-11 bg-blue-600 rounded-xl flex items-center justify-center text-white font-bold text-base sm:text-lg shadow-md hover:scale-105 transition">
+                        VN
+                    </div>
+                    <div>
+                        <h1 class="font-bold text-sm sm:text-lg leading-tight text-slate-900">Cargo Bidding</h1>
+                        <p class="text-[10px] sm:text-xs text-gray-500">Sàn đấu giá hàng hóa hàng không</p>
+                    </div>
+                </a>
+            </div>
             <nav class="hidden md:flex items-center gap-6 text-sm font-medium">
                 <a href="#gioi-thieu" class="text-gray-600 hover:text-blue-600 transition">Giới thiệu</a>
                 <a href="#tinh-nang" class="text-gray-600 hover:text-blue-600 transition">Tính năng</a>
@@ -58,14 +62,40 @@
                 <a href="#thong-bao" class="text-gray-600 hover:text-blue-600 transition">Thông báo</a>
                 <a href="#lien-he" class="text-gray-600 hover:text-blue-600 transition">Liên hệ</a>
             </nav>
-            <div class="flex items-center gap-3">
+            <div class="flex items-center gap-2 sm:gap-3">
                 <a href="Register.html"
-                    class="hidden sm:inline-flex items-center gap-1.5 text-blue-600 border border-blue-200 hover:bg-blue-50 text-sm font-medium px-4 py-2 rounded-xl transition">
+                    class="hidden sm:inline-flex items-center gap-1.5 text-blue-600 border border-blue-200 hover:bg-blue-50 text-xs sm:text-sm font-medium px-3 sm:px-4 py-2 rounded-xl transition">
                     <i class="fa-solid fa-user-plus text-xs"></i> Đăng ký đại lý
                 </a>
                 <a href="01-Login.html" id="headerLoginBtn"
-                    class="bg-blue-600 hover:bg-blue-700 text-white text-sm font-medium px-4 py-2 rounded-xl transition shadow flex items-center gap-1.5">
+                    class="bg-blue-600 hover:bg-blue-700 text-white text-xs sm:text-sm font-medium px-3 sm:px-4 py-2 rounded-xl transition shadow flex items-center gap-1.5">
                     <i class="fa-solid fa-right-to-bracket text-xs"></i> Đăng nhập
+                </a>
+            </div>
+        </div>
+        <!-- Mobile Drawer -->
+        <div id="homeMobileNav" class="hidden md:hidden bg-white border-t px-4 py-2.5 space-y-1 text-xs font-medium shadow-lg">
+            <a href="#gioi-thieu" onclick="toggleHomeMobileNav()" class="flex items-center gap-2 px-3 py-2 rounded-lg text-gray-700 hover:bg-gray-50 hover:text-blue-600 transition">
+                <i class="fa-solid fa-circle-info w-4"></i> Giới thiệu sàn đấu giá
+            </a>
+            <a href="#tinh-nang" onclick="toggleHomeMobileNav()" class="flex items-center gap-2 px-3 py-2 rounded-lg text-gray-700 hover:bg-gray-50 hover:text-blue-600 transition">
+                <i class="fa-solid fa-bolt w-4"></i> Tính năng nổi bật
+            </a>
+            <a href="#quy-trinh" onclick="toggleHomeMobileNav()" class="flex items-center gap-2 px-3 py-2 rounded-lg text-gray-700 hover:bg-gray-50 hover:text-blue-600 transition">
+                <i class="fa-solid fa-list-check w-4"></i> Quy trình tham gia thầu
+            </a>
+            <a href="#thong-bao" onclick="toggleHomeMobileNav()" class="flex items-center gap-2 px-3 py-2 rounded-lg text-gray-700 hover:bg-gray-50 hover:text-blue-600 transition">
+                <i class="fa-solid fa-bullhorn w-4"></i> Thông báo & Cập nhật
+            </a>
+            <a href="#lien-he" onclick="toggleHomeMobileNav()" class="flex items-center gap-2 px-3 py-2 rounded-lg text-gray-700 hover:bg-gray-50 hover:text-blue-600 transition">
+                <i class="fa-solid fa-headset w-4"></i> Liên hệ điều hành Cargo
+            </a>
+            <div class="border-t pt-2 mt-1 flex flex-col gap-1.5">
+                <a href="Register.html" class="flex items-center justify-center gap-2 py-2 rounded-lg border border-blue-200 text-blue-600 font-semibold hover:bg-blue-50 transition">
+                    <i class="fa-solid fa-user-plus text-xs"></i> Đăng ký đại lý mới
+                </a>
+                <a href="Admin/01-AdminLogin.html" class="flex items-center justify-center gap-2 py-2 rounded-lg text-gray-500 hover:bg-gray-50 text-[11px] transition">
+                    <i class="fa-solid fa-user-shield text-xs"></i> Cổng đăng nhập Quản trị viên
                 </a>
             </div>
         </div>
@@ -677,6 +707,11 @@
                 </div>
             `;
             }
+        }
+
+        function toggleHomeMobileNav() {
+            const nav = document.getElementById('homeMobileNav');
+            if (nav) nav.classList.toggle('hidden');
         }
 
         document.addEventListener('DOMContentLoaded', checkLoginState);

@@ -1,5 +1,5 @@
 {
-  "version": 1788936311317,
+  "version": 1788939161989,
   "auctions": [
     {
       "id": 9,
@@ -43,7 +43,7 @@
       "startingPriceKg": 18000,
       "currentPriceKg": 27000,
       "minStep": 500,
-      "endTime": "2026-09-09T07:30:00.000Z",
+      "endTime": "2026-09-09T08:30:00.000Z",
       "status": "OPEN",
       "leadingAgentCode": "AG-1024",
       "leadingAgentName": "Công ty CP Giao nhận Kho vận Vinatrans",
@@ -181,7 +181,7 @@
       "startingPriceKg": 22000,
       "currentPriceKg": 30000,
       "minStep": 1000,
-      "endTime": "2026-09-09T07:30:00.000Z",
+      "endTime": "2026-09-09T08:30:00.000Z",
       "status": "OPEN",
       "leadingAgentCode": "AG-1024",
       "leadingAgentName": "Công ty CP Giao nhận Kho vận Vinatrans",
@@ -847,7 +847,7 @@
       "id": 1788859560111,
       "targetAgentCode": "AG-0556",
       "title": "⏰ CẢNH BÁO THANH TOÁN: Đơn WON-2026-0815-04 (VU340)",
-      "message": "Quý đại lý vui lòng hoàn tất chuyển khoản cho đơn hàng WON-2026-0815-04 trước 16:15:00 9/9/2026. LƯU Ý: Nếu không thanh toán đúng hạn, hệ thống sẽ TỰ ĐỘNG KHÓA TÀI KHOẢN ĐẠI LÝ và hủy quyền đấu giá.",
+      "message": "Quý đại lý vui lòng hoàn tất chuyển khoản cho ��ơn hàng WON-2026-0815-04 trước 16:15:00 9/9/2026. LƯU Ý: Nếu không thanh toán đúng hạn, hệ thống sẽ TỰ ĐỘNG KHÓA TÀI KHOẢN ĐẠI LÝ và hủy quyền đấu giá.",
       "time": "Vừa xong",
       "type": "PAYMENT_REMINDER",
       "read": false,
@@ -1029,7 +1029,7 @@
       "id": 1788849375930,
       "timestamp": 1788849375930,
       "targetAgentCode": null,
-      "title": "Mở phiên đấu giá mới: Chuyến VU510 (DAD - PQC)",
+      "title": "Mở phiên đ���u giá mới: Chuyến VU510 (DAD - PQC)",
       "message": "Chuyến bay VU510 (Đà Nẵng - Phú Quốc) với tải trọng 3.000 Kg, giá khởi điểm 18.000 đ/Kg đã chính thức mở nhận giá thầu.",
       "time": "Vừa xong",
       "type": "AUCTION_OPEN",

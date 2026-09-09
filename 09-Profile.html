@@ -16,26 +16,56 @@
 
     <!-- HEADER NAVIGATION -->
     <header class="bg-white border-b shadow-sm sticky top-0 z-50">
-        <div class="max-w-4xl mx-auto px-4 py-3 flex items-center justify-between">
-            <div class="flex items-center gap-3">
-                <a href="02-Dashboard.html" class="w-9 h-9 rounded-xl bg-gray-100 hover:bg-gray-200 flex items-center justify-center text-gray-600 hover:text-blue-600 transition">
-                    <i class="fa-solid fa-arrow-left text-sm"></i>
+        <div class="max-w-4xl mx-auto px-3 sm:px-4 py-2.5 sm:py-3 flex items-center justify-between">
+            <div class="flex items-center gap-2 sm:gap-3">
+                <button type="button" onclick="toggleAgentMobileNav()" class="md:hidden text-gray-600 hover:text-blue-600 p-1.5 rounded-xl hover:bg-gray-100 transition focus:outline-none" aria-label="Menu">
+                    <i class="fa-solid fa-bars text-base"></i>
+                </button>
+                <a href="02-Dashboard.html" class="w-8 h-8 sm:w-9 sm:h-9 rounded-xl bg-gray-100 hover:bg-gray-200 flex items-center justify-center text-gray-600 hover:text-blue-600 transition">
+                    <i class="fa-solid fa-arrow-left text-xs sm:text-sm"></i>
                 </a>
                 <div>
-                    <h1 class="font-bold text-lg text-slate-900">Hồ sơ đại lý ủy quyền</h1>
-                    <p class="text-xs text-gray-400">Thông tin tài khoản pháp lý từ CSDL SQL Server 2022</p>
+                    <h1 class="font-bold text-sm sm:text-lg text-slate-900 leading-tight">Hồ sơ đại lý ủy quyền</h1>
+                    <p class="text-[10px] sm:text-xs text-gray-400">Thông tin tài khoản & an toàn bảo mật</p>
                 </div>
             </div>
-            <a href="02-Dashboard.html" class="text-xs text-gray-500 hover:text-blue-600 font-medium">
-                <i class="fa-solid fa-house mr-1"></i> Dashboard
+            <a href="02-Dashboard.html" class="text-xs text-gray-500 hover:text-blue-600 font-medium flex items-center gap-1">
+                <i class="fa-solid fa-house text-xs"></i> <span class="hidden sm:inline">Dashboard</span>
+            </a>
+        </div>
+        <!-- Mobile Drawer -->
+        <div id="agentMobileNav" class="hidden md:hidden bg-white border-t px-4 py-2.5 space-y-1 text-xs font-medium shadow-lg">
+            <a href="02-Dashboard.html" class="flex items-center gap-2 px-3 py-2 rounded-lg text-gray-700 hover:bg-gray-50 hover:text-blue-600 transition">
+                <i class="fa-solid fa-gauge-high w-4"></i> Tổng quan Dashboard
+            </a>
+            <a href="03-Index.html" class="flex items-center gap-2 px-3 py-2 rounded-lg text-gray-700 hover:bg-gray-50 hover:text-blue-600 transition">
+                <i class="fa-solid fa-gavel w-4"></i> Sàn đấu giá trực tiếp
+            </a>
+            <a href="05-Watchlist.html" class="flex items-center gap-2 px-3 py-2 rounded-lg text-gray-700 hover:bg-gray-50 hover:text-blue-600 transition">
+                <i class="fa-solid fa-star w-4"></i> Tuyến bay theo dõi
+            </a>
+            <a href="06-MyBids.html" class="flex items-center gap-2 px-3 py-2 rounded-lg text-gray-700 hover:bg-gray-50 hover:text-blue-600 transition">
+                <i class="fa-solid fa-clock-rotate-left w-4"></i> Lịch sử đặt thầu
+            </a>
+            <a href="07-WonAuction.html" class="flex items-center gap-2 px-3 py-2 rounded-lg text-gray-700 hover:bg-gray-50 hover:text-blue-600 transition">
+                <i class="fa-solid fa-trophy w-4"></i> Đơn hàng thắng thầu
+            </a>
+            <a href="08-Notifications.html" class="flex items-center gap-2 px-3 py-2 rounded-lg text-gray-700 hover:bg-gray-50 hover:text-blue-600 transition">
+                <i class="fa-solid fa-bell w-4"></i> Trung tâm thông báo
+            </a>
+            <a href="09-Profile.html" class="flex items-center gap-2 px-3 py-2 rounded-lg bg-blue-50 text-blue-600 font-semibold transition">
+                <i class="fa-solid fa-user-shield w-4"></i> Hồ sơ đại lý & Mã PIN
+            </a>
+            <a href="10-Terms.html" class="flex items-center gap-2 px-3 py-2 rounded-lg text-gray-500 hover:bg-gray-50 hover:text-gray-800 transition border-t pt-2 mt-1">
+                <i class="fa-solid fa-file-contract w-4"></i> Quy chế & Điều khoản
             </a>
         </div>
     </header>
 
-    <main class="max-w-4xl mx-auto px-4 py-6 space-y-6">
+    <main class="max-w-4xl mx-auto px-3 sm:px-4 py-4 sm:py-6 space-y-4 sm:space-y-6">
 
         <!-- Main Profile Card -->
-        <div class="bg-white rounded-2xl border shadow-sm p-6 space-y-6">
+        <div class="bg-white rounded-2xl border shadow-sm p-4 sm:p-6 space-y-4 sm:space-y-6">
             <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b pb-6">
                 <div class="flex items-center gap-4">
                     <div id="profAvatar" class="w-16 h-16 bg-gradient-to-br from-blue-600 to-indigo-700 text-white rounded-2xl flex items-center justify-center text-2xl font-bold shadow-md flex-shrink-0">
@@ -501,6 +531,12 @@
         alertEl.textContent = res.message;
         alertEl.className = 'mb-4 p-3 rounded-xl text-xs font-semibold bg-green-50 text-green-700 border border-green-200 block';
         document.getElementById('changePwdForm').reset();
+    }
+
+    // Mobile Nav Toggle
+    function toggleAgentMobileNav() {
+        const nav = document.getElementById('agentMobileNav');
+        if (nav) nav.classList.toggle('hidden');
     }
 
     document.addEventListener('DOMContentLoaded', renderProfile);

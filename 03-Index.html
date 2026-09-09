@@ -12,13 +12,18 @@
 
     <!-- Top Navigation Bar for Agent -->
     <header class="bg-white border-b shadow-sm sticky top-0 z-50">
-        <div class="max-w-7xl mx-auto px-4 py-3 flex items-center justify-between">
-            <div class="flex items-center gap-6">
-                <a href="02-Dashboard.html" class="flex items-center gap-2.5">
-                    <div class="w-9 h-9 bg-blue-600 rounded-xl flex items-center justify-center text-white font-bold text-base shadow">VN</div>
+        <div class="max-w-7xl mx-auto px-3 sm:px-4 py-2.5 sm:py-3 flex items-center justify-between">
+            <div class="flex items-center gap-2.5 sm:gap-6">
+                <!-- Mobile Menu Button -->
+                <button type="button" onclick="toggleAgentMobileNav()" class="md:hidden text-gray-600 hover:text-blue-600 p-1.5 rounded-xl hover:bg-gray-100 transition focus:outline-none" aria-label="Menu">
+                    <i class="fa-solid fa-bars text-base"></i>
+                </button>
+
+                <a href="02-Dashboard.html" class="flex items-center gap-2">
+                    <div class="w-8 h-8 sm:w-9 sm:h-9 bg-blue-600 rounded-xl flex items-center justify-center text-white font-bold text-sm sm:text-base shadow">VN</div>
                     <div>
-                        <span class="font-bold text-base text-slate-900 block leading-tight">Cargo Bidding</span>
-                        <span class="text-[10px] text-gray-400 uppercase tracking-wider block font-semibold">Agent Portal</span>
+                        <span class="font-bold text-sm sm:text-base text-slate-900 block leading-tight">Cargo Bidding</span>
+                        <span class="text-[9px] sm:text-[10px] text-gray-400 uppercase tracking-wider block font-semibold">Agent Portal</span>
                     </div>
                 </a>
                 <nav class="hidden md:flex items-center gap-1 text-sm font-medium">
@@ -41,20 +46,51 @@
             </div>
 
             <!-- Right Actions -->
-            <div class="flex items-center gap-3">
-                <a href="08-Notifications.html" class="relative p-2 text-gray-500 hover:text-blue-600 rounded-xl hover:bg-gray-100 transition">
-                    <i class="fa-solid fa-bell text-lg"></i>
-                    <span class="absolute top-1.5 right-1.5 w-2.5 h-2.5 bg-red-500 rounded-full border-2 border-white animate-pulse"></span>
+            <div class="flex items-center gap-1.5 sm:gap-3">
+                <a href="08-Notifications.html" class="relative p-1.5 sm:p-2 text-gray-500 hover:text-blue-600 rounded-xl hover:bg-gray-100 transition" title="Thông báo">
+                    <i class="fa-solid fa-bell text-base sm:text-lg"></i>
+                    <span class="absolute top-1 sm:top-1.5 right-1 sm:right-1.5 w-2.5 h-2.5 bg-red-500 rounded-full border-2 border-white animate-pulse"></span>
                 </a>
-                <a href="09-Profile.html" class="flex items-center gap-2 hover:bg-gray-50 p-1.5 rounded-xl transition">
-                    <div class="w-8 h-8 rounded-lg bg-blue-100 text-blue-700 flex items-center justify-center font-bold text-xs" id="headerUserAvatar">AG</div>
+                <a href="09-Profile.html" class="flex items-center gap-2 hover:bg-gray-50 p-1 sm:p-1.5 rounded-xl transition">
+                    <div class="w-7 h-7 sm:w-8 sm:h-8 rounded-lg bg-blue-100 text-blue-700 flex items-center justify-center font-bold text-xs" id="headerUserAvatar">AG</div>
                     <span class="text-xs font-semibold text-gray-700 hidden sm:inline" id="headerUserCode">AG-0892</span>
+                </a>
+                <a href="01-Login.html" title="Đăng xuất" class="text-gray-400 hover:text-red-600 p-1.5 sm:p-2 transition">
+                    <i class="fa-solid fa-right-from-bracket text-sm sm:text-base"></i>
                 </a>
             </div>
         </div>
+
+        <!-- Mobile Navigation Menu Dropdown -->
+        <div id="agentMobileNav" class="hidden md:hidden bg-white border-t px-4 py-2.5 space-y-1 text-xs font-medium shadow-lg">
+            <a href="02-Dashboard.html" class="flex items-center gap-2 px-3 py-2 rounded-lg text-gray-700 hover:bg-gray-50 hover:text-blue-600 transition">
+                <i class="fa-solid fa-gauge-high w-4"></i> Tổng quan Dashboard
+            </a>
+            <a href="03-Index.html" class="flex items-center gap-2 px-3 py-2 rounded-lg bg-blue-50 text-blue-600 font-semibold">
+                <i class="fa-solid fa-gavel w-4"></i> Sàn đấu giá trực tiếp
+            </a>
+            <a href="05-Watchlist.html" class="flex items-center gap-2 px-3 py-2 rounded-lg text-gray-700 hover:bg-gray-50 hover:text-blue-600 transition">
+                <i class="fa-solid fa-star w-4"></i> Tuyến bay theo dõi
+            </a>
+            <a href="06-MyBids.html" class="flex items-center gap-2 px-3 py-2 rounded-lg text-gray-700 hover:bg-gray-50 hover:text-blue-600 transition">
+                <i class="fa-solid fa-clock-rotate-left w-4"></i> Lịch sử đặt thầu
+            </a>
+            <a href="07-WonAuction.html" class="flex items-center gap-2 px-3 py-2 rounded-lg text-gray-700 hover:bg-gray-50 hover:text-blue-600 transition">
+                <i class="fa-solid fa-trophy w-4"></i> Đơn hàng thắng thầu
+            </a>
+            <a href="08-Notifications.html" class="flex items-center gap-2 px-3 py-2 rounded-lg text-gray-700 hover:bg-gray-50 hover:text-blue-600 transition">
+                <i class="fa-solid fa-bell w-4"></i> Trung tâm thông báo
+            </a>
+            <a href="09-Profile.html" class="flex items-center gap-2 px-3 py-2 rounded-lg text-gray-700 hover:bg-gray-50 hover:text-blue-600 transition">
+                <i class="fa-solid fa-user-shield w-4"></i> Hồ sơ đại lý & Mã PIN
+            </a>
+            <a href="10-Terms.html" class="flex items-center gap-2 px-3 py-2 rounded-lg text-gray-500 hover:bg-gray-50 hover:text-gray-800 transition border-t pt-2 mt-1">
+                <i class="fa-solid fa-file-contract w-4"></i> Quy chế & Điều khoản
+            </a>
+        </div>
     </header>
 
-    <main class="max-w-7xl mx-auto px-4 py-6 space-y-6">
+    <main class="max-w-7xl mx-auto px-3 sm:px-4 py-4 sm:py-6 space-y-4 sm:space-y-6">
 
         <!-- Header + Title -->
         <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
@@ -225,6 +261,11 @@
     </div>
 
     <script>
+        function toggleAgentMobileNav() {
+            const nav = document.getElementById('agentMobileNav');
+            if (nav) nav.classList.toggle('hidden');
+        }
+
         let indexCurrentPage = 1;
         let indexPageSize = 9;
 
