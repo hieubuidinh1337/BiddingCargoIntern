@@ -737,42 +737,19 @@ const CargoStore = (function() {
                 });
             }
 
-            // Normalize wonAuctions and migrate August dates & un-cancel expired won orders
+            // Normalize wonAuctions dates if unparseable
             if (data.wonAuctions && Array.isArray(data.wonAuctions)) {
                 data.wonAuctions.forEach(w => {
-                    const auction = (data.auctions || []).find(a => a.id == w.auctionId || a.flightNumber === w.flightNumber);
-                    
                     if (w.cutOffTime) {
                         if (w.cutOffTime.includes('15/08/2026')) w.cutOffTime = w.cutOffTime.replace('15/08/2026', '09/09/2026');
                         if (w.cutOffTime.includes('16/08/2026')) w.cutOffTime = w.cutOffTime.replace('16/08/2026', '09/09/2026');
                         if (w.cutOffTime.includes('14/08/2026')) w.cutOffTime = w.cutOffTime.replace('14/08/2026', '08/09/2026');
                     }
-
-                    const curDlMs = w.paymentDeadline ? new Date(w.paymentDeadline).getTime() : 0;
-                    if (auction && (isNaN(curDlMs) || curDlMs < Date.now() || (w.paymentDeadline && w.paymentDeadline.includes('2026-08')))) {
-                        const correctDl = calculatePaymentDeadline(auction, new Date());
-                        w.paymentDeadline = correctDl;
-                        updated = true;
-                    }
-
-                    // Restore won auctions from EXPIRED back to UNPAID
-                    if (w.paymentStatus === 'EXPIRED') {
-                        w.paymentStatus = 'UNPAID';
-                        updated = true;
-                    }
                 });
             }
 
-            // Migration cleanup complete
-
-            // Clean up obsolete lock notifications & mark admin reconciliation notifications
+            // Mark admin reconciliation notifications
             if (data.notifications && Array.isArray(data.notifications)) {
-                const originalLen = data.notifications.length;
-                data.notifications = data.notifications.filter(n => {
-                    if (!n) return false;
-                    const isLockAlert = (n.type === 'ALERT' && (n.title || '').includes('TÀI KHOẢN ĐÃ BỊ KHÓA')) || ((n.message || '').includes('tự động KHÓA'));
-                    return !isLockAlert;
-                });
                 data.notifications.forEach(n => {
                     if ((n.title || '').includes('ĐẠI LÝ BÁO CHUYỂN KHOẢN') || (n.message || '').includes('đối soát sao kê ngân hàng')) {
                         n.targetRole = 'ADMIN';
@@ -780,7 +757,6 @@ const CargoStore = (function() {
                         updated = true;
                     }
                 });
-                if (data.notifications.length !== originalLen) updated = true;
             }
 
             // Migrate any old August 2026 or outdated auction dates to current/upcoming September 2026 dates
