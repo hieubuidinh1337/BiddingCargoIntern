@@ -13,12 +13,17 @@
     <!-- Admin Topbar -->
     <header class="bg-slate-900 text-white sticky top-0 z-50 border-b border-slate-800 shadow-sm">
         <div class="max-w-7xl mx-auto px-4 py-2.5 flex items-center justify-between">
-            <div class="flex items-center gap-6">
-                <a href="02-AdminDashboard.html" class="flex items-center gap-2.5">
-                    <div class="w-8 h-8 bg-blue-600 rounded-lg flex items-center justify-center font-bold text-sm shadow">VN</div>
+            <div class="flex items-center gap-3 sm:gap-6">
+                <!-- Mobile Menu Button -->
+                <button type="button" onclick="toggleAdminMobileNav()" class="md:hidden text-slate-300 hover:text-white p-1.5 rounded-lg hover:bg-slate-800 transition focus:outline-none" aria-label="Menu">
+                    <i class="fa-solid fa-bars text-base"></i>
+                </button>
+
+                <a href="02-AdminDashboard.html" class="flex items-center gap-2">
+                    <div class="w-7 h-7 sm:w-8 sm:h-8 bg-blue-600 rounded-lg flex items-center justify-center font-bold text-xs sm:text-sm shadow">VN</div>
                     <div>
-                        <span class="font-bold text-sm leading-tight block">Cargo Bidding Admin</span>
-                        <span class="text-[10px] text-blue-400 font-medium block">Hệ thống Điều hành & Thẩm định</span>
+                        <span class="font-bold text-xs sm:text-sm leading-tight block">Cargo Bidding Admin</span>
+                        <span class="text-[9px] sm:text-[10px] text-blue-400 font-medium block">Hệ thống Điều hành & Thẩm định</span>
                     </div>
                 </a>
                 <nav class="hidden md:flex items-center gap-1 text-xs font-medium">
@@ -43,13 +48,13 @@
                 </nav>
             </div>
 
-            <div class="flex items-center gap-3">
+            <div class="flex items-center gap-2 sm:gap-3">
                 <a href="../00-Home.html" target="_blank" class="hidden sm:inline-flex items-center gap-1.5 text-xs text-slate-300 hover:text-white bg-slate-800 px-3 py-1.5 rounded-lg border border-slate-700 transition">
                     <i class="fa-solid fa-external-link text-[10px]"></i> Xem Sàn công khai
                 </a>
-                <div class="flex items-center gap-2 pl-2 border-l border-slate-700">
-                    <span class="admin-header-role text-[10px] font-bold px-2 py-0.5 rounded-full bg-blue-500/20 text-blue-400 border border-blue-500/30 inline-flex items-center gap-1">
-                        <i class="fa-solid fa-shield-halved text-[9px]"></i> QUẢN TRỊ VIÊN
+                <div class="flex items-center gap-1.5 sm:gap-2 pl-2 border-l border-slate-700">
+                    <span class="admin-header-role text-[9px] sm:text-[10px] font-bold px-1.5 sm:px-2 py-0.5 rounded-full bg-blue-500/20 text-blue-400 border border-blue-500/30 inline-flex items-center gap-1 whitespace-nowrap">
+                        <i class="fa-solid fa-shield-halved text-[8px] sm:text-[9px]"></i> QUẢN TRỊ VIÊN
                     </span>
                     <span class="text-xs font-medium text-slate-200 admin-header-name hidden sm:inline">Trần Quản Trị</span>
                     <a href="01-AdminLogin.html" onclick="if(window.CargoStore) CargoStore.logoutAdmin()" title="Đăng xuất Admin" class="text-slate-400 hover:text-red-400 p-1 transition">
@@ -58,89 +63,114 @@
                 </div>
             </div>
         </div>
+
+        <!-- Mobile Navigation Menu Dropdown -->
+        <div id="adminMobileNav" class="hidden md:hidden bg-slate-950 border-t border-slate-800 px-4 py-2.5 space-y-1 text-xs font-medium">
+            <a href="02-AdminDashboard.html" class="flex items-center gap-2 px-3 py-2 rounded-lg bg-blue-600 text-white font-semibold">
+                <i class="fa-solid fa-chart-pie w-4"></i> Dashboard
+            </a>
+            <a href="03-AuctionList.html" class="flex items-center gap-2 px-3 py-2 rounded-lg text-slate-300 hover:text-white hover:bg-slate-800 transition">
+                <i class="fa-solid fa-list-check w-4"></i> Quản lý phiên đấu giá
+            </a>
+            <a href="04-CreateAuction.html" class="flex items-center gap-2 px-3 py-2 rounded-lg text-slate-300 hover:text-white hover:bg-slate-800 transition">
+                <i class="fa-solid fa-plus-circle w-4"></i> Tạo phiên mới
+            </a>
+            <a href="06-AgentList.html" class="flex items-center gap-2 px-3 py-2 rounded-lg text-slate-300 hover:text-white hover:bg-slate-800 transition">
+                <i class="fa-solid fa-building-user w-4"></i> Đại lý & Duyệt đơn
+            </a>
+            <a href="07-Reports.html" class="flex items-center gap-2 px-3 py-2 rounded-lg text-slate-300 hover:text-white hover:bg-slate-800 transition">
+                <i class="fa-solid fa-chart-line w-4"></i> Báo cáo doanh thu & sản lượng
+            </a>
+            <a href="08-Settings.html" class="flex items-center gap-2 px-3 py-2 rounded-lg text-slate-300 hover:text-white hover:bg-slate-800 transition">
+                <i class="fa-solid fa-sliders w-4"></i> Cài đặt hệ thống
+            </a>
+            <a href="../00-Home.html" target="_blank" class="flex items-center gap-2 px-3 py-2 rounded-lg text-blue-400 hover:text-blue-300 hover:bg-slate-800 transition border-t border-slate-850 pt-2.5 mt-1">
+                <i class="fa-solid fa-external-link w-4"></i> Xem Sàn công khai
+            </a>
+        </div>
     </header>
 
-    <main class="max-w-7xl mx-auto px-4 py-6 space-y-6">
+    <main class="max-w-7xl mx-auto px-3 sm:px-4 py-4 sm:py-6 space-y-4 sm:space-y-6">
 
         <!-- Header Controls -->
-        <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+        <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3 sm:gap-4">
             <div>
-                <h1 class="text-2xl font-bold text-slate-900 flex items-center gap-2">
-                    <i class="fa-solid fa-gauge text-blue-600"></i> Bảng điều khiển Quản trị (Admin Dashboard)
+                <h1 class="text-lg sm:text-2xl font-bold text-slate-900 flex items-center gap-2">
+                    <i class="fa-solid fa-gauge text-blue-600 text-base sm:text-xl"></i> Bảng điều khiển Quản trị <span class="hidden sm:inline text-slate-400 font-normal text-base sm:text-lg">(Admin Dashboard)</span>
                 </h1>
-                <p class="text-xs text-slate-500 mt-1">Giám sát hoạt động đấu giá slot cargo, thẩm định đại lý và điều phối vận tải</p>
+                <p class="text-[11px] sm:text-xs text-slate-500 mt-0.5 sm:mt-1">Giám sát hoạt động đấu giá slot cargo, thẩm định đại lý và điều phối vận tải</p>
             </div>
-            <div class="flex items-center gap-2">
-                <a href="04-CreateAuction.html" class="bg-blue-600 hover:bg-blue-700 text-white text-xs font-semibold px-4 py-2.5 rounded-xl transition shadow flex items-center gap-1.5">
-                    <i class="fa-solid fa-plus"></i> Tạo phiên đấu giá mới
+            <div class="grid grid-cols-2 sm:flex items-center gap-2 w-full sm:w-auto">
+                <a href="04-CreateAuction.html" class="bg-blue-600 hover:bg-blue-700 text-white text-xs font-semibold px-3 sm:px-4 py-2.5 rounded-xl transition shadow flex items-center justify-center gap-1.5 whitespace-nowrap text-center">
+                    <i class="fa-solid fa-plus text-[10px]"></i> Tạo phiên mới
                 </a>
-                <a href="06-AgentList.html" class="bg-white hover:bg-slate-50 text-slate-700 text-xs font-semibold px-4 py-2.5 rounded-xl border transition shadow-sm flex items-center gap-1.5">
-                    <i class="fa-solid fa-user-check text-blue-600"></i> Duyệt hồ sơ (<span id="pendingBadge">2</span>)
+                <a href="06-AgentList.html" class="bg-white hover:bg-slate-50 text-slate-700 text-xs font-semibold px-3 sm:px-4 py-2.5 rounded-xl border transition shadow-sm flex items-center justify-center gap-1.5 whitespace-nowrap text-center">
+                    <i class="fa-solid fa-user-check text-blue-600 text-[10px]"></i> Duyệt hồ sơ <span class="bg-amber-100 text-amber-800 text-[10px] font-bold px-1.5 py-0.2 rounded-full ml-0.5 inline-flex items-center justify-center min-w-[18px]" id="pendingBadge">2</span>
                 </a>
             </div>
         </div>
 
         <!-- Pending Payment Verification Alert Banner -->
-        <div id="dashPendingPaymentBanner" class="hidden bg-gradient-to-r from-amber-500 to-amber-600 text-white rounded-2xl p-4 shadow-md flex flex-col sm:flex-row items-center justify-between gap-3">
+        <div id="dashPendingPaymentBanner" class="hidden bg-gradient-to-r from-amber-500 to-amber-600 text-white rounded-xl sm:rounded-2xl p-3.5 sm:p-4 shadow-md flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-3">
             <div class="flex items-center gap-3">
-                <div class="w-10 h-10 bg-white/20 rounded-xl flex items-center justify-center text-xl flex-shrink-0 animate-bounce">
+                <div class="w-9 h-9 sm:w-10 sm:h-10 bg-white/20 rounded-xl flex items-center justify-center text-lg sm:text-xl flex-shrink-0 animate-bounce">
                     <i class="fa-solid fa-credit-card"></i>
                 </div>
                 <div>
-                    <h3 class="font-bold text-sm flex items-center gap-2">
-                        Đại lý đã nộp thông tin chuyển khoản thanh toán (<span id="dashPendingPayCount">0</span> đơn)
+                    <h3 class="font-bold text-xs sm:text-sm flex items-center gap-1.5">
+                        Đại lý nộp xác nhận thanh toán (<span id="dashPendingPayCount">0</span> đơn)
                     </h3>
-                    <p class="text-xs text-amber-100 mt-0.5">Có đơn hàng thắng thầu đang chờ Ban Quản trị / Kế toán đối soát sao kê và duyệt thanh toán.</p>
+                    <p class="text-[11px] sm:text-xs text-amber-100 mt-0.5">Đơn hàng thắng thầu đang chờ Quản trị / Kế toán đối soát sao kê.</p>
                 </div>
             </div>
-            <a href="03-AuctionList.html?tab=won&payFilter=PENDING" class="bg-white hover:bg-amber-50 text-amber-900 font-bold text-xs px-4 py-2 rounded-xl transition shadow-xs whitespace-nowrap flex items-center gap-1.5">
+            <a href="03-AuctionList.html?tab=won&payFilter=PENDING" class="bg-white hover:bg-amber-50 text-amber-900 font-bold text-xs px-4 py-2 rounded-xl transition shadow-xs whitespace-nowrap flex items-center justify-center gap-1.5 text-center">
                 <i class="fa-solid fa-magnifying-glass-dollar"></i> Đối soát & Duyệt ngay
             </a>
         </div>
 
-        <!-- KPI Summary Cards -->
-        <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-            <div class="bg-white rounded-2xl p-5 border shadow-sm flex items-center gap-4">
-                <div class="w-12 h-12 bg-blue-50 text-blue-600 rounded-xl flex items-center justify-center text-xl flex-shrink-0">
+        <!-- KPI Summary Cards (2 cols on mobile, 4 cols on desktop) -->
+        <div class="grid grid-cols-2 sm:grid-cols-2 lg:grid-cols-4 gap-2.5 sm:gap-4">
+            <div class="bg-white rounded-xl sm:rounded-2xl p-3.5 sm:p-5 border shadow-sm flex flex-col sm:flex-row items-start sm:items-center gap-2 sm:gap-4">
+                <div class="w-9 h-9 sm:w-12 sm:h-12 bg-blue-50 text-blue-600 rounded-xl flex items-center justify-center text-base sm:text-xl flex-shrink-0">
                     <i class="fa-solid fa-money-bill-wave"></i>
                 </div>
-                <div>
-                    <p class="text-xs text-slate-500 font-medium">Doanh thu thầu chốt</p>
-                    <p class="text-xl font-bold text-slate-900 mt-0.5" id="kpiClosedRevenue">0 đ</p>
-                    <span class="text-[11px] text-emerald-600 font-semibold" id="kpiClosedSubtext"><i class="fa-solid fa-circle-check"></i> Đã chốt thầu</span>
+                <div class="min-w-0 flex-1">
+                    <p class="text-[10px] sm:text-xs text-slate-500 font-medium truncate">Doanh thu thầu chốt</p>
+                    <p class="text-sm sm:text-xl font-bold text-slate-900 mt-0.5 truncate" id="kpiClosedRevenue">0 đ</p>
+                    <span class="text-[9px] sm:text-[11px] text-emerald-600 font-semibold block truncate" id="kpiClosedSubtext"><i class="fa-solid fa-circle-check"></i> Đã chốt thầu</span>
                 </div>
             </div>
 
-            <div class="bg-white rounded-2xl p-5 border shadow-sm flex items-center gap-4">
-                <div class="w-12 h-12 bg-emerald-50 text-emerald-600 rounded-xl flex items-center justify-center text-xl flex-shrink-0">
+            <div class="bg-white rounded-xl sm:rounded-2xl p-3.5 sm:p-5 border shadow-sm flex flex-col sm:flex-row items-start sm:items-center gap-2 sm:gap-4">
+                <div class="w-9 h-9 sm:w-12 sm:h-12 bg-emerald-50 text-emerald-600 rounded-xl flex items-center justify-center text-base sm:text-xl flex-shrink-0">
                     <i class="fa-solid fa-plane-circle-check"></i>
                 </div>
-                <div>
-                    <p class="text-xs text-slate-500 font-medium">Phiên đang mở</p>
-                    <p class="text-2xl font-bold text-emerald-600 mt-0.5" id="kpiOpenAuctions">0</p>
-                    <span class="text-[11px] text-slate-400">Sẵn sàng nhận giá đặt</span>
+                <div class="min-w-0 flex-1">
+                    <p class="text-[10px] sm:text-xs text-slate-500 font-medium truncate">Phiên đang mở</p>
+                    <p class="text-lg sm:text-2xl font-bold text-emerald-600 mt-0.5" id="kpiOpenAuctions">0</p>
+                    <span class="text-[9px] sm:text-[11px] text-slate-400 block truncate">Đang nhận giá đặt</span>
                 </div>
             </div>
 
-            <div class="bg-white rounded-2xl p-5 border shadow-sm flex items-center gap-4">
-                <div class="w-12 h-12 bg-amber-50 text-amber-600 rounded-xl flex items-center justify-center text-xl flex-shrink-0">
+            <div class="bg-white rounded-xl sm:rounded-2xl p-3.5 sm:p-5 border shadow-sm flex flex-col sm:flex-row items-start sm:items-center gap-2 sm:gap-4">
+                <div class="w-9 h-9 sm:w-12 sm:h-12 bg-amber-50 text-amber-600 rounded-xl flex items-center justify-center text-base sm:text-xl flex-shrink-0">
                     <i class="fa-solid fa-clock-rotate-left"></i>
                 </div>
-                <div>
-                    <p class="text-xs text-slate-500 font-medium">Hồ sơ chờ xét duyệt</p>
-                    <p class="text-2xl font-bold text-amber-600 mt-0.5" id="kpiPendingRegistrations">0</p>
-                    <span class="text-[11px] text-amber-700 font-semibold">Đợt nộp đại lý mới</span>
+                <div class="min-w-0 flex-1">
+                    <p class="text-[10px] sm:text-xs text-slate-500 font-medium truncate">Hồ sơ chờ duyệt</p>
+                    <p class="text-lg sm:text-2xl font-bold text-amber-600 mt-0.5" id="kpiPendingRegistrations">0</p>
+                    <span class="text-[9px] sm:text-[11px] text-amber-700 font-semibold block truncate">Đại lý mới</span>
                 </div>
             </div>
 
-            <div class="bg-white rounded-2xl p-5 border shadow-sm flex items-center gap-4">
-                <div class="w-12 h-12 bg-purple-50 text-purple-600 rounded-xl flex items-center justify-center text-xl flex-shrink-0">
+            <div class="bg-white rounded-xl sm:rounded-2xl p-3.5 sm:p-5 border shadow-sm flex flex-col sm:flex-row items-start sm:items-center gap-2 sm:gap-4">
+                <div class="w-9 h-9 sm:w-12 sm:h-12 bg-purple-50 text-purple-600 rounded-xl flex items-center justify-center text-base sm:text-xl flex-shrink-0">
                     <i class="fa-solid fa-weight-hanging"></i>
                 </div>
-                <div>
-                    <p class="text-xs text-slate-500 font-medium">Tổng tải trọng chào thầu</p>
-                    <p class="text-xl font-bold text-purple-600 mt-0.5" id="kpiTotalCapacity">0 Kg</p>
-                    <span class="text-[11px] text-slate-400">Dung tích tải toàn mạng bay</span>
+                <div class="min-w-0 flex-1">
+                    <p class="text-[10px] sm:text-xs text-slate-500 font-medium truncate">Tổng tải trọng chào</p>
+                    <p class="text-sm sm:text-xl font-bold text-purple-600 mt-0.5 truncate" id="kpiTotalCapacity">0 Kg</p>
+                    <span class="text-[9px] sm:text-[11px] text-slate-400 block truncate">Toàn mạng bay</span>
                 </div>
             </div>
         </div>
@@ -264,6 +294,11 @@
     </div>
 
     <script>
+        function toggleAdminMobileNav() {
+            const nav = document.getElementById('adminMobileNav');
+            if (nav) nav.classList.toggle('hidden');
+        }
+
         let adminOpenCurrentPage = 1;
         let adminOpenPageSize = 5;
 

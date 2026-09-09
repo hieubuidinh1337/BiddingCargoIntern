@@ -1,5 +1,5 @@
 {
-  "version": 1788935385769,
+  "version": 1788936311317,
   "auctions": [
     {
       "id": 9,
@@ -10,22 +10,22 @@
       "destination": "HAN",
       "originName": "TP. Hồ Chí Minh",
       "destName": "Hà Nội",
-      "etd": "16:30 · 09/09/2026",
-      "eta": "18:45 · 09/09/2026",
+      "etd": "21:45 · 09/09/2026",
+      "eta": "00:00 · 10/09/2026",
       "aircraft": "Airbus A321neo Cargo",
       "capacityKg": 10000,
       "startingPriceKg": 10000,
       "currentPriceKg": 10000,
       "minStep": 500,
-      "endTime": "2026-09-09T06:54:55.369Z",
+      "endTime": "2026-09-09T09:45:00.000Z",
       "status": "OPEN",
       "leadingAgentCode": "AG-1024",
       "leadingAgentName": "Công ty CP Giao nhận Kho vận Vinatrans",
       "bidsCount": 1,
       "specialNotes": "Tải trọng tổng hợp tiêu chuẩn IATA. Có hỗ trợ xe nâng pallet.",
-      "cutOffTime": "13:30 · 09/09/2026",
+      "cutOffTime": "18:45 · 09/09/2026",
       "isAnonymous": true,
-      "etdIso": "2026-09-09T09:30:00.000Z"
+      "etdIso": "2026-09-09T14:45:00.000Z"
     },
     {
       "id": 8,
@@ -885,17 +885,6 @@
       "link": "04-Detail.html?id=6"
     },
     {
-      "id": 1788851201746,
-      "timestamp": 1788851201746,
-      "targetAgentCode": "AG-0892",
-      "title": "Đặt giá thành công chuyến VU32453",
-      "message": "Bạn (AG-0892) đang dẫn đầu mức giá 25.000 đ/Kg cho chặng SGN - HAN. (Tên công ty được che ẩn danh đối với các đối thủ)",
-      "time": "Vừa xong",
-      "type": "HIGHEST",
-      "read": true,
-      "link": "04-Detail.html?id=6"
-    },
-    {
       "id": 1788850872881,
       "targetAgentCode": "AG-0892",
       "title": "Phiên VU3245 đã chốt kết quả!",
@@ -914,17 +903,6 @@
       "time": "Vừa xong",
       "type": "OUTBID",
       "read": false,
-      "link": "04-Detail.html?id=5"
-    },
-    {
-      "id": 1788850860132,
-      "timestamp": 1788850860132,
-      "targetAgentCode": "AG-0892",
-      "title": "Đặt giá thành công chuyến VU3245",
-      "message": "Bạn (AG-0892) đang dẫn đầu mức giá 57.000 đ/Kg cho chặng SGN - HAN. (Tên công ty được che ẩn danh đối với các đối thủ)",
-      "time": "Vừa xong",
-      "type": "HIGHEST",
-      "read": true,
       "link": "04-Detail.html?id=5"
     },
     {

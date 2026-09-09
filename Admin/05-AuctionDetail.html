@@ -12,12 +12,17 @@
 
     <header class="bg-slate-900 text-white sticky top-0 z-50 border-b border-slate-800 shadow-sm">
         <div class="max-w-7xl mx-auto px-4 py-2.5 flex items-center justify-between">
-            <div class="flex items-center gap-6">
-                <a href="02-AdminDashboard.html" class="flex items-center gap-2.5">
-                    <div class="w-8 h-8 bg-blue-600 rounded-lg flex items-center justify-center font-bold text-sm shadow">VN</div>
+            <div class="flex items-center gap-3 sm:gap-6">
+                <!-- Mobile Menu Button -->
+                <button type="button" onclick="toggleAdminMobileNav()" class="md:hidden text-slate-300 hover:text-white p-1.5 rounded-lg hover:bg-slate-800 transition focus:outline-none" aria-label="Menu">
+                    <i class="fa-solid fa-bars text-base"></i>
+                </button>
+
+                <a href="02-AdminDashboard.html" class="flex items-center gap-2">
+                    <div class="w-7 h-7 sm:w-8 sm:h-8 bg-blue-600 rounded-lg flex items-center justify-center font-bold text-xs sm:text-sm shadow">VN</div>
                     <div>
-                        <span class="font-bold text-sm leading-tight block">Cargo Bidding Admin</span>
-                        <span class="text-[10px] text-blue-400 font-medium block">Hệ thống Điều hành & Thẩm định</span>
+                        <span class="font-bold text-xs sm:text-sm leading-tight block">Cargo Bidding Admin</span>
+                        <span class="text-[9px] sm:text-[10px] text-blue-400 font-medium block">Hệ thống Điều hành & Thẩm định</span>
                     </div>
                 </a>
                 <nav class="hidden md:flex items-center gap-1 text-xs font-medium">
@@ -42,8 +47,8 @@
                 </nav>
             </div>
             <div class="flex items-center gap-2">
-                <span class="admin-header-role text-[10px] font-bold px-2 py-0.5 rounded-full bg-blue-500/20 text-blue-400 border border-blue-500/30 inline-flex items-center gap-1">
-                    <i class="fa-solid fa-shield-halved text-[9px]"></i> QUẢN TRỊ VIÊN
+                <span class="admin-header-role text-[9px] sm:text-[10px] font-bold px-1.5 sm:px-2 py-0.5 rounded-full bg-blue-500/20 text-blue-400 border border-blue-500/30 inline-flex items-center gap-1 whitespace-nowrap">
+                    <i class="fa-solid fa-shield-halved text-[8px] sm:text-[9px]"></i> QUẢN TRỊ VIÊN
                 </span>
                 <span class="text-xs text-slate-200 font-semibold admin-header-name hidden sm:inline">Trần Quản Trị</span>
                 <a href="01-AdminLogin.html" onclick="if(window.CargoStore) CargoStore.logoutAdmin()" title="Đăng xuất" class="text-slate-400 hover:text-red-400 p-1">
@@ -51,9 +56,34 @@
                 </a>
             </div>
         </div>
+
+        <!-- Mobile Navigation Menu Dropdown -->
+        <div id="adminMobileNav" class="hidden md:hidden bg-slate-950 border-t border-slate-800 px-4 py-2.5 space-y-1 text-xs font-medium">
+            <a href="02-AdminDashboard.html" class="flex items-center gap-2 px-3 py-2 rounded-lg text-slate-300 hover:text-white hover:bg-slate-800 transition">
+                <i class="fa-solid fa-chart-pie w-4"></i> Dashboard
+            </a>
+            <a href="03-AuctionList.html" class="flex items-center gap-2 px-3 py-2 rounded-lg bg-blue-600 text-white font-semibold">
+                <i class="fa-solid fa-list-check w-4"></i> Quản lý phiên đấu giá
+            </a>
+            <a href="04-CreateAuction.html" class="flex items-center gap-2 px-3 py-2 rounded-lg text-slate-300 hover:text-white hover:bg-slate-800 transition">
+                <i class="fa-solid fa-plus-circle w-4"></i> Tạo phiên mới
+            </a>
+            <a href="06-AgentList.html" class="flex items-center gap-2 px-3 py-2 rounded-lg text-slate-300 hover:text-white hover:bg-slate-800 transition">
+                <i class="fa-solid fa-building-user w-4"></i> Đại lý & Duyệt đơn
+            </a>
+            <a href="07-Reports.html" class="flex items-center gap-2 px-3 py-2 rounded-lg text-slate-300 hover:text-white hover:bg-slate-800 transition">
+                <i class="fa-solid fa-chart-line w-4"></i> Báo cáo doanh thu & sản lượng
+            </a>
+            <a href="08-Settings.html" class="flex items-center gap-2 px-3 py-2 rounded-lg text-slate-300 hover:text-white hover:bg-slate-800 transition">
+                <i class="fa-solid fa-sliders w-4"></i> Cài đặt hệ thống
+            </a>
+            <a href="../00-Home.html" target="_blank" class="flex items-center gap-2 px-3 py-2 rounded-lg text-blue-400 hover:text-blue-300 hover:bg-slate-800 transition border-t border-slate-850 pt-2.5 mt-1">
+                <i class="fa-solid fa-external-link w-4"></i> Xem Sàn công khai
+            </a>
+        </div>
     </header>
 
-    <main class="max-w-7xl mx-auto px-4 py-6 space-y-6">
+    <main class="max-w-7xl mx-auto px-3 sm:px-4 py-4 sm:py-6 space-y-4 sm:space-y-6">
 
         <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
             <div>
@@ -254,6 +284,11 @@
     </div>
 
     <script>
+        function toggleAdminMobileNav() {
+            const nav = document.getElementById('adminMobileNav');
+            if (nav) nav.classList.toggle('hidden');
+        }
+
         function getParam(param) {
             const urlParams = new URLSearchParams(window.location.search);
             return urlParams.get(param) || '1';
