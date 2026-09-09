@@ -589,26 +589,7 @@ const CargoStore = (function() {
             branch: 'Chi nhánh Tân Bình - TP. Hồ Chí Minh',
             memoPrefix: 'CARGO'
         },
-        routeSubscriptions: {
-            'AG-0892': {
-                routes: ['HAN-SGN', 'SGN-HAN', 'SGN-DAD'],
-                notifyOnNewAuction: true,
-                notifyOnOutbid: true,
-                notifyOnClosingSoon: true,
-                notifyOnWon: true,
-                emailAlert: true,
-                soundAlert: true
-            },
-            'AG-1024': {
-                routes: ['SGN-DAD', 'DAD-SGN'],
-                notifyOnNewAuction: true,
-                notifyOnOutbid: true,
-                notifyOnClosingSoon: true,
-                notifyOnWon: true,
-                emailAlert: true,
-                soundAlert: true
-            }
-        }
+        routeSubscriptions: {}
     };
 
     function loadData() {
@@ -3437,7 +3418,7 @@ const CargoStore = (function() {
             const code = (agentCode || (data.currentUser ? data.currentUser.agentCode : 'AG-0892') || 'AG-0892').trim().toUpperCase();
             if (!data.routeSubscriptions[code]) {
                 data.routeSubscriptions[code] = {
-                    routes: ['HAN-SGN', 'SGN-HAN'],
+                    routes: [],
                     notifyOnNewAuction: true,
                     notifyOnOutbid: true,
                     notifyOnClosingSoon: true,

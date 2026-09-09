@@ -1816,11 +1816,7 @@
   },
   "routeSubscriptions": {
     "AG-0892": {
-      "routes": [
-        "HAN - SGN",
-        "SGN - HAN",
-        "SGN - DAD"
-      ],
+      "routes": [],
       "notifyOnNewAuction": true,
       "notifyOnOutbid": true,
       "notifyOnClosingSoon": true,
@@ -1828,10 +1824,7 @@
       "updatedAt": "2026-09-08 15:30"
     },
     "AG-0556": {
-      "routes": [
-        "HAN-SGN",
-        "SGN-HAN"
-      ],
+      "routes": [],
       "notifyOnNewAuction": true,
       "notifyOnOutbid": true,
       "notifyOnClosingSoon": true,
@@ -1840,10 +1833,7 @@
       "soundAlert": true
     },
     "AG-0341": {
-      "routes": [
-        "HAN-SGN",
-        "SGN-HAN"
-      ],
+      "routes": [],
       "notifyOnNewAuction": true,
       "notifyOnOutbid": true,
       "notifyOnClosingSoon": true,
