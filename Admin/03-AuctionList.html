@@ -905,27 +905,26 @@
             const btnCargoDec = document.getElementById('wonFilterDeclared');
             const btnCargoUndec = document.getElementById('wonFilterUndeclared');
 
+            const btnPayAll = document.getElementById('wonPayFilterAll');
             const btnPayPending = document.getElementById('wonPayFilterPending');
             const btnPayPaid = document.getElementById('wonPayFilterPaid');
             const btnPayUnpaid = document.getElementById('wonPayFilterUnpaid');
             const btnPayExpired = document.getElementById('wonPayFilterExpired');
 
-            const activeClass = 'px-2.5 py-1 rounded-md font-semibold text-white bg-blue-600 transition';
+            const activeClass = 'px-2.5 py-1 rounded-md font-semibold text-white bg-blue-600 transition shadow-sm';
             const inactiveClass = 'px-2.5 py-1 rounded-md font-semibold text-slate-300 hover:text-white transition';
 
-            if (btnCargoAll && btnCargoDec && btnCargoUndec) {
-                btnCargoAll.className = currentWonCargoFilter === 'ALL' ? activeClass : inactiveClass;
-                btnCargoDec.className = currentWonCargoFilter === 'DECLARED' ? activeClass : inactiveClass;
-                btnCargoUndec.className = currentWonCargoFilter === 'UNDECLARED' ? activeClass : inactiveClass;
-            }
+            if (btnCargoAll) btnCargoAll.className = currentWonCargoFilter === 'ALL' ? activeClass : inactiveClass;
+            if (btnCargoDec) btnCargoDec.className = currentWonCargoFilter === 'DECLARED' ? activeClass : inactiveClass;
+            if (btnCargoUndec) btnCargoUndec.className = currentWonCargoFilter === 'UNDECLARED' ? activeClass : inactiveClass;
 
-            if (btnPayAll && btnPayPaid && btnPayUnpaid) {
-                btnPayAll.className = currentWonPayFilter === 'ALL' ? activeClass : inactiveClass;
-                if (btnPayPending) btnPayPending.className = (currentWonPayFilter === 'PENDING' ? 'px-2.5 py-1 rounded-md font-semibold text-white bg-amber-600 transition' : 'px-2.5 py-1 rounded-md font-semibold text-amber-300 hover:text-white transition') + ' relative flex items-center gap-1';
-                btnPayPaid.className = currentWonPayFilter === 'PAID' ? activeClass : inactiveClass;
-                btnPayUnpaid.className = currentWonPayFilter === 'UNPAID' ? activeClass : inactiveClass;
-                if (btnPayExpired) btnPayExpired.className = currentWonPayFilter === 'EXPIRED' ? activeClass : inactiveClass;
+            if (btnPayAll) btnPayAll.className = currentWonPayFilter === 'ALL' ? activeClass : inactiveClass;
+            if (btnPayPending) {
+                btnPayPending.className = (currentWonPayFilter === 'PENDING' ? 'px-2.5 py-1 rounded-md font-semibold text-white bg-amber-600 transition shadow-sm' : 'px-2.5 py-1 rounded-md font-semibold text-amber-300 hover:text-white transition') + ' relative flex items-center gap-1';
             }
+            if (btnPayPaid) btnPayPaid.className = currentWonPayFilter === 'PAID' ? activeClass : inactiveClass;
+            if (btnPayUnpaid) btnPayUnpaid.className = currentWonPayFilter === 'UNPAID' ? activeClass : inactiveClass;
+            if (btnPayExpired) btnPayExpired.className = currentWonPayFilter === 'EXPIRED' ? activeClass : inactiveClass;
         }
 
         function renderWonAuctionsAdminTable() {
@@ -1397,6 +1396,7 @@
         }
 
         document.addEventListener('DOMContentLoaded', function() {
+            updateFilterButtonsUI();
             renderAuctionsTable();
             renderWonAuctionsAdminTable();
 
