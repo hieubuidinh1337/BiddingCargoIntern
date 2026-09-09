@@ -1657,6 +1657,25 @@
                                         </p>
                                     </div>
                                 </div>
+                            ` : (isPending ? `
+                                <div class="bg-gradient-to-r from-emerald-500/10 via-blue-500/10 to-teal-500/10 border-2 border-emerald-400 rounded-2xl p-4 flex items-start gap-3.5 text-xs text-emerald-950 shadow-sm">
+                                    <div class="w-10 h-10 rounded-xl bg-emerald-600 text-white flex items-center justify-center font-bold text-lg flex-shrink-0 shadow-sm">
+                                        <i class="fa-solid fa-shield-check"></i>
+                                    </div>
+                                    <div class="flex-1 space-y-1">
+                                        <div class="flex flex-wrap items-center justify-between gap-2">
+                                            <strong class="text-emerald-900 text-sm flex items-center gap-2 font-extrabold uppercase">
+                                                <i class="fa-solid fa-clock-rotate-left text-emerald-700"></i> Đã ghi nhận báo chuyển khoản · Bảo lưu slot & tài khoản an toàn
+                                            </strong>
+                                            <span class="bg-emerald-700 text-white font-mono font-bold px-2.5 py-1 rounded-full text-[11px] shadow-sm">
+                                                Đã nộp lúc: ${item.notifiedAt || 'Vừa xong'}
+                                            </span>
+                                        </div>
+                                        <p class="text-slate-700 leading-relaxed font-medium">
+                                            Quý đại lý đã nộp thông tin chuyển khoản thành công. <strong>Hệ thống tự động bảo lưu slot bay và tài khoản của Quý đại lý ở trạng thái an toàn tuyệt đối (Không bị hủy đơn, không bị khóa tài khoản)</strong> trong suốt thời gian Ban Điều hành đối soát sao kê ngân hàng.
+                                        </p>
+                                    </div>
+                                </div>
                             ` : (!isPaid ? `
                                 <div class="bg-gradient-to-r from-amber-500/10 via-rose-500/10 to-amber-500/10 border-2 border-dashed border-amber-400 rounded-2xl p-4 flex items-start gap-3.5 text-xs text-amber-950 shadow-sm">
                                     <div class="w-10 h-10 rounded-xl bg-amber-500 text-white flex items-center justify-center font-bold text-lg flex-shrink-0 shadow-sm">
@@ -1676,7 +1695,7 @@
                                         </p>
                                     </div>
                                 </div>
-                            ` : '')}
+                            ` : ''))}
 
                             <div class="grid grid-cols-2 md:grid-cols-4 gap-4">
                                 <div class="bg-slate-50 p-4 rounded-xl border">

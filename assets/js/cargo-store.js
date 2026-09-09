@@ -1041,6 +1041,9 @@ const CargoStore = (function() {
     function isWonAuctionExpired(item, passedData = null) {
         if (!item) return false;
         if (item.paymentStatus === 'PAID') return false;
+        // CRITICAL PROTECTION: If agent already reported bank transfer (PENDING_VERIFICATION),
+        // order is protected from auto-cancellation & account lock while Admin reconciles!
+        if (item.paymentStatus === 'PENDING_VERIFICATION') return false;
         if (item.paymentStatus === 'CANCELLED') return true;
 
         const now = Date.now();
@@ -1079,11 +1082,16 @@ const CargoStore = (function() {
         if (!data.notifications) data.notifications = [];
 
         wonAuctions.forEach(item => {
+            // NEVER lock or cancel if already paid or pending verification by Admin
+            if (item.paymentStatus === 'PAID' || item.paymentStatus === 'PENDING_VERIFICATION') {
+                return;
+            }
+
             const isExpired = isWonAuctionExpired(item, data);
             const targetCode = (item.agentCode || '').toUpperCase();
             const agent = agentsList.find(a => (a.code || '').toUpperCase() === targetCode);
 
-            if (isExpired && item.paymentStatus !== 'PAID') {
+            if (isExpired && item.paymentStatus !== 'PAID' && item.paymentStatus !== 'PENDING_VERIFICATION') {
                 if (item.paymentStatus !== 'EXPIRED' && item.paymentStatus !== 'CANCELLED') {
                     item.paymentStatus = 'EXPIRED';
                     modified = true;
