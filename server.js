@@ -404,7 +404,126 @@ function loadServerData() {
             }
         });
     }
+
+    if (checkAndAutoLockExpiredWonAuctions(serverData)) {
+        changed = true;
+    }
+
     if (changed) saveServerData();
+}
+
+function parseFlightDate(dateStr) {
+    if (!dateStr) return null;
+    if (dateStr instanceof Date) return isNaN(dateStr.getTime()) ? null : dateStr;
+    const cleanStr = String(dateStr).replace(/·|-/g, ' ').replace(/\s+/g, ' ').trim();
+
+    const p1 = cleanStr.match(/^(\d{1,2}):(\d{2})\s+(\d{1,2})\/(\d{1,2})\/(\d{4})$/);
+    const p2 = cleanStr.match(/^(\d{1,2})\/(\d{1,2})\/(\d{4})\s+(\d{1,2}):(\d{2})$/);
+    const p3 = cleanStr.match(/^(\d{4})-(\d{2})-(\d{2})T(\d{2}):(\d{2})/);
+
+    if (p1) {
+        return new Date(parseInt(p1[5], 10), parseInt(p1[4], 10) - 1, parseInt(p1[3], 10), parseInt(p1[1], 10), parseInt(p1[2], 10));
+    } else if (p2) {
+        return new Date(parseInt(p2[3], 10), parseInt(p2[2], 10) - 1, parseInt(p2[1], 10), parseInt(p2[4], 10), parseInt(p2[5], 10));
+    } else if (p3) {
+        const d = new Date(dateStr);
+        return isNaN(d.getTime()) ? null : d;
+    }
+    const d = new Date(dateStr);
+    return isNaN(d.getTime()) ? null : d;
+}
+
+function isWonAuctionExpired(item, passedData) {
+    if (!item) return false;
+    if (item.paymentStatus === 'PAID') return false;
+    if (item.paymentStatus === 'PENDING_VERIFICATION') return false;
+    if (item.paymentStatus === 'CANCELLED') return true;
+
+    const now = Date.now();
+
+    // 1. Check explicit paymentDeadline timestamp
+    if (item.paymentDeadline) {
+        const dlMs = new Date(item.paymentDeadline).getTime();
+        if (!isNaN(dlMs) && now > dlMs) return true;
+    }
+
+    // 2. Check Cut-off time (3h before ETD) or ETD from auction
+    const allAuctions = (passedData && passedData.auctions) ? passedData.auctions : [];
+    const auctionMatch = allAuctions.find(a => a.id == item.auctionId || a.flightNumber === item.flightNumber);
+    const etdStr = item.etd || (auctionMatch ? auctionMatch.etd : null);
+    
+    let etdDate = null;
+    if (item.etdIso) {
+        etdDate = new Date(item.etdIso);
+    } else if (etdStr) {
+        etdDate = parseFlightDate(etdStr);
+    }
+
+    if (etdDate && !isNaN(etdDate.getTime())) {
+        const cutoffDeadlineMs = etdDate.getTime() - 3 * 3600 * 1000;
+        if (now >= cutoffDeadlineMs) return true;
+    }
+
+    return false;
+}
+
+function checkAndAutoLockExpiredWonAuctions(data) {
+    if (!data) return false;
+    let modified = false;
+    const wonAuctions = data.wonAuctions || [];
+    const agentsList = data.agentsList || [];
+    if (!data.notifications) data.notifications = [];
+
+    wonAuctions.forEach(item => {
+        if (item.paymentStatus === 'PAID' || item.paymentStatus === 'PENDING_VERIFICATION') {
+            return;
+        }
+
+        const isExpired = isWonAuctionExpired(item, data);
+        const targetCode = (item.agentCode || '').toUpperCase();
+        const agent = agentsList.find(a => (a.code || '').toUpperCase() === targetCode);
+
+        if (isExpired && item.paymentStatus !== 'PAID' && item.paymentStatus !== 'PENDING_VERIFICATION') {
+            if (item.paymentStatus !== 'EXPIRED' && item.paymentStatus !== 'CANCELLED') {
+                item.paymentStatus = 'EXPIRED';
+                modified = true;
+            }
+
+            const orderExpiredTime = item.paymentDeadline ? new Date(item.paymentDeadline).getTime() : 0;
+            const agentUnlockedTime = agent && agent.unlockedAt ? new Date(agent.unlockedAt).getTime() : 0;
+            const isWaived = item.lockWaivedByAdmin === true || (agentUnlockedTime > 0 && agentUnlockedTime >= orderExpiredTime);
+
+            if (!isWaived && agent) {
+                if (agent.status !== 'Đã khóa' && agent.status !== 'LOCKED') {
+                    agent.status = 'Đã khóa';
+                    agent.lockedReason = `Hệ thống tự động khóa do quá hạn thanh toán đơn ${item.wonId} (${item.flightNumber} - ${item.route})`;
+                    agent.lockedAt = new Date().toLocaleString('vi-VN');
+                    item.lockPenaltyHandled = true;
+                    modified = true;
+
+                    const hasNotif = (data.notifications || []).some(n => 
+                        (n.targetAgentCode || '').toUpperCase() === targetCode &&
+                        n.type === 'ALERT' &&
+                        (n.title || '').includes('TÀI KHOẢN ĐÃ BỊ KHÓA')
+                    );
+                    if (!hasNotif) {
+                        const notifId = Date.now() + Math.floor(Math.random() * 1000);
+                        data.notifications.unshift({
+                            id: notifId,
+                            targetAgentCode: item.agentCode,
+                            title: `⚠️ TÀI KHOẢN ĐÃ BỊ KHÓA DO QUÁ HẠN THANH TOÁN`,
+                            message: `Tài khoản đại lý ${item.agentCode} đã bị hệ thống tự động KHÓA do không hoàn tất thanh toán đơn hàng thắng thầu ${item.wonId} (Chuyến bay ${item.flightNumber}) trước hạn chót. Quyền tham gia đấu giá trên sàn đã bị tạm ngưng. Vui lòng liên hệ Ban Điều hành Cargo để xử lý.`,
+                            time: 'Vừa xong',
+                            type: 'ALERT',
+                            unread: true
+                        });
+                    }
+                }
+            }
+        }
+    });
+
+    return modified;
 }
 
 function saveServerData() {
@@ -579,6 +698,9 @@ const server = http.createServer((req, res) => {
 
     // --- REST API: GET /api/data ---
     if (pathname === '/api/data' && req.method === 'GET') {
+        if (checkAndAutoLockExpiredWonAuctions(serverData)) {
+            saveServerData();
+        }
         res.writeHead(200, {
             'Content-Type': 'application/json; charset=UTF-8',
             'Cache-Control': 'no-cache, no-store, must-revalidate'
@@ -613,6 +735,7 @@ const server = http.createServer((req, res) => {
                 if (incoming.bankConfig) serverData.bankConfig = incoming.bankConfig;
                 if (incoming.routeSubscriptions) serverData.routeSubscriptions = incoming.routeSubscriptions;
 
+                checkAndAutoLockExpiredWonAuctions(serverData);
                 serverData.version = Date.now();
                 saveServerData();
 

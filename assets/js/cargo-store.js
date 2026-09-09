@@ -28,7 +28,9 @@ const CargoStore = (function() {
             totalWins: 8,
             winRate: '33%',
             totalSpentUSD: '12.4k',
-            totalSpentVND: 1600000000
+            totalSpentVND: 1600000000,
+            unlockedAt: '2026-09-09T03:10:51.683Z',
+            unlockedBy: 'admin'
         },
         {
             id: 2,
@@ -43,13 +45,15 @@ const CargoStore = (function() {
             address: '406 Nguyễn Tất Thành, Quận 4, TP. Hồ Chí Minh',
             province: 'TP. Hồ Chí Minh',
             tier: 'TIER1',
-            status: 'Đang hoạt động',
+            status: 'Đã khóa',
             joinedDate: '10/01/2024',
             totalBids: 45,
             totalWins: 16,
             winRate: '36%',
             totalSpentUSD: '28.2k',
-            totalSpentVND: 3640000000
+            totalSpentVND: 3640000000,
+            lockedReason: 'Hệ thống tự động khóa do quá hạn thanh toán đơn WON-2026-0815-02 (VU224 - SGN - DAD)',
+            lockedAt: '13:00:00 9/9/2026'
         },
         {
             id: 3,
@@ -70,7 +74,9 @@ const CargoStore = (function() {
             totalWins: 5,
             winRate: '28%',
             totalSpentUSD: '8.0k',
-            totalSpentVND: 1030000000
+            totalSpentVND: 1030000000,
+            unlockedAt: '2026-09-09T02:50:54.922Z',
+            unlockedBy: 'admin'
         },
         {
             id: 4,
@@ -480,13 +486,15 @@ const CargoStore = (function() {
                 priceKg: 25000,
                 totalAmountVND: 100000000,
                 paymentDeadline: '2026-09-09T09:15:00.000Z',
-                paymentStatus: 'UNPAID',
-                paidAt: null,
+                paymentStatus: 'PAID',
+                paidAt: '09/09/2026 10:07',
                 notifiedAt: null,
                 awbNumber: '998-34077611',
                 cutOffTime: '16:15 · 09/09/2026',
                 warehouse: 'Kho hàng Cargo Nội Bài (Cửa số 1)',
-                cargoDeclaration: null
+                cargoDeclaration: null,
+                lockPenaltyHandled: true,
+                lockWaivedByAdmin: true
             },
             {
                 wonId: 'WON-2026-0816-05',
@@ -517,12 +525,14 @@ const CargoStore = (function() {
                 priceKg: 25000,
                 totalAmountVND: 75000000,
                 paymentDeadline: '2026-09-09T00:57:00.000Z',
-                paymentStatus: 'UNPAID',
+                paymentStatus: 'EXPIRED',
                 paidAt: null,
                 awbNumber: '998-18929204',
                 cutOffTime: '07:57 · 09/09/2026',
                 warehouse: 'Kho hàng SCSC / TCS Tân Sơn Nhất (Cửa số 4)',
-                cargoDeclaration: null
+                cargoDeclaration: null,
+                lockPenaltyHandled: true,
+                lockWaivedByAdmin: true
             }
         ],
         notifications: [
@@ -923,6 +933,9 @@ const CargoStore = (function() {
                 if (serverData.bankConfig) local.bankConfig = serverData.bankConfig;
                 if (serverData.routeSubscriptions) local.routeSubscriptions = serverData.routeSubscriptions;
 
+                // Immediately check & enforce locks on merged server data
+                checkAndAutoLockExpiredWonAuctions(local);
+
                 // Save locally without re-sending to server
                 saveData(local, true);
             }
@@ -1076,37 +1089,46 @@ const CargoStore = (function() {
                     modified = true;
                 }
 
-                // Check if this expired order penalty was already processed or if Admin explicitly unlocked the agent
+                // Check if this expired order penalty was explicitly waived or agent unlocked after the deadline
                 const orderExpiredTime = item.paymentDeadline ? new Date(item.paymentDeadline).getTime() : 0;
                 const agentUnlockedTime = agent && agent.unlockedAt ? new Date(agent.unlockedAt).getTime() : 0;
-                const isWaivedOrHandled = item.lockPenaltyHandled === true || item.lockWaivedByAdmin === true || (agentUnlockedTime > 0 && agentUnlockedTime >= orderExpiredTime);
+                const isWaived = item.lockWaivedByAdmin === true || (agentUnlockedTime > 0 && agentUnlockedTime >= orderExpiredTime);
 
-                // Auto-lock agent account ONLY if not already locked AND penalty not yet handled/waived by Admin
-                if (!isWaivedOrHandled && agent && agent.status !== 'Đã khóa' && agent.status !== 'LOCKED') {
-                    agent.status = 'Đã khóa';
-                    agent.lockedReason = `Hệ thống tự động khóa do quá hạn thanh toán đơn ${item.wonId} (${item.flightNumber} - ${item.route})`;
-                    agent.lockedAt = new Date().toLocaleString('vi-VN');
-                    item.lockPenaltyHandled = true; // Mark penalty as applied
-                    modified = true;
+                // Auto-lock agent account if not waived by Admin
+                if (!isWaived && agent) {
+                    if (agent.status !== 'Đã khóa' && agent.status !== 'LOCKED') {
+                        agent.status = 'Đã khóa';
+                        agent.lockedReason = `Hệ thống tự động khóa do quá hạn thanh toán đơn ${item.wonId} (${item.flightNumber} - ${item.route})`;
+                        agent.lockedAt = new Date().toLocaleString('vi-VN');
+                        item.lockPenaltyHandled = true; // Mark penalty as applied
+                        modified = true;
 
-                    // Push high-priority lock notification
-                    const notifId = Date.now() + Math.floor(Math.random() * 1000);
-                    data.notifications.unshift({
-                        id: notifId,
-                        targetAgentCode: item.agentCode,
-                        title: `⚠️ TÀI KHOẢN ĐÃ BỊ KHÓA DO QUÁ HẠN THANH TOÁN`,
-                        message: `Tài khoản đại lý ${item.agentCode} đã bị hệ thống tự động KHÓA do không hoàn tất thanh toán đơn hàng thắng thầu ${item.wonId} (Chuyến bay ${item.flightNumber}) trước hạn chót. Quyền tham gia đấu giá trên sàn đã bị tạm ngưng. Vui lòng liên hệ Ban Điều hành Cargo để xử lý.`,
-                        time: 'Vừa xong',
-                        type: 'ALERT',
-                        read: false,
-                        link: '07-WonAuction.html'
-                    });
+                        // Push high-priority lock notification
+                        const hasNotif = (data.notifications || []).some(n => 
+                            (n.targetAgentCode || '').toUpperCase() === targetCode &&
+                            n.type === 'ALERT' &&
+                            (n.title || '').includes('TÀI KHOẢN ĐÃ BỊ KHÓA')
+                        );
+                        if (!hasNotif) {
+                            const notifId = Date.now() + Math.floor(Math.random() * 1000);
+                            data.notifications.unshift({
+                                id: notifId,
+                                targetAgentCode: item.agentCode,
+                                title: `⚠️ TÀI KHOẢN ĐÃ BỊ KHÓA DO QUÁ HẠN THANH TOÁN`,
+                                message: `Tài khoản đại lý ${item.agentCode} đã bị hệ thống tự động KHÓA do không hoàn tất thanh toán đơn hàng thắng thầu ${item.wonId} (Chuyến bay ${item.flightNumber}) trước hạn chót. Quyền tham gia đấu giá trên sàn đã bị tạm ngưng. Vui lòng liên hệ Ban Điều hành Cargo để xử lý.`,
+                                time: 'Vừa xong',
+                                type: 'ALERT',
+                                read: false,
+                                link: '07-WonAuction.html'
+                            });
+                        }
 
-                    // Clear session if logged in
-                    if (data.currentUser) {
-                        const currentCode = (data.currentUser.agentCode || data.currentUser.code || '').toUpperCase();
-                        if (currentCode === targetCode || data.currentUser.id == agent.id) {
-                            data.currentUser = null;
+                        // Clear session if logged in
+                        if (data.currentUser) {
+                            const currentCode = (data.currentUser.agentCode || data.currentUser.code || '').toUpperCase();
+                            if (currentCode === targetCode || data.currentUser.id == agent.id) {
+                                data.currentUser = null;
+                            }
                         }
                     }
                 }
@@ -1373,6 +1395,9 @@ const CargoStore = (function() {
          */
         loginAgent: function(agentCodeOrEmail, password) {
             const data = loadData();
+            if (checkAndAutoLockExpiredWonAuctions(data)) {
+                saveData(data, true);
+            }
             const identifier = (agentCodeOrEmail || '').trim().toLowerCase();
 
             // Search agent in list by Agent Code, Tax Code, or Email
@@ -1440,9 +1465,12 @@ const CargoStore = (function() {
 
             // Verify status (Check if account is locked)
             if (agent.status === 'Đã khóa' || agent.status === 'LOCKED') {
+                const reason = agent.lockedReason || 'Tài khoản đại lý đã bị khóa do quá hạn thanh toán đơn hàng thắng thầu hoặc vi phạm quy chế.';
                 return {
                     success: false,
-                    message: `Tài khoản đại lý ${agent.code} (${agent.companyName}) hiện đang bị KHÓA bởi Quản trị viên sàn. Vui lòng liên hệ Hotline để được hỗ trợ mở khóa.`
+                    isLocked: true,
+                    lockedReason: reason,
+                    message: `Tài khoản đại lý ${agent.code} (${agent.companyName}) hiện đang bị KHÓA.\n\nLý do khóa: "${reason}".\n\nVui lòng liên hệ Ban Điều hành hoặc Hotline 1900 6699 để được hỗ trợ mở khóa.`
                 };
             }
 
@@ -1533,6 +1561,9 @@ const CargoStore = (function() {
 
         getCurrentUser: function() {
             const data = loadData();
+            if (checkAndAutoLockExpiredWonAuctions(data)) {
+                saveData(data, true);
+            }
             const user = data.currentUser;
             if (!user) return null;
 
@@ -1914,6 +1945,9 @@ const CargoStore = (function() {
 
         placeBid: function(auctionId, bidPriceKg, isAnonymous = true) {
             const data = loadData();
+            if (checkAndAutoLockExpiredWonAuctions(data)) {
+                saveData(data, true);
+            }
             const auction = data.auctions.find(a => a.id == auctionId);
             if (!auction) return { success: false, message: 'Phiên đấu giá không tồn tại' };
 
@@ -1946,7 +1980,11 @@ const CargoStore = (function() {
             // Check if current agent account is LOCKED in agentsList
             const agentAccount = (data.agentsList || []).find(a => (a.code || '').toUpperCase() === (user.agentCode || '').toUpperCase());
             if (agentAccount && (agentAccount.status === 'Đã khóa' || agentAccount.status === 'LOCKED')) {
-                return { success: false, message: `Tài khoản đại lý ${user.agentCode} của bạn hiện đang BỊ KHÓA bởi Quản trị viên. Không thể gửi mức giá!` };
+                return { 
+                    success: false, 
+                    isLocked: true,
+                    message: `Tài khoản đại lý ${user.agentCode} của bạn hiện đang BỊ KHÓA (${agentAccount.lockedReason || 'do quá hạn thanh toán đơn hàng thắng thầu'}). Quyền đặt giá đã bị ngưng!` 
+                };
             }
 
             // Track previous leader before updating

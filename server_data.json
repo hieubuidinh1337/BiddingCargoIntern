@@ -1,5 +1,5 @@
 {
-  "version": 1788926732877,
+  "version": 1788928011523,
   "auctions": [
     {
       "id": 9,
@@ -689,10 +689,11 @@
       "priceKg": 14500,
       "totalAmountVND": 29000000,
       "paymentDeadline": "2026-09-09T06:00:00.000Z",
-      "paymentStatus": "UNPAID",
+      "paymentStatus": "EXPIRED",
       "awbNumber": "998-22409811",
       "cutOffTime": "09/09/2026 13:00",
       "warehouse": "Kho hàng TCS Tân Sơn Nhất (Cửa số 2)",
+      "lockPenaltyHandled": true,
       "cargoDeclaration": {
         "cargoType": "Hàng bưu kiện / E-commerce",
         "cargoName": "213 fioew fjeiow wiew",
@@ -787,7 +788,8 @@
       "time": "Vừa xong",
       "type": "AGENT",
       "unread": true,
-      "targetRole": "ADMIN"
+      "targetRole": "ADMIN",
+      "read": true
     },
     {
       "id": 1788923243640,
@@ -1381,15 +1383,15 @@
       "address": "406 Nguyễn Tất Thành, Quận 4, TP. Hồ Chí Minh",
       "province": "TP. Hồ Chí Minh",
       "tier": "TIER1",
-      "status": "Đang hoạt động",
+      "status": "Đã khóa",
       "joinedDate": "10/01/2024",
       "totalBids": 45,
       "totalWins": 16,
       "winRate": "36%",
       "totalSpentUSD": "28.2k",
       "totalSpentVND": 3640000000,
-      "lockedReason": null,
-      "lockedAt": null
+      "lockedReason": "Hệ thống tự động khóa do quá hạn thanh toán đơn WON-2026-0815-02 (VU224 - SGN - DAD)",
+      "lockedAt": "13:00:00 9/9/2026"
     },
     {
       "id": 3,
