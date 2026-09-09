@@ -812,6 +812,28 @@ const CargoStore = (function() {
                         }
                     }
                 });
+
+                // Deduplicate any open auctions that accidentally share identical flightNumber
+                const seenOpenFlightNumbers = new Set();
+                data.auctions.forEach(a => {
+                    const fn = (a.flightNumber || '').trim().toUpperCase();
+                    if (!fn) return;
+                    if (a.status === 'OPEN' || a.status === 'UPCOMING') {
+                        if (seenOpenFlightNumbers.has(fn)) {
+                            // Reassign a fresh flight number for this duplicate
+                            const origin = (a.origin || 'SGN').trim().toUpperCase();
+                            const dest = (a.destination || 'HAN').trim().toUpperCase();
+                            const freshFn = generateNextFlightNumber(origin, dest, 0);
+                            a.flightNumber = freshFn;
+                            const datePart = (a.flightCode && a.flightCode.split('-')[2]) || '260909';
+                            a.flightCode = `FL-${freshFn}-${datePart}`;
+                            seenOpenFlightNumbers.add(freshFn);
+                            updated = true;
+                        } else {
+                            seenOpenFlightNumbers.add(fn);
+                        }
+                    }
+                });
             }
 
             // Check and auto-lock agents with overdue/expired won auction payments
@@ -1290,31 +1312,45 @@ const CargoStore = (function() {
         const existingNumbers = new Set(
             (data.auctions || [])
                 .map(a => (a.flightNumber || '').trim().toUpperCase())
+                .concat((data.wonAuctions || []).map(w => (w.flightNumber || '').trim().toUpperCase()))
                 .filter(Boolean)
         );
 
-        let baseNumber = 100;
-        const key = `${String(origin || '').toUpperCase()}-${String(destination || '').toUpperCase()}`;
-        if (key.includes('SGN') && key.includes('HAN')) baseNumber = 134;
-        else if (key.includes('SGN') && key.includes('DAD')) baseNumber = 226;
-        else if (key.includes('HAN') && key.includes('PQC')) baseNumber = 342;
-        else if (key.includes('SGN') && key.includes('PQC')) baseNumber = 412;
-        else if (key.includes('HAN') && key.includes('DAD')) baseNumber = 512;
-        else baseNumber = 612;
+        const pair = `${(origin || '').trim().toUpperCase()}-${(destination || '').trim().toUpperCase()}`;
+        const routeBases = {
+            'SGN-HAN': [130, 132, 134, 136, 138, 140, 142, 144, 146, 148, 150, 152],
+            'HAN-SGN': [131, 133, 135, 137, 139, 141, 143, 145, 147, 149, 151, 153],
+            'SGN-DAD': [220, 222, 224, 226, 228, 230, 232, 234, 236, 238],
+            'DAD-SGN': [221, 223, 225, 227, 229, 231, 233, 235, 237, 239],
+            'HAN-DAD': [240, 242, 244, 246, 248, 250, 252, 254],
+            'DAD-HAN': [241, 243, 245, 247, 249, 251, 253, 255],
+            'HAN-PQC': [340, 342, 344, 346, 348, 350, 352, 354],
+            'PQC-HAN': [341, 343, 345, 347, 349, 351, 353, 355],
+            'SGN-PQC': [450, 452, 454, 456, 458, 460, 462, 464],
+            'PQC-SGN': [451, 453, 455, 457, 459, 461, 463, 465],
+            'DAD-PQC': [510, 512, 514, 516, 518, 520, 522, 524],
+            'PQC-DAD': [511, 513, 515, 517, 519, 521, 523, 525]
+        };
 
-        let candidateNum = baseNumber;
-        let skipped = 0;
-        while (existingNumbers.has(`VU${candidateNum}`) || skipped < skipCount) {
-            if (existingNumbers.has(`VU${candidateNum}`)) {
-                candidateNum += 2;
-            } else {
-                if (skipped < skipCount) {
-                    skipped++;
-                    candidateNum += 2;
-                }
-            }
+        const candidates = routeBases[pair] || [610, 612, 614, 616, 618, 620];
+        const available = candidates.filter(num => !existingNumbers.has(`VU${num}`));
+
+        if (available.length > 0) {
+            const idx = Math.max(0, skipCount) % available.length;
+            return `VU${available[idx]}`;
         }
 
+        // If all base candidate numbers are taken, find next unused even number
+        let candidateNum = (candidates[0] || 500);
+        while (existingNumbers.has(`VU${candidateNum}`)) {
+            candidateNum += 2;
+        }
+        for (let i = 0; i < skipCount; i++) {
+            candidateNum += 2;
+            while (existingNumbers.has(`VU${candidateNum}`)) {
+                candidateNum += 2;
+            }
+        }
         return `VU${candidateNum}`;
     }
 
@@ -1334,6 +1370,27 @@ const CargoStore = (function() {
         getFlightDurationMinutes: getFlightDurationMinutes,
         calculateETA: calculateETA,
         generateNextFlightNumber: generateNextFlightNumber,
+        checkDuplicateFlightNumber: function(flightNumber, excludeAuctionId = null) {
+            const data = loadData();
+            const fn = (flightNumber || '').trim().toUpperCase();
+            if (!fn) return { isDuplicate: false };
+
+            const activeAuction = (data.auctions || []).find(a => 
+                (a.flightNumber || '').trim().toUpperCase() === fn &&
+                (a.status === 'OPEN' || a.status === 'UPCOMING') &&
+                (excludeAuctionId === null || a.id != excludeAuctionId)
+            );
+
+            if (activeAuction) {
+                return {
+                    isDuplicate: true,
+                    reason: 'ACTIVE_OPEN',
+                    message: `Chuyến bay ${fn} hiện đang có một phiên đấu giá ĐANG MỞ (${activeAuction.flightCode}, tuyến ${activeAuction.route}).`
+                };
+            }
+
+            return { isDuplicate: false };
+        },
 
         /**
          * Dynamic Agent Login checking each agent's SPECIFIC password
@@ -1755,40 +1812,6 @@ const CargoStore = (function() {
                 'CXR-HAN': 110
             };
             return routeDurations[pair] || 120;
-        },
-
-        generateNextFlightNumber: function(origin, dest, skipCount = 0) {
-            const data = loadData();
-            const existingFlightNumbers = new Set(
-                (data.auctions || []).map(a => (a.flightNumber || '').trim().toUpperCase())
-            );
-
-            const pair = `${(origin || '').trim().toUpperCase()}-${(dest || '').trim().toUpperCase()}`;
-            const routeBases = {
-                'SGN-HAN': [130, 132, 134, 136, 138, 140, 142, 144, 146, 148],
-                'HAN-SGN': [131, 133, 135, 137, 139, 141, 143, 145, 147, 149],
-                'SGN-DAD': [220, 222, 224, 226, 228, 230, 232, 234],
-                'DAD-SGN': [221, 223, 225, 227, 229, 231, 233, 235],
-                'HAN-DAD': [240, 242, 244, 246, 248, 250],
-                'DAD-HAN': [241, 243, 245, 247, 249, 251],
-                'HAN-PQC': [340, 342, 344, 346, 348, 350],
-                'PQC-HAN': [341, 343, 345, 347, 349, 351],
-                'SGN-PQC': [450, 452, 454, 456, 458],
-                'PQC-SGN': [451, 453, 455, 457, 459]
-            };
-
-            const candidates = routeBases[pair] || [510, 512, 514, 516, 518, 520];
-            const available = candidates.filter(num => !existingFlightNumbers.has(`VU${num}`));
-
-            if (available.length > 0) {
-                const idx = (Math.max(0, skipCount)) % available.length;
-                return `VU${available[idx]}`;
-            }
-
-            // Fallback if all standard candidates exist
-            const baseNum = candidates[0] || 500;
-            const nextNum = baseNum + (Math.max(0, skipCount) + 1) * 2;
-            return `VU${nextNum}`;
         },
 
         getAuctions: function() {
