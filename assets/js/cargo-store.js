@@ -3184,31 +3184,30 @@ const CargoStore = (function() {
             const admin = this.getCurrentAdmin();
             if (!admin) return;
 
-            // Find header user section where admin role / user info is located
-            let roleEl = document.querySelector('header .admin-header-role');
-            let targetContainer = roleEl ? roleEl.parentElement : null;
-            if (!targetContainer) {
-                targetContainer = document.querySelector('header .flex.items-center.gap-2, header .flex.items-center.gap-3, header .flex.items-center:last-child');
-            }
+            // Find the right-side user profile container in the header
+            const userAnchor = document.querySelector('header a[href*="01-AdminLogin"], header a[onclick*="logoutAdmin"], header .admin-header-name, header .admin-header-role');
+            if (!userAnchor) return;
+
+            const targetContainer = userAnchor.closest('.flex.items-center') || userAnchor.parentElement;
             if (!targetContainer) return;
 
-            // If not mounted yet, mount bell container before roleEl or at start of targetContainer
+            // If not mounted yet, mount bell container before user profile elements
             let bellWrapper = document.getElementById('adminNotifBellWrapper');
             if (!bellWrapper) {
                 bellWrapper = document.createElement('div');
                 bellWrapper.id = 'adminNotifBellWrapper';
-                bellWrapper.className = 'relative inline-block mr-2';
+                bellWrapper.className = 'relative inline-block';
                 bellWrapper.innerHTML = `
                     <button id="adminNotifBellBtn" type="button" class="relative p-2 rounded-xl text-slate-300 hover:text-white hover:bg-slate-800 transition cursor-pointer flex items-center justify-center focus:outline-none" title="Thông báo & Yêu cầu duyệt">
                         <i class="fa-solid fa-bell text-sm"></i>
                         <span id="adminNotifBadge" class="hidden absolute -top-1 -right-1 min-w-[18px] h-[18px] px-1 bg-rose-500 text-white text-[10px] font-extrabold rounded-full flex items-center justify-center shadow-sm animate-pulse border-2 border-slate-900">0</span>
                     </button>
 
-                    <!-- Dropdown Modal / Popover -->
-                    <div id="adminNotifDropdown" class="hidden absolute right-0 mt-2 w-96 sm:w-[420px] bg-white rounded-2xl shadow-2xl border border-slate-200 text-slate-800 z-[9999] overflow-hidden">
+                    <!-- Dropdown Modal / Popover (Opens from right to left) -->
+                    <div id="adminNotifDropdown" class="hidden absolute right-0 top-full mt-2 w-80 sm:w-[380px] max-w-[calc(100vw-2rem)] bg-white rounded-2xl shadow-2xl border border-slate-200 text-slate-800 z-[9999] overflow-hidden">
                         <div class="px-4 py-3 bg-slate-900 text-white flex items-center justify-between border-b border-slate-800">
                             <div class="flex items-center gap-2">
-                                <div class="w-7 h-7 bg-blue-600 rounded-lg flex items-center justify-center text-xs text-white">
+                                <div class="w-7 h-7 bg-blue-600 rounded-lg flex items-center justify-center text-xs text-white shadow-xs">
                                     <i class="fa-solid fa-bell"></i>
                                 </div>
                                 <div>
@@ -3231,7 +3230,7 @@ const CargoStore = (function() {
                         </div>
 
                         <!-- Notification List Items -->
-                        <div id="adminNotifList" class="max-h-[380px] overflow-y-auto divide-y divide-slate-100 p-1">
+                        <div id="adminNotifList" class="max-h-[360px] overflow-y-auto divide-y divide-slate-100 p-1">
                             <!-- Populated dynamically -->
                         </div>
 
@@ -3247,11 +3246,8 @@ const CargoStore = (function() {
                     </div>
                 `;
 
-                if (roleEl && roleEl.parentElement === targetContainer) {
-                    targetContainer.insertBefore(bellWrapper, roleEl);
-                } else {
-                    targetContainer.insertBefore(bellWrapper, targetContainer.firstChild);
-                }
+                const roleEl = targetContainer.querySelector('.admin-header-role') || userAnchor;
+                targetContainer.insertBefore(bellWrapper, roleEl);
 
                 // Toggle click handler
                 const btn = bellWrapper.querySelector('#adminNotifBellBtn');
