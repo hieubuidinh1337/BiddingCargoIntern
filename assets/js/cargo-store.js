@@ -3419,18 +3419,15 @@ const CargoStore = (function() {
 
         getAvailableRoutes: function() {
             return [
-                { pair: 'HAN-SGN', name: 'Hà Nội (HAN) ➔ TP.HCM (SGN)', origin: 'HAN', dest: 'SGN' },
                 { pair: 'SGN-HAN', name: 'TP.HCM (SGN) ➔ Hà Nội (HAN)', origin: 'SGN', dest: 'HAN' },
                 { pair: 'SGN-DAD', name: 'TP.HCM (SGN) ➔ Đà Nẵng (DAD)', origin: 'SGN', dest: 'DAD' },
-                { pair: 'DAD-SGN', name: 'Đà Nẵng (DAD) ➔ TP.HCM (SGN)', origin: 'DAD', dest: 'SGN' },
-                { pair: 'HAN-DAD', name: 'Hà Nội (HAN) ➔ Đà Nẵng (DAD)', origin: 'HAN', dest: 'DAD' },
-                { pair: 'DAD-HAN', name: 'Đà Nẵng (DAD) ➔ Hà Nội (HAN)', origin: 'DAD', dest: 'HAN' },
-                { pair: 'HAN-PQC', name: 'Hà Nội (HAN) ➔ Phú Quốc (PQC)', origin: 'HAN', dest: 'PQC' },
-                { pair: 'PQC-HAN', name: 'Phú Quốc (PQC) ➔ Hà Nội (HAN)', origin: 'PQC', dest: 'HAN' },
                 { pair: 'SGN-PQC', name: 'TP.HCM (SGN) ➔ Phú Quốc (PQC)', origin: 'SGN', dest: 'PQC' },
-                { pair: 'PQC-SGN', name: 'Phú Quốc (PQC) ➔ TP.HCM (SGN)', origin: 'PQC', dest: 'SGN' },
-                { pair: 'SGN-CXR', name: 'TP.HCM (SGN) ➔ Cam Ranh (CXR)', origin: 'SGN', dest: 'CXR' },
-                { pair: 'CXR-SGN', name: 'Cam Ranh (CXR) ➔ TP.HCM (SGN)', origin: 'CXR', dest: 'SGN' }
+                { pair: 'HAN-PQC', name: 'Hà Nội (HAN) ➔ Phú Quốc (PQC)', origin: 'HAN', dest: 'PQC' },
+                { pair: 'HAN-SGN', name: 'Hà Nội (HAN) ➔ TP.HCM (SGN)', origin: 'HAN', dest: 'SGN' },
+                { pair: 'HAN-DAD', name: 'Hà Nội (HAN) ➔ Đà Nẵng (DAD)', origin: 'HAN', dest: 'DAD' },
+                { pair: 'DAD-SGN', name: 'Đà Nẵng (DAD) ➔ TP.HCM (SGN)', origin: 'DAD', dest: 'SGN' },
+                { pair: 'DAD-HAN', name: 'Đà Nẵng (DAD) ➔ Hà Nội (HAN)', origin: 'DAD', dest: 'HAN' },
+                { pair: 'DAD-PQC', name: 'Đà Nẵng (DAD) ➔ Phú Quốc (PQC)', origin: 'DAD', dest: 'PQC' }
             ];
         },
 

@@ -1,5 +1,5 @@
 {
-  "version": 1788923299821,
+  "version": 1788923462099,
   "auctions": [
     {
       "id": 9,
@@ -643,7 +643,9 @@
       "paidAt": null,
       "awbNumber": "998-18929204",
       "cutOffTime": "Trước ETD 3 giờ",
-      "warehouse": "Kho hàng SCSC / TCS Tân Sơn Nhất (Cửa số 4)"
+      "warehouse": "Kho hàng SCSC / TCS Tân Sơn Nhất (Cửa số 4)",
+      "lockPenaltyHandled": true,
+      "lockWaivedByAdmin": true
     },
     {
       "wonId": "WON-2026-0814-01",
@@ -672,7 +674,9 @@
         "consigneeName": "Công ty CP Đầu tư & Công nghệ Hà Nội",
         "consigneeAddress": "Kho Cargo Nội Bài, Sóc Sơn, Hà Nội",
         "specialNotes": "Hàng giá trị cao. Bảo quản nơi khô ráo, không đè nặng quá 50kg/thùng."
-      }
+      },
+      "lockPenaltyHandled": true,
+      "lockWaivedByAdmin": true
     },
     {
       "wonId": "WON-2026-0815-02",
@@ -720,7 +724,9 @@
       "awbNumber": "998-13098722",
       "cutOffTime": "09/09/2026 11:30",
       "warehouse": "Kho hàng SCSC Tân Sơn Nhất",
-      "cargoDeclaration": null
+      "cargoDeclaration": null,
+      "lockPenaltyHandled": true,
+      "lockWaivedByAdmin": true
     },
     {
       "wonId": "WON-2026-0815-04",
@@ -768,7 +774,9 @@
       "awbNumber": "998-22688192",
       "cutOffTime": "09/09/2026 18:00",
       "warehouse": "Kho hàng TCS Tân Sơn Nhất (Cửa số 3)",
-      "cargoDeclaration": null
+      "cargoDeclaration": null,
+      "lockPenaltyHandled": true,
+      "lockWaivedByAdmin": true
     }
   ],
   "notifications": [
@@ -1300,15 +1308,15 @@
       "address": "123 Nguyễn Huệ, Quận 1, TP. Hồ Chí Minh",
       "province": "TP. Hồ Chí Minh",
       "tier": "TIER1",
-      "status": "Đã khóa",
+      "status": "Đang hoạt động",
       "joinedDate": "15/03/2024",
       "totalBids": 24,
       "totalWins": 8,
       "winRate": "33%",
       "totalSpentUSD": "12.4k",
       "totalSpentVND": 1600000000,
-      "lockedReason": "Hệ thống tự động khóa do quá hạn thanh toán đơn WON-20260908-06 (VU32453 - SGN - HAN)",
-      "lockedAt": "16:35:15 8/9/2026"
+      "unlockedAt": "2026-09-09T03:10:51.683Z",
+      "unlockedBy": "admin"
     },
     {
       "id": 2,
