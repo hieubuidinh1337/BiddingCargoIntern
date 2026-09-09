@@ -1491,11 +1491,6 @@
             }
 
             let list = (store && store.getWonAuctions) ? store.getWonAuctions() : [];
-            // Fallback: If empty, show full won auctions for demonstration
-            if (!list || list.length === 0) {
-                const data = store ? store.getData() : {};
-                list = data.wonAuctions || [];
-            }
 
             const container = document.getElementById('wonAuctionsContainer');
             if (!container) return;
@@ -1563,14 +1558,21 @@
 
             if (!list || list.length === 0) {
                 renderWonPaginationControls(0);
+                const isFiltered = !!searchKeyword || statusFilter !== 'ALL';
                 container.innerHTML = `
                     <div class="bg-white rounded-2xl border p-12 text-center text-gray-400 shadow-sm">
-                        <i class="fa-solid fa-magnifying-glass text-4xl mb-3 text-slate-300"></i>
-                        <p class="font-bold text-slate-700 text-base">Không tìm thấy đơn thắng thầu nào phù hợp</p>
-                        <p class="text-xs text-gray-400 mt-1 mb-3">Vui lòng thử tìm kiếm bằng từ khóa khác hoặc điều chỉnh bộ lọc</p>
-                        <button onclick="document.getElementById('wonSearchInput').value=''; document.getElementById('wonStatusFilter').value='ALL'; document.getElementById('wonSortSelect').value='NEWEST'; renderWonAuctions();" class="inline-flex items-center gap-1.5 bg-slate-100 hover:bg-slate-200 text-slate-700 font-semibold text-xs px-3.5 py-2 rounded-xl transition">
-                            <i class="fa-solid fa-rotate-left"></i> Xóa bộ lọc tìm kiếm
-                        </button>
+                        <i class="fa-solid ${isFiltered ? 'fa-magnifying-glass' : 'fa-trophy'} text-4xl mb-3 text-slate-300"></i>
+                        <p class="font-bold text-slate-700 text-base">${isFiltered ? 'Không tìm thấy đơn thắng thầu nào phù hợp' : 'Bạn chưa có đơn thắng thầu nào'}</p>
+                        <p class="text-xs text-gray-400 mt-1 mb-3">${isFiltered ? 'Vui lòng thử tìm kiếm bằng từ khóa khác hoặc điều chỉnh bộ lọc' : 'Hãy tham gia đặt giá trên sàn đấu giá để sở hữu các slot vận chuyển hàng hóa tốt nhất'}</p>
+                        ${isFiltered ? `
+                            <button onclick="document.getElementById('wonSearchInput').value=''; document.getElementById('wonStatusFilter').value='ALL'; document.getElementById('wonSortSelect').value='NEWEST'; renderWonAuctions();" class="inline-flex items-center gap-1.5 bg-slate-100 hover:bg-slate-200 text-slate-700 font-semibold text-xs px-3.5 py-2 rounded-xl transition">
+                                <i class="fa-solid fa-rotate-left"></i> Xóa bộ lọc tìm kiếm
+                            </button>
+                        ` : `
+                            <a href="03-Index.html" class="inline-flex items-center gap-1.5 bg-blue-600 hover:bg-blue-700 text-white font-semibold text-xs px-4 py-2.5 rounded-xl shadow transition">
+                                <i class="fa-solid fa-gavel"></i> Đến sàn đấu giá ngay
+                            </a>
+                        `}
                     </div>
                 `;
                 return;

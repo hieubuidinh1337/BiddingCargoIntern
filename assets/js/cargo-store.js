@@ -2014,12 +2014,15 @@ const CargoStore = (function() {
 
         getWonAuctions: function() {
             const data = loadData();
-            const code = (data.currentUser && data.currentUser.agentCode) ? String(data.currentUser.agentCode).trim().toUpperCase() : 'AG-0892';
-            const filtered = (data.wonAuctions || []).filter(w => !w.agentCode || String(w.agentCode).trim().toUpperCase() === code);
-            if (filtered.length === 0 && (data.wonAuctions || []).length > 0) {
-                return data.wonAuctions;
+            if (!data.currentUser) {
+                return (data.wonAuctions || []).filter(w => !w.agentCode || String(w.agentCode).trim().toUpperCase() === 'AG-0892');
             }
-            return filtered;
+            if (data.currentUser.role === 'ADMIN' || data.currentUser.role === 'STAFF') {
+                return data.wonAuctions || [];
+            }
+            const code = String(data.currentUser.agentCode || data.currentUser.code || '').trim().toUpperCase();
+            if (!code) return [];
+            return (data.wonAuctions || []).filter(w => String(w.agentCode || '').trim().toUpperCase() === code);
         },
 
         isCargoDeclared: function(item) {

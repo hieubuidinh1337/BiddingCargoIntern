@@ -1,5 +1,5 @@
 {
-  "version": 1788917695869,
+  "version": 1788918585739,
   "auctions": [
     {
       "id": 9,
@@ -541,12 +541,21 @@
       "priceKg": 25000,
       "totalAmountVND": 100000000,
       "paymentDeadline": "2026-09-09T09:15:00.000Z",
-      "paymentStatus": "UNPAID",
-      "notifiedAt": "15/08/2026 11:00",
+      "paymentStatus": "PENDING_VERIFICATION",
+      "notifiedAt": "08:38:56 9/9/2026",
       "awbNumber": "998-34077611",
       "cutOffTime": "09/09/2026 16:00",
       "warehouse": "Kho hàng Cargo Nội Bài (Cửa số 1)",
-      "cargoDeclaration": null
+      "cargoDeclaration": null,
+      "paymentProof": {
+        "memo": "CARGO WON-2026-0815-04 AG-0556",
+        "transactionRef": "",
+        "proofImageUrl": null,
+        "note": "",
+        "transferredAmount": 100000000,
+        "bankName": "Ngân hàng TMCP Ngoại Thương Việt Nam (Vietcombank)",
+        "submittedAt": "08:38:56 9/9/2026"
+      }
     },
     {
       "wonId": "WON-2026-0816-05",
@@ -568,6 +577,18 @@
     }
   ],
   "notifications": [
+    {
+      "id": 1788917937232,
+      "timestamp": 1788917936660,
+      "targetAgentCode": null,
+      "title": "💳 ĐẠI LÝ BÁO CHUYỂN KHOẢN: Đơn WON-2026-0815-04",
+      "message": "Đại lý AG-0556 (Golden Star Logistics) đã báo chuyển khoản 100.000.000 đ cho đơn WON-2026-0815-04 (Chuyến VU340). Cú pháp: [CARGO WON-2026-0815-04 AG-0556]. Vui lòng đối soát sao kê ngân hàng và xác nhận.",
+      "time": "Vừa xong",
+      "type": "PAYMENT",
+      "read": false,
+      "wonId": "WON-2026-0815-04",
+      "link": "07-WonAuction.html?search=WON-2026-0815-04"
+    },
     {
       "id": 1788859560111,
       "targetAgentCode": "AG-0556",
