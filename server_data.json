@@ -1,5 +1,5 @@
 {
-  "version": 1788935181733,
+  "version": 1788935385769,
   "auctions": [
     {
       "id": 9,
@@ -625,8 +625,7 @@
       "cutOffTime": "09:10 · 09/09/2026",
       "warehouse": "Kho hàng SCSC / TCS Tân Sơn Nhất (Cửa số 4)",
       "cargoDeclaration": null,
-      "lockPenaltyHandled": true,
-      "lockWaivedByAdmin": true
+      "lockPenaltyHandled": true
     },
     {
       "wonId": "WON-20260908-06",
@@ -639,13 +638,12 @@
       "priceKg": 25000,
       "totalAmountVND": 75000000,
       "paymentDeadline": "2026-09-08T06:00:00.000Z",
-      "paymentStatus": "EXPIRED",
-      "paidAt": null,
+      "paymentStatus": "PAID",
+      "paidAt": "08/09/2026 14:00",
       "awbNumber": "998-18929204",
       "cutOffTime": "Trước ETD 3 giờ",
       "warehouse": "Kho hàng SCSC / TCS Tân Sơn Nhất (Cửa số 4)",
-      "lockPenaltyHandled": true,
-      "lockWaivedByAdmin": true
+      "lockPenaltyHandled": true
     },
     {
       "wonId": "WON-2026-0814-01",
@@ -675,8 +673,7 @@
         "consigneeAddress": "Kho Cargo Nội Bài, Sóc Sơn, Hà Nội",
         "specialNotes": "Hàng giá trị cao. Bảo quản nơi khô ráo, không đè nặng quá 50kg/thùng."
       },
-      "lockPenaltyHandled": true,
-      "lockWaivedByAdmin": true
+      "lockPenaltyHandled": true
     },
     {
       "wonId": "WON-2026-0815-02",
@@ -707,8 +704,7 @@
         "updatedAt": "13:58:53 8/9/2026"
       },
       "notifiedAt": "13:59:00 8/9/2026",
-      "lockPenaltyHandled": true,
-      "lockWaivedByAdmin": true
+      "lockPenaltyHandled": true
     },
     {
       "wonId": "WON-2026-0815-03",
@@ -1367,9 +1363,7 @@
       "totalWins": 8,
       "winRate": "33%",
       "totalSpentUSD": "12.4k",
-      "totalSpentVND": 1600000000,
-      "unlockedAt": "2026-09-09T03:10:51.683Z",
-      "unlockedBy": "admin"
+      "totalSpentVND": 1600000000
     },
     {
       "id": 2,
@@ -1384,15 +1378,15 @@
       "address": "406 Nguyễn Tất Thành, Quận 4, TP. Hồ Chí Minh",
       "province": "TP. Hồ Chí Minh",
       "tier": "TIER1",
-      "status": "Đang hoạt động",
+      "status": "Đã khóa",
       "joinedDate": "10/01/2024",
       "totalBids": 45,
       "totalWins": 16,
       "winRate": "36%",
       "totalSpentUSD": "28.2k",
       "totalSpentVND": 3640000000,
-      "unlockedAt": "2026-09-09T06:25:36.470Z",
-      "unlockedBy": "admin"
+      "lockedReason": "Hệ thống tự động khóa do quá hạn thanh toán đơn WON-2026-0815-02 (VU224 - SGN - DAD)",
+      "lockedAt": "13:00:00 9/9/2026"
     },
     {
       "id": 3,
@@ -1414,10 +1408,8 @@
       "winRate": "28%",
       "totalSpentUSD": "8.0k",
       "totalSpentVND": 1030000000,
-      "unlockedAt": "2026-09-09T02:50:54.922Z",
-      "unlockedBy": "admin",
-      "lockedReason": "Quản trị viên chủ động khóa tài khoản",
-      "lockedAt": "13:25:15 9/9/2026"
+      "lockedReason": "Hệ thống tự động khóa do quá hạn thanh toán đơn WON-20260909-07 (VU450 - SGN - PQC)",
+      "lockedAt": "09:10:00 9/9/2026"
     },
     {
       "id": 4,

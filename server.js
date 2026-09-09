@@ -489,9 +489,7 @@ function checkAndAutoLockExpiredWonAuctions(data) {
                 modified = true;
             }
 
-            const orderExpiredTime = item.paymentDeadline ? new Date(item.paymentDeadline).getTime() : 0;
-            const agentUnlockedTime = agent && agent.unlockedAt ? new Date(agent.unlockedAt).getTime() : 0;
-            const isWaived = item.lockWaivedByAdmin === true || (agentUnlockedTime > 0 && agentUnlockedTime >= orderExpiredTime);
+            const isWaived = item.lockWaivedByAdmin === true;
 
             if (!isWaived && agent) {
                 if (agent.status !== 'Đã khóa' && agent.status !== 'LOCKED') {

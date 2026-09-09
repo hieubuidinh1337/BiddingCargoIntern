@@ -28,9 +28,7 @@ const CargoStore = (function() {
             totalWins: 8,
             winRate: '33%',
             totalSpentUSD: '12.4k',
-            totalSpentVND: 1600000000,
-            unlockedAt: '2026-09-09T03:10:51.683Z',
-            unlockedBy: 'admin'
+            totalSpentVND: 1600000000
         },
         {
             id: 2,
@@ -68,15 +66,15 @@ const CargoStore = (function() {
             address: '88 Láng Hạ, Đống Đa, Hà Nội',
             province: 'Hà Nội',
             tier: 'TIER1',
-            status: 'Đang hoạt động',
+            status: 'Đã khóa',
             joinedDate: '22/05/2024',
             totalBids: 18,
             totalWins: 5,
             winRate: '28%',
             totalSpentUSD: '8.0k',
             totalSpentVND: 1030000000,
-            unlockedAt: '2026-09-09T02:50:54.922Z',
-            unlockedBy: 'admin'
+            lockedReason: 'Hệ thống tự động khóa do quá hạn thanh toán đơn WON-20260909-07 (VU450 - SGN - PQC)',
+            lockedAt: '09:10:00 9/9/2026'
         },
         {
             id: 4,
@@ -524,15 +522,34 @@ const CargoStore = (function() {
                 capacityKg: 3000,
                 priceKg: 25000,
                 totalAmountVND: 75000000,
-                paymentDeadline: '2026-09-09T00:57:00.000Z',
-                paymentStatus: 'EXPIRED',
-                paidAt: null,
+                paymentDeadline: '2026-09-08T06:00:00.000Z',
+                paymentStatus: 'PAID',
+                paidAt: '08/09/2026 14:00',
                 awbNumber: '998-18929204',
-                cutOffTime: '07:57 · 09/09/2026',
+                cutOffTime: 'Trước ETD 3 giờ',
                 warehouse: 'Kho hàng SCSC / TCS Tân Sơn Nhất (Cửa số 4)',
                 cargoDeclaration: null,
-                lockPenaltyHandled: true,
-                lockWaivedByAdmin: true
+                lockPenaltyHandled: true
+            },
+            {
+                wonId: 'WON-20260909-07',
+                auctionId: 7,
+                agentCode: 'AG-0556',
+                agentName: 'Công ty TNHH Tiếp vận Toàn Cầu Golden Star',
+                flightNumber: 'VU450',
+                route: 'SGN - PQC',
+                capacityKg: 3000,
+                priceKg: 22500,
+                totalAmountVND: 67500000,
+                paymentDeadline: '2026-09-09T02:10:00.000Z',
+                paymentStatus: 'EXPIRED',
+                paidAt: null,
+                notifiedAt: null,
+                awbNumber: '998-49350322',
+                cutOffTime: '09:10 · 09/09/2026',
+                warehouse: 'Kho hàng SCSC / TCS Tân Sơn Nhất (Cửa số 4)',
+                cargoDeclaration: null,
+                lockPenaltyHandled: true
             }
         ],
         notifications: [
@@ -1089,13 +1106,10 @@ const CargoStore = (function() {
                     modified = true;
                 }
 
-                // Check if this expired order penalty was explicitly waived or agent unlocked after the deadline
-                const orderExpiredTime = item.paymentDeadline ? new Date(item.paymentDeadline).getTime() : 0;
-                const agentUnlockedTime = agent && agent.unlockedAt ? new Date(agent.unlockedAt).getTime() : 0;
-                const isWaived = item.lockWaivedByAdmin === true || (agentUnlockedTime > 0 && agentUnlockedTime >= orderExpiredTime);
+            const isWaived = item.lockWaivedByAdmin === true;
 
-                // Auto-lock agent account if not waived by Admin
-                if (!isWaived && agent) {
+            // Auto-lock agent account if not waived by Admin
+            if (!isWaived && agent) {
                     if (agent.status !== 'Đã khóa' && agent.status !== 'LOCKED') {
                         agent.status = 'Đã khóa';
                         agent.lockedReason = `Hệ thống tự động khóa do quá hạn thanh toán đơn ${item.wonId} (${item.flightNumber} - ${item.route})`;
@@ -2607,16 +2621,31 @@ const CargoStore = (function() {
                 return { success: false, message: `Không tìm thấy đơn thắng thầu "${wonId}".` };
             }
 
-            if (this.isWonAuctionExpired(item)) {
-                return { success: false, message: `Đơn hàng "${wonId}" đã quá hạn thanh toán / Cut-off và đã bị hủy bởi hệ thống.` };
-            }
-
             item.paymentStatus = 'PAID';
             item.paidAt = new Date().toLocaleString('vi-VN');
+            item.lockWaivedByAdmin = true;
+
+            // Check if agent has any remaining unpaid overdue orders; if none, restore status
+            const targetCode = (item.agentCode || '').toUpperCase();
+            const agentAccount = (data.agentsList || []).find(a => (a.code || '').toUpperCase() === targetCode);
+            if (agentAccount && (agentAccount.status === 'Đã khóa' || agentAccount.status === 'LOCKED')) {
+                const hasRemainingOverdue = (data.wonAuctions || []).some(w => 
+                    (w.agentCode || '').toUpperCase() === targetCode &&
+                    w.wonId !== item.wonId &&
+                    w.paymentStatus !== 'PAID' &&
+                    w.paymentStatus !== 'PENDING_VERIFICATION' &&
+                    !w.lockWaivedByAdmin &&
+                    isWonAuctionExpired(w, data)
+                );
+                if (!hasRemainingOverdue) {
+                    agentAccount.status = 'Đang hoạt động';
+                    delete agentAccount.lockedReason;
+                    delete agentAccount.lockedAt;
+                }
+            }
 
             // Find agent email to dispatch PAYMENT_CONFIRMED email
             const defaultTargetEmail = (data.currentUser && data.currentUser.email) ? data.currentUser.email : 'jome7093@gmail.com';
-            const agentAccount = (data.agentsList || []).find(a => (a.code || '').toUpperCase() === (item.agentCode || '').toUpperCase());
             const targetEmail = (agentAccount && agentAccount.email) ? agentAccount.email : defaultTargetEmail;
             
             CargoStore.sendEmailNotification({

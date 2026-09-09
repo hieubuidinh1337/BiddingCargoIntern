@@ -215,10 +215,10 @@ const myViewName = CargoStore.getPublicAgentName('AG-0892', 'ABC Logistics', tru
 console.log('Đại lý chính chủ (AG-0892) nhìn thấy:', myViewName);
 if (!myViewName.includes('Bạn')) throw new Error('Đại lý chính chủ không nhìn thấy nhãn (Bạn)!');
 
-// Đăng nhập Đại lý đối thủ (AG-0556)
-CargoStore.loginAgent('AG-0556', 'star123456');
+// Đăng nhập Đại lý đối thủ (AG-0341)
+CargoStore.loginAgent('AG-0341', 'sky123456');
 const competitorViewName = CargoStore.getPublicAgentName('AG-0892', 'ABC Logistics', true, CargoStore.getCurrentUser());
-console.log('Đại lý đối thủ (AG-0556) nhìn thấy:', competitorViewName);
+console.log('Đại lý đối thủ (AG-0341) nhìn thấy:', competitorViewName);
 if (competitorViewName.includes('ABC Logistics')) throw new Error('Lỗi bảo mật: Đại lý đối thủ vẫn nhìn thấy tên công ty!');
 
 // Đăng nhập Quản trị viên (ADMIN) trên trang Admin
