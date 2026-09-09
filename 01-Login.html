@@ -71,12 +71,9 @@
                         <span class="font-bold block text-slate-900">ABC Logistics</span>
                         <span class="text-[10px] text-blue-600 font-semibold">AG-0892 (abc123456)</span>
                     </button>
-                    <button type="button" onclick="fillDemo('AG-1024', 'vina123456')" class="bg-white hover:bg-red-50 text-slate-800 border border-red-200 p-2 rounded-lg text-left transition shadow-xs relative">
-                        <div class="flex items-center justify-between">
-                            <span class="font-bold block text-slate-900">Vinatrans</span>
-                            <span class="text-[9px] font-bold bg-red-100 text-red-700 px-1.5 py-0.5 rounded border border-red-200"><i class="fa-solid fa-lock text-[8px]"></i> Đã khóa</span>
-                        </div>
-                        <span class="text-[10px] text-red-600 font-semibold">AG-1024 (vina123456)</span>
+                    <button type="button" onclick="fillDemo('AG-1024', 'vina123456')" class="bg-white hover:bg-blue-100 text-blue-800 border border-blue-200 p-2 rounded-lg text-left transition shadow-xs">
+                        <span class="font-bold block text-slate-900">Vinatrans</span>
+                        <span class="text-[10px] text-blue-600 font-semibold">AG-1024 (vina123456)</span>
                     </button>
                     <button type="button" onclick="fillDemo('AG-0556', 'star123456')" class="bg-white hover:bg-blue-100 text-blue-800 border border-blue-200 p-2 rounded-lg text-left transition shadow-xs">
                         <span class="font-bold block text-slate-900">Golden Star</span>
@@ -333,7 +330,11 @@
     document.addEventListener('DOMContentLoaded', () => {
         renderDemoAccounts();
     });
+    window.addEventListener('storage', (e) => {
+        if (e.key === 'CARGO_BIDDING_DATA_V3') renderDemoAccounts();
+    });
     window.addEventListener('cargostore_updated', renderDemoAccounts);
+    setInterval(renderDemoAccounts, 600);
 
     function fillDemo(code, pwd) {
         document.getElementById('agentCode').value = code;

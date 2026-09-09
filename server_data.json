@@ -1,5 +1,5 @@
 {
-  "version": 1788928011523,
+  "version": 1788935181733,
   "auctions": [
     {
       "id": 9,
@@ -17,7 +17,7 @@
       "startingPriceKg": 10000,
       "currentPriceKg": 10000,
       "minStep": 500,
-      "endTime": "2026-09-09T04:30:00.000Z",
+      "endTime": "2026-09-09T06:54:55.369Z",
       "status": "OPEN",
       "leadingAgentCode": "AG-1024",
       "leadingAgentName": "Công ty CP Giao nhận Kho vận Vinatrans",
@@ -693,7 +693,6 @@
       "awbNumber": "998-22409811",
       "cutOffTime": "09/09/2026 13:00",
       "warehouse": "Kho hàng TCS Tân Sơn Nhất (Cửa số 2)",
-      "lockPenaltyHandled": true,
       "cargoDeclaration": {
         "cargoType": "Hàng bưu kiện / E-commerce",
         "cargoName": "213 fioew fjeiow wiew",
@@ -707,7 +706,9 @@
         "specialNotes": "",
         "updatedAt": "13:58:53 8/9/2026"
       },
-      "notifiedAt": "13:59:00 8/9/2026"
+      "notifiedAt": "13:59:00 8/9/2026",
+      "lockPenaltyHandled": true,
+      "lockWaivedByAdmin": true
     },
     {
       "wonId": "WON-2026-0815-03",
@@ -1383,15 +1384,15 @@
       "address": "406 Nguyễn Tất Thành, Quận 4, TP. Hồ Chí Minh",
       "province": "TP. Hồ Chí Minh",
       "tier": "TIER1",
-      "status": "Đã khóa",
+      "status": "Đang hoạt động",
       "joinedDate": "10/01/2024",
       "totalBids": 45,
       "totalWins": 16,
       "winRate": "36%",
       "totalSpentUSD": "28.2k",
       "totalSpentVND": 3640000000,
-      "lockedReason": "Hệ thống tự động khóa do quá hạn thanh toán đơn WON-2026-0815-02 (VU224 - SGN - DAD)",
-      "lockedAt": "13:00:00 9/9/2026"
+      "unlockedAt": "2026-09-09T06:25:36.470Z",
+      "unlockedBy": "admin"
     },
     {
       "id": 3,
@@ -1406,7 +1407,7 @@
       "address": "88 Láng Hạ, Đống Đa, Hà Nội",
       "province": "Hà Nội",
       "tier": "TIER1",
-      "status": "Đang hoạt động",
+      "status": "Đã khóa",
       "joinedDate": "22/05/2024",
       "totalBids": 18,
       "totalWins": 5,
@@ -1414,7 +1415,9 @@
       "totalSpentUSD": "8.0k",
       "totalSpentVND": 1030000000,
       "unlockedAt": "2026-09-09T02:50:54.922Z",
-      "unlockedBy": "admin"
+      "unlockedBy": "admin",
+      "lockedReason": "Quản trị viên chủ động khóa tài khoản",
+      "lockedAt": "13:25:15 9/9/2026"
     },
     {
       "id": 4,
