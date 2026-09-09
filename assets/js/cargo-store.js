@@ -879,7 +879,7 @@ const CargoStore = (function() {
             if (saveServerTimeout) clearTimeout(saveServerTimeout);
 
             saveServerTimeout = setTimeout(() => {
-                const apiUrl = (window.location && window.location.protocol.startsWith('http'))
+                const apiUrl = (window.location && window.location.protocol && window.location.protocol.startsWith('http'))
                     ? '/api/data'
                     : 'http://localhost:8085/api/data';
 
@@ -2185,6 +2185,32 @@ const CargoStore = (function() {
                 notif.read = true;
                 saveData(data);
             }
+        },
+
+        deleteNotification: function(id) {
+            const data = loadData();
+            if (!data.notifications) return { success: false, count: 0 };
+            const initialLen = data.notifications.length;
+            data.notifications = data.notifications.filter(n => String(n.id) !== String(id));
+            const deleted = initialLen - data.notifications.length;
+            if (deleted > 0) {
+                saveData(data);
+            }
+            return { success: deleted > 0, count: deleted };
+        },
+
+        deleteNotifications: function(ids) {
+            if (!Array.isArray(ids) || ids.length === 0) return { success: false, count: 0 };
+            const data = loadData();
+            if (!data.notifications) return { success: false, count: 0 };
+            const idSet = new Set(ids.map(id => String(id)));
+            const initialLen = data.notifications.length;
+            data.notifications = data.notifications.filter(n => !idSet.has(String(n.id)));
+            const deleted = initialLen - data.notifications.length;
+            if (deleted > 0) {
+                saveData(data);
+            }
+            return { success: deleted > 0, count: deleted };
         },
 
         registerAgent: function(regData) {

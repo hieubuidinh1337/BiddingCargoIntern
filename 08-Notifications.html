@@ -146,10 +146,57 @@
             </button>
         </div>
 
+        <!-- Selection Toolbar (Thanh chọn & thao tác xoá thông báo đã chọn) -->
+        <div id="selectionToolbar" class="bg-white rounded-xl border p-2.5 sm:px-4 shadow-sm flex flex-wrap items-center justify-between gap-2.5 text-xs transition-all">
+            <div class="flex items-center gap-3">
+                <label class="flex items-center gap-2 cursor-pointer font-semibold text-slate-700 select-none hover:text-slate-900">
+                    <input type="checkbox" id="selectAllCheckbox" onchange="toggleSelectAll(this.checked)" class="w-4 h-4 rounded border-gray-300 text-indigo-600 focus:ring-indigo-500 cursor-pointer">
+                    <span id="selectAllLabel">Chọn tất cả</span>
+                </label>
+                <span id="selectedCountBadge" class="hidden font-bold px-2.5 py-0.5 rounded-full bg-indigo-100 text-indigo-800 text-[11px] items-center gap-1">
+                    <i class="fa-solid fa-check-circle text-indigo-600"></i> Đã chọn <span id="selectedCountNum">0</span>
+                </span>
+            </div>
+            <div class="flex items-center gap-2 flex-wrap">
+                <button type="button" id="markSelectedReadBtn" onclick="markSelectedAsRead()" class="hidden px-3 py-1.5 rounded-lg bg-blue-50 hover:bg-blue-100 text-blue-700 font-semibold transition items-center gap-1.5 cursor-pointer">
+                    <i class="fa-solid fa-check-double text-[11px]"></i> Đánh dấu đã đọc (<span id="markReadCount">0</span>)
+                </button>
+                <button type="button" id="deleteSelectedBtn" onclick="confirmDeleteSelected()" class="hidden px-3.5 py-1.5 rounded-lg bg-red-50 hover:bg-red-600 text-red-600 hover:text-white font-bold transition items-center gap-1.5 border border-red-200 hover:border-red-600 cursor-pointer shadow-xs">
+                    <i class="fa-solid fa-trash-can text-[11px]"></i> Xóa thông báo đã chọn (<span id="deleteSelectedCount">0</span>)
+                </button>
+                <button type="button" id="deselectAllBtn" onclick="deselectAll()" class="hidden text-gray-500 hover:text-gray-800 font-medium px-2 py-1 cursor-pointer">
+                    Bỏ chọn
+                </button>
+            </div>
+        </div>
+
         <!-- Notification Feed -->
         <div id="notifList" class="space-y-3"></div>
 
     </main>
+
+    <!-- Modal: Xác nhận xóa thông báo -->
+    <div id="deleteConfirmModal" class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-50 flex items-center justify-center p-4 hidden">
+        <div class="bg-white rounded-2xl max-w-md w-full shadow-2xl overflow-hidden animate-in fade-in zoom-in duration-200">
+            <div class="p-6 text-center space-y-4">
+                <div class="w-14 h-14 rounded-full bg-red-100 text-red-600 flex items-center justify-center text-2xl mx-auto">
+                    <i class="fa-solid fa-trash-can"></i>
+                </div>
+                <div>
+                    <h3 class="font-bold text-lg text-slate-900" id="deleteModalTitle">Xác nhận xóa thông báo</h3>
+                    <p class="text-xs text-gray-500 mt-1" id="deleteModalDesc">Bạn có chắc chắn muốn xóa các thông báo đã chọn? Thao tác này không thể hoàn tác.</p>
+                </div>
+            </div>
+            <div class="bg-slate-50 px-6 py-3.5 flex items-center justify-end gap-2.5 border-t">
+                <button type="button" onclick="closeDeleteModal()" class="px-4 py-2 border rounded-xl text-slate-600 hover:bg-white text-xs font-semibold cursor-pointer">
+                    Hủy bỏ
+                </button>
+                <button type="button" id="confirmDeleteBtn" onclick="executeDelete()" class="px-4 py-2 bg-red-600 hover:bg-red-700 text-white rounded-xl text-xs font-bold shadow transition flex items-center gap-1.5 cursor-pointer">
+                    <i class="fa-solid fa-trash-can text-[10px]"></i> Xác nhận xóa
+                </button>
+            </div>
+        </div>
+    </div>
 
     <!-- Modal: Cài đặt Chuông báo Tuyến bay & Sự kiện Đấu giá -->
     <div id="routeAlertModal" class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-50 flex items-center justify-center p-3 sm:p-4 hidden">
@@ -233,6 +280,8 @@
 
     <script>
     let currentFilter = 'all';
+    let selectedNotifIds = new Set();
+    let pendingDeleteIds = [];
 
     const typeConfig = {
         'OUTBID': {
@@ -283,10 +332,19 @@
 
     function setFilter(f) {
         currentFilter = f;
+        selectedNotifIds.clear();
         document.querySelectorAll('.filter-btn').forEach(b => b.classList.remove('active'));
         const btn = document.getElementById('f-' + f);
         if (btn) btn.classList.add('active');
         renderNotifications();
+    }
+
+    function getCurrentlyFilteredNotifs() {
+        if (typeof CargoStore === 'undefined') return [];
+        let notifs = CargoStore.getNotifications ? CargoStore.getNotifications().slice() : [];
+        if (currentFilter === 'unread') notifs = notifs.filter(n => !n.read);
+        else if (currentFilter !== 'all') notifs = notifs.filter(n => n.type === currentFilter);
+        return notifs;
     }
 
     function renderNotifications() {
@@ -313,6 +371,11 @@
         const markAllBtn = document.getElementById('markAllBtn');
         if (markAllBtn) markAllBtn.style.display = unread === 0 ? 'none' : 'flex';
 
+        const toolbar = document.getElementById('selectionToolbar');
+        if (toolbar) {
+            toolbar.style.display = notifs.length === 0 ? 'none' : 'flex';
+        }
+
         if (notifs.length === 0) {
             const msgs = {
                 'all': 'Hộp thư thông báo trống',
@@ -332,20 +395,30 @@
                         <i class="fa-solid fa-gavel"></i> Tham gia đấu giá
                     </a>
                 </div>`;
+            updateSelectionUI();
             return;
         }
 
         container.innerHTML = notifs.map((n, idx) => {
             const cfg = getConfig(n.type);
+            const isSelected = selectedNotifIds.has(String(n.id));
             const readClass = n.read ? '' : cfg.borderClass;
-            const bgClass = n.read ? 'bg-white' : (n.type === 'OUTBID' ? 'bg-amber-50/30' : (n.type === 'WON' ? 'bg-emerald-50/30' : (n.type === 'CLOSING_SOON' ? 'bg-red-50/20' : 'bg-blue-50/20')));
+            const bgClass = isSelected ? 'bg-indigo-50/50 ring-2 ring-indigo-500/40' : (n.read ? 'bg-white' : (n.type === 'OUTBID' ? 'bg-amber-50/30' : (n.type === 'WON' ? 'bg-emerald-50/30' : (n.type === 'CLOSING_SOON' ? 'bg-red-50/20' : 'bg-blue-50/20'))));
 
             return `
-            <div class="notif-card ${readClass} ${bgClass} rounded-xl border shadow-sm fade-in" style="animation-delay:${idx * 0.04}s">
-                <div class="flex items-start gap-4 p-4">
+            <div id="notif-card-${n.id}" class="notif-card ${readClass} ${bgClass} rounded-xl border shadow-sm fade-in transition" style="animation-delay:${idx * 0.03}s">
+                <div class="flex items-start gap-3.5 p-4">
+                    <!-- Checkbox to select notification -->
+                    <div class="pt-1.5 flex-shrink-0">
+                        <input type="checkbox" class="notif-item-cb w-4 h-4 rounded border-gray-300 text-indigo-600 focus:ring-indigo-500 cursor-pointer" 
+                               value="${n.id}" 
+                               ${isSelected ? 'checked' : ''} 
+                               onchange="toggleSelectNotif('${n.id}', this.checked, event)">
+                    </div>
+
                     <!-- Icon -->
-                    <div class="w-11 h-11 rounded-xl ${cfg.iconBg} flex items-center justify-center flex-shrink-0 shadow-sm">
-                        <i class="fa-solid ${cfg.icon} ${cfg.iconColor} text-lg"></i>
+                    <div class="w-10 h-10 rounded-xl ${cfg.iconBg} flex items-center justify-center flex-shrink-0 shadow-sm">
+                        <i class="fa-solid ${cfg.icon} ${cfg.iconColor} text-base"></i>
                     </div>
 
                     <!-- Content -->
@@ -356,33 +429,40 @@
                                 <h3 class="font-bold text-sm text-slate-900">${n.title}</h3>
                                 <span class="text-[10px] font-semibold px-2 py-0.5 rounded-full ${cfg.labelBg}">${cfg.label}</span>
                             </div>
-                            <span class="text-[11px] text-gray-400 flex-shrink-0 whitespace-nowrap">${CargoStore.formatTimeAgo(n.timestamp, n.time)}</span>
+                            <span class="text-[11px] text-gray-400 flex-shrink-0 whitespace-nowrap">${CargoStore.formatTimeAgo ? CargoStore.formatTimeAgo(n.timestamp, n.time) : (n.time || '')}</span>
                         </div>
                         <p class="text-xs text-gray-600 leading-relaxed">${n.message}</p>
-                        <div class="flex items-center gap-3 mt-2.5">
+                        
+                        <!-- Action Links -->
+                        <div class="flex items-center gap-3 mt-3 flex-wrap">
                             ${n.link ? `
-                            <a href="${n.link}" onclick="markReadById(${n.id})" class="inline-flex items-center gap-1 text-xs font-semibold text-blue-600 hover:text-blue-800 hover:underline transition">
+                            <a href="${n.link}" onclick="markReadById('${n.id}')" class="inline-flex items-center gap-1 text-xs font-semibold text-blue-600 hover:text-blue-800 hover:underline transition">
                                 <i class="fa-solid fa-arrow-right text-[9px]"></i> Xem chi tiết
                             </a>
                             <span class="text-gray-200">|</span>
                             ` : ''}
                             ${!n.read ? `
-                            <button onclick="markReadById(${n.id})" class="text-xs text-gray-400 hover:text-gray-700 hover:underline transition flex items-center gap-1">
+                            <button onclick="markReadById('${n.id}')" class="text-xs text-gray-400 hover:text-gray-700 hover:underline transition flex items-center gap-1 cursor-pointer">
                                 <i class="fa-regular fa-circle-check text-[10px]"></i> Đánh dấu đã đọc
                             </button>
+                            <span class="text-gray-200">|</span>
                             ` : `
                             <span class="text-xs text-gray-300 flex items-center gap-1"><i class="fa-solid fa-check text-[9px]"></i> Đã đọc</span>
+                            <span class="text-gray-200">|</span>
                             `}
+                            <button onclick="confirmDeleteSingle('${n.id}')" class="text-xs text-gray-400 hover:text-red-600 hover:underline transition flex items-center gap-1 cursor-pointer" title="Xóa thông báo này">
+                                <i class="fa-regular fa-trash-can text-[10px]"></i> Xóa
+                            </button>
                         </div>
                     </div>
 
-                    <!-- Quick Action for OUTBID -->
+                    <!-- Quick Action for OUTBID/WON -->
                     ${n.type === 'OUTBID' && n.link ? `
-                    <a href="${n.link}" onclick="markReadById(${n.id})" class="flex-shrink-0 bg-amber-500 hover:bg-amber-600 text-white text-xs font-bold px-3 py-2 rounded-xl transition shadow flex items-center gap-1.5 whitespace-nowrap">
+                    <a href="${n.link}" onclick="markReadById('${n.id}')" class="flex-shrink-0 bg-amber-500 hover:bg-amber-600 text-white text-xs font-bold px-3 py-2 rounded-xl transition shadow flex items-center gap-1.5 whitespace-nowrap">
                         <i class="fa-solid fa-gavel text-[10px]"></i> Đặt lại ngay
                     </a>
                     ` : (n.type === 'WON' ? `
-                    <a href="07-WonAuction.html" onclick="markReadById(${n.id})" class="flex-shrink-0 bg-emerald-500 hover:bg-emerald-600 text-white text-xs font-bold px-3 py-2 rounded-xl transition shadow flex items-center gap-1.5 whitespace-nowrap">
+                    <a href="07-WonAuction.html" onclick="markReadById('${n.id}')" class="flex-shrink-0 bg-emerald-500 hover:bg-emerald-600 text-white text-xs font-bold px-3 py-2 rounded-xl transition shadow flex items-center gap-1.5 whitespace-nowrap">
                         <i class="fa-solid fa-circle-check text-[10px]"></i> Xem đơn
                     </a>
                     ` : '')}
@@ -391,7 +471,170 @@
             `;
         }).join('');
 
+        updateSelectionUI();
         renderNotifSubscribedBadges();
+    }
+
+    // Toggle individual checkbox
+    function toggleSelectNotif(id, checked, e) {
+        if (e && e.stopPropagation) e.stopPropagation();
+        const strId = String(id);
+        if (checked) {
+            selectedNotifIds.add(strId);
+        } else {
+            selectedNotifIds.delete(strId);
+        }
+        updateSelectionUI();
+    }
+
+    // Toggle Select All
+    function toggleSelectAll(checked) {
+        const visibleNotifs = getCurrentlyFilteredNotifs();
+        if (checked) {
+            visibleNotifs.forEach(n => selectedNotifIds.add(String(n.id)));
+        } else {
+            visibleNotifs.forEach(n => selectedNotifIds.delete(String(n.id)));
+        }
+        renderNotifications();
+    }
+
+    // Deselect all
+    function deselectAll() {
+        selectedNotifIds.clear();
+        renderNotifications();
+    }
+
+    // Update the toolbar & card UI states based on selectedNotifIds
+    function updateSelectionUI() {
+        const visibleNotifs = getCurrentlyFilteredNotifs();
+        const visibleIds = visibleNotifs.map(n => String(n.id));
+        const selectedCount = visibleIds.filter(id => selectedNotifIds.has(id)).length;
+        const totalVisible = visibleNotifs.length;
+
+        const selectAllCb = document.getElementById('selectAllCheckbox');
+        const badge = document.getElementById('selectedCountBadge');
+        const countNum = document.getElementById('selectedCountNum');
+        const markBtn = document.getElementById('markSelectedReadBtn');
+        const delBtn = document.getElementById('deleteSelectedBtn');
+        const deselectBtn = document.getElementById('deselectAllBtn');
+        const deleteCount = document.getElementById('deleteSelectedCount');
+        const markCount = document.getElementById('markReadCount');
+        const selectAllLabel = document.getElementById('selectAllLabel');
+
+        if (selectAllCb) {
+            selectAllCb.checked = totalVisible > 0 && selectedCount === totalVisible;
+            selectAllCb.indeterminate = selectedCount > 0 && selectedCount < totalVisible;
+        }
+
+        if (selectAllLabel) {
+            selectAllLabel.textContent = totalVisible > 0 ? `Chọn tất cả (${totalVisible})` : 'Chọn tất cả';
+        }
+
+        if (selectedCount > 0) {
+            if (badge) {
+                badge.classList.remove('hidden');
+                badge.classList.add('inline-flex');
+            }
+            if (countNum) countNum.textContent = selectedCount;
+            if (markBtn) {
+                markBtn.classList.remove('hidden');
+                markBtn.classList.add('inline-flex');
+            }
+            if (delBtn) {
+                delBtn.classList.remove('hidden');
+                delBtn.classList.add('inline-flex');
+            }
+            if (deselectBtn) {
+                deselectBtn.classList.remove('hidden');
+            }
+            if (deleteCount) deleteCount.textContent = selectedCount;
+            if (markCount) markCount.textContent = selectedCount;
+        } else {
+            if (badge) badge.classList.add('hidden');
+            if (markBtn) markBtn.classList.add('hidden');
+            if (delBtn) delBtn.classList.add('hidden');
+            if (deselectBtn) deselectBtn.classList.add('hidden');
+        }
+
+        // Highlight cards
+        document.querySelectorAll('.notif-item-cb').forEach(cb => {
+            const card = cb.closest('.notif-card');
+            if (card) {
+                if (cb.checked) {
+                    card.classList.add('ring-2', 'ring-indigo-500/40', 'bg-indigo-50/50');
+                } else {
+                    card.classList.remove('ring-2', 'ring-indigo-500/40', 'bg-indigo-50/50');
+                }
+            }
+        });
+    }
+
+    // Modal Confirmation for Bulk Delete
+    function confirmDeleteSelected() {
+        const visibleNotifs = getCurrentlyFilteredNotifs();
+        const idsToDelete = visibleNotifs.map(n => String(n.id)).filter(id => selectedNotifIds.has(id));
+        if (idsToDelete.length === 0) {
+            showToast('Chưa chọn thông báo nào để xóa');
+            return;
+        }
+
+        pendingDeleteIds = idsToDelete;
+        document.getElementById('deleteModalTitle').textContent = `Xác nhận xóa ${idsToDelete.length} thông báo`;
+        document.getElementById('deleteModalDesc').textContent = `Bạn có chắc chắn muốn xóa ${idsToDelete.length} thông báo đã chọn không? Thao tác này sẽ xóa vĩnh viễn khỏi danh sách.`;
+        document.getElementById('deleteConfirmModal').classList.remove('hidden');
+    }
+
+    // Modal Confirmation for Single Delete
+    function confirmDeleteSingle(id) {
+        pendingDeleteIds = [String(id)];
+        document.getElementById('deleteModalTitle').textContent = 'Xác nhận xóa thông báo';
+        document.getElementById('deleteModalDesc').textContent = 'Bạn có chắc chắn muốn xóa thông báo này không? Thao tác này sẽ xóa vĩnh viễn khỏi danh sách.';
+        document.getElementById('deleteConfirmModal').classList.remove('hidden');
+    }
+
+    function closeDeleteModal() {
+        pendingDeleteIds = [];
+        document.getElementById('deleteConfirmModal').classList.add('hidden');
+    }
+
+    // Execute Deletion
+    function executeDelete() {
+        if (!pendingDeleteIds || pendingDeleteIds.length === 0) {
+            closeDeleteModal();
+            return;
+        }
+
+        const count = pendingDeleteIds.length;
+        if (typeof CargoStore !== 'undefined' && CargoStore.deleteNotifications) {
+            CargoStore.deleteNotifications(pendingDeleteIds);
+        }
+
+        // Clean up set
+        pendingDeleteIds.forEach(id => selectedNotifIds.delete(id));
+        closeDeleteModal();
+        showToast(`Đã xóa ${count} thông báo thành công`);
+        renderNotifications();
+    }
+
+    // Mark Selected Notifications As Read
+    function markSelectedAsRead() {
+        const visibleNotifs = getCurrentlyFilteredNotifs();
+        const idsToMark = visibleNotifs.map(n => String(n.id)).filter(id => selectedNotifIds.has(id));
+        if (idsToMark.length === 0) return;
+
+        const data = CargoStore.getData ? CargoStore.getData() : null;
+        if (data && data.notifications) {
+            const idSet = new Set(idsToMark);
+            data.notifications.forEach(n => {
+                if (idSet.has(String(n.id))) {
+                    n.read = true;
+                }
+            });
+            if (CargoStore.saveData) CargoStore.saveData(data);
+        }
+
+        showToast(`Đã đánh dấu ${idsToMark.length} thông báo là đã đọc`);
+        renderNotifications();
     }
 
     function renderNotifSubscribedBadges() {
