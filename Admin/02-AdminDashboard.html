@@ -80,6 +80,24 @@
             </div>
         </div>
 
+        <!-- Pending Payment Verification Alert Banner -->
+        <div id="dashPendingPaymentBanner" class="hidden bg-gradient-to-r from-amber-500 to-amber-600 text-white rounded-2xl p-4 shadow-md flex flex-col sm:flex-row items-center justify-between gap-3">
+            <div class="flex items-center gap-3">
+                <div class="w-10 h-10 bg-white/20 rounded-xl flex items-center justify-center text-xl flex-shrink-0 animate-bounce">
+                    <i class="fa-solid fa-credit-card"></i>
+                </div>
+                <div>
+                    <h3 class="font-bold text-sm flex items-center gap-2">
+                        Đại lý đã nộp thông tin chuyển khoản thanh toán (<span id="dashPendingPayCount">0</span> đơn)
+                    </h3>
+                    <p class="text-xs text-amber-100 mt-0.5">Có đơn hàng thắng thầu đang chờ Ban Quản trị / Kế toán đối soát sao kê và duyệt thanh toán.</p>
+                </div>
+            </div>
+            <a href="03-AuctionList.html?tab=won&payFilter=PENDING" class="bg-white hover:bg-amber-50 text-amber-900 font-bold text-xs px-4 py-2 rounded-xl transition shadow-xs whitespace-nowrap flex items-center gap-1.5">
+                <i class="fa-solid fa-magnifying-glass-dollar"></i> Đối soát & Duyệt ngay
+            </a>
+        </div>
+
         <!-- KPI Summary Cards -->
         <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
             <div class="bg-white rounded-2xl p-5 border shadow-sm flex items-center gap-4">
@@ -310,6 +328,19 @@
             // 4. Total Capacity
             const totalCapacity = auctions.reduce((sum, a) => sum + (a.capacityKg || 0), 0);
             document.getElementById('kpiTotalCapacity').textContent = CargoStore.formatNumber(totalCapacity) + ' Kg';
+
+            // 4b. Pending Payments Verification Alert
+            const pendingPayments = wonList.filter(w => w.paymentStatus === 'PENDING_VERIFICATION');
+            const payBanner = document.getElementById('dashPendingPaymentBanner');
+            const payCountEl = document.getElementById('dashPendingPayCount');
+            if (payBanner && payCountEl) {
+                if (pendingPayments.length > 0) {
+                    payCountEl.textContent = pendingPayments.length;
+                    payBanner.classList.remove('hidden');
+                } else {
+                    payBanner.classList.add('hidden');
+                }
+            }
 
             // 5. Open Auctions table (Paginated)
             const totalOpen = openAuctions.length;

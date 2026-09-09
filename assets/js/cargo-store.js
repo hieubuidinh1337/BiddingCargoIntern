@@ -2564,7 +2564,7 @@ const CargoStore = (function() {
                 type: 'PAYMENT',
                 read: false,
                 wonId: item.wonId,
-                link: `07-WonAuction.html?search=${item.wonId}`
+                link: `03-AuctionList.html?tab=won&search=${item.wonId}&reconcile=${item.wonId}`
             });
 
             // 2. Create notification for the paying agent themselves
@@ -2582,6 +2582,30 @@ const CargoStore = (function() {
             });
 
             saveData(data);
+
+            // 3. Trigger background email dispatch to Admin/Finance
+            try {
+                const adminEmail = (data.systemConfig && data.systemConfig.supportEmail) || (data.emailConfig && data.emailConfig.auth && data.emailConfig.auth.user) || 'cargo-agent@airline.vn';
+                const payingAgent = (data.agentsList || []).find(a => (a.code || '').toUpperCase() === (item.agentCode || '').toUpperCase());
+                this.sendEmailNotification({
+                    type: 'PAYMENT_SUBMITTED_ADMIN',
+                    to: adminEmail,
+                    paymentData: {
+                        wonId: item.wonId,
+                        agentCode: item.agentCode,
+                        agentName: (payingAgent && payingAgent.companyName) || item.agentName || 'Đại lý',
+                        flightNumber: item.flightNumber,
+                        route: item.route,
+                        transferredAmount: transferredAmount,
+                        memo: memo,
+                        transactionRef: transactionRef,
+                        proofImageUrl: proofImageUrl,
+                        submittedAt: item.paymentProof.submittedAt
+                    }
+                });
+            } catch (err) {
+                console.warn('[CargoStore] Failed to send admin payment alert email:', err);
+            }
 
             return {
                 success: true,
@@ -3089,6 +3113,259 @@ const CargoStore = (function() {
                     `;
                 }
             }
+
+            // Mount Admin Notification Center (Bell + Dropdown)
+            this.initAdminNotificationCenter();
+        },
+
+        adminNotifFilter: 'ALL',
+
+        setAdminNotifFilter: function(filter) {
+            this.adminNotifFilter = filter;
+            const btnAll = document.getElementById('adminNotifTabAll');
+            const btnPay = document.getElementById('adminNotifTabPayment');
+            const btnAlert = document.getElementById('adminNotifTabAlert');
+            if (btnAll && btnPay && btnAlert) {
+                const active = 'px-2.5 py-1 rounded-lg bg-blue-600 text-white font-bold transition';
+                const inactive = 'px-2.5 py-1 rounded-lg text-slate-600 hover:bg-slate-200 transition';
+                btnAll.className = filter === 'ALL' ? active : inactive;
+                btnPay.className = (filter === 'PAYMENT' ? active : inactive) + ' flex items-center gap-1';
+                btnAlert.className = filter === 'ALERT' ? active : inactive;
+            }
+            this.renderAdminNotificationList();
+        },
+
+        getAdminNotifications: function() {
+            const data = loadData();
+            const notifs = data.notifications || [];
+            return notifs.filter(n => {
+                if (n.targetRole === 'ADMIN') return true;
+                if (!n.targetAgentCode) return true;
+                if (n.type === 'PAYMENT' && (n.title || '').includes('ĐẠI LÝ BÁO CHUYỂN KHOẢN')) return true;
+                return false;
+            });
+        },
+
+        markAllAdminNotificationsAsRead: function() {
+            const data = loadData();
+            if (data.notifications) {
+                data.notifications.forEach(n => {
+                    if (n.targetRole === 'ADMIN' || !n.targetAgentCode || (n.title || '').includes('ĐẠI LÝ BÁO CHUYỂN KHOẢN')) {
+                        n.read = true;
+                    }
+                });
+                saveData(data);
+            }
+            this.renderAdminNotificationList();
+        },
+
+        markAdminNotificationAsRead: function(id) {
+            const data = loadData();
+            if (data.notifications) {
+                const item = data.notifications.find(n => n.id == id);
+                if (item) {
+                    item.read = true;
+                    saveData(data);
+                }
+            }
+            this.renderAdminNotificationList();
+        },
+
+        initAdminNotificationCenter: function() {
+            if (typeof document === 'undefined') return;
+            const admin = this.getCurrentAdmin();
+            if (!admin) return;
+
+            // Find header user section
+            const userContainers = document.querySelectorAll('header .flex.items-center.gap-2.pl-2.border-l.border-slate-700, header .flex.items-center.gap-3');
+            if (!userContainers || userContainers.length === 0) return;
+
+            // If not mounted yet, mount bell container before user info
+            let bellWrapper = document.getElementById('adminNotifBellWrapper');
+            if (!bellWrapper) {
+                const targetContainer = userContainers[0];
+                bellWrapper = document.createElement('div');
+                bellWrapper.id = 'adminNotifBellWrapper';
+                bellWrapper.className = 'relative inline-block mr-1';
+                bellWrapper.innerHTML = `
+                    <button id="adminNotifBellBtn" type="button" class="relative p-2 rounded-xl text-slate-300 hover:text-white hover:bg-slate-800 transition cursor-pointer flex items-center justify-center focus:outline-none" title="Thông báo & Yêu cầu duyệt">
+                        <i class="fa-solid fa-bell text-sm"></i>
+                        <span id="adminNotifBadge" class="hidden absolute -top-1 -right-1 min-w-[18px] h-[18px] px-1 bg-rose-500 text-white text-[10px] font-extrabold rounded-full flex items-center justify-center shadow-sm animate-pulse border-2 border-slate-900">0</span>
+                    </button>
+
+                    <!-- Dropdown Modal / Popover -->
+                    <div id="adminNotifDropdown" class="hidden absolute right-0 mt-2 w-96 sm:w-[420px] bg-white rounded-2xl shadow-2xl border border-slate-200 text-slate-800 z-[9999] overflow-hidden">
+                        <div class="px-4 py-3 bg-slate-900 text-white flex items-center justify-between border-b border-slate-800">
+                            <div class="flex items-center gap-2">
+                                <div class="w-7 h-7 bg-blue-600 rounded-lg flex items-center justify-center text-xs text-white">
+                                    <i class="fa-solid fa-bell"></i>
+                                </div>
+                                <div>
+                                    <h4 class="font-bold text-xs text-white">Thông báo & Yêu cầu duyệt</h4>
+                                    <p class="text-[10px] text-slate-400" id="adminNotifSummaryText">0 thông báo mới</p>
+                                </div>
+                            </div>
+                            <button type="button" onclick="CargoStore.markAllAdminNotificationsAsRead()" class="text-[11px] text-blue-400 hover:text-blue-300 font-medium hover:underline cursor-pointer">
+                                <i class="fa-solid fa-check-double"></i> Đã đọc tất cả
+                            </button>
+                        </div>
+
+                        <!-- Filter Tabs in Notification Center -->
+                        <div class="flex items-center gap-1 p-2 bg-slate-50 border-b border-slate-100 text-[11px] font-semibold">
+                            <button type="button" onclick="CargoStore.setAdminNotifFilter('ALL')" id="adminNotifTabAll" class="px-2.5 py-1 rounded-lg bg-blue-600 text-white font-bold transition">Tất cả</button>
+                            <button type="button" onclick="CargoStore.setAdminNotifFilter('PAYMENT')" id="adminNotifTabPayment" class="px-2.5 py-1 rounded-lg text-slate-600 hover:bg-slate-200 transition flex items-center gap-1">
+                                💳 Chờ duyệt CK <span id="adminNotifPayCount" class="hidden bg-amber-500 text-white text-[9px] px-1.5 py-0.2 rounded-full font-bold">0</span>
+                            </button>
+                            <button type="button" onclick="CargoStore.setAdminNotifFilter('ALERT')" id="adminNotifTabAlert" class="px-2.5 py-1 rounded-lg text-slate-600 hover:bg-slate-200 transition">Cảnh báo</button>
+                        </div>
+
+                        <!-- Notification List Items -->
+                        <div id="adminNotifList" class="max-h-[380px] overflow-y-auto divide-y divide-slate-100 p-1">
+                            <!-- Populated dynamically -->
+                        </div>
+
+                        <!-- Dropdown Footer -->
+                        <div class="px-4 py-2 bg-slate-50 border-t border-slate-100 flex items-center justify-between text-xs">
+                            <a href="03-AuctionList.html?tab=won" class="text-blue-600 hover:text-blue-800 font-semibold text-[11px] flex items-center gap-1">
+                                <i class="fa-solid fa-list-check"></i> Xem danh sách đơn thắng thầu
+                            </a>
+                            <button type="button" onclick="document.getElementById('adminNotifDropdown').classList.add('hidden')" class="text-slate-500 hover:text-slate-700 text-[11px] font-medium cursor-pointer">
+                                Đóng
+                            </button>
+                        </div>
+                    </div>
+                `;
+
+                // Insert into header
+                if (targetContainer.parentElement) {
+                    targetContainer.parentElement.insertBefore(bellWrapper, targetContainer);
+                }
+
+                // Toggle click handler
+                const btn = bellWrapper.querySelector('#adminNotifBellBtn');
+                const dropdown = bellWrapper.querySelector('#adminNotifDropdown');
+                btn.addEventListener('click', (e) => {
+                    e.stopPropagation();
+                    dropdown.classList.toggle('hidden');
+                    if (!dropdown.classList.contains('hidden')) {
+                        CargoStore.renderAdminNotificationList();
+                    }
+                });
+
+                // Click outside to close
+                document.addEventListener('click', (e) => {
+                    if (!bellWrapper.contains(e.target)) {
+                        dropdown.classList.add('hidden');
+                    }
+                });
+            }
+
+            this.renderAdminNotificationList();
+        },
+
+        renderAdminNotificationList: function() {
+            if (typeof document === 'undefined') return;
+            const notifListEl = document.getElementById('adminNotifList');
+            const badgeEl = document.getElementById('adminNotifBadge');
+            const summaryEl = document.getElementById('adminNotifSummaryText');
+            const payCountEl = document.getElementById('adminNotifPayCount');
+
+            const allAdminNotifs = this.getAdminNotifications();
+            const unreadCount = allAdminNotifs.filter(n => !n.read).length;
+            const pendingPayCount = allAdminNotifs.filter(n => !n.read && (n.type === 'PAYMENT' || (n.title || '').includes('ĐẠI LÝ BÁO CHUYỂN KHOẢN'))).length;
+
+            if (badgeEl) {
+                if (unreadCount > 0) {
+                    badgeEl.textContent = unreadCount > 99 ? '99+' : unreadCount;
+                    badgeEl.classList.remove('hidden');
+                } else {
+                    badgeEl.classList.add('hidden');
+                }
+            }
+
+            if (summaryEl) {
+                summaryEl.textContent = unreadCount > 0 ? `${unreadCount} thông báo mới chưa đọc` : 'Không có thông báo chưa đọc';
+            }
+
+            if (payCountEl) {
+                if (pendingPayCount > 0) {
+                    payCountEl.textContent = pendingPayCount;
+                    payCountEl.classList.remove('hidden');
+                } else {
+                    payCountEl.classList.add('hidden');
+                }
+            }
+
+            if (!notifListEl) return;
+
+            let filtered = allAdminNotifs;
+            if (this.adminNotifFilter === 'PAYMENT') {
+                filtered = allAdminNotifs.filter(n => n.type === 'PAYMENT' || (n.title || '').includes('ĐẠI LÝ BÁO CHUYỂN KHOẢN') || (n.message || '').includes('đối soát sao kê'));
+            } else if (this.adminNotifFilter === 'ALERT') {
+                filtered = allAdminNotifs.filter(n => n.type === 'ALERT' || (n.title || '').includes('CẢNH BÁO') || (n.title || '').includes('KHÓA'));
+            }
+
+            if (filtered.length === 0) {
+                notifListEl.innerHTML = `
+                    <div class="py-8 text-center text-slate-400">
+                        <i class="fa-solid fa-bell-slash text-2xl mb-2 text-slate-300 block"></i>
+                        <p class="text-xs">Không có thông báo nào trong mục này</p>
+                    </div>
+                `;
+                return;
+            }
+
+            notifListEl.innerHTML = filtered.slice(0, 30).map(n => {
+                const isUnread = !n.read;
+                const isPayment = n.type === 'PAYMENT' || (n.title || '').includes('ĐẠI LÝ BÁO CHUYỂN KHOẢN');
+                const isAlert = n.type === 'ALERT' || (n.title || '').includes('KHÓA');
+                
+                let iconClass = 'fa-info-circle text-blue-600 bg-blue-50';
+                let cardBg = isUnread ? 'bg-blue-50/40 font-semibold' : 'bg-white';
+                
+                if (isPayment) {
+                    iconClass = 'fa-credit-card text-emerald-600 bg-emerald-50';
+                    if (isUnread) cardBg = 'bg-emerald-50/50 border-l-4 border-emerald-500';
+                } else if (isAlert) {
+                    iconClass = 'fa-triangle-exclamation text-rose-600 bg-rose-50';
+                    if (isUnread) cardBg = 'bg-rose-50/40 border-l-4 border-rose-500';
+                }
+
+                // Resolve link for admin
+                let actionBtn = '';
+                if (isPayment && n.wonId) {
+                    actionBtn = `
+                        <a href="03-AuctionList.html?tab=won&search=${n.wonId}&reconcile=${n.wonId}" onclick="CargoStore.markAdminNotificationAsRead(${n.id})" class="inline-flex items-center gap-1 px-2.5 py-1 bg-emerald-600 hover:bg-emerald-700 text-white rounded-md text-[10px] font-bold shadow-xs transition">
+                            <i class="fa-solid fa-magnifying-glass-dollar"></i> Đối soát ngay
+                        </a>
+                    `;
+                } else if ((n.title || '').includes('ĐĂNG KÝ') || (n.link || '').includes('06-AgentList.html')) {
+                    actionBtn = `
+                        <a href="06-AgentList.html" onclick="CargoStore.markAdminNotificationAsRead(${n.id})" class="inline-flex items-center gap-1 px-2.5 py-1 bg-blue-600 hover:bg-blue-700 text-white rounded-md text-[10px] font-bold shadow-xs transition">
+                            <i class="fa-solid fa-user-check"></i> Duyệt hồ sơ
+                        </a>
+                    `;
+                }
+
+                return `
+                    <div class="p-3 hover:bg-slate-50 transition rounded-xl flex items-start gap-2.5 ${cardBg}" onclick="CargoStore.markAdminNotificationAsRead(${n.id})">
+                        <div class="w-8 h-8 rounded-lg flex items-center justify-center flex-shrink-0 text-sm ${iconClass}">
+                            <i class="fa-solid ${isPayment ? 'fa-credit-card' : (isAlert ? 'fa-triangle-exclamation' : 'fa-bell')}"></i>
+                        </div>
+                        <div class="flex-1 min-w-0 space-y-1">
+                            <div class="flex items-center justify-between gap-1">
+                                <p class="text-xs font-bold text-slate-900 truncate">${n.title || 'Thông báo'}</p>
+                                <span class="text-[10px] text-slate-400 whitespace-nowrap">${n.time || 'Vừa xong'}</span>
+                            </div>
+                            <p class="text-[11px] text-slate-600 leading-snug break-words">${n.message || ''}</p>
+                            <div class="flex items-center justify-between pt-1">
+                                ${actionBtn}
+                                ${isUnread ? '<span class="w-2 h-2 rounded-full bg-blue-600"></span>' : ''}
+                            </div>
+                        </div>
+                    </div>
+                `;
+            }).join('');
         },
 
         getBankConfig: function() {

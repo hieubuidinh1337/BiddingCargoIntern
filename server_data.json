@@ -1,5 +1,5 @@
 {
-  "version": 1788922018320,
+  "version": 1788922261135,
   "auctions": [
     {
       "id": 9,
@@ -624,7 +624,9 @@
       "awbNumber": "998-49350322",
       "cutOffTime": "09:10 · 09/09/2026",
       "warehouse": "Kho hàng SCSC / TCS Tân Sơn Nhất (Cửa số 4)",
-      "cargoDeclaration": null
+      "cargoDeclaration": null,
+      "lockPenaltyHandled": true,
+      "lockWaivedByAdmin": true
     },
     {
       "wonId": "WON-20260908-06",
@@ -745,7 +747,9 @@
         "transferredAmount": 100000000,
         "bankName": "Ngân hàng TMCP Ngoại Thương Việt Nam (Vietcombank)",
         "submittedAt": "08:38:56 9/9/2026"
-      }
+      },
+      "lockPenaltyHandled": true,
+      "lockWaivedByAdmin": true
     },
     {
       "wonId": "WON-2026-0816-05",
@@ -767,16 +771,6 @@
     }
   ],
   "notifications": [
-    {
-      "id": 1788922018489,
-      "targetAgentCode": "AG-0556",
-      "title": "⚠️ TÀI KHOẢN ĐÃ BỊ KHÓA DO QUÁ HẠN THANH TOÁN",
-      "message": "Tài khoản đại lý AG-0556 đã bị hệ thống tự động KHÓA do không hoàn tất thanh toán đơn hàng thắng thầu WON-20260909-07 (Chuyến bay VU450) trước hạn chót. Quyền tham gia đấu giá trên sàn đã bị tạm ngưng. Vui lòng liên hệ Ban Điều hành Cargo để xử lý.",
-      "time": "Vừa xong",
-      "type": "ALERT",
-      "read": false,
-      "link": "07-WonAuction.html"
-    },
     {
       "id": 1788919666659,
       "targetAgentCode": "AG-0556",
@@ -1341,15 +1335,15 @@
       "address": "88 Láng Hạ, Đống Đa, Hà Nội",
       "province": "Hà Nội",
       "tier": "TIER1",
-      "status": "Đã khóa",
+      "status": "Đang hoạt động",
       "joinedDate": "22/05/2024",
       "totalBids": 18,
       "totalWins": 5,
       "winRate": "28%",
       "totalSpentUSD": "8.0k",
       "totalSpentVND": 1030000000,
-      "lockedReason": "Hệ thống tự động khóa do quá hạn thanh toán đơn WON-20260909-07 (VU450 - SGN - PQC)",
-      "lockedAt": "09:46:58 9/9/2026"
+      "unlockedAt": "2026-09-09T02:50:54.922Z",
+      "unlockedBy": "admin"
     },
     {
       "id": 4,

@@ -853,6 +853,52 @@ const server = http.createServer((req, res) => {
                             </p>
                         `
                     });
+                } else if (type === 'PAYMENT_SUBMITTED_ADMIN') {
+                    const paymentData = reqData.paymentData || {};
+                    const wonId = paymentData.wonId || reqData.wonId || 'WON-ORDER';
+                    const agentCode = paymentData.agentCode || reqData.agentCode || 'AG-XXXX';
+                    const agentName = paymentData.agentName || reqData.agentName || 'Đại lý';
+                    const flightNum = paymentData.flightNumber || reqData.flightNumber || '';
+                    const route = paymentData.route || reqData.route || '';
+                    const totalVnd = paymentData.transferredAmount || paymentData.totalAmountVND || reqData.amount || 0;
+                    const memo = paymentData.memo || reqData.memo || '';
+                    const transactionRef = paymentData.transactionRef || reqData.transactionRef || '';
+                    const proofImageUrl = paymentData.proofImageUrl || reqData.proofImageUrl || '';
+                    const submittedAt = paymentData.submittedAt || new Date().toLocaleString('vi-VN');
+                    const fmtNum = (n) => new Intl.NumberFormat('vi-VN').format(n);
+
+                    subject = `[Vietravel Airlines Cargo] 💳 ĐẠI LÝ BÁO CHUYỂN KHOẢN - Đơn ${wonId} (${agentCode})`;
+                    html = buildEmailHtml({
+                        title: 'Thông Báo: Đại Lý Đã Báo Chuyển Khoản',
+                        subtitle: `Mã đơn: ${wonId} &middot; Đại lý: ${agentCode} - ${agentName}`,
+                        contentHtml: `
+                            <p>Kính gửi <strong>Ban Quản trị & Bộ phận Kế toán / Tra soát</strong>,</p>
+                            <p>Đại lý <strong>${agentName} (${agentCode})</strong> vừa gửi thông báo đã hoàn tất chuyển khoản thanh toán cho đơn hàng thắng thầu. Vui lòng đối soát sao kê tài khoản ngân hàng và xác nhận đơn hàng trên hệ thống Admin:</p>
+
+                            <table role="presentation" width="100%" cellpadding="8" cellspacing="0" style="background:#fff8e1;border:1px solid #ffe082;border-radius:6px;margin:16px 0;">
+                                <tr><td style="color:#555;border-bottom:1px solid #e0e0e0;width:35%;">Mã đơn hàng:</td><td style="font-weight:bold;color:#1e3a5f;font-family:monospace;font-size:15px;">${wonId}</td></tr>
+                                <tr><td style="color:#555;border-bottom:1px solid #e0e0e0;">Đại lý thanh toán:</td><td style="font-weight:bold;color:#333;">${agentCode} - ${agentName}</td></tr>
+                                <tr><td style="color:#555;border-bottom:1px solid #e0e0e0;">Chuyến bay & Tuyến:</td><td style="color:#1e3a5f;font-weight:bold;">${flightNum} (${route})</td></tr>
+                                <tr><td style="color:#555;border-bottom:1px solid #e0e0e0;">Số tiền báo chuyển:</td><td style="font-weight:bold;color:#d32f2f;font-size:16px;">${fmtNum(totalVnd)} đ</td></tr>
+                                <tr><td style="color:#555;border-bottom:1px solid #e0e0e0;">Cú pháp chuyển khoản:</td><td style="font-family:monospace;font-weight:bold;color:#2e7d32;background:#e8f5e9;padding:4px 8px;border-radius:4px;">${memo}</td></tr>
+                                ${transactionRef ? `<tr><td style="color:#555;border-bottom:1px solid #e0e0e0;">Mã GD ngân hàng:</td><td style="font-family:monospace;font-weight:bold;color:#1565c0;">${transactionRef}</td></tr>` : ''}
+                                <tr><td style="color:#555;">Thời điểm nộp:</td><td style="color:#555;">${submittedAt}</td></tr>
+                            </table>
+
+                            ${proofImageUrl ? `
+                                <div style="margin:16px 0;padding:12px;background:#f5f5f5;border-radius:6px;text-align:center;">
+                                    <p style="font-size:12px;color:#666;margin-bottom:8px;font-weight:bold;">Ảnh biên lai đại lý đính kèm:</p>
+                                    <img src="${proofImageUrl}" alt="Biên lai thanh toán" style="max-height:260px;max-width:100%;border-radius:6px;border:1px solid #ddd;" />
+                                </div>
+                            ` : ''}
+
+                            <p style="margin-top:16px;">Bấm nút bên dưới để chuyển trực tiếp đến màn hình Đối soát & Xác nhận thanh toán:</p>
+
+                            <p style="text-align:center;margin:24px 0;">
+                                <a href="http://localhost:8085/Admin/03-AuctionList.html?tab=won&search=${wonId}&reconcile=${wonId}" style="display:inline-block;background-color:#0284c7;color:#ffffff;font-weight:bold;padding:12px 28px;border-radius:6px;text-decoration:none;">ĐỐI SOÁT & DUYỆT ĐƠN TRÊN ADMIN</a>
+                            </p>
+                        `
+                    });
                 }
 
                 // Fallback HTML builder if html is still empty

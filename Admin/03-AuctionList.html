@@ -198,6 +198,9 @@
                     <div class="inline-flex items-center rounded-lg bg-slate-800 p-1 border border-slate-700 text-[11px]" id="wonPayFilterGroup">
                         <span class="text-slate-400 font-semibold px-2 py-0.5 flex items-center gap-1"><i class="fa-solid fa-credit-card text-[10px]"></i> Thanh toán:</span>
                         <button type="button" onclick="setWonPayFilter('ALL')" id="wonPayFilterAll" class="px-2.5 py-1 rounded-md font-semibold text-white bg-blue-600 transition">Tất cả</button>
+                        <button type="button" onclick="setWonPayFilter('PENDING')" id="wonPayFilterPending" class="px-2.5 py-1 rounded-md font-semibold text-amber-300 hover:text-white transition relative flex items-center gap-1">
+                            💳 Chờ duyệt CK <span id="pendingPayBadgeCount" class="hidden bg-rose-500 text-white text-[9px] px-1.5 py-0.2 rounded-full font-bold">0</span>
+                        </button>
                         <button type="button" onclick="setWonPayFilter('PAID')" id="wonPayFilterPaid" class="px-2.5 py-1 rounded-md font-semibold text-slate-300 hover:text-white transition">Đã thanh toán</button>
                         <button type="button" onclick="setWonPayFilter('UNPAID')" id="wonPayFilterUnpaid" class="px-2.5 py-1 rounded-md font-semibold text-slate-300 hover:text-white transition">Chờ thanh toán</button>
                         <button type="button" onclick="setWonPayFilter('EXPIRED')" id="wonPayFilterExpired" class="px-2.5 py-1 rounded-md font-semibold text-slate-300 hover:text-white transition">Quá hạn / Hủy</button>
@@ -902,7 +905,7 @@
             const btnCargoDec = document.getElementById('wonFilterDeclared');
             const btnCargoUndec = document.getElementById('wonFilterUndeclared');
 
-            const btnPayAll = document.getElementById('wonPayFilterAll');
+            const btnPayPending = document.getElementById('wonPayFilterPending');
             const btnPayPaid = document.getElementById('wonPayFilterPaid');
             const btnPayUnpaid = document.getElementById('wonPayFilterUnpaid');
             const btnPayExpired = document.getElementById('wonPayFilterExpired');
@@ -918,6 +921,7 @@
 
             if (btnPayAll && btnPayPaid && btnPayUnpaid) {
                 btnPayAll.className = currentWonPayFilter === 'ALL' ? activeClass : inactiveClass;
+                if (btnPayPending) btnPayPending.className = (currentWonPayFilter === 'PENDING' ? 'px-2.5 py-1 rounded-md font-semibold text-white bg-amber-600 transition' : 'px-2.5 py-1 rounded-md font-semibold text-amber-300 hover:text-white transition') + ' relative flex items-center gap-1';
                 btnPayPaid.className = currentWonPayFilter === 'PAID' ? activeClass : inactiveClass;
                 btnPayUnpaid.className = currentWonPayFilter === 'UNPAID' ? activeClass : inactiveClass;
                 if (btnPayExpired) btnPayExpired.className = currentWonPayFilter === 'EXPIRED' ? activeClass : inactiveClass;
@@ -967,11 +971,25 @@
                 list = list.filter(w => (window.CargoStore && CargoStore.isCargoUndeclared) ? CargoStore.isCargoUndeclared(w) : (!w.cargoDeclaration || !w.cargoDeclaration.cargoName));
             }
 
+            // Update badge for pending payments
+            const pendingCount = (data.wonAuctions || []).filter(w => w.paymentStatus === 'PENDING_VERIFICATION').length;
+            const pendingBadge = document.getElementById('pendingPayBadgeCount');
+            if (pendingBadge) {
+                if (pendingCount > 0) {
+                    pendingBadge.textContent = pendingCount;
+                    pendingBadge.classList.remove('hidden');
+                } else {
+                    pendingBadge.classList.add('hidden');
+                }
+            }
+
             // 2. Payment Status Filter
-            if (currentWonPayFilter === 'PAID') {
+            if (currentWonPayFilter === 'PENDING') {
+                list = list.filter(w => w.paymentStatus === 'PENDING_VERIFICATION');
+            } else if (currentWonPayFilter === 'PAID') {
                 list = list.filter(w => w.paymentStatus === 'PAID');
             } else if (currentWonPayFilter === 'UNPAID') {
-                list = list.filter(w => w.paymentStatus !== 'PAID' && !((window.CargoStore && CargoStore.isWonAuctionExpired) ? CargoStore.isWonAuctionExpired(w) : false));
+                list = list.filter(w => w.paymentStatus !== 'PAID' && w.paymentStatus !== 'PENDING_VERIFICATION' && !((window.CargoStore && CargoStore.isWonAuctionExpired) ? CargoStore.isWonAuctionExpired(w) : false));
             } else if (currentWonPayFilter === 'EXPIRED') {
                 list = list.filter(w => (window.CargoStore && CargoStore.isWonAuctionExpired) ? CargoStore.isWonAuctionExpired(w) : false);
             }
@@ -1381,6 +1399,33 @@
         document.addEventListener('DOMContentLoaded', function() {
             renderAuctionsTable();
             renderWonAuctionsAdminTable();
+
+            // Check URL query parameters
+            const urlParams = new URLSearchParams(window.location.search);
+            const tabParam = urlParams.get('tab');
+            const searchParam = urlParams.get('search');
+            const reconcileParam = urlParams.get('reconcile');
+            const payFilterParam = urlParams.get('payFilter');
+
+            if (tabParam === 'won' || tabParam === 'WON_AUCTIONS' || reconcileParam) {
+                switchAuctionTab('WON_AUCTIONS');
+            }
+            if (searchParam) {
+                const sInput = document.getElementById('adminWonSearch');
+                if (sInput) {
+                    sInput.value = searchParam;
+                    renderWonAuctionsAdminTable();
+                }
+            }
+            if (payFilterParam === 'PENDING') {
+                setWonPayFilter('PENDING');
+            }
+            if (reconcileParam) {
+                setTimeout(() => {
+                    openAdminPaymentProofModal(reconcileParam);
+                }, 300);
+            }
+
             document.getElementById('auctionSearch').addEventListener('input', renderAuctionsTable);
             document.getElementById('statusSelect').addEventListener('change', renderAuctionsTable);
             setInterval(function() {
