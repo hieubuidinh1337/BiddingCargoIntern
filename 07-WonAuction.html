@@ -2103,15 +2103,49 @@
         document.addEventListener('DOMContentLoaded', function() {
             const urlParams = new URLSearchParams(window.location.search);
             const statusParam = urlParams.get('status') || urlParams.get('filter');
-            const searchParam = urlParams.get('search') || urlParams.get('wonId') || urlParams.get('flight') || urlParams.get('flightNumber');
+            const searchParam = urlParams.get('search') || urlParams.get('flight') || urlParams.get('flightNumber');
+            const wonIdParam = urlParams.get('wonId');
+            const actionParam = (urlParams.get('action') || urlParams.get('modal') || urlParams.get('open') || '').toLowerCase();
             
             if (statusParam && document.getElementById('wonStatusFilter')) {
                 document.getElementById('wonStatusFilter').value = statusParam;
             }
-            if (searchParam && document.getElementById('wonSearchInput')) {
-                document.getElementById('wonSearchInput').value = searchParam;
+            if ((searchParam || wonIdParam) && document.getElementById('wonSearchInput')) {
+                document.getElementById('wonSearchInput').value = searchParam || wonIdParam;
             }
             renderWonAuctions();
+
+            // Auto open Payment or Cargo Declaration modal if action param is present
+            if (actionParam) {
+                setTimeout(() => {
+                    const store = getStore();
+                    const allWon = store ? (store.getWonAuctions ? store.getWonAuctions() : (store.getData().wonAuctions || [])) : [];
+                    
+                    let targetItem = null;
+                    if (wonIdParam) {
+                        targetItem = allWon.find(w => w.wonId === wonIdParam);
+                    }
+                    if (!targetItem && searchParam) {
+                        const sUpper = searchParam.trim().toUpperCase();
+                        targetItem = allWon.find(w => 
+                            (w.flightNumber && w.flightNumber.toUpperCase().includes(sUpper)) ||
+                            (w.wonId && w.wonId.toUpperCase().includes(sUpper)) ||
+                            (w.route && w.route.toUpperCase().includes(sUpper))
+                        );
+                    }
+                    if (!targetItem && allWon.length > 0) {
+                        targetItem = allWon[0];
+                    }
+
+                    if (targetItem) {
+                        if (actionParam === 'pay' || actionParam === 'payment' || actionParam === 'thanhtoan') {
+                            openPaymentModal(targetItem.wonId);
+                        } else if (actionParam === 'declare' || actionParam === 'declaration' || actionParam === 'khaibao' || actionParam === 'cargo') {
+                            openCargoModal(targetItem.wonId);
+                        }
+                    }
+                }, 250);
+            }
         });
 
         // Cross-tab sync

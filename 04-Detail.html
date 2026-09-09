@@ -78,6 +78,29 @@
             </div>
         </div>
 
+        <!-- Top Winner Congratulation Banner (Shown if winning) -->
+        <div id="winnerTopBanner" class="hidden bg-gradient-to-r from-amber-500 via-orange-500 to-amber-600 text-slate-950 rounded-2xl p-4 shadow-lg border border-amber-300 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 animate-in fade-in slide-in-from-top-4 duration-300">
+            <div class="flex items-center gap-3">
+                <div class="w-11 h-11 rounded-xl bg-slate-950 text-amber-400 flex items-center justify-center text-xl font-bold shadow-md flex-shrink-0">
+                    <i class="fa-solid fa-trophy"></i>
+                </div>
+                <div>
+                    <h3 class="font-extrabold text-sm sm:text-base text-slate-950 flex items-center gap-2">
+                        🎉 Chúc mừng! Doanh nghiệp của bạn đã trúng thầu chuyến bay này
+                    </h3>
+                    <p class="text-xs text-slate-900/90 font-medium">Vui lòng hoàn tất thanh toán & khai báo thông tin hàng hóa để Vietravel Airlines phát hành AWB và lệnh bàn giao kho.</p>
+                </div>
+            </div>
+            <div class="flex items-center gap-2 w-full sm:w-auto flex-shrink-0">
+                <a id="bannerPayBtn" href="07-WonAuction.html?action=pay" class="flex-1 sm:flex-initial bg-slate-950 hover:bg-slate-900 text-amber-300 font-bold px-4 py-2 rounded-xl text-xs flex items-center justify-center gap-1.5 shadow transition cursor-pointer">
+                    <i class="fa-solid fa-qrcode"></i> Thanh toán
+                </a>
+                <a id="bannerDeclareBtn" href="07-WonAuction.html?action=declare" class="flex-1 sm:flex-initial bg-white hover:bg-slate-100 text-blue-950 font-bold px-4 py-2 rounded-xl text-xs flex items-center justify-center gap-1.5 shadow transition cursor-pointer">
+                    <i class="fa-solid fa-boxes-packing"></i> Khai báo hàng
+                </a>
+            </div>
+        </div>
+
         <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
 
             <!-- Left: Info & Realtime Bids Table (2 cols) -->
@@ -164,10 +187,71 @@
 
             </div>
 
-            <!-- Right: Bid Submission Form (1 col) -->
+            <!-- Right: Bid Submission Form / Winner Card (1 col) -->
             <div class="space-y-6">
 
-                <div class="bg-white rounded-2xl border shadow-sm p-6 sticky top-20">
+                <!-- Winner Card Box (Shown when current agent wins) -->
+                <div id="winnerCardBox" class="hidden bg-gradient-to-br from-slate-900 via-blue-950 to-indigo-950 text-white rounded-3xl border border-amber-400/40 shadow-2xl p-6 sticky top-20 space-y-5 animate-in fade-in zoom-in duration-300">
+                    <div class="text-center pb-4 border-b border-slate-700">
+                        <div class="w-16 h-16 rounded-2xl bg-gradient-to-br from-amber-400 to-amber-600 text-slate-950 flex items-center justify-center text-3xl font-black shadow-lg mx-auto mb-3 animate-bounce">
+                            <i class="fa-solid fa-trophy"></i>
+                        </div>
+                        <span class="inline-block bg-amber-400 text-slate-950 font-extrabold px-3 py-1 rounded-full text-[11px] shadow-sm uppercase tracking-wider mb-2">
+                            🏆 BẠN LÀ NGƯỜI THẮNG THẦU
+                        </span>
+                        <h3 class="text-lg font-extrabold text-white">Xác nhận Kết quả Thắng thầu</h3>
+                        <p class="text-xs text-slate-300 mt-1">Chuyến bay <strong id="winCardFlight" class="text-white">-</strong> · Tuyến <strong id="winCardRoute" class="text-amber-400">-</strong></p>
+                    </div>
+
+                    <div class="bg-white/10 backdrop-blur-md rounded-2xl p-4 space-y-2.5 text-xs border border-white/10">
+                        <div class="flex justify-between items-center text-slate-300">
+                            <span>Mức giá chốt thắng:</span>
+                            <strong class="text-emerald-400 font-bold text-sm" id="winCardPrice">0 đ/Kg</strong>
+                        </div>
+                        <div class="flex justify-between items-center text-slate-300">
+                            <span>Tải trọng slot trúng:</span>
+                            <strong class="text-white font-bold text-sm" id="winCardWeight">0 Kg</strong>
+                        </div>
+                        <div class="flex justify-between items-center border-t border-white/15 pt-2.5 text-white">
+                            <span class="font-bold">Tổng tiền thanh toán:</span>
+                            <strong class="text-amber-400 font-black text-base" id="winCardTotal">0 đ</strong>
+                        </div>
+                    </div>
+
+                    <div class="p-3.5 rounded-xl bg-amber-500/20 border border-amber-400/30 text-amber-200 text-xs leading-relaxed flex items-start gap-2.5">
+                        <i class="fa-solid fa-circle-exclamation text-amber-400 text-base mt-0.5 flex-shrink-0"></i>
+                        <span>Vui lòng hoàn tất thanh toán & khai báo hàng hóa trong <strong>24 giờ</strong> để giữ slot vận chuyển.</span>
+                    </div>
+
+                    <!-- Action Buttons -->
+                    <div class="space-y-2.5 pt-1">
+                        <!-- Nút 1: Chuyển qua trang Thanh toán (VietQR / STK) -->
+                        <a id="winCardPayBtn" href="07-WonAuction.html?action=pay" 
+                           class="w-full bg-gradient-to-r from-amber-400 via-amber-500 to-orange-500 hover:from-amber-500 hover:to-orange-600 text-slate-950 font-black py-3.5 px-4 rounded-xl shadow-xl transition flex items-center justify-center gap-2.5 text-sm text-center transform hover:scale-[1.02] cursor-pointer">
+                            <i class="fa-solid fa-qrcode text-base"></i>
+                            <span>Chuyển qua Thanh toán (VietQR / STK)</span>
+                            <i class="fa-solid fa-arrow-right text-xs"></i>
+                        </a>
+
+                        <!-- Nút 2: Chuyển qua trang Khai báo hàng hóa -->
+                        <a id="winCardDeclareBtn" href="07-WonAuction.html?action=declare" 
+                           class="w-full bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-500 hover:to-indigo-500 text-white font-bold py-3.5 px-4 rounded-xl shadow-lg transition flex items-center justify-center gap-2.5 text-sm text-center transform hover:scale-[1.02] cursor-pointer border border-blue-400/30">
+                            <i class="fa-solid fa-boxes-packing text-base"></i>
+                            <span>Khai báo thông tin hàng hóa</span>
+                            <i class="fa-solid fa-arrow-right text-xs"></i>
+                        </a>
+
+                        <!-- Nút 3: Xem chi tiết toàn bộ đơn thắng & Phiếu xác nhận -->
+                        <a id="winCardAllBtn" href="07-WonAuction.html" 
+                           class="w-full bg-white/10 hover:bg-white/20 text-slate-200 font-semibold py-2.5 px-4 rounded-xl transition flex items-center justify-center gap-2 text-xs text-center border border-white/15 cursor-pointer">
+                            <i class="fa-solid fa-file-invoice text-amber-400"></i>
+                            <span>Xem phiếu xác nhận & Lệnh bàn giao</span>
+                        </a>
+                    </div>
+                </div>
+
+                <!-- Standard Bidding Form Box -->
+                <div id="standardBiddingBox" class="bg-white rounded-2xl border shadow-sm p-6 sticky top-20">
                     <div class="text-center pb-4 border-b">
                         <p class="text-xs text-gray-500">Mức giá đặt thầu tối thiểu</p>
                         <p class="text-2xl font-bold text-blue-600 mt-1" id="minAcceptablePrice">22.000 đ<span class="text-xs font-normal text-gray-500">/Kg</span></p>
@@ -259,7 +343,7 @@
         function getMyCode() {
             if (typeof CargoStore === 'undefined') return '';
             const u = CargoStore.getCurrentUser();
-            return u ? u.agentCode : '';
+            return u ? (u.agentCode || u.code || '') : '';
         }
 
         function loadAuctionDetail() {
@@ -292,6 +376,80 @@
             const timer = CargoStore.getTimeRemaining(currentAuction.endTime);
             const isClosed = currentAuction.status === 'CLOSED' || timer.isEnded;
 
+            const u = (CargoStore.getCurrentUser ? CargoStore.getCurrentUser() : null) || {};
+            const myCode = (u.agentCode || u.code || '').trim().toUpperCase();
+            const myCompName = (u.companyName || '').trim().toLowerCase();
+
+            let bids = CargoStore.getBidsForAuction(currentAuction.id);
+            const topBid = bids.length > 0 ? bids[0] : null;
+
+            const isTopBidMine = topBid && (
+                (topBid.agentCode && topBid.agentCode.trim().toUpperCase() === myCode) ||
+                (topBid.agentName && myCompName && (topBid.agentName.trim().toLowerCase().includes(myCompName) || myCompName.includes(topBid.agentName.trim().toLowerCase())))
+            );
+
+            const isAuctionWinnerMine = (
+                (currentAuction.winnerAgentCode && currentAuction.winnerAgentCode.trim().toUpperCase() === myCode) ||
+                (currentAuction.leadingAgentCode && currentAuction.leadingAgentCode.trim().toUpperCase() === myCode) ||
+                (currentAuction.winnerAgentName && myCompName && (currentAuction.winnerAgentName.trim().toLowerCase().includes(myCompName) || myCompName.includes(currentAuction.winnerAgentName.trim().toLowerCase()))) ||
+                (currentAuction.leadingAgentName && myCompName && (currentAuction.leadingAgentName.trim().toLowerCase().includes(myCompName) || myCompName.includes(currentAuction.leadingAgentName.trim().toLowerCase())))
+            );
+
+            const isWinner = isClosed && (isTopBidMine || isAuctionWinnerMine);
+
+            // Winner Card vs Standard Bidding Form Box
+            const winnerCardBox = document.getElementById('winnerCardBox');
+            const winnerTopBanner = document.getElementById('winnerTopBanner');
+            const standardBiddingBox = document.getElementById('standardBiddingBox');
+
+            if (isWinner) {
+                const winPrice = Number(currentAuction.winningPriceKg || currentAuction.currentPriceKg || (topBid ? topBid.priceKg : 0));
+                const winWeight = Number(currentAuction.capacityKg || 0);
+                const winTotal = winPrice * winWeight;
+                const flightNum = currentAuction.flightNumber || 'FLIGHT';
+                const flightParam = encodeURIComponent(flightNum);
+
+                // Ensure won order entry exists in CargoStore so navigation works directly
+                if (CargoStore && CargoStore.getWonAuctions) {
+                    const allWon = CargoStore.getWonAuctions();
+                    const existingWon = allWon.find(w => w.auctionId == currentAuction.id || w.flightNumber === flightNum);
+                    if (!existingWon && CargoStore.closeAuction) {
+                        CargoStore.closeAuction(currentAuction.id);
+                    }
+                }
+
+                document.getElementById('winCardFlight').textContent = flightNum;
+                document.getElementById('winCardRoute').textContent = currentAuction.route || 'SGN - HAN';
+                document.getElementById('winCardPrice').textContent = CargoStore.formatCurrency(winPrice) + '/Kg';
+                document.getElementById('winCardWeight').textContent = CargoStore.formatNumber(winWeight) + ' Kg';
+                document.getElementById('winCardTotal').textContent = CargoStore.formatCurrency(winTotal);
+
+                // Configure Action Buttons to navigate to 07-WonAuction.html with actions
+                if (document.getElementById('winCardPayBtn')) {
+                    document.getElementById('winCardPayBtn').href = `07-WonAuction.html?action=pay&flight=${flightParam}`;
+                }
+                if (document.getElementById('winCardDeclareBtn')) {
+                    document.getElementById('winCardDeclareBtn').href = `07-WonAuction.html?action=declare&flight=${flightParam}`;
+                }
+                if (document.getElementById('winCardAllBtn')) {
+                    document.getElementById('winCardAllBtn').href = `07-WonAuction.html?search=${flightParam}`;
+                }
+                if (document.getElementById('bannerPayBtn')) {
+                    document.getElementById('bannerPayBtn').href = `07-WonAuction.html?action=pay&flight=${flightParam}`;
+                }
+                if (document.getElementById('bannerDeclareBtn')) {
+                    document.getElementById('bannerDeclareBtn').href = `07-WonAuction.html?action=declare&flight=${flightParam}`;
+                }
+
+                if (winnerCardBox) winnerCardBox.classList.remove('hidden');
+                if (winnerTopBanner) winnerTopBanner.classList.remove('hidden');
+                if (standardBiddingBox) standardBiddingBox.classList.add('hidden');
+            } else {
+                if (winnerCardBox) winnerCardBox.classList.add('hidden');
+                if (winnerTopBanner) winnerTopBanner.classList.add('hidden');
+                if (standardBiddingBox) standardBiddingBox.classList.remove('hidden');
+            }
+
             document.getElementById('specCurrentPrice').textContent = CargoStore.formatCurrency(currentAuction.currentPriceKg) + '/Kg';
             
             document.getElementById('specNotes').textContent = currentAuction.specialNotes;
@@ -309,7 +467,14 @@
             // Top Status Badge
             const topBadge = document.getElementById('topStatusBadge');
             if (topBadge) {
-                if (isClosed) {
+                if (isWinner) {
+                    topBadge.innerHTML = `
+                        <span class="inline-block w-2.5 h-2.5 rounded-full bg-amber-400 animate-pulse"></span>
+                        <span class="text-xs font-bold text-amber-950 bg-amber-100 px-3 py-1 rounded-full border border-amber-300 flex items-center gap-1.5 shadow-xs">
+                            <i class="fa-solid fa-trophy text-amber-600"></i> Bạn đã thắng thầu phiên này
+                        </span>
+                    `;
+                } else if (isClosed) {
                     topBadge.innerHTML = `
                         <span class="inline-block w-2.5 h-2.5 rounded-full bg-red-500"></span>
                         <span class="text-xs font-medium text-red-700 bg-red-50 px-2.5 py-1 rounded-full border border-red-200">Phiên đã đóng thầu</span>
@@ -388,6 +553,8 @@
             let bids = CargoStore.getBidsForAuction(currentAuction.id);
             document.getElementById('bidCountBadge').textContent = bids.length + ' lượt đặt';
             const myCode = getMyCode();
+            const timer = CargoStore.getTimeRemaining(currentAuction.endTime);
+            const isClosed = currentAuction.status === 'CLOSED' || timer.isEnded;
 
             const tbody = document.getElementById('bidsTableBody');
             if (bids.length === 0) {
@@ -419,8 +586,8 @@
                         </td>
                         <td class="py-3 px-4 text-right">
                             ${isFirst ? `
-                                <span class="bg-green-100 text-green-700 font-bold px-2 py-0.5 rounded-full text-[10px] inline-flex items-center gap-1">
-                                    <i class="fa-solid fa-crown text-[9px]"></i> Dẫn đầu
+                                <span class="${isClosed ? 'bg-amber-100 text-amber-900 border border-amber-300 font-bold' : 'bg-green-100 text-green-700 font-bold'} px-2.5 py-1 rounded-full text-[10px] inline-flex items-center gap-1 shadow-xs">
+                                    <i class="fa-solid ${isClosed ? 'fa-trophy text-amber-600' : 'fa-crown text-emerald-600'} text-[9px]"></i> ${isClosed ? 'Thắng thầu' : 'Dẫn đầu'}
                                 </span>
                             ` : `
                                 <span class="bg-gray-100 text-gray-500 font-medium px-2 py-0.5 rounded-full text-[10px]">

@@ -176,24 +176,31 @@
 
                 <!-- Event notification triggers -->
                 <div class="border-t pt-4 space-y-3">
-                    <label class="font-bold text-slate-900 text-xs block">Tùy chọn loại thông báo nhận:</label>
+                    <label class="font-bold text-slate-900 text-xs block">Tùy chọn phương thức nhận thông báo:</label>
 
                     <div class="space-y-2.5 bg-slate-50 p-3.5 rounded-2xl border">
                         <label class="flex items-center justify-between cursor-pointer">
-                            <span class="text-slate-700 font-medium">🔔 Thông báo ngay khi có phiên mới mở trên tuyến đã chọn</span>
+                            <span class="text-slate-700 font-medium">🔔 Thông báo chuông ngay khi có phiên mới mở trên tuyến đã chọn</span>
                             <input type="checkbox" id="subNotifyNewAuction" checked class="w-4 h-4 text-indigo-600 rounded border-slate-300 focus:ring-indigo-500">
                         </label>
                         <label class="flex items-center justify-between cursor-pointer">
-                            <span class="text-slate-700 font-medium">⚠️ Thông báo khi bị đại lý khác vượt giá thầu (Outbid)</span>
+                            <span class="text-slate-700 font-medium">⚠️ Cảnh báo khi bị đại lý khác vượt giá thầu (Outbid)</span>
                             <input type="checkbox" id="subNotifyOutbid" checked class="w-4 h-4 text-indigo-600 rounded border-slate-300 focus:ring-indigo-500">
                         </label>
                         <label class="flex items-center justify-between cursor-pointer">
                             <span class="text-slate-700 font-medium">⏳ Nhắc nhở khi phiên thầu sắp đóng (30 phút trước giờ chốt)</span>
                             <input type="checkbox" id="subNotifyClosingSoon" checked class="w-4 h-4 text-indigo-600 rounded border-slate-300 focus:ring-indigo-500">
                         </label>
-                        <label class="flex items-center justify-between cursor-pointer">
-                            <span class="text-slate-700 font-medium">📧 Đồng thời gửi thông báo qua Email đại lý</span>
-                            <input type="checkbox" id="subEmailAlert" checked class="w-4 h-4 text-indigo-600 rounded border-slate-300 focus:ring-indigo-500">
+                        <label class="flex items-start justify-between cursor-pointer bg-blue-50/80 p-3 rounded-xl border border-blue-200 gap-3">
+                            <div class="space-y-0.5">
+                                <span class="text-blue-950 font-bold flex items-center gap-1.5 text-xs">
+                                    <i class="fa-solid fa-envelope text-blue-600"></i> Gửi email thông báo tức thời về hòm thư đại lý
+                                </span>
+                                <p class="text-[11px] text-blue-800">
+                                    Tự động gửi email chi tiết kèm tải trọng và giá sàn khi mở phiên đấu giá mới trên các tuyến đã chọn tới: <strong id="subEmailDisplay" class="text-blue-900 underline">email@cargoagent.vn</strong>
+                                </p>
+                            </div>
+                            <input type="checkbox" id="subEmailAlert" checked class="w-4 h-4 text-indigo-600 rounded border-slate-300 focus:ring-indigo-500 mt-0.5">
                         </label>
                     </div>
                 </div>
@@ -573,6 +580,12 @@
             document.getElementById('subNotifyOutbid').checked = subs.notifyOnOutbid !== false;
             document.getElementById('subNotifyClosingSoon').checked = subs.notifyOnClosingSoon !== false;
             document.getElementById('subEmailAlert').checked = subs.emailAlert !== false;
+
+            const curUser = CargoStore.getCurrentUser ? CargoStore.getCurrentUser() : null;
+            const emailDisp = document.getElementById('subEmailDisplay');
+            if (emailDisp) {
+                emailDisp.textContent = (curUser && curUser.email) ? curUser.email : 'email_daily@cargoagent.vn';
+            }
 
             document.getElementById('routeAlertModal').classList.remove('hidden');
         }

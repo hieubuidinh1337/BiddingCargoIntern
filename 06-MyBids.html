@@ -275,9 +275,19 @@
                             ${statusBadge}
                         </td>
                         <td class="py-3.5 px-5 text-right">
-                            <a href="04-Detail.html?id=${b.auctionId}" class="inline-flex items-center gap-1.5 bg-blue-50 hover:bg-blue-100 text-blue-700 font-semibold px-3 py-1.5 rounded-lg text-xs transition">
-                                ${b.status === 'OUTBID' ? '<i class="fa-solid fa-rotate text-[10px]"></i> Đặt lại' : 'Xem chi tiết'}
-                            </a>
+                            <div class="flex items-center justify-end gap-1.5">
+                                ${b.status === 'WON' ? `
+                                    <a href="07-WonAuction.html?action=pay&flight=${encodeURIComponent(auction.flightNumber || '')}" class="inline-flex items-center gap-1 bg-gradient-to-r from-amber-500 to-orange-500 hover:from-amber-600 hover:to-orange-600 text-white font-bold px-2.5 py-1.5 rounded-lg text-xs transition shadow-xs" title="Chuyển qua thanh toán">
+                                        <i class="fa-solid fa-qrcode text-[10px]"></i> Thanh toán
+                                    </a>
+                                    <a href="07-WonAuction.html?action=declare&flight=${encodeURIComponent(auction.flightNumber || '')}" class="inline-flex items-center gap-1 bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white font-bold px-2.5 py-1.5 rounded-lg text-xs transition shadow-xs" title="Khai báo hàng hóa">
+                                        <i class="fa-solid fa-boxes-packing text-[10px]"></i> Khai báo
+                                    </a>
+                                ` : ''}
+                                <a href="04-Detail.html?id=${b.auctionId}" class="inline-flex items-center gap-1.5 bg-blue-50 hover:bg-blue-100 text-blue-700 font-semibold px-3 py-1.5 rounded-lg text-xs transition">
+                                    ${b.status === 'OUTBID' ? '<i class="fa-solid fa-rotate text-[10px]"></i> Đặt lại' : 'Chi tiết'}
+                                </a>
+                            </div>
                         </td>
                     </tr>
                 `;

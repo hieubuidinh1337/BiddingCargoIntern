@@ -1,5 +1,5 @@
 {
-  "version": 1788918585739,
+  "version": 1788922018320,
   "auctions": [
     {
       "id": 9,
@@ -67,16 +67,19 @@
       "aircraft": "Airbus A321neo Cargo",
       "capacityKg": 3000,
       "startingPriceKg": 18000,
-      "currentPriceKg": 18000,
+      "currentPriceKg": 22500,
       "minStep": 500,
-      "endTime": "2026-09-09T01:57:11.350Z",
-      "status": "OPEN",
-      "leadingAgentCode": "AG-1024",
-      "leadingAgentName": "Công ty CP Giao nhận Kho vận Vinatrans",
-      "bidsCount": 1,
+      "endTime": "2026-09-09T02:27:11.921Z",
+      "status": "CLOSED",
+      "leadingAgentCode": "AG-0556",
+      "leadingAgentName": "Công ty TNHH Tiếp vận Toàn Cầu Golden Star",
+      "bidsCount": 2,
       "specialNotes": "Tải trọng tổng hợp tiêu chuẩn IATA.",
       "cutOffTime": "09:10 · 09/09/2026",
-      "isAnonymous": true
+      "isAnonymous": true,
+      "winnerAgentCode": "AG-0556",
+      "winnerAgentName": "Công ty TNHH Tiếp vận Toàn Cầu Golden Star",
+      "winningPriceKg": 22500
     },
     {
       "id": 6,
@@ -242,6 +245,18 @@
     }
   ],
   "bids": [
+    {
+      "id": 1788919645294,
+      "timestamp": 1788919645294,
+      "auctionId": 7,
+      "agentCode": "AG-0556",
+      "agentName": "Công ty TNHH Tiếp vận Toàn Cầu Golden Star",
+      "isAnonymous": true,
+      "priceKg": 22500,
+      "time": "Vừa xong",
+      "status": "WON",
+      "weightKg": 3000
+    },
     {
       "id": 1788861251350,
       "timestamp": 1788861251350,
@@ -433,9 +448,184 @@
       "time": "45 phút trước",
       "status": "OUTBID",
       "weightKg": 3000
+    },
+    {
+      "id": 1788904701034,
+      "timestamp": 1788904701034,
+      "auctionId": 4,
+      "agentCode": "AG-1024",
+      "agentName": "Công ty CP Giao nhận Kho vận Vinatrans",
+      "isAnonymous": true,
+      "priceKg": 18000,
+      "time": "240 phút trước",
+      "status": "OUTBID",
+      "weightKg": 3000
+    },
+    {
+      "id": 1788905901034,
+      "timestamp": 1788905901034,
+      "auctionId": 4,
+      "agentCode": "AG-0892",
+      "agentName": "Công ty TNHH Vận tải ABC Logistics",
+      "isAnonymous": true,
+      "priceKg": 18400,
+      "time": "220 phút trước",
+      "status": "OUTBID",
+      "weightKg": 3000
+    },
+    {
+      "id": 1788907101034,
+      "timestamp": 1788907101034,
+      "auctionId": 4,
+      "agentCode": "AG-0556",
+      "agentName": "Công ty TNHH Tiếp vận Toàn Cầu Golden Star",
+      "isAnonymous": true,
+      "priceKg": 18700,
+      "time": "200 phút trước",
+      "status": "OUTBID",
+      "weightKg": 3000
+    },
+    {
+      "id": 1788908301034,
+      "timestamp": 1788908301034,
+      "auctionId": 4,
+      "agentCode": "AG-0341",
+      "agentName": "Công ty TNHH SkyFreight Logistics Việt Nam",
+      "isAnonymous": true,
+      "priceKg": 19100,
+      "time": "180 phút trước",
+      "status": "OUTBID",
+      "weightKg": 3000
+    },
+    {
+      "id": 1788909501034,
+      "timestamp": 1788909501034,
+      "auctionId": 4,
+      "agentCode": "AG-0789",
+      "agentName": "Công ty CP Vận chuyển Hàng không Việt Freight",
+      "isAnonymous": true,
+      "priceKg": 19500,
+      "time": "160 phút trước",
+      "status": "OUTBID",
+      "weightKg": 3000
+    },
+    {
+      "id": 1788910701034,
+      "timestamp": 1788910701034,
+      "auctionId": 4,
+      "agentCode": "AG-1024",
+      "agentName": "Công ty CP Giao nhận Kho vận Vinatrans",
+      "isAnonymous": true,
+      "priceKg": 19800,
+      "time": "140 phút trước",
+      "status": "OUTBID",
+      "weightKg": 3000
+    },
+    {
+      "id": 1788911901034,
+      "timestamp": 1788911901034,
+      "auctionId": 4,
+      "agentCode": "AG-0892",
+      "agentName": "Công ty TNHH Vận tải ABC Logistics",
+      "isAnonymous": true,
+      "priceKg": 20200,
+      "time": "120 phút trước",
+      "status": "OUTBID",
+      "weightKg": 3000
+    },
+    {
+      "id": 1788913101034,
+      "timestamp": 1788913101034,
+      "auctionId": 4,
+      "agentCode": "AG-0556",
+      "agentName": "Công ty TNHH Tiếp vận Toàn Cầu Golden Star",
+      "isAnonymous": true,
+      "priceKg": 20500,
+      "time": "100 phút trước",
+      "status": "OUTBID",
+      "weightKg": 3000
+    },
+    {
+      "id": 1788914301034,
+      "timestamp": 1788914301034,
+      "auctionId": 4,
+      "agentCode": "AG-0341",
+      "agentName": "Công ty TNHH SkyFreight Logistics Việt Nam",
+      "isAnonymous": true,
+      "priceKg": 20900,
+      "time": "80 phút trước",
+      "status": "OUTBID",
+      "weightKg": 3000
+    },
+    {
+      "id": 1788915501034,
+      "timestamp": 1788915501034,
+      "auctionId": 4,
+      "agentCode": "AG-0789",
+      "agentName": "Công ty CP Vận chuyển Hàng không Việt Freight",
+      "isAnonymous": true,
+      "priceKg": 21300,
+      "time": "60 phút trước",
+      "status": "OUTBID",
+      "weightKg": 3000
+    },
+    {
+      "id": 1788916701034,
+      "timestamp": 1788916701034,
+      "auctionId": 4,
+      "agentCode": "AG-1024",
+      "agentName": "Công ty CP Giao nhận Kho vận Vinatrans",
+      "isAnonymous": true,
+      "priceKg": 21600,
+      "time": "40 phút trước",
+      "status": "OUTBID",
+      "weightKg": 3000
+    },
+    {
+      "id": 1788917901034,
+      "timestamp": 1788917901034,
+      "auctionId": 4,
+      "agentCode": "AG-0892",
+      "agentName": "Công ty TNHH Vận tải ABC Logistics",
+      "isAnonymous": true,
+      "priceKg": 22000,
+      "time": "20 phút trước",
+      "status": "WON",
+      "weightKg": 3000
+    },
+    {
+      "id": 1788918441475,
+      "timestamp": 1788918441475,
+      "auctionId": 7,
+      "agentCode": "AG-1024",
+      "agentName": "Công ty CP Giao nhận Kho vận Vinatrans",
+      "isAnonymous": true,
+      "priceKg": 18000,
+      "time": "20 phút trước",
+      "status": "OUTBID",
+      "weightKg": 3000
     }
   ],
   "wonAuctions": [
+    {
+      "wonId": "WON-20260909-07",
+      "auctionId": 7,
+      "agentCode": "AG-0556",
+      "agentName": "Công ty TNHH Tiếp vận Toàn Cầu Golden Star",
+      "flightNumber": "VU450",
+      "route": "SGN - PQC",
+      "capacityKg": 3000,
+      "priceKg": 22500,
+      "totalAmountVND": 67500000,
+      "paymentDeadline": "2026-09-09T02:10:00.000Z",
+      "paymentStatus": "EXPIRED",
+      "paidAt": null,
+      "notifiedAt": null,
+      "awbNumber": "998-49350322",
+      "cutOffTime": "09:10 · 09/09/2026",
+      "warehouse": "Kho hàng SCSC / TCS Tân Sơn Nhất (Cửa số 4)",
+      "cargoDeclaration": null
+    },
     {
       "wonId": "WON-20260908-06",
       "auctionId": 6,
@@ -578,6 +768,48 @@
   ],
   "notifications": [
     {
+      "id": 1788922018489,
+      "targetAgentCode": "AG-0556",
+      "title": "⚠️ TÀI KHOẢN ĐÃ BỊ KHÓA DO QUÁ HẠN THANH TOÁN",
+      "message": "Tài khoản đại lý AG-0556 đã bị hệ thống tự động KHÓA do không hoàn tất thanh toán đơn hàng thắng thầu WON-20260909-07 (Chuyến bay VU450) trước hạn chót. Quyền tham gia đấu giá trên sàn đã bị tạm ngưng. Vui lòng liên hệ Ban Điều hành Cargo để xử lý.",
+      "time": "Vừa xong",
+      "type": "ALERT",
+      "read": false,
+      "link": "07-WonAuction.html"
+    },
+    {
+      "id": 1788919666659,
+      "targetAgentCode": "AG-0556",
+      "title": "Phiên VU450 đã chốt kết quả!",
+      "message": "Đại lý Công ty TNHH Tiếp vận Toàn Cầu Golden Star (AG-0556) đã trúng thầu chuyến VU450 (SGN - PQC) mức giá 22.500 đ/Kg.",
+      "time": "Vừa xong",
+      "type": "WON",
+      "read": false,
+      "link": "07-WonAuction.html"
+    },
+    {
+      "id": 1788919645295,
+      "timestamp": 1788919645295,
+      "targetAgentCode": "AG-1024",
+      "title": "Cảnh báo bị vượt giá chuyến VU450!",
+      "message": "Một đại lý đối thủ (Ẩn danh) vừa đặt mức giá mới 22.500 đ/Kg cho chặng SGN - PQC.",
+      "time": "Vừa xong",
+      "type": "OUTBID",
+      "read": false,
+      "link": "04-Detail.html?id=7"
+    },
+    {
+      "id": 1788919645294,
+      "timestamp": 1788919645294,
+      "targetAgentCode": "AG-0556",
+      "title": "Đặt giá thành công chuyến VU450",
+      "message": "Bạn (AG-0556) đang dẫn đầu mức giá 22.500 đ/Kg cho chặng SGN - PQC. (Tên công ty được che ẩn danh đối với các đối thủ)",
+      "time": "Vừa xong",
+      "type": "HIGHEST",
+      "read": false,
+      "link": "04-Detail.html?id=7"
+    },
+    {
       "id": 1788917937232,
       "timestamp": 1788917936660,
       "targetAgentCode": null,
@@ -587,7 +819,8 @@
       "type": "PAYMENT",
       "read": false,
       "wonId": "WON-2026-0815-04",
-      "link": "07-WonAuction.html?search=WON-2026-0815-04"
+      "link": "07-WonAuction.html?search=WON-2026-0815-04",
+      "targetRole": "ADMIN"
     },
     {
       "id": 1788859560111,
@@ -1108,15 +1341,15 @@
       "address": "88 Láng Hạ, Đống Đa, Hà Nội",
       "province": "Hà Nội",
       "tier": "TIER1",
-      "status": "Đang hoạt động",
+      "status": "Đã khóa",
       "joinedDate": "22/05/2024",
       "totalBids": 18,
       "totalWins": 5,
       "winRate": "28%",
       "totalSpentUSD": "8.0k",
       "totalSpentVND": 1030000000,
-      "lockedReason": null,
-      "lockedAt": null
+      "lockedReason": "Hệ thống tự động khóa do quá hạn thanh toán đơn WON-20260909-07 (VU450 - SGN - PQC)",
+      "lockedAt": "09:46:58 9/9/2026"
     },
     {
       "id": 4,
@@ -1224,6 +1457,16 @@
     }
   },
   "emailLogs": [
+    {
+      "id": 1788919670316,
+      "to": "thao.pham@dhlvietnam.com",
+      "type": "AUCTION_WON",
+      "subject": "[Vietravel Airlines Cargo] CHÚC MỪNG TRÚNG THẦU! Đơn hàng WON-20260909-07 - Chuyến VU450 (SGN - PQC)",
+      "messageId": "<82ddb611-52fc-baad-240a-059557564b8a@gmail.com>",
+      "isRealSmtp": true,
+      "previewUrl": null,
+      "sentAt": "09:07:50 9/9/2026"
+    },
     {
       "id": 1788852556057,
       "to": "duyn61412@gmail.com",
@@ -1560,6 +1803,30 @@
       "notifyOnClosingSoon": true,
       "emailAlerts": true,
       "updatedAt": "2026-09-08 15:30"
+    },
+    "AG-0556": {
+      "routes": [
+        "HAN-SGN",
+        "SGN-HAN"
+      ],
+      "notifyOnNewAuction": true,
+      "notifyOnOutbid": true,
+      "notifyOnClosingSoon": true,
+      "notifyOnWon": true,
+      "emailAlert": true,
+      "soundAlert": true
+    },
+    "AG-0341": {
+      "routes": [
+        "HAN-SGN",
+        "SGN-HAN"
+      ],
+      "notifyOnNewAuction": true,
+      "notifyOnOutbid": true,
+      "notifyOnClosingSoon": true,
+      "notifyOnWon": true,
+      "emailAlert": true,
+      "soundAlert": true
     }
   }
 }

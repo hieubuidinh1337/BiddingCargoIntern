@@ -784,13 +784,20 @@ const CargoStore = (function() {
 
             // Migration cleanup complete
 
-            // Clean up obsolete lock notifications
+            // Clean up obsolete lock notifications & mark admin reconciliation notifications
             if (data.notifications && Array.isArray(data.notifications)) {
                 const originalLen = data.notifications.length;
                 data.notifications = data.notifications.filter(n => {
                     if (!n) return false;
                     const isLockAlert = (n.type === 'ALERT' && (n.title || '').includes('TÀI KHOẢN ĐÃ BỊ KHÓA')) || ((n.message || '').includes('tự động KHÓA'));
                     return !isLockAlert;
+                });
+                data.notifications.forEach(n => {
+                    if ((n.title || '').includes('ĐẠI LÝ BÁO CHUYỂN KHOẢN') || (n.message || '').includes('đối soát sao kê ngân hàng')) {
+                        n.targetRole = 'ADMIN';
+                        n.targetAgentCode = null;
+                        updated = true;
+                    }
                 });
                 if (data.notifications.length !== originalLen) updated = true;
             }
@@ -1082,11 +1089,17 @@ const CargoStore = (function() {
                     modified = true;
                 }
 
-                // Auto-lock agent account if not already locked
-                if (agent && agent.status !== 'Đã khóa' && agent.status !== 'LOCKED') {
+                // Check if this expired order penalty was already processed or if Admin explicitly unlocked the agent
+                const orderExpiredTime = item.paymentDeadline ? new Date(item.paymentDeadline).getTime() : 0;
+                const agentUnlockedTime = agent && agent.unlockedAt ? new Date(agent.unlockedAt).getTime() : 0;
+                const isWaivedOrHandled = item.lockPenaltyHandled === true || item.lockWaivedByAdmin === true || (agentUnlockedTime > 0 && agentUnlockedTime >= orderExpiredTime);
+
+                // Auto-lock agent account ONLY if not already locked AND penalty not yet handled/waived by Admin
+                if (!isWaivedOrHandled && agent && agent.status !== 'Đã khóa' && agent.status !== 'LOCKED') {
                     agent.status = 'Đã khóa';
                     agent.lockedReason = `Hệ thống tự động khóa do quá hạn thanh toán đơn ${item.wonId} (${item.flightNumber} - ${item.route})`;
                     agent.lockedAt = new Date().toLocaleString('vi-VN');
+                    item.lockPenaltyHandled = true; // Mark penalty as applied
                     modified = true;
 
                     // Push high-priority lock notification
@@ -1692,6 +1705,7 @@ const CargoStore = (function() {
                 if (sub && sub.notifyOnNewAuction !== false) {
                     const cleanList = (sub.routes || []).map(r => String(r).replace(/\s+/g, '').toUpperCase());
                     if (cleanList.includes(routePair)) {
+                        // 1. In-app notification for this specific agent
                         data.notifications.unshift({
                             id: Date.now() + Math.floor(Math.random() * 1000) + 1,
                             timestamp: Date.now(),
@@ -1703,6 +1717,22 @@ const CargoStore = (function() {
                             read: false,
                             link: `04-Detail.html?id=${newId}`
                         });
+
+                        // 2. Dispatch automated Email notification if agent enabled emailAlert
+                        if (sub.emailAlert !== false) {
+                            const agentAcc = (data.agentsList || []).find(a => (a.code || '').toUpperCase() === agentCode.toUpperCase());
+                            const defaultTargetEmail = (data.currentUser && data.currentUser.email) ? data.currentUser.email : 'jome7093@gmail.com';
+                            const targetEmail = (agentAcc && agentAcc.email) ? agentAcc.email : defaultTargetEmail;
+
+                            CargoStore.sendEmailNotification({
+                                type: 'ROUTE_AUCTION_OPEN',
+                                to: targetEmail,
+                                notifEmail: agentAcc ? agentAcc.notifEmail : null,
+                                agentName: agentAcc ? agentAcc.companyName : `Đại lý ${agentCode}`,
+                                agentCode: agentCode,
+                                auctionData: newAuction
+                            });
+                        }
                     }
                 }
             });
@@ -2038,6 +2068,10 @@ const CargoStore = (function() {
         getNotifications: function() {
             const data = loadData();
             const user = data.currentUser;
+            const currentAdmin = data.currentAdmin;
+            const pathname = (typeof window !== 'undefined' && window.location && window.location.pathname) ? window.location.pathname : '';
+            const isAdminPage = pathname.includes('/Admin/') || pathname.includes('/admin/') || !!currentAdmin;
+
             let allNotifs = data.notifications || [];
             allNotifs = allNotifs.map(n => {
                 if (n && n.message && n.message.includes('Mật khẩu đăng nhập:')) {
@@ -2050,9 +2084,32 @@ const CargoStore = (function() {
                 }
                 return n;
             });
-            if (!user || !user.agentCode) return allNotifs;
-            // Only return notifications intended for this specific agent, or system broadcasts
-            return allNotifs.filter(n => !n.targetAgentCode || n.targetAgentCode === user.agentCode);
+
+            // 1. Admin / Staff viewing on Admin Portal
+            if (isAdminPage && currentAdmin) {
+                return allNotifs.filter(n => !n.targetAgentCode || n.targetRole === 'ADMIN' || n.targetRole === 'admin');
+            }
+
+            // 2. Logged-in Agent viewing on Agent Portal
+            if (!user) {
+                return allNotifs.filter(n => (n.type === 'SYSTEM' || n.type === 'ANNOUNCEMENT' || n.isBroadcast === true) && n.targetRole !== 'ADMIN');
+            }
+
+            const myCode = (user.agentCode || user.code || '').trim().toUpperCase();
+
+            return allNotifs.filter(n => {
+                // Admin reconciliation notifications must NEVER leak to agents
+                if (n.targetRole === 'ADMIN' || n.targetRole === 'admin') return false;
+                if ((n.title || '').includes('ĐẠI LÝ BÁO CHUYỂN KHOẢN') || (n.message || '').includes('đối soát sao kê ngân hàng')) {
+                    return false;
+                }
+                // If targeted to a specific agent, match exact agent code
+                if (n.targetAgentCode) {
+                    return n.targetAgentCode.trim().toUpperCase() === myCode;
+                }
+                // Only allow public system broadcasts if targetAgentCode is null/empty
+                return n.type === 'SYSTEM' || n.type === 'ANNOUNCEMENT' || n.type === 'AUCTION_OPEN' || n.isBroadcast === true;
+            });
         },
 
         markNotificationRead: function(id) {
@@ -2494,14 +2551,29 @@ const CargoStore = (function() {
                 submittedAt: new Date().toLocaleString('vi-VN')
             };
 
-            // Create notification for Admin reconciliation
+            // 1. Create notification for Admin reconciliation (Targeted to ADMIN only)
             if (!data.notifications) data.notifications = [];
             data.notifications.unshift({
                 id: Date.now() + Math.floor(Math.random() * 1000),
                 timestamp: Date.now(),
-                targetAgentCode: null, // Admin & Staff visible
+                targetRole: 'ADMIN',
+                targetAgentCode: null, // Admin & Staff visible only
                 title: `💳 ĐẠI LÝ BÁO CHUYỂN KHOẢN: Đơn ${item.wonId}`,
                 message: `Đại lý ${item.agentCode} (${item.agentName || 'ABC Logistics'}) đã báo chuyển khoản ${this.formatCurrency(transferredAmount)} cho đơn ${item.wonId} (Chuyến ${item.flightNumber}). Cú pháp: [${memo}]${transactionRef ? ` | Mã GD: ${transactionRef}` : ''}. Vui lòng đối soát sao kê ngân hàng và xác nhận.`,
+                time: 'Vừa xong',
+                type: 'PAYMENT',
+                read: false,
+                wonId: item.wonId,
+                link: `07-WonAuction.html?search=${item.wonId}`
+            });
+
+            // 2. Create notification for the paying agent themselves
+            data.notifications.unshift({
+                id: Date.now() + 1,
+                timestamp: Date.now(),
+                targetAgentCode: item.agentCode,
+                title: `Đã gửi thông tin chuyển khoản: Đơn ${item.wonId}`,
+                message: `Bạn đã gửi thông báo chuyển khoản ${this.formatCurrency(transferredAmount)} cho đơn ${item.wonId} (Chuyến ${item.flightNumber}). Ban Điều hành đang kiểm tra sao kê ngân hàng và sẽ duyệt đơn trong ít phút.`,
                 time: 'Vừa xong',
                 type: 'PAYMENT',
                 read: false,
@@ -2764,13 +2836,39 @@ const CargoStore = (function() {
                 const target = (data.agentsList || []).find(a => (a.code || '').toUpperCase() === (identifier || '').toUpperCase());
                 if (target) {
                     const isCurrentlyActive = target.status === 'Đang hoạt động';
-                    target.status = isCurrentlyActive ? 'Đã khóa' : 'Đang hoạt động';
+                    if (isCurrentlyActive) {
+                        target.status = 'Đã khóa';
+                        target.lockedReason = 'Quản trị viên chủ động khóa tài khoản';
+                        target.lockedAt = new Date().toLocaleString('vi-VN');
+                        // If locking and target is currently logged in, clear currentUser session immediately!
+                        if (data.currentUser) {
+                            const currentCode = (data.currentUser.agentCode || data.currentUser.code || '').toUpperCase();
+                            if (currentCode === (target.code || '').toUpperCase() || data.currentUser.id == target.id) {
+                                data.currentUser = null;
+                            }
+                        }
+                    } else {
+                        target.status = 'Đang hoạt động';
+                        target.unlockedAt = new Date().toISOString();
+                        target.unlockedBy = data.currentAdmin ? (data.currentAdmin.username || 'ADMIN') : 'ADMIN';
+                        delete target.lockedReason;
+                        delete target.lockedAt;
 
-                    // If locking and target is currently logged in, clear currentUser session immediately!
-                    if (target.status === 'Đã khóa' && data.currentUser) {
-                        const currentCode = (data.currentUser.agentCode || data.currentUser.code || '').toUpperCase();
-                        if (currentCode === (target.code || '').toUpperCase() || data.currentUser.id == target.id) {
-                            data.currentUser = null;
+                        // Waive old expired auction penalties so system doesn't immediately re-lock
+                        (data.wonAuctions || []).forEach(w => {
+                            if ((w.agentCode || '').toUpperCase() === (target.code || '').toUpperCase()) {
+                                w.lockPenaltyHandled = true;
+                                w.lockWaivedByAdmin = true;
+                            }
+                        });
+
+                        // Clean up lock alert notifications for this agent
+                        if (data.notifications) {
+                            data.notifications = data.notifications.filter(n => {
+                                const isTarget = (n.targetAgentCode || '').toUpperCase() === (target.code || '').toUpperCase();
+                                const isLockAlert = (n.type === 'ALERT' && (n.title || '').includes('TÀI KHOẢN ĐÃ BỊ KHÓA'));
+                                return !(isTarget && isLockAlert);
+                            });
                         }
                     }
 
@@ -2785,14 +2883,22 @@ const CargoStore = (function() {
                 const target = (data.adminsList || []).find(a => (a.username || '').toLowerCase() === (identifier || '').toLowerCase());
                 if (target) {
                     const isCurrentlyActive = target.status !== 'Đã khóa';
-                    target.status = isCurrentlyActive ? 'Đã khóa' : 'Đang hoạt động';
-
-                    // If locking and target staff is currently logged in, clear currentAdmin session immediately!
-                    if (target.status === 'Đã khóa' && data.currentAdmin) {
-                        const currentUsername = (data.currentAdmin.username || '').toLowerCase();
-                        if (currentUsername === (target.username || '').toLowerCase() || data.currentAdmin.id == target.id) {
-                            data.currentAdmin = null;
+                    if (isCurrentlyActive) {
+                        target.status = 'Đã khóa';
+                        target.lockedReason = 'Quản trị viên chủ động khóa tài khoản';
+                        target.lockedAt = new Date().toLocaleString('vi-VN');
+                        // If locking and target staff is currently logged in, clear currentAdmin session immediately!
+                        if (data.currentAdmin) {
+                            const currentUsername = (data.currentAdmin.username || '').toLowerCase();
+                            if (currentUsername === (target.username || '').toLowerCase() || data.currentAdmin.id == target.id) {
+                                data.currentAdmin = null;
+                            }
                         }
+                    } else {
+                        target.status = 'Đang hoạt động';
+                        target.unlockedAt = new Date().toISOString();
+                        delete target.lockedReason;
+                        delete target.lockedAt;
                     }
 
                     saveData(data);

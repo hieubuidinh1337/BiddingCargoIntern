@@ -818,6 +818,41 @@ const server = http.createServer((req, res) => {
                             </p>
                         `
                     });
+                } else if (type === 'ROUTE_AUCTION_OPEN' || type === 'NEW_AUCTION_ALERT') {
+                    const auctionData = reqData.auctionData || {};
+                    const flightNum = auctionData.flightNumber || reqData.flightNumber || '';
+                    const route = auctionData.route || reqData.route || '';
+                    const originName = auctionData.originName || reqData.originName || '';
+                    const destName = auctionData.destName || reqData.destName || '';
+                    const capacityKg = auctionData.capacityKg || reqData.capacityKg || 0;
+                    const startingPriceKg = auctionData.startingPriceKg || reqData.startingPriceKg || 0;
+                    const etd = auctionData.etd || reqData.etd || '';
+                    const fmtNum = (n) => new Intl.NumberFormat('vi-VN').format(n);
+
+                    subject = `[Vietravel Airlines Cargo] 🔔 MỞ ĐẤU GIÁ TUYẾN QUAN TÂM: Chuyến ${flightNum} (${route})`;
+                    html = buildEmailHtml({
+                        title: `Mở Đấu Giá Tuyến Bạn Quan Tâm: ${route}`,
+                        subtitle: `Chuyến bay ${flightNum} &middot; ${originName} ➔ ${destName}`,
+                        contentHtml: `
+                            <p>Kính gửi Quý đại lý <strong>${reqData.agentName || 'Quý Đại lý'}</strong> (${reqData.agentCode || ''}),</p>
+                            <p>Hệ thống Vietravel Airlines Cargo trân trọng thông báo: Tuyến bay <strong>${route} (${originName} ➔ ${destName})</strong> mà Quý đại lý đã đăng ký theo dõi vừa chính thức mở phiên đấu giá mới với thông tin chi tiết như sau:</p>
+
+                            <table role="presentation" width="100%" cellpadding="8" cellspacing="0" style="background:#f0f4ff;border:1px solid #c7d2fe;border-radius:6px;margin:16px 0;">
+                                <tr><td style="color:#555;border-bottom:1px solid #e0e0e0;width:38%;">Số hiệu chuyến bay:</td><td style="font-weight:bold;color:#1e3a5f;font-family:monospace;font-size:15px;">${flightNum}</td></tr>
+                                <tr><td style="color:#555;border-bottom:1px solid #e0e0e0;">Hành trình / Tuyến bay:</td><td style="font-weight:bold;color:#333;">${route} (${originName} - ${destName})</td></tr>
+                                <tr><td style="color:#555;border-bottom:1px solid #e0e0e0;">Giờ cất cánh dự kiến (ETD):</td><td style="color:#1e3a5f;font-weight:bold;">${etd}</td></tr>
+                                <tr><td style="color:#555;border-bottom:1px solid #e0e0e0;">Tải trọng mở thầu:</td><td style="font-weight:bold;color:#1e3a5f;">${fmtNum(capacityKg)} Kg</td></tr>
+                                <tr><td style="color:#555;border-bottom:1px solid #e0e0e0;">Giá khởi điểm sàn:</td><td style="font-weight:bold;color:#2e7d32;font-size:15px;">${fmtNum(startingPriceKg)} đ / Kg</td></tr>
+                                <tr><td style="color:#555;">Quy định đóng thầu:</td><td style="color:#d32f2f;font-weight:bold;">Đóng thầu trước ETD 3 giờ</td></tr>
+                            </table>
+
+                            <p style="margin-top:16px;">Quý đại lý vui lòng truy cập sàn đấu giá sớm để đặt mức giá chào tốt nhất và giữ slot vận chuyển:</p>
+
+                            <p style="text-align:center;margin:24px 0;">
+                                <a href="http://localhost:8085/04-Detail.html?id=${auctionData.id || 1}" style="display:inline-block;background-color:#1e3a5f;color:#ffffff;font-weight:bold;padding:12px 28px;border-radius:6px;text-decoration:none;">XEM CHI TIẾT & ĐẶT GIÁ NGAY</a>
+                            </p>
+                        `
+                    });
                 }
 
                 // Fallback HTML builder if html is still empty
