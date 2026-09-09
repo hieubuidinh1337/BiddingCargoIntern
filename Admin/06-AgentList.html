@@ -749,12 +749,12 @@
                         <td class="py-3.5 px-4 text-slate-700 font-medium">${ag.repName}</td>
                         <td class="py-3.5 px-4 text-slate-600">${ag.phone}<br><span class="text-[10px] text-gray-400">${ag.email}</span></td>
                         <td class="py-3.5 px-4 font-mono text-slate-600">${ag.taxCode}</td>
-                        <td class="py-3.5 px-4">
+                        <td class="py-3.5 px-4 min-w-[180px] max-w-[260px]">
                             ${isLocked ? `
-                                <span class="bg-red-100 text-red-700 font-bold px-2.5 py-1 rounded-full text-[10px] inline-flex items-center gap-1"><i class="fa-solid fa-ban"></i> ĐÃ KHÓA</span>
-                                ${ag.lockedReason ? `<p class="text-[10px] text-red-600 mt-1 font-medium leading-tight max-w-[200px]"><i class="fa-solid fa-triangle-exclamation text-[9px]"></i> ${ag.lockedReason}</p>` : ''}
+                                <span class="bg-red-100 text-red-700 font-bold px-2.5 py-1 rounded-full text-[10px] inline-flex items-center gap-1 whitespace-nowrap"><i class="fa-solid fa-ban"></i> ĐÃ KHÓA</span>
+                                ${ag.lockedReason ? `<p class="text-[10px] text-red-600 mt-1 font-medium leading-tight whitespace-normal break-words"><i class="fa-solid fa-triangle-exclamation text-[9px]"></i> ${ag.lockedReason}</p>` : ''}
                             ` : 
-                                '<span class="bg-emerald-100 text-emerald-700 font-bold px-2.5 py-1 rounded-full text-[10px] inline-flex items-center gap-1"><i class="fa-solid fa-circle-check"></i> HOẠT ĐỘNG</span>'}
+                                '<span class="bg-emerald-100 text-emerald-700 font-bold px-2.5 py-1 rounded-full text-[10px] inline-flex items-center gap-1 whitespace-nowrap"><i class="fa-solid fa-circle-check"></i> HOẠT ĐỘNG</span>'}
                         </td>
                         <td class="py-3.5 px-4 text-right space-x-1.5 whitespace-nowrap">
                             ${isStaff ? `
