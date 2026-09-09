@@ -1064,21 +1064,25 @@
         function isCargoDeclarationLocked(item) {
             if (!item) return { isLocked: true, reason: 'Không tìm thấy thông tin đơn hàng.' };
 
-            // 1. Trạng thái ĐÃ THANH TOÁN (PAID) -> Đã chốt AWB chính thức với kho hàng
-            if (item.paymentStatus === 'PAID') {
+            if (item.paymentStatus === 'EXPIRED' || item.paymentStatus === 'CANCELLED') {
                 return {
                     isLocked: true,
-                    reason: 'Hồ sơ đã được Admin xác nhận thanh toán & chốt mã AWB điện tử chính thức. Không thể chỉnh sửa.'
+                    reason: 'Đơn hàng đã bị hủy do quá hạn thanh toán. Quyền vận chuyển đã bị thu hồi.'
                 };
             }
 
-            // 2. Kiểm tra thời gian Cut-off / ETD chuyến bay
+            // Kiểm tra thời gian Cut-off / ETD chuyến bay
             const store = getStore();
+            const data = store ? store.getData() : {};
+            const allAuctions = data.auctions || [];
+            const auctionMatch = allAuctions.find(a => a.id == item.auctionId || a.flightNumber === item.flightNumber);
+            const etdStr = item.etd || (auctionMatch ? auctionMatch.etd : null);
+            
             let etdDate = null;
             if (item.etdIso) {
                 etdDate = new Date(item.etdIso);
-            } else if (item.etd && store && store.parseFlightDate) {
-                etdDate = store.parseFlightDate(item.etd);
+            } else if (etdStr && store && store.parseFlightDate) {
+                etdDate = store.parseFlightDate(etdStr);
             }
 
             if (etdDate && !isNaN(etdDate.getTime())) {
