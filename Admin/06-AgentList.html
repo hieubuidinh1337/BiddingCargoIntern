@@ -542,11 +542,11 @@
                     const isApproved = r.status === 'APPROVED';
 
                     return `
-                        <div class="bg-white rounded-2xl border shadow-sm p-6 hover:shadow-md transition space-y-4">
+                        <div class="bg-white rounded-2xl border shadow-sm p-4 sm:p-6 hover:shadow-md transition space-y-4">
                             <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-2 border-b pb-3">
-                                <div class="flex items-center gap-2.5">
+                                <div class="flex items-center gap-2.5 flex-wrap">
                                     <span class="font-mono font-bold text-xs bg-slate-100 text-slate-700 px-2.5 py-1 rounded-lg">${r.regId}</span>
-                                    <h3 class="font-bold text-base text-slate-900">${r.companyName}</h3>
+                                    <h3 class="font-bold text-sm sm:text-base text-slate-900 break-words">${r.companyName}</h3>
                                 </div>
                                 <div>
                                     ${isPending ? '<span class="bg-amber-100 text-amber-800 text-xs font-bold px-2.5 py-1 rounded-full">CHỜ XÉT DUYỆT</span>' : ''}
@@ -555,40 +555,40 @@
                                 </div>
                             </div>
 
-                            <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-3.5 text-xs bg-slate-50/80 p-4 rounded-xl border border-slate-200">
-                                <div>
+                            <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 text-xs bg-slate-50/80 p-3.5 sm:p-4 rounded-xl border border-slate-200">
+                                <div class="min-w-0">
                                     <p class="text-slate-500 font-medium">Tên doanh nghiệp:</p>
-                                    <p class="font-bold text-slate-900">${r.companyName}</p>
+                                    <p class="font-bold text-slate-900 break-words">${r.companyName}</p>
                                 </div>
-                                <div>
+                                <div class="min-w-0">
                                     <p class="text-slate-500 font-medium">Mã số thuế / Số GPKD:</p>
-                                    <p class="font-mono font-bold text-slate-800">${r.taxCode} ${r.businessLicense ? `<span class="text-slate-500 font-normal">(GP: ${r.businessLicense})</span>` : ''}</p>
+                                    <p class="font-mono font-bold text-slate-800 break-words">${r.taxCode} ${r.businessLicense ? `<span class="text-slate-500 font-normal">(GP: ${r.businessLicense})</span>` : ''}</p>
                                 </div>
-                                <div>
+                                <div class="min-w-0">
                                     <p class="text-slate-500 font-medium">Lĩnh vực hoạt động:</p>
-                                    <p class="font-semibold text-blue-700">${r.field || 'Freight Forwarder'}</p>
+                                    <p class="font-semibold text-blue-700 break-words">${r.field || 'Freight Forwarder'}</p>
                                 </div>
-                                <div>
+                                <div class="min-w-0">
                                     <p class="text-slate-500 font-medium">Địa chỉ trụ sở chính:</p>
-                                    <p class="font-medium text-slate-800">${r.address || 'Chưa cập nhật'}</p>
+                                    <p class="font-medium text-slate-800 break-words">${r.address || 'Chưa cập nhật'}</p>
                                 </div>
-                                <div>
+                                <div class="min-w-0">
                                     <p class="text-slate-500 font-medium">Người đại diện pháp luật:</p>
-                                    <p class="font-bold text-slate-900">${r.repName} <span class="text-slate-500 font-normal">(${r.repPosition})</span></p>
+                                    <p class="font-bold text-slate-900 break-words">${r.repName} <span class="text-slate-500 font-normal">(${r.repPosition})</span></p>
                                 </div>
-                                <div>
+                                <div class="min-w-0">
                                     <p class="text-slate-500 font-medium">Số CCCD / Hộ chiếu:</p>
-                                    <p class="font-mono text-slate-800">${r.citizenId || 'Không cung cấp'}</p>
+                                    <p class="font-mono text-slate-800 break-words">${r.citizenId || 'Không cung cấp'}</p>
                                 </div>
-                                <div>
+                                <div class="min-w-0">
                                     <p class="text-slate-500 font-medium">Email liên hệ & SĐT:</p>
-                                    <p class="font-medium text-slate-800">${r.email} · ${r.phone}</p>
+                                    <p class="font-medium text-slate-800 break-words">${r.email} · ${r.phone}</p>
                                 </div>
-                                <div>
+                                <div class="min-w-0">
                                     <p class="text-slate-500 font-medium">Email nhận thông báo thầu:</p>
-                                    <p class="font-medium text-slate-800">${r.notifEmail || r.email}</p>
+                                    <p class="font-medium text-slate-800 break-words">${r.notifEmail || r.email}</p>
                                 </div>
-                                <div>
+                                <div class="min-w-0">
                                     <p class="text-slate-500 font-medium mb-1">Mật khẩu khởi tạo đăng ký:</p>
                                     <div class="inline-flex items-center gap-2 bg-white px-2.5 py-1 rounded-lg border border-slate-200 shadow-2xs">
                                         <span id="pwd-val-${r.regId}" class="font-mono font-bold text-slate-800 tracking-wider">••••••••</span>
@@ -605,7 +605,7 @@
                                         `}
                                     </div>
                                 </div>
-                                <div>
+                                <div class="min-w-0">
                                     <p class="text-slate-500 font-medium mb-1">Mã PIN bảo mật (4 chữ số):</p>
                                     <div class="inline-flex items-center gap-2 bg-indigo-50/80 px-2.5 py-1 rounded-lg border border-indigo-200 shadow-2xs">
                                         <span id="pin-val-${r.regId}" class="font-mono font-bold text-indigo-700 tracking-wider">••••</span>
@@ -622,7 +622,7 @@
                                         `}
                                     </div>
                                 </div>
-                                <div class="col-span-2">
+                                <div class="col-span-1 sm:col-span-2 lg:col-span-2 min-w-0">
                                     <p class="text-slate-500 font-medium">Thời gian nộp hồ sơ:</p>
                                     <p class="text-slate-700 font-semibold">${r.submittedAt}</p>
                                 </div>
@@ -670,19 +670,19 @@
                             ` : ''}
 
                             ${isPending ? `
-                                <div class="flex items-center justify-end gap-2.5 pt-2 border-t">
+                                <div class="flex flex-col sm:flex-row items-stretch sm:items-center justify-end gap-2 sm:gap-2.5 pt-2 border-t">
                                     ${isStaff ? `
-                                        <button disabled class="bg-slate-100 text-slate-400 font-bold px-4 py-2 rounded-xl text-xs opacity-60 cursor-not-allowed" title="Chỉ ADMIN mới có quyền từ chối hồ sơ đại lý">
+                                        <button disabled class="bg-slate-100 text-slate-400 font-bold px-4 py-2.5 rounded-xl text-xs opacity-60 cursor-not-allowed text-center" title="Chỉ ADMIN mới có quyền từ chối hồ sơ đại lý">
                                             Từ chối hồ sơ
                                         </button>
-                                        <button disabled class="bg-slate-100 text-slate-400 font-bold px-5 py-2 rounded-xl text-xs opacity-60 cursor-not-allowed flex items-center gap-1.5" title="Chỉ ADMIN mới có quyền phê duyệt hồ sơ đại lý">
+                                        <button disabled class="bg-slate-100 text-slate-400 font-bold px-5 py-2.5 rounded-xl text-xs opacity-60 cursor-not-allowed flex items-center justify-center gap-1.5 text-center" title="Chỉ ADMIN mới có quyền phê duyệt hồ sơ đại lý">
                                             <i class="fa-solid fa-check"></i> Phê duyệt & Kích hoạt đại lý
                                         </button>
                                     ` : `
-                                        <button onclick="openRejectModal('${r.regId}')" class="bg-red-50 hover:bg-red-100 text-red-600 font-bold px-4 py-2 rounded-xl text-xs transition cursor-pointer flex items-center gap-1">
+                                        <button onclick="openRejectModal('${r.regId}')" class="bg-red-50 hover:bg-red-100 text-red-600 font-bold px-4 py-2.5 rounded-xl text-xs transition cursor-pointer flex items-center justify-center gap-1">
                                             <i class="fa-solid fa-ban"></i> Từ chối hồ sơ
                                         </button>
-                                        <button onclick="handleApprove('${r.regId}')" class="bg-blue-600 hover:bg-blue-700 text-white font-bold px-5 py-2 rounded-xl text-xs transition shadow flex items-center gap-1.5 cursor-pointer">
+                                        <button onclick="handleApprove('${r.regId}')" class="bg-blue-600 hover:bg-blue-700 text-white font-bold px-5 py-2.5 rounded-xl text-xs transition shadow flex items-center justify-center gap-1.5 cursor-pointer">
                                             <i class="fa-solid fa-check"></i> Phê duyệt & Kích hoạt đại lý
                                         </button>
                                     `}
