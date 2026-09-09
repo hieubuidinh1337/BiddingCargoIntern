@@ -7,6 +7,32 @@
     <script src="https://cdn.tailwindcss.com"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
     <script src="../assets/js/cargo-store.js"></script>
+    <style>
+        .custom-scrollbar {
+            overflow-y: auto !important;
+            overflow-x: hidden !important;
+            -webkit-overflow-scrolling: touch;
+            scrollbar-width: thin;
+            scrollbar-color: #3b82f6 #e2e8f0;
+        }
+        .custom-scrollbar::-webkit-scrollbar {
+            width: 8px;
+            height: 8px;
+            display: block;
+        }
+        .custom-scrollbar::-webkit-scrollbar-track {
+            background: #f1f5f9;
+            border-radius: 6px;
+        }
+        .custom-scrollbar::-webkit-scrollbar-thumb {
+            background: #94a3b8;
+            border-radius: 6px;
+            border: 2px solid #f1f5f9;
+        }
+        .custom-scrollbar::-webkit-scrollbar-thumb:hover {
+            background: #3b82f6;
+        }
+    </style>
 </head>
 <body class="bg-slate-100 text-slate-800">
 
@@ -462,7 +488,7 @@
                 </div>
                 <button onclick="closeAdminCargoModal()" class="text-slate-400 hover:text-white text-lg cursor-pointer"><i class="fa-solid fa-xmark"></i></button>
             </div>
-            <div class="p-6 space-y-4 text-xs overflow-y-auto flex-1 max-h-[calc(90vh-130px)]" id="adminCargoModalContent">
+            <div class="p-6 space-y-4 text-xs custom-scrollbar min-h-0 flex-1 max-h-[calc(90vh-130px)]" id="adminCargoModalContent">
                 <!-- Rendered by JS -->
             </div>
             <div class="bg-slate-50 px-6 py-3 border-t flex items-center justify-end gap-2 flex-shrink-0">
@@ -488,7 +514,7 @@
                     <i class="fa-solid fa-xmark"></i>
                 </button>
             </div>
-            <div class="p-6 space-y-4 text-xs overflow-y-auto flex-1 max-h-[calc(90vh-130px)]" id="adminPayProofModalContent">
+            <div class="p-6 space-y-4 text-xs custom-scrollbar min-h-0 flex-1 max-h-[calc(90vh-130px)]" id="adminPayProofModalContent">
                 <!-- Rendered by JS -->
             </div>
             <div class="bg-slate-50 px-6 py-3 border-t flex items-center justify-between gap-3 flex-shrink-0" id="adminPayProofModalFooter">

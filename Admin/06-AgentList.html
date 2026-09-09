@@ -8,6 +8,32 @@
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
     <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
     <script src="../assets/js/cargo-store.js"></script>
+    <style>
+        .custom-scrollbar {
+            overflow-y: auto !important;
+            overflow-x: hidden !important;
+            -webkit-overflow-scrolling: touch;
+            scrollbar-width: thin;
+            scrollbar-color: #3b82f6 #e2e8f0;
+        }
+        .custom-scrollbar::-webkit-scrollbar {
+            width: 8px;
+            height: 8px;
+            display: block;
+        }
+        .custom-scrollbar::-webkit-scrollbar-track {
+            background: #f1f5f9;
+            border-radius: 6px;
+        }
+        .custom-scrollbar::-webkit-scrollbar-thumb {
+            background: #94a3b8;
+            border-radius: 6px;
+            border: 2px solid #f1f5f9;
+        }
+        .custom-scrollbar::-webkit-scrollbar-thumb:hover {
+            background: #3b82f6;
+        }
+    </style>
 </head>
 <body class="bg-slate-100 text-slate-800">
 
@@ -131,17 +157,23 @@
                 <span class="text-xs text-slate-600 font-semibold">Danh sách đại lý đang tham gia sàn đấu giá tải trọng</span>
                 <span class="text-[11px] text-slate-500">Thao tác: Khóa / Mở khóa kích hoạt tài khoản đại lý</span>
             </div>
+            <div class="sm:hidden px-3 pt-2">
+                <div class="flex items-center gap-1.5 text-[11px] text-slate-500 bg-slate-50 px-3 py-1.5 rounded-lg border border-slate-200">
+                    <i class="fa-solid fa-arrows-left-right text-blue-500"></i>
+                    <span>Bảng nhiều cột: Vuốt sang ngang để xem đầy đủ</span>
+                </div>
+            </div>
             <div class="overflow-x-auto">
-                <table class="w-full text-left text-xs">
+                <table class="w-full text-left text-xs min-w-[780px] whitespace-nowrap">
                     <thead class="bg-slate-50 text-slate-600 font-semibold border-b">
                         <tr>
-                            <th class="py-3.5 px-4">Mã đại lý</th>
-                            <th class="py-3.5 px-4">Tên doanh nghiệp</th>
-                            <th class="py-3.5 px-4">Người đại diện</th>
-                            <th class="py-3.5 px-4">Liên hệ & Email</th>
-                            <th class="py-3.5 px-4">MST</th>
-                            <th class="py-3.5 px-4">Trạng thái</th>
-                            <th class="py-3.5 px-4 text-right">Thao tác quản trị</th>
+                            <th class="py-3.5 px-4 whitespace-nowrap">Mã đại lý</th>
+                            <th class="py-3.5 px-4 whitespace-nowrap">Tên doanh nghiệp</th>
+                            <th class="py-3.5 px-4 whitespace-nowrap">Người đại diện</th>
+                            <th class="py-3.5 px-4 whitespace-nowrap">Liên hệ & Email</th>
+                            <th class="py-3.5 px-4 whitespace-nowrap">MST</th>
+                            <th class="py-3.5 px-4 whitespace-nowrap">Trạng thái</th>
+                            <th class="py-3.5 px-4 text-right whitespace-nowrap">Thao tác quản trị</th>
                         </tr>
                     </thead>
                     <tbody class="divide-y divide-gray-100" id="agentsTableBody">
@@ -176,17 +208,23 @@
                     <i class="fa-solid fa-user-plus"></i> Thêm tài khoản nhân viên mới
                 </button>
             </div>
+            <div class="sm:hidden px-3 pt-2">
+                <div class="flex items-center gap-1.5 text-[11px] text-slate-500 bg-slate-50 px-3 py-1.5 rounded-lg border border-slate-200">
+                    <i class="fa-solid fa-arrows-left-right text-blue-500"></i>
+                    <span>Bảng nhiều cột: Vuốt sang ngang để xem đầy đủ</span>
+                </div>
+            </div>
             <div class="overflow-x-auto">
-                <table class="w-full text-left text-xs">
+                <table class="w-full text-left text-xs min-w-[780px] whitespace-nowrap">
                     <thead class="bg-slate-50 text-slate-600 font-semibold border-b">
                         <tr>
-                            <th class="py-3.5 px-4">Tên đăng nhập</th>
-                            <th class="py-3.5 px-4">Họ và tên nhân sự</th>
-                            <th class="py-3.5 px-4">Phòng ban phụ trách</th>
-                            <th class="py-3.5 px-4">Email liên hệ</th>
-                            <th class="py-3.5 px-4">Vai trò hệ thống</th>
-                            <th class="py-3.5 px-4">Trạng thái</th>
-                            <th class="py-3.5 px-4 text-right">Thao tác quản trị</th>
+                            <th class="py-3.5 px-4 whitespace-nowrap">Tên đăng nhập</th>
+                            <th class="py-3.5 px-4 whitespace-nowrap">Họ và tên nhân sự</th>
+                            <th class="py-3.5 px-4 whitespace-nowrap">Phòng ban phụ trách</th>
+                            <th class="py-3.5 px-4 whitespace-nowrap">Email liên hệ</th>
+                            <th class="py-3.5 px-4 whitespace-nowrap">Vai trò hệ thống</th>
+                            <th class="py-3.5 px-4 whitespace-nowrap">Trạng thái</th>
+                            <th class="py-3.5 px-4 text-right whitespace-nowrap">Thao tác quản trị</th>
                         </tr>
                     </thead>
                     <tbody class="divide-y divide-gray-100" id="staffTableBody">
@@ -249,28 +287,28 @@
     </div>
 
     <!-- Modal Xem Hồ sơ Minh Chứng Trực Tiếp Trên Trình Duyệt -->
-    <div id="docModal" class="fixed inset-0 bg-slate-900/80 backdrop-blur-xs z-50 hidden items-center justify-center p-2 sm:p-5">
-        <div class="bg-white rounded-2xl max-w-5xl w-full h-[96vh] sm:h-[94vh] flex flex-col p-3 sm:p-6 shadow-2xl space-y-2.5 sm:space-y-3 border border-slate-200 overflow-hidden animate-in fade-in zoom-in duration-200">
+    <div id="docModal" class="fixed inset-0 bg-slate-900/80 backdrop-blur-xs z-50 hidden items-center justify-center p-0 sm:p-4">
+        <div class="bg-white rounded-none sm:rounded-2xl max-w-5xl w-full h-full sm:h-[94vh] flex flex-col p-3 sm:p-5 shadow-2xl space-y-2 sm:space-y-3 border-0 sm:border border-slate-200 overflow-hidden animate-in fade-in zoom-in-95 duration-200">
             <!-- Header -->
-            <div class="flex items-center justify-between border-b border-slate-200 pb-2.5 sm:pb-3 shrink-0 gap-2">
-                <div class="flex items-center gap-2 sm:gap-3 min-w-0">
+            <div class="flex items-center justify-between border-b border-slate-200 pb-2 sm:pb-3 shrink-0 gap-2">
+                <div class="flex items-center gap-2 sm:gap-3 min-w-0 flex-1">
                     <div class="w-8 h-8 sm:w-10 sm:h-10 rounded-xl bg-blue-50 text-blue-600 flex items-center justify-center font-bold text-sm sm:text-lg border border-blue-100 shadow-2xs shrink-0">
                         <i class="fa-solid fa-file-lines" id="docModalIconHeader"></i>
                     </div>
-                    <div class="min-w-0">
-                        <div class="flex items-center gap-1.5 sm:gap-2 flex-wrap">
-                            <h3 class="font-bold text-xs sm:text-base text-slate-900 leading-tight truncate max-w-[160px] sm:max-w-md" id="docModalTitle">Chi tiết tệp hồ sơ</h3>
-                            <span id="docModalBadge" class="bg-blue-100 text-blue-700 text-[9px] sm:text-[10px] font-bold px-1.5 sm:px-2 py-0.5 rounded-full border border-blue-200 whitespace-nowrap">
+                    <div class="min-w-0 flex-1">
+                        <div class="flex items-center gap-1.5 sm:gap-2">
+                            <h3 class="font-bold text-xs sm:text-base text-slate-900 leading-tight truncate" id="docModalTitle">Chi tiết tệp hồ sơ</h3>
+                            <span id="docModalBadge" class="bg-blue-100 text-blue-700 text-[9px] sm:text-[10px] font-bold px-1.5 sm:px-2 py-0.5 rounded-full border border-blue-200 shrink-0 whitespace-nowrap">
                                 Xem trực tiếp
                             </span>
                         </div>
-                        <p class="text-[10px] sm:text-xs text-slate-500 mt-0.5 truncate max-w-[200px] sm:max-w-md" id="docModalSubtitle">
+                        <p class="text-[10px] sm:text-xs text-slate-500 mt-0.5 truncate" id="docModalSubtitle">
                             Đơn vị: <span class="font-semibold text-slate-700" id="docModalCompName">Công ty</span>
                         </p>
                     </div>
                 </div>
                 <div class="flex items-center gap-1.5 sm:gap-2 shrink-0">
-                    <button onclick="openInNewBrowserTab()" class="bg-blue-50 hover:bg-blue-100 text-blue-700 font-semibold px-2.5 sm:px-3 py-1.5 rounded-xl text-xs transition flex items-center gap-1.5 cursor-pointer shadow-2xs border border-blue-200 whitespace-nowrap" title="Mở trực tiếp trên tab mới của trình duyệt">
+                    <button onclick="openInNewBrowserTab()" class="bg-blue-50 hover:bg-blue-100 text-blue-700 font-semibold px-2 sm:px-3 py-1.5 rounded-lg text-xs transition flex items-center gap-1.5 cursor-pointer shadow-2xs border border-blue-200 whitespace-nowrap" title="Mở trực tiếp trên tab mới của trình duyệt">
                         <i class="fa-solid fa-arrow-up-right-from-square text-xs"></i> <span class="hidden sm:inline">Mở tab mới</span>
                     </button>
                     <button onclick="closeDocModal()" class="w-7 h-7 sm:w-8 sm:h-8 rounded-lg hover:bg-gray-100 flex items-center justify-center text-gray-400 hover:text-gray-700 transition cursor-pointer" title="Đóng cửa sổ xem hồ sơ">
@@ -280,7 +318,7 @@
             </div>
 
             <!-- Dynamic File Visual Viewer Container (Displays content directly on browser) -->
-            <div id="docVisualContainer" class="flex-1 overflow-auto bg-slate-100/70 rounded-xl p-1 sm:p-3 text-center border border-slate-200/80 flex flex-col justify-center items-center min-h-[350px]">
+            <div id="docVisualContainer" class="flex-1 min-h-0 custom-scrollbar bg-slate-100/80 rounded-lg sm:rounded-xl p-2 sm:p-4 border border-slate-200/80">
                 <!-- Injected via JavaScript: Iframe PDF, Image, or Mock Document Paper -->
             </div>
 
@@ -1078,9 +1116,9 @@
                     if (isPdf && activeBlobUrl) {
                         // In Chromium (Chrome/Edge), setting an iframe or object with blob: URL renders the built-in PDF viewer directly without downloading!
                         containerEl.innerHTML = `
-                            <div class="w-full h-full flex flex-col flex-1 min-h-[560px]">
-                                <object data="${activeBlobUrl}#toolbar=1&navpanes=0&view=FitH" type="application/pdf" class="w-full h-full flex-1 min-h-[560px] rounded-xl border border-slate-300 shadow-sm bg-white">
-                                    <iframe src="${activeBlobUrl}#toolbar=1&navpanes=0&view=FitH" class="w-full h-full flex-1 min-h-[560px] rounded-xl border-0 bg-white" title="${activeDocObj.name}">
+                            <div class="w-full h-full min-h-[500px] flex flex-col rounded-xl overflow-hidden shadow border border-slate-300 bg-white">
+                                <object data="${activeBlobUrl}#toolbar=1&navpanes=0&view=FitH" type="application/pdf" class="w-full h-full flex-1 min-h-[500px]">
+                                    <iframe src="${activeBlobUrl}#toolbar=1&navpanes=0&view=FitH" class="w-full h-full flex-1 min-h-[500px] border-0" title="${activeDocObj.name}">
                                         <div class="p-6 text-center text-slate-700">
                                             <p class="font-bold mb-2">Trình duyệt không hỗ trợ hiển thị PDF trực tiếp trong khung này.</p>
                                             <button onclick="openInNewBrowserTab()" class="px-4 py-2 bg-blue-600 text-white rounded-xl font-bold text-xs hover:bg-blue-700 transition">
@@ -1094,8 +1132,8 @@
                     } else if (isImg) {
                         const imgSrc = activeBlobUrl || activeDocObj.dataUrl;
                         containerEl.innerHTML = `
-                            <div class="w-full h-full flex flex-col items-center justify-center p-4 bg-slate-900 rounded-xl overflow-auto min-h-[520px]">
-                                <img src="${imgSrc}" alt="${activeDocObj.name}" class="max-w-full max-h-[72vh] object-contain rounded-lg shadow-2xl border border-slate-700">
+                            <div class="w-full flex flex-col items-center justify-center p-3 bg-slate-900 rounded-xl overflow-hidden min-h-[420px]">
+                                <img src="${imgSrc}" alt="${activeDocObj.name}" class="max-w-full max-h-[68vh] object-contain rounded-lg shadow-2xl border border-slate-700">
                                 <div class="mt-3 flex items-center gap-2 bg-slate-800/90 text-slate-200 px-3 py-1.5 rounded-full text-xs border border-slate-700">
                                     <i class="fa-solid fa-image text-emerald-400"></i>
                                     <span class="font-mono text-emerald-300 font-bold">${activeDocObj.name}</span>
@@ -1106,7 +1144,7 @@
                     } else {
                         // Other binary file
                         containerEl.innerHTML = `
-                            <div class="w-full h-full flex flex-col items-center justify-center p-8 bg-slate-900 rounded-xl min-h-[460px] text-white">
+                            <div class="w-full flex flex-col items-center justify-center p-8 bg-slate-900 rounded-xl min-h-[380px] text-white">
                                 <i class="fa-solid fa-file text-5xl text-blue-400 mb-3"></i>
                                 <h4 class="font-mono text-base font-bold text-blue-300 mb-1">${activeDocObj.name}</h4>
                                 <p class="text-xs text-slate-400 mb-4">Loại tệp: ${activeDocObj.type || 'Tệp dữ liệu'}</p>
@@ -1125,74 +1163,72 @@
                     else if (docNameLower.includes('thu_moi')) docTypeTitle = 'THƯ MỜI THAM DỰ & TIẾP NHẬN ĐẠI LÝ CARGO';
 
                     containerEl.innerHTML = `
-                        <div class="w-full h-full overflow-y-auto flex justify-center py-1 sm:py-2 px-0.5 sm:px-1">
-                            <div id="mockDocPaper" class="bg-white text-slate-800 w-full max-w-3xl p-4 sm:p-8 rounded-xl shadow-lg border border-slate-300 text-left space-y-4 sm:space-y-6 text-xs font-sans relative overflow-hidden">
-                                <!-- Watermark Stamp (Scaled down and non-intrusive on mobile) -->
-                                <div class="absolute right-2 sm:right-6 top-6 sm:top-20 border-2 sm:border-4 border-emerald-600/15 sm:border-emerald-600/30 text-emerald-700/20 sm:text-emerald-700/35 rounded-full w-20 h-20 sm:w-32 sm:h-32 flex flex-col items-center justify-center font-bold rotate-[-15deg] pointer-events-none select-none uppercase text-center leading-tight z-0">
-                                    <span class="text-[7px] sm:text-[9px] tracking-wider">VIETRAVEL</span>
-                                    <span class="text-[9px] sm:text-xs font-black border-t border-b border-emerald-600/20 sm:border-emerald-600/30 py-0.5 my-0.5 text-emerald-700/40">ĐÃ XÁC THỰC</span>
-                                    <span class="text-[7px] sm:text-[8px] font-mono tracking-widest">E-VERIFIED</span>
-                                </div>
+                        <div id="mockDocPaper" class="bg-white text-slate-800 w-full max-w-3xl mx-auto p-3.5 sm:p-8 rounded-lg sm:rounded-xl shadow-md sm:shadow-lg border border-slate-200 sm:border-slate-300 text-left space-y-3 sm:space-y-6 text-xs font-sans relative overflow-hidden my-1">
+                            <!-- Watermark Stamp (Scaled down and subtle on mobile) -->
+                            <div class="absolute right-1 sm:right-6 top-3 sm:top-20 border-2 sm:border-4 border-emerald-600/15 sm:border-emerald-600/30 text-emerald-700/20 sm:text-emerald-700/35 rounded-full w-16 h-16 sm:w-32 sm:h-32 flex flex-col items-center justify-center font-bold rotate-[-15deg] pointer-events-none select-none uppercase text-center leading-tight z-0">
+                                <span class="text-[6px] sm:text-[9px] tracking-wider">VIETRAVEL</span>
+                                <span class="text-[7px] sm:text-xs font-black border-t border-b border-emerald-600/20 sm:border-emerald-600/30 py-0.5 my-0.5 text-emerald-700/40">ĐÃ XÁC THỰC</span>
+                                <span class="text-[5px] sm:text-[8px] font-mono tracking-widest">E-VERIFIED</span>
+                            </div>
 
-                                <!-- National Header -->
-                                <div class="text-center border-b border-slate-200 pb-3 sm:pb-4 space-y-0.5 sm:space-y-1 relative z-10">
-                                    <p class="font-bold uppercase text-[10px] sm:text-[11px] tracking-wider text-slate-800">CỘNG HÒA XÃ HỘI CHỦ NGHĨA VIỆT NAM</p>
-                                    <p class="font-semibold text-[11px] sm:text-xs text-slate-600">Độc lập - Tự do - Hạnh phúc</p>
-                                    <div class="w-20 sm:w-24 h-0.5 bg-slate-400 mx-auto my-1"></div>
-                                    <h2 class="text-sm sm:text-lg font-black text-blue-900 uppercase pt-1.5 sm:pt-2 tracking-wide break-words">${docTypeTitle}</h2>
-                                    <p class="text-[10px] sm:text-[11px] text-slate-500 font-mono">Số lưu trữ: E-DOC-${info.regId}/VTA-CARGO</p>
-                                </div>
+                            <!-- National Header -->
+                            <div class="text-center border-b border-slate-200 pb-2.5 sm:pb-4 space-y-0.5 sm:space-y-1 relative z-10">
+                                <p class="font-bold uppercase text-[10px] sm:text-[11px] tracking-wider text-slate-800">CỘNG HÒA XÃ HỘI CHỦ NGHĨA VIỆT NAM</p>
+                                <p class="font-semibold text-[10px] sm:text-xs text-slate-600">Độc lập - Tự do - Hạnh phúc</p>
+                                <div class="w-16 sm:w-24 h-0.5 bg-slate-400 mx-auto my-1"></div>
+                                <h2 class="text-xs sm:text-lg font-black text-blue-900 uppercase pt-1 sm:pt-2 tracking-wide break-words">${docTypeTitle}</h2>
+                                <p class="text-[9px] sm:text-[11px] text-slate-500 font-mono">Số lưu trữ: E-DOC-${info.regId}/VTA-CARGO</p>
+                            </div>
 
-                                <!-- Meta Info Table -->
-                                <div class="bg-slate-50 p-3 sm:p-4 rounded-xl border border-slate-200/90 space-y-2 text-[11px] sm:text-xs relative z-10">
-                                    <div class="grid grid-cols-1 sm:grid-cols-3 gap-0.5 sm:gap-1">
-                                        <span class="text-slate-500 font-medium">Tên đơn vị đăng ký:</span>
-                                        <span class="sm:col-span-2 font-bold text-slate-900 break-words">${activeCompName}</span>
-                                    </div>
-                                    <div class="grid grid-cols-1 sm:grid-cols-3 gap-0.5 sm:gap-1">
-                                        <span class="text-slate-500 font-medium">Mã số thuế / GPKD:</span>
-                                        <span class="sm:col-span-2 font-mono font-bold text-slate-800 break-words">${info.taxCode || '0318998877'}</span>
-                                    </div>
-                                    <div class="grid grid-cols-1 sm:grid-cols-3 gap-0.5 sm:gap-1">
-                                        <span class="text-slate-500 font-medium">Người đại diện pháp luật:</span>
-                                        <span class="sm:col-span-2 font-bold text-slate-800 break-words">${info.repName || 'Đại diện thẩm quyền'}</span>
-                                    </div>
-                                    <div class="grid grid-cols-1 sm:grid-cols-3 gap-0.5 sm:gap-1">
-                                        <span class="text-slate-500 font-medium">Tên tệp tin đính kèm:</span>
-                                        <span class="sm:col-span-2 font-mono font-bold text-blue-700 break-words">${activeDocObj.name}</span>
-                                    </div>
-                                    <div class="grid grid-cols-1 sm:grid-cols-3 gap-0.5 sm:gap-1">
-                                        <span class="text-slate-500 font-medium">Trạng thái lưu trữ hệ thống:</span>
-                                        <span class="sm:col-span-2 text-emerald-700 font-bold flex items-center gap-1">
-                                            <i class="fa-solid fa-shield-check"></i> Đã số hóa và tiếp nhận hợp lệ
-                                        </span>
-                                    </div>
+                            <!-- Meta Info Table (Key-Value flex layout for 100% full-width readability) -->
+                            <div class="bg-slate-50 p-2.5 sm:p-4 rounded-lg sm:rounded-xl border border-slate-200/90 space-y-1.5 sm:space-y-2 text-[11px] sm:text-xs relative z-10">
+                                <div class="flex flex-col sm:flex-row sm:items-start justify-between gap-0.5 sm:gap-2 border-b border-slate-100 pb-1">
+                                    <span class="text-slate-500 font-medium shrink-0">Tên đơn vị đăng ký:</span>
+                                    <span class="font-bold text-slate-900 break-words sm:text-right">${activeCompName}</span>
                                 </div>
-
-                                <!-- Document Body -->
-                                <div class="space-y-2.5 sm:space-y-3 text-[11px] sm:text-xs leading-relaxed text-slate-700 relative z-10">
-                                    <p><strong>Căn cứ:</strong> Quy chế quản lý hồ sơ và thẩm định năng lực đối tác đại lý vận tải hàng hóa hàng không trực tuyến (Vietravel Airlines Cargo Bidding Platform).</p>
-                                    <p>Văn bản chứng nhận hồ sơ <strong>${activeDocObj.name}</strong> của đại lý <strong>${activeCompName}</strong> đã được nộp và lưu trữ trực tiếp trên hệ thống để phục vụ công tác thẩm định điều kiện tham gia đấu thầu.</p>
-                                    <div class="p-2.5 sm:p-3 bg-blue-50 border border-blue-200 rounded-xl text-blue-900 text-[10px] sm:text-[11px] flex items-start gap-2">
-                                        <i class="fa-solid fa-circle-info text-blue-600 mt-0.5 shrink-0"></i>
-                                        <div>
-                                            <strong>Chế độ hiển thị trực tiếp:</strong> Bạn đang xem nội dung tài liệu trực tiếp trên trình duyệt. Khi cần lưu về máy tính, vui lòng bấm <strong>"Tải về máy"</strong> bên dưới.
-                                        </div>
-                                    </div>
+                                <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-0.5 sm:gap-2 border-b border-slate-100 pb-1">
+                                    <span class="text-slate-500 font-medium shrink-0">Mã số thuế / GPKD:</span>
+                                    <span class="font-mono font-bold text-slate-800 break-words sm:text-right">${info.taxCode || '0318998877'}</span>
                                 </div>
+                                <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-0.5 sm:gap-2 border-b border-slate-100 pb-1">
+                                    <span class="text-slate-500 font-medium shrink-0">Người đại diện pháp luật:</span>
+                                    <span class="font-bold text-slate-800 break-words sm:text-right">${info.repName || 'Đại diện thẩm quyền'}</span>
+                                </div>
+                                <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-0.5 sm:gap-2 border-b border-slate-100 pb-1">
+                                    <span class="text-slate-500 font-medium shrink-0">Tên tệp tin đính kèm:</span>
+                                    <span class="font-mono font-bold text-blue-700 break-words sm:text-right">${activeDocObj.name}</span>
+                                </div>
+                                <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-0.5 sm:gap-2 pt-0.5">
+                                    <span class="text-slate-500 font-medium shrink-0">Trạng thái lưu trữ hệ thống:</span>
+                                    <span class="text-emerald-700 font-bold flex items-center gap-1 sm:text-right">
+                                        <i class="fa-solid fa-shield-check"></i> Đã số hóa và tiếp nhận hợp lệ
+                                    </span>
+                                </div>
+                            </div>
 
-                                <!-- Signatures -->
-                                <div class="pt-4 sm:pt-6 flex flex-col sm:flex-row items-center sm:items-start justify-between text-center text-[11px] sm:text-xs border-t border-slate-200 gap-4 sm:gap-2 relative z-10">
+                            <!-- Document Body -->
+                            <div class="space-y-2 sm:space-y-3 text-[11px] sm:text-xs leading-relaxed text-slate-700 relative z-10">
+                                <p><strong>Căn cứ:</strong> Quy chế quản lý hồ sơ và thẩm định năng lực đối tác đại lý vận tải hàng hóa hàng không trực tuyến (Vietravel Airlines Cargo Bidding Platform).</p>
+                                <p>Văn bản chứng nhận hồ sơ <strong>${activeDocObj.name}</strong> của đại lý <strong>${activeCompName}</strong> đã được nộp và lưu trữ trực tiếp trên hệ thống để phục vụ công tác thẩm định điều kiện tham gia đấu thầu.</p>
+                                <div class="p-2 sm:p-3 bg-blue-50 border border-blue-200 rounded-xl text-blue-900 text-[10px] sm:text-[11px] flex items-start gap-2">
+                                    <i class="fa-solid fa-circle-info text-blue-600 mt-0.5 shrink-0"></i>
                                     <div>
-                                        <p class="font-bold text-slate-800 uppercase text-[10px] sm:text-[11px]">ĐẠI DIỆN ĐẠI LÝ ĐĂNG KÝ</p>
-                                        <p class="text-[9px] sm:text-[10px] text-slate-400 italic mb-4 sm:mb-8">(Ký & ghi rõ họ tên)</p>
-                                        <p class="font-bold text-slate-900 break-words">${activeCompName}</p>
+                                        <strong>Chế độ hiển thị trực tiếp:</strong> Bạn đang xem nội dung tài liệu trực tiếp trên trình duyệt. Khi cần lưu về máy tính, vui lòng bấm <strong>"Tải về máy"</strong> bên dưới.
                                     </div>
-                                    <div>
-                                        <p class="font-bold text-slate-800 uppercase text-[10px] sm:text-[11px]">BỘ PHẬN THẨM ĐỊNH CARGO</p>
-                                        <p class="text-[9px] sm:text-[10px] text-slate-400 italic mb-4 sm:mb-8">(Đã ký duyệt số hóa)</p>
-                                        <p class="font-bold text-blue-900">VIETRAVEL AIRLINES CARGO</p>
-                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- Signatures -->
+                            <div class="pt-3 sm:pt-6 flex flex-col sm:flex-row items-center sm:items-start justify-between text-center text-[10px] sm:text-xs border-t border-slate-200 gap-3 sm:gap-2 relative z-10">
+                                <div>
+                                    <p class="font-bold text-slate-800 uppercase text-[9px] sm:text-[11px]">ĐẠI DIỆN ĐẠI LÝ ĐĂNG KÝ</p>
+                                    <p class="text-[8px] sm:text-[10px] text-slate-400 italic mb-2 sm:mb-8">(Ký & ghi rõ họ tên)</p>
+                                    <p class="font-bold text-slate-900 break-words">${activeCompName}</p>
+                                </div>
+                                <div>
+                                    <p class="font-bold text-slate-800 uppercase text-[9px] sm:text-[11px]">BỘ PHẬN THẨM ĐỊNH CARGO</p>
+                                    <p class="text-[8px] sm:text-[10px] text-slate-400 italic mb-2 sm:mb-8">(Đã ký duyệt số hóa)</p>
+                                    <p class="font-bold text-blue-900">VIETRAVEL AIRLINES CARGO</p>
                                 </div>
                             </div>
                         </div>

@@ -1,5 +1,5 @@
 {
-  "version": 1788941672113,
+  "version": 1788942804843,
   "auctions": [
     {
       "id": 9,
@@ -43,7 +43,7 @@
       "startingPriceKg": 18000,
       "currentPriceKg": 27000,
       "minStep": 500,
-      "endTime": "2026-09-09T08:30:00.000Z",
+      "endTime": "2026-09-09T09:03:16.093Z",
       "status": "OPEN",
       "leadingAgentCode": "AG-1024",
       "leadingAgentName": "Công ty CP Giao nhận Kho vận Vinatrans",
@@ -181,7 +181,7 @@
       "startingPriceKg": 22000,
       "currentPriceKg": 30000,
       "minStep": 1000,
-      "endTime": "2026-09-09T08:30:00.000Z",
+      "endTime": "2026-09-09T09:03:16.093Z",
       "status": "OPEN",
       "leadingAgentCode": "AG-1024",
       "leadingAgentName": "Công ty CP Giao nhận Kho vận Vinatrans",
@@ -784,7 +784,7 @@
       "message": "123456oyhtgddqwd",
       "time": "Vừa xong",
       "type": "SYSTEM",
-      "read": false,
+      "read": true,
       "link": "03-Index.html",
       "targetAgentCode": null
     },
