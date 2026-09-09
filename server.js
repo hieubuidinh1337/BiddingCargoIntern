@@ -727,22 +727,29 @@ const server = http.createServer((req, res) => {
                         `
                     });
                 } else if (type === 'REGISTRATION_REJECTED') {
-                    subject = `[Vietravel Airlines Cargo] Thông báo kết quả xét duyệt hồ sơ đại lý - ${regId}`;
+                    const finalReason = reason || (regData && (regData.rejectionReason || regData.rejectReason)) || 'Hồ sơ chưa đạt tiêu chuẩn theo quy chế xét duyệt đại lý';
+                    subject = `[Vietravel Airlines Cargo] Yêu cầu bổ sung / Kết quả xét duyệt hồ sơ đại lý - ${regId}`;
                     html = buildEmailHtml({
                         title: 'Thông báo Kết quả Xét duyệt Hồ sơ Đại lý',
                         subtitle: `Mã hồ sơ: ${regId}`,
                         contentHtml: `
                             <p>Kính gửi <strong>${repName}</strong> (Đại diện <strong>${companyName}</strong>),</p>
-                            <p>Ban Điều hành Đấu giá Vietravel Airlines Cargo trân trọng cảm ơn Quý doanh nghiệp đã quan tâm và nộp hồ sơ.</p>
+                            <p>Ban Điều hành Đấu giá Vietravel Airlines Cargo trân trọng cảm ơn Quý doanh nghiệp đã nộp hồ sơ đăng ký tham gia sàn đấu giá.</p>
                             
                             <table role="presentation" width="100%" cellpadding="8" cellspacing="0" style="background:#fff3e0;border:1px solid #ffe0b2;border-radius:6px;margin:16px 0;">
                                 <tr><td style="color:#555;border-bottom:1px solid #e0e0e0;width:35%;">Mã hồ sơ:</td><td style="font-weight:bold;color:#e65100;">${regId}</td></tr>
                                 <tr><td style="color:#555;border-bottom:1px solid #e0e0e0;">Doanh nghiệp:</td><td>${companyName}</td></tr>
-                                <tr><td style="color:#555;border-bottom:1px solid #e0e0e0;">Kết quả:</td><td style="font-weight:bold;color:#d32f2f;">TỪ CHỐI / CẦN BỔ SUNG</td></tr>
-                                ${reason ? `<tr><td style="color:#555;">Lý do:</td><td style="color:#d32f2f;font-weight:bold;">${reason}</td></tr>` : ''}
+                                <tr><td style="color:#555;border-bottom:1px solid #e0e0e0;">Kết quả xét duyệt:</td><td style="font-weight:bold;color:#d32f2f;">TỪ CHỐI / YÊU CẦU BỔ SUNG</td></tr>
+                                <tr><td style="color:#555;vertical-align:top;">Lý do & Hướng dẫn:</td><td style="color:#d32f2f;font-weight:bold;line-height:1.5;">${finalReason}</td></tr>
                             </table>
 
-                            <p style="margin-top:16px;">Quý doanh nghiệp vui lòng kiểm tra lại hồ sơ và liên hệ bộ phận hỗ trợ đại lý qua Hotline <strong>1900 6699</strong> để được hướng dẫn bổ sung.</p>
+                            <p style="margin-top:16px;">Để không làm gián đoạn kế hoạch tham gia đấu giá tải trọng, Quý công ty vui lòng bấm vào nút bên dưới để chỉnh sửa và bổ sung thông tin cần thiết:</p>
+
+                            <p style="text-align:center;margin:24px 0;">
+                                <a href="http://localhost:8085/Register.html?resubmit=${regId}" style="display:inline-block;background-color:#d32f2f;color:#ffffff;font-weight:bold;padding:12px 28px;border-radius:6px;text-decoration:none;box-shadow:0 2px 4px rgba(0,0,0,0.15);">CHỈNH SỬA & BỔ SUNG HỒ SƠ</a>
+                            </p>
+
+                            <p style="font-size:12px;color:#666;">Nếu cần hỗ trợ thêm, Quý doanh nghiệp vui lòng liên hệ Ban Quản trị qua Hotline <strong>1900 1337</strong> hoặc email <strong>cargo@vietravelairlines.vn</strong>.</p>
                         `
                     });
                 } else if (type === 'AUCTION_WON') {

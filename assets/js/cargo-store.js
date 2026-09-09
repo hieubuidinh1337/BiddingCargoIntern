@@ -1407,6 +1407,32 @@ const CargoStore = (function() {
             );
 
             if (!agent) {
+                // Check if user has a pending or rejected registration
+                const reg = (data.registrations || []).find(r => 
+                    (r.regId || '').toLowerCase() === identifier ||
+                    (r.taxCode || '').toLowerCase() === identifier ||
+                    (r.email || '').toLowerCase() === identifier
+                );
+
+                if (reg) {
+                    if (reg.status === 'REJECTED') {
+                        return {
+                            success: false,
+                            isRejected: true,
+                            regId: reg.regId,
+                            rejectionReason: reg.rejectionReason || reg.rejectReason || 'Hồ sơ chưa đạt tiêu chuẩn theo quy chế xét duyệt đại lý',
+                            message: `Hồ sơ đăng ký (${reg.regId}) của Quý công ty đã bị TỪ CHỐI / CẦN BỔ SUNG.\n\nLý do từ chối: "${reg.rejectionReason || reg.rejectReason || 'Hồ sơ chưa đạt tiêu chuẩn'}"\n\nVui lòng bấm "Bổ sung hồ sơ" để chỉnh sửa và nộp lại.`
+                        };
+                    } else if (reg.status === 'PENDING') {
+                        return {
+                            success: false,
+                            isPending: true,
+                            regId: reg.regId,
+                            message: `Hồ sơ đăng ký (${reg.regId}) của Quý công ty đang được Ban Điều hành xét duyệt (trong vòng 24h làm việc). Khi được phê duyệt, hệ thống sẽ gửi Mã Đại lý qua email (${reg.email}).`
+                        };
+                    }
+                }
+
                 // If newly approved agent code format AG-xxxx
                 if (identifier.startsWith('ag-')) {
                     const code = identifier.toUpperCase();
@@ -2206,6 +2232,51 @@ const CargoStore = (function() {
             }
 
             const now = new Date();
+
+            // Check if resubmitting an existing rejected registration
+            const existingRejectedReg = (data.registrations || []).find(r => 
+                (regData.resubmitRegId && r.regId === regData.resubmitRegId) ||
+                (taxClean && r.taxCode && r.taxCode.trim() === taxClean && r.status === 'REJECTED')
+            );
+
+            if (existingRejectedReg) {
+                existingRejectedReg.companyName = regData.companyName || existingRejectedReg.companyName;
+                existingRejectedReg.taxCode = taxClean || existingRejectedReg.taxCode;
+                existingRejectedReg.businessLicense = regData.businessLicense || existingRejectedReg.businessLicense;
+                existingRejectedReg.address = regData.address || existingRejectedReg.address;
+                existingRejectedReg.field = regData.field || existingRejectedReg.field;
+                existingRejectedReg.repName = regData.repName || existingRejectedReg.repName;
+                existingRejectedReg.repPosition = regData.repPosition || existingRejectedReg.repPosition;
+                existingRejectedReg.email = emailClean || existingRejectedReg.email;
+                existingRejectedReg.phone = phoneClean || existingRejectedReg.phone;
+                existingRejectedReg.citizenId = regData.citizenId || existingRejectedReg.citizenId;
+                existingRejectedReg.notifEmail = regData.notifEmail || existingRejectedReg.notifEmail;
+                if (regData.password) existingRejectedReg.password = regData.password;
+                if (regData.pin) existingRejectedReg.pin = regData.pin;
+                if (regData.documents && regData.documents.length > 0) {
+                    existingRejectedReg.documents = regData.documents.map(d => {
+                        if (typeof d === 'string') return { name: d, dataUrl: null, type: d.toLowerCase().endsWith('.pdf') ? 'application/pdf' : 'image/png' };
+                        return { name: d.name || 'document', dataUrl: d.dataUrl || null, type: d.type || 'application/octet-stream', size: d.size || 0 };
+                    });
+                }
+                existingRejectedReg.status = 'PENDING';
+                existingRejectedReg.rejectionReason = null;
+                existingRejectedReg.rejectReason = null;
+                existingRejectedReg.resubmittedAt = now.toISOString();
+                existingRejectedReg.submittedAt = now.toLocaleDateString('vi-VN') + ' ' + now.toLocaleTimeString('vi-VN', { hour: '2-digit', minute: '2-digit' }) + ' (Bổ sung lại)';
+
+                saveData(data);
+
+                CargoStore.sendEmailNotification({
+                    type: 'REGISTRATION_SUBMITTED',
+                    to: existingRejectedReg.email,
+                    notifEmail: existingRejectedReg.notifEmail,
+                    regData: existingRejectedReg
+                });
+
+                return existingRejectedReg;
+            }
+
             const dateStr = now.toISOString().slice(0, 10).replace(/-/g, '');
             const count = data.registrations.length + 1;
             const regId = `REG-${dateStr}-${String(count).padStart(2, '0')}`;
@@ -2354,14 +2425,31 @@ const CargoStore = (function() {
             };
         },
 
-        rejectRegistration: function(regId) {
+        rejectRegistration: function(regId, reason) {
             const data = loadData();
             if (data.currentAdmin && data.currentAdmin.role === 'STAFF') {
                 return { success: false, message: 'Nhân viên (STAFF) không có quyền từ chối hồ sơ đại lý. Thao tác này chỉ dành cho Quản trị viên (ADMIN).' };
             }
-            const reg = data.registrations.find(r => r.regId === regId);
-            if (!reg) return false;
+            const reg = (data.registrations || []).find(r => r.regId === regId);
+            if (!reg) return { success: false, message: 'Không tìm thấy hồ sơ đăng ký tương ứng.' };
+
+            const finalReason = (reason || '').trim() || 'Hồ sơ chưa đạt tiêu chuẩn theo quy chế xét duyệt đại lý';
             reg.status = 'REJECTED';
+            reg.rejectionReason = finalReason;
+            reg.rejectReason = finalReason;
+            reg.rejectedAt = new Date().toISOString();
+
+            // Add notification for admin audit
+            if (!data.notifications) data.notifications = [];
+            data.notifications.unshift({
+                id: Date.now(),
+                title: `Từ chối hồ sơ ${reg.regId}`,
+                message: `Hồ sơ đại lý ${reg.companyName} đã bị từ chối. Lý do: "${finalReason}"`,
+                time: 'Vừa xong',
+                type: 'AGENT',
+                unread: true,
+                targetRole: 'ADMIN'
+            });
             saveData(data);
 
             // Dispatch automated email via Nodemailer
@@ -2369,10 +2457,19 @@ const CargoStore = (function() {
                 type: 'REGISTRATION_REJECTED',
                 to: reg.email,
                 notifEmail: reg.notifEmail,
-                regData: reg
+                reason: finalReason,
+                regData: {
+                    ...reg,
+                    rejectionReason: finalReason,
+                    rejectReason: finalReason
+                }
             });
 
-            return true;
+            return {
+                success: true,
+                message: `Đã từ chối hồ sơ ${regId} và gửi email thông báo lý do đến đại lý (${reg.email}) thành công!`,
+                reg: reg
+            };
         },
 
         sendEmailNotification: async function(payload) {

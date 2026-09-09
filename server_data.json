@@ -1,5 +1,5 @@
 {
-  "version": 1788923462099,
+  "version": 1788925031216,
   "auctions": [
     {
       "id": 9,
@@ -862,7 +862,7 @@
       "message": "Đại lý Công ty TNHH Vận tải ABC Logistics (AG-0892) đã trúng thầu chuyến VU32453 (SGN - HAN) mức giá 25.000 đ/Kg.",
       "time": "Vừa xong",
       "type": "WON",
-      "read": false,
+      "read": true,
       "link": "07-WonAuction.html"
     },
     {
@@ -884,7 +884,7 @@
       "message": "Bạn (AG-0892) đang dẫn đầu mức giá 25.000 đ/Kg cho chặng SGN - HAN. (Tên công ty được che ẩn danh đối với các đối thủ)",
       "time": "Vừa xong",
       "type": "HIGHEST",
-      "read": false,
+      "read": true,
       "link": "04-Detail.html?id=6"
     },
     {
@@ -916,7 +916,7 @@
       "message": "Bạn (AG-0892) đang dẫn đầu mức giá 57.000 đ/Kg cho chặng SGN - HAN. (Tên công ty được che ẩn danh đối với các đối thủ)",
       "time": "Vừa xong",
       "type": "HIGHEST",
-      "read": false,
+      "read": true,
       "link": "04-Detail.html?id=5"
     },
     {
@@ -982,7 +982,7 @@
       "message": "Một đại lý đối thủ (Ẩn danh) vừa đặt mức giá mới 27.000 đ/Kg cho chặng DAD - PQC.",
       "time": "Vừa xong",
       "type": "OUTBID",
-      "read": false,
+      "read": true,
       "link": "04-Detail.html?id=8"
     },
     {
@@ -1015,7 +1015,7 @@
       "message": "Bạn (AG-0892) đang dẫn đầu mức giá 26.000 đ/Kg cho chặng DAD - PQC. (Tên công ty được che ẩn danh đối với các đối thủ)",
       "time": "Vừa xong",
       "type": "HIGHEST",
-      "read": false,
+      "read": true,
       "link": "04-Detail.html?id=8"
     },
     {
@@ -1026,7 +1026,7 @@
       "message": "Bạn (AG-0892) đang dẫn đầu mức giá 56.500 đ/Kg cho chặng SGN - HAN. (Tên công ty được che ẩn danh đối với các đối thủ)",
       "time": "Vừa xong",
       "type": "HIGHEST",
-      "read": false,
+      "read": true,
       "link": "04-Detail.html?id=1"
     },
     {
@@ -1816,7 +1816,11 @@
   },
   "routeSubscriptions": {
     "AG-0892": {
-      "routes": [],
+      "routes": [
+        "HAN - SGN",
+        "SGN - HAN",
+        "SGN - DAD"
+      ],
       "notifyOnNewAuction": true,
       "notifyOnOutbid": true,
       "notifyOnClosingSoon": true,
@@ -1824,7 +1828,10 @@
       "updatedAt": "2026-09-08 15:30"
     },
     "AG-0556": {
-      "routes": [],
+      "routes": [
+        "HAN-SGN",
+        "SGN-HAN"
+      ],
       "notifyOnNewAuction": true,
       "notifyOnOutbid": true,
       "notifyOnClosingSoon": true,
@@ -1833,7 +1840,10 @@
       "soundAlert": true
     },
     "AG-0341": {
-      "routes": [],
+      "routes": [
+        "HAN-SGN",
+        "SGN-HAN"
+      ],
       "notifyOnNewAuction": true,
       "notifyOnOutbid": true,
       "notifyOnClosingSoon": true,

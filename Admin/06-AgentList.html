@@ -272,6 +272,80 @@
         </div>
     </div>
 
+    <!-- Modal Từ chối / Yêu cầu bổ sung Hồ sơ Đăng ký Đại lý -->
+    <div id="rejectRegModal" class="fixed inset-0 bg-slate-900/60 backdrop-blur-xs z-50 hidden items-center justify-center p-4">
+        <div class="bg-white rounded-2xl max-w-lg w-full p-6 shadow-2xl border border-slate-200 animate-in fade-in zoom-in-95 duration-200">
+            <div class="flex items-center justify-between border-b pb-3 mb-4">
+                <div class="flex items-center gap-2.5">
+                    <div class="w-9 h-9 bg-red-100 text-red-600 rounded-xl flex items-center justify-center font-bold text-base">
+                        <i class="fa-solid fa-ban"></i>
+                    </div>
+                    <div>
+                        <h3 class="font-bold text-base text-slate-900">Từ chối / Yêu cầu bổ sung Hồ sơ</h3>
+                        <p class="text-xs text-slate-500">Mã hồ sơ: <span id="rejectModalRegId" class="font-bold font-mono text-red-600">-</span></p>
+                    </div>
+                </div>
+                <button type="button" onclick="closeRejectRegModal()" class="text-slate-400 hover:text-slate-600 text-lg cursor-pointer">
+                    <i class="fa-solid fa-xmark"></i>
+                </button>
+            </div>
+
+            <div class="bg-slate-50 p-3.5 rounded-xl border border-slate-200 mb-4 text-xs space-y-1">
+                <p>• <strong>Doanh nghiệp:</strong> <span id="rejectModalCompanyName" class="font-semibold text-slate-800">-</span></p>
+                <p>• <strong>Người đại diện:</strong> <span id="rejectModalRepName" class="font-semibold text-slate-800">-</span></p>
+                <p>• <strong>Email nhận thông báo:</strong> <span id="rejectModalEmail" class="font-semibold text-blue-700 font-mono">-</span></p>
+            </div>
+
+            <form id="rejectRegForm" onsubmit="submitRejectRegistration(event)" class="space-y-4">
+                <input type="hidden" id="rejectModalRegIdInput">
+
+                <div>
+                    <label class="block text-xs font-bold text-slate-700 mb-1">
+                        Lý do từ chối & Hướng dẫn bổ sung <span class="text-red-500">*</span>
+                    </label>
+                    <textarea id="rejectModalReasonInput" required rows="3" placeholder="Nhập chi tiết lý do từ chối để gửi thông báo hướng dẫn doanh nghiệp bổ sung giấy tờ..."
+                              class="w-full border border-slate-300 rounded-xl p-3 text-xs focus:ring-2 focus:ring-red-500 outline-none leading-relaxed bg-white"></textarea>
+                </div>
+
+                <!-- Quick Pick Suggestions -->
+                <div>
+                    <label class="block text-[11px] font-semibold text-slate-500 mb-1.5">Gợi ý lý do nhanh (Bấm để tự điền):</label>
+                    <div class="flex flex-wrap gap-1.5">
+                        <button type="button" onclick="setRejectPreset('Giấy phép ĐKKD bị mờ / hết hiệu lực, vui lòng scan lại bản rõ nét.')" class="text-[10px] bg-slate-100 hover:bg-red-50 hover:text-red-700 hover:border-red-200 border rounded-lg px-2.5 py-1 transition cursor-pointer font-medium text-slate-600">
+                            📄 GPKD mờ / hết hạn
+                        </button>
+                        <button type="button" onclick="setRejectPreset('Mã số thuế không khớp với thông tin tra cứu trên Tổng cục Thuế.')" class="text-[10px] bg-slate-100 hover:bg-red-50 hover:text-red-700 hover:border-red-200 border rounded-lg px-2.5 py-1 transition cursor-pointer font-medium text-slate-600">
+                            🏢 MST không khớp
+                        </button>
+                        <button type="button" onclick="setRejectPreset('Thiếu Giấy ủy quyền của người đại diện pháp luật doanh nghiệp.')" class="text-[10px] bg-slate-100 hover:bg-red-50 hover:text-red-700 hover:border-red-200 border rounded-lg px-2.5 py-1 transition cursor-pointer font-medium text-slate-600">
+                            ✍️ Thiếu giấy ủy quyền
+                        </button>
+                        <button type="button" onclick="setRejectPreset('Chứng chỉ IATA / Hiệp hội Logistics (VLA) chưa đạt tiêu chuẩn.')" class="text-[10px] bg-slate-100 hover:bg-red-50 hover:text-red-700 hover:border-red-200 border rounded-lg px-2.5 py-1 transition cursor-pointer font-medium text-slate-600">
+                            ✈️ Chứng chỉ IATA/VLA
+                        </button>
+                        <button type="button" onclick="setRejectPreset('Thông tin số điện thoại / email người đại diện không liên hệ xác thực được.')" class="text-[10px] bg-slate-100 hover:bg-red-50 hover:text-red-700 hover:border-red-200 border rounded-lg px-2.5 py-1 transition cursor-pointer font-medium text-slate-600">
+                            📞 Không liên hệ được
+                        </button>
+                    </div>
+                </div>
+
+                <div class="p-3 bg-amber-50 border border-amber-200 rounded-xl text-[11px] text-amber-800 flex items-start gap-2">
+                    <i class="fa-solid fa-circle-info text-amber-600 mt-0.5"></i>
+                    <span>Hệ thống sẽ <strong>tự động gửi email thông báo kèm lý do chi tiết</strong> này đến hòm thư của đại lý và cung cấp link để đại lý cập nhật & nộp lại hồ sơ nhanh chóng.</span>
+                </div>
+
+                <div class="flex items-center justify-end gap-2.5 pt-3 border-t">
+                    <button type="button" onclick="closeRejectRegModal()" class="px-4 py-2 border rounded-xl text-slate-600 hover:bg-slate-50 font-semibold text-xs cursor-pointer">
+                        Hủy bỏ
+                    </button>
+                    <button type="submit" class="px-5 py-2 bg-red-600 hover:bg-red-700 text-white font-bold rounded-xl text-xs shadow-sm transition flex items-center gap-1.5 cursor-pointer">
+                        <i class="fa-solid fa-paper-plane"></i> Xác nhận từ chối & Gửi thông báo
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+
     <script>
         let activeTab = 'REGISTRATIONS';
 
@@ -530,6 +604,14 @@
                                 </div>
                             </div>
 
+                            ${(r.status === 'REJECTED' && (r.rejectionReason || r.rejectReason)) ? `
+                                <div class="p-3 bg-red-50 border border-red-200 rounded-xl text-xs text-red-800 space-y-1">
+                                    <p class="font-bold flex items-center gap-1 text-red-900"><i class="fa-solid fa-circle-xmark text-red-600"></i> Lý do từ chối & Yêu cầu bổ sung:</p>
+                                    <p class="font-medium leading-relaxed pl-4">"${r.rejectionReason || r.rejectReason}"</p>
+                                    ${r.rejectedAt ? `<p class="text-[10px] text-red-500 pl-4 font-mono">Đã từ chối lúc: ${new Date(r.rejectedAt).toLocaleString('vi-VN')}</p>` : ''}
+                                </div>
+                            ` : ''}
+
                             ${isPending ? `
                                 <div class="flex items-center justify-end gap-2.5 pt-2 border-t">
                                     ${isStaff ? `
@@ -540,10 +622,10 @@
                                             <i class="fa-solid fa-check"></i> Phê duyệt & Kích hoạt đại lý
                                         </button>
                                     ` : `
-                                        <button onclick="handleReject('${r.regId}')" class="bg-red-50 hover:bg-red-100 text-red-600 font-bold px-4 py-2 rounded-xl text-xs transition">
-                                            Từ chối hồ sơ
+                                        <button onclick="openRejectModal('${r.regId}')" class="bg-red-50 hover:bg-red-100 text-red-600 font-bold px-4 py-2 rounded-xl text-xs transition cursor-pointer flex items-center gap-1">
+                                            <i class="fa-solid fa-ban"></i> Từ chối hồ sơ
                                         </button>
-                                        <button onclick="handleApprove('${r.regId}')" class="bg-blue-600 hover:bg-blue-700 text-white font-bold px-5 py-2 rounded-xl text-xs transition shadow flex items-center gap-1.5">
+                                        <button onclick="handleApprove('${r.regId}')" class="bg-blue-600 hover:bg-blue-700 text-white font-bold px-5 py-2 rounded-xl text-xs transition shadow flex items-center gap-1.5 cursor-pointer">
                                             <i class="fa-solid fa-check"></i> Phê duyệt & Kích hoạt đại lý
                                         </button>
                                     `}
@@ -656,15 +738,64 @@
             }
         }
 
-        function handleReject(regId) {
-            if (confirm(`Bạn có chắc chắn muốn từ chối hồ sơ đăng ký đại lý "${regId}" không?`)) {
-                const res = CargoStore.rejectRegistration(regId);
-                if (typeof res === 'object' && res && !res.success) {
-                    alert(res.message);
-                } else {
-                    renderAgentsList();
-                }
+        function openRejectModal(regId) {
+            const data = CargoStore.getData();
+            const reg = (data.registrations || []).find(r => r.regId === regId);
+            if (!reg) {
+                alert('Không tìm thấy thông tin hồ sơ!');
+                return;
             }
+
+            document.getElementById('rejectModalRegId').textContent = reg.regId;
+            document.getElementById('rejectModalRegIdInput').value = reg.regId;
+            document.getElementById('rejectModalCompanyName').textContent = reg.companyName || '-';
+            document.getElementById('rejectModalRepName').textContent = `${reg.repName || '-'} (${reg.repPosition || 'Đại diện'})`;
+            document.getElementById('rejectModalEmail').textContent = `${reg.email} ${reg.notifEmail && reg.notifEmail !== reg.email ? `(Thông báo: ${reg.notifEmail})` : ''}`;
+            document.getElementById('rejectModalReasonInput').value = '';
+
+            const modal = document.getElementById('rejectRegModal');
+            modal.classList.remove('hidden');
+            modal.classList.add('flex');
+            setTimeout(() => document.getElementById('rejectModalReasonInput').focus(), 100);
+        }
+
+        function closeRejectRegModal() {
+            const modal = document.getElementById('rejectRegModal');
+            modal.classList.add('hidden');
+            modal.classList.remove('flex');
+        }
+
+        function setRejectPreset(text) {
+            const input = document.getElementById('rejectModalReasonInput');
+            if (input) {
+                input.value = text;
+                input.focus();
+            }
+        }
+
+        function submitRejectRegistration(e) {
+            e.preventDefault();
+            const regId = document.getElementById('rejectModalRegIdInput').value;
+            const reason = document.getElementById('rejectModalReasonInput').value.trim();
+
+            if (!reason) {
+                alert('Vui lòng nhập lý do từ chối để gửi thông báo hướng dẫn cho đại lý!');
+                return;
+            }
+
+            const res = CargoStore.rejectRegistration(regId, reason);
+            if (typeof res === 'object' && res && !res.success) {
+                alert(res.message);
+                return;
+            }
+
+            alert(`✅ ĐÃ TỪ CHỐI HỒ SƠ & GỬI THÔNG BÁO THÀNH CÔNG!\n\n• Mã hồ sơ: ${regId}\n• Lý do: "${reason}"\n\nEmail thông báo kết quả xét duyệt kèm liên kết để đại lý chỉnh sửa & nộp lại hồ sơ đã được tự động gửi đi!`);
+            closeRejectRegModal();
+            renderAgentsList();
+        }
+
+        function handleReject(regId) {
+            openRejectModal(regId);
         }
 
         function handleToggleLock(identifier, type) {

@@ -207,10 +207,20 @@
         }
     }
 
-    function showError(title, msg) {
+    function showError(title, msg, customHtml = '') {
         const alertBox = document.getElementById('errorAlert');
         document.getElementById('errorTitle').textContent = title;
-        document.getElementById('errorMsg').textContent = msg;
+        document.getElementById('errorMsg').innerHTML = msg;
+        
+        let extraEl = document.getElementById('errorExtraAction');
+        if (!extraEl) {
+            extraEl = document.createElement('div');
+            extraEl.id = 'errorExtraAction';
+            extraEl.className = 'pl-6 pt-2';
+            alertBox.appendChild(extraEl);
+        }
+        extraEl.innerHTML = customHtml;
+
         alertBox.classList.remove('hidden');
         const card = document.getElementById('loginCard');
         card.classList.remove('shake');
@@ -220,6 +230,8 @@
 
     function hideError() {
         document.getElementById('errorAlert').classList.add('hidden');
+        const extraEl = document.getElementById('errorExtraAction');
+        if (extraEl) extraEl.innerHTML = '';
     }
 
     function forgotPassword() {
@@ -302,7 +314,20 @@
 
         const res = CargoStore.loginAgent(code, pwd);
         if (!res.success) {
-            showError('Đăng nhập thất bại', res.message);
+            if (res.isRejected) {
+                const actionBtn = `
+                    <div class="mt-2 pt-2 border-t border-red-200 flex items-center justify-between gap-2">
+                        <span class="text-[11px] text-red-700">Mã hồ sơ: <strong>${res.regId || ''}</strong></span>
+                        <a href="Register.html?resubmit=${encodeURIComponent(res.regId || '')}" 
+                           class="inline-flex items-center gap-1.5 bg-red-600 hover:bg-red-700 text-white px-3 py-1.5 rounded-lg text-xs font-bold transition shadow-xs">
+                            <i class="fa-solid fa-pen-to-square"></i> Chỉnh sửa & Nộp lại hồ sơ
+                        </a>
+                    </div>
+                `;
+                showError('Hồ sơ đăng ký bị từ chối / Cần bổ sung', res.message, actionBtn);
+            } else {
+                showError('Đăng nhập thất bại', res.message);
+            }
             return;
         }
 

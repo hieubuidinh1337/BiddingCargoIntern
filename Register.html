@@ -62,6 +62,32 @@
                 <input type="checkbox" id="demoAutoFillCheckbox" onchange="toggleDemoFill(this)" class="w-4 h-4 rounded text-blue-600 focus:ring-blue-500">
                 <span class="text-xs font-bold text-blue-900">Tự động điền Hồ sơ mẫu</span>
             </label>
+        <!-- Rejected Application Resubmission Notice Banner -->
+        <div id="rejectionNoticeBanner" class="hidden bg-red-50 border-2 border-red-300 rounded-2xl p-4 sm:p-5 mb-6 shadow-sm animate-in fade-in duration-300">
+            <div class="flex items-start gap-3.5">
+                <div class="w-10 h-10 bg-red-600 text-white rounded-xl flex items-center justify-center font-bold text-lg flex-shrink-0 mt-0.5 shadow-sm">
+                    <i class="fa-solid fa-triangle-exclamation"></i>
+                </div>
+                <div class="flex-1">
+                    <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-1 mb-1">
+                        <h3 class="font-bold text-sm text-red-900 flex items-center gap-2">
+                            Hồ sơ đăng ký đại lý cần chỉnh sửa / bổ sung
+                            <span id="rejectedBannerRegId" class="font-mono text-xs bg-red-200 text-red-900 px-2 py-0.5 rounded font-bold">REG-...</span>
+                        </h3>
+                    </div>
+                    <div class="bg-white/90 p-3 rounded-xl border border-red-200 my-2">
+                        <p class="text-xs font-bold text-red-800 flex items-center gap-1.5 mb-1">
+                            <i class="fa-solid fa-comment-dots text-red-600"></i> Lý do từ chối từ Ban Điều hành:
+                        </p>
+                        <p id="rejectedBannerReason" class="text-xs text-red-700 font-medium leading-relaxed pl-5 italic">
+                            -
+                        </p>
+                    </div>
+                    <p class="text-xs text-slate-600">
+                        Thông tin doanh nghiệp đã được tự động điền lại vào biểu mẫu bên dưới. Quý công ty vui lòng <strong>chỉnh sửa & bổ sung các giấy tờ theo yêu cầu</strong> và bấm <strong>"Gửi lại hồ sơ xét duyệt"</strong>.
+                    </p>
+                </div>
+            </div>
         </div>
 
         <form class="space-y-6" id="registerForm">
@@ -727,6 +753,54 @@
             }
         }
 
+        let currentResubmitRegId = null;
+
+        function initResubmitFromUrl() {
+            const urlParams = new URLSearchParams(window.location.search);
+            const resubmitId = urlParams.get('resubmit') || urlParams.get('ref');
+            if (!resubmitId || typeof CargoStore === 'undefined') return;
+
+            const data = CargoStore.getData();
+            const reg = (data.registrations || []).find(r => r.regId === resubmitId);
+            if (!reg) return;
+
+            currentResubmitRegId = reg.regId;
+
+            // Show rejection notice banner
+            const banner = document.getElementById('rejectionNoticeBanner');
+            const regIdEl = document.getElementById('rejectedBannerRegId');
+            const reasonEl = document.getElementById('rejectedBannerReason');
+            if (banner) banner.classList.remove('hidden');
+            if (regIdEl) regIdEl.textContent = reg.regId;
+            if (reasonEl) reasonEl.textContent = reg.rejectionReason || reg.rejectReason || 'Hồ sơ chưa đạt yêu cầu thẩm định. Vui lòng kiểm tra lại thông tin và bổ sung hồ sơ hợp lệ.';
+
+            // Pre-fill form inputs
+            if (document.getElementById('companyName')) document.getElementById('companyName').value = reg.companyName || '';
+            if (document.getElementById('taxCode')) document.getElementById('taxCode').value = reg.taxCode || '';
+            if (document.getElementById('businessLicense')) document.getElementById('businessLicense').value = reg.businessLicense || '';
+            if (document.getElementById('address')) document.getElementById('address').value = reg.address || '';
+            if (document.getElementById('website')) document.getElementById('website').value = reg.website || '';
+            if (document.getElementById('businessField')) document.getElementById('businessField').value = reg.field || 'Freight Forwarder';
+
+            if (document.getElementById('repName')) document.getElementById('repName').value = reg.repName || '';
+            if (document.getElementById('repPosition')) document.getElementById('repPosition').value = reg.repPosition || '';
+            if (document.getElementById('email')) document.getElementById('email').value = reg.email || '';
+            if (document.getElementById('phone')) document.getElementById('phone').value = reg.phone || '';
+            if (document.getElementById('citizenId')) document.getElementById('citizenId').value = reg.citizenId || '';
+            if (document.getElementById('notifEmail')) document.getElementById('notifEmail').value = reg.notifEmail || reg.email || '';
+
+            // Update submit button text
+            const submitBtn = document.querySelector('#registerForm button[type="submit"]');
+            if (submitBtn) {
+                submitBtn.innerHTML = '<i class="fa-solid fa-rotate-right"></i> Cập nhật & Nộp lại hồ sơ xét duyệt';
+                submitBtn.className = 'px-8 py-3.5 bg-amber-600 hover:bg-amber-700 text-white rounded-xl text-sm font-semibold transition shadow-md shadow-amber-600/20 flex items-center justify-center gap-2';
+            }
+
+            validateFormInputs(false, false);
+        }
+
+        document.addEventListener('DOMContentLoaded', initResubmitFromUrl);
+
         document.getElementById('registerForm').addEventListener('submit', function(e) {
             e.preventDefault();
 
@@ -752,11 +826,13 @@
             if (typeof CargoStore !== 'undefined') {
                 const collectedFiles = collectUploadedFiles();
                 const res = CargoStore.registerAgent({
+                    resubmitRegId: currentResubmitRegId,
                     companyName: compName,
                     taxCode: document.getElementById('taxCode').value,
                     businessLicense: document.getElementById('businessLicense').value,
                     address: document.getElementById('address').value,
                     field: document.getElementById('businessField').value,
+                    website: document.getElementById('website')?.value || '',
                     repName: repName,
                     repPosition: document.getElementById('repPosition').value,
                     email: document.getElementById('email').value,
