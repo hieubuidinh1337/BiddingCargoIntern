@@ -94,6 +94,9 @@
                         <option value="DAD - SGN">DAD - SGN (Đà Nẵng - Sài Gòn)</option>
                         <option value="DAD - HAN">DAD - HAN (Đà Nẵng - Hà Nội)</option>
                         <option value="DAD - PQC">DAD - PQC (Đà Nẵng - Phú Quốc)</option>
+                        <option value="PQC - SGN">PQC - SGN (Phú Quốc - Sài Gòn)</option>
+                        <option value="PQC - HAN">PQC - HAN (Phú Quốc - Hà Nội)</option>
+                        <option value="PQC - DAD">PQC - DAD (Phú Quốc - Đà Nẵng)</option>
                     </select>
                 </div>
 
@@ -334,13 +337,21 @@
 
             // Filters
             if (routeVal !== 'ALL') {
-                list = list.filter(a => a.route === routeVal);
+                const cleanSelected = routeVal.replace(/\s+/g, '').toUpperCase();
+                list = list.filter(a => (a.route || '').replace(/\s+/g, '').toUpperCase() === cleanSelected);
             }
             if (statusVal !== 'ALL') {
                 list = list.filter(a => a.status === statusVal);
             }
             if (searchVal) {
-                list = list.filter(a => a.flightNumber.toLowerCase().includes(searchVal) || a.route.toLowerCase().includes(searchVal));
+                list = list.filter(a => 
+                    (a.flightNumber || '').toLowerCase().includes(searchVal) ||
+                    (a.route || '').toLowerCase().includes(searchVal) ||
+                    (a.origin || '').toLowerCase().includes(searchVal) ||
+                    (a.destination || '').toLowerCase().includes(searchVal) ||
+                    (a.originName || '').toLowerCase().includes(searchVal) ||
+                    (a.destName || '').toLowerCase().includes(searchVal)
+                );
             }
 
             // Sorting: Watched/Followed auctions are ALWAYS pinned to top!

@@ -99,6 +99,7 @@
                             <option value="SGN">SGN - TP. Hồ Chí Minh</option>
                             <option value="HAN">HAN - Hà Nội</option>
                             <option value="DAD">DAD - Đà Nẵng</option>
+                            <option value="PQC">PQC - Phú Quốc</option>
                         </select>
                     </div>
                     <div>
@@ -107,6 +108,7 @@
                             <option value="HAN">HAN - Hà Nội</option>
                             <option value="DAD">DAD - Đà Nẵng</option>
                             <option value="PQC">PQC - Phú Quốc</option>
+                            <option value="SGN">SGN - TP. Hồ Chí Minh</option>
                         </select>
                     </div>
                 </div>
@@ -315,7 +317,8 @@
                 'SGN-DAD': 80,  'DAD-SGN': 80,
                 'HAN-DAD': 80,  'DAD-HAN': 80,
                 'HAN-PQC': 135, 'PQC-HAN': 135,
-                'SGN-PQC': 60,  'PQC-SGN': 60
+                'SGN-PQC': 60,  'PQC-SGN': 60,
+                'DAD-PQC': 105, 'PQC-DAD': 105
             };
             return map[pair] || 120;
         }
@@ -335,7 +338,9 @@
                 'HAN-PQC': ['VU340', 'VU342', 'VU344', 'VU346'],
                 'PQC-HAN': ['VU341', 'VU343', 'VU345', 'VU347'],
                 'SGN-PQC': ['VU450', 'VU452', 'VU454', 'VU456'],
-                'PQC-SGN': ['VU451', 'VU453', 'VU455', 'VU457']
+                'PQC-SGN': ['VU451', 'VU453', 'VU455', 'VU457'],
+                'DAD-PQC': ['VU510', 'VU512', 'VU514', 'VU516'],
+                'PQC-DAD': ['VU511', 'VU513', 'VU515', 'VU517']
             };
             const list = map[pair] || ['VU500', 'VU502', 'VU504'];
             return list[Math.max(0, skip) % list.length];

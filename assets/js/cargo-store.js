@@ -3504,7 +3504,10 @@ const CargoStore = (function() {
                 { pair: 'HAN-DAD', name: 'Hà Nội (HAN) ➔ Đà Nẵng (DAD)', origin: 'HAN', dest: 'DAD' },
                 { pair: 'DAD-SGN', name: 'Đà Nẵng (DAD) ➔ TP.HCM (SGN)', origin: 'DAD', dest: 'SGN' },
                 { pair: 'DAD-HAN', name: 'Đà Nẵng (DAD) ➔ Hà Nội (HAN)', origin: 'DAD', dest: 'HAN' },
-                { pair: 'DAD-PQC', name: 'Đà Nẵng (DAD) ➔ Phú Quốc (PQC)', origin: 'DAD', dest: 'PQC' }
+                { pair: 'DAD-PQC', name: 'Đà Nẵng (DAD) ➔ Phú Quốc (PQC)', origin: 'DAD', dest: 'PQC' },
+                { pair: 'PQC-SGN', name: 'Phú Quốc (PQC) ➔ TP.HCM (SGN)', origin: 'PQC', dest: 'SGN' },
+                { pair: 'PQC-HAN', name: 'Phú Quốc (PQC) ➔ Hà Nội (HAN)', origin: 'PQC', dest: 'HAN' },
+                { pair: 'PQC-DAD', name: 'Phú Quốc (PQC) ➔ Đà Nẵng (DAD)', origin: 'PQC', dest: 'DAD' }
             ];
         },
 

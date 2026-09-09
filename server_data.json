@@ -1,5 +1,5 @@
 {
-  "version": 1788925031216,
+  "version": 1788926732877,
   "auctions": [
     {
       "id": 9,
@@ -781,6 +781,15 @@
   ],
   "notifications": [
     {
+      "id": 1788926731757,
+      "title": "Từ chối hồ sơ REG-20260909-03",
+      "message": "Hồ sơ đại lý Công ty TNHH Vận tải & Logistics Tân Sơn Nhất đã bị từ chối. Lý do: \"Thông tin số điện thoại / email người đại diện không liên hệ xác thực được.\"",
+      "time": "Vừa xong",
+      "type": "AGENT",
+      "unread": true,
+      "targetRole": "ADMIN"
+    },
+    {
       "id": 1788923243640,
       "targetAgentCode": "AG-0556",
       "title": "Xác nhận thanh toán đơn WON-2026-0815-04 thành công!",
@@ -1238,6 +1247,47 @@
   ],
   "registrations": [
     {
+      "regId": "REG-20260909-03",
+      "companyName": "Công ty TNHH Vận tải & Logistics Tân Sơn Nhất",
+      "taxCode": "0318998877213",
+      "businessLicense": "GPKD-8899/2025/SNH",
+      "address": "45 Trường Sơn, Phường 2, Quận Tân Bình, TP. Hồ Chí Minh",
+      "field": "Freight Forwarder",
+      "repName": "Trần Hoàng Nam",
+      "repPosition": "Giám đốc Logistics Cargo",
+      "email": "testjaki892@gmail.com",
+      "phone": "0312321435",
+      "citizenId": "079095001234",
+      "notifEmail": "",
+      "password": "Demo@123456",
+      "pin": "9999",
+      "documents": [
+        {
+          "name": "GPKD_TanSonNhat_Scan.pdf",
+          "dataUrl": null,
+          "type": "application/pdf",
+          "size": 0
+        },
+        {
+          "name": "UyQuyen_Cargo_IATA.pdf",
+          "dataUrl": null,
+          "type": "application/pdf",
+          "size": 0
+        },
+        {
+          "name": "CCCD_TranHoangNam.pdf",
+          "dataUrl": null,
+          "type": "application/pdf",
+          "size": 0
+        }
+      ],
+      "status": "REJECTED",
+      "submittedAt": "9/9/2026 11:05",
+      "rejectionReason": "Thông tin số điện thoại / email người đại diện không liên hệ xác thực được.",
+      "rejectReason": "Thông tin số điện thoại / email người đại diện không liên hệ xác thực được.",
+      "rejectedAt": "2026-09-09T04:05:31.757Z"
+    },
+    {
       "regId": "REG-20260908-02",
       "companyName": "yyggug",
       "taxCode": "8979879999",
@@ -1470,6 +1520,26 @@
     }
   },
   "emailLogs": [
+    {
+      "id": 1788926736650,
+      "to": "testjaki892@gmail.com",
+      "type": "REGISTRATION_REJECTED",
+      "subject": "[Vietravel Airlines Cargo] Thông báo kết quả xét duyệt hồ sơ đại lý - REG-20260909-03",
+      "messageId": "<605cb1f7-c7bf-5011-765f-5cc7a035c0fe@gmail.com>",
+      "isRealSmtp": true,
+      "previewUrl": null,
+      "sentAt": "11:05:36 9/9/2026"
+    },
+    {
+      "id": 1788926711952,
+      "to": "testjaki892@gmail.com",
+      "type": "REGISTRATION_SUBMITTED",
+      "subject": "[Vietravel Airlines Cargo] Tiếp nhận hồ sơ đăng ký đại lý - REG-20260909-03",
+      "messageId": "<1c7a6029-2c48-4f90-a060-0ec97380e544@gmail.com>",
+      "isRealSmtp": true,
+      "previewUrl": null,
+      "sentAt": "11:05:11 9/9/2026"
+    },
     {
       "id": 1788923247012,
       "to": "thao.pham@dhlvietnam.com",
