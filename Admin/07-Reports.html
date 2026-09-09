@@ -139,17 +139,22 @@
                 <span class="text-xs bg-slate-100 text-slate-700 px-3 py-1 rounded-lg font-medium" id="reportPeriodBadge">Kỳ báo cáo: Đang cập nhật</span>
             </div>
 
-            <div class="overflow-x-auto">
-                <table class="w-full text-left text-xs">
-                    <thead class="bg-slate-50 text-slate-500 font-semibold border-b">
+            <div class="sm:hidden flex items-center gap-1.5 text-[11px] text-slate-500 bg-slate-50 px-3 py-1.5 rounded-lg border border-slate-200">
+                <i class="fa-solid fa-arrows-left-right text-blue-500"></i>
+                <span>Bảng rộng: Vuốt ngang để xem tỷ lệ lấp đầy & tổng doanh thu</span>
+            </div>
+
+            <div class="overflow-x-auto rounded-xl border border-slate-200">
+                <table class="w-full text-left text-xs min-w-[720px] whitespace-nowrap">
+                    <thead class="bg-slate-50 text-slate-600 font-semibold border-b">
                         <tr>
-                            <th class="py-3 px-4">Tuyến đường bay</th>
-                            <th class="py-3 px-4">Số chuyến đấu giá</th>
-                            <th class="py-3 px-4">Tổng tải trọng chào</th>
-                            <th class="py-3 px-4">Tải trọng trúng thầu</th>
-                            <th class="py-3 px-4">Tỷ lệ lấp đầy (Fill-rate)</th>
-                            <th class="py-3 px-4">Giá bình quân</th>
-                            <th class="py-3 px-4 text-right">Tổng doanh thu (VND)</th>
+                            <th class="py-3 px-3.5 whitespace-nowrap">Tuyến đường bay</th>
+                            <th class="py-3 px-3.5 whitespace-nowrap">Số chuyến đấu giá</th>
+                            <th class="py-3 px-3.5 whitespace-nowrap">Tổng tải trọng chào</th>
+                            <th class="py-3 px-3.5 whitespace-nowrap">Tải trọng trúng thầu</th>
+                            <th class="py-3 px-3.5 whitespace-nowrap">Tỷ lệ lấp đầy (Fill-rate)</th>
+                            <th class="py-3 px-3.5 whitespace-nowrap">Giá bình quân</th>
+                            <th class="py-3 px-3.5 text-right whitespace-nowrap">Tổng doanh thu (VND)</th>
                         </tr>
                     </thead>
                     <tbody class="divide-y divide-gray-100" id="routeReportTableBody">
@@ -640,41 +645,41 @@
 
                         return `
                             <tr class="hover:bg-slate-50 transition">
-                                <td class="py-3.5 px-4 font-bold text-slate-800">
+                                <td class="py-3 px-3.5 font-bold text-slate-800 whitespace-nowrap">
                                     <span class="w-2 h-2 rounded-full ${dotColor} inline-block mr-1.5"></span> ${r.route}
                                 </td>
-                                <td class="py-3.5 px-4 font-medium text-slate-700">${r.flightCount} chuyến</td>
-                                <td class="py-3.5 px-4 text-slate-600">${CargoStore.formatNumber(r.totalOfferedKg)} Kg</td>
-                                <td class="py-3.5 px-4 font-bold text-slate-900">${CargoStore.formatNumber(r.totalWonKg)} Kg</td>
-                                <td class="py-3.5 px-4">
+                                <td class="py-3 px-3.5 font-medium text-slate-700 whitespace-nowrap">${r.flightCount} chuyến</td>
+                                <td class="py-3 px-3.5 text-slate-600 whitespace-nowrap">${CargoStore.formatNumber(r.totalOfferedKg)} Kg</td>
+                                <td class="py-3 px-3.5 font-bold text-slate-900 whitespace-nowrap">${CargoStore.formatNumber(r.totalWonKg)} Kg</td>
+                                <td class="py-3 px-3.5 whitespace-nowrap">
                                     <div class="flex items-center gap-2">
-                                        <div class="w-20 bg-gray-200 h-2 rounded-full overflow-hidden">
+                                        <div class="w-16 sm:w-20 bg-gray-200 h-2 rounded-full overflow-hidden">
                                             <div class="${barColor} h-full" style="width: ${Math.min(fillRate, 100)}%;"></div>
                                         </div>
                                         <span class="font-bold ${textColor}">${fillRate.toFixed(1)}%</span>
                                     </div>
                                 </td>
-                                <td class="py-3.5 px-4 font-semibold text-blue-600">${CargoStore.formatCurrency(avgPrice)}/Kg</td>
-                                <td class="py-3.5 px-4 text-right font-bold text-slate-900">${CargoStore.formatCurrency(r.totalRevenue)}</td>
+                                <td class="py-3 px-3.5 font-semibold text-blue-600 whitespace-nowrap">${CargoStore.formatCurrency(avgPrice)}/Kg</td>
+                                <td class="py-3 px-3.5 text-right font-bold text-slate-900 whitespace-nowrap">${CargoStore.formatCurrency(r.totalRevenue)}</td>
                             </tr>
                         `;
                     }).join('');
 
                     const totalSummaryRow = `
                         <tr class="bg-slate-50 font-bold border-t-2 border-slate-300 text-slate-900">
-                            <td class="py-3.5 px-4 uppercase text-blue-800">
+                            <td class="py-3 px-3.5 uppercase text-blue-800 whitespace-nowrap">
                                 <i class="fa-solid fa-plane-departure mr-1 text-blue-600"></i> Tổng cộng toàn mạng
                             </td>
-                            <td class="py-3.5 px-4 text-slate-800">${metrics.routes.reduce((sum, r) => sum + r.flightCount, 0)} chuyến</td>
-                            <td class="py-3.5 px-4 text-slate-700">${CargoStore.formatNumber(metrics.grandTotalOfferedKg)} Kg</td>
-                            <td class="py-3.5 px-4 text-blue-700">${CargoStore.formatNumber(metrics.grandTotalWonKg)} Kg</td>
-                            <td class="py-3.5 px-4">
+                            <td class="py-3 px-3.5 text-slate-800 whitespace-nowrap">${metrics.routes.reduce((sum, r) => sum + r.flightCount, 0)} chuyến</td>
+                            <td class="py-3 px-3.5 text-slate-700 whitespace-nowrap">${CargoStore.formatNumber(metrics.grandTotalOfferedKg)} Kg</td>
+                            <td class="py-3 px-3.5 text-blue-700 whitespace-nowrap">${CargoStore.formatNumber(metrics.grandTotalWonKg)} Kg</td>
+                            <td class="py-3 px-3.5 whitespace-nowrap">
                                 <span class="text-emerald-700 bg-emerald-100 px-2 py-0.5 rounded text-[11px] font-bold">
                                     ${metrics.grandFillRate.toFixed(1)}%
                                 </span>
                             </td>
-                            <td class="py-3.5 px-4 text-blue-700">${CargoStore.formatCurrency(metrics.grandAvgPrice)}/Kg</td>
-                            <td class="py-3.5 px-4 text-right text-base text-blue-700 font-extrabold">${CargoStore.formatCurrency(metrics.grandTotalRevenue)}</td>
+                            <td class="py-3 px-3.5 text-blue-700 whitespace-nowrap">${CargoStore.formatCurrency(metrics.grandAvgPrice)}/Kg</td>
+                            <td class="py-3 px-3.5 text-right text-sm sm:text-base text-blue-700 font-extrabold whitespace-nowrap">${CargoStore.formatCurrency(metrics.grandTotalRevenue)}</td>
                         </tr>
                     `;
 

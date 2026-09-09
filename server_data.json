@@ -1,5 +1,5 @@
 {
-  "version": 1788941011962,
+  "version": 1788941672113,
   "auctions": [
     {
       "id": 9,
@@ -779,6 +779,16 @@
   ],
   "notifications": [
     {
+      "id": 1788941670395,
+      "title": "3234324234324rrr",
+      "message": "123456oyhtgddqwd",
+      "time": "Vừa xong",
+      "type": "SYSTEM",
+      "read": false,
+      "link": "03-Index.html",
+      "targetAgentCode": null
+    },
+    {
       "id": 1788926731757,
       "title": "Từ chối hồ sơ REG-20260909-03",
       "message": "Hồ sơ đại lý Công ty TNHH Vận tải & Logistics Tân Sơn Nhất đã bị từ chối. Lý do: \"Thông tin số điện thoại / email người đại diện không liên hệ xác thực được.\"",
@@ -878,7 +888,7 @@
       "timestamp": 1788851201747,
       "targetAgentCode": "AG-1024",
       "title": "Cảnh báo bị vượt giá chuyến VU32453!",
-      "message": "Một đại lý đối thủ (Ẩn danh) vừa đặt mức giá mới 25.000 đ/Kg cho chặng SGN - HAN.",
+      "message": "Một đại lý đối thủ (Ẩn danh) vừa đặt mức gi�� mới 25.000 đ/Kg cho chặng SGN - HAN.",
       "time": "Vừa xong",
       "type": "OUTBID",
       "read": false,
@@ -1204,7 +1214,7 @@
     {
       "id": 1788428497004,
       "targetAgentCode": "AG-0892",
-      "title": "Cảnh báo bị vượt giá chuyến VU130!",
+      "title": "Cảnh báo bị vượt gi�� chuyến VU130!",
       "message": "Đại lý Công ty TNHH Tiếp vận Toàn Cầu Golden Star (AG-0556) vừa đặt mức giá mới 23.000 đ/Kg cho chặng SGN - HAN.",
       "time": "Vừa xong",
       "type": "OUTBID",
