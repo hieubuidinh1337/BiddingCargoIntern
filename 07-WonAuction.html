@@ -502,6 +502,13 @@
             return (typeof CargoStore !== 'undefined') ? CargoStore : (typeof window !== 'undefined' ? window.CargoStore : null);
         }
 
+        function fmtNum(n) {
+            if (n === null || n === undefined || isNaN(n)) return '0';
+            const store = getStore();
+            if (store && store.formatNumber) return store.formatNumber(n);
+            return new Intl.NumberFormat('vi-VN').format(Number(n));
+        }
+
         function showToast(msg, isSuccess = true) {
             const toast = document.getElementById('toastWon');
             const icon = document.getElementById('toastWonIcon');
