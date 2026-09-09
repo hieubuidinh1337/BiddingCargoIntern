@@ -1,5 +1,5 @@
 {
-  "version": 1788922261135,
+  "version": 1788923299821,
   "auctions": [
     {
       "id": 9,
@@ -733,7 +733,7 @@
       "priceKg": 25000,
       "totalAmountVND": 100000000,
       "paymentDeadline": "2026-09-09T09:15:00.000Z",
-      "paymentStatus": "PENDING_VERIFICATION",
+      "paymentStatus": "PAID",
       "notifiedAt": "08:38:56 9/9/2026",
       "awbNumber": "998-34077611",
       "cutOffTime": "09/09/2026 16:00",
@@ -749,7 +749,8 @@
         "submittedAt": "08:38:56 9/9/2026"
       },
       "lockPenaltyHandled": true,
-      "lockWaivedByAdmin": true
+      "lockWaivedByAdmin": true,
+      "paidAt": "10:07:23 9/9/2026"
     },
     {
       "wonId": "WON-2026-0816-05",
@@ -771,6 +772,16 @@
     }
   ],
   "notifications": [
+    {
+      "id": 1788923243640,
+      "targetAgentCode": "AG-0556",
+      "title": "Xác nhận thanh toán đơn WON-2026-0815-04 thành công!",
+      "message": "Ban Điều hành đã xác nhận nhận đủ 100.000.000 đ cho đơn hàng chuyến VU340 (HAN - PQC). Mã AWB: 998-34077611.",
+      "time": "Vừa xong",
+      "type": "SYSTEM",
+      "read": false,
+      "link": "07-WonAuction.html"
+    },
     {
       "id": 1788919666659,
       "targetAgentCode": "AG-0556",
@@ -811,7 +822,7 @@
       "message": "Đại lý AG-0556 (Golden Star Logistics) đã báo chuyển khoản 100.000.000 đ cho đơn WON-2026-0815-04 (Chuyến VU340). Cú pháp: [CARGO WON-2026-0815-04 AG-0556]. Vui lòng đối soát sao kê ngân hàng và xác nhận.",
       "time": "Vừa xong",
       "type": "PAYMENT",
-      "read": false,
+      "read": true,
       "wonId": "WON-2026-0815-04",
       "link": "07-WonAuction.html?search=WON-2026-0815-04",
       "targetRole": "ADMIN"
@@ -1451,6 +1462,16 @@
     }
   },
   "emailLogs": [
+    {
+      "id": 1788923247012,
+      "to": "thao.pham@dhlvietnam.com",
+      "type": "PAYMENT_CONFIRMED",
+      "subject": "[Vietravel Airlines Cargo] XÁC NHẬN ĐÃ NHẬN THANH TOÁN - Đơn hàng WON-2026-0815-04",
+      "messageId": "<0f5aa9d6-9af3-00e6-472c-7c0fe5c3847f@gmail.com>",
+      "isRealSmtp": true,
+      "previewUrl": null,
+      "sentAt": "10:07:27 9/9/2026"
+    },
     {
       "id": 1788919670316,
       "to": "thao.pham@dhlvietnam.com",

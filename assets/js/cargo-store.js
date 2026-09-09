@@ -3184,17 +3184,20 @@ const CargoStore = (function() {
             const admin = this.getCurrentAdmin();
             if (!admin) return;
 
-            // Find header user section
-            const userContainers = document.querySelectorAll('header .flex.items-center.gap-2.pl-2.border-l.border-slate-700, header .flex.items-center.gap-3');
-            if (!userContainers || userContainers.length === 0) return;
+            // Find header user section where admin role / user info is located
+            let roleEl = document.querySelector('header .admin-header-role');
+            let targetContainer = roleEl ? roleEl.parentElement : null;
+            if (!targetContainer) {
+                targetContainer = document.querySelector('header .flex.items-center.gap-2, header .flex.items-center.gap-3, header .flex.items-center:last-child');
+            }
+            if (!targetContainer) return;
 
-            // If not mounted yet, mount bell container before user info
+            // If not mounted yet, mount bell container before roleEl or at start of targetContainer
             let bellWrapper = document.getElementById('adminNotifBellWrapper');
             if (!bellWrapper) {
-                const targetContainer = userContainers[0];
                 bellWrapper = document.createElement('div');
                 bellWrapper.id = 'adminNotifBellWrapper';
-                bellWrapper.className = 'relative inline-block mr-1';
+                bellWrapper.className = 'relative inline-block mr-2';
                 bellWrapper.innerHTML = `
                     <button id="adminNotifBellBtn" type="button" class="relative p-2 rounded-xl text-slate-300 hover:text-white hover:bg-slate-800 transition cursor-pointer flex items-center justify-center focus:outline-none" title="Thông báo & Yêu cầu duyệt">
                         <i class="fa-solid fa-bell text-sm"></i>
@@ -3244,9 +3247,10 @@ const CargoStore = (function() {
                     </div>
                 `;
 
-                // Insert into header
-                if (targetContainer.parentElement) {
-                    targetContainer.parentElement.insertBefore(bellWrapper, targetContainer);
+                if (roleEl && roleEl.parentElement === targetContainer) {
+                    targetContainer.insertBefore(bellWrapper, roleEl);
+                } else {
+                    targetContainer.insertBefore(bellWrapper, targetContainer.firstChild);
                 }
 
                 // Toggle click handler
