@@ -307,24 +307,46 @@
                               class="w-full border border-slate-300 rounded-xl p-3 text-xs focus:ring-2 focus:ring-red-500 outline-none leading-relaxed bg-white"></textarea>
                 </div>
 
-                <!-- Quick Pick Suggestions -->
+                <!-- Multi-select Quick Pick Suggestions -->
                 <div>
-                    <label class="block text-[11px] font-semibold text-slate-500 mb-1.5">Gợi ý lý do nhanh (Bấm để tự điền):</label>
-                    <div class="flex flex-wrap gap-1.5">
-                        <button type="button" onclick="setRejectPreset('Giấy phép ĐKKD bị mờ / hết hiệu lực, vui lòng scan lại bản rõ nét.')" class="text-[10px] bg-slate-100 hover:bg-red-50 hover:text-red-700 hover:border-red-200 border rounded-lg px-2.5 py-1 transition cursor-pointer font-medium text-slate-600">
-                            📄 GPKD mờ / hết hạn
+                    <div class="flex items-center justify-between mb-1.5">
+                        <label class="block text-[11px] font-bold text-slate-700">
+                            Gợi ý lý do nhanh (Chọn nhiều mục cùng lúc):
+                        </label>
+                        <button type="button" onclick="clearAllRejectPresets()" class="text-[10px] text-red-600 hover:underline font-semibold flex items-center gap-1 cursor-pointer">
+                            <i class="fa-solid fa-rotate-left text-[9px]"></i> Bỏ chọn tất cả
                         </button>
-                        <button type="button" onclick="setRejectPreset('Mã số thuế không khớp với thông tin tra cứu trên Tổng cục Thuế.')" class="text-[10px] bg-slate-100 hover:bg-red-50 hover:text-red-700 hover:border-red-200 border rounded-lg px-2.5 py-1 transition cursor-pointer font-medium text-slate-600">
-                            🏢 MST không khớp
+                    </div>
+                    <div class="grid grid-cols-1 sm:grid-cols-2 gap-1.5" id="rejectPresetsContainer">
+                        <button type="button" onclick="toggleRejectPreset(this, 'Giấy phép ĐKKD bị mờ, không rõ con dấu hoặc đã hết hiệu lực, vui lòng scan lại bản rõ nét.')" 
+                                class="reject-preset-chip text-left text-[11px] bg-slate-50 hover:bg-slate-100 text-slate-700 border border-slate-200 rounded-xl px-2.5 py-1.5 transition cursor-pointer font-medium flex items-center justify-between gap-1.5">
+                            <span class="truncate">📄 GPKD mờ / hết hạn</span>
+                            <i class="fa-regular fa-square text-slate-400 check-icon text-xs"></i>
                         </button>
-                        <button type="button" onclick="setRejectPreset('Thiếu Giấy ủy quyền của người đại diện pháp luật doanh nghiệp.')" class="text-[10px] bg-slate-100 hover:bg-red-50 hover:text-red-700 hover:border-red-200 border rounded-lg px-2.5 py-1 transition cursor-pointer font-medium text-slate-600">
-                            ✍️ Thiếu giấy ủy quyền
+                        <button type="button" onclick="toggleRejectPreset(this, 'Mã số thuế không trùng khớp với tên doanh nghiệp theo cổng ĐKKD Quốc gia.')" 
+                                class="reject-preset-chip text-left text-[11px] bg-slate-50 hover:bg-slate-100 text-slate-700 border border-slate-200 rounded-xl px-2.5 py-1.5 transition cursor-pointer font-medium flex items-center justify-between gap-1.5">
+                            <span class="truncate">🏢 MST không khớp</span>
+                            <i class="fa-regular fa-square text-slate-400 check-icon text-xs"></i>
                         </button>
-                        <button type="button" onclick="setRejectPreset('Chứng chỉ IATA / Hiệp hội Logistics (VLA) chưa đạt tiêu chuẩn.')" class="text-[10px] bg-slate-100 hover:bg-red-50 hover:text-red-700 hover:border-red-200 border rounded-lg px-2.5 py-1 transition cursor-pointer font-medium text-slate-600">
-                            ✈️ Chứng chỉ IATA/VLA
+                        <button type="button" onclick="toggleRejectPreset(this, 'Người nộp đơn thiếu Giấy ủy quyền hợp lệ từ Người đại diện pháp luật doanh nghiệp.')" 
+                                class="reject-preset-chip text-left text-[11px] bg-slate-50 hover:bg-slate-100 text-slate-700 border border-slate-200 rounded-xl px-2.5 py-1.5 transition cursor-pointer font-medium flex items-center justify-between gap-1.5">
+                            <span class="truncate">✍️ Thiếu giấy ủy quyền</span>
+                            <i class="fa-regular fa-square text-slate-400 check-icon text-xs"></i>
                         </button>
-                        <button type="button" onclick="setRejectPreset('Thông tin số điện thoại / email người đại diện không liên hệ xác thực được.')" class="text-[10px] bg-slate-100 hover:bg-red-50 hover:text-red-700 hover:border-red-200 border rounded-lg px-2.5 py-1 transition cursor-pointer font-medium text-slate-600">
-                            📞 Không liên hệ được
+                        <button type="button" onclick="toggleRejectPreset(this, 'Chứng chỉ đại lý IATA / Hiệp hội Logistics (VLA) chưa đạt chuẩn hoặc thiếu chứng nhận.')" 
+                                class="reject-preset-chip text-left text-[11px] bg-slate-50 hover:bg-slate-100 text-slate-700 border border-slate-200 rounded-xl px-2.5 py-1.5 transition cursor-pointer font-medium flex items-center justify-between gap-1.5">
+                            <span class="truncate">✈️ Chứng chỉ IATA/VLA</span>
+                            <i class="fa-regular fa-square text-slate-400 check-icon text-xs"></i>
+                        </button>
+                        <button type="button" onclick="toggleRejectPreset(this, 'Bản chụp CCCD/Hộ chiếu của người đại diện bị thiếu 2 mặt hoặc không rõ thông tin.')" 
+                                class="reject-preset-chip text-left text-[11px] bg-slate-50 hover:bg-slate-100 text-slate-700 border border-slate-200 rounded-xl px-2.5 py-1.5 transition cursor-pointer font-medium flex items-center justify-between gap-1.5">
+                            <span class="truncate">📑 CCCD/Hộ chiếu thiếu 2 mặt</span>
+                            <i class="fa-regular fa-square text-slate-400 check-icon text-xs"></i>
+                        </button>
+                        <button type="button" onclick="toggleRejectPreset(this, 'Không liên hệ được với người phụ trách qua số điện thoại/email đã cung cấp để xác thực.')" 
+                                class="reject-preset-chip text-left text-[11px] bg-slate-50 hover:bg-slate-100 text-slate-700 border border-slate-200 rounded-xl px-2.5 py-1.5 transition cursor-pointer font-medium flex items-center justify-between gap-1.5">
+                            <span class="truncate">📞 Không liên hệ được</span>
+                            <i class="fa-regular fa-square text-slate-400 check-icon text-xs"></i>
                         </button>
                     </div>
                 </div>
@@ -738,6 +760,53 @@
             }
         }
 
+        const selectedRejectPresets = new Map();
+
+        function toggleRejectPreset(btnEl, reasonText) {
+            const icon = btnEl.querySelector('.check-icon');
+            if (selectedRejectPresets.has(btnEl)) {
+                selectedRejectPresets.delete(btnEl);
+                btnEl.classList.remove('bg-red-50', 'border-red-400', 'text-red-700', 'font-bold', 'shadow-xs');
+                btnEl.classList.add('bg-slate-50', 'border-slate-200', 'text-slate-700', 'font-medium');
+                if (icon) {
+                    icon.className = 'fa-regular fa-square text-slate-400 check-icon text-xs';
+                }
+            } else {
+                selectedRejectPresets.set(btnEl, reasonText);
+                btnEl.classList.remove('bg-slate-50', 'border-slate-200', 'text-slate-700', 'font-medium');
+                btnEl.classList.add('bg-red-50', 'border-red-400', 'text-red-700', 'font-bold', 'shadow-xs');
+                if (icon) {
+                    icon.className = 'fa-solid fa-square-check text-red-600 check-icon text-xs';
+                }
+            }
+            syncRejectReasonTextarea();
+        }
+
+        function clearAllRejectPresets() {
+            selectedRejectPresets.clear();
+            document.querySelectorAll('.reject-preset-chip').forEach(btn => {
+                btn.classList.remove('bg-red-50', 'border-red-400', 'text-red-700', 'font-bold', 'shadow-xs');
+                btn.classList.add('bg-slate-50', 'border-slate-200', 'text-slate-700', 'font-medium');
+                const icon = btn.querySelector('.check-icon');
+                if (icon) icon.className = 'fa-regular fa-square text-slate-400 check-icon text-xs';
+            });
+            const input = document.getElementById('rejectModalReasonInput');
+            if (input) input.value = '';
+        }
+
+        function syncRejectReasonTextarea() {
+            const input = document.getElementById('rejectModalReasonInput');
+            if (!input) return;
+            const reasons = Array.from(selectedRejectPresets.values());
+            if (reasons.length === 0) {
+                input.value = '';
+            } else if (reasons.length === 1) {
+                input.value = reasons[0];
+            } else {
+                input.value = reasons.map((r, idx) => `${idx + 1}. ${r}`).join('\n');
+            }
+        }
+
         function openRejectModal(regId) {
             const data = CargoStore.getData();
             const reg = (data.registrations || []).find(r => r.regId === regId);
@@ -751,7 +820,8 @@
             document.getElementById('rejectModalCompanyName').textContent = reg.companyName || '-';
             document.getElementById('rejectModalRepName').textContent = `${reg.repName || '-'} (${reg.repPosition || 'Đại diện'})`;
             document.getElementById('rejectModalEmail').textContent = `${reg.email} ${reg.notifEmail && reg.notifEmail !== reg.email ? `(Thông báo: ${reg.notifEmail})` : ''}`;
-            document.getElementById('rejectModalReasonInput').value = '';
+            
+            clearAllRejectPresets();
 
             const modal = document.getElementById('rejectRegModal');
             modal.classList.remove('hidden');
@@ -763,14 +833,6 @@
             const modal = document.getElementById('rejectRegModal');
             modal.classList.add('hidden');
             modal.classList.remove('flex');
-        }
-
-        function setRejectPreset(text) {
-            const input = document.getElementById('rejectModalReasonInput');
-            if (input) {
-                input.value = text;
-                input.focus();
-            }
         }
 
         function submitRejectRegistration(e) {
