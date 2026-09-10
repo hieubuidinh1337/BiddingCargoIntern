@@ -2226,15 +2226,28 @@ const CargoStore = (function() {
 
             let allNotifs = data.notifications || [];
             allNotifs = allNotifs.map(n => {
-                if (n && n.message && n.message.includes('Mật khẩu đăng nhập:')) {
-                    const cleanedMessage = n.message.replace(/Mật khẩu đăng nhập:.*?(?=Quý công ty|$)/, 'Quý công ty vui lòng sử dụng Mã Đại lý cùng Mật khẩu và Mã PIN đã đăng ký để đăng nhập vào Sàn Đấu giá Cargo. ');
-                    return { 
-                        ...n, 
-                        title: (n.title || '').replace('[EMAIL THÔNG BÁO] ', ''),
-                        message: cleanedMessage.replace(/\s+/g, ' ').trim() 
-                    };
+                const ts = n.timestamp || n.createdAt || (typeof n.id === 'number' && n.id > 1577836800000 ? n.id : (typeof n.id === 'string' && !isNaN(Number(n.id)) && Number(n.id) > 1577836800000 ? Number(n.id) : null));
+                let displayTime = n.time;
+                if (ts) {
+                    displayTime = formatTimeAgo(ts, n.time);
+                } else if (!n.time || n.time === 'Vừa xong') {
+                    displayTime = 'Cách đây ít phút';
                 }
-                return n;
+
+                let cleanedMessage = n.message || '';
+                let title = n.title || '';
+                if (cleanedMessage.includes('Mật khẩu đăng nhập:')) {
+                    cleanedMessage = cleanedMessage.replace(/Mật khẩu đăng nhập:.*?(?=Quý công ty|$)/, 'Quý công ty vui lòng sử dụng Mã Đại lý cùng Mật khẩu và Mã PIN đã đăng ký để đăng nhập vào Sàn Đấu giá Cargo. ');
+                    title = title.replace('[EMAIL THÔNG BÁO] ', '');
+                    cleanedMessage = cleanedMessage.replace(/\s+/g, ' ').trim();
+                }
+
+                return { 
+                    ...n, 
+                    title: title,
+                    message: cleanedMessage,
+                    time: displayTime
+                };
             });
 
             // 1. Admin / Staff viewing on Admin Portal
