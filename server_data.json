@@ -1,5 +1,5 @@
 {
-  "version": 1789015383008,
+  "version": 1789023124406,
   "auctions": [
     {
       "id": 10,
@@ -163,7 +163,7 @@
       "endTime": "2026-09-08T06:57:11.350Z",
       "status": "CLOSED",
       "leadingAgentCode": "AG-0892",
-      "leadingAgentName": "Công ty TNHH Vận tải ABC Logistics",
+      "leadingAgentName": "C��ng ty TNHH Vận tải ABC Logistics",
       "bidsCount": 4,
       "specialNotes": "Tải trọng tổng hợp tiêu chuẩn IATA.",
       "cutOffTime": "11:00 · 08/09/2026",
@@ -1045,6 +1045,17 @@
   ],
   "notifications": [
     {
+      "id": 4,
+      "timestamp": 1789020412384,
+      "targetAgentCode": "AG-0892",
+      "title": "⏳ Cảnh báo sắp đóng thầu: Chuyến VU130",
+      "message": "Phiên đấu giá chỉ còn dưới 30 phút. Đừng bỏ lỡ tải trọng tốt!",
+      "time": "45 phút trước",
+      "type": "CLOSING_SOON",
+      "read": true,
+      "link": "04-Detail.html?id=1"
+    },
+    {
       "id": 1789015359853,
       "timestamp": 1789015359853,
       "targetAgentCode": "AG-1024",
@@ -1074,7 +1085,7 @@
       "message": "Một đại lý đối thủ (Ẩn danh) vừa đặt mức giá mới 53.000 đ/Kg cho chặng HAN - PQC.",
       "time": "Vừa xong",
       "type": "OUTBID",
-      "read": false,
+      "read": true,
       "link": "04-Detail.html?id=3"
     },
     {
@@ -1093,10 +1104,10 @@
       "timestamp": 1789015158559,
       "targetAgentCode": "AG-0892",
       "title": "Đặt giá thành công chuyến VU340",
-      "message": "Bạn (AG-0892) đang dẫn đầu mức giá 44.000 đ/Kg cho chặng HAN - PQC. (Tên công ty được che ẩn danh đối với các đối thủ)",
+      "message": "Bạn (AG-0892) đang dẫn đầu mức giá 44.000 đ/Kg cho chặng HAN - PQC. (Tên c��ng ty được che ẩn danh đối với các đối thủ)",
       "time": "Vừa xong",
       "type": "HIGHEST",
-      "read": false,
+      "read": true,
       "link": "04-Detail.html?id=3"
     },
     {
@@ -1107,7 +1118,7 @@
       "message": "Bạn (AG-0892) đang dẫn đầu mức giá 37.000 đ/Kg cho chặng HAN - PQC. (Tên công ty được che ẩn danh đối với các đối thủ)",
       "time": "Vừa xong",
       "type": "HIGHEST",
-      "read": false,
+      "read": true,
       "link": "04-Detail.html?id=3"
     },
     {
@@ -1118,7 +1129,7 @@
       "message": "Bạn (AG-0892) đang dẫn đầu mức giá 32.000 đ/Kg cho chặng HAN - PQC. (Tên công ty được che ẩn danh đối với các đối thủ)",
       "time": "Vừa xong",
       "type": "HIGHEST",
-      "read": false,
+      "read": true,
       "link": "04-Detail.html?id=3"
     },
     {
@@ -1140,7 +1151,7 @@
       "message": "Bạn (AG-0892) đang dẫn đầu mức giá 31.000 đ/Kg cho chặng HAN - PQC. (Tên công ty được che ẩn danh đối với các đối thủ)",
       "time": "Vừa xong",
       "type": "HIGHEST",
-      "read": false,
+      "read": true,
       "link": "04-Detail.html?id=3"
     },
     {
@@ -1238,7 +1249,7 @@
       "message": "Chuyến bay VU136 tuyến TP. Hồ Chí Minh ➔ Hà Nội mà Quý đại lý đang theo dõi vừa mở đấu giá tải trọng 10.000 Kg (Giá khởi điểm: 18.000 đ/Kg). Đặt giá ngay để không bỏ lỡ slot!",
       "time": "Vừa xong",
       "type": "AUCTION_OPEN",
-      "read": false,
+      "read": true,
       "link": "04-Detail.html?id=10"
     },
     {
@@ -1368,7 +1379,7 @@
       "message": "Một đại lý đối thủ (Ẩn danh) vừa đặt mức giá mới 11.000 đ/Kg cho chặng SGN - HAN.",
       "time": "Vừa xong",
       "type": "OUTBID",
-      "read": false,
+      "read": true,
       "link": "04-Detail.html?id=9"
     },
     {
@@ -1376,7 +1387,7 @@
       "timestamp": 1789009862770,
       "targetAgentCode": "AG-0341",
       "title": "Đặt giá thành công chuyến VU134",
-      "message": "Bạn (AG-0341) đang dẫn đầu mức giá 11.000 đ/Kg cho chặng SGN - HAN. (Tên công ty được che ẩn danh đối với các đối thủ)",
+      "message": "Bạn (AG-0341) đang dẫn đầu mức giá 11.000 đ/Kg cho chặng SGN - HAN. (Tên công ty được che ẩn danh đ��i với các đối thủ)",
       "time": "Vừa xong",
       "type": "HIGHEST",
       "read": false,
@@ -1401,7 +1412,7 @@
       "message": "Bạn (AG-0892) đang dẫn đầu mức giá 10.500 đ/Kg cho chặng SGN - HAN. (Tên công ty được che ẩn danh đối với các đối thủ)",
       "time": "Vừa xong",
       "type": "HIGHEST",
-      "read": false,
+      "read": true,
       "link": "04-Detail.html?id=9"
     },
     {
@@ -1417,7 +1428,7 @@
     {
       "id": 1788926731757,
       "title": "Từ chối hồ sơ REG-20260909-03",
-      "message": "Hồ sơ đại lý Công ty TNHH Vận tải & Logistics Tân Sơn Nhất đã bị từ chối. Lý do: \"Thông tin số điện thoại / email người đại diện không liên hệ xác thực được.\"",
+      "message": "Hồ sơ đại lý Công ty TNHH Vận tải & Logistics Tân Sơn Nhất đ�� bị từ chối. Lý do: \"Thông tin số điện thoại / email người đại diện không liên hệ xác thực được.\"",
       "time": "Vừa xong",
       "type": "AGENT",
       "unread": true,
@@ -1460,7 +1471,7 @@
       "timestamp": 1788919645294,
       "targetAgentCode": "AG-0556",
       "title": "Đặt giá thành công chuyến VU450",
-      "message": "Bạn (AG-0556) đang dẫn đầu mức giá 22.500 đ/Kg cho chặng SGN - PQC. (Tên công ty được che ẩn danh đối với các đối thủ)",
+      "message": "Bạn (AG-0556) đang dẫn đầu mức giá 22.500 đ/Kg cho chặng SGN - PQC. (Tên công ty được che ��n danh đối với các đối thủ)",
       "time": "Vừa xong",
       "type": "HIGHEST",
       "read": false,
@@ -1557,7 +1568,7 @@
       "timestamp": 1788850656670,
       "targetAgentCode": "AG-1024",
       "title": "Đặt giá thành công chuyến VU134",
-      "message": "Bạn (AG-1024) đang dẫn đầu mức giá 10.000 đ/Kg cho chặng SGN - HAN. (Tên công ty được che ẩn danh đối với các đối thủ)",
+      "message": "Bạn (AG-1024) ��ang dẫn đầu mức giá 10.000 đ/Kg cho chặng SGN - HAN. (Tên công ty được che ẩn danh đối với các đối thủ)",
       "time": "Vừa xong",
       "type": "HIGHEST",
       "read": false,
@@ -1677,7 +1688,7 @@
       "timestamp": 1788841489082,
       "targetAgentCode": null,
       "title": "Mở phiên đấu giá mới: Chuyến VU450 (SGN - PQC)",
-      "message": "Chuyến bay VU450 (TP. Hồ Chí Minh - Phú Quốc) với tải trọng 3.000 Kg, giá khởi điểm 18.000 đ/Kg đã chính thức mở nhận giá thầu.",
+      "message": "Chuyến bay VU450 (TP. Hồ Chí Minh - Phú Quốc) với tải trọng 3.000 Kg, giá khởi điểm 18.000 đ/Kg đã chính thức mở nhận giá th���u.",
       "time": "Vừa xong",
       "type": "AUCTION_OPEN",
       "read": true,
@@ -2595,16 +2606,7 @@
       "routes": [
         "SGN-HAN",
         "SGN-DAD",
-        "SGN-PQC",
-        "HAN-PQC",
-        "HAN-SGN",
-        "HAN-DAD",
-        "DAD-SGN",
-        "DAD-HAN",
-        "DAD-PQC",
-        "PQC-SGN",
-        "PQC-HAN",
-        "PQC-DAD"
+        "SGN-PQC"
       ],
       "notifyOnNewAuction": true,
       "notifyOnOutbid": true,

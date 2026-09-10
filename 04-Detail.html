@@ -636,6 +636,31 @@
             }).join('');
         }
 
+        let pendingBidData = null;
+
+        function closeConfirmBidModal() {
+            pendingBidData = null;
+            const modal = document.getElementById('confirmBidModal');
+            if (modal) modal.classList.add('hidden');
+        }
+
+        function executeBidPlacement() {
+            if (!pendingBidData || !currentAuction) return;
+            const { price, isAnon } = pendingBidData;
+            closeConfirmBidModal();
+
+            const alertBox = document.getElementById('bidAlertBox');
+            const res = CargoStore.placeBid(currentAuction.id, price, isAnon);
+            if (!res.success) {
+                alertBox.className = 'mt-3 p-3 rounded-xl text-xs bg-red-50 text-red-700 border border-red-200 block';
+                alertBox.textContent = res.message;
+            } else {
+                alertBox.className = 'mt-3 p-3 rounded-xl text-xs bg-green-50 text-green-700 border border-green-200 block';
+                alertBox.textContent = `✅ Đặt giá ${CargoStore.formatCurrency(price)}/Kg thành công! Bạn đang dẫn đầu phiên đấu giá.${isAnon ? ' (Đã che tên công ty đối với các đối thủ)' : ''}`;
+                loadAuctionDetail();
+            }
+        }
+
         // Form Submit
         document.getElementById('bidForm').addEventListener('submit', function(e) {
             e.preventDefault();
@@ -644,7 +669,7 @@
             const isAnon = document.getElementById('isAnonymousCheckbox') ? document.getElementById('isAnonymousCheckbox').checked : true;
             const alertBox = document.getElementById('bidAlertBox');
 
-            // Validate price against minimum BEFORE calling placeBid
+            // Validate price against minimum BEFORE showing confirm modal
             const hasBids = (currentAuction.bidsCount && currentAuction.bidsCount > 0);
             const minAcceptable = hasBids
                 ? (currentAuction.currentPriceKg + currentAuction.minStep)
@@ -661,15 +686,29 @@
                 return;
             }
 
-            const res = CargoStore.placeBid(currentAuction.id, price, isAnon);
-            if (!res.success) {
-                alertBox.className = 'mt-3 p-3 rounded-xl text-xs bg-red-50 text-red-700 border border-red-200 block';
-                alertBox.textContent = res.message;
-            } else {
-                alertBox.className = 'mt-3 p-3 rounded-xl text-xs bg-green-50 text-green-700 border border-green-200 block';
-                alertBox.textContent = `✅ Đặt giá ${CargoStore.formatCurrency(price)}/Kg thành công! Bạn đang dẫn đầu phiên đấu giá.${isAnon ? ' (Đã che tên công ty đối với các đối thủ)' : ''}`;
-                loadAuctionDetail();
+            // Save pending bid data and show confirmation modal popup
+            pendingBidData = { price, isAnon };
+            const weight = currentAuction.capacityKg || currentAuction.chargeableWeightKg || 3500;
+            const total = price * weight;
+
+            const modalFlight = document.getElementById('confirmModalFlight');
+            const modalPrice = document.getElementById('confirmModalPrice');
+            const modalWeight = document.getElementById('confirmModalWeight');
+            const modalTotal = document.getElementById('confirmModalTotal');
+            const modalAnon = document.getElementById('confirmModalAnon');
+
+            if (modalFlight) modalFlight.textContent = `${currentAuction.flightNumber} (${currentAuction.route})`;
+            if (modalPrice) modalPrice.textContent = `${CargoStore.formatCurrency(price)}/Kg`;
+            if (modalWeight) modalWeight.textContent = `${CargoStore.formatNumber(weight)} Kg`;
+            if (modalTotal) modalTotal.textContent = CargoStore.formatCurrency(total);
+            if (modalAnon) {
+                modalAnon.innerHTML = isAnon 
+                    ? '<i class="fa-solid fa-user-shield text-indigo-600"></i> Ẩn danh đối thủ'
+                    : '<i class="fa-solid fa-eye text-blue-600"></i> Công khai tên công ty';
             }
+
+            const modal = document.getElementById('confirmBidModal');
+            if (modal) modal.classList.remove('hidden');
         });
 
         document.getElementById('bidPriceInput').addEventListener('input', updateCalc);
@@ -718,5 +757,61 @@
         });
         window.addEventListener('cargostore_updated', onDetailStoreUpdate);
     </script>
+    <!-- Modal: Xác nhận Đặt Giá Thầu -->
+    <div id="confirmBidModal" class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-50 flex items-center justify-center p-3 sm:p-4 hidden">
+        <div class="bg-white rounded-3xl max-w-md w-full shadow-2xl overflow-hidden animate-in fade-in zoom-in duration-200">
+            <div class="bg-gradient-to-r from-slate-900 to-indigo-950 text-white px-6 py-4 flex items-center justify-between">
+                <div class="flex items-center gap-3">
+                    <div class="w-10 h-10 rounded-2xl bg-blue-500/20 text-blue-400 flex items-center justify-center text-lg font-bold border border-blue-500/30">
+                        <i class="fa-solid fa-gavel"></i>
+                    </div>
+                    <div>
+                        <h3 class="font-bold text-base leading-tight">Xác Nhận Đặt Giá Thầu</h3>
+                        <p class="text-xs text-blue-200 mt-0.5" id="confirmModalFlight">VU130 (SGN - HAN)</p>
+                    </div>
+                </div>
+                <button onclick="closeConfirmBidModal()" class="text-slate-400 hover:text-white text-lg cursor-pointer">
+                    <i class="fa-solid fa-xmark"></i>
+                </button>
+            </div>
+            
+            <div class="p-6 space-y-4 text-xs">
+                <div class="bg-slate-50 border rounded-2xl p-4 space-y-2.5">
+                    <div class="flex justify-between items-center pb-2 border-b border-gray-200">
+                        <span class="text-gray-500 font-medium">Mức giá đặt thầu chào mới:</span>
+                        <span class="text-lg font-extrabold text-blue-600" id="confirmModalPrice">22.000 đ/Kg</span>
+                    </div>
+                    <div class="flex justify-between items-center">
+                        <span class="text-gray-500 font-medium">Tải trọng đăng ký:</span>
+                        <span class="font-bold text-slate-800" id="confirmModalWeight">3.500 Kg</span>
+                    </div>
+                    <div class="flex justify-between items-center">
+                        <span class="text-gray-500 font-medium">Tổng tiền dự kiến (chưa VAT):</span>
+                        <span class="font-bold text-indigo-700 text-sm" id="confirmModalTotal">77.000.000 đ</span>
+                    </div>
+                    <div class="flex justify-between items-center pt-2 border-t border-gray-200">
+                        <span class="text-gray-500 font-medium">Chế độ hiển thị:</span>
+                        <span class="font-bold text-indigo-900 flex items-center gap-1" id="confirmModalAnon">
+                            <i class="fa-solid fa-user-shield text-indigo-600"></i> Ẩn danh đối thủ
+                        </span>
+                    </div>
+                </div>
+
+                <div class="p-3 bg-amber-50 rounded-xl border border-amber-200 text-amber-800 text-[11px] leading-relaxed flex items-start gap-2">
+                    <i class="fa-solid fa-triangle-exclamation text-amber-500 text-sm mt-0.5 flex-shrink-0"></i>
+                    <span>Bạn có chắc chắn muốn xác nhận gửi mức giá này không? Sau khi gửi, thông báo dẫn đầu hoặc vượt giá sẽ được cập nhật tức thời cho các đại lý.</span>
+                </div>
+
+                <div class="flex items-center justify-end gap-3 pt-2">
+                    <button type="button" onclick="closeConfirmBidModal()" class="px-4 py-2.5 border rounded-xl text-slate-600 hover:bg-slate-50 font-semibold cursor-pointer">
+                        Hủy bỏ
+                    </button>
+                    <button type="button" onclick="executeBidPlacement()" class="px-5 py-2.5 bg-blue-600 hover:bg-blue-700 text-white font-bold rounded-xl shadow-md transition flex items-center gap-2 cursor-pointer">
+                        <i class="fa-solid fa-check"></i> Xác nhận Đặt Giá
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
 </body>
 </html>

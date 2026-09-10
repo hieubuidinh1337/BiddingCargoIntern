@@ -133,23 +133,6 @@
             </div>
         </div>
 
-        <!-- Route Notification Preferences Card -->
-        <div class="bg-gradient-to-r from-indigo-50/90 via-blue-50/70 to-slate-50 border border-indigo-100 rounded-2xl p-4 flex flex-col sm:flex-row sm:items-center justify-between gap-3 text-xs shadow-xs">
-            <div class="space-y-1">
-                <div class="flex items-center gap-2 flex-wrap">
-                    <span class="font-bold text-indigo-900 flex items-center gap-1.5 text-xs">
-                        <i class="fa-solid fa-bell text-indigo-600 animate-pulse"></i> Tuyến bay đăng ký nhận chuông báo:
-                    </span>
-                    <div id="notifSubscribedBadges" class="flex items-center gap-1.5 flex-wrap">
-                        <!-- Rendered by JS -->
-                    </div>
-                </div>
-                <p class="text-[11px] text-gray-500">Hệ thống sẽ gửi thông báo ưu tiên ngay khi có phiên đấu giá mới mở trên các tuyến này.</p>
-            </div>
-            <button type="button" onclick="openRouteAlertModal()" class="bg-indigo-600 hover:bg-indigo-700 text-white font-bold px-3.5 py-2 rounded-xl transition shadow flex items-center justify-center gap-1.5 text-xs whitespace-nowrap cursor-pointer">
-                <i class="fa-solid fa-sliders"></i> Cài đặt tuyến quan tâm
-            </button>
-        </div>
 
         <!-- Filter Bar -->
         <div class="bg-white rounded-xl border p-1.5 shadow-sm flex items-center gap-1 overflow-x-auto">
@@ -228,77 +211,7 @@
         </div>
     </div>
 
-    <!-- Modal: Cài đặt Chuông báo Tuyến bay & Sự kiện Đấu giá -->
-    <div id="routeAlertModal" class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-50 flex items-center justify-center p-3 sm:p-4 hidden">
-        <div class="bg-white rounded-3xl max-w-2xl w-full max-h-[90vh] flex flex-col shadow-2xl overflow-hidden animate-in fade-in zoom-in duration-200">
-            <div class="bg-gradient-to-r from-slate-900 to-indigo-950 text-white px-6 py-4 flex items-center justify-between flex-shrink-0">
-                <div class="flex items-center gap-3">
-                    <div class="w-10 h-10 rounded-2xl bg-indigo-500/20 text-indigo-300 flex items-center justify-center text-lg font-bold border border-indigo-500/30">
-                        <i class="fa-solid fa-bell"></i>
-                    </div>
-                    <div>
-                        <h3 class="font-bold text-base leading-tight">Cài đặt Thông báo Tuyến bay Quan tâm</h3>
-                        <p class="text-xs text-indigo-200 mt-0.5">Hệ thống sẽ gửi thông báo real-time ngay khi có phiên đấu giá mới</p>
-                    </div>
-                </div>
-                <button onclick="closeRouteAlertModal()" class="text-slate-400 hover:text-white text-lg cursor-pointer">
-                    <i class="fa-solid fa-xmark"></i>
-                </button>
-            </div>
 
-            <form onsubmit="handleSaveRouteAlertForm(event)" class="p-6 space-y-5 text-xs overflow-y-auto flex-1">
-                <!-- Select Routes Grid -->
-                <div class="space-y-2">
-                    <div class="flex items-center justify-between">
-                        <label class="font-bold text-slate-900 text-xs">Chọn các tuyến bay bạn muốn theo dõi:</label>
-                        <span class="text-[11px] text-gray-500">Bấm chọn để bật chuông báo</span>
-                    </div>
-
-                    <div class="grid grid-cols-1 sm:grid-cols-2 gap-2.5" id="routeCheckboxesGrid">
-                        <!-- Populated by JS -->
-                    </div>
-                </div>
-
-                <!-- Event notification triggers -->
-                <div class="border-t pt-4 space-y-3">
-                    <label class="font-bold text-slate-900 text-xs block">Tùy chọn phương thức nhận thông báo:</label>
-
-                    <div class="space-y-2.5 bg-slate-50 p-3.5 rounded-2xl border">
-                        <label class="flex items-center justify-between cursor-pointer">
-                            <span class="text-slate-700 font-medium">🔔 Thông báo chuông ngay khi có phiên mới mở trên tuyến đã chọn</span>
-                            <input type="checkbox" id="subNotifyNewAuction" checked class="w-4 h-4 text-indigo-600 rounded border-slate-300 focus:ring-indigo-500">
-                        </label>
-                        <label class="flex items-center justify-between cursor-pointer">
-                            <span class="text-slate-700 font-medium">⚠️ Cảnh báo khi bị đại lý khác vượt giá thầu (Outbid)</span>
-                            <input type="checkbox" id="subNotifyOutbid" checked class="w-4 h-4 text-indigo-600 rounded border-slate-300 focus:ring-indigo-500">
-                        </label>
-                        <label class="flex items-center justify-between cursor-pointer">
-                            <span class="text-slate-700 font-medium">⏳ Nhắc nhở khi phiên thầu sắp đóng (30 phút trước giờ chốt)</span>
-                            <input type="checkbox" id="subNotifyClosingSoon" checked class="w-4 h-4 text-indigo-600 rounded border-slate-300 focus:ring-indigo-500">
-                        </label>
-                        <label class="flex items-start justify-between cursor-pointer bg-blue-50/80 p-3 rounded-xl border border-blue-200 gap-3">
-                            <div class="space-y-0.5">
-                                <span class="text-blue-950 font-bold flex items-center gap-1.5 text-xs">
-                                    <i class="fa-solid fa-envelope text-blue-600"></i> Gửi email thông báo tức thời về hòm thư đại lý
-                                </span>
-                                <p class="text-[11px] text-blue-800">
-                                    Tự động gửi email chi tiết kèm tải trọng và giá sàn khi mở phiên đấu giá mới trên các tuyến đã chọn tới: <strong id="subEmailDisplay" class="text-blue-900 underline">email@cargoagent.vn</strong>
-                                </p>
-                            </div>
-                            <input type="checkbox" id="subEmailAlert" checked class="w-4 h-4 text-indigo-600 rounded border-slate-300 focus:ring-indigo-500 mt-0.5">
-                        </label>
-                    </div>
-                </div>
-
-                <div class="flex items-center justify-end gap-2.5 pt-3 border-t">
-                    <button type="button" onclick="closeRouteAlertModal()" class="px-4 py-2 border rounded-xl text-slate-600 hover:bg-slate-50 font-medium cursor-pointer">Hủy</button>
-                    <button type="submit" class="px-5 py-2.5 bg-indigo-600 hover:bg-indigo-700 text-white font-bold rounded-xl shadow transition flex items-center gap-1.5 cursor-pointer">
-                        <i class="fa-solid fa-floppy-disk"></i> Lưu Cài đặt Chuông báo
-                    </button>
-                </div>
-            </form>
-        </div>
-    </div>
 
     <!-- Toast -->
     <div id="toast" class="fixed bottom-6 right-6 z-50 hidden">

@@ -555,8 +555,10 @@ const CargoStore = (function() {
         notifications: [
             {
                 id: 1,
-                title: 'Bạn đang dẫn đầu thầu VU130',
-                message: 'Mức giá 21,500 đ/Kg của bạn đang là cao nhất cho chuyến SGN-HAN. Giữ vững ưu thế!',
+                timestamp: Date.now() - 720000,
+                targetAgentCode: 'AG-0892',
+                title: '🚀 Bạn đang dẫn đầu thầu VU130 (SGN-HAN)',
+                message: 'Mức giá 21.500 đ/Kg của bạn (AG-0892) đang là cao nhất cho chặng SGN - HAN. Giữ vững ưu thế!',
                 time: '12 phút trước',
                 type: 'HIGHEST',
                 read: false,
@@ -564,9 +566,33 @@ const CargoStore = (function() {
             },
             {
                 id: 2,
-                title: 'Cảnh báo sắp đóng thầu: Chuyến VU130',
-                message: 'Phiên đấu giá chỉ còn dưới 45 phút. Đừng bỏ lỡ tải trọng tốt!',
+                timestamp: Date.now() - 1800000,
+                targetAgentCode: 'AG-0892',
+                title: '⚠️ Cảnh báo bị vượt giá chuyến VU224 (SGN-DAD)!',
+                message: 'Đại lý ẩn danh (AG-***) vừa đặt mức giá mới 19.500 đ/Kg cho chặng SGN - DAD. Bạn không còn dẫn đầu.',
                 time: '30 phút trước',
+                type: 'OUTBID',
+                read: false,
+                link: '04-Detail.html?id=2'
+            },
+            {
+                id: 3,
+                timestamp: Date.now() - 86400000,
+                targetAgentCode: 'AG-0892',
+                title: '🏆 CHÚC MỪNG! Bạn đã thắng thầu chuyến bay VU450',
+                message: 'Đại lý Công ty TNHH Vận tải ABC Logistics (AG-0892) đã trúng thầu chuyến bay VU450 (SGN - PQC) với giá 24.000 đ/Kg. Vui lòng hoàn tất thanh toán & khai báo hàng hóa trong 24h.',
+                time: '1 ngày trước',
+                type: 'WON',
+                read: false,
+                link: '07-WonAuction.html'
+            },
+            {
+                id: 4,
+                timestamp: Date.now() - 2700000,
+                targetAgentCode: 'AG-0892',
+                title: '⏳ Cảnh báo sắp đóng thầu: Chuyến VU130',
+                message: 'Phiên đấu giá chỉ còn dưới 30 phút. Đừng bỏ lỡ tải trọng tốt!',
+                time: '45 phút trước',
                 type: 'CLOSING_SOON',
                 read: false,
                 link: '04-Detail.html?id=1'
@@ -781,6 +807,20 @@ const CargoStore = (function() {
                     if ((n.title || '').includes('ĐẠI LÝ BÁO CHUYỂN KHOẢN') || (n.message || '').includes('đối soát sao kê ngân hàng')) {
                         n.targetRole = 'ADMIN';
                         n.targetAgentCode = null;
+                        updated = true;
+                    }
+                });
+            }
+
+            // Self-healing migration for notifications to ensure HIGHEST, OUTBID, WON are present for AG-0892
+            if (!data.notifications || !Array.isArray(data.notifications)) {
+                data.notifications = JSON.parse(JSON.stringify(defaultData.notifications));
+                updated = true;
+            } else {
+                (defaultData.notifications || []).forEach(defN => {
+                    const existing = data.notifications.find(n => n.id === defN.id || (n.type === defN.type && n.targetAgentCode === defN.targetAgentCode));
+                    if (!existing) {
+                        data.notifications.unshift(JSON.parse(JSON.stringify(defN)));
                         updated = true;
                     }
                 });
@@ -2305,15 +2345,12 @@ const CargoStore = (function() {
             return allNotifs.filter(n => {
                 // Admin reconciliation notifications must NEVER leak to agents
                 if (n.targetRole === 'ADMIN' || n.targetRole === 'admin') return false;
-                if ((n.title || '').includes('ĐẠI LÝ BÁO CHUYỂN KHOẢN') || (n.message || '').includes('đối soát sao kê ngân hàng')) {
-                    return false;
-                }
                 // If targeted to a specific agent, match exact agent code
                 if (n.targetAgentCode) {
                     return n.targetAgentCode.trim().toUpperCase() === myCode;
                 }
-                // Only allow public system broadcasts if targetAgentCode is null/empty
-                return n.type === 'SYSTEM' || n.type === 'ANNOUNCEMENT' || n.type === 'AUCTION_OPEN' || n.isBroadcast === true;
+                // Untargeted notifications are shown to all agents
+                return true;
             });
         },
 

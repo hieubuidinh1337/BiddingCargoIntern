@@ -2139,13 +2139,53 @@
 
         function downloadQrImage() {
             const img = document.getElementById('payModalQrImg');
-            if (!img || !img.src) return;
-            const a = document.createElement('a');
-            a.href = img.src;
-            a.download = `VietQR-VietravelCargo-${currentActivePayWonId || 'Payment'}.png`;
-            a.target = '_blank';
-            a.click();
-            showToast('Đang tải ảnh mã VietQR...', true);
+            if (!img || !img.src) {
+                showToast('⚠️ Ảnh QR chưa được tải. Vui lòng thử lại.', false);
+                return;
+            }
+
+            const filename = `VietQR-VietravelCargo-${currentActivePayWonId || 'Payment'}.png`;
+
+            // Use fetch to get image as blob (avoid cross-origin new tab opening)
+            fetch(img.src, { mode: 'cors' })
+                .then(function(response) {
+                    if (!response.ok) throw new Error('Network error');
+                    return response.blob();
+                })
+                .then(function(blob) {
+                    const blobUrl = URL.createObjectURL(blob);
+                    const a = document.createElement('a');
+                    a.href = blobUrl;
+                    a.download = filename;
+                    document.body.appendChild(a);
+                    a.click();
+                    document.body.removeChild(a);
+                    setTimeout(function() { URL.revokeObjectURL(blobUrl); }, 5000);
+                    showToast('✅ Đã tải ảnh mã VietQR về máy!', true);
+                })
+                .catch(function() {
+                    // Fallback: canvas-based download
+                    const canvas = document.createElement('canvas');
+                    canvas.width = img.naturalWidth || img.width || 400;
+                    canvas.height = img.naturalHeight || img.height || 400;
+                    const ctx = canvas.getContext('2d');
+                    ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
+                    canvas.toBlob(function(blob) {
+                        if (!blob) {
+                            showToast('⚠️ Không thể tải ảnh. Hãy nhấn giữ ảnh QR để lưu.', false);
+                            return;
+                        }
+                        const blobUrl = URL.createObjectURL(blob);
+                        const a = document.createElement('a');
+                        a.href = blobUrl;
+                        a.download = filename;
+                        document.body.appendChild(a);
+                        a.click();
+                        document.body.removeChild(a);
+                        setTimeout(function() { URL.revokeObjectURL(blobUrl); }, 5000);
+                        showToast('✅ Đã tải ảnh mã VietQR về máy!', true);
+                    }, 'image/png');
+                });
         }
 
         function handleSubmitPaymentProof(e) {
