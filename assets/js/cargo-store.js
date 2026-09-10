@@ -839,6 +839,11 @@ const CargoStore = (function() {
                 });
             }
 
+            // Auto-close expired auctions and create won items/notifications for winners
+            if (autoCloseExpiredAuctions(data)) {
+                updated = true;
+            }
+
             // Check and auto-lock agents with overdue/expired won auction payments
             if (checkAndAutoLockExpiredWonAuctions(data)) {
                 updated = true;
@@ -1081,6 +1086,87 @@ const CargoStore = (function() {
         }
 
         return false;
+    }
+
+    function autoCloseExpiredAuctions(data) {
+        if (!data || !data.auctions) return false;
+        let modified = false;
+
+        (data.auctions || []).forEach(auction => {
+            const timer = getTimeRemaining(auction.endTime);
+            const isExpired = timer.isEnded || auction.status === 'CLOSED';
+
+            if (isExpired) {
+                if (auction.status !== 'CLOSED') {
+                    auction.status = 'CLOSED';
+                    modified = true;
+                }
+
+                if (!data.wonAuctions) data.wonAuctions = [];
+                let existingWon = data.wonAuctions.find(w => w.auctionId == auction.id);
+
+                if (!existingWon) {
+                    const bids = (data.bids || []).filter(b => b.auctionId == auction.id).sort((a, b) => b.priceKg - a.priceKg);
+                    const highestBid = bids.length > 0 ? bids[0] : null;
+
+                    if (highestBid) {
+                        highestBid.status = 'WON';
+                        auction.winnerAgentCode = highestBid.agentCode;
+                        auction.winnerAgentName = highestBid.agentName;
+                        auction.winningPriceKg = highestBid.priceKg;
+
+                        const now = new Date();
+                        const dateStr = now.toISOString().slice(0, 10).replace(/-/g, '');
+                        const payDeadline = calculatePaymentDeadline(auction, now);
+
+                        existingWon = {
+                            wonId: `WON-${dateStr}-${String(auction.id).padStart(2, '0')}`,
+                            auctionId: auction.id,
+                            agentCode: highestBid.agentCode,
+                            agentName: highestBid.agentName,
+                            flightNumber: auction.flightNumber,
+                            route: auction.route,
+                            capacityKg: auction.capacityKg,
+                            priceKg: highestBid.priceKg,
+                            totalAmountVND: highestBid.priceKg * auction.capacityKg,
+                            paymentDeadline: payDeadline,
+                            paymentStatus: 'UNPAID',
+                            paidAt: null,
+                            notifiedAt: null,
+                            awbNumber: `998-${Math.floor(10000000 + Math.random() * 90000000)}`,
+                            cutOffTime: auction.cutOffTime || 'Hôm nay 18:00',
+                            warehouse: 'Kho hàng SCSC / TCS Tân Sơn Nhất (Cửa số 4)',
+                            cargoDeclaration: null
+                        };
+                        data.wonAuctions.unshift(existingWon);
+                        modified = true;
+
+                        if (!data.notifications) data.notifications = [];
+                        const targetCode = (highestBid.agentCode || '').toUpperCase();
+                        const hasNotif = data.notifications.some(n => 
+                            (n.targetAgentCode || '').toUpperCase() === targetCode &&
+                            n.type === 'WON' &&
+                            (n.message || '').includes(auction.flightNumber)
+                        );
+                        if (!hasNotif) {
+                            data.notifications.unshift({
+                                id: Date.now() + Math.floor(Math.random() * 1000),
+                                targetAgentCode: highestBid.agentCode,
+                                title: `🏆 CHÚC MỪNG! Bạn đã thắng thầu chuyến bay ${auction.flightNumber}`,
+                                message: `Đại lý ${highestBid.agentName} (${highestBid.agentCode}) đã trúng thầu chuyến bay ${auction.flightNumber} (${auction.route}) với giá ${formatCurrency(highestBid.priceKg)}/Kg. Vui lòng hoàn tất thanh toán & khai báo hàng hóa trong 24h.`,
+                                time: 'Vừa xong',
+                                type: 'WON',
+                                read: false,
+                                link: `07-WonAuction.html?flight=${encodeURIComponent(auction.flightNumber)}`
+                            });
+                            modified = true;
+                        }
+                    }
+                }
+            }
+        });
+
+        return modified;
     }
 
     function checkAndAutoLockExpiredWonAuctions(data) {

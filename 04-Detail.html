@@ -419,22 +419,16 @@
 
             const u = (CargoStore.getCurrentUser ? CargoStore.getCurrentUser() : null) || {};
             const myCode = (u.agentCode || u.code || '').trim().toUpperCase();
-            const myCompName = (u.companyName || '').trim().toLowerCase();
 
             let bids = CargoStore.getBidsForAuction(currentAuction.id);
             const topBid = bids.length > 0 ? bids[0] : null;
 
-            const isTopBidMine = topBid && (
-                (topBid.agentCode && topBid.agentCode.trim().toUpperCase() === myCode) ||
-                (topBid.agentName && myCompName && (topBid.agentName.trim().toLowerCase().includes(myCompName) || myCompName.includes(topBid.agentName.trim().toLowerCase())))
-            );
+            const isTopBidMine = !!(topBid && myCode && (topBid.agentCode || '').trim().toUpperCase() === myCode);
 
-            const isAuctionWinnerMine = (
-                (currentAuction.winnerAgentCode && currentAuction.winnerAgentCode.trim().toUpperCase() === myCode) ||
-                (currentAuction.leadingAgentCode && currentAuction.leadingAgentCode.trim().toUpperCase() === myCode) ||
-                (currentAuction.winnerAgentName && myCompName && (currentAuction.winnerAgentName.trim().toLowerCase().includes(myCompName) || myCompName.includes(currentAuction.winnerAgentName.trim().toLowerCase()))) ||
-                (currentAuction.leadingAgentName && myCompName && (currentAuction.leadingAgentName.trim().toLowerCase().includes(myCompName) || myCompName.includes(currentAuction.leadingAgentName.trim().toLowerCase())))
-            );
+            const isAuctionWinnerMine = !!(myCode && (
+                ((currentAuction.winnerAgentCode || '').trim().toUpperCase() === myCode) ||
+                ((currentAuction.leadingAgentCode || '').trim().toUpperCase() === myCode)
+            ));
 
             const isWinner = isClosed && (isTopBidMine || isAuctionWinnerMine);
 

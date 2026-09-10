@@ -1,5 +1,5 @@
 {
-  "version": 1789009284614,
+  "version": 1789010621716,
   "auctions": [
     {
       "id": 9,
@@ -15,17 +15,20 @@
       "aircraft": "Airbus A321neo Cargo",
       "capacityKg": 10000,
       "startingPriceKg": 10000,
-      "currentPriceKg": 10500,
+      "currentPriceKg": 11000,
       "minStep": 500,
       "endTime": "2026-09-10T05:30:00.000Z",
-      "status": "OPEN",
-      "leadingAgentCode": "AG-0892",
-      "leadingAgentName": "Công ty TNHH Vận tải ABC Logistics",
-      "bidsCount": 2,
+      "status": "CLOSED",
+      "leadingAgentCode": "AG-0341",
+      "leadingAgentName": "Công ty TNHH SkyFreight Logistics Việt Nam",
+      "bidsCount": 3,
       "specialNotes": "Tải trọng tổng hợp tiêu chuẩn IATA. Có hỗ trợ xe nâng pallet.",
       "cutOffTime": "14:30 · 10/09/2026",
       "isAnonymous": true,
-      "etdIso": "2026-09-10T10:30:00.000Z"
+      "etdIso": "2026-09-10T10:30:00.000Z",
+      "winnerAgentCode": "AG-0341",
+      "winnerAgentName": "Công ty TNHH SkyFreight Logistics Việt Nam",
+      "winningPriceKg": 11000
     },
     {
       "id": 8,
@@ -246,6 +249,18 @@
   ],
   "bids": [
     {
+      "id": 1789009862770,
+      "timestamp": 1789009862770,
+      "auctionId": 9,
+      "agentCode": "AG-0341",
+      "agentName": "Công ty TNHH SkyFreight Logistics Việt Nam",
+      "isAnonymous": true,
+      "priceKg": 11000,
+      "time": "Vừa xong",
+      "status": "WON",
+      "weightKg": 10000
+    },
+    {
       "id": 1789008629496,
       "timestamp": 1789008629496,
       "auctionId": 9,
@@ -254,7 +269,7 @@
       "isAnonymous": true,
       "priceKg": 10500,
       "time": "Vừa xong",
-      "status": "HIGHEST",
+      "status": "OUTBID",
       "weightKg": 10000
     },
     {
@@ -632,6 +647,25 @@
   ],
   "wonAuctions": [
     {
+      "wonId": "WON-20260910-09",
+      "auctionId": 9,
+      "agentCode": "AG-0341",
+      "agentName": "Công ty TNHH SkyFreight Logistics Việt Nam",
+      "flightNumber": "VU134",
+      "route": "SGN - HAN",
+      "capacityKg": 10000,
+      "priceKg": 11000,
+      "totalAmountVND": 110000000,
+      "paymentDeadline": "2026-09-10T07:30:00.000Z",
+      "paymentStatus": "UNPAID",
+      "paidAt": null,
+      "notifiedAt": null,
+      "awbNumber": "998-41438401",
+      "cutOffTime": "14:30 · 10/09/2026",
+      "warehouse": "Kho hàng SCSC / TCS Tân Sơn Nhất (Cửa số 4)",
+      "cargoDeclaration": null
+    },
+    {
       "wonId": "WON-20260909-07",
       "auctionId": 7,
       "agentCode": "AG-0556",
@@ -804,6 +838,48 @@
     }
   ],
   "notifications": [
+    {
+      "id": 1789010618676,
+      "targetAgentCode": "AG-0341",
+      "title": "⏰ CẢNH BÁO THANH TOÁN: Đơn WON-20260910-09 (VU134)",
+      "message": "Quý đại lý vui lòng hoàn tất chuyển khoản cho đơn hàng WON-20260910-09 trước 14:30:00 10/9/2026. LƯU Ý: Nếu không thanh toán đúng hạn, hệ thống sẽ TỰ ĐỘNG KHÓA TÀI KHOẢN ĐẠI LÝ và hủy quyền đấu giá.",
+      "time": "Vừa xong",
+      "type": "PAYMENT_REMINDER",
+      "read": false,
+      "link": "07-WonAuction.html"
+    },
+    {
+      "id": 1789010598255,
+      "targetAgentCode": "AG-0341",
+      "title": "Phiên VU134 đã chốt kết quả!",
+      "message": "Đại lý Công ty TNHH SkyFreight Logistics Việt Nam (AG-0341) đã trúng thầu chuyến VU134 (SGN - HAN) mức giá 11.000 đ/Kg.",
+      "time": "Vừa xong",
+      "type": "WON",
+      "read": false,
+      "link": "07-WonAuction.html"
+    },
+    {
+      "id": 1789009862771,
+      "timestamp": 1789009862771,
+      "targetAgentCode": "AG-0892",
+      "title": "Cảnh báo bị vượt giá chuyến VU134!",
+      "message": "Một đại lý đối thủ (Ẩn danh) vừa đặt mức giá mới 11.000 đ/Kg cho chặng SGN - HAN.",
+      "time": "Vừa xong",
+      "type": "OUTBID",
+      "read": false,
+      "link": "04-Detail.html?id=9"
+    },
+    {
+      "id": 1789009862770,
+      "timestamp": 1789009862770,
+      "targetAgentCode": "AG-0341",
+      "title": "Đặt giá thành công chuyến VU134",
+      "message": "Bạn (AG-0341) đang dẫn đầu mức giá 11.000 đ/Kg cho chặng SGN - HAN. (Tên công ty được che ẩn danh đối với các đối thủ)",
+      "time": "Vừa xong",
+      "type": "HIGHEST",
+      "read": false,
+      "link": "04-Detail.html?id=9"
+    },
     {
       "id": 1789008629497,
       "timestamp": 1789008629497,
@@ -1554,6 +1630,16 @@
   },
   "emailLogs": [
     {
+      "id": 1789010601669,
+      "to": "dung.hoang@saigonair.vn",
+      "type": "AUCTION_WON",
+      "subject": "[Vietravel Airlines Cargo] CHÚC MỪNG TRÚNG THẦU! Đơn hàng WON-20260910-09 - Chuyến VU134 (SGN - HAN)",
+      "messageId": "<a25de864-d41e-a755-17f7-60b49c15eb92@gmail.com>",
+      "isRealSmtp": true,
+      "previewUrl": null,
+      "sentAt": "10:23:21 10/9/2026"
+    },
+    {
       "id": 1788926736650,
       "to": "testjaki892@gmail.com",
       "type": "REGISTRATION_REJECTED",
@@ -1947,6 +2033,15 @@
         "HAN-SGN",
         "SGN-HAN"
       ],
+      "notifyOnNewAuction": true,
+      "notifyOnOutbid": true,
+      "notifyOnClosingSoon": true,
+      "notifyOnWon": true,
+      "emailAlert": true,
+      "soundAlert": true
+    },
+    "AG-1024": {
+      "routes": [],
       "notifyOnNewAuction": true,
       "notifyOnOutbid": true,
       "notifyOnClosingSoon": true,
