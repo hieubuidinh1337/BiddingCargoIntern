@@ -1,5 +1,5 @@
 {
-  "version": 1789013306761,
+  "version": 1789015383008,
   "auctions": [
     {
       "id": 10,
@@ -214,17 +214,20 @@
       "aircraft": "Airbus A321neo Cargo",
       "capacityKg": 4000,
       "startingPriceKg": 22000,
-      "currentPriceKg": 30000,
+      "currentPriceKg": 53000,
       "minStep": 1000,
       "endTime": "2026-09-10T08:30:00.000Z",
-      "status": "OPEN",
+      "status": "CLOSED",
       "leadingAgentCode": "AG-1024",
       "leadingAgentName": "Công ty CP Giao nhận Kho vận Vinatrans",
-      "bidsCount": 6,
+      "bidsCount": 11,
       "specialNotes": "Hàng hải sản đông lạnh tươi sống đóng thùng xốp tiêu chuẩn IATA.",
       "cutOffTime": "17:30 · 10/09/2026",
       "isAnonymous": true,
-      "etdIso": "2026-09-10T13:30:00.000Z"
+      "etdIso": "2026-09-10T13:30:00.000Z",
+      "winnerAgentCode": "AG-1024",
+      "winnerAgentName": "Công ty CP Giao nhận Kho vận Vinatrans",
+      "winningPriceKg": 53000
     },
     {
       "id": 2,
@@ -280,6 +283,66 @@
     }
   ],
   "bids": [
+    {
+      "id": 1789015174817,
+      "timestamp": 1789015174817,
+      "auctionId": 3,
+      "agentCode": "AG-1024",
+      "agentName": "Công ty CP Giao nhận Kho vận Vinatrans",
+      "isAnonymous": true,
+      "priceKg": 53000,
+      "time": "Vừa xong",
+      "status": "WON",
+      "weightKg": 4000
+    },
+    {
+      "id": 1789015158559,
+      "timestamp": 1789015158559,
+      "auctionId": 3,
+      "agentCode": "AG-0892",
+      "agentName": "Công ty TNHH Vận tải ABC Logistics",
+      "isAnonymous": true,
+      "priceKg": 44000,
+      "time": "Vừa xong",
+      "status": "OUTBID",
+      "weightKg": 4000
+    },
+    {
+      "id": 1789015107723,
+      "timestamp": 1789015107723,
+      "auctionId": 3,
+      "agentCode": "AG-0892",
+      "agentName": "Công ty TNHH Vận tải ABC Logistics",
+      "isAnonymous": true,
+      "priceKg": 37000,
+      "time": "Vừa xong",
+      "status": "OUTBID",
+      "weightKg": 4000
+    },
+    {
+      "id": 1789015084614,
+      "timestamp": 1789015084614,
+      "auctionId": 3,
+      "agentCode": "AG-0892",
+      "agentName": "Công ty TNHH Vận tải ABC Logistics",
+      "isAnonymous": true,
+      "priceKg": 32000,
+      "time": "Vừa xong",
+      "status": "OUTBID",
+      "weightKg": 4000
+    },
+    {
+      "id": 1789015077432,
+      "timestamp": 1789015077432,
+      "auctionId": 3,
+      "agentCode": "AG-0892",
+      "agentName": "Công ty TNHH Vận tải ABC Logistics",
+      "isAnonymous": true,
+      "priceKg": 31000,
+      "time": "Vừa xong",
+      "status": "OUTBID",
+      "weightKg": 4000
+    },
     {
       "id": 1789013296464,
       "timestamp": 1789013296464,
@@ -517,7 +580,7 @@
       "isAnonymous": true,
       "priceKg": 30000,
       "time": "10 phút trước",
-      "status": "HIGHEST",
+      "status": "OUTBID",
       "weightKg": 4000
     },
     {
@@ -932,16 +995,16 @@
     {
       "wonId": "WON-2026-0815-04",
       "auctionId": 3,
-      "agentCode": "AG-0556",
-      "agentName": "Golden Star Logistics",
+      "agentCode": "AG-1024",
+      "agentName": "Công ty CP Giao nhận Kho vận Vinatrans",
       "flightNumber": "VU340",
       "route": "HAN - PQC",
       "capacityKg": 4000,
-      "priceKg": 25000,
-      "totalAmountVND": 100000000,
-      "paymentDeadline": "2026-09-09T09:15:00.000Z",
-      "paymentStatus": "PAID",
-      "notifiedAt": "08:38:56 9/9/2026",
+      "priceKg": 53000,
+      "totalAmountVND": 212000000,
+      "paymentDeadline": "2026-09-10T10:30:00.000Z",
+      "paymentStatus": "UNPAID",
+      "notifiedAt": null,
       "awbNumber": "998-34077611",
       "cutOffTime": "09/09/2026 16:00",
       "warehouse": "Kho hàng Cargo Nội Bài (Cửa số 1)",
@@ -957,7 +1020,7 @@
       },
       "lockPenaltyHandled": true,
       "lockWaivedByAdmin": true,
-      "paidAt": "10:07:23 9/9/2026"
+      "paidAt": null
     },
     {
       "wonId": "WON-2026-0816-05",
@@ -981,6 +1044,116 @@
     }
   ],
   "notifications": [
+    {
+      "id": 1789015359853,
+      "timestamp": 1789015359853,
+      "targetAgentCode": "AG-1024",
+      "title": "⏰ CẢNH BÁO THANH TOÁN: Đơn WON-2026-0815-04 (VU340)",
+      "message": "Quý đại lý vui lòng hoàn tất chuyển khoản cho đơn hàng WON-2026-0815-04 trước 17:30:00 10/9/2026. LƯU Ý: Nếu không thanh toán đúng hạn, hệ thống sẽ TỰ ĐỘNG KHÓA TÀI KHOẢN ĐẠI LÝ và hủy quyền đấu giá.",
+      "time": "Vừa xong",
+      "type": "PAYMENT_REMINDER",
+      "read": false,
+      "link": "07-WonAuction.html"
+    },
+    {
+      "id": 1789015352080,
+      "timestamp": 1789015352080,
+      "targetAgentCode": "AG-1024",
+      "title": "🏆 CHÚC MỪNG! Phiên VU340 đã chốt kết quả!",
+      "message": "Đại lý Công ty CP Giao nhận Kho vận Vinatrans (AG-1024) đã trúng thầu chuyến VU340 (HAN - PQC) mức giá 53.000 đ/Kg. Vui lòng hoàn tất thanh toán & khai báo hàng hóa.",
+      "time": "Vừa xong",
+      "type": "WON",
+      "read": false,
+      "link": "07-WonAuction.html"
+    },
+    {
+      "id": 1789015174818,
+      "timestamp": 1789015174818,
+      "targetAgentCode": "AG-0892",
+      "title": "Cảnh báo bị vượt giá chuyến VU340!",
+      "message": "Một đại lý đối thủ (Ẩn danh) vừa đặt mức giá mới 53.000 đ/Kg cho chặng HAN - PQC.",
+      "time": "Vừa xong",
+      "type": "OUTBID",
+      "read": false,
+      "link": "04-Detail.html?id=3"
+    },
+    {
+      "id": 1789015174817,
+      "timestamp": 1789015174817,
+      "targetAgentCode": "AG-1024",
+      "title": "Đặt giá thành công chuyến VU340",
+      "message": "Bạn (AG-1024) đang dẫn đầu mức giá 53.000 đ/Kg cho chặng HAN - PQC. (Tên công ty được che ẩn danh đối với các đối thủ)",
+      "time": "Vừa xong",
+      "type": "HIGHEST",
+      "read": false,
+      "link": "04-Detail.html?id=3"
+    },
+    {
+      "id": 1789015158559,
+      "timestamp": 1789015158559,
+      "targetAgentCode": "AG-0892",
+      "title": "Đặt giá thành công chuyến VU340",
+      "message": "Bạn (AG-0892) đang dẫn đầu mức giá 44.000 đ/Kg cho chặng HAN - PQC. (Tên công ty được che ẩn danh đối với các đối thủ)",
+      "time": "Vừa xong",
+      "type": "HIGHEST",
+      "read": false,
+      "link": "04-Detail.html?id=3"
+    },
+    {
+      "id": 1789015107723,
+      "timestamp": 1789015107723,
+      "targetAgentCode": "AG-0892",
+      "title": "Đặt giá thành công chuyến VU340",
+      "message": "Bạn (AG-0892) đang dẫn đầu mức giá 37.000 đ/Kg cho chặng HAN - PQC. (Tên công ty được che ẩn danh đối với các đối thủ)",
+      "time": "Vừa xong",
+      "type": "HIGHEST",
+      "read": false,
+      "link": "04-Detail.html?id=3"
+    },
+    {
+      "id": 1789015084614,
+      "timestamp": 1789015084614,
+      "targetAgentCode": "AG-0892",
+      "title": "Đặt giá thành công chuyến VU340",
+      "message": "Bạn (AG-0892) đang dẫn đầu mức giá 32.000 đ/Kg cho chặng HAN - PQC. (Tên công ty được che ẩn danh đối với các đối thủ)",
+      "time": "Vừa xong",
+      "type": "HIGHEST",
+      "read": false,
+      "link": "04-Detail.html?id=3"
+    },
+    {
+      "id": 1789015077433,
+      "timestamp": 1789015077433,
+      "targetAgentCode": "AG-1024",
+      "title": "Cảnh báo bị vượt giá chuyến VU340!",
+      "message": "Một đại lý đối thủ (Ẩn danh) vừa đặt mức giá mới 31.000 đ/Kg cho chặng HAN - PQC.",
+      "time": "Vừa xong",
+      "type": "OUTBID",
+      "read": false,
+      "link": "04-Detail.html?id=3"
+    },
+    {
+      "id": 1789015077432,
+      "timestamp": 1789015077432,
+      "targetAgentCode": "AG-0892",
+      "title": "Đặt giá thành công chuyến VU340",
+      "message": "Bạn (AG-0892) đang dẫn đầu mức giá 31.000 đ/Kg cho chặng HAN - PQC. (Tên công ty được che ẩn danh đối với các đối thủ)",
+      "time": "Vừa xong",
+      "type": "HIGHEST",
+      "read": false,
+      "link": "04-Detail.html?id=3"
+    },
+    {
+      "id": 1789014821483,
+      "timestamp": 1789014821483,
+      "targetAgentCode": "AG-0341",
+      "title": "⏰ CẢNH BÁO THANH TOÁN: Đơn WON-20260910-10 (VU136)",
+      "message": "Quý đại lý vui lòng hoàn tất chuyển khoản cho đơn hàng WON-20260910-10 trước 16:00:00 10/9/2026. LƯU Ý: Nếu không thanh toán đúng hạn, hệ thống sẽ TỰ ĐỘNG KHÓA TÀI KHOẢN ĐẠI LÝ và hủy quyền đấu giá.",
+      "time": "Vừa xong",
+      "type": "PAYMENT_REMINDER",
+      "read": false,
+      "link": "07-WonAuction.html"
+    },
     {
       "id": 1789013306448,
       "targetAgentCode": "AG-0341",
@@ -1964,6 +2137,16 @@
   },
   "emailLogs": [
     {
+      "id": 1789015354699,
+      "to": "khang.le@vinatrans.com.vn",
+      "type": "AUCTION_WON",
+      "subject": "[Vietravel Airlines Cargo] CHÚC MỪNG TRÚNG THẦU! Đơn hàng WON-2026-0815-04 - Chuyến VU340 (HAN - PQC)",
+      "messageId": "<b752204b-7a31-b010-cf21-8ee34bb53971@gmail.com>",
+      "isRealSmtp": true,
+      "previewUrl": null,
+      "sentAt": "11:42:34 10/9/2026"
+    },
+    {
       "id": 1789013308736,
       "to": "dung.hoang@saigonair.vn",
       "type": "AUCTION_WON",
@@ -2410,15 +2593,26 @@
   "routeSubscriptions": {
     "AG-0892": {
       "routes": [
-        "HAN - SGN",
-        "SGN - HAN",
-        "SGN - DAD"
+        "SGN-HAN",
+        "SGN-DAD",
+        "SGN-PQC",
+        "HAN-PQC",
+        "HAN-SGN",
+        "HAN-DAD",
+        "DAD-SGN",
+        "DAD-HAN",
+        "DAD-PQC",
+        "PQC-SGN",
+        "PQC-HAN",
+        "PQC-DAD"
       ],
       "notifyOnNewAuction": true,
       "notifyOnOutbid": true,
       "notifyOnClosingSoon": true,
       "emailAlerts": true,
-      "updatedAt": "2026-09-08 15:30"
+      "updatedAt": "2026-09-08 15:30",
+      "emailAlert": true,
+      "soundAlert": true
     },
     "AG-0556": {
       "routes": [
@@ -2445,7 +2639,20 @@
       "soundAlert": true
     },
     "AG-1024": {
-      "routes": [],
+      "routes": [
+        "SGN-HAN",
+        "SGN-DAD",
+        "SGN-PQC",
+        "HAN-PQC",
+        "HAN-SGN",
+        "HAN-DAD",
+        "DAD-SGN",
+        "DAD-HAN",
+        "DAD-PQC",
+        "PQC-SGN",
+        "PQC-HAN",
+        "PQC-DAD"
+      ],
       "notifyOnNewAuction": true,
       "notifyOnOutbid": true,
       "notifyOnClosingSoon": true,
