@@ -970,6 +970,15 @@
             return false;
         }
 
+        function isValidHawbFormat(hawb) {
+            if (!hawb || typeof hawb !== 'string') return false;
+            const trimmed = hawb.trim();
+            if (trimmed.length < 4 || trimmed.length > 30) return false;
+            if (!/^[A-Za-z0-9\-\/]+$/.test(trimmed)) return false;
+            if (!/[A-Za-z]/.test(trimmed)) return false;
+            return /[-\/]/.test(trimmed) || /\d/.test(trimmed);
+        }
+
         function highlightCargoInputError(inputId, hasError) {
             const input = document.getElementById(inputId);
             if (!input) return;
@@ -1267,10 +1276,10 @@
             const consigneeAddress = document.getElementById('declConsigneeAddress').value.trim();
             const specialNotes = document.getElementById('declNotes').value.trim();
 
-            // 1. Kiểm tra Mã HAWB (bắt buộc phải có)
-            if (!hawbNumber || hawbNumber.length < 4 || hawbNumber.length > 30 || !/^[A-Za-z0-9\-\/]{4,30}$/.test(hawbNumber) || isGibberishText(hawbNumber)) {
+            // 1. Kiểm tra Mã HAWB (bắt buộc phải có và phải theo định dạng hợp lệ)
+            if (!isValidHawbFormat(hawbNumber) || isGibberishText(hawbNumber)) {
                 highlightCargoInputError('declHawb', true);
-                showCargoModalError('Vui lòng nhập Mã Vận đơn House (HAWB) / Số hợp đồng bắt buộc (tối thiểu 4 ký tự, Ví dụ: HAWB-SGN-88901, VU-12345). Không nhập chuỗi ký tự gõ phím ngẫu nhiên!');
+                showCargoModalError('Vui lòng nhập Mã Vận đơn House (HAWB) / Số hợp đồng theo định dạng hợp lệ (ví dụ: HAWB-SGN-88901, VU-12345, SGN-88901). Không nhập chuỗi ký tự ngẫu nhiên hoặc thiếu định dạng!');
                 document.getElementById('declHawb').focus();
                 return;
             }
@@ -2115,8 +2124,19 @@
             const file = e.target.files[0];
             if (!file) return;
 
+            const fileName = (file.name || '').toLowerCase();
+            const validExts = ['.jpg', '.jpeg', '.png', '.webp'];
+            const hasValidExt = validExts.some(ext => fileName.endsWith(ext));
+            const isImageMime = (file.type || '').startsWith('image/');
+
+            if (!isImageMime && !hasValidExt) {
+                alert('🚫 Chỉ chấp nhận định dạng hình ảnh (JPG, PNG, WebP) cho biên lai thanh toán! Vui lòng không chọn file video hoặc tài liệu khác.');
+                e.target.value = '';
+                return;
+            }
+
             if (file.size > 5 * 1024 * 1024) {
-                alert('Dung lượng ảnh biên lai không được vượt quá 5MB!');
+                alert('⚠️ Dung lượng ảnh biên lai không được vượt quá 5MB!');
                 e.target.value = '';
                 return;
             }

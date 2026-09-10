@@ -284,6 +284,36 @@
     </div>
 
     <script>
+        async function openProofImageInNewTab(imageUrl) {
+            if (!imageUrl) return;
+
+            let finalUrl = String(imageUrl).trim();
+            if (!finalUrl) return;
+
+            if (finalUrl.startsWith('data:image/')) {
+                try {
+                    const response = await fetch(finalUrl);
+                    const blob = await response.blob();
+                    finalUrl = URL.createObjectURL(blob);
+                } catch (err) {
+                    console.error('Failed to convert proof image data URL:', err);
+                    return;
+                }
+            }
+
+            const a = document.createElement('a');
+            a.href = finalUrl;
+            a.target = '_blank';
+            a.rel = 'noopener noreferrer';
+            document.body.appendChild(a);
+            a.click();
+            a.remove();
+
+            if (finalUrl.startsWith('blob:')) {
+                setTimeout(() => URL.revokeObjectURL(finalUrl), 15000);
+            }
+        }
+
         function toggleAdminMobileNav() {
             const nav = document.getElementById('adminMobileNav');
             if (nav) nav.classList.toggle('hidden');
@@ -445,7 +475,7 @@
                                         <span class="font-bold text-slate-800 text-[11px] flex items-center gap-1.5">
                                             <i class="fa-solid fa-image text-blue-600"></i> Ảnh biên lai chuyển tiền:
                                         </span>
-                                        <a href="${proof.proofImageUrl}" target="_blank" class="text-blue-600 hover:text-blue-800 text-[11px] underline font-bold">Mở ảnh lớn</a>
+                                        <button type="button" onclick="openProofImageInNewTab('${proof.proofImageUrl}'); return false;" class="text-blue-600 hover:text-blue-800 text-[11px] underline font-bold">Mở ảnh lớn</button>
                                     </div>
                                     <img src="${proof.proofImageUrl}" alt="Biên lai" class="max-h-48 rounded-lg object-contain">
                                 </div>

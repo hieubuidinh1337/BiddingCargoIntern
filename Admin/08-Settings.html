@@ -368,7 +368,10 @@
                 </div>
             </div>
 
-            <div class="flex items-center justify-end gap-3">
+            <div class="flex items-center justify-end gap-3 flex-wrap">
+                <button type="button" id="resetAllDataBtn" onclick="handleResetAllData()" class="bg-rose-600 hover:bg-rose-700 text-white text-xs font-bold px-5 py-2.5 rounded-xl transition shadow flex items-center gap-1.5">
+                    <i class="fa-solid fa-rotate-left"></i> Reset toàn bộ dữ liệu
+                </button>
                 <button type="submit" id="saveSettingsBtn" class="bg-blue-600 hover:bg-blue-700 text-white text-xs font-bold px-6 py-2.5 rounded-xl transition shadow flex items-center gap-1.5">
                     <i class="fa-solid fa-floppy-disk"></i> Lưu cấu hình hệ thống
                 </button>
@@ -591,6 +594,38 @@
             } finally {
                 btn.disabled = false;
                 btn.innerHTML = '<i class="fa-solid fa-paper-plane"></i> Gửi Email Kiểm tra Ngay';
+            }
+        }
+
+        async function handleResetAllData() {
+            const admin = CargoStore.getCurrentAdmin();
+            if (admin && admin.role === 'STAFF') {
+                alert('Nhân viên không có quyền reset dữ liệu hệ thống!');
+                return;
+            }
+
+            const confirmed = confirm('Bạn có chắc muốn reset toàn bộ dữ liệu hệ thống về trạng thái mặc định? Tất cả dữ liệu hiện tại sẽ bị xóa và khôi phục lại giá trị mặc định.');
+            if (!confirmed) return;
+
+            const btn = document.getElementById('resetAllDataBtn');
+            const originalHtml = btn.innerHTML;
+            btn.disabled = true;
+            btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Đang reset dữ liệu...';
+
+            try {
+                const res = await CargoStore.resetAllData();
+                if (res && res.success) {
+                    loadSettings();
+                    alert(res.message || 'Đã reset dữ liệu hệ thống thành công!');
+                } else {
+                    alert((res && res.message) || 'Reset dữ liệu thất bại.');
+                }
+            } catch (err) {
+                alert('Không thể reset dữ liệu. Vui lòng thử lại sau.');
+                console.error(err);
+            } finally {
+                btn.disabled = false;
+                btn.innerHTML = originalHtml;
             }
         }
 

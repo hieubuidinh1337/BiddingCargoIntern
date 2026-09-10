@@ -437,12 +437,61 @@
         // Map of uploaded files: key = label, value = [{name, dataUrl, type}]
         const uploadedFilesMap = {};
 
+        const ALLOWED_EXTENSIONS = ['.pdf', '.jpg', '.jpeg', '.png'];
+        const ALLOWED_MIME_TYPES = ['application/pdf', 'image/jpeg', 'image/jpg', 'image/png', 'image/pjpeg'];
+        const MAX_FILE_SIZE = 15 * 1024 * 1024; // 15MB
+
+        function validateSelectedFile(file) {
+            if (!file) return { valid: false, message: 'Tệp tin không tồn tại' };
+
+            const fileName = file.name || '';
+            const lastDot = fileName.lastIndexOf('.');
+            const ext = lastDot !== -1 ? fileName.substring(lastDot).toLowerCase() : '';
+            const fileType = (file.type || '').toLowerCase();
+
+            // Explicitly block video / audio / executable files
+            if (fileType.startsWith('video/') || ['mp4', 'avi', 'mov', 'mkv', 'flv', 'wmv', 'webm', '3gp', 'm4v'].includes(ext.replace('.', ''))) {
+                return { valid: false, message: `🚫 Không thể tải lên video "${fileName}". Chỉ chấp nhận file tài liệu PDF hoặc hình ảnh (JPG, PNG)!` };
+            }
+            if (fileType.startsWith('audio/') || ['mp3', 'wav', 'aac', 'flac', 'ogg'].includes(ext.replace('.', ''))) {
+                return { valid: false, message: `🚫 Không thể tải lên file âm thanh "${fileName}". Chỉ chấp nhận file tài liệu PDF hoặc hình ảnh (JPG, PNG)!` };
+            }
+
+            // Check valid extensions
+            const hasValidExt = ALLOWED_EXTENSIONS.includes(ext);
+            const hasValidMime = fileType ? (ALLOWED_MIME_TYPES.includes(fileType) || (fileType.startsWith('image/') && ['jpg','jpeg','png'].includes(ext.replace('.', '')))) : hasValidExt;
+
+            if (!hasValidExt || (!hasValidMime && fileType)) {
+                return { valid: false, message: `⚠️ Tệp "${fileName}" không đúng định dạng. Chỉ chấp nhận định dạng: .pdf, .jpg, .jpeg, .png!` };
+            }
+
+            if (file.size > MAX_FILE_SIZE) {
+                return { valid: false, message: `⚠️ Tệp "${fileName}" vượt quá dung lượng tối đa cho phép (15MB)!` };
+            }
+
+            return { valid: true };
+        }
+
         function handleFile(input) {
             const label = input.getAttribute('data-label');
             const nameEl = document.getElementById('name-' + label);
             if (!nameEl) return;
 
             if (input.files && input.files.length > 0) {
+                // Validate all selected files first
+                for (let i = 0; i < input.files.length; i++) {
+                    const check = validateSelectedFile(input.files[i]);
+                    if (!check.valid) {
+                        alert(check.message);
+                        input.value = ''; // Reset input
+                        delete uploadedFilesMap[label];
+                        nameEl.textContent = 'Chưa chọn file (Định dạng không hợp lệ)';
+                        nameEl.classList.remove('text-green-600', 'text-gray-400');
+                        nameEl.classList.add('text-red-500', 'font-medium');
+                        return;
+                    }
+                }
+
                 // Clear previous files for this slot (prevents accumulation)
                 uploadedFilesMap[label] = [];
 
@@ -463,11 +512,11 @@
                         if (readCount === fileCount) {
                             // All files read for this slot
                             if (fileCount === 1) {
-                                nameEl.textContent = file.name;
+                                nameEl.textContent = '✓ ' + file.name;
                             } else {
-                                nameEl.textContent = fileCount + ' tệp tin đã chọn';
+                                nameEl.textContent = '✓ ' + fileCount + ' tệp tin đã chọn';
                             }
-                            nameEl.classList.remove('text-gray-400');
+                            nameEl.classList.remove('text-gray-400', 'text-red-500');
                             nameEl.classList.add('text-green-600', 'font-medium');
                         }
                     };
@@ -477,7 +526,7 @@
                 delete uploadedFilesMap[label];
                 nameEl.textContent = 'Chưa chọn file';
                 nameEl.classList.add('text-gray-400');
-                nameEl.classList.remove('text-green-600', 'font-medium');
+                nameEl.classList.remove('text-green-600', 'text-red-500', 'font-medium');
             }
         }
 

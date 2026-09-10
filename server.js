@@ -343,6 +343,52 @@ const defaultSharedData = {
 
 let serverData = null;
 
+function reconcileAuctionSummaries(data) {
+    if (!data || !Array.isArray(data.auctions)) return false;
+
+    let changed = false;
+    const allBids = Array.isArray(data.bids) ? data.bids : [];
+
+    data.auctions.forEach(a => {
+        const auctionBids = allBids
+            .filter(b => Number(b.auctionId) === Number(a.id))
+            .sort((x, y) => Number(y.priceKg) - Number(x.priceKg));
+
+        if (auctionBids.length > 0) {
+            const highestBid = auctionBids[0];
+            const highestPrice = Number(highestBid.priceKg);
+            const existingPrice = Number(a.currentPriceKg || 0);
+
+            if (Number.isFinite(highestPrice) && highestPrice > existingPrice) {
+                a.currentPriceKg = highestPrice;
+                changed = true;
+            }
+
+            const normalizedLeaderCode = (highestBid.agentCode || '').trim();
+            const normalizedLeaderName = (highestBid.agentName || '').trim();
+
+            if ((a.leadingAgentCode || '').trim() !== normalizedLeaderCode ||
+                (a.leadingAgentName || '').trim() !== normalizedLeaderName) {
+                a.leadingAgentCode = normalizedLeaderCode || a.leadingAgentCode;
+                a.leadingAgentName = normalizedLeaderName || a.leadingAgentName;
+                a.isAnonymous = highestBid.isAnonymous !== false;
+                changed = true;
+            }
+
+            const bidCount = auctionBids.length;
+            if ((a.bidsCount || 0) !== bidCount) {
+                a.bidsCount = bidCount;
+                changed = true;
+            }
+        } else if ((a.bidsCount || 0) !== 0) {
+            a.bidsCount = 0;
+            changed = true;
+        }
+    });
+
+    return changed;
+}
+
 function loadServerData() {
     try {
         if (fs.existsSync(DB_FILE)) {
@@ -403,6 +449,10 @@ function loadServerData() {
                 }
             }
         });
+    }
+
+    if (reconcileAuctionSummaries(serverData)) {
+        changed = true;
     }
 
     if (checkAndAutoLockExpiredWonAuctions(serverData)) {
@@ -696,6 +746,9 @@ const server = http.createServer((req, res) => {
 
     // --- REST API: GET /api/data ---
     if (pathname === '/api/data' && req.method === 'GET') {
+        if (reconcileAuctionSummaries(serverData)) {
+            saveServerData();
+        }
         if (checkAndAutoLockExpiredWonAuctions(serverData)) {
             saveServerData();
         }
@@ -733,6 +786,9 @@ const server = http.createServer((req, res) => {
                 if (incoming.bankConfig) serverData.bankConfig = incoming.bankConfig;
                 if (incoming.routeSubscriptions) serverData.routeSubscriptions = incoming.routeSubscriptions;
 
+                if (reconcileAuctionSummaries(serverData)) {
+                    changed = true;
+                }
                 checkAndAutoLockExpiredWonAuctions(serverData);
                 serverData.version = Date.now();
                 saveServerData();
@@ -744,6 +800,38 @@ const server = http.createServer((req, res) => {
                 res.end(JSON.stringify({ success: false, error: err.message }));
             }
         });
+        return;
+    }
+
+    // --- REST API: POST /api/reset ---
+    if (pathname === '/api/reset' && req.method === 'POST') {
+        try {
+            serverData = JSON.parse(JSON.stringify(defaultSharedData));
+            serverData.version = Date.now();
+
+            // Refresh open auctions end times to future
+            if (serverData.auctions && Array.isArray(serverData.auctions)) {
+                const now = Date.now();
+                serverData.auctions.forEach((a, idx) => {
+                    if (a.status === 'OPEN') {
+                        a.endTime = new Date(now + (idx === 0 ? 45 : (idx === 1 ? 90 : 120)) * 60 * 1000).toISOString();
+                    }
+                });
+            }
+
+            saveServerData();
+            console.log('[Server] Successfully reset all server data to defaultSharedData!');
+
+            res.writeHead(200, { 'Content-Type': 'application/json; charset=UTF-8' });
+            res.end(JSON.stringify({
+                success: true,
+                message: 'Đã khôi phục toàn bộ dữ liệu máy chủ về trạng thái mặc định ban đầu thành công!',
+                version: serverData.version
+            }), 'utf-8');
+        } catch (err) {
+            res.writeHead(500, { 'Content-Type': 'application/json' });
+            res.end(JSON.stringify({ success: false, error: err.message }));
+        }
         return;
     }
 

@@ -724,6 +724,47 @@ const CargoStore = (function() {
                 data.auctions = uniqueAuctions;
             }
 
+            // Reconcile auction summary fields from bid history so UI always reflects the real highest bid.
+            if (data.auctions && Array.isArray(data.auctions)) {
+                const allBids = Array.isArray(data.bids) ? data.bids : [];
+                data.auctions.forEach(a => {
+                    const auctionBids = allBids
+                        .filter(b => Number(b.auctionId) === Number(a.id))
+                        .sort((x, y) => Number(y.priceKg) - Number(x.priceKg));
+
+                    if (auctionBids.length > 0) {
+                        const highestBid = auctionBids[0];
+                        const highestPrice = Number(highestBid.priceKg);
+                        const existingPrice = Number(a.currentPriceKg || 0);
+
+                        if (Number.isFinite(highestPrice) && highestPrice > existingPrice) {
+                            a.currentPriceKg = highestPrice;
+                            updated = true;
+                        }
+
+                        const normalizedLeaderCode = (highestBid.agentCode || '').trim();
+                        const normalizedLeaderName = (highestBid.agentName || '').trim();
+
+                        if ((a.leadingAgentCode || '').trim() !== normalizedLeaderCode ||
+                            (a.leadingAgentName || '').trim() !== normalizedLeaderName) {
+                            a.leadingAgentCode = normalizedLeaderCode || a.leadingAgentCode;
+                            a.leadingAgentName = normalizedLeaderName || a.leadingAgentName;
+                            a.isAnonymous = highestBid.isAnonymous !== false;
+                            updated = true;
+                        }
+
+                        const bidCount = auctionBids.length;
+                        if ((a.bidsCount || 0) !== bidCount) {
+                            a.bidsCount = bidCount;
+                            updated = true;
+                        }
+                    } else if ((a.bidsCount || 0) !== 0) {
+                        a.bidsCount = 0;
+                        updated = true;
+                    }
+                });
+            }
+
             // Self-healing: Ensure at least 3 active OPEN auctions exist for the live portal demo
             const openAuctionsList = (data.auctions || []).filter(a => a.status === 'OPEN');
             if (openAuctionsList.length < 2) {
@@ -3894,6 +3935,36 @@ const CargoStore = (function() {
 
         getCurrentTime: function() {
             return new Date().toLocaleTimeString('vi-VN', { hour: '2-digit', minute: '2-digit' });
+        },
+
+        resetAllData: async function() {
+            try {
+                const apiUrl = (typeof window !== 'undefined' && window.location && window.location.protocol && window.location.protocol.startsWith('http'))
+                    ? '/api/reset'
+                    : 'http://localhost:8085/api/reset';
+                await fetch(apiUrl, { method: 'POST' }).catch(() => {});
+            } catch (e) {}
+
+            try {
+                if (typeof localStorage !== 'undefined') {
+                    localStorage.removeItem(STORAGE_KEY);
+                    const fresh = JSON.parse(JSON.stringify(defaultData));
+                    fresh.version = Date.now();
+                    if (fresh.auctions && Array.isArray(fresh.auctions)) {
+                        const now = Date.now();
+                        fresh.auctions.forEach((a, idx) => {
+                            if (a.status === 'OPEN') {
+                                a.endTime = new Date(now + (idx === 0 ? 45 : (idx === 1 ? 90 : 120)) * 60 * 1000).toISOString();
+                            }
+                        });
+                    }
+                    localStorage.setItem(STORAGE_KEY, JSON.stringify(fresh));
+                    window.dispatchEvent(new CustomEvent('cargostore_updated', { detail: fresh }));
+                }
+            } catch (e) {
+                console.error('Error resetting CargoStore data:', e);
+            }
+            return { success: true, message: 'Đã khôi phục toàn bộ dữ liệu hệ thống về mặc định!' };
         }
     };
 })();

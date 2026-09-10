@@ -531,6 +531,36 @@
 
         let activeAuctionTab = 'ALL_AUCTIONS';
 
+        async function openProofImageInNewTab(imageUrl) {
+            if (!imageUrl) return;
+
+            let finalUrl = String(imageUrl).trim();
+            if (!finalUrl) return;
+
+            if (finalUrl.startsWith('data:image/')) {
+                try {
+                    const response = await fetch(finalUrl);
+                    const blob = await response.blob();
+                    finalUrl = URL.createObjectURL(blob);
+                } catch (err) {
+                    console.error('Failed to convert proof image data URL:', err);
+                    return;
+                }
+            }
+
+            const a = document.createElement('a');
+            a.href = finalUrl;
+            a.target = '_blank';
+            a.rel = 'noopener noreferrer';
+            document.body.appendChild(a);
+            a.click();
+            a.remove();
+
+            if (finalUrl.startsWith('blob:')) {
+                setTimeout(() => URL.revokeObjectURL(finalUrl), 15000);
+            }
+        }
+
         function switchAuctionTab(tab) {
             activeAuctionTab = tab;
             const btnAll = document.getElementById('tabAllAuctionsBtn');
@@ -1408,9 +1438,9 @@
                                     <span class="text-[11px] font-bold text-slate-800 flex items-center gap-1.5">
                                         <i class="fa-solid fa-image text-blue-600"></i> Ảnh chụp Biên lai / Ủy nhiệm chi:
                                     </span>
-                                    <a href="${proof.proofImageUrl}" target="_blank" class="text-blue-600 hover:text-blue-800 font-bold text-[11px] underline flex items-center gap-1">
+                                    <button type="button" onclick="openProofImageInNewTab('${proof.proofImageUrl}'); return false;" class="text-blue-600 hover:text-blue-800 font-bold text-[11px] underline flex items-center gap-1">
                                         <i class="fa-solid fa-arrow-up-right-from-square"></i> Mở ảnh gốc kích thước lớn
-                                    </a>
+                                    </button>
                                 </div>
                                 <div class="border rounded-xl p-2 bg-slate-50 flex items-center justify-center max-h-64 overflow-hidden">
                                     <img src="${proof.proofImageUrl}" alt="Biên lai chuyển khoản" class="max-h-60 max-w-full rounded-lg object-contain shadow-xs hover:scale-105 transition-transform duration-200">
