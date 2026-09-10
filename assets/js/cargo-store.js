@@ -1068,9 +1068,15 @@ const CargoStore = (function() {
             if (!isNaN(dlMs) && now > dlMs) return true;
         }
 
-        // 2. Check Cut-off time (3h before ETD) or ETD from auction
+        // 2. Check auction end time (+ 24h)
         const allAuctions = (passedData && passedData.auctions) ? passedData.auctions : ((typeof loadData === 'function') ? (loadData().auctions || []) : []);
         const auctionMatch = allAuctions.find(a => a.id == item.auctionId || a.flightNumber === item.flightNumber);
+        if (auctionMatch && auctionMatch.endTime) {
+            const endMs = new Date(auctionMatch.endTime).getTime();
+            if (!isNaN(endMs) && (now > endMs + 24 * 3600 * 1000)) return true;
+        }
+
+        // 3. Check Cut-off time (3h before ETD) or ETD from auction
         const etdStr = item.etd || (auctionMatch ? auctionMatch.etd : null);
         
         let etdDate = null;
@@ -1115,9 +1121,8 @@ const CargoStore = (function() {
                         auction.winnerAgentName = highestBid.agentName;
                         auction.winningPriceKg = highestBid.priceKg;
 
-                        const now = new Date();
-                        const dateStr = now.toISOString().slice(0, 10).replace(/-/g, '');
-                        const payDeadline = calculatePaymentDeadline(auction, now);
+                        const auctionCloseTime = auction.endTime ? new Date(auction.endTime) : new Date();
+                        const payDeadline = calculatePaymentDeadline(auction, auctionCloseTime);
 
                         existingWon = {
                             wonId: `WON-${dateStr}-${String(auction.id).padStart(2, '0')}`,
@@ -1320,9 +1325,17 @@ const CargoStore = (function() {
         return `Trước ETD ${offsetHours} giờ`;
     }
 
-    function calculatePaymentDeadline(auction, nowDate = new Date()) {
-        const nowMs = (nowDate instanceof Date) ? nowDate.getTime() : new Date(nowDate).getTime();
-        const default24hMs = nowMs + 24 * 60 * 60 * 1000;
+    function calculatePaymentDeadline(auction, nowDate = null) {
+        let baseMs = Date.now();
+        if (nowDate) {
+            const p = (nowDate instanceof Date) ? nowDate.getTime() : new Date(nowDate).getTime();
+            if (!isNaN(p)) baseMs = p;
+        } else if (auction && auction.endTime) {
+            const p = new Date(auction.endTime).getTime();
+            if (!isNaN(p)) baseMs = p;
+        }
+
+        const default24hMs = baseMs + 24 * 60 * 60 * 1000;
 
         if (!auction) return new Date(default24hMs).toISOString();
 
@@ -3422,11 +3435,26 @@ const CargoStore = (function() {
         getAdminNotifications: function() {
             const data = loadData();
             const notifs = data.notifications || [];
-            return notifs.filter(n => {
-                if (n.targetRole === 'ADMIN') return true;
+            const filtered = notifs.filter(n => {
+                if (n.targetRole === 'ADMIN' || n.targetRole === 'admin') return true;
                 if (!n.targetAgentCode) return true;
                 if (n.type === 'PAYMENT' && (n.title || '').includes('ĐẠI LÝ BÁO CHUYỂN KHOẢN')) return true;
                 return false;
+            });
+
+            return filtered.map(n => {
+                const ts = n.timestamp || n.createdAt || (typeof n.id === 'number' && n.id > 1577836800000 ? n.id : (typeof n.id === 'string' && !isNaN(Number(n.id)) && Number(n.id) > 1577836800000 ? Number(n.id) : null));
+                let displayTime = n.time;
+                if (ts) {
+                    displayTime = formatTimeAgo(ts, n.time);
+                } else if (!n.time || n.time === 'Vừa xong') {
+                    displayTime = 'Cách đây ít phút';
+                }
+
+                return {
+                    ...n,
+                    time: displayTime
+                };
             });
         },
 

@@ -1,5 +1,5 @@
 {
-  "version": 1789011190048,
+  "version": 1789012417354,
   "auctions": [
     {
       "id": 9,
@@ -44,17 +44,20 @@
       "aircraft": "Airbus A321neo Cargo",
       "capacityKg": 3000,
       "startingPriceKg": 18000,
-      "currentPriceKg": 27000,
+      "currentPriceKg": 41500,
       "minStep": 500,
       "endTime": "2026-09-10T08:30:00.000Z",
-      "status": "OPEN",
-      "leadingAgentCode": "AG-1024",
-      "leadingAgentName": "Công ty CP Giao nhận Kho vận Vinatrans",
-      "bidsCount": 2,
+      "status": "CLOSED",
+      "leadingAgentCode": "AG-0341",
+      "leadingAgentName": "Công ty TNHH SkyFreight Logistics Việt Nam",
+      "bidsCount": 3,
       "specialNotes": "Tải trọng tổng hợp tiêu chuẩn IATA.",
       "cutOffTime": "17:30 · 10/09/2026",
       "isAnonymous": true,
-      "etdIso": "2026-09-10T13:30:00.000Z"
+      "etdIso": "2026-09-10T13:30:00.000Z",
+      "winnerAgentCode": "AG-0341",
+      "winnerAgentName": "Công ty TNHH SkyFreight Logistics Việt Nam",
+      "winningPriceKg": 41500
     },
     {
       "id": 7,
@@ -248,6 +251,18 @@
     }
   ],
   "bids": [
+    {
+      "id": 1789011875539,
+      "timestamp": 1789011875539,
+      "auctionId": 8,
+      "agentCode": "AG-0341",
+      "agentName": "Công ty TNHH SkyFreight Logistics Việt Nam",
+      "isAnonymous": true,
+      "priceKg": 41500,
+      "time": "Vừa xong",
+      "status": "WON",
+      "weightKg": 3000
+    },
     {
       "id": 1789009862770,
       "timestamp": 1789009862770,
@@ -461,7 +476,7 @@
       "isAnonymous": true,
       "priceKg": 27000,
       "time": "20 phút trước",
-      "status": "HIGHEST",
+      "status": "OUTBID",
       "weightKg": 3000
     },
     {
@@ -646,6 +661,25 @@
     }
   ],
   "wonAuctions": [
+    {
+      "wonId": "WON-20260910-08",
+      "auctionId": 8,
+      "agentCode": "AG-0341",
+      "agentName": "Công ty TNHH SkyFreight Logistics Việt Nam",
+      "flightNumber": "VU510",
+      "route": "DAD - PQC",
+      "capacityKg": 3000,
+      "priceKg": 41500,
+      "totalAmountVND": 124500000,
+      "paymentDeadline": "2026-09-10T10:30:00.000Z",
+      "paymentStatus": "UNPAID",
+      "paidAt": null,
+      "notifiedAt": null,
+      "awbNumber": "998-39116341",
+      "cutOffTime": "17:30 · 10/09/2026",
+      "warehouse": "Kho hàng SCSC / TCS Tân Sơn Nhất (Cửa số 4)",
+      "cargoDeclaration": null
+    },
     {
       "wonId": "WON-20260910-09",
       "auctionId": 9,
@@ -860,6 +894,48 @@
     }
   ],
   "notifications": [
+    {
+      "id": 1789011962157,
+      "targetAgentCode": "AG-0341",
+      "title": "⏰ CẢNH BÁO THANH TOÁN: Đơn WON-20260910-08 (VU510)",
+      "message": "Quý đại lý vui lòng hoàn tất chuyển khoản cho đơn hàng WON-20260910-08 trước 17:30:00 10/9/2026. LƯU Ý: Nếu không thanh toán đúng hạn, hệ thống sẽ TỰ ĐỘNG KHÓA TÀI KHOẢN ĐẠI LÝ và hủy quyền đấu giá.",
+      "time": "Vừa xong",
+      "type": "PAYMENT_REMINDER",
+      "read": false,
+      "link": "07-WonAuction.html"
+    },
+    {
+      "id": 1789011888900,
+      "targetAgentCode": "AG-0341",
+      "title": "Phiên VU510 đã chốt kết quả!",
+      "message": "Đại lý Công ty TNHH SkyFreight Logistics Việt Nam (AG-0341) đã trúng thầu chuyến VU510 (DAD - PQC) mức giá 41.500 đ/Kg.",
+      "time": "Vừa xong",
+      "type": "WON",
+      "read": false,
+      "link": "07-WonAuction.html"
+    },
+    {
+      "id": 1789011875540,
+      "timestamp": 1789011875540,
+      "targetAgentCode": "AG-1024",
+      "title": "Cảnh báo bị vượt giá chuyến VU510!",
+      "message": "Một đại lý đối thủ (Ẩn danh) vừa đặt mức giá mới 41.500 đ/Kg cho chặng DAD - PQC.",
+      "time": "Vừa xong",
+      "type": "OUTBID",
+      "read": false,
+      "link": "04-Detail.html?id=8"
+    },
+    {
+      "id": 1789011875539,
+      "timestamp": 1789011875539,
+      "targetAgentCode": "AG-0341",
+      "title": "Đặt giá thành công chuyến VU510",
+      "message": "B��n (AG-0341) đang dẫn đầu mức giá 41.500 đ/Kg cho chặng DAD - PQC. (Tên công ty được che ẩn danh đối với các đối thủ)",
+      "time": "Vừa xong",
+      "type": "HIGHEST",
+      "read": false,
+      "link": "04-Detail.html?id=8"
+    },
     {
       "id": 1789011189304,
       "targetAgentCode": "AG-0341",
@@ -1614,13 +1690,15 @@
       "address": "29 Đinh Tiên Hoàng, Q. Bình Thạnh, TP. HCM",
       "province": "TP. Hồ Chí Minh",
       "tier": "TIER2",
-      "status": "Đang hoạt động",
+      "status": "Đã khóa",
       "joinedDate": "15/08/2024",
       "totalBids": 7,
       "totalWins": 2,
       "winRate": "29%",
       "totalSpentUSD": "1.6k",
-      "totalSpentVND": 210000000
+      "totalSpentVND": 210000000,
+      "lockedReason": "Quản trị viên chủ động khóa tài khoản",
+      "lockedAt": "10:46:47 10/9/2026"
     },
     {
       "id": 1788426844097,
@@ -1686,6 +1764,16 @@
     }
   },
   "emailLogs": [
+    {
+      "id": 1789011892043,
+      "to": "dung.hoang@saigonair.vn",
+      "type": "AUCTION_WON",
+      "subject": "[Vietravel Airlines Cargo] CHÚC MỪNG TRÚNG THẦU! Đơn hàng WON-20260910-08 - Chuyến VU510 (DAD - PQC)",
+      "messageId": "<285424cb-50c3-a599-1acc-6bd594c11805@gmail.com>",
+      "isRealSmtp": true,
+      "previewUrl": null,
+      "sentAt": "10:44:52 10/9/2026"
+    },
     {
       "id": 1789011191744,
       "to": "dung.hoang@saigonair.vn",
