@@ -281,6 +281,14 @@
                 document.getElementById('dashTierLabel').textContent = 'Đại lý ủy quyền chính thức';
             }
 
+            // === Update Notification Dot (Bell Badge) ===
+            const notifDot = document.getElementById('headerNotifDot');
+            if (notifDot) {
+                const allNotifs = CargoStore.getNotifications ? CargoStore.getNotifications() : [];
+                const unreadCount = allNotifs.filter(n => !n.read).length;
+                notifDot.style.display = unreadCount > 0 ? 'block' : 'none';
+            }
+
             // === KPI 1: Phiên đang mở ===
             const kpiOpen = document.getElementById('kpiOpenSessions');
             if (kpiOpen) kpiOpen.textContent = openAuctions.length;

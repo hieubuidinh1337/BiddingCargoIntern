@@ -878,6 +878,28 @@ const CargoStore = (function() {
             window.dispatchEvent(new CustomEvent('cargostore_updated', { detail: data }));
         } catch (e) {}
 
+        // Auto-update notification badge dots on all pages
+        try {
+            const user = data.currentUser;
+            const myCode = user ? (user.agentCode || user.code || '').trim().toUpperCase() : null;
+            const notifs = (data.notifications || []);
+            const unreadCount = myCode
+                ? notifs.filter(n => {
+                    if (n.targetRole === 'ADMIN' || n.targetRole === 'admin') return false;
+                    if (n.targetAgentCode) return n.targetAgentCode.trim().toUpperCase() === myCode && !n.read;
+                    return (n.type === 'SYSTEM' || n.type === 'ANNOUNCEMENT' || n.isBroadcast === true) && !n.read;
+                }).length
+                : 0;
+            const dot = document.getElementById('headerNotifDot');
+            if (dot) dot.style.display = unreadCount > 0 ? 'block' : 'none';
+            // Also update count badge if exists
+            const countBadge = document.getElementById('headerNotifCount');
+            if (countBadge) {
+                countBadge.textContent = unreadCount > 99 ? '99+' : String(unreadCount);
+                countBadge.style.display = unreadCount > 0 ? 'flex' : 'none';
+            }
+        } catch(e) {}
+
         // Debounced push to server if running over HTTP/HTTPS or local dev server
         if (!skipServerSync && typeof window !== 'undefined') {
             lastLocalSaveTimestamp = Date.now();
@@ -1154,12 +1176,14 @@ const CargoStore = (function() {
                             (n.message || '').includes(auction.flightNumber)
                         );
                         if (!hasNotif) {
+                            const wonNotifId = Date.now() + Math.floor(Math.random() * 1000);
                             data.notifications.unshift({
-                                id: Date.now() + Math.floor(Math.random() * 1000),
+                                id: wonNotifId,
+                                timestamp: wonNotifId,
                                 targetAgentCode: highestBid.agentCode,
                                 title: `🏆 CHÚC MỪNG! Bạn đã thắng thầu chuyến bay ${auction.flightNumber}`,
                                 message: `Đại lý ${highestBid.agentName} (${highestBid.agentCode}) đã trúng thầu chuyến bay ${auction.flightNumber} (${auction.route}) với giá ${formatCurrency(highestBid.priceKg)}/Kg. Vui lòng hoàn tất thanh toán & khai báo hàng hóa trong 24h.`,
-                                time: 'Vừa xong',
+                                time: formatTimeAgo(wonNotifId),
                                 type: 'WON',
                                 read: false,
                                 link: `07-WonAuction.html?flight=${encodeURIComponent(auction.flightNumber)}`
@@ -1218,10 +1242,11 @@ const CargoStore = (function() {
                             const notifId = Date.now() + Math.floor(Math.random() * 1000);
                             data.notifications.unshift({
                                 id: notifId,
+                                timestamp: notifId,
                                 targetAgentCode: item.agentCode,
                                 title: `⚠️ TÀI KHOẢN ĐÃ BỊ KHÓA DO QUÁ HẠN THANH TOÁN`,
                                 message: `Tài khoản đại lý ${item.agentCode} đã bị hệ thống tự động KHÓA do không hoàn tất thanh toán đơn hàng thắng thầu ${item.wonId} (Chuyến bay ${item.flightNumber}) trước hạn chót. Quyền tham gia đấu giá trên sàn đã bị tạm ngưng. Vui lòng liên hệ Ban Điều hành Cargo để xử lý.`,
-                                time: 'Vừa xong',
+                                time: formatTimeAgo(notifId),
                                 type: 'ALERT',
                                 read: false,
                                 link: '07-WonAuction.html'
@@ -1252,12 +1277,14 @@ const CargoStore = (function() {
                 );
                 if (!existingWarning) {
                     const payDl = item.paymentDeadline ? new Date(item.paymentDeadline).toLocaleString('vi-VN') : (item.cutOffTime || 'Hạn chót Cut-off');
+                    const reminderId = Date.now() + Math.floor(Math.random() * 1000);
                     data.notifications.unshift({
-                        id: Date.now() + Math.floor(Math.random() * 1000),
+                        id: reminderId,
+                        timestamp: reminderId,
                         targetAgentCode: item.agentCode,
                         title: `⏰ CẢNH BÁO THANH TOÁN: Đơn ${item.wonId} (${item.flightNumber})`,
                         message: `Quý đại lý vui lòng hoàn tất chuyển khoản cho đơn hàng ${item.wonId} trước ${payDl}. LƯU Ý: Nếu không thanh toán đúng hạn, hệ thống sẽ TỰ ĐỘNG KHÓA TÀI KHOẢN ĐẠI LÝ và hủy quyền đấu giá.`,
-                        time: 'Vừa xong',
+                        time: formatTimeAgo(reminderId),
                         type: 'PAYMENT_REMINDER',
                         read: false,
                         link: '07-WonAuction.html'
@@ -2735,12 +2762,14 @@ const CargoStore = (function() {
                 });
 
                 if (!data.notifications) data.notifications = [];
+                const closeNotifId = Date.now();
                 data.notifications.unshift({
-                    id: Date.now(),
+                    id: closeNotifId,
+                    timestamp: closeNotifId,
                     targetAgentCode: highestBid.agentCode,
-                    title: `Phiên ${auction.flightNumber} đã chốt kết quả!`,
-                    message: `Đại lý ${highestBid.agentName} (${highestBid.agentCode}) đã trúng thầu chuyến ${auction.flightNumber} (${auction.route}) mức giá ${formatCurrency(highestBid.priceKg)}/Kg.`,
-                    time: 'Vừa xong',
+                    title: `🏆 CHÚC MỪNG! Phiên ${auction.flightNumber} đã chốt kết quả!`,
+                    message: `Đại lý ${highestBid.agentName} (${highestBid.agentCode}) đã trúng thầu chuyến ${auction.flightNumber} (${auction.route}) mức giá ${formatCurrency(highestBid.priceKg)}/Kg. Vui lòng hoàn tất thanh toán & khai báo hàng hóa.`,
+                    time: formatTimeAgo(closeNotifId),
                     type: 'WON',
                     read: false,
                     link: '07-WonAuction.html'
@@ -3905,8 +3934,56 @@ if (typeof window !== 'undefined') {
             if (typeof CargoStore !== 'undefined') {
                 if (CargoStore.syncHeaderUI) CargoStore.syncHeaderUI();
                 if (CargoStore.syncAdminHeaderUI) CargoStore.syncAdminHeaderUI();
+
+                // Initialize notification badge on page load
+                try {
+                    const data = loadData();
+                    const user = data.currentUser;
+                    const myCode = user ? (user.agentCode || user.code || '').trim().toUpperCase() : null;
+                    const notifs = (data.notifications || []);
+                    const unreadCount = myCode
+                        ? notifs.filter(n => {
+                            if (n.targetRole === 'ADMIN' || n.targetRole === 'admin') return false;
+                            if (n.targetAgentCode) return n.targetAgentCode.trim().toUpperCase() === myCode && !n.read;
+                            return (n.type === 'SYSTEM' || n.type === 'ANNOUNCEMENT' || n.isBroadcast === true) && !n.read;
+                        }).length
+                        : 0;
+                    const dot = document.getElementById('headerNotifDot');
+                    if (dot) dot.style.display = unreadCount > 0 ? 'block' : 'none';
+                    const countBadge = document.getElementById('headerNotifCount');
+                    if (countBadge) {
+                        countBadge.textContent = unreadCount > 99 ? '99+' : String(unreadCount);
+                        countBadge.style.display = unreadCount > 0 ? 'flex' : 'none';
+                    }
+                } catch(e) {}
             }
             checkAccountLockGuard();
+        });
+
+        // Cross-tab notification badge sync
+        window.addEventListener('storage', function(e) {
+            if (e.key !== 'CARGO_BIDDING_DATA_V3') return;
+            try {
+                const data = e.newValue ? JSON.parse(e.newValue) : null;
+                if (!data) return;
+                const user = data.currentUser;
+                const myCode = user ? (user.agentCode || user.code || '').trim().toUpperCase() : null;
+                const notifs = (data.notifications || []);
+                const unreadCount = myCode
+                    ? notifs.filter(n => {
+                        if (n.targetRole === 'ADMIN' || n.targetRole === 'admin') return false;
+                        if (n.targetAgentCode) return n.targetAgentCode.trim().toUpperCase() === myCode && !n.read;
+                        return (n.type === 'SYSTEM' || n.type === 'ANNOUNCEMENT' || n.isBroadcast === true) && !n.read;
+                    }).length
+                    : 0;
+                const dot = document.getElementById('headerNotifDot');
+                if (dot) dot.style.display = unreadCount > 0 ? 'block' : 'none';
+                const countBadge = document.getElementById('headerNotifCount');
+                if (countBadge) {
+                    countBadge.textContent = unreadCount > 99 ? '99+' : String(unreadCount);
+                    countBadge.style.display = unreadCount > 0 ? 'flex' : 'none';
+                }
+            } catch(e) {}
         });
     }
 
