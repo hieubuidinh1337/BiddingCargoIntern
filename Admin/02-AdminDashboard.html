@@ -387,12 +387,22 @@
             const openEndIndex = Math.min(openStartIndex + adminOpenPageSize, totalOpen);
             const paginatedOpen = openAuctions.slice(openStartIndex, openEndIndex);
 
+            const isAdmin = data.currentAdmin && data.currentAdmin.role === 'ADMIN';
+
             const tbody = document.getElementById('adminAuctionsTable');
             if (openAuctions.length === 0) {
                 tbody.innerHTML = `<tr><td colspan="6" class="py-8 text-center text-gray-400">Không có phiên nào đang mở</td></tr>`;
             } else {
                 tbody.innerHTML = paginatedOpen.map(a => {
                     const timer = CargoStore.getTimeRemaining(a.endTime);
+                    const isOpen = a.status === 'OPEN';
+                    const displayPrice = (isOpen && !isAdmin) ? 
+                        '<span class="text-gray-500 font-normal">??? <span class="text-[10px] font-normal">(Bảo mật)</span></span>' : 
+                        CargoStore.formatCurrency(a.currentPriceKg);
+                    const displayLeader = (isOpen && !isAdmin) ? 
+                        '<span class="text-gray-500 font-normal">??? <span class="text-[10px] font-normal">(Bảo mật)</span></span>' : 
+                        `<span class="font-semibold text-slate-900 block">${a.leadingAgentName}</span><span class="text-[10px] text-slate-400 font-mono">${a.leadingAgentCode || '-'}</span>`;
+
                     return `
                         <tr class="hover:bg-slate-50 transition">
                             <td class="py-3 px-3">
@@ -403,11 +413,10 @@
                                 ${CargoStore.formatNumber(a.capacityKg)} Kg
                             </td>
                             <td class="py-3 px-3 font-bold text-blue-600">
-                                ${CargoStore.formatCurrency(a.currentPriceKg)}
+                                ${displayPrice}
                             </td>
                             <td class="py-3 px-3">
-                                <span class="font-semibold text-slate-900 block">${a.leadingAgentName}</span>
-                                <span class="text-[10px] text-slate-400 font-mono">${a.leadingAgentCode || '-'}</span>
+                                ${displayLeader}
                             </td>
                             <td class="py-3 px-3 text-orange-600 font-semibold text-[11px]">
                                 ${timer.isEnded ? 'Đã hết giờ' : `${timer.minutes}m ${timer.seconds}s`}

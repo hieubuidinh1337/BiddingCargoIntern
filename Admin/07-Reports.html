@@ -904,19 +904,23 @@
                     const store = getStore();
                     const storeData = store ? store.getData() : {};
                     const auctions = storeData.auctions || [];
-                    const auctionRows = auctions.map((a, idx) => ({
-                        "STT": idx + 1,
-                        "Mã phiên": a.flightCode || `FL-${a.id}`,
-                        "Số hiệu chuyến": a.flightNumber || '-',
-                        "Tuyến đường bay": a.route || `${a.origin} - ${a.destination}`,
-                        "Loại tàu bay": a.aircraft || 'A321neo',
-                        "Tải trọng (Kg)": a.capacityKg || 0,
-                        "Giá khởi điểm (đ/Kg)": a.startingPriceKg || 0,
-                        "Giá hiện tại / trúng (đ/Kg)": a.winningPriceKg || a.currentPriceKg || 0,
-                        "Số lượt đặt giá": a.bidsCount || 0,
-                        "Đại lý dẫn đầu / Thắng": a.winnerAgentCode || a.leadingAgentCode || 'Chưa có',
-                        "Trạng thái": a.status === 'OPEN' ? 'ĐANG MỞ' : (a.status === 'CLOSED' ? 'ĐÃ ĐÓNG' : a.status)
-                    }));
+                    const isReportAdmin = storeData.currentAdmin && storeData.currentAdmin.role === 'ADMIN';
+                    const auctionRows = auctions.map((a, idx) => {
+                        const isOpen = a.status === 'OPEN';
+                        return {
+                            "STT": idx + 1,
+                            "Mã phiên": a.flightCode || `FL-${a.id}`,
+                            "Số hiệu chuyến": a.flightNumber || '-',
+                            "Tuyến đường bay": a.route || `${a.origin} - ${a.destination}`,
+                            "Loại tàu bay": a.aircraft || 'A321neo',
+                            "Tải trọng (Kg)": a.capacityKg || 0,
+                            "Giá khởi điểm (đ/Kg)": a.startingPriceKg || 0,
+                            "Giá hiện tại / trúng (đ/Kg)": (isOpen && !isReportAdmin) ? '??? (Bảo mật)' : (a.winningPriceKg || a.currentPriceKg || 0),
+                            "Số lượt đặt giá": a.bidsCount || 0,
+                            "Đại lý dẫn đầu / Thắng": (isOpen && !isReportAdmin) ? '??? (Bảo mật)' : (a.winnerAgentCode || a.leadingAgentCode || 'Chưa có'),
+                            "Trạng thái": a.status === 'OPEN' ? 'ĐANG MỞ' : (a.status === 'CLOSED' ? 'ĐÃ ĐÓNG' : a.status)
+                        };
+                    });
 
                     // Sheet 4: Cargo Manifest Declarations
                     const wonAuctionsList = storeData.wonAuctions || [];

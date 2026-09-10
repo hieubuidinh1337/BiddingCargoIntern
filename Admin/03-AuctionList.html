@@ -572,6 +572,11 @@
 
         function renderAuctionRow(a, data) {
             const isOpen = a.status === 'OPEN';
+            const isAdmin = data.currentAdmin && data.currentAdmin.role === 'ADMIN';
+            const displayPrice = (isOpen && !isAdmin) ? 
+                '<span class="text-gray-500 font-normal">??? <span class="text-[10px] font-normal">(Bảo mật)</span></span>' : 
+                CargoStore.formatCurrency(a.currentPriceKg);
+
             return `
                 <tr class="hover:bg-slate-50 transition">
                     <td class="py-3.5 px-4">
@@ -591,7 +596,7 @@
                         ${CargoStore.formatNumber(a.capacityKg)} Kg
                     </td>
                     <td class="py-3.5 px-4 font-bold text-blue-600">
-                        ${CargoStore.formatCurrency(a.currentPriceKg)}
+                        ${displayPrice}
                     </td>
                     <td class="py-3.5 px-4">
                         <span class="${isOpen ? 'bg-green-100 text-green-700' : 'bg-gray-100 text-gray-500'} font-bold px-2.5 py-1 rounded-full text-[10px]">
@@ -901,9 +906,13 @@
         // --- Broadcast Modal Handlers ---
         function openBroadcastModal() {
             const data = CargoStore.getData();
+            const isAdmin = data.currentAdmin && data.currentAdmin.role === 'ADMIN';
             const select = document.getElementById('bcAuctionSelect');
             select.innerHTML = `<option value="">-- Áp dụng cho toàn sàn (Không gán chuyến cụ thể) --</option>` +
-                (data.auctions || []).map(a => `<option value="${a.id}">Chuyến ${a.flightNumber} (${a.route}) - Giá hiện tại: ${CargoStore.formatCurrency(a.currentPriceKg)}</option>`).join('');
+                (data.auctions || []).map(a => {
+                    const priceLabel = (a.status === 'OPEN' && !isAdmin) ? '??? (Bảo mật)' : CargoStore.formatCurrency(a.currentPriceKg);
+                    return `<option value="${a.id}">Chuyến ${a.flightNumber} (${a.route}) - Giá hiện tại: ${priceLabel}</option>`;
+                }).join('');
 
             const agentSelect = document.getElementById('bcTargetAgent');
             agentSelect.innerHTML = `<option value="">Gửi tới TẤT CẢ Đại lý tham gia sàn</option>` +

@@ -2717,6 +2717,13 @@ const CargoStore = (function() {
             const note = (paymentDetails.note || '').trim();
             const bankName = paymentDetails.bankName || bankCfg.bankName;
 
+            if (!transactionRef) {
+                return { success: false, message: 'Vui lòng nhập Mã giao dịch / Số FT ngân hàng (Bắt buộc).' };
+            }
+            if (!proofImageUrl) {
+                return { success: false, message: 'Vui lòng tải ảnh chụp biên lai / ủy nhiệm chi chuyển khoản (Bắt buộc).' };
+            }
+
             item.paymentStatus = 'PENDING_VERIFICATION';
             item.notifiedAt = new Date().toLocaleString('vi-VN');
             item.paymentProof = {

@@ -498,13 +498,13 @@
 
                             <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
                                 <div>
-                                    <label class="block font-semibold text-slate-700 mb-1">Mã giao dịch / Số FT ngân hàng (Nếu có):</label>
-                                    <input type="text" id="payInputTxRef" placeholder="VD: FT26090888910 hoặc Trace No"
+                                    <label class="block font-semibold text-slate-700 mb-1">Mã giao dịch / Số FT ngân hàng <span class="text-red-500">*</span>:</label>
+                                    <input type="text" id="payInputTxRef" placeholder="VD: FT26090888910 hoặc Trace No" required
                                            class="w-full border rounded-xl px-3 py-2 bg-white text-xs font-mono outline-none focus:ring-2 focus:ring-blue-500">
                                 </div>
                                 <div>
-                                    <label class="block font-semibold text-slate-700 mb-1">Tải ảnh chụp biên lai / Ủy nhiệm chi:</label>
-                                    <input type="file" id="payInputProofFile" accept="image/*" onchange="handleProofFileSelected(event)"
+                                    <label class="block font-semibold text-slate-700 mb-1">Tải ảnh chụp biên lai / Ủy nhiệm chi <span class="text-red-500">*</span>:</label>
+                                    <input type="file" id="payInputProofFile" accept="image/*" onchange="handleProofFileSelected(event)" required
                                            class="w-full border rounded-xl px-2 py-1.5 bg-white text-[11px] outline-none focus:ring-2 focus:ring-blue-500 cursor-pointer">
                                 </div>
                             </div>
@@ -2153,6 +2153,20 @@
             if (!currentActivePayWonId) return;
 
             const txRef = (document.getElementById('payInputTxRef').value || '').trim();
+            if (!txRef) {
+                showToast('⚠️ Vui lòng nhập Mã giao dịch / Số FT ngân hàng (Bắt buộc).', false);
+                const txEl = document.getElementById('payInputTxRef');
+                if (txEl) txEl.focus();
+                return;
+            }
+
+            if (!currentUploadedProofBase64) {
+                showToast('⚠️ Vui lòng tải ảnh chụp biên lai / ủy nhiệm chi chuyển khoản (Bắt buộc).', false);
+                const fileEl = document.getElementById('payInputProofFile');
+                if (fileEl) fileEl.focus();
+                return;
+            }
+
             const note = (document.getElementById('payInputNote').value || '').trim();
             const store = getStore();
 

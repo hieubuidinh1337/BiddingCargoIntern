@@ -1,5 +1,5 @@
 {
-  "version": 1788942804843,
+  "version": 1789009284614,
   "auctions": [
     {
       "id": 9,
@@ -10,22 +10,22 @@
       "destination": "HAN",
       "originName": "TP. Hồ Chí Minh",
       "destName": "Hà Nội",
-      "etd": "21:45 · 09/09/2026",
-      "eta": "00:00 · 10/09/2026",
+      "etd": "17:30 · 10/09/2026",
+      "eta": "19:45 · 10/09/2026",
       "aircraft": "Airbus A321neo Cargo",
       "capacityKg": 10000,
       "startingPriceKg": 10000,
-      "currentPriceKg": 10000,
+      "currentPriceKg": 10500,
       "minStep": 500,
-      "endTime": "2026-09-09T09:45:00.000Z",
+      "endTime": "2026-09-10T05:30:00.000Z",
       "status": "OPEN",
-      "leadingAgentCode": "AG-1024",
-      "leadingAgentName": "Công ty CP Giao nhận Kho vận Vinatrans",
-      "bidsCount": 1,
+      "leadingAgentCode": "AG-0892",
+      "leadingAgentName": "Công ty TNHH Vận tải ABC Logistics",
+      "bidsCount": 2,
       "specialNotes": "Tải trọng tổng hợp tiêu chuẩn IATA. Có hỗ trợ xe nâng pallet.",
-      "cutOffTime": "18:45 · 09/09/2026",
+      "cutOffTime": "14:30 · 10/09/2026",
       "isAnonymous": true,
-      "etdIso": "2026-09-09T14:45:00.000Z"
+      "etdIso": "2026-09-10T10:30:00.000Z"
     },
     {
       "id": 8,
@@ -36,22 +36,22 @@
       "destination": "PQC",
       "originName": "Đà Nẵng",
       "destName": "Phú Quốc",
-      "etd": "19:30 · 09/09/2026",
-      "eta": "21:15 · 09/09/2026",
+      "etd": "20:30 · 10/09/2026",
+      "eta": "22:15 · 10/09/2026",
       "aircraft": "Airbus A321neo Cargo",
       "capacityKg": 3000,
       "startingPriceKg": 18000,
       "currentPriceKg": 27000,
       "minStep": 500,
-      "endTime": "2026-09-09T09:03:16.093Z",
+      "endTime": "2026-09-10T08:30:00.000Z",
       "status": "OPEN",
       "leadingAgentCode": "AG-1024",
       "leadingAgentName": "Công ty CP Giao nhận Kho vận Vinatrans",
       "bidsCount": 2,
       "specialNotes": "Tải trọng tổng hợp tiêu chuẩn IATA.",
-      "cutOffTime": "16:30 · 09/09/2026",
+      "cutOffTime": "17:30 · 10/09/2026",
       "isAnonymous": true,
-      "etdIso": "2026-09-09T12:30:00.000Z"
+      "etdIso": "2026-09-10T13:30:00.000Z"
     },
     {
       "id": 7,
@@ -174,22 +174,22 @@
       "destination": "PQC",
       "originName": "Hà Nội",
       "destName": "Phú Quốc",
-      "etd": "19:30 · 09/09/2026",
-      "eta": "21:45 · 09/09/2026",
+      "etd": "20:30 · 10/09/2026",
+      "eta": "22:45 · 10/09/2026",
       "aircraft": "Airbus A321neo Cargo",
       "capacityKg": 4000,
       "startingPriceKg": 22000,
       "currentPriceKg": 30000,
       "minStep": 1000,
-      "endTime": "2026-09-09T09:03:16.093Z",
+      "endTime": "2026-09-10T08:30:00.000Z",
       "status": "OPEN",
       "leadingAgentCode": "AG-1024",
       "leadingAgentName": "Công ty CP Giao nhận Kho vận Vinatrans",
       "bidsCount": 6,
       "specialNotes": "Hàng hải sản đông lạnh tươi sống đóng thùng xốp tiêu chuẩn IATA.",
-      "cutOffTime": "16:30 · 09/09/2026",
+      "cutOffTime": "17:30 · 10/09/2026",
       "isAnonymous": true,
-      "etdIso": "2026-09-09T12:30:00.000Z"
+      "etdIso": "2026-09-10T13:30:00.000Z"
     },
     {
       "id": 2,
@@ -200,22 +200,22 @@
       "destination": "DAD",
       "originName": "TP. Hồ Chí Minh",
       "destName": "Đà Nẵng",
-      "etd": "22:30 · 09/09/2026",
-      "eta": "23:50 · 09/09/2026",
+      "etd": "23:30 · 10/09/2026",
+      "eta": "00:50 · 11/09/2026",
       "aircraft": "Airbus A320-200",
       "capacityKg": 2000,
       "startingPriceKg": 12000,
       "currentPriceKg": 14500,
       "minStep": 500,
-      "endTime": "2026-09-09T10:30:00.000Z",
+      "endTime": "2026-09-10T11:30:00.000Z",
       "status": "OPEN",
       "leadingAgentCode": "AG-1024",
       "leadingAgentName": "Công ty CP Giao nhận Kho vận Vinatrans",
       "bidsCount": 4,
       "specialNotes": "Ưu tiên bưu kiện bưu phẩm thương mại điện tử chuyển phát nhanh.",
-      "cutOffTime": "19:30 · 09/09/2026",
+      "cutOffTime": "20:30 · 10/09/2026",
       "isAnonymous": true,
-      "etdIso": "2026-09-09T15:30:00.000Z"
+      "etdIso": "2026-09-10T16:30:00.000Z"
     },
     {
       "id": 1,
@@ -226,25 +226,37 @@
       "destination": "HAN",
       "originName": "TP. Hồ Chí Minh",
       "destName": "Hà Nội",
-      "etd": "01:30 · 10/09/2026",
-      "eta": "03:45 · 10/09/2026",
+      "etd": "02:30 · 11/09/2026",
+      "eta": "04:45 · 11/09/2026",
       "aircraft": "Airbus A321neo Cargo",
       "capacityKg": 3500,
       "startingPriceKg": 18000,
       "currentPriceKg": 56500,
       "minStep": 500,
-      "endTime": "2026-09-09T13:30:00.000Z",
+      "endTime": "2026-09-10T14:30:00.000Z",
       "status": "OPEN",
       "leadingAgentCode": "AG-0892",
       "leadingAgentName": "Công ty TNHH Vận tải ABC Logistics",
       "bidsCount": 10,
       "specialNotes": "Hàng tổng hợp, hỗ trợ kho lạnh bảo quản thực phẩm & dược phẩm.",
-      "cutOffTime": "22:30 · 09/09/2026",
+      "cutOffTime": "23:30 · 10/09/2026",
       "isAnonymous": true,
-      "etdIso": "2026-09-09T18:30:00.000Z"
+      "etdIso": "2026-09-10T19:30:00.000Z"
     }
   ],
   "bids": [
+    {
+      "id": 1789008629496,
+      "timestamp": 1789008629496,
+      "auctionId": 9,
+      "agentCode": "AG-0892",
+      "agentName": "Công ty TNHH Vận tải ABC Logistics",
+      "isAnonymous": true,
+      "priceKg": 10500,
+      "time": "Vừa xong",
+      "status": "HIGHEST",
+      "weightKg": 10000
+    },
     {
       "id": 1788919645294,
       "timestamp": 1788919645294,
@@ -604,6 +616,18 @@
       "time": "20 phút trước",
       "status": "OUTBID",
       "weightKg": 3000
+    },
+    {
+      "id": 1789006771345,
+      "timestamp": 1789006771345,
+      "auctionId": 9,
+      "agentCode": "AG-1024",
+      "agentName": "Công ty CP Giao nhận Kho vận Vinatrans",
+      "isAnonymous": true,
+      "priceKg": 10000,
+      "time": "20 phút trước",
+      "status": "OUTBID",
+      "weightKg": 10000
     }
   ],
   "wonAuctions": [
@@ -625,7 +649,8 @@
       "cutOffTime": "09:10 · 09/09/2026",
       "warehouse": "Kho hàng SCSC / TCS Tân Sơn Nhất (Cửa số 4)",
       "cargoDeclaration": null,
-      "lockPenaltyHandled": true
+      "lockPenaltyHandled": true,
+      "lockWaivedByAdmin": true
     },
     {
       "wonId": "WON-20260908-06",
@@ -704,7 +729,8 @@
         "updatedAt": "13:58:53 8/9/2026"
       },
       "notifiedAt": "13:59:00 8/9/2026",
-      "lockPenaltyHandled": true
+      "lockPenaltyHandled": true,
+      "lockWaivedByAdmin": true
     },
     {
       "wonId": "WON-2026-0815-03",
@@ -778,6 +804,28 @@
     }
   ],
   "notifications": [
+    {
+      "id": 1789008629497,
+      "timestamp": 1789008629497,
+      "targetAgentCode": "AG-1024",
+      "title": "Cảnh báo bị vượt giá chuyến VU134!",
+      "message": "Một đại lý đối thủ (Ẩn danh) vừa đặt mức giá mới 10.500 đ/Kg cho chặng SGN - HAN.",
+      "time": "Vừa xong",
+      "type": "OUTBID",
+      "read": false,
+      "link": "04-Detail.html?id=9"
+    },
+    {
+      "id": 1789008629496,
+      "timestamp": 1789008629496,
+      "targetAgentCode": "AG-0892",
+      "title": "Đặt giá thành công chuyến VU134",
+      "message": "Bạn (AG-0892) đang dẫn đầu mức giá 10.500 đ/Kg cho chặng SGN - HAN. (Tên công ty được che ẩn danh đối với các đối thủ)",
+      "time": "Vừa xong",
+      "type": "HIGHEST",
+      "read": false,
+      "link": "04-Detail.html?id=9"
+    },
     {
       "id": 1788941670395,
       "title": "3234324234324rrr",
@@ -1366,15 +1414,15 @@
       "address": "406 Nguyễn Tất Thành, Quận 4, TP. Hồ Chí Minh",
       "province": "TP. Hồ Chí Minh",
       "tier": "TIER1",
-      "status": "Đã khóa",
+      "status": "Đang hoạt động",
       "joinedDate": "10/01/2024",
       "totalBids": 45,
       "totalWins": 16,
       "winRate": "36%",
       "totalSpentUSD": "28.2k",
       "totalSpentVND": 3640000000,
-      "lockedReason": "Hệ thống tự động khóa do quá hạn thanh toán đơn WON-2026-0815-02 (VU224 - SGN - DAD)",
-      "lockedAt": "13:00:00 9/9/2026"
+      "unlockedAt": "2026-09-10T02:48:45.743Z",
+      "unlockedBy": "admin"
     },
     {
       "id": 3,
@@ -1389,15 +1437,15 @@
       "address": "88 Láng Hạ, Đống Đa, Hà Nội",
       "province": "Hà Nội",
       "tier": "TIER1",
-      "status": "Đã khóa",
+      "status": "Đang hoạt động",
       "joinedDate": "22/05/2024",
       "totalBids": 18,
       "totalWins": 5,
       "winRate": "28%",
       "totalSpentUSD": "8.0k",
       "totalSpentVND": 1030000000,
-      "lockedReason": "Hệ thống tự động khóa do quá hạn thanh toán đơn WON-20260909-07 (VU450 - SGN - PQC)",
-      "lockedAt": "09:10:00 9/9/2026"
+      "unlockedAt": "2026-09-10T02:48:49.440Z",
+      "unlockedBy": "admin"
     },
     {
       "id": 4,
