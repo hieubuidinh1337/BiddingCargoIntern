@@ -1,5 +1,5 @@
 {
-  "version": 1789012417354,
+  "version": 1789012773593,
   "auctions": [
     {
       "id": 9,
@@ -678,7 +678,9 @@
       "awbNumber": "998-39116341",
       "cutOffTime": "17:30 · 10/09/2026",
       "warehouse": "Kho hàng SCSC / TCS Tân Sơn Nhất (Cửa số 4)",
-      "cargoDeclaration": null
+      "cargoDeclaration": null,
+      "lockPenaltyHandled": true,
+      "lockWaivedByAdmin": true
     },
     {
       "wonId": "WON-20260910-09",
@@ -719,7 +721,8 @@
         "bankName": "Ngân hàng TMCP Ngoại Thương Việt Nam (Vietcombank)",
         "submittedAt": "10:32:30 10/9/2026"
       },
-      "lockWaivedByAdmin": true
+      "lockWaivedByAdmin": true,
+      "lockPenaltyHandled": true
     },
     {
       "wonId": "WON-20260909-07",
@@ -894,6 +897,17 @@
     }
   ],
   "notifications": [
+    {
+      "id": 1789012773077,
+      "timestamp": 1789012772115,
+      "targetAgentCode": "AG-0341",
+      "title": "🔓 TÀI KHOẢN ĐÃ ĐƯỢC MỞ KHÓA KÍCH HOẠT",
+      "message": "Tài khoản đại lý AG-0341 (Công ty TNHH SkyFreight Logistics Việt Nam) của bạn đã được Quản trị viên MỞ KHÓA. Lý do mở khóa: \"Đại lý đã nộp bổ sung tiền thanh toán sau quá hạn & được Ban Điều hành chấp thuận mở khóa\". Quyền tham gia đấu giá trên sàn đã được khôi phục.",
+      "time": "Vừa xong",
+      "type": "SYSTEM",
+      "read": false,
+      "link": "03-Index.html"
+    },
     {
       "id": 1789011962157,
       "targetAgentCode": "AG-0341",
@@ -1675,7 +1689,10 @@
       "totalWins": 3,
       "winRate": "30%",
       "totalSpentUSD": "3.0k",
-      "totalSpentVND": 380000000
+      "totalSpentVND": 380000000,
+      "unlockedAt": "10:59:32 10/9/2026",
+      "unlockedBy": "admin",
+      "unlockedReason": "Đại lý đã nộp bổ sung tiền thanh toán sau quá hạn & được Ban Điều hành chấp thuận mở khóa"
     },
     {
       "id": 5,

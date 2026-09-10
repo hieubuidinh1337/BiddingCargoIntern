@@ -749,12 +749,14 @@
                         <td class="py-3.5 px-4 text-slate-700 font-medium">${ag.repName}</td>
                         <td class="py-3.5 px-4 text-slate-600">${ag.phone}<br><span class="text-[10px] text-gray-400">${ag.email}</span></td>
                         <td class="py-3.5 px-4 font-mono text-slate-600">${ag.taxCode}</td>
-                        <td class="py-3.5 px-4 min-w-[180px] max-w-[260px]">
+                        <td class="py-3.5 px-4 min-w-[180px] max-w-[280px]">
                             ${isLocked ? `
                                 <span class="bg-red-100 text-red-700 font-bold px-2.5 py-1 rounded-full text-[10px] inline-flex items-center gap-1 whitespace-nowrap"><i class="fa-solid fa-ban"></i> ĐÃ KHÓA</span>
                                 ${ag.lockedReason ? `<p class="text-[10px] text-red-600 mt-1 font-medium leading-tight whitespace-normal break-words"><i class="fa-solid fa-triangle-exclamation text-[9px]"></i> ${ag.lockedReason}</p>` : ''}
-                            ` : 
-                                '<span class="bg-emerald-100 text-emerald-700 font-bold px-2.5 py-1 rounded-full text-[10px] inline-flex items-center gap-1 whitespace-nowrap"><i class="fa-solid fa-circle-check"></i> HOẠT ĐỘNG</span>'}
+                            ` : `
+                                <span class="bg-emerald-100 text-emerald-700 font-bold px-2.5 py-1 rounded-full text-[10px] inline-flex items-center gap-1 whitespace-nowrap"><i class="fa-solid fa-circle-check"></i> HOẠT ĐỘNG</span>
+                                ${ag.unlockedReason ? `<p class="text-[10px] text-emerald-700 mt-1 font-medium leading-tight whitespace-normal break-words bg-emerald-50/80 p-1.5 rounded-md border border-emerald-200"><i class="fa-solid fa-key text-[9px] text-emerald-600"></i> <strong>Lý do mở khóa:</strong> "${ag.unlockedReason}" ${ag.unlockedAt ? `<span class="block text-[9px] text-gray-400 mt-0.5">${ag.unlockedAt}</span>` : ''}</p>` : ''}
+                            `}
                         </td>
                         <td class="py-3.5 px-4 text-right space-x-1.5 whitespace-nowrap">
                             ${isStaff ? `
@@ -934,11 +936,25 @@
         }
 
         function handleToggleLock(identifier, type) {
-            const label = type === 'agent' ? 'đại lý' : 'nhân sự';
-            if (!confirm(`Bạn có chắc chắn muốn thực hiện khóa / mở khóa kích hoạt tài khoản ${label} "${identifier}" không?`)) {
-                return;
+            const dataStore = (window.CargoStore && CargoStore.getData) ? CargoStore.getData() : {};
+            const list = type === 'agent' ? (dataStore.agentsList || []) : (dataStore.adminsList || []);
+            const target = list.find(x => (type === 'agent' ? (x.code || '').toUpperCase() === (identifier || '').toUpperCase() : (x.username || '').toLowerCase() === (identifier || '').toLowerCase()));
+            const isCurrentlyLocked = target && (target.status === 'Đã khóa' || target.status === 'LOCKED');
+
+            let customReason = '';
+            if (isCurrentlyLocked) {
+                const defaultReason = 'Đại lý đã nộp bổ sung tiền thanh toán sau quá hạn & được Ban Điều hành chấp thuận mở khóa';
+                const input = prompt(`MỞ KHÓA TÀI KHOẢN ${type === 'agent' ? 'ĐẠI LÝ' : 'NHÂN SỰ'} "${identifier}":\n\nVui lòng nhập / xác nhận lý do mở khóa khôi phục tài khoản:`, defaultReason);
+                if (input === null) return; // Cancelled by user
+                customReason = input.trim() || defaultReason;
+            } else {
+                const defaultReason = 'Quản trị viên chủ động tạm khóa tài khoản';
+                const input = prompt(`KHÓA TÀI KHOẢN ${type === 'agent' ? 'ĐẠI LÝ' : 'NHÂN SỰ'} "${identifier}":\n\nVui lòng nhập lý do khóa tài khoản:`, defaultReason);
+                if (input === null) return; // Cancelled by user
+                customReason = input.trim() || defaultReason;
             }
-            const res = CargoStore.toggleUserLock(identifier, type);
+
+            const res = CargoStore.toggleUserLock(identifier, type, customReason);
             if (res.success) {
                 alert(res.message);
                 renderAgentsList();

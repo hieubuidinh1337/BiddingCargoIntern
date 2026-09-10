@@ -3147,7 +3147,7 @@ const CargoStore = (function() {
             return { success: true, message: 'Đã phát thông báo đấu giá thành công tới các Đại lý!', notification: newNotif };
         },
 
-        toggleUserLock: function(identifier, type = 'agent') {
+        toggleUserLock: function(identifier, type = 'agent', customReason = '') {
             const data = loadData();
             if (data.currentAdmin && data.currentAdmin.role === 'STAFF') {
                 return { success: false, message: 'Nhân viên (STAFF) không có quyền kích hoạt hoặc khóa tài khoản. Thao tác này chỉ dành cho Quản trị viên (ADMIN).' };
@@ -3159,8 +3159,10 @@ const CargoStore = (function() {
                     const isCurrentlyActive = target.status === 'Đang hoạt động';
                     if (isCurrentlyActive) {
                         target.status = 'Đã khóa';
-                        target.lockedReason = 'Quản trị viên chủ động khóa tài khoản';
+                        target.lockedReason = customReason || 'Quản trị viên chủ động khóa tài khoản';
                         target.lockedAt = new Date().toLocaleString('vi-VN');
+                        delete target.unlockedReason;
+                        delete target.unlockedAt;
                         // If locking and target is currently logged in, clear currentUser session immediately!
                         if (data.currentUser) {
                             const currentCode = (data.currentUser.agentCode || data.currentUser.code || '').toUpperCase();
@@ -3170,8 +3172,9 @@ const CargoStore = (function() {
                         }
                     } else {
                         target.status = 'Đang hoạt động';
-                        target.unlockedAt = new Date().toISOString();
+                        target.unlockedAt = new Date().toLocaleString('vi-VN');
                         target.unlockedBy = data.currentAdmin ? (data.currentAdmin.username || 'ADMIN') : 'ADMIN';
+                        target.unlockedReason = customReason || 'Đại lý đã nộp bổ sung tiền thanh toán sau quá hạn & được Ban Điều hành phê duyệt mở khóa';
                         delete target.lockedReason;
                         delete target.lockedAt;
 
@@ -3181,6 +3184,20 @@ const CargoStore = (function() {
                                 w.lockPenaltyHandled = true;
                                 w.lockWaivedByAdmin = true;
                             }
+                        });
+
+                        // Push official UNLOCK Notification to agent
+                        if (!data.notifications) data.notifications = [];
+                        data.notifications.unshift({
+                            id: Date.now() + Math.floor(Math.random() * 1000),
+                            timestamp: Date.now(),
+                            targetAgentCode: target.code,
+                            title: `🔓 TÀI KHOẢN ĐÃ ĐƯỢC MỞ KHÓA KÍCH HOẠT`,
+                            message: `Tài khoản đại lý ${target.code} (${target.companyName}) của bạn đã được Quản trị viên MỞ KHÓA. Lý do mở khóa: "${target.unlockedReason}". Quyền tham gia đấu giá trên sàn đã được khôi phục.`,
+                            time: 'Vừa xong',
+                            type: 'SYSTEM',
+                            read: false,
+                            link: '03-Index.html'
                         });
 
                         // Clean up lock alert notifications for this agent
@@ -3206,8 +3223,10 @@ const CargoStore = (function() {
                     const isCurrentlyActive = target.status !== 'Đã khóa';
                     if (isCurrentlyActive) {
                         target.status = 'Đã khóa';
-                        target.lockedReason = 'Quản trị viên chủ động khóa tài khoản';
+                        target.lockedReason = customReason || 'Quản trị viên chủ động khóa tài khoản';
                         target.lockedAt = new Date().toLocaleString('vi-VN');
+                        delete target.unlockedReason;
+                        delete target.unlockedAt;
                         // If locking and target staff is currently logged in, clear currentAdmin session immediately!
                         if (data.currentAdmin) {
                             const currentUsername = (data.currentAdmin.username || '').toLowerCase();
@@ -3217,7 +3236,8 @@ const CargoStore = (function() {
                         }
                     } else {
                         target.status = 'Đang hoạt động';
-                        target.unlockedAt = new Date().toISOString();
+                        target.unlockedAt = new Date().toLocaleString('vi-VN');
+                        target.unlockedReason = customReason || 'Quản trị viên kích hoạt mở khóa tài khoản nhân sự';
                         delete target.lockedReason;
                         delete target.lockedAt;
                     }
