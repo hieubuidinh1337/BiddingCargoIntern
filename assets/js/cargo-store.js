@@ -793,7 +793,7 @@ const CargoStore = (function() {
                 updated = true;
             }
 
-            if (!data.registrations || !Array.isArray(data.registrations) || data.registrations.length === 0) {
+            if (!data.registrations || !Array.isArray(data.registrations)) {
                 data.registrations = JSON.parse(JSON.stringify(defaultData.registrations));
                 updated = true;
             }
@@ -1043,6 +1043,7 @@ const CargoStore = (function() {
             if (serverData && serverData.version && serverData.version !== lastServerVersion) {
                 lastServerVersion = serverData.version;
                 const local = loadData();
+                const oldStr = JSON.stringify(local);
 
                 // Merge shared collections from server by ID to preserve local created items
                 if (serverData.auctions && Array.isArray(serverData.auctions)) {
@@ -1069,8 +1070,10 @@ const CargoStore = (function() {
                 // Immediately check & enforce locks on merged server data
                 checkAndAutoLockExpiredWonAuctions(local);
 
-                // Save locally without re-sending to server
-                saveData(local, true);
+                const newStr = JSON.stringify(local);
+                if (oldStr !== newStr) {
+                    saveData(local, true);
+                }
             }
         } catch (e) {
         } finally {
@@ -1166,6 +1169,9 @@ const CargoStore = (function() {
     function isWonAuctionExpired(item, passedData = null) {
         if (!item) return false;
         if (item.paymentStatus === 'PAID') return false;
+        if (item.paymentStatus === 'PAID_LATE') return false;  // Supplementary payment approved by admin
+        // CRITICAL PROTECTION: If admin waived the lock penalty, this order is no longer expired
+        if (item.lockWaivedByAdmin === true) return false;
         // CRITICAL PROTECTION: If agent already reported bank transfer (PENDING_VERIFICATION),
         // order is protected from auto-cancellation & account lock while Admin reconciles!
         if (item.paymentStatus === 'PENDING_VERIFICATION') return false;
@@ -2428,11 +2434,28 @@ const CargoStore = (function() {
 
         markNotificationRead: function(id) {
             const data = loadData();
-            const notif = data.notifications.find(n => n.id == id);
+            if (!data.notifications) return;
+            const targetIdStr = String(id);
+            const notif = data.notifications.find(n => String(n.id) === targetIdStr || n.id == id);
             if (notif) {
                 notif.read = true;
                 saveData(data);
             }
+        },
+
+        markAllNotificationsRead: function(agentCode) {
+            const data = loadData();
+            if (!data.notifications) return;
+            const user = data.currentUser;
+            const myCode = (agentCode || (user ? (user.agentCode || user.code) : '') || '').trim().toUpperCase();
+            data.notifications.forEach(n => {
+                if (n.targetRole === 'ADMIN' || n.targetRole === 'STAFF') return;
+                const nTarget = String(n.targetAgentCode || '').trim().toUpperCase();
+                if (!user || !nTarget || nTarget === myCode) {
+                    n.read = true;
+                }
+            });
+            saveData(data);
         },
 
         deleteNotification: function(id) {
@@ -2612,6 +2635,21 @@ const CargoStore = (function() {
             };
 
             data.registrations.unshift(newReg);
+
+            // Push admin notification for new registration
+            if (!data.notifications) data.notifications = [];
+            data.notifications.unshift({
+                id: Date.now(),
+                timestamp: Date.now(),
+                targetRole: 'ADMIN',
+                title: `📋 HỒ SƠ ĐĂNG KÝ MỚI: ${newReg.companyName}`,
+                message: `Mã hồ sơ ${newReg.regId} — ${newReg.companyName} (MST: ${newReg.taxCode}) vừa nộp hồ sơ đăng ký trở thành đại lý. Người đại diện: ${newReg.repName} — ${newReg.email}. Vui lòng xét duyệt trong vòng 24h làm việc.`,
+                time: 'Vừa xong',
+                type: 'REGISTRATION',
+                read: false,
+                link: '../Admin/06-AgentList.html'
+            });
+
             saveData(data);
 
             // Dispatch automated email via Nodemailer
@@ -3317,10 +3355,19 @@ const CargoStore = (function() {
                         delete target.lockedAt;
 
                         // Waive old expired auction penalties so system doesn't immediately re-lock
+                        // Also mark expired unpaid orders as PAID_LATE so they no longer appear in "cần thanh toán"
+                        const unlockTime = new Date().toLocaleString('vi-VN');
                         (data.wonAuctions || []).forEach(w => {
                             if ((w.agentCode || '').toUpperCase() === (target.code || '').toUpperCase()) {
                                 w.lockPenaltyHandled = true;
                                 w.lockWaivedByAdmin = true;
+                                // If this order was expired and unpaid, mark it as PAID_LATE (supplementary payment)
+                                const isExpired = CargoStore.isWonAuctionExpired ? CargoStore.isWonAuctionExpired(w) : false;
+                                if (isExpired && w.paymentStatus !== 'PAID') {
+                                    w.paymentStatus = 'PAID_LATE';
+                                    w.paidAt = unlockTime;
+                                    w.paidLateNote = `Đại lý nộp bổ sung sau quá hạn – Được Ban Điều hành chấp thuận mở khóa lúc ${unlockTime}`;
+                                }
                             }
                         });
 

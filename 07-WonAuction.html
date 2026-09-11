@@ -945,6 +945,7 @@
         function closePreviewModal() {
             const modal = document.getElementById('previewModal');
             modal.classList.add('hidden');
+            renderWonAuctions(true);
         }
 
         // Gibberish / Keyboard Mash text detector
@@ -1250,6 +1251,7 @@
         function closeCargoModal() {
             document.getElementById('cargoDeclarationModal').classList.add('hidden');
             resetCargoInputErrors();
+            renderWonAuctions(true);
         }
 
         function handleSaveCargoDeclaration(e) {
@@ -1553,7 +1555,17 @@
             controls.innerHTML = html;
         }
 
-        function renderWonAuctions() {
+        function renderWonAuctions(force = false) {
+            if (!force) {
+                const payModal = document.getElementById('paymentInstructionModal');
+                const cargoModal = document.getElementById('cargoDeclarationModal');
+                const prevModal = document.getElementById('previewModal');
+                const isPayOpen = payModal && !payModal.classList.contains('hidden');
+                const isCargoOpen = cargoModal && !cargoModal.classList.contains('hidden');
+                const isPrevOpen = prevModal && !prevModal.classList.contains('hidden');
+                if (isPayOpen || isCargoOpen || isPrevOpen) return;
+            }
+
             const store = getStore();
             const u = store && store.getCurrentUser ? store.getCurrentUser() : null;
             if (u) {
@@ -1598,13 +1610,13 @@
 
             // Payment & Cargo Declaration Status Filter
             if (statusFilter === 'PAID') {
-                list = list.filter(item => item.paymentStatus === 'PAID');
+                list = list.filter(item => item.paymentStatus === 'PAID' || item.paymentStatus === 'PAID_LATE');
             } else if (statusFilter === 'PENDING') {
                 list = list.filter(item => item.paymentStatus === 'PENDING_VERIFICATION');
             } else if (statusFilter === 'EXPIRED') {
-                list = list.filter(item => (store && store.isWonAuctionExpired) ? store.isWonAuctionExpired(item) : false);
+                list = list.filter(item => item.paymentStatus !== 'PAID_LATE' && ((store && store.isWonAuctionExpired) ? store.isWonAuctionExpired(item) : false));
             } else if (statusFilter === 'UNPAID') {
-                list = list.filter(item => item.paymentStatus !== 'PAID' && item.paymentStatus !== 'PENDING_VERIFICATION' && !((store && store.isWonAuctionExpired) ? store.isWonAuctionExpired(item) : false));
+                list = list.filter(item => item.paymentStatus !== 'PAID' && item.paymentStatus !== 'PAID_LATE' && item.paymentStatus !== 'PENDING_VERIFICATION' && !((store && store.isWonAuctionExpired) ? store.isWonAuctionExpired(item) : false));
             } else if (statusFilter === 'UNDECLARED') {
                 list = list.filter(item => (store && store.isCargoUndeclared) ? store.isCargoUndeclared(item) : (!item.cargoDeclaration || !item.cargoDeclaration.cargoName));
             } else if (statusFilter === 'DECLARED') {
@@ -1666,8 +1678,11 @@
             const allAuctions = (store ? store.getData().auctions : []) || [];
 
             container.innerHTML = paginatedList.map(item => {
-                const isPaid = item.paymentStatus === 'PAID';
+                const isPaid = item.paymentStatus === 'PAID' || item.paymentStatus === 'PAID_LATE' || item.lockWaivedByAdmin === true;
+                const isPaidLate = item.paymentStatus === 'PAID_LATE' || item.lockWaivedByAdmin === true; // Supplementary payment after account unlock
+                const isWaivedByAdmin = item.lockWaivedByAdmin === true && item.paymentStatus !== 'PAID';
                 const isPending = item.paymentStatus === 'PENDING_VERIFICATION';
+                // isWonAuctionExpired already returns false for PAID_LATE and lockWaivedByAdmin
                 const isExpired = (store && store.isWonAuctionExpired) ? store.isWonAuctionExpired(item) : false;
                 const decl = item.cargoDeclaration;
 
@@ -1681,6 +1696,11 @@
                     statusBadgeClass = 'bg-emerald-400 text-emerald-950';
                     headerGradient = 'from-emerald-700 to-teal-800';
                     headerIcon = 'fa-check';
+                } else if (isPaidLate || isWaivedByAdmin) {
+                    statusBadgeText = 'ĐÃ THANH TOÁN BỔ SUNG (ADMIN DUYỆT)';
+                    statusBadgeClass = 'bg-teal-500 text-white font-bold';
+                    headerGradient = 'from-teal-700 to-emerald-800';
+                    headerIcon = 'fa-circle-check';
                 } else if (isExpired) {
                     statusBadgeText = 'QUÁ HẠN THANH TOÁN - ĐÃ HỦY ĐƠN';
                     statusBadgeClass = 'bg-rose-500 text-white font-bold';
@@ -2015,7 +2035,8 @@
             document.getElementById('payModalMemo').textContent = memo;
 
             // Status badge in modal
-            const isPaid = item.paymentStatus === 'PAID';
+            const isPaid = item.paymentStatus === 'PAID' || item.paymentStatus === 'PAID_LATE' || item.lockWaivedByAdmin === true;
+            const isPaidLateDetail = item.paymentStatus === 'PAID_LATE' || item.lockWaivedByAdmin === true;
             const isPending = item.paymentStatus === 'PENDING_VERIFICATION' || item.paymentStatus === 'PENDING';
             const statusBadge = document.getElementById('payModalStatusBadge');
             const noticeBox = document.getElementById('payModalNoticeBox');
@@ -2024,13 +2045,14 @@
 
             if (isPaid) {
                 statusBadge.className = 'text-[10px] font-bold px-2 py-0.5 rounded-full bg-emerald-500/20 text-emerald-300 border border-emerald-400/30';
-                statusBadge.textContent = 'ĐÃ THANH TOÁN (PAID)';
+                statusBadge.textContent = isPaidLateDetail ? 'THANH TOÁN BỔ SUNG (PAID LATE)' : 'ĐÃ THANH TOÁN (PAID)';
                 noticeBox.className = 'p-3.5 rounded-2xl bg-emerald-50 border border-emerald-200 text-emerald-900 flex items-start gap-3';
                 noticeBox.innerHTML = `
                     <i class="fa-solid fa-circle-check text-emerald-600 text-base mt-0.5 flex-shrink-0"></i>
                     <div class="space-y-0.5">
-                        <p class="font-bold text-emerald-900">Đơn hàng đã được Ban Điều hành xác nhận thanh toán thành công!</p>
+                        <p class="font-bold text-emerald-900">${isPaidLateDetail ? 'Đại lý đã nộp bổ sung tiền thanh toán sau quá hạn – Ban Điều hành đã chấp thuận mở khóa tài khoản!' : 'Đơn hàng đã được Ban Điều hành xác nhận thanh toán thành công!'}</p>
                         <p class="text-emerald-800">Thời gian xác nhận: <strong>${item.paidAt || 'Vừa xong'}</strong> &middot; Mã AWB điện tử chính thức: <strong>${item.awbNumber || 'Chưa cấp'}</strong>.</p>
+                        ${isPaidLateDetail && item.paidLateNote ? `<p class="text-xs text-teal-700 mt-1 italic">${item.paidLateNote}</p>` : ''}
                     </div>
                 `;
                 submitBtn.style.display = 'none';
@@ -2107,6 +2129,7 @@
             document.getElementById('paymentInstructionModal').classList.add('hidden');
             currentActivePayWonId = null;
             currentUploadedProofBase64 = null;
+            renderWonAuctions(true);
         }
 
         function copyPaymentText(elementId, labelName) {

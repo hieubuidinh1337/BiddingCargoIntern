@@ -400,15 +400,37 @@
                     </div>
 
                     <!-- Quick Action for OUTBID/WON -->
-                    ${n.type === 'OUTBID' && n.link ? `
-                    <a href="${n.link}" onclick="markReadById('${n.id}')" class="flex-shrink-0 bg-amber-500 hover:bg-amber-600 text-white text-xs font-bold px-3 py-2 rounded-xl transition shadow flex items-center gap-1.5 whitespace-nowrap">
-                        <i class="fa-solid fa-gavel text-[10px]"></i> Đặt lại ngay
-                    </a>
-                    ` : (n.type === 'WON' ? `
-                    <a href="07-WonAuction.html" onclick="markReadById('${n.id}')" class="flex-shrink-0 bg-emerald-500 hover:bg-emerald-600 text-white text-xs font-bold px-3 py-2 rounded-xl transition shadow flex items-center gap-1.5 whitespace-nowrap">
-                        <i class="fa-solid fa-circle-check text-[10px]"></i> Xem đơn
-                    </a>
-                    ` : '')}
+                    ${(() => {
+                        if (n.type === 'OUTBID' && n.link) {
+                            const allAuctions = CargoStore.getAuctions ? CargoStore.getAuctions() : [];
+                            const match = (n.link || '').match(/id=([^&]+)/);
+                            const aId = match ? match[1] : null;
+                            let isClosed = false;
+                            if (aId) {
+                                const foundA = allAuctions.find(a => String(a.id) === String(aId));
+                                if (foundA) {
+                                    const tm = (foundA.endTime && CargoStore.getTimeRemaining) ? CargoStore.getTimeRemaining(foundA.endTime) : null;
+                                    isClosed = foundA.status === 'CLOSED' || foundA.status === 'ENDED' || foundA.status === 'EXPIRED' || (tm && tm.isEnded);
+                                }
+                            }
+                            if (isClosed) {
+                                return `
+                                <a href="${n.link}" onclick="markReadById('${n.id}')" class="flex-shrink-0 bg-slate-100 hover:bg-slate-200 text-slate-500 text-xs font-medium px-3 py-2 rounded-xl transition shadow-xs flex items-center gap-1.5 whitespace-nowrap" title="Phiên đấu giá đã đóng">
+                                    <i class="fa-solid fa-lock text-[10px]"></i> Đã đóng
+                                </a>`;
+                            }
+                            return `
+                            <a href="${n.link}" onclick="markReadById('${n.id}')" class="flex-shrink-0 bg-amber-500 hover:bg-amber-600 text-white text-xs font-bold px-3 py-2 rounded-xl transition shadow flex items-center gap-1.5 whitespace-nowrap">
+                                <i class="fa-solid fa-gavel text-[10px]"></i> Đặt lại ngay
+                            </a>`;
+                        } else if (n.type === 'WON') {
+                            return `
+                            <a href="07-WonAuction.html" onclick="markReadById('${n.id}')" class="flex-shrink-0 bg-emerald-500 hover:bg-emerald-600 text-white text-xs font-bold px-3 py-2 rounded-xl transition shadow flex items-center gap-1.5 whitespace-nowrap">
+                                <i class="fa-solid fa-circle-check text-[10px]"></i> Xem đơn
+                            </a>`;
+                        }
+                        return '';
+                    })()}
                 </div>
             </div>
             `;
@@ -680,20 +702,29 @@
     }
 
     function markReadById(id) {
-        CargoStore.markNotificationRead(id);
+        if (typeof CargoStore !== 'undefined' && CargoStore.markNotificationRead) {
+            CargoStore.markNotificationRead(id);
+        }
         renderNotifications();
     }
 
     function markAllRead() {
-        const data = CargoStore.getData ? CargoStore.getData() : null;
-        if (!data) return;
-        const user = CargoStore.getCurrentUser ? CargoStore.getCurrentUser() : null;
-        (data.notifications || []).forEach(n => {
-            if (!user || !n.targetAgentCode || n.targetAgentCode === user.agentCode) {
-                n.read = true;
-            }
-        });
-        if (CargoStore.saveData) CargoStore.saveData(data);
+        if (typeof CargoStore !== 'undefined' && CargoStore.markAllNotificationsRead) {
+            CargoStore.markAllNotificationsRead();
+        } else {
+            const data = CargoStore.getData ? CargoStore.getData() : null;
+            if (!data) return;
+            const user = CargoStore.getCurrentUser ? CargoStore.getCurrentUser() : null;
+            const myCode = user ? String(user.agentCode || user.code || '').trim().toUpperCase() : null;
+            (data.notifications || []).forEach(n => {
+                if (n.targetRole === 'ADMIN' || n.targetRole === 'STAFF') return;
+                const targetCode = String(n.targetAgentCode || '').trim().toUpperCase();
+                if (!user || !targetCode || targetCode === myCode) {
+                    n.read = true;
+                }
+            });
+            if (CargoStore.saveData) CargoStore.saveData(data);
+        }
         showToast('Đã đánh dấu tất cả là đã đọc');
         renderNotifications();
     }
@@ -702,8 +733,11 @@
         const data = CargoStore.getData ? CargoStore.getData() : null;
         if (!data) return;
         const user = CargoStore.getCurrentUser ? CargoStore.getCurrentUser() : null;
+        const myCode = user ? String(user.agentCode || user.code || '').trim().toUpperCase() : null;
         data.notifications = (data.notifications || []).filter(n => {
-            if (!user || !n.targetAgentCode || n.targetAgentCode === user.agentCode) {
+            if (n.targetRole === 'ADMIN' || n.targetRole === 'STAFF') return true;
+            const targetCode = String(n.targetAgentCode || '').trim().toUpperCase();
+            if (!user || !targetCode || targetCode === myCode) {
                 return !n.read;
             }
             return true;

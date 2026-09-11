@@ -277,6 +277,9 @@
                 const paymentStatus = wonAuction ? wonAuction.paymentStatus : null;
                 const cargoDeclared = wonAuction ? (CargoStore.isCargoDeclared ? CargoStore.isCargoDeclared(wonAuction) : !!(wonAuction.cargoDeclaration && wonAuction.cargoDeclaration.cargoName)) : false;
 
+                const timer = (auction.endTime && CargoStore.getTimeRemaining) ? CargoStore.getTimeRemaining(auction.endTime) : null;
+                const isAuctionClosed = !auction.id || auction.status === 'CLOSED' || auction.status === 'ENDED' || auction.status === 'EXPIRED' || (timer && timer.isEnded);
+
                 let statusBadge = '';
                 if (b.status === 'HIGHEST') {
                     statusBadge = '<span class="bg-green-100 text-green-700 font-bold px-2.5 py-1 rounded-full text-[10px] inline-flex items-center gap-1"><i class="fa-solid fa-crown"></i> Đang dẫn đầu</span>';
@@ -314,6 +317,23 @@
                     }
                 }
 
+                let actionBtnHtml = '';
+                if (b.status === 'OUTBID') {
+                    if (isAuctionClosed) {
+                        actionBtnHtml = `<a href="04-Detail.html?id=${b.auctionId}" class="inline-flex items-center gap-1.5 bg-slate-100 hover:bg-slate-200 text-slate-500 font-medium px-3 py-1.5 rounded-lg text-xs transition" title="Phiên đấu giá đã đóng">
+                            <i class="fa-solid fa-lock text-[10px]"></i> Đã đóng
+                        </a>`;
+                    } else {
+                        actionBtnHtml = `<a href="04-Detail.html?id=${b.auctionId}" class="inline-flex items-center gap-1.5 bg-blue-50 hover:bg-blue-100 text-blue-700 font-semibold px-3 py-1.5 rounded-lg text-xs transition">
+                            <i class="fa-solid fa-rotate text-[10px]"></i> Đặt lại
+                        </a>`;
+                    }
+                } else {
+                    actionBtnHtml = `<a href="04-Detail.html?id=${b.auctionId}" class="inline-flex items-center gap-1.5 bg-blue-50 hover:bg-blue-100 text-blue-700 font-semibold px-3 py-1.5 rounded-lg text-xs transition">
+                        Chi tiết
+                    </a>`;
+                }
+
                 return `
                     <tr class="hover:bg-slate-50 transition">
                         <td class="py-3.5 px-5">
@@ -341,9 +361,7 @@
                         <td class="py-3.5 px-5 text-right">
                             <div class="flex items-center justify-end gap-1.5">
                                 ${wonActionHtml}
-                                <a href="04-Detail.html?id=${b.auctionId}" class="inline-flex items-center gap-1.5 bg-blue-50 hover:bg-blue-100 text-blue-700 font-semibold px-3 py-1.5 rounded-lg text-xs transition">
-                                    ${b.status === 'OUTBID' ? '<i class="fa-solid fa-rotate text-[10px]"></i> Đặt lại' : 'Chi tiết'}
-                                </a>
+                                ${actionBtnHtml}
                             </div>
                         </td>
                     </tr>
