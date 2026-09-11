@@ -1,0 +1,367 @@
+﻿<!DOCTYPE html>
+<html lang="vi">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Chat Hỗ trợ Đại lý - Admin</title>
+<script src="https://cdn.tailwindcss.com"></script>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+<script src="../assets/js/cargo-store.js"></script>
+<style>
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap');
+*{font-family:'Inter',sans-serif;box-sizing:border-box}
+::-webkit-scrollbar{width:5px;height:5px}
+::-webkit-scrollbar-thumb{background:#334155;border-radius:3px}
+.chat-list-item{transition:background .15s;cursor:pointer}
+.chat-list-item:hover,.chat-list-item.active{background:#1e293b}
+.msg-bubble{max-width:75%;padding:9px 13px;border-radius:14px;font-size:13.5px;line-height:1.55;word-break:break-word}
+.msg-agent{align-self:flex-start;background:#1e293b;color:#e2e8f0;border-bottom-left-radius:4px}
+.msg-staff{align-self:flex-end;background:linear-gradient(135deg,#1e40af,#7c3aed);color:#fff;border-bottom-right-radius:4px}
+.msg-system{align-self:center;background:rgba(245,158,11,.12);color:#fbbf24;border:1px solid rgba(245,158,11,.25);border-radius:8px;font-size:12px;padding:6px 14px;max-width:85%;text-align:center}
+.msg-time{font-size:10px;opacity:.45;margin-top:3px}
+.msg-file-img{max-width:180px;max-height:140px;border-radius:8px;margin-top:5px;cursor:pointer}
+.msg-file-vid{max-width:200px;max-height:140px;border-radius:8px;margin-top:5px}
+.msg-file-link{color:#93c5fd;font-size:12px;margin-top:4px;display:inline-flex;align-items:center;gap:4px;text-decoration:none}
+.msg-file-link:hover{color:#fff}
+.badge-wait{background:#f59e0b;color:#000;font-size:10px;font-weight:700;padding:1px 6px;border-radius:999px}
+.badge-active{background:#10b981;color:#fff;font-size:10px;font-weight:700;padding:1px 6px;border-radius:999px}
+.badge-closed{background:#475569;color:#cbd5e1;font-size:10px;font-weight:700;padding:1px 6px;border-radius:999px}
+.tab-btn{padding:6px 14px;border-radius:8px;font-size:12px;font-weight:600;cursor:pointer;border:1px solid transparent;transition:all .15s}
+.tab-btn.active{background:#1e40af;color:#fff;border-color:#1e40af}
+.tab-btn:not(.active){background:transparent;color:#94a3b8;border-color:#334155}
+.tab-btn:not(.active):hover{border-color:#64748b;color:#e2e8f0}
+#msg-area{display:flex;flex-direction:column;gap:8px;padding:16px;overflow-y:auto;flex:1;scroll-behavior:smooth}
+#msg-area::-webkit-scrollbar{width:4px}
+#msg-area::-webkit-scrollbar-thumb{background:#334155}
+.inp-chat{background:#1e293b;border:1px solid #334155;border-radius:10px;color:#e2e8f0;padding:8px 14px;font-size:13px;outline:none;resize:none;width:100%;font-family:inherit}
+.inp-chat:focus{border-color:#7c3aed}
+.btn-primary{background:linear-gradient(135deg,#1e40af,#7c3aed);color:#fff;border:none;border-radius:10px;padding:8px 18px;cursor:pointer;font-size:13px;font-weight:600;transition:opacity .15s}
+.btn-primary:hover{opacity:.85}
+.btn-danger{background:#dc2626;color:#fff;border:none;border-radius:8px;padding:6px 14px;cursor:pointer;font-size:12.5px;font-weight:600;transition:opacity .15s}
+.btn-danger:hover{opacity:.85}
+.btn-success{background:#059669;color:#fff;border:none;border-radius:8px;padding:6px 14px;cursor:pointer;font-size:12.5px;font-weight:600;transition:opacity .15s}
+.btn-success:hover{opacity:.85}
+.empty-state{display:flex;flex-direction:column;align-items:center;justify-content:center;flex:1;color:#475569;gap:8px}
+.empty-state i{font-size:40px;color:#334155}
+</style>
+</head>
+<body class="bg-slate-950 text-slate-200 h-screen flex flex-col overflow-hidden">
+<!-- Topbar -->
+<header class="bg-slate-900 border-b border-slate-800 flex-shrink-0">
+  <div class="max-w-full px-4 py-2.5 flex items-center justify-between">
+    <div class="flex items-center gap-3">
+      <button onclick="toggleAdminMobileNav()" class="md:hidden text-slate-300 hover:text-white p-1.5 rounded-lg hover:bg-slate-800"><i class="fa-solid fa-bars"></i></button>
+      <a href="02-AdminDashboard.html" class="flex items-center gap-2">
+        <div class="w-7 h-7 bg-blue-600 rounded-lg flex items-center justify-center font-bold text-xs text-white shadow">VN</div>
+        <div><span class="font-bold text-xs text-white block">Cargo Bidding Admin</span><span class="text-[9px] text-blue-400 font-medium block">Chat Hỗ trợ Đại lý</span></div>
+      </a>
+      <nav class="hidden md:flex items-center gap-1 text-xs font-medium ml-4">
+        <a href="02-AdminDashboard.html" class="px-3 py-1.5 rounded-lg text-slate-300 hover:text-white hover:bg-slate-800 transition flex items-center gap-1.5"><i class="fa-solid fa-chart-pie"></i> Dashboard</a>
+        <a href="03-AuctionList.html" class="px-3 py-1.5 rounded-lg text-slate-300 hover:text-white hover:bg-slate-800 transition flex items-center gap-1.5"><i class="fa-solid fa-list-check"></i> Quản lý phiên</a>
+        <a href="04-CreateAuction.html" class="px-3 py-1.5 rounded-lg text-slate-300 hover:text-white hover:bg-slate-800 transition flex items-center gap-1.5"><i class="fa-solid fa-plus-circle"></i> Tạo phiên mới</a>
+        <a href="06-AgentList.html" class="px-3 py-1.5 rounded-lg text-slate-300 hover:text-white hover:bg-slate-800 transition flex items-center gap-1.5"><i class="fa-solid fa-building-user"></i> Đại lý</a>
+        <a href="07-Reports.html" class="px-3 py-1.5 rounded-lg text-slate-300 hover:text-white hover:bg-slate-800 transition flex items-center gap-1.5"><i class="fa-solid fa-chart-line"></i> Báo cáo</a>
+        <a href="08-Settings.html" class="px-3 py-1.5 rounded-lg text-slate-300 hover:text-white hover:bg-slate-800 transition flex items-center gap-1.5"><i class="fa-solid fa-sliders"></i> Cài đặt</a>
+        <a href="09-AdminChat.html" class="px-3 py-1.5 rounded-lg bg-purple-700 text-white font-semibold flex items-center gap-1.5">
+          <i class="fa-solid fa-headset"></i> Chat Hỗ trợ
+          <span id="nav-badge" class="hidden bg-red-500 text-white text-[9px] font-bold px-1.5 py-0.5 rounded-full ml-1">0</span>
+        </a>
+      </nav>
+    </div>
+    <div class="flex items-center gap-2">
+      <span class="admin-header-role text-[9px] font-bold px-2 py-0.5 rounded-full bg-blue-500/20 text-blue-400 border border-blue-500/30 hidden sm:inline-flex items-center gap-1"><i class="fa-solid fa-shield-halved text-[8px]"></i> QUẢN TRỊ VIÊN</span>
+      <span class="text-xs font-medium text-slate-200 admin-header-name hidden sm:inline">Admin</span>
+      <a href="01-AdminLogin.html" onclick="if(window.CargoStore)CargoStore.logoutAdmin()" class="text-slate-400 hover:text-red-400 p-1 transition" title="Đăng xuất"><i class="fa-solid fa-power-off text-xs"></i></a>
+    </div>
+  </div>
+</header>
+
+<!-- Main Layout: Sidebar + Chat Panel -->
+<div class="flex flex-1 overflow-hidden">
+
+  <!-- Sidebar -->
+  <div class="w-80 flex-shrink-0 bg-slate-900 border-r border-slate-800 flex flex-col">
+    <!-- Search + Tabs -->
+    <div class="p-3 border-b border-slate-800 flex flex-col gap-2">
+      <div class="relative">
+        <i class="fa-solid fa-magnifying-glass absolute left-3 top-2.5 text-slate-500 text-xs"></i>
+        <input id="search-inp" type="text" placeholder="Tìm đại lý..." oninput="renderList()" class="w-full bg-slate-800 border border-slate-700 rounded-lg pl-8 pr-3 py-2 text-xs text-slate-200 outline-none focus:border-purple-500">
+      </div>
+      <div class="flex gap-1.5">
+        <button class="tab-btn active" id="tab-waiting" onclick="setTab('WAITING')"><i class="fa-solid fa-clock mr-1"></i>Chờ <span id="cnt-waiting" class="ml-1 badge-wait">0</span></button>
+        <button class="tab-btn" id="tab-active" onclick="setTab('ACTIVE')"><i class="fa-solid fa-comment-dots mr-1"></i>Đang <span id="cnt-active" class="ml-1 badge-active">0</span></button>
+        <button class="tab-btn" id="tab-closed" onclick="setTab('CLOSED')"><i class="fa-solid fa-check-circle mr-1"></i>Xong <span id="cnt-closed" class="ml-1 badge-closed">0</span></button>
+      </div>
+    </div>
+    <!-- Chat List -->
+    <div id="chat-list" class="flex-1 overflow-y-auto"></div>
+  </div>
+
+  <!-- Chat Panel -->
+  <div class="flex flex-col flex-1 overflow-hidden" id="chat-panel">
+    <div class="empty-state" id="empty-state">
+      <i class="fa-solid fa-headset"></i>
+      <p class="text-sm font-semibold text-slate-400">Chọn một cuộc trò chuyện</p>
+      <p class="text-xs text-slate-600">Danh sách bên trái</p>
+    </div>
+    <!-- Chat Active View (hidden by default) -->
+    <div id="chat-view" class="flex flex-col flex-1 overflow-hidden" style="display:none">
+      <!-- Chat Header -->
+      <div id="chat-hdr" class="flex-shrink-0 bg-slate-900 border-b border-slate-800 px-4 py-3 flex items-center justify-between gap-3">
+        <div class="flex items-center gap-3">
+          <div id="chat-hdr-avatar" class="w-9 h-9 rounded-full bg-gradient-to-br from-blue-600 to-purple-600 flex items-center justify-center text-white font-bold text-sm flex-shrink-0">AG</div>
+          <div>
+            <p id="chat-hdr-name" class="text-sm font-bold text-white"></p>
+            <p id="chat-hdr-sub" class="text-xs text-slate-400"></p>
+          </div>
+        </div>
+        <div class="flex items-center gap-2" id="chat-hdr-actions"></div>
+      </div>
+      <!-- Messages -->
+      <div id="msg-area"></div>
+      <!-- Input -->
+      <div id="chat-input-area" class="flex-shrink-0 bg-slate-900 border-t border-slate-800 p-3 flex flex-col gap-2" style="display:none">
+        <div class="flex gap-2 items-end">
+          <textarea id="staff-inp" class="inp-chat" rows="2" placeholder="Nhập tin nhắn..." onkeydown="handleKey(event)"></textarea>
+          <button class="btn-primary" onclick="staffSend()"><i class="fa-solid fa-paper-plane mr-1"></i>Gửi</button>
+        </div>
+        <div class="flex gap-2 items-center">
+          <label class="cursor-pointer text-xs text-slate-400 hover:text-purple-400 flex items-center gap-1.5 border border-slate-700 rounded-lg px-3 py-1.5 hover:border-purple-500 transition" for="staff-file-inp">
+            <i class="fa-solid fa-paperclip"></i> Đính kèm file/ảnh/video
+          </label>
+          <input type="file" id="staff-file-inp" style="display:none" accept="image/*,video/*,.pdf,.doc,.docx,.xls,.xlsx,.zip" onchange="staffUpload(this)">
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Close Confirm Modal -->
+<div id="close-modal" class="fixed inset-0 bg-black/70 z-50 flex items-center justify-center" style="display:none!important">
+  <div class="bg-slate-800 border border-slate-700 rounded-2xl p-6 w-80 shadow-2xl">
+    <p class="text-sm font-bold text-white mb-2"><i class="fa-solid fa-circle-exclamation text-yellow-400 mr-2"></i>Đóng cuộc trò chuyện?</p>
+    <p class="text-xs text-slate-400 mb-4">Đại lý sẽ thấy thông báo kết thúc. Cuộc trò chuyện sẽ tự xóa sau 7 ngày.</p>
+    <div class="flex gap-2 justify-end">
+      <button onclick="hideCloseModal()" class="text-xs text-slate-400 px-3 py-2 rounded-lg hover:bg-slate-700 transition">Hủy</button>
+      <button onclick="confirmClose()" class="btn-danger text-xs">Xác nhận đóng</button>
+    </div>
+  </div>
+</div>
+<script>
+let allChats = [];
+let currentTab = 'WAITING';
+let selectedChatId = null;
+let pollTimer = null;
+let adminInfo = { id: 'admin', name: 'Admin' };
+
+function getAdminInfo() {
+  try {
+    const s = JSON.parse(localStorage.getItem('adminSession') || '{}');
+    if (s.name || s.username) adminInfo = { id: s.username || s.email || 'admin', name: s.name || s.username || 'Admin' };
+    document.querySelectorAll('.admin-header-name').forEach(el => el.textContent = adminInfo.name);
+    document.querySelectorAll('.admin-header-role').forEach(el => {
+      const role = (s.role || '').toLowerCase();
+      el.textContent = role === 'staff' ? '👷 NHÂN VIÊN' : '🛡 QUẢN TRỊ VIÊN';
+    });
+  } catch(e) {}
+}
+
+function setTab(tab) {
+  currentTab = tab;
+  ['WAITING','ACTIVE','CLOSED'].forEach(t => {
+    const btn = document.getElementById('tab-' + t.toLowerCase());
+    if (btn) btn.classList.toggle('active', t === tab);
+  });
+  renderList();
+}
+
+function renderList() {
+  const q = (document.getElementById('search-inp').value || '').toLowerCase();
+  const filtered = allChats.filter(c => {
+    const matchTab = c.status === currentTab;
+    const matchQ = !q || (c.agentCode||'').toLowerCase().includes(q) || (c.agentName||'').toLowerCase().includes(q);
+    return matchTab && matchQ;
+  });
+  document.getElementById('cnt-waiting').textContent = allChats.filter(c=>c.status==='WAITING').length;
+  document.getElementById('cnt-active').textContent = allChats.filter(c=>c.status==='ACTIVE').length;
+  document.getElementById('cnt-closed').textContent = allChats.filter(c=>c.status==='CLOSED').length;
+  const waitCount = allChats.filter(c=>c.status==='WAITING').length;
+  const nb = document.getElementById('nav-badge');
+  if (nb) { nb.textContent = waitCount; nb.classList.toggle('hidden', waitCount === 0); }
+  const list = document.getElementById('chat-list');
+  if (!filtered.length) {
+    list.innerHTML = `<div class="text-center py-10 text-slate-600 text-xs">${currentTab==='WAITING'?'Không có yêu cầu chờ':currentTab==='ACTIVE'?'Không có cuộc trò chuyện nào':'Chưa có lịch sử'}</div>`;
+    return;
+  }
+  list.innerHTML = filtered.map(c => {
+    const lastMsg = c.messages && c.messages.length ? c.messages[c.messages.length-1] : null;
+    const snippet = lastMsg ? (lastMsg.text ? lastMsg.text.substring(0,40)+(lastMsg.text.length>40?'...':'') : (lastMsg.fileName||'[File]')) : 'Chưa có tin nhắn';
+    const unread = (c.messages||[]).filter(m=>m.sender==='agent'&&!m.read).length;
+    const initials = (c.agentName||'?').slice(0,2).toUpperCase();
+    const badgeClass = c.status==='WAITING'?'badge-wait':c.status==='ACTIVE'?'badge-active':'badge-closed';
+    const badgeText = c.status==='WAITING'?'Chờ':c.status==='ACTIVE'?'Đang HT':'Đã xong';
+    const isSelected = c.id === selectedChatId;
+    return `<div class="chat-list-item ${isSelected?'active':''} px-3 py-3 border-b border-slate-800 flex gap-3 items-start" onclick="selectChat('${c.id}')">
+      <div class="w-9 h-9 rounded-full bg-gradient-to-br from-blue-700 to-purple-700 flex items-center justify-center text-white font-bold text-xs flex-shrink-0">${initials}</div>
+      <div class="flex-1 min-w-0">
+        <div class="flex items-center justify-between gap-1">
+          <span class="text-xs font-semibold text-white truncate">${c.agentName||c.agentCode}</span>
+          <span class="${badgeClass} flex-shrink-0">${badgeText}</span>
+        </div>
+        <p class="text-[11px] text-slate-500 font-mono">${c.agentCode}</p>
+        <p class="text-[11px] text-slate-400 truncate mt-0.5">${snippet}</p>
+      </div>
+      ${unread>0?`<span class="bg-red-500 text-white text-[9px] font-bold min-w-[16px] h-4 rounded-full flex items-center justify-center px-1 mt-1">${unread}</span>`:''}
+    </div>`;
+  }).join('');
+}
+
+function fmtTime(ts) {
+  const d = new Date(ts);
+  const now = new Date();
+  if (d.toDateString()===now.toDateString()) return d.toLocaleTimeString('vi-VN',{hour:'2-digit',minute:'2-digit'});
+  return d.toLocaleDateString('vi-VN',{day:'2-digit',month:'2-digit'})+' '+d.toLocaleTimeString('vi-VN',{hour:'2-digit',minute:'2-digit'});
+}
+
+function fileHTML(m, side) {
+  if (!m.fileUrl) return '';
+  const url = m.fileUrl, name = m.fileName||'file', type = m.fileType||'file';
+  if (type==='image') return `<div><img src="${url}" class="msg-file-img" onclick="window.open('${url}','_blank')" alt="${name}"></div>`;
+  if (type==='video') return `<div><video src="${url}" class="msg-file-vid" controls></video></div>`;
+  return `<a href="${url}" target="_blank" class="msg-file-link"><i class="fa-solid fa-file-arrow-down"></i> ${name}</a>`;
+}
+
+function renderChat() {
+  const chat = allChats.find(c=>c.id===selectedChatId);
+  const panel = document.getElementById('chat-view');
+  const empty = document.getElementById('empty-state');
+  if (!chat) {
+    if(panel) panel.style.display='none';
+    if(empty) empty.style.display='flex';
+    return;
+  }
+  if(panel) panel.style.display='flex';
+  if(empty) empty.style.display='none';
+  const initials = (chat.agentName||'?').slice(0,2).toUpperCase();
+  document.getElementById('chat-hdr-avatar').textContent = initials;
+  document.getElementById('chat-hdr-name').textContent = chat.agentName || chat.agentCode;
+  document.getElementById('chat-hdr-sub').textContent = chat.agentCode + (chat.assignedName ? ' · Phụ trách: ' + chat.assignedName : '');
+  const actions = document.getElementById('chat-hdr-actions');
+  if (chat.status==='WAITING') {
+    actions.innerHTML = `<button class="btn-success" onclick="assignMe()"><i class="fa-solid fa-hand-point-up mr-1"></i>Nhận hỗ trợ</button>`;
+  } else if (chat.status==='ACTIVE') {
+    actions.innerHTML = `<span class="text-xs text-emerald-400 font-semibold"><i class="fa-solid fa-circle text-emerald-400 text-[8px] mr-1"></i>Đang hỗ trợ</span>
+    <button class="btn-danger" onclick="showCloseModal()"><i class="fa-solid fa-xmark mr-1"></i>Đóng trò chuyện</button>`;
+  } else {
+    actions.innerHTML = `<span class="text-xs text-slate-500 font-semibold"><i class="fa-solid fa-lock mr-1"></i>Đã đóng${chat.closedAt?' · '+new Date(chat.closedAt).toLocaleString('vi-VN',{day:'2-digit',month:'2-digit',hour:'2-digit',minute:'2-digit'}):''}</span>`;
+  }
+  const msgArea = document.getElementById('msg-area');
+  const msgs = chat.messages || [];
+  msgArea.innerHTML = msgs.map(m => {
+    const side = m.sender==='agent'?'msg-agent':m.sender==='system'?'msg-system':'msg-staff';
+    return `<div class="msg-bubble ${side}">
+      ${m.sender!=='system'?`<div style="font-size:10px;opacity:.5;margin-bottom:3px">${m.senderName||m.sender}</div>`:''}
+      ${m.text?`<div>${m.text.replace(/</g,'&lt;').replace(/\n/g,'<br>')}</div>`:''}
+      ${fileHTML(m,side)}
+      <div class="msg-time">${fmtTime(m.timestamp)}</div>
+    </div>`;
+  }).join('');
+  setTimeout(()=>{ msgArea.scrollTop = msgArea.scrollHeight; }, 50);
+  const inputArea = document.getElementById('chat-input-area');
+  if(inputArea) inputArea.style.display = chat.status==='ACTIVE'?'flex':'none';
+}
+</script>
+<script>
+function selectChat(id) {
+  selectedChatId = id;
+  renderList();
+  renderChat();
+  markRead(id);
+}
+
+async function markRead(chatId) {
+  try { await fetch('/api/chat/read',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({chatId,readerRole:'staff'})}); } catch(e) {}
+}
+
+async function assignMe() {
+  if (!selectedChatId) return;
+  try {
+    const r = await fetch('/api/chat/assign',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({chatId:selectedChatId,staffId:adminInfo.id,staffName:adminInfo.name})});
+    const d = await r.json();
+    if (d.success) { const idx=allChats.findIndex(c=>c.id===selectedChatId); if(idx>=0) allChats[idx]=d.chat; renderList(); renderChat(); }
+  } catch(e){ console.error(e); }
+}
+
+let pendingCloseId = null;
+function showCloseModal() { pendingCloseId=selectedChatId; const m=document.getElementById('close-modal'); if(m){m.style.display='flex';m.style.removeProperty('display');m.style.cssText='display:flex!important;position:fixed;inset:0;background:rgba(0,0,0,.7);z-index:50;align-items:center;justify-content:center';} }
+function hideCloseModal() { const m=document.getElementById('close-modal'); if(m) m.style.cssText='display:none!important'; pendingCloseId=null; }
+
+async function confirmClose() {
+  if (!pendingCloseId) return;
+  try {
+    const r = await fetch('/api/chat/close',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({chatId:pendingCloseId,closedByName:adminInfo.name})});
+    const d = await r.json();
+    if (d.success) { const idx=allChats.findIndex(c=>c.id===pendingCloseId); if(idx>=0) allChats[idx]=d.chat; hideCloseModal(); renderList(); renderChat(); }
+  } catch(e){ console.error(e); }
+}
+
+async function staffSend() {
+  const chat = allChats.find(c=>c.id===selectedChatId);
+  if (!chat || chat.status!=='ACTIVE') return;
+  const inp = document.getElementById('staff-inp');
+  if (!inp || !inp.value.trim()) return;
+  const text = inp.value.trim(); inp.value='';
+  try {
+    const r = await fetch('/api/chat/send',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({chatId:selectedChatId,sender:'staff',senderName:adminInfo.name,text})});
+    const d = await r.json();
+    if (d.success && d.message) { const chat2=allChats.find(c=>c.id===selectedChatId); if(chat2){if(!chat2.messages)chat2.messages=[];chat2.messages.push(d.message);} renderChat(); renderList(); }
+  } catch(e){ console.error(e); }
+}
+
+async function staffUpload(input) {
+  if (!input.files||!input.files[0]||!selectedChatId) return;
+  const file=input.files[0];
+  const form=new FormData(); form.append('file',file);
+  try {
+    const r=await fetch('/api/upload',{method:'POST',body:form});
+    const d=await r.json();
+    if(!d.success) return;
+    const ext=file.name.split('.').pop().toLowerCase();
+    const imgExts=['jpg','jpeg','png','gif','webp'],vidExts=['mp4','webm','mov'];
+    const fileType=imgExts.includes(ext)?'image':vidExts.includes(ext)?'video':'file';
+    const r2=await fetch('/api/chat/send',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({chatId:selectedChatId,sender:'staff',senderName:adminInfo.name,text:null,fileUrl:d.url,fileName:d.name,fileType})});
+    const d2=await r2.json();
+    if(d2.success&&d2.message){const chat2=allChats.find(c=>c.id===selectedChatId);if(chat2){if(!chat2.messages)chat2.messages=[];chat2.messages.push(d2.message);}renderChat();renderList();}
+  } catch(e){console.error(e);}
+  input.value='';
+}
+
+function handleKey(e) { if(e.key==='Enter'&&!e.shiftKey){e.preventDefault();staffSend();} }
+
+async function poll() {
+  try {
+    const r = await fetch('/api/chat');
+    const d = await r.json();
+    if (!d.success) return;
+    const prevWait = allChats.filter(c=>c.status==='WAITING').length;
+    allChats = d.chats || [];
+    const newWait = allChats.filter(c=>c.status==='WAITING').length;
+    if (newWait > prevWait) { try { new Audio('data:audio/wav;base64,UklGRnoGAABXQVZFZm10IBAAAA').play(); } catch(e){} }
+    renderList();
+    if (selectedChatId) {
+      const updated = allChats.find(c=>c.id===selectedChatId);
+      if (updated) renderChat();
+    }
+  } catch(e) {}
+}
+
+function toggleAdminMobileNav() {}
+
+document.addEventListener('DOMContentLoaded', function() {
+  getAdminInfo();
+  poll();
+  pollTimer = setInterval(poll, 3000);
+});
+</script>
+</body>
+</html>

@@ -1,7 +1,9 @@
-const http = require('http');
+﻿const http = require('http');
 const fs = require('fs');
 const path = require('path');
 const nodemailer = require('nodemailer');
+const UPLOADS_DIR = path.join(__dirname, 'uploads');
+if (!fs.existsSync(UPLOADS_DIR)) fs.mkdirSync(UPLOADS_DIR, { recursive: true });
 // Load local .env if present
 if (fs.existsSync(path.join(__dirname, '.env'))) {
     try {
@@ -338,7 +340,8 @@ const defaultSharedData = {
             emailAlerts: true,
             updatedAt: '2026-09-08 15:30'
         }
-    }
+    },
+    chats: []
 };
 
 let serverData = null;
@@ -588,6 +591,21 @@ function saveServerData() {
     }
 }
 
+// Auto-delete chats that have been CLOSED for more than 7 days
+function cleanupClosedChats(data) {
+    if (!data || !Array.isArray(data.chats)) return false;
+    const SEVEN_DAYS_MS = 7 * 24 * 60 * 60 * 1000;
+    const now = Date.now();
+    const before = data.chats.length;
+    data.chats = data.chats.filter(chat => {
+        if (chat.status !== 'CLOSED') return true;
+        if (!chat.closedAt) return true;
+        const closedMs = new Date(chat.closedAt).getTime();
+        return (now - closedMs) < SEVEN_DAYS_MS;
+    });
+    return data.chats.length !== before;
+}
+
 loadServerData();
 
 // --- Nodemailer & Email Service Helper ---
@@ -735,6 +753,24 @@ function htmlToPlainText(html) {
         .trim();
 }
 
+// --- Helper: read request body safely (handles unexpected EOF / client disconnect) ---
+function readBody(req) {
+    return new Promise((resolve, reject) => {
+        let body = '';
+        req.on('data', chunk => { body += chunk; });
+        req.on('end', () => resolve(body));
+        req.on('error', err => reject(err));
+    });
+}
+
+// --- Global safety net for unhandled promise rejections and uncaught exceptions ---
+process.on('uncaughtException', (err) => {
+    console.error('[Server] Uncaught Exception (stream/connection error, continuing):', err.message);
+});
+process.on('unhandledRejection', (reason) => {
+    console.error('[Server] Unhandled Rejection (continuing):', reason);
+});
+
 const server = http.createServer((req, res) => {
     // Enable CORS for all API calls
     res.setHeader('Access-Control-Allow-Origin', '*');
@@ -758,6 +794,10 @@ const server = http.createServer((req, res) => {
         if (checkAndAutoLockExpiredWonAuctions(serverData)) {
             saveServerData();
         }
+        if (cleanupClosedChats(serverData)) {
+            saveServerData();
+        }
+        if (!Array.isArray(serverData.chats)) serverData.chats = [];
         res.writeHead(200, {
             'Content-Type': 'application/json; charset=UTF-8',
             'Cache-Control': 'no-cache, no-store, must-revalidate'
@@ -770,6 +810,10 @@ const server = http.createServer((req, res) => {
     if (pathname === '/api/data' && req.method === 'POST') {
         let body = '';
         req.on('data', chunk => { body += chunk; });
+        req.on('error', err => {
+            console.error('[api/data] Stream error:', err.message);
+            if (!res.headersSent) { res.writeHead(400, { 'Content-Type': 'application/json' }); res.end(JSON.stringify({ success: false, error: 'Stream error' })); }
+        });
         req.on('end', () => {
             try {
                 const incoming = JSON.parse(body);
@@ -787,10 +831,11 @@ const server = http.createServer((req, res) => {
                 if (incoming.adminsList) serverData.adminsList = incoming.adminsList;
                 if (incoming.settings) {
                     serverData.settings = incoming.settings;
-                    mailTransporter = null; // Clear cached transporter so new SMTP credentials take effect immediately
+                    mailTransporter = null;
                 }
                 if (incoming.bankConfig) serverData.bankConfig = incoming.bankConfig;
                 if (incoming.routeSubscriptions) serverData.routeSubscriptions = incoming.routeSubscriptions;
+                if (incoming.chats) serverData.chats = incoming.chats;
 
                 if (reconcileAuctionSummaries(serverData)) {
                     changed = true;
@@ -799,10 +844,333 @@ const server = http.createServer((req, res) => {
                 serverData.version = Date.now();
                 saveServerData();
 
-                res.writeHead(200, { 'Content-Type': 'application/json; charset=UTF-8' });
-                res.end(JSON.stringify({ success: true, version: serverData.version }), 'utf-8');
+                if (!res.headersSent) {
+                    res.writeHead(200, { 'Content-Type': 'application/json; charset=UTF-8' });
+                    res.end(JSON.stringify({ success: true, version: serverData.version }), 'utf-8');
+                }
             } catch (err) {
-                res.writeHead(400, { 'Content-Type': 'application/json' });
+                if (!res.headersSent) {
+                    res.writeHead(400, { 'Content-Type': 'application/json' });
+                    res.end(JSON.stringify({ success: false, error: err.message }));
+                }
+            }
+        });
+        return;
+    }
+
+    // ============================================================
+    // --- CHAT SUPPORT API ---
+    // ============================================================
+
+    // GET /api/chat  — Lấy danh sách chat (agent xem của mình, admin/staff xem tất cả)
+    if (pathname === '/api/chat' && req.method === 'GET') {
+        if (!Array.isArray(serverData.chats)) serverData.chats = [];
+        if (cleanupClosedChats(serverData)) saveServerData();
+        const agentCode = parsedUrl.searchParams.get('agentCode');
+        const chats = agentCode
+            ? serverData.chats.filter(c => c.agentCode === agentCode)
+            : serverData.chats;
+        res.writeHead(200, { 'Content-Type': 'application/json; charset=UTF-8', 'Cache-Control': 'no-cache' });
+        res.end(JSON.stringify({ success: true, chats }), 'utf-8');
+        return;
+    }
+
+    // POST /api/chat/create  — Đại lý tạo phiên chat mới
+    if (pathname === '/api/chat/create' && req.method === 'POST') {
+        readBody(req).then(body => {
+            try {
+                const { agentCode, agentName, text } = JSON.parse(body);
+                if (!agentCode || !text) {
+                    res.writeHead(400, { 'Content-Type': 'application/json' });
+                    res.end(JSON.stringify({ success: false, error: 'Thiếu agentCode hoặc text' }));
+                    return;
+                }
+                if (!Array.isArray(serverData.chats)) serverData.chats = [];
+                // Kiểm tra đã có phiên OPEN/WAITING/ACTIVE chưa
+                const existing = serverData.chats.find(c => c.agentCode === agentCode && c.status !== 'CLOSED');
+                if (existing) {
+                    res.writeHead(200, { 'Content-Type': 'application/json; charset=UTF-8' });
+                    res.end(JSON.stringify({ success: true, chat: existing }), 'utf-8');
+                    return;
+                }
+                const now = Date.now();
+                const chatId = 'CHAT-' + now;
+                const newChat = {
+                    id: chatId,
+                    agentCode,
+                    agentName: agentName || agentCode,
+                    status: 'WAITING',
+                    createdAt: new Date(now).toISOString(),
+                    closedAt: null,
+                    assignedTo: null,
+                    assignedName: null,
+                    messages: [
+                        {
+                            id: 'MSG-' + now + '-0',
+                            sender: 'agent',
+                            senderName: agentName || agentCode,
+                            text,
+                            fileUrl: null,
+                            fileName: null,
+                            fileType: null,
+                            timestamp: now,
+                            read: false
+                        },
+                        {
+                            id: 'MSG-' + now + '-sys',
+                            sender: 'system',
+                            senderName: 'Hệ thống',
+                            text: 'Yêu cầu hỗ trợ đã được gửi. Nhân viên sẽ phản hồi sớm nhất có thể. Vui lòng chờ trong giây lát...',
+                            fileUrl: null,
+                            fileName: null,
+                            fileType: null,
+                            timestamp: now + 1,
+                            read: false
+                        }
+                    ]
+                };
+                serverData.chats.push(newChat);
+                serverData.version = Date.now();
+                saveServerData();
+                res.writeHead(200, { 'Content-Type': 'application/json; charset=UTF-8' });
+                res.end(JSON.stringify({ success: true, chat: newChat }), 'utf-8');
+            } catch (err) {
+                if (!res.headersSent) { res.writeHead(400, { 'Content-Type': 'application/json' }); res.end(JSON.stringify({ success: false, error: err.message })); }
+            }
+        }).catch(err => {
+            console.error('[chat/create] Stream error:', err.message);
+            if (!res.headersSent) { res.writeHead(400, { 'Content-Type': 'application/json' }); res.end(JSON.stringify({ success: false, error: 'Stream error' })); }
+        });
+        return;
+    }
+
+    // POST /api/chat/send  — Gửi tin nhắn (text hoặc file)
+    if (pathname === '/api/chat/send' && req.method === 'POST') {
+        let body = '';
+        req.on('data', chunk => { body += chunk; });
+        req.on('error', err => { console.error('[chat/send] Stream error:', err.message); if (!res.headersSent) { res.writeHead(400, {'Content-Type':'application/json'}); res.end(JSON.stringify({success:false,error:'Stream error'})); } });
+        req.on('end', () => {
+            try {
+                const { chatId, sender, senderName, text, fileUrl, fileName, fileType } = JSON.parse(body);
+                if (!chatId || !sender || (!text && !fileUrl)) {
+                    res.writeHead(400, { 'Content-Type': 'application/json' });
+                    res.end(JSON.stringify({ success: false, error: 'Thiếu chatId, sender hoặc nội dung tin nhắn' }));
+                    return;
+                }
+                if (!Array.isArray(serverData.chats)) serverData.chats = [];
+                const chat = serverData.chats.find(c => c.id === chatId);
+                if (!chat) {
+                    res.writeHead(404, { 'Content-Type': 'application/json' });
+                    res.end(JSON.stringify({ success: false, error: 'Không tìm thấy phiên chat' }));
+                    return;
+                }
+                if (chat.status === 'CLOSED') {
+                    res.writeHead(400, { 'Content-Type': 'application/json' });
+                    res.end(JSON.stringify({ success: false, error: 'Phiên chat đã đóng' }));
+                    return;
+                }
+                const now = Date.now();
+                const msg = {
+                    id: 'MSG-' + now + '-' + Math.floor(Math.random() * 9999),
+                    sender,
+                    senderName: senderName || sender,
+                    text: text || null,
+                    fileUrl: fileUrl || null,
+                    fileName: fileName || null,
+                    fileType: fileType || null,
+                    timestamp: now,
+                    read: false
+                };
+                if (!Array.isArray(chat.messages)) chat.messages = [];
+                chat.messages.push(msg);
+                serverData.version = Date.now();
+                saveServerData();
+                res.writeHead(200, { 'Content-Type': 'application/json; charset=UTF-8' });
+                res.end(JSON.stringify({ success: true, message: msg }), 'utf-8');
+            } catch (err) {
+                if (!res.headersSent) { res.writeHead(400, { 'Content-Type': 'application/json' }); res.end(JSON.stringify({ success: false, error: err.message })); }
+            }
+        });
+        return;
+    }
+
+    // POST /api/chat/assign  — Admin/Staff nhận phiên để hỗ trợ
+    if (pathname === '/api/chat/assign' && req.method === 'POST') {
+        let body = '';
+        req.on('data', chunk => { body += chunk; });
+        req.on('error', err => { console.error('[assign] Stream error:', err.message); if (!res.headersSent) { res.writeHead(400,{'Content-Type':'application/json'}); res.end(JSON.stringify({success:false,error:'Stream error'})); } });
+        req.on('error', err => { console.error('[chat/assign] Stream error:', err.message); if (!res.headersSent) { res.writeHead(400,{'Content-Type':'application/json'}); res.end(JSON.stringify({success:false,error:'Stream error'})); } });
+        req.on('end', () => {
+            try {
+                const { chatId, staffId, staffName } = JSON.parse(body);
+                if (!chatId || !staffId) {
+                    res.writeHead(400, { 'Content-Type': 'application/json' });
+                    res.end(JSON.stringify({ success: false, error: 'Thiếu chatId hoặc staffId' }));
+                    return;
+                }
+                if (!Array.isArray(serverData.chats)) serverData.chats = [];
+                const chat = serverData.chats.find(c => c.id === chatId);
+                if (!chat) {
+                    res.writeHead(404, { 'Content-Type': 'application/json' });
+                    res.end(JSON.stringify({ success: false, error: 'Không tìm thấy phiên chat' }));
+                    return;
+                }
+                chat.status = 'ACTIVE';
+                chat.assignedTo = staffId;
+                chat.assignedName = staffName || staffId;
+                const now = Date.now();
+                if (!Array.isArray(chat.messages)) chat.messages = [];
+                chat.messages.push({
+                    id: 'MSG-' + now + '-assign',
+                    sender: 'system',
+                    senderName: 'Hệ thống',
+                    text: `${staffName || staffId} đã tham gia cuộc trò chuyện và sẵn sàng hỗ trợ bạn.`,
+                    fileUrl: null, fileName: null, fileType: null,
+                    timestamp: now, read: false
+                });
+                serverData.version = Date.now();
+                saveServerData();
+                res.writeHead(200, { 'Content-Type': 'application/json; charset=UTF-8' });
+                res.end(JSON.stringify({ success: true, chat }), 'utf-8');
+            } catch (err) {
+                if (!res.headersSent) { res.writeHead(400, { 'Content-Type': 'application/json' }); res.end(JSON.stringify({ success: false, error: err.message })); }
+            }
+        });
+        return;
+    }
+
+    // POST /api/chat/close  — Admin/Staff đóng phiên chat
+    if (pathname === '/api/chat/close' && req.method === 'POST') {
+        let body = '';
+        req.on('data', chunk => { body += chunk; });
+        req.on('error', err => { console.error('[close] Stream error:', err.message); if (!res.headersSent) { res.writeHead(400,{'Content-Type':'application/json'}); res.end(JSON.stringify({success:false,error:'Stream error'})); } });
+        req.on('error', err => { console.error('[chat/close] Stream error:', err.message); if (!res.headersSent) { res.writeHead(400,{'Content-Type':'application/json'}); res.end(JSON.stringify({success:false,error:'Stream error'})); } });
+        req.on('end', () => {
+            try {
+                const { chatId, closedByName } = JSON.parse(body);
+                if (!chatId) {
+                    res.writeHead(400, { 'Content-Type': 'application/json' });
+                    res.end(JSON.stringify({ success: false, error: 'Thiếu chatId' }));
+                    return;
+                }
+                if (!Array.isArray(serverData.chats)) serverData.chats = [];
+                const chat = serverData.chats.find(c => c.id === chatId);
+                if (!chat) {
+                    res.writeHead(404, { 'Content-Type': 'application/json' });
+                    res.end(JSON.stringify({ success: false, error: 'Không tìm thấy phiên chat' }));
+                    return;
+                }
+                const now = Date.now();
+                chat.status = 'CLOSED';
+                chat.closedAt = new Date(now).toISOString();
+                if (!Array.isArray(chat.messages)) chat.messages = [];
+                chat.messages.push({
+                    id: 'MSG-' + now + '-close',
+                    sender: 'system',
+                    senderName: 'Hệ thống',
+                    text: `Cuộc trò chuyện đã được ${closedByName || 'nhân viên hỗ trợ'} kết thúc. Cảm ơn bạn đã liên hệ!`,
+                    fileUrl: null, fileName: null, fileType: null,
+                    timestamp: now, read: false
+                });
+                serverData.version = Date.now();
+                saveServerData();
+                res.writeHead(200, { 'Content-Type': 'application/json; charset=UTF-8' });
+                res.end(JSON.stringify({ success: true, chat }), 'utf-8');
+            } catch (err) {
+                if (!res.headersSent) { res.writeHead(400, { 'Content-Type': 'application/json' }); res.end(JSON.stringify({ success: false, error: err.message })); }
+            }
+        });
+        return;
+    }
+
+    // POST /api/chat/read  — Đánh dấu tin nhắn đã đọc
+    if (pathname === '/api/chat/read' && req.method === 'POST') {
+        let body = '';
+        req.on('data', chunk => { body += chunk; });
+        req.on('error', err => { console.error('[read] Stream error:', err.message); if (!res.headersSent) { res.writeHead(400,{'Content-Type':'application/json'}); res.end(JSON.stringify({success:false,error:'Stream error'})); } });
+        req.on('error', err => { console.error('[chat/read] Stream error:', err.message); if (!res.headersSent) { res.writeHead(400,{'Content-Type':'application/json'}); res.end(JSON.stringify({success:false,error:'Stream error'})); } });
+        req.on('end', () => {
+            try {
+                const { chatId, readerRole } = JSON.parse(body); // readerRole: 'agent' | 'staff'
+                if (!chatId) {
+                    res.writeHead(400, { 'Content-Type': 'application/json' });
+                    res.end(JSON.stringify({ success: false, error: 'Thiếu chatId' }));
+                    return;
+                }
+                if (!Array.isArray(serverData.chats)) serverData.chats = [];
+                const chat = serverData.chats.find(c => c.id === chatId);
+                if (chat && Array.isArray(chat.messages)) {
+                    const otherRole = readerRole === 'agent' ? ['admin', 'staff'] : ['agent'];
+                    chat.messages.forEach(m => {
+                        if (otherRole.includes(m.sender)) m.read = true;
+                    });
+                    serverData.version = Date.now();
+                    saveServerData();
+                }
+                res.writeHead(200, { 'Content-Type': 'application/json; charset=UTF-8' });
+                res.end(JSON.stringify({ success: true }), 'utf-8');
+            } catch (err) {
+                if (!res.headersSent) { res.writeHead(400, { 'Content-Type': 'application/json' }); res.end(JSON.stringify({ success: false, error: err.message })); }
+            }
+        });
+        return;
+    }
+
+    // --- REST API: POST /api/upload (file/image/video for chat) ---
+    if (pathname === '/api/upload' && req.method === 'POST') {
+        let chunks = [];
+        req.on('data', chunk => chunks.push(chunk));
+        req.on('error', err => {
+            console.error('[api/upload] Stream error:', err.message);
+            if (!res.headersSent) { res.writeHead(400, { 'Content-Type': 'application/json' }); res.end(JSON.stringify({ success: false, error: 'Stream error' })); }
+        });
+        req.on('end', () => {
+            try {
+                const buf = Buffer.concat(chunks);
+                const boundary = (req.headers['content-type'] || '').split('boundary=')[1];
+                if (!boundary) throw new Error('No boundary found');
+
+                // Simple multipart parser
+                const boundaryBuf = Buffer.from('--' + boundary);
+                const parts = [];
+                let start = 0;
+                while (start < buf.length) {
+                    const idx = buf.indexOf(boundaryBuf, start);
+                    if (idx === -1) break;
+                    const end = buf.indexOf(boundaryBuf, idx + boundaryBuf.length);
+                    if (end === -1) break;
+                    const part = buf.slice(idx + boundaryBuf.length + 2, end - 2);
+                    parts.push(part);
+                    start = end;
+                }
+
+                let savedFile = null;
+                for (const part of parts) {
+                    const headerEnd = part.indexOf(Buffer.from('\r\n\r\n'));
+                    if (headerEnd === -1) continue;
+                    const headerStr = part.slice(0, headerEnd).toString();
+                    const fileData = part.slice(headerEnd + 4);
+                    const nameMatch = headerStr.match(/name="([^"]+)"/);
+                    const filenameMatch = headerStr.match(/filename="([^"]+)"/);
+                    if (nameMatch && nameMatch[1] === 'file' && filenameMatch) {
+                        const origName = filenameMatch[1].replace(/[^a-zA-Z0-9._-]/g, '_');
+                        const uniqueName = Date.now() + '_' + origName;
+                        const filePath = path.join(UPLOADS_DIR, uniqueName);
+                        fs.writeFileSync(filePath, fileData);
+                        savedFile = { url: '/uploads/' + uniqueName, name: origName };
+                    }
+                }
+
+                if (savedFile) {
+                    res.writeHead(200, { 'Content-Type': 'application/json; charset=UTF-8' });
+                    res.end(JSON.stringify({ success: true, url: savedFile.url, name: savedFile.name }));
+                } else {
+                    res.writeHead(400, { 'Content-Type': 'application/json' });
+                    res.end(JSON.stringify({ success: false, error: 'No file found in request' }));
+                }
+            } catch (err) {
+                console.error('[Upload] Error:', err);
+                res.writeHead(500, { 'Content-Type': 'application/json' });
                 res.end(JSON.stringify({ success: false, error: err.message }));
             }
         });
@@ -1212,6 +1580,22 @@ const server = http.createServer((req, res) => {
         return;
     }
 
+    // --- Static File Serving: /uploads/ ---
+    if (pathname.startsWith('/uploads/')) {
+        const uploadFile = path.join(UPLOADS_DIR, pathname.replace('/uploads/', ''));
+        fs.readFile(uploadFile, (err, content) => {
+            if (err) {
+                res.writeHead(404); res.end('Not Found');
+            } else {
+                const ext2 = path.extname(uploadFile).toLowerCase();
+                const mimeMap = { '.jpg': 'image/jpeg', '.jpeg': 'image/jpeg', '.png': 'image/png', '.gif': 'image/gif', '.webp': 'image/webp', '.mp4': 'video/mp4', '.webm': 'video/webm', '.pdf': 'application/pdf' };
+                res.writeHead(200, { 'Content-Type': mimeMap[ext2] || 'application/octet-stream' });
+                res.end(content);
+            }
+        });
+        return;
+    }
+
     // --- Static File Serving ---
     if (pathname === '/') pathname = '/00-Home.html';
 
@@ -1252,3 +1636,5 @@ server.on('error', (err) => {
 server.listen(PORT, () => {
     console.log(`Vietravel Airlines Bidding Cargo app running at http://localhost:${PORT}/`);
 });
+
+

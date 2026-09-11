@@ -71,6 +71,8 @@
                     <a href="08-Settings.html" class="px-3 py-1.5 rounded-lg text-slate-300 hover:text-white hover:bg-slate-800 transition flex items-center gap-1.5">
                         <i class="fa-solid fa-sliders"></i> Cài đặt
                     </a>
+                    <a href="09-AdminChat.html" class="px-3 py-1.5 rounded-lg bg-purple-600/20 text-purple-300 hover:text-white hover:bg-purple-700 transition flex items-center gap-1.5 font-semibold"><i class="fa-solid fa-headset mr-1"></i>Chat Hỗ trợ<span id="admin-chat-badge" class="hidden bg-red-500 text-white text-[9px] font-bold px-1.5 py-0.5 rounded-full ml-1.5">0</span></a>
+                    
                 </nav>
             </div>
             <div class="flex items-center gap-2">
@@ -104,6 +106,7 @@
             <a href="08-Settings.html" class="flex items-center gap-2 px-3 py-2 rounded-lg text-slate-300 hover:text-white hover:bg-slate-800 transition">
                 <i class="fa-solid fa-sliders w-4"></i> Cài đặt hệ thống
             </a>
+                    
             <a href="../00-Home.html" target="_blank" class="flex items-center gap-2 px-3 py-2 rounded-lg text-blue-400 hover:text-blue-300 hover:bg-slate-800 transition border-t border-slate-850 pt-2.5 mt-1">
                 <i class="fa-solid fa-external-link w-4"></i> Xem Sàn công khai
             </a>
@@ -1313,7 +1316,7 @@
                                 </div>
                                 ${paperEl.outerHTML}
                             </div>
-                        </body>
+                            </body>
                         </html>
                     `);
                     w.document.close();
@@ -1413,5 +1416,19 @@
         });
         window.addEventListener('cargostore_updated', renderAgentsList);
     </script>
+<script>
+(function(){
+  function updateChatBadge(){
+    fetch("/api/chat").then(r=>r.json()).then(d=>{
+      if(!d.success) return;
+      var w=(d.chats||[]).filter(function(c){return c.status==="WAITING";}).length;
+      var b=document.getElementById("admin-chat-badge");
+      if(b){b.textContent=w;b.classList.toggle("hidden",w===0);}
+    }).catch(function(){});
+  }
+  document.addEventListener("DOMContentLoaded",function(){updateChatBadge();setInterval(updateChatBadge,8000);});
+})();
+</script>
 </body>
 </html>
+

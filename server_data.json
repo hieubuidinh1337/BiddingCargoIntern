@@ -1,5 +1,5 @@
 {
-  "version": 1789108212621,
+  "version": 1789113709714,
   "auctions": [
     {
       "id": 4,
@@ -15,12 +15,12 @@
       "aircraft": "Airbus A321-200",
       "capacityKg": 3000,
       "startingPriceKg": 18000,
-      "currentPriceKg": 22000,
+      "currentPriceKg": 18000,
       "minStep": 500,
       "endTime": "2026-09-10T13:51:22.200Z",
       "status": "CLOSED",
-      "leadingAgentCode": "AG-0892",
-      "leadingAgentName": "ABC Logistics",
+      "leadingAgentCode": null,
+      "leadingAgentName": null,
       "bidsCount": 0,
       "winnerAgentCode": "AG-0892",
       "winnerAgentName": "ABC Logistics",
@@ -43,12 +43,12 @@
       "aircraft": "Airbus A321neo Cargo",
       "capacityKg": 4000,
       "startingPriceKg": 22000,
-      "currentPriceKg": 25000,
+      "currentPriceKg": 22000,
       "minStep": 1000,
       "endTime": "2026-09-11T12:15:00.000Z",
       "status": "OPEN",
-      "leadingAgentCode": "AG-0556",
-      "leadingAgentName": "Golden Star",
+      "leadingAgentCode": null,
+      "leadingAgentName": null,
       "bidsCount": 0,
       "specialNotes": "Hàng hải sản đông lạnh tươi sống đóng thùng xốp tiêu chuẩn IATA.",
       "cutOffTime": "21:15 · 11/09/2026",
@@ -68,12 +68,12 @@
       "aircraft": "Airbus A320-200",
       "capacityKg": 2000,
       "startingPriceKg": 12000,
-      "currentPriceKg": 14500,
+      "currentPriceKg": 12000,
       "minStep": 500,
       "endTime": "2026-09-11T15:15:00.000Z",
       "status": "OPEN",
-      "leadingAgentCode": "AG-1024",
-      "leadingAgentName": "Vinatrans",
+      "leadingAgentCode": null,
+      "leadingAgentName": null,
       "bidsCount": 0,
       "specialNotes": "Ưu tiên bưu kiện bưu phẩm thương mại điện tử chuyển phát nhanh.",
       "cutOffTime": "00:15 · 12/09/2026",
@@ -244,7 +244,9 @@
       "awbNumber": "998-12345678",
       "cutOffTime": "07:00 · 08/09/2026",
       "warehouse": "Kho hàng TCS Tân Sơn Nhất (Cửa số 4)",
-      "cargoDeclaration": null
+      "cargoDeclaration": null,
+      "lockPenaltyHandled": true,
+      "lockWaivedByAdmin": true
     },
     {
       "wonId": "WON-2026-0815-02",
@@ -262,7 +264,9 @@
       "awbNumber": "998-22409811",
       "cutOffTime": "13:00 · 09/09/2026",
       "warehouse": "Kho hàng TCS Tân Sơn Nhất (Cửa số 2)",
-      "cargoDeclaration": null
+      "cargoDeclaration": null,
+      "lockPenaltyHandled": true,
+      "lockWaivedByAdmin": true
     },
     {
       "wonId": "WON-2026-0815-03",
@@ -280,7 +284,9 @@
       "awbNumber": "998-13098722",
       "cutOffTime": "11:30 · 09/09/2026",
       "warehouse": "Kho hàng SCSC Tân Sơn Nhất",
-      "cargoDeclaration": null
+      "cargoDeclaration": null,
+      "lockPenaltyHandled": true,
+      "lockWaivedByAdmin": true
     },
     {
       "wonId": "WON-2026-0815-04",
@@ -319,7 +325,9 @@
       "awbNumber": "998-22688192",
       "cutOffTime": "18:00 · 09/09/2026",
       "warehouse": "Kho hàng TCS Tân Sơn Nhất (Cửa số 3)",
-      "cargoDeclaration": null
+      "cargoDeclaration": null,
+      "lockPenaltyHandled": true,
+      "lockWaivedByAdmin": true
     },
     {
       "wonId": "WON-20260908-06",
@@ -338,7 +346,8 @@
       "cutOffTime": "Trước ETD 3 giờ",
       "warehouse": "Kho hàng SCSC / TCS Tân Sơn Nhất (Cửa số 4)",
       "cargoDeclaration": null,
-      "lockPenaltyHandled": true
+      "lockPenaltyHandled": true,
+      "lockWaivedByAdmin": true
     },
     {
       "wonId": "WON-20260909-07",
@@ -358,10 +367,66 @@
       "cutOffTime": "09:10 · 09/09/2026",
       "warehouse": "Kho hàng SCSC / TCS Tân Sơn Nhất (Cửa số 4)",
       "cargoDeclaration": null,
-      "lockPenaltyHandled": true
+      "lockPenaltyHandled": true,
+      "lockWaivedByAdmin": true
     }
   ],
   "notifications": [
+    {
+      "id": 1789108772320,
+      "timestamp": 1789108771572,
+      "targetAgentCode": "AG-0892",
+      "title": "🔓 TÀI KHOẢN ĐÃ ĐƯỢC MỞ KHÓA KÍCH HOẠT",
+      "message": "Tài khoản đại lý AG-0892 (Công ty TNHH Vận tải ABC Logistics) của bạn đã được Quản trị viên MỞ KHÓA. Lý do mở khóa: \"Đại lý đã nộp bổ sung tiền thanh toán sau quá hạn & được Ban Điều hành chấp thuận mở khóa\". Quyền tham gia đấu giá trên sàn đã được khôi phục.",
+      "time": "Vừa xong",
+      "type": "SYSTEM",
+      "read": false,
+      "link": "03-Index.html"
+    },
+    {
+      "id": 1789108770284,
+      "timestamp": 1789108770284,
+      "targetAgentCode": "AG-1024",
+      "title": "⏰ CẢNH BÁO THANH TOÁN: Đơn WON-2026-0815-02 (VU224)",
+      "message": "Quý đại lý vui lòng hoàn tất chuyển khoản cho đơn hàng WON-2026-0815-02 trước 13:00:00 9/9/2026. LƯU Ý: Nếu không thanh toán đúng hạn, hệ thống sẽ TỰ ĐỘNG KHÓA TÀI KHOẢN ĐẠI LÝ và hủy quyền đấu giá.",
+      "time": "Vừa xong",
+      "type": "PAYMENT_REMINDER",
+      "read": true,
+      "link": "07-WonAuction.html"
+    },
+    {
+      "id": 1789108769905,
+      "timestamp": 1789108769422,
+      "targetAgentCode": "AG-1024",
+      "title": "🔓 TÀI KHOẢN ĐÃ ĐƯỢC MỞ KHÓA KÍCH HOẠT",
+      "message": "Tài khoản đại lý AG-1024 (Công ty CP Giao nhận Kho vận Vinatrans) của bạn đã được Quản trị viên MỞ KHÓA. Lý do mở khóa: \"Đại lý đã nộp bổ sung tiền thanh toán sau quá hạn & được Ban Điều hành chấp thuận mở khóa\". Quyền tham gia đấu giá trên sàn đã được khôi phục.",
+      "time": "Vừa xong",
+      "type": "SYSTEM",
+      "read": true,
+      "link": "03-Index.html"
+    },
+    {
+      "id": 1789108766995,
+      "timestamp": 1789108766995,
+      "targetAgentCode": "AG-0556",
+      "title": "⏰ CẢNH BÁO THANH TOÁN: Đơn WON-20260909-07 (VU450)",
+      "message": "Quý đại lý vui lòng hoàn tất chuyển khoản cho đơn hàng WON-20260909-07 trước 09:10:00 9/9/2026. LƯU Ý: Nếu không thanh toán đúng hạn, hệ thống sẽ TỰ ĐỘNG KHÓA TÀI KHOẢN ĐẠI LÝ và hủy quyền đấu giá.",
+      "time": "Vừa xong",
+      "type": "PAYMENT_REMINDER",
+      "read": false,
+      "link": "07-WonAuction.html"
+    },
+    {
+      "id": 1789108767315,
+      "timestamp": 1789108766361,
+      "targetAgentCode": "AG-0556",
+      "title": "🔓 TÀI KHOẢN ĐÃ ĐƯỢC MỞ KHÓA KÍCH HOẠT",
+      "message": "Tài khoản đại lý AG-0556 (Công ty TNHH Tiếp vận Toàn Cầu Golden Star) của bạn đã được Quản trị viên MỞ KHÓA. Lý do mở khóa: \"Đại lý đã nộp bổ sung tiền thanh toán sau quá hạn & được Ban Điều hành chấp thuận mở khóa\". Quyền tham gia đấu giá trên sàn đã được khôi phục.",
+      "time": "Vừa xong",
+      "type": "SYSTEM",
+      "read": false,
+      "link": "03-Index.html"
+    },
     {
       "id": 4,
       "timestamp": 1789104947500,
@@ -477,15 +542,16 @@
       "address": "123 Nguyễn Huệ, Quận 1, TP. Hồ Chí Minh",
       "province": "TP. Hồ Chí Minh",
       "tier": "TIER1",
-      "status": "Đã khóa",
+      "status": "Đang hoạt động",
       "joinedDate": "15/03/2024",
       "totalBids": 24,
       "totalWins": 8,
       "winRate": "33%",
       "totalSpentUSD": "12.4k",
       "totalSpentVND": 1600000000,
-      "lockedReason": "Hệ thống tự động khóa do quá hạn thanh toán đơn WON-2026-0814-01 (VU132 - SGN - HAN)",
-      "lockedAt": "13:20:43 11/9/2026"
+      "unlockedAt": "13:39:31 11/9/2026",
+      "unlockedBy": "admin",
+      "unlockedReason": "Đại lý đã nộp bổ sung tiền thanh toán sau quá hạn & được Ban Điều hành chấp thuận mở khóa"
     },
     {
       "id": 2,
@@ -500,15 +566,16 @@
       "address": "406 Nguyễn Tất Thành, Quận 4, TP. Hồ Chí Minh",
       "province": "TP. Hồ Chí Minh",
       "tier": "TIER1",
-      "status": "Đã khóa",
+      "status": "Đang hoạt động",
       "joinedDate": "10/01/2024",
       "totalBids": 45,
       "totalWins": 16,
       "winRate": "36%",
       "totalSpentUSD": "28.2k",
       "totalSpentVND": 3640000000,
-      "lockedReason": "Hệ thống tự động khóa do quá hạn thanh toán đơn WON-2026-0815-02 (VU224 - SGN - DAD)",
-      "lockedAt": "13:00:00 9/9/2026"
+      "unlockedAt": "13:39:29 11/9/2026",
+      "unlockedBy": "admin",
+      "unlockedReason": "Đại lý đã nộp bổ sung tiền thanh toán sau quá hạn & được Ban Điều hành chấp thuận mở khóa"
     },
     {
       "id": 3,
@@ -523,15 +590,16 @@
       "address": "88 Láng Hạ, Đống Đa, Hà Nội",
       "province": "Hà Nội",
       "tier": "TIER1",
-      "status": "Đã khóa",
+      "status": "Đang hoạt động",
       "joinedDate": "22/05/2024",
       "totalBids": 18,
       "totalWins": 5,
       "winRate": "28%",
       "totalSpentUSD": "8.0k",
       "totalSpentVND": 1030000000,
-      "lockedReason": "Hệ thống tự động khóa do quá hạn thanh toán đơn WON-20260909-07 (VU450 - SGN - PQC)",
-      "lockedAt": "09:10:00 9/9/2026"
+      "unlockedAt": "13:39:26 11/9/2026",
+      "unlockedBy": "admin",
+      "unlockedReason": "Đại lý đã nộp bổ sung tiền thanh toán sau quá hạn & được Ban Điều hành chấp thuận mở khóa"
     },
     {
       "id": 4,
@@ -603,6 +671,421 @@
       "fullName": "Lê Thị Bích Vân",
       "email": "staff02@airline.vn",
       "department": "Agent Audit & Approval"
+    }
+  ],
+  "chats": [
+    {
+      "id": "CHAT-1789112479278",
+      "agentCode": "AG-1024",
+      "agentName": "Công ty CP Giao nhận Kho vận Vinatrans",
+      "status": "CLOSED",
+      "createdAt": "2026-09-11T07:41:19.278Z",
+      "closedAt": "2026-09-11T07:44:41.156Z",
+      "assignedTo": "admin",
+      "assignedName": "Admin Test",
+      "messages": [
+        {
+          "id": "MSG-1789112479278-0",
+          "sender": "agent",
+          "senderName": "Công ty CP Giao nhận Kho vận Vinatrans",
+          "text": "Tôi cần hỗ trợ về thanh toán",
+          "fileUrl": null,
+          "fileName": null,
+          "fileType": null,
+          "timestamp": 1789112479278,
+          "read": true
+        },
+        {
+          "id": "MSG-1789112479278-sys",
+          "sender": "system",
+          "senderName": "Hệ thống",
+          "text": "Yêu cầu hỗ trợ đã được gửi. Nhân viên sẽ phản hồi sớm nhất có thể. Vui lòng chờ trong giây lát...",
+          "fileUrl": null,
+          "fileName": null,
+          "fileType": null,
+          "timestamp": 1789112479279,
+          "read": false
+        },
+        {
+          "id": "MSG-1789112681131-9448",
+          "sender": "staff",
+          "senderName": "Admin Test",
+          "text": "Xin ch�o, t�i c� th? gi�p g�?",
+          "fileUrl": null,
+          "fileName": null,
+          "fileType": null,
+          "timestamp": 1789112681131,
+          "read": true
+        },
+        {
+          "id": "MSG-1789112681147-assign",
+          "sender": "system",
+          "senderName": "Hệ thống",
+          "text": "Admin Test đã tham gia cuộc trò chuyện và sẵn sàng hỗ trợ bạn.",
+          "fileUrl": null,
+          "fileName": null,
+          "fileType": null,
+          "timestamp": 1789112681147,
+          "read": false
+        },
+        {
+          "id": "MSG-1789112681156-close",
+          "sender": "system",
+          "senderName": "Hệ thống",
+          "text": "Cuộc trò chuyện đã được Admin Test kết thúc. Cảm ơn bạn đã liên hệ!",
+          "fileUrl": null,
+          "fileName": null,
+          "fileType": null,
+          "timestamp": 1789112681156,
+          "read": false
+        }
+      ]
+    },
+    {
+      "id": "CHAT-1789112659850",
+      "agentCode": "AG-TEST",
+      "agentName": "Test Agent",
+      "status": "ACTIVE",
+      "createdAt": "2026-09-11T07:44:19.850Z",
+      "closedAt": null,
+      "assignedTo": "admin",
+      "assignedName": "Admin",
+      "messages": [
+        {
+          "id": "MSG-1789112659850-0",
+          "sender": "agent",
+          "senderName": "Test Agent",
+          "text": "Hello test",
+          "fileUrl": null,
+          "fileName": null,
+          "fileType": null,
+          "timestamp": 1789112659850,
+          "read": true
+        },
+        {
+          "id": "MSG-1789112659850-sys",
+          "sender": "system",
+          "senderName": "Hệ thống",
+          "text": "Yêu cầu hỗ trợ đã được gửi. Nhân viên sẽ phản hồi sớm nhất có thể. Vui lòng chờ trong giây lát...",
+          "fileUrl": null,
+          "fileName": null,
+          "fileType": null,
+          "timestamp": 1789112659851,
+          "read": false
+        },
+        {
+          "id": "MSG-1789112708520-assign",
+          "sender": "system",
+          "senderName": "Hệ thống",
+          "text": "Admin đã tham gia cuộc trò chuyện và sẵn sàng hỗ trợ bạn.",
+          "fileUrl": null,
+          "fileName": null,
+          "fileType": null,
+          "timestamp": 1789112708520,
+          "read": false
+        },
+        {
+          "id": "MSG-1789112722920-4718",
+          "sender": "staff",
+          "senderName": "Admin",
+          "text": "dư",
+          "fileUrl": null,
+          "fileName": null,
+          "fileType": null,
+          "timestamp": 1789112722920,
+          "read": false
+        }
+      ]
+    },
+    {
+      "id": "CHAT-1789112717062",
+      "agentCode": "AG-1024",
+      "agentName": "Công ty CP Giao nhận Kho vận Vinatrans",
+      "status": "CLOSED",
+      "createdAt": "2026-09-11T07:45:17.062Z",
+      "closedAt": "2026-09-11T07:45:50.625Z",
+      "assignedTo": "admin",
+      "assignedName": "Admin",
+      "messages": [
+        {
+          "id": "MSG-1789112717062-0",
+          "sender": "agent",
+          "senderName": "Công ty CP Giao nhận Kho vận Vinatrans",
+          "text": "Tôi cần hỗ trợ về thanh toán",
+          "fileUrl": null,
+          "fileName": null,
+          "fileType": null,
+          "timestamp": 1789112717062,
+          "read": true
+        },
+        {
+          "id": "MSG-1789112717062-sys",
+          "sender": "system",
+          "senderName": "Hệ thống",
+          "text": "Yêu cầu hỗ trợ đã được gửi. Nhân viên sẽ phản hồi sớm nhất có thể. Vui lòng chờ trong giây lát...",
+          "fileUrl": null,
+          "fileName": null,
+          "fileType": null,
+          "timestamp": 1789112717063,
+          "read": false
+        },
+        {
+          "id": "MSG-1789112725958-assign",
+          "sender": "system",
+          "senderName": "Hệ thống",
+          "text": "Admin đã tham gia cuộc trò chuyện và sẵn sàng hỗ trợ bạn.",
+          "fileUrl": null,
+          "fileName": null,
+          "fileType": null,
+          "timestamp": 1789112725958,
+          "read": false
+        },
+        {
+          "id": "MSG-1789112732766-926",
+          "sender": "agent",
+          "senderName": "Công ty CP Giao nhận Kho vận Vinatrans",
+          "text": "alo",
+          "fileUrl": null,
+          "fileName": null,
+          "fileType": null,
+          "timestamp": 1789112732766,
+          "read": true
+        },
+        {
+          "id": "MSG-1789112737948-1750",
+          "sender": "staff",
+          "senderName": "Admin",
+          "text": "abcdeffh",
+          "fileUrl": null,
+          "fileName": null,
+          "fileType": null,
+          "timestamp": 1789112737948,
+          "read": true
+        },
+        {
+          "id": "MSG-1789112750625-close",
+          "sender": "system",
+          "senderName": "Hệ thống",
+          "text": "Cuộc trò chuyện đã được Admin kết thúc. Cảm ơn bạn đã liên hệ!",
+          "fileUrl": null,
+          "fileName": null,
+          "fileType": null,
+          "timestamp": 1789112750625,
+          "read": false
+        }
+      ]
+    },
+    {
+      "id": "CHAT-1789113612651",
+      "agentCode": "AG-0556",
+      "agentName": "Công ty TNHH Tiếp vận Toàn Cầu Golden Star",
+      "status": "CLOSED",
+      "createdAt": "2026-09-11T08:00:12.651Z",
+      "closedAt": "2026-09-11T08:01:18.045Z",
+      "assignedTo": "admin",
+      "assignedName": "Admin",
+      "messages": [
+        {
+          "id": "MSG-1789113612651-0",
+          "sender": "agent",
+          "senderName": "Công ty TNHH Tiếp vận Toàn Cầu Golden Star",
+          "text": "Cần hỗ trợ khẩn cấp",
+          "fileUrl": null,
+          "fileName": null,
+          "fileType": null,
+          "timestamp": 1789113612651,
+          "read": true
+        },
+        {
+          "id": "MSG-1789113612651-sys",
+          "sender": "system",
+          "senderName": "Hệ thống",
+          "text": "Yêu cầu hỗ trợ đã được gửi. Nhân viên sẽ phản hồi sớm nhất có thể. Vui lòng chờ trong giây lát...",
+          "fileUrl": null,
+          "fileName": null,
+          "fileType": null,
+          "timestamp": 1789113612652,
+          "read": false
+        },
+        {
+          "id": "MSG-1789113617723-assign",
+          "sender": "system",
+          "senderName": "Hệ thống",
+          "text": "Admin đã tham gia cuộc trò chuyện và sẵn sàng hỗ trợ bạn.",
+          "fileUrl": null,
+          "fileName": null,
+          "fileType": null,
+          "timestamp": 1789113617723,
+          "read": false
+        },
+        {
+          "id": "MSG-1789113627370-3377",
+          "sender": "agent",
+          "senderName": "Công ty TNHH Tiếp vận Toàn Cầu Golden Star",
+          "text": null,
+          "fileUrl": "/uploads/1789113627365_VietQR-VietravelCargo-WON-2026-0815-02.png",
+          "fileName": "VietQR-VietravelCargo-WON-2026-0815-02.png",
+          "fileType": "image",
+          "timestamp": 1789113627370,
+          "read": true
+        },
+        {
+          "id": "MSG-1789113630923-907",
+          "sender": "staff",
+          "senderName": "Admin",
+          "text": "dfewf",
+          "fileUrl": null,
+          "fileName": null,
+          "fileType": null,
+          "timestamp": 1789113630923,
+          "read": true
+        },
+        {
+          "id": "MSG-1789113678045-close",
+          "sender": "system",
+          "senderName": "Hệ thống",
+          "text": "Cuộc trò chuyện đã được Admin kết thúc. Cảm ơn bạn đã liên hệ!",
+          "fileUrl": null,
+          "fileName": null,
+          "fileType": null,
+          "timestamp": 1789113678045,
+          "read": false
+        }
+      ]
+    },
+    {
+      "id": "CHAT-1789113639124",
+      "agentCode": "AG-0341",
+      "agentName": "Công ty TNHH SkyFreight Logistics Việt Nam",
+      "status": "CLOSED",
+      "createdAt": "2026-09-11T08:00:39.124Z",
+      "closedAt": "2026-09-11T08:01:20.388Z",
+      "assignedTo": "admin",
+      "assignedName": "Admin",
+      "messages": [
+        {
+          "id": "MSG-1789113639124-0",
+          "sender": "agent",
+          "senderName": "Công ty TNHH SkyFreight Logistics Việt Nam",
+          "text": "Báo lỗi hệ thống đấu giá",
+          "fileUrl": null,
+          "fileName": null,
+          "fileType": null,
+          "timestamp": 1789113639124,
+          "read": true
+        },
+        {
+          "id": "MSG-1789113639124-sys",
+          "sender": "system",
+          "senderName": "Hệ thống",
+          "text": "Yêu cầu hỗ trợ đã được gửi. Nhân viên sẽ phản hồi sớm nhất có thể. Vui lòng chờ trong giây lát...",
+          "fileUrl": null,
+          "fileName": null,
+          "fileType": null,
+          "timestamp": 1789113639125,
+          "read": false
+        },
+        {
+          "id": "MSG-1789113643088-assign",
+          "sender": "system",
+          "senderName": "Hệ thống",
+          "text": "Admin đã tham gia cuộc trò chuyện và sẵn sàng hỗ trợ bạn.",
+          "fileUrl": null,
+          "fileName": null,
+          "fileType": null,
+          "timestamp": 1789113643088,
+          "read": false
+        },
+        {
+          "id": "MSG-1789113647954-278",
+          "sender": "staff",
+          "senderName": "Admin",
+          "text": "n",
+          "fileUrl": null,
+          "fileName": null,
+          "fileType": null,
+          "timestamp": 1789113647954,
+          "read": true
+        },
+        {
+          "id": "MSG-1789113652818-9576",
+          "sender": "agent",
+          "senderName": "Công ty TNHH SkyFreight Logistics Việt Nam",
+          "text": "ujyu",
+          "fileUrl": null,
+          "fileName": null,
+          "fileType": null,
+          "timestamp": 1789113652818,
+          "read": true
+        },
+        {
+          "id": "MSG-1789113680388-close",
+          "sender": "system",
+          "senderName": "Hệ thống",
+          "text": "Cuộc trò chuyện đã được Admin kết thúc. Cảm ơn bạn đã liên hệ!",
+          "fileUrl": null,
+          "fileName": null,
+          "fileType": null,
+          "timestamp": 1789113680388,
+          "read": false
+        }
+      ]
+    },
+    {
+      "id": "CHAT-1789113688625",
+      "agentCode": "AG-1024",
+      "agentName": "Công ty CP Giao nhận Kho vận Vinatrans",
+      "status": "CLOSED",
+      "createdAt": "2026-09-11T08:01:28.625Z",
+      "closedAt": "2026-09-11T08:01:36.234Z",
+      "assignedTo": "admin",
+      "assignedName": "Admin",
+      "messages": [
+        {
+          "id": "MSG-1789113688625-0",
+          "sender": "agent",
+          "senderName": "Công ty CP Giao nhận Kho vận Vinatrans",
+          "text": "Hỏi về thủ tục vận chuyển hàng hóa",
+          "fileUrl": null,
+          "fileName": null,
+          "fileType": null,
+          "timestamp": 1789113688625,
+          "read": true
+        },
+        {
+          "id": "MSG-1789113688625-sys",
+          "sender": "system",
+          "senderName": "Hệ thống",
+          "text": "Yêu cầu hỗ trợ đã được gửi. Nhân viên sẽ phản hồi sớm nhất có thể. Vui lòng chờ trong giây lát...",
+          "fileUrl": null,
+          "fileName": null,
+          "fileType": null,
+          "timestamp": 1789113688626,
+          "read": false
+        },
+        {
+          "id": "MSG-1789113692280-assign",
+          "sender": "system",
+          "senderName": "Hệ thống",
+          "text": "Admin đã tham gia cuộc trò chuyện và sẵn sàng hỗ trợ bạn.",
+          "fileUrl": null,
+          "fileName": null,
+          "fileType": null,
+          "timestamp": 1789113692280,
+          "read": false
+        },
+        {
+          "id": "MSG-1789113696234-close",
+          "sender": "system",
+          "senderName": "Hệ thống",
+          "text": "Cuộc trò chuyện đã được Admin kết thúc. Cảm ơn bạn đã liên hệ!",
+          "fileUrl": null,
+          "fileName": null,
+          "fileType": null,
+          "timestamp": 1789113696234,
+          "read": false
+        }
+      ]
     }
   ]
 }
