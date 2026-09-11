@@ -3594,7 +3594,13 @@ const CargoStore = (function() {
             const data = loadData();
             const notifs = data.notifications || [];
 
-            return notifs.map(n => {
+            // Only show notifications scoped to ADMIN or STAFF — never leak agent-only notifications
+            const adminNotifs = notifs.filter(n => {
+                const role = String(n.targetRole || '').trim().toUpperCase();
+                return role === 'ADMIN' || role === 'STAFF';
+            });
+
+            return adminNotifs.map(n => {
                 const ts = n.timestamp || n.createdAt || (typeof n.id === 'number' && n.id > 1577836800000 ? n.id : (typeof n.id === 'string' && !isNaN(Number(n.id)) && Number(n.id) > 1577836800000 ? Number(n.id) : null));
                 let displayTime = n.time;
                 if (ts) {
@@ -3607,14 +3613,18 @@ const CargoStore = (function() {
                     ...n,
                     time: displayTime
                 };
-            });
+            }).sort((a, b) => (Number(b.timestamp || b.createdAt || b.id) || 0) - (Number(a.timestamp || a.createdAt || a.id) || 0));
         },
 
         markAllAdminNotificationsAsRead: function() {
             const data = loadData();
             if (data.notifications) {
+                // Only mark admin/staff notifications as read — leave agent notifications untouched
                 data.notifications.forEach(n => {
-                    n.read = true;
+                    const role = String(n.targetRole || '').trim().toUpperCase();
+                    if (role === 'ADMIN' || role === 'STAFF') {
+                        n.read = true;
+                    }
                 });
                 saveData(data);
             }
