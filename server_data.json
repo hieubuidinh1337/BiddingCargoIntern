@@ -1,5 +1,5 @@
 {
-  "version": 1789089269182,
+  "version": 1789091486568,
   "auctions": [
     {
       "id": 7,
@@ -16,16 +16,16 @@
       "aircraft": "Airbus A321neo Cargo",
       "capacityKg": 3000,
       "startingPriceKg": 18000,
-      "currentPriceKg": 23000,
+      "currentPriceKg": 25500,
       "minStep": 500,
       "endTime": "2026-09-11T04:15:00.000Z",
       "status": "OPEN",
       "leadingAgentCode": "AG-0892",
       "leadingAgentName": "Công ty TNHH Vận tải ABC Logistics",
-      "bidsCount": 3,
+      "bidsCount": 5,
       "specialNotes": "Tải trọng tổng hợp tiêu chuẩn IATA. Có hỗ trợ xe nâng hàng pallet tại sân bay.",
       "cutOffTime": "13:15 · 11/09/2026",
-      "isAnonymous": false
+      "isAnonymous": true
     },
     {
       "id": 6,
@@ -46,11 +46,12 @@
       "minStep": 500,
       "endTime": "2026-09-11T07:15:00.000Z",
       "status": "OPEN",
-      "leadingAgentCode": "Chưa có",
-      "leadingAgentName": "Chưa có đại lý nào đặt giá",
-      "bidsCount": 0,
+      "leadingAgentCode": "AG-0892",
+      "leadingAgentName": "Công ty TNHH Vận tải ABC Logistics",
+      "bidsCount": 1,
       "specialNotes": "Tải trọng tổng hợp tiêu chuẩn IATA. Có hỗ trợ xe nâng hàng pallet tại sân bay.",
-      "cutOffTime": "16:15 · 11/09/2026"
+      "cutOffTime": "16:15 · 11/09/2026",
+      "isAnonymous": true
     },
     {
       "id": 5,
@@ -148,13 +149,13 @@
       "aircraft": "Airbus A320-200",
       "capacityKg": 2000,
       "startingPriceKg": 12000,
-      "currentPriceKg": 14500,
+      "currentPriceKg": 15000,
       "minStep": 500,
       "endTime": "2026-09-11T04:15:00.000Z",
       "status": "OPEN",
-      "leadingAgentCode": "AG-0341",
-      "leadingAgentName": "Công ty TNHH SkyFreight Logistics Việt Nam",
-      "bidsCount": 4,
+      "leadingAgentCode": "AG-0892",
+      "leadingAgentName": "Công ty TNHH Vận tải ABC Logistics",
+      "bidsCount": 5,
       "specialNotes": "Ưu tiên bưu kiện bưu phẩm thương mại điện tử chuyển phát nhanh.",
       "cutOffTime": "13:15 · 11/09/2026",
       "etdIso": "2026-09-11T09:15:00.000Z",
@@ -188,6 +189,54 @@
   ],
   "bids": [
     {
+      "id": 1789090960255,
+      "timestamp": 1789090960255,
+      "auctionId": 2,
+      "agentCode": "AG-0892",
+      "agentName": "Công ty TNHH Vận tải ABC Logistics",
+      "isAnonymous": true,
+      "priceKg": 15000,
+      "time": "Vừa xong",
+      "status": "HIGHEST",
+      "weightKg": 2000
+    },
+    {
+      "id": 1789090947558,
+      "timestamp": 1789090947558,
+      "auctionId": 6,
+      "agentCode": "AG-0892",
+      "agentName": "Công ty TNHH Vận tải ABC Logistics",
+      "isAnonymous": true,
+      "priceKg": 18000,
+      "time": "Vừa xong",
+      "status": "HIGHEST",
+      "weightKg": 5000
+    },
+    {
+      "id": 1789090931422,
+      "timestamp": 1789090931422,
+      "auctionId": 7,
+      "agentCode": "AG-0892",
+      "agentName": "Công ty TNHH Vận tải ABC Logistics",
+      "isAnonymous": true,
+      "priceKg": 25500,
+      "time": "Vừa xong",
+      "status": "HIGHEST",
+      "weightKg": 3000
+    },
+    {
+      "id": 1789090927845,
+      "timestamp": 1789090927845,
+      "auctionId": 7,
+      "agentCode": "AG-0892",
+      "agentName": "Công ty TNHH Vận tải ABC Logistics",
+      "isAnonymous": true,
+      "priceKg": 23500,
+      "time": "Vừa xong",
+      "status": "OUTBID",
+      "weightKg": 3000
+    },
+    {
       "id": 1789030801503,
       "timestamp": 1789030801503,
       "auctionId": 7,
@@ -196,7 +245,7 @@
       "isAnonymous": false,
       "priceKg": 23000,
       "time": "Vừa xong",
-      "status": "HIGHEST",
+      "status": "OUTBID",
       "weightKg": 3000
     },
     {
@@ -460,7 +509,7 @@
       "isAnonymous": true,
       "priceKg": 14500,
       "time": "20 phút trước",
-      "status": "HIGHEST",
+      "status": "OUTBID",
       "weightKg": 2000
     }
   ],
@@ -630,6 +679,72 @@
     }
   ],
   "notifications": [
+    {
+      "id": 1789090960256,
+      "timestamp": 1789090960256,
+      "targetAgentCode": "AG-0341",
+      "title": "Cảnh báo bị vượt giá chuyến VU224!",
+      "message": "Một đại lý đối thủ (Ẩn danh) vừa đặt mức giá mới 15.000 đ/Kg cho chặng SGN - DAD.",
+      "time": "Vừa xong",
+      "type": "OUTBID",
+      "read": true,
+      "link": "04-Detail.html?id=2"
+    },
+    {
+      "id": 1789090960255,
+      "timestamp": 1789090960255,
+      "targetAgentCode": "AG-0892",
+      "title": "Đặt giá thành công chuyến VU224",
+      "message": "Bạn (AG-0892) đang dẫn đầu mức giá 15.000 đ/Kg cho chặng SGN - DAD. (Tên công ty được che ẩn danh đối với các đối thủ)",
+      "time": "Vừa xong",
+      "type": "HIGHEST",
+      "read": true,
+      "link": "04-Detail.html?id=2"
+    },
+    {
+      "id": 1789090947559,
+      "timestamp": 1789090947559,
+      "targetAgentCode": "Chưa có",
+      "title": "Cảnh báo bị vượt giá chuyến VU136!",
+      "message": "Một đại lý đối thủ (Ẩn danh) vừa đặt mức giá mới 18.000 đ/Kg cho chặng SGN - HAN.",
+      "time": "Vừa xong",
+      "type": "OUTBID",
+      "read": true,
+      "link": "04-Detail.html?id=6"
+    },
+    {
+      "id": 1789090947558,
+      "timestamp": 1789090947558,
+      "targetAgentCode": "AG-0892",
+      "title": "Đặt giá thành công chuyến VU136",
+      "message": "Bạn (AG-0892) đang dẫn đầu mức giá 18.000 đ/Kg cho chặng SGN - HAN. (Tên công ty được che ẩn danh đối với các đối thủ)",
+      "time": "Vừa xong",
+      "type": "HIGHEST",
+      "read": true,
+      "link": "04-Detail.html?id=6"
+    },
+    {
+      "id": 1789090931422,
+      "timestamp": 1789090931422,
+      "targetAgentCode": "AG-0892",
+      "title": "Đặt giá thành công chuyến VU138",
+      "message": "Bạn (AG-0892) đang dẫn đầu mức giá 25.500 đ/Kg cho chặng SGN - HAN. (Tên công ty được che ẩn danh đối với các đối thủ)",
+      "time": "Vừa xong",
+      "type": "HIGHEST",
+      "read": true,
+      "link": "04-Detail.html?id=7"
+    },
+    {
+      "id": 1789090927845,
+      "timestamp": 1789090927845,
+      "targetAgentCode": "AG-0892",
+      "title": "Đặt giá thành công chuyến VU138",
+      "message": "Bạn (AG-0892) đang dẫn đầu mức giá 23.500 đ/Kg cho chặng SGN - HAN. (Tên công ty được che ẩn danh đối với các đối thủ)",
+      "time": "Vừa xong",
+      "type": "HIGHEST",
+      "read": true,
+      "link": "04-Detail.html?id=7"
+    },
     {
       "id": 1789030801503,
       "timestamp": 1789030801503,

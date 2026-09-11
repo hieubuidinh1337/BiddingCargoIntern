@@ -959,7 +959,8 @@
             // Check common meaningless character mashes
             const lower = trimmed.toLowerCase();
             const commonMashes = ['asdf', 'qwer', 'zxcv', 'gfgj', 'fbvb', 'fgdb', 'hjkl', 'tyui', '1234', 'test1', 'abcde', 'fbvbf', 'gfgjgf', 'fgdbcv', 'asdfgh', 'qwerty'];
-            if (commonMashes.some(m => lower === m || (lower.length <= 8 && lower.includes(m)))) return true;
+            // Only exact match for HAWB-length strings to avoid false positives (e.g. VU-12345 contains '1234' but is valid)
+            if (commonMashes.some(m => lower === m || (lower.length <= 5 && lower.includes(m)))) return true;
             
             // For short single words without space, check character variety
             if (!trimmed.includes(' ') && trimmed.length <= 8) {

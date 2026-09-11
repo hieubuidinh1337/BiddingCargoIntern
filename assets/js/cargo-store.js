@@ -2357,7 +2357,7 @@ const CargoStore = (function() {
             const user = data.currentUser;
             const currentAdmin = data.currentAdmin;
             const pathname = (typeof window !== 'undefined' && window.location && window.location.pathname) ? window.location.pathname : '';
-            const isAdminPage = pathname.includes('/Admin/') || pathname.includes('/admin/') || !!currentAdmin;
+            const isAdminPage = pathname.includes('/Admin/') || pathname.includes('/admin/');
 
             const normalizeTargetAgentCode = (value) => {
                 if (value === null || value === undefined) return null;
