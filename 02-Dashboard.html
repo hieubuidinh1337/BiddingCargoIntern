@@ -335,7 +335,7 @@
                 } else {
                     container.innerHTML = paginatedAuctions.map(a => {
                         const timer = CargoStore.getTimeRemaining(a.endTime);
-                        const isLeading = a.leadingAgentCode === myCode;
+                        const isLeading = !!(a.leadingAgentCode && a.leadingAgentCode === myCode);
                         return `
                             <div class="p-4 rounded-xl border border-gray-200 hover:border-blue-400 hover:shadow-md transition bg-white flex flex-col sm:flex-row sm:items-center justify-between gap-4">
                                 <div class="space-y-1.5">

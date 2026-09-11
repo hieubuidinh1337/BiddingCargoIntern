@@ -1,5 +1,5 @@
 {
-  "version": 1789096225600,
+  "version": 1789108212621,
   "auctions": [
     {
       "id": 4,
@@ -38,21 +38,21 @@
       "destination": "PQC",
       "originName": "Hà Nội",
       "destName": "Phú Quốc",
-      "etd": "20:15 · 11/09/2026",
-      "eta": "22:30 · 11/09/2026",
+      "etd": "00:15 · 12/09/2026",
+      "eta": "02:30 · 12/09/2026",
       "aircraft": "Airbus A321neo Cargo",
       "capacityKg": 4000,
       "startingPriceKg": 22000,
       "currentPriceKg": 25000,
       "minStep": 1000,
-      "endTime": "2026-09-11T08:15:00.000Z",
+      "endTime": "2026-09-11T12:15:00.000Z",
       "status": "OPEN",
       "leadingAgentCode": "AG-0556",
       "leadingAgentName": "Golden Star",
       "bidsCount": 0,
       "specialNotes": "Hàng hải sản đông lạnh tươi sống đóng thùng xốp tiêu chuẩn IATA.",
-      "cutOffTime": "17:15 · 11/09/2026",
-      "etdIso": "2026-09-11T13:15:00.000Z"
+      "cutOffTime": "21:15 · 11/09/2026",
+      "etdIso": "2026-09-11T17:15:00.000Z"
     },
     {
       "id": 2,
@@ -63,21 +63,21 @@
       "destination": "DAD",
       "originName": "TP. Hồ Chí Minh",
       "destName": "Đà Nẵng",
-      "etd": "23:15 · 11/09/2026",
-      "eta": "00:35 · 12/09/2026",
+      "etd": "03:15 · 12/09/2026",
+      "eta": "04:35 · 12/09/2026",
       "aircraft": "Airbus A320-200",
       "capacityKg": 2000,
       "startingPriceKg": 12000,
       "currentPriceKg": 14500,
       "minStep": 500,
-      "endTime": "2026-09-11T11:15:00.000Z",
+      "endTime": "2026-09-11T15:15:00.000Z",
       "status": "OPEN",
       "leadingAgentCode": "AG-1024",
       "leadingAgentName": "Vinatrans",
       "bidsCount": 0,
       "specialNotes": "Ưu tiên bưu kiện bưu phẩm thương mại điện tử chuyển phát nhanh.",
-      "cutOffTime": "20:15 · 11/09/2026",
-      "etdIso": "2026-09-11T16:15:00.000Z"
+      "cutOffTime": "00:15 · 12/09/2026",
+      "etdIso": "2026-09-11T20:15:00.000Z"
     },
     {
       "id": 1,
@@ -88,24 +88,21 @@
       "destination": "HAN",
       "originName": "TP. Hồ Chí Minh",
       "destName": "Hà Nội",
-      "etd": "02:15 · 12/09/2026",
-      "eta": "04:30 · 12/09/2026",
+      "etd": "06:15 · 12/09/2026",
+      "eta": "08:30 · 12/09/2026",
       "aircraft": "Airbus A321neo Cargo",
       "capacityKg": 3500,
       "startingPriceKg": 18000,
       "currentPriceKg": 56500,
       "minStep": 500,
-      "endTime": "2026-09-11T14:15:00.000Z",
-      "status": "CLOSED",
+      "endTime": "2026-09-11T18:15:00.000Z",
+      "status": "OPEN",
       "leadingAgentCode": "AG-0892",
       "leadingAgentName": "ABC Logistics",
       "bidsCount": 10,
       "specialNotes": "Hàng tổng hợp, hỗ trợ kho lạnh bảo quản thực phẩm & dược phẩm.",
-      "cutOffTime": "23:15 · 11/09/2026",
-      "etdIso": "2026-09-11T19:15:00.000Z",
-      "winnerAgentCode": "AG-0892",
-      "winnerAgentName": "ABC Logistics",
-      "winningPriceKg": 56500
+      "cutOffTime": "03:15 · 12/09/2026",
+      "etdIso": "2026-09-11T23:15:00.000Z"
     }
   ],
   "bids": [
@@ -118,7 +115,7 @@
       "isAnonymous": true,
       "priceKg": 56500,
       "time": "3 phút trước",
-      "status": "WON",
+      "status": "HIGHEST",
       "weightKg": 3500
     },
     {
@@ -247,9 +244,7 @@
       "awbNumber": "998-12345678",
       "cutOffTime": "07:00 · 08/09/2026",
       "warehouse": "Kho hàng TCS Tân Sơn Nhất (Cửa số 4)",
-      "cargoDeclaration": null,
-      "lockPenaltyHandled": true,
-      "lockWaivedByAdmin": true
+      "cargoDeclaration": null
     },
     {
       "wonId": "WON-2026-0815-02",
@@ -263,14 +258,11 @@
       "totalAmountVND": 29000000,
       "paymentDeadline": "2026-09-09T06:00:00.000Z",
       "paymentStatus": "EXPIRED",
-      "paidAt": "09:27:07 11/9/2026",
+      "paidAt": null,
       "awbNumber": "998-22409811",
       "cutOffTime": "13:00 · 09/09/2026",
       "warehouse": "Kho hàng TCS Tân Sơn Nhất (Cửa số 2)",
-      "cargoDeclaration": null,
-      "lockPenaltyHandled": true,
-      "lockWaivedByAdmin": true,
-      "paidLateNote": "Đại lý nộp bổ sung sau quá hạn – Được Ban Điều hành chấp thuận mở khóa lúc 09:27:07 11/9/2026"
+      "cargoDeclaration": null
     },
     {
       "wonId": "WON-2026-0815-03",
@@ -280,18 +272,15 @@
       "flightNumber": "VU130",
       "route": "SGN - HAN",
       "capacityKg": 3500,
-      "priceKg": 56500,
-      "totalAmountVND": 197750000,
-      "paymentDeadline": "2026-09-11T16:15:00.000Z",
-      "paymentStatus": "UNPAID",
-      "paidAt": null,
+      "priceKg": 56000,
+      "totalAmountVND": 196000000,
+      "paymentDeadline": "2026-09-09T04:30:00.000Z",
+      "paymentStatus": "PAID",
+      "paidAt": "08/09/2026 14:15",
       "awbNumber": "998-13098722",
       "cutOffTime": "11:30 · 09/09/2026",
       "warehouse": "Kho hàng SCSC Tân Sơn Nhất",
-      "cargoDeclaration": null,
-      "lockPenaltyHandled": true,
-      "lockWaivedByAdmin": true,
-      "notifiedAt": null
+      "cargoDeclaration": null
     },
     {
       "wonId": "WON-2026-0815-04",
@@ -330,9 +319,7 @@
       "awbNumber": "998-22688192",
       "cutOffTime": "18:00 · 09/09/2026",
       "warehouse": "Kho hàng TCS Tân Sơn Nhất (Cửa số 3)",
-      "cargoDeclaration": null,
-      "lockPenaltyHandled": true,
-      "lockWaivedByAdmin": true
+      "cargoDeclaration": null
     },
     {
       "wonId": "WON-20260908-06",
@@ -351,8 +338,7 @@
       "cutOffTime": "Trước ETD 3 giờ",
       "warehouse": "Kho hàng SCSC / TCS Tân Sơn Nhất (Cửa số 4)",
       "cargoDeclaration": null,
-      "lockPenaltyHandled": true,
-      "lockWaivedByAdmin": true
+      "lockPenaltyHandled": true
     },
     {
       "wonId": "WON-20260909-07",
@@ -377,80 +363,36 @@
   ],
   "notifications": [
     {
-      "id": 1789096225287,
-      "timestamp": 1789096225287,
-      "targetAgentCode": "AG-0892",
-      "title": "🏆 CHÚC MỪNG! Phiên VU130 đã chốt kết quả!",
-      "message": "Đại lý ABC Logistics (AG-0892) đã trúng thầu chuyến VU130 (SGN - HAN) mức giá 56.500 đ/Kg. Vui lòng hoàn tất thanh toán & khai báo hàng hóa.",
-      "time": "Vừa xong",
-      "type": "WON",
-      "read": false,
-      "link": "07-WonAuction.html"
-    },
-    {
-      "id": 1789093629267,
-      "timestamp": 1789093629267,
-      "targetAgentCode": "AG-1024",
-      "title": "⏰ CẢNH BÁO THANH TOÁN: Đơn WON-2026-0815-02 (VU224)",
-      "message": "Quý đại lý vui lòng hoàn tất chuyển khoản cho đơn hàng WON-2026-0815-02 trước 13:00:00 9/9/2026. LƯU Ý: Nếu không thanh toán đúng hạn, hệ thống sẽ TỰ ĐỘNG KHÓA TÀI KHOẢN ĐẠI LÝ và hủy quyền đấu giá.",
-      "time": "Vừa xong",
-      "type": "PAYMENT_REMINDER",
-      "read": false,
-      "link": "07-WonAuction.html"
-    },
-    {
-      "id": 1789093627995,
-      "timestamp": 1789093627188,
-      "targetAgentCode": "AG-1024",
-      "title": "🔓 TÀI KHOẢN ĐÃ ĐƯỢC MỞ KHÓA KÍCH HOẠT",
-      "message": "Tài khoản đại lý AG-1024 (Công ty CP Giao nhận Kho vận Vinatrans) của bạn đã được Quản trị viên MỞ KHÓA. Lý do mở khóa: \"Đại lý đã nộp bổ sung tiền thanh toán sau quá hạn & được Ban Điều hành chấp thuận mở khóa\". Quyền tham gia đấu giá trên sàn đã được khôi phục.",
-      "time": "Vừa xong",
-      "type": "SYSTEM",
-      "read": false,
-      "link": "03-Index.html"
-    },
-    {
-      "id": 1789093284963,
-      "timestamp": 1789093284025,
-      "targetAgentCode": "AG-0892",
-      "title": "🔓 TÀI KHOẢN ĐÃ ĐƯỢC MỞ KHÓA KÍCH HOẠT",
-      "message": "Tài khoản đại lý AG-0892 (Công ty TNHH Vận tải ABC Logistics) của bạn đã được Quản trị viên MỞ KHÓA. Lý do mở khóa: \"Đại lý đã nộp bổ sung tiền thanh toán sau quá hạn & được Ban Điều hành chấp thuận mở khóa\". Quyền tham gia đấu giá trên sàn đã được khôi phục.",
-      "time": "Vừa xong",
-      "type": "SYSTEM",
-      "read": true,
-      "link": "03-Index.html"
-    },
-    {
       "id": 4,
-      "timestamp": 1789090575227,
+      "timestamp": 1789104947500,
       "targetAgentCode": "AG-0892",
       "title": "⏳ Cảnh báo sắp đóng thầu: Chuyến VU130",
       "message": "Phiên đấu giá chỉ còn dưới 30 phút. Đừng bỏ lỡ tải trọng tốt!",
       "time": "45 phút trước",
       "type": "CLOSING_SOON",
-      "read": true,
+      "read": false,
       "link": "04-Detail.html?id=1"
     },
     {
       "id": 3,
-      "timestamp": 1789006875227,
+      "timestamp": 1789021247500,
       "targetAgentCode": "AG-0892",
       "title": "🏆 CHÚC MỪNG! Bạn đã thắng thầu chuyến bay VU450",
       "message": "Đại lý Công ty TNHH Vận tải ABC Logistics (AG-0892) đã trúng thầu chuyến bay VU450 (SGN - PQC) với giá 24.000 đ/Kg. Vui lòng hoàn tất thanh toán & khai báo hàng hóa trong 24h.",
       "time": "1 ngày trước",
       "type": "WON",
-      "read": true,
+      "read": false,
       "link": "07-WonAuction.html"
     },
     {
       "id": 2,
-      "timestamp": 1789091475227,
+      "timestamp": 1789105847500,
       "targetAgentCode": "AG-0892",
       "title": "⚠️ Cảnh báo bị vượt giá chuyến VU224 (SGN-DAD)!",
       "message": "Đại lý ẩn danh (AG-***) vừa đặt mức giá mới 19.500 đ/Kg cho chặng SGN - DAD. Bạn không còn dẫn đầu.",
       "time": "30 phút trước",
       "type": "OUTBID",
-      "read": true,
+      "read": false,
       "link": "04-Detail.html?id=2"
     },
     {
@@ -535,16 +477,15 @@
       "address": "123 Nguyễn Huệ, Quận 1, TP. Hồ Chí Minh",
       "province": "TP. Hồ Chí Minh",
       "tier": "TIER1",
-      "status": "Đang hoạt động",
+      "status": "Đã khóa",
       "joinedDate": "15/03/2024",
       "totalBids": 24,
       "totalWins": 8,
       "winRate": "33%",
       "totalSpentUSD": "12.4k",
       "totalSpentVND": 1600000000,
-      "unlockedAt": "09:21:24 11/9/2026",
-      "unlockedBy": "admin",
-      "unlockedReason": "Đại lý đã nộp bổ sung tiền thanh toán sau quá hạn & được Ban Điều hành chấp thuận mở khóa"
+      "lockedReason": "Hệ thống tự động khóa do quá hạn thanh toán đơn WON-2026-0814-01 (VU132 - SGN - HAN)",
+      "lockedAt": "13:20:43 11/9/2026"
     },
     {
       "id": 2,
@@ -559,16 +500,15 @@
       "address": "406 Nguyễn Tất Thành, Quận 4, TP. Hồ Chí Minh",
       "province": "TP. Hồ Chí Minh",
       "tier": "TIER1",
-      "status": "Đang hoạt động",
+      "status": "Đã khóa",
       "joinedDate": "10/01/2024",
       "totalBids": 45,
       "totalWins": 16,
       "winRate": "36%",
       "totalSpentUSD": "28.2k",
       "totalSpentVND": 3640000000,
-      "unlockedAt": "09:27:07 11/9/2026",
-      "unlockedBy": "admin",
-      "unlockedReason": "Đại lý đã nộp bổ sung tiền thanh toán sau quá hạn & được Ban Điều hành chấp thuận mở khóa"
+      "lockedReason": "Hệ thống tự động khóa do quá hạn thanh toán đơn WON-2026-0815-02 (VU224 - SGN - DAD)",
+      "lockedAt": "13:00:00 9/9/2026"
     },
     {
       "id": 3,
@@ -663,18 +603,6 @@
       "fullName": "Lê Thị Bích Vân",
       "email": "staff02@airline.vn",
       "department": "Agent Audit & Approval"
-    }
-  ],
-  "emailLogs": [
-    {
-      "id": 1789096228986,
-      "to": "an.nguyen@abccargo.vn",
-      "type": "AUCTION_WON",
-      "subject": "[Vietravel Airlines Cargo] CHÚC MỪNG TRÚNG THẦU! Đơn hàng WON-2026-0815-03 - Chuyến VU130 (SGN - HAN)",
-      "messageId": "<463f5240-e81d-66a2-6bd9-101f73c97fad@gmail.com>",
-      "isRealSmtp": true,
-      "previewUrl": null,
-      "sentAt": "10:10:28 11/9/2026"
     }
   ]
 }

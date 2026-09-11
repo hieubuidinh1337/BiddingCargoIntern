@@ -367,7 +367,7 @@
             grid.innerHTML = paginatedList.map(a => {
                 const timer = CargoStore.getTimeRemaining(a.endTime);
                 const isWatched = CargoStore.isWatched(a.id);
-                const isLeading = a.leadingAgentCode === currentAgentCode;
+                const isLeading = !!(a.leadingAgentCode && a.leadingAgentCode === currentAgentCode);
 
                 return `
                     <div class="bg-white rounded-2xl border ${isWatched ? 'border-amber-400 ring-2 ring-amber-400/20 shadow-md' : 'border-slate-200 shadow-sm'} hover:shadow-lg transition flex flex-col justify-between overflow-hidden relative">

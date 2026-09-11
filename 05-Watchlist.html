@@ -437,7 +437,7 @@
         const paginatedList = list.slice(startIdx, startIdx + watchItemsPerPage);
 
         container.innerHTML = paginatedList.map(a => {
-            const isLeading = a.leadingAgentCode === currentAgentCode && a.status === 'OPEN';
+            const isLeading = !!(a.leadingAgentCode && a.leadingAgentCode === currentAgentCode && a.status === 'OPEN');
             const incPct = getPriceIncreasePercent(a);
             const t = getTimeRemaining(a.endTime);
             const isUrgent = a.status === 'OPEN' && t.hours === 0 && t.minutes < 15 && !t.expired;

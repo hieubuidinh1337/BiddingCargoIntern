@@ -736,9 +736,8 @@ const CargoStore = (function() {
                     if (auctionBids.length > 0) {
                         const highestBid = auctionBids[0];
                         const highestPrice = Number(highestBid.priceKg);
-                        const existingPrice = Number(a.currentPriceKg || 0);
 
-                        if (Number.isFinite(highestPrice) && highestPrice > existingPrice) {
+                        if (Number.isFinite(highestPrice) && a.currentPriceKg !== highestPrice) {
                             a.currentPriceKg = highestPrice;
                             updated = true;
                         }
@@ -748,8 +747,8 @@ const CargoStore = (function() {
 
                         if ((a.leadingAgentCode || '').trim() !== normalizedLeaderCode ||
                             (a.leadingAgentName || '').trim() !== normalizedLeaderName) {
-                            a.leadingAgentCode = normalizedLeaderCode || a.leadingAgentCode;
-                            a.leadingAgentName = normalizedLeaderName || a.leadingAgentName;
+                            a.leadingAgentCode = normalizedLeaderCode;
+                            a.leadingAgentName = normalizedLeaderName;
                             a.isAnonymous = highestBid.isAnonymous !== false;
                             updated = true;
                         }
@@ -759,9 +758,17 @@ const CargoStore = (function() {
                             a.bidsCount = bidCount;
                             updated = true;
                         }
-                    } else if ((a.bidsCount || 0) !== 0) {
-                        a.bidsCount = 0;
-                        updated = true;
+                    } else {
+                        // When there are 0 bids: clear leader info & reset current price to starting price
+                        if (a.leadingAgentCode || a.leadingAgentName || (a.bidsCount || 0) !== 0 || (a.startingPriceKg && a.currentPriceKg !== a.startingPriceKg)) {
+                            a.leadingAgentCode = null;
+                            a.leadingAgentName = null;
+                            a.bidsCount = 0;
+                            if (a.startingPriceKg) {
+                                a.currentPriceKg = a.startingPriceKg;
+                            }
+                            updated = true;
+                        }
                     }
                 });
             }

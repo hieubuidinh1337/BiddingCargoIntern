@@ -357,9 +357,8 @@ function reconcileAuctionSummaries(data) {
         if (auctionBids.length > 0) {
             const highestBid = auctionBids[0];
             const highestPrice = Number(highestBid.priceKg);
-            const existingPrice = Number(a.currentPriceKg || 0);
 
-            if (Number.isFinite(highestPrice) && highestPrice > existingPrice) {
+            if (Number.isFinite(highestPrice) && a.currentPriceKg !== highestPrice) {
                 a.currentPriceKg = highestPrice;
                 changed = true;
             }
@@ -369,8 +368,8 @@ function reconcileAuctionSummaries(data) {
 
             if ((a.leadingAgentCode || '').trim() !== normalizedLeaderCode ||
                 (a.leadingAgentName || '').trim() !== normalizedLeaderName) {
-                a.leadingAgentCode = normalizedLeaderCode || a.leadingAgentCode;
-                a.leadingAgentName = normalizedLeaderName || a.leadingAgentName;
+                a.leadingAgentCode = normalizedLeaderCode;
+                a.leadingAgentName = normalizedLeaderName;
                 a.isAnonymous = highestBid.isAnonymous !== false;
                 changed = true;
             }
@@ -380,9 +379,16 @@ function reconcileAuctionSummaries(data) {
                 a.bidsCount = bidCount;
                 changed = true;
             }
-        } else if ((a.bidsCount || 0) !== 0) {
-            a.bidsCount = 0;
-            changed = true;
+        } else {
+            if (a.leadingAgentCode || a.leadingAgentName || (a.bidsCount || 0) !== 0 || (a.startingPriceKg && a.currentPriceKg !== a.startingPriceKg)) {
+                a.leadingAgentCode = null;
+                a.leadingAgentName = null;
+                a.bidsCount = 0;
+                if (a.startingPriceKg) {
+                    a.currentPriceKg = a.startingPriceKg;
+                }
+                changed = true;
+            }
         }
     });
 
