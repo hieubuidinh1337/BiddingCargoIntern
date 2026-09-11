@@ -43,16 +43,17 @@
       "aircraft": "Airbus A321neo Cargo",
       "capacityKg": 4000,
       "startingPriceKg": 22000,
-      "currentPriceKg": 22000,
+      "currentPriceKg": 21500,
       "minStep": 1000,
       "endTime": "2026-09-11T12:15:00.000Z",
       "status": "OPEN",
-      "leadingAgentCode": null,
-      "leadingAgentName": null,
-      "bidsCount": 0,
+      "leadingAgentCode": "AG-0789",
+      "leadingAgentName": "Việt Freight",
+      "bidsCount": 1,
       "specialNotes": "Hàng hải sản đông lạnh tươi sống đóng thùng xốp tiêu chuẩn IATA.",
       "cutOffTime": "21:15 · 11/09/2026",
-      "etdIso": "2026-09-11T17:15:00.000Z"
+      "etdIso": "2026-09-11T17:15:00.000Z",
+      "isAnonymous": true
     },
     {
       "id": 2,
@@ -68,16 +69,17 @@
       "aircraft": "Airbus A320-200",
       "capacityKg": 2000,
       "startingPriceKg": 12000,
-      "currentPriceKg": 12000,
+      "currentPriceKg": 14000,
       "minStep": 500,
       "endTime": "2026-09-11T15:15:00.000Z",
       "status": "OPEN",
-      "leadingAgentCode": null,
-      "leadingAgentName": null,
-      "bidsCount": 0,
+      "leadingAgentCode": "AG-0341",
+      "leadingAgentName": "SkyFreight Logistics",
+      "bidsCount": 1,
       "specialNotes": "Ưu tiên bưu kiện bưu phẩm thương mại điện tử chuyển phát nhanh.",
       "cutOffTime": "00:15 · 12/09/2026",
-      "etdIso": "2026-09-11T20:15:00.000Z"
+      "etdIso": "2026-09-11T20:15:00.000Z",
+      "isAnonymous": true
     },
     {
       "id": 1,
@@ -225,6 +227,30 @@
       "time": "1 giờ trước",
       "status": "OUTBID",
       "weightKg": 3500
+    },
+    {
+      "id": 1789118684110,
+      "timestamp": 1789118684110,
+      "auctionId": 2,
+      "agentCode": "AG-0341",
+      "agentName": "SkyFreight Logistics",
+      "isAnonymous": true,
+      "priceKg": 14000,
+      "time": "30 phút trước",
+      "status": "OUTBID",
+      "weightKg": 2000
+    },
+    {
+      "id": 1789119284110,
+      "timestamp": 1789119284110,
+      "auctionId": 3,
+      "agentCode": "AG-0789",
+      "agentName": "Việt Freight",
+      "isAnonymous": true,
+      "priceKg": 21500,
+      "time": "20 phút trước",
+      "status": "OUTBID",
+      "weightKg": 4000
     }
   ],
   "wonAuctions": [
@@ -369,9 +395,63 @@
       "cargoDeclaration": null,
       "lockPenaltyHandled": true,
       "lockWaivedByAdmin": true
+    },
+    {
+      "wonId": "WON-2026-0816-08",
+      "auctionId": 2,
+      "agentCode": "AG-0341",
+      "agentName": "Công ty TNHH SkyFreight Logistics Việt Nam",
+      "flightNumber": "VU224",
+      "route": "SGN - DAD",
+      "capacityKg": 2000,
+      "priceKg": 15000,
+      "totalAmountVND": 30000000,
+      "paymentDeadline": "2026-09-12T12:00:00.000Z",
+      "paymentStatus": "PAID",
+      "paidAt": "10/09/2026 10:30",
+      "awbNumber": "998-34190812",
+      "cutOffTime": "15:00 · 12/09/2026",
+      "warehouse": "Kho hàng TCS Tân Sơn Nhất (Cửa số 1)",
+      "cargoDeclaration": null
+    },
+    {
+      "wonId": "WON-2026-0816-09",
+      "auctionId": 3,
+      "agentCode": "AG-0789",
+      "agentName": "Công ty CP Vận chuyển Hàng không Việt Freight",
+      "flightNumber": "VU340",
+      "route": "HAN - PQC",
+      "capacityKg": 3500,
+      "priceKg": 24000,
+      "totalAmountVND": 84000000,
+      "paymentDeadline": "2026-09-12T16:00:00.000Z",
+      "paymentStatus": "PAID",
+      "paidAt": "10/09/2026 11:15",
+      "awbNumber": "998-78934011",
+      "cutOffTime": "18:00 · 12/09/2026",
+      "warehouse": "Kho hàng Cargo Nội Bài (Cửa số 2)",
+      "cargoDeclaration": null
     }
   ],
   "notifications": [
+    {
+      "id": 1789120464110,
+      "targetAgentCode": "AG-0789",
+      "type": "WIN",
+      "title": "🏆 CHÚC MỪNG! Bạn đã thắng thầu chuyến bay VU340",
+      "message": "Công ty CP Vận chuyển Hàng không Việt Freight đã thắng thầu lô hàng HAN-PQC với mức giá 24.000 đ/Kg.",
+      "time": "Cách đây ít phút",
+      "read": false
+    },
+    {
+      "id": 1789120474110,
+      "targetAgentCode": "AG-0341",
+      "type": "WIN",
+      "title": "🏆 CHÚC MỪNG! Bạn đã thắng thầu chuyến bay VU224",
+      "message": "Công ty TNHH SkyFreight Logistics Việt Nam đã thắng thầu lô hàng SGN-DAD với mức giá 15.000 đ/Kg.",
+      "time": "Cách đây ít phút",
+      "read": false
+    },
     {
       "id": 1789108772320,
       "timestamp": 1789108771572,

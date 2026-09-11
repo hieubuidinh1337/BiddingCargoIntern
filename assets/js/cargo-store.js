@@ -2332,15 +2332,34 @@ const CargoStore = (function() {
 
         getMyBids: function() {
             const data = loadData();
-            const code = data.currentUser ? data.currentUser.agentCode : 'AG-0892';
-            return data.bids.filter(b => b.agentCode === code);
+            const pathname = (typeof window !== 'undefined' && window.location && window.location.pathname) ? window.location.pathname : '';
+            const isAdminPage = pathname.includes('/Admin/') || pathname.includes('/admin/');
+
+            if (isAdminPage || data.currentAdmin) {
+                return data.bids || [];
+            }
+            const user = data.currentUser;
+            if (!user) {
+                return (data.bids || []).filter(b => !b.agentCode || String(b.agentCode).trim().toUpperCase() === 'AG-0892');
+            }
+            if (user.role === 'ADMIN' || user.role === 'STAFF') {
+                return data.bids || [];
+            }
+            const code = String(user.agentCode || user.code || '').trim().toUpperCase();
+            if (!code) return data.bids || [];
+            return (data.bids || []).filter(b => {
+                const bCode = String(b.agentCode || b.code || b.bidder || '').trim().toUpperCase();
+                return bCode === code;
+            });
         },
 
         getWonAuctions: function() {
             const data = loadData();
+            const pathname = (typeof window !== 'undefined' && window.location && window.location.pathname) ? window.location.pathname : '';
+            const isAdminPage = pathname.includes('/Admin/') || pathname.includes('/admin/');
 
             // Admin / staff pages must always see the full won-auctions list.
-            if (data.currentAdmin) {
+            if (isAdminPage || data.currentAdmin) {
                 return data.wonAuctions || [];
             }
 
@@ -2351,7 +2370,7 @@ const CargoStore = (function() {
                 return data.wonAuctions || [];
             }
             const code = String(data.currentUser.agentCode || data.currentUser.code || '').trim().toUpperCase();
-            if (!code) return [];
+            if (!code) return data.wonAuctions || [];
             return (data.wonAuctions || []).filter(w => String(w.agentCode || '').trim().toUpperCase() === code);
         },
 
