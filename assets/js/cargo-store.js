@@ -710,9 +710,10 @@ const CargoStore = (function() {
                                 a.endTime = new Date(closeMs).toISOString();
                                 updated = true;
                             } else if (isNaN(endTimeMs) || endTimeMs <= now) {
-                                // If ETD is valid future date, but endTime expired: set endTime to close safely before cut-off
-                                const safeClose = Math.min(now + 3 * 3600 * 1000, etdDate.getTime() - 4 * 3600 * 1000);
-                                a.endTime = new Date(Math.max(now + 30 * 60 * 1000, safeClose)).toISOString();
+                                // Keep browser-side end-time reconciliation aligned with server-side logic
+                                // so agent and admin pages calculate the same countdown for the same auction.
+                                const safeClose = Math.max(now + 2 * 3600 * 1000, etdDate.getTime() - 3 * 3600 * 1000);
+                                a.endTime = new Date(safeClose).toISOString();
                                 updated = true;
                             }
                         }
@@ -887,11 +888,18 @@ const CargoStore = (function() {
                         if (a.flightNumber === 'VU132') a.etdIso = '2026-09-08T03:00:00.000Z';
                         updated = true;
                     }
-                    // If open auction has expired endTime, refresh endTime to future so countdown is live
+                    // Reconcile expired OPEN auctions using the same policy as the server.
                     if (a.status === 'OPEN') {
                         const endMs = new Date(a.endTime).getTime();
                         if (isNaN(endMs) || endMs <= Date.now()) {
-                            a.endTime = new Date(Date.now() + 4 * 3600 * 1000).toISOString();
+                            const etdDate = a.etdIso ? new Date(a.etdIso) : parseFlightDate(a.etd);
+                            if (etdDate && !isNaN(etdDate.getTime()) && etdDate.getTime() > Date.now()) {
+                                const safeClose = Math.max(Date.now() + 2 * 3600 * 1000, etdDate.getTime() - 3 * 3600 * 1000);
+                                a.endTime = new Date(safeClose).toISOString();
+                            } else {
+                                const idxShift = Math.max(0, Math.min(2, idx));
+                                a.endTime = new Date(Date.now() + (idxShift === 0 ? 45 : (idxShift === 1 ? 90 : 120)) * 60 * 1000).toISOString();
+                            }
                             updated = true;
                         }
                     }
@@ -2317,6 +2325,12 @@ const CargoStore = (function() {
 
         getWonAuctions: function() {
             const data = loadData();
+
+            // Admin / staff pages must always see the full won-auctions list.
+            if (data.currentAdmin) {
+                return data.wonAuctions || [];
+            }
+
             if (!data.currentUser) {
                 return (data.wonAuctions || []).filter(w => !w.agentCode || String(w.agentCode).trim().toUpperCase() === 'AG-0892');
             }
@@ -2345,6 +2359,13 @@ const CargoStore = (function() {
             const pathname = (typeof window !== 'undefined' && window.location && window.location.pathname) ? window.location.pathname : '';
             const isAdminPage = pathname.includes('/Admin/') || pathname.includes('/admin/') || !!currentAdmin;
 
+            const normalizeTargetAgentCode = (value) => {
+                if (value === null || value === undefined) return null;
+                const trimmed = String(value).trim();
+                if (!trimmed || trimmed.toUpperCase() === 'CHƯA CÓ' || trimmed.toUpperCase() === 'NULL' || trimmed.toUpperCase() === 'UNDEFINED') return null;
+                return trimmed;
+            };
+
             let allNotifs = data.notifications || [];
             allNotifs = allNotifs.map(n => {
                 const ts = n.timestamp || n.createdAt || (typeof n.id === 'number' && n.id > 1577836800000 ? n.id : (typeof n.id === 'string' && !isNaN(Number(n.id)) && Number(n.id) > 1577836800000 ? Number(n.id) : null));
@@ -2367,23 +2388,26 @@ const CargoStore = (function() {
                     ...n, 
                     title: title,
                     message: cleanedMessage,
-                    time: displayTime
+                    time: displayTime,
+                    targetAgentCode: normalizeTargetAgentCode(n.targetAgentCode)
                 };
             });
 
             // 1. Admin / Staff viewing on Admin Portal
             if (isAdminPage && currentAdmin) {
-                return allNotifs.filter(n => !n.targetAgentCode || n.targetRole === 'ADMIN' || n.targetRole === 'admin');
+                const adminNotifs = allNotifs.filter(n => !n.targetAgentCode || n.targetRole === 'ADMIN' || n.targetRole === 'admin');
+                return adminNotifs.sort((a, b) => (Number(b.timestamp || b.createdAt || b.id) || 0) - (Number(a.timestamp || a.createdAt || a.id) || 0));
             }
 
             // 2. Logged-in Agent viewing on Agent Portal
             if (!user) {
-                return allNotifs.filter(n => (n.type === 'SYSTEM' || n.type === 'ANNOUNCEMENT' || n.isBroadcast === true) && n.targetRole !== 'ADMIN');
+                const publicNotifs = allNotifs.filter(n => (n.type === 'SYSTEM' || n.type === 'ANNOUNCEMENT' || n.isBroadcast === true) && n.targetRole !== 'ADMIN');
+                return publicNotifs.sort((a, b) => (Number(b.timestamp || b.createdAt || b.id) || 0) - (Number(a.timestamp || a.createdAt || a.id) || 0));
             }
 
             const myCode = (user.agentCode || user.code || '').trim().toUpperCase();
 
-            return allNotifs.filter(n => {
+            const agentNotifs = allNotifs.filter(n => {
                 // Admin reconciliation notifications must NEVER leak to agents
                 if (n.targetRole === 'ADMIN' || n.targetRole === 'admin') return false;
                 // If targeted to a specific agent, match exact agent code
@@ -2393,6 +2417,8 @@ const CargoStore = (function() {
                 // Untargeted notifications are shown to all agents
                 return true;
             });
+
+            return agentNotifs.sort((a, b) => (Number(b.timestamp || b.createdAt || b.id) || 0) - (Number(a.timestamp || a.createdAt || a.id) || 0));
         },
 
         markNotificationRead: function(id) {
@@ -3562,14 +3588,8 @@ const CargoStore = (function() {
         getAdminNotifications: function() {
             const data = loadData();
             const notifs = data.notifications || [];
-            const filtered = notifs.filter(n => {
-                if (n.targetRole === 'ADMIN' || n.targetRole === 'admin') return true;
-                if (!n.targetAgentCode) return true;
-                if (n.type === 'PAYMENT' && (n.title || '').includes('ĐẠI LÝ BÁO CHUYỂN KHOẢN')) return true;
-                return false;
-            });
 
-            return filtered.map(n => {
+            return notifs.map(n => {
                 const ts = n.timestamp || n.createdAt || (typeof n.id === 'number' && n.id > 1577836800000 ? n.id : (typeof n.id === 'string' && !isNaN(Number(n.id)) && Number(n.id) > 1577836800000 ? Number(n.id) : null));
                 let displayTime = n.time;
                 if (ts) {
@@ -3589,9 +3609,7 @@ const CargoStore = (function() {
             const data = loadData();
             if (data.notifications) {
                 data.notifications.forEach(n => {
-                    if (n.targetRole === 'ADMIN' || !n.targetAgentCode || (n.title || '').includes('ĐẠI LÝ BÁO CHUYỂN KHOẢN')) {
-                        n.read = true;
-                    }
+                    n.read = true;
                 });
                 saveData(data);
             }

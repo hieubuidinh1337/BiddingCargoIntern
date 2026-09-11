@@ -972,11 +972,17 @@
 
         function isValidHawbFormat(hawb) {
             if (!hawb || typeof hawb !== 'string') return false;
-            const trimmed = hawb.trim();
-            if (trimmed.length < 4 || trimmed.length > 30) return false;
-            if (!/^[A-Za-z0-9\-\/]+$/.test(trimmed)) return false;
-            if (!/[A-Za-z]/.test(trimmed)) return false;
-            return /[-\/]/.test(trimmed) || /\d/.test(trimmed);
+
+            const normalized = hawb
+                .trim()
+                .replace(/\u00A0/g, ' ')
+                .replace(/[‐‑–—]/g, '-')
+                .replace(/\s+/g, '');
+
+            if (normalized.length < 4 || normalized.length > 30) return false;
+            if (!/^[A-Za-z0-9\-\/]+$/.test(normalized)) return false;
+            if (!/[A-Za-z]/.test(normalized)) return false;
+            return /[-\/]/.test(normalized) || /\d/.test(normalized);
         }
 
         function highlightCargoInputError(inputId, hasError) {
@@ -1605,12 +1611,18 @@
             }
 
             // Sorting Logic
+            const getWonSortValue = item => {
+                const raw = String(item?.wonId || '').replace(/^WON-/, '').replace(/-/g, '');
+                const numeric = Number(raw);
+                return Number.isFinite(numeric) ? numeric : 0;
+            };
+
             list.sort((a, b) => {
                 const getAmount = x => Number(x.totalAmountVND) || ((Number(x.priceKg) || 0) * (Number(x.capacityKg) || 0));
                 const getCap = x => Number(x.capacityKg) || 0;
                 
                 if (sortMode === 'OLDEST') {
-                    return (a.wonId || '').localeCompare(b.wonId || '');
+                    return getWonSortValue(a) - getWonSortValue(b);
                 } else if (sortMode === 'AMOUNT_DESC') {
                     return getAmount(b) - getAmount(a);
                 } else if (sortMode === 'AMOUNT_ASC') {
@@ -1620,7 +1632,7 @@
                 } else if (sortMode === 'CAPACITY_ASC') {
                     return getCap(a) - getCap(b);
                 } else { // NEWEST (default)
-                    return (b.wonId || '').localeCompare(a.wonId || '');
+                    return getWonSortValue(b) - getWonSortValue(a);
                 }
             });
 

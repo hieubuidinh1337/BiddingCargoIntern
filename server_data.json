@@ -1,6 +1,82 @@
 {
-  "version": 1789029297720,
+  "version": 1789032848170,
   "auctions": [
+    {
+      "id": 7,
+      "flightCode": "FL-VU138-260910",
+      "flightNumber": "VU138",
+      "route": "SGN - HAN",
+      "origin": "SGN",
+      "destination": "HAN",
+      "originName": "TP. Hồ Chí Minh",
+      "destName": "Hà Nội",
+      "etd": "23:00 · 10/09/2026",
+      "eta": "01:15 · 11/09/2026",
+      "etdIso": "2026-09-10T16:00:00.000Z",
+      "aircraft": "Airbus A321neo Cargo",
+      "capacityKg": 3000,
+      "startingPriceKg": 18000,
+      "currentPriceKg": 23000,
+      "minStep": 500,
+      "endTime": "2026-09-10T16:44:55.339Z",
+      "status": "OPEN",
+      "leadingAgentCode": "AG-0892",
+      "leadingAgentName": "Công ty TNHH Vận tải ABC Logistics",
+      "bidsCount": 3,
+      "specialNotes": "Tải trọng tổng hợp tiêu chuẩn IATA. Có hỗ trợ xe nâng hàng pallet tại sân bay.",
+      "cutOffTime": "Trước ETD 3 giờ",
+      "isAnonymous": false
+    },
+    {
+      "id": 6,
+      "flightCode": "FL-VU136-260910",
+      "flightNumber": "VU136",
+      "route": "SGN - HAN",
+      "origin": "SGN",
+      "destination": "HAN",
+      "originName": "TP. Hồ Chí Minh",
+      "destName": "Hà Nội",
+      "etd": "23:00 · 10/09/2026",
+      "eta": "01:15 · 11/09/2026",
+      "etdIso": "2026-09-10T16:00:00.000Z",
+      "aircraft": "Airbus A321neo Cargo",
+      "capacityKg": 5000,
+      "startingPriceKg": 18000,
+      "currentPriceKg": 18000,
+      "minStep": 500,
+      "endTime": "2026-09-10T16:44:55.339Z",
+      "status": "OPEN",
+      "leadingAgentCode": "Chưa có",
+      "leadingAgentName": "Chưa có đại lý nào đặt giá",
+      "bidsCount": 0,
+      "specialNotes": "Tải trọng tổng hợp tiêu chuẩn IATA. Có hỗ trợ xe nâng hàng pallet tại sân bay.",
+      "cutOffTime": "Trước ETD 3 giờ"
+    },
+    {
+      "id": 5,
+      "flightCode": "FL-VU134-260910",
+      "flightNumber": "VU134",
+      "route": "SGN - HAN",
+      "origin": "SGN",
+      "destination": "HAN",
+      "originName": "TP. Hồ Chí Minh",
+      "destName": "Hà Nội",
+      "etd": "23:00 · 10/09/2026",
+      "eta": "01:15 · 11/09/2026",
+      "etdIso": "2026-09-10T16:00:00.000Z",
+      "aircraft": "Airbus A321neo Cargo",
+      "capacityKg": 10000,
+      "startingPriceKg": 18000,
+      "currentPriceKg": 18000,
+      "minStep": 500,
+      "endTime": "2026-09-10T16:44:55.339Z",
+      "status": "OPEN",
+      "leadingAgentCode": "Chưa có",
+      "leadingAgentName": "Chưa có đại lý nào đặt giá",
+      "bidsCount": 0,
+      "specialNotes": "Tải trọng tổng hợp tiêu chuẩn IATA. Có hỗ trợ xe nâng hàng pallet tại sân bay.",
+      "cutOffTime": "Trước ETD 3 giờ"
+    },
     {
       "id": 4,
       "flightCode": "FL-VU132-260908",
@@ -111,6 +187,42 @@
     }
   ],
   "bids": [
+    {
+      "id": 1789030801503,
+      "timestamp": 1789030801503,
+      "auctionId": 7,
+      "agentCode": "AG-0892",
+      "agentName": "Công ty TNHH Vận tải ABC Logistics",
+      "isAnonymous": false,
+      "priceKg": 23000,
+      "time": "Vừa xong",
+      "status": "HIGHEST",
+      "weightKg": 3000
+    },
+    {
+      "id": 1789030798326,
+      "timestamp": 1789030798326,
+      "auctionId": 7,
+      "agentCode": "AG-0892",
+      "agentName": "Công ty TNHH Vận tải ABC Logistics",
+      "isAnonymous": true,
+      "priceKg": 22500,
+      "time": "Vừa xong",
+      "status": "OUTBID",
+      "weightKg": 3000
+    },
+    {
+      "id": 1789030741163,
+      "timestamp": 1789030741163,
+      "auctionId": 7,
+      "agentCode": "AG-0341",
+      "agentName": "Công ty TNHH SkyFreight Logistics Việt Nam",
+      "isAnonymous": true,
+      "priceKg": 18000,
+      "time": "Vừa xong",
+      "status": "OUTBID",
+      "weightKg": 3000
+    },
     {
       "id": 1789027971350,
       "timestamp": 1789027971350,
@@ -369,7 +481,9 @@
       "awbNumber": "998-12345678",
       "cutOffTime": "07:00 · 08/09/2026",
       "warehouse": "Kho hàng TCS Tân Sơn Nhất (Cửa số 4)",
-      "cargoDeclaration": null
+      "cargoDeclaration": null,
+      "lockPenaltyHandled": true,
+      "lockWaivedByAdmin": true
     },
     {
       "wonId": "WON-2026-0815-02",
@@ -387,7 +501,9 @@
       "awbNumber": "998-22409811",
       "cutOffTime": "13:00 · 09/09/2026",
       "warehouse": "Kho hàng TCS Tân Sơn Nhất (Cửa số 2)",
-      "cargoDeclaration": null
+      "cargoDeclaration": null,
+      "lockPenaltyHandled": true,
+      "lockWaivedByAdmin": true
     },
     {
       "wonId": "WON-2026-0815-03",
@@ -405,7 +521,9 @@
       "awbNumber": "998-13098722",
       "cutOffTime": "11:30 · 09/09/2026",
       "warehouse": "Kho hàng SCSC Tân Sơn Nhất",
-      "cargoDeclaration": null
+      "cargoDeclaration": null,
+      "lockPenaltyHandled": true,
+      "lockWaivedByAdmin": true
     },
     {
       "wonId": "WON-2026-0815-04",
@@ -465,7 +583,9 @@
       "awbNumber": "998-22688192",
       "cutOffTime": "18:00 · 09/09/2026",
       "warehouse": "Kho hàng TCS Tân Sơn Nhất (Cửa số 3)",
-      "cargoDeclaration": null
+      "cargoDeclaration": null,
+      "lockPenaltyHandled": true,
+      "lockWaivedByAdmin": true
     },
     {
       "wonId": "WON-20260908-06",
@@ -484,7 +604,8 @@
       "cutOffTime": "Trước ETD 3 giờ",
       "warehouse": "Kho hàng SCSC / TCS Tân Sơn Nhất (Cửa số 4)",
       "cargoDeclaration": null,
-      "lockPenaltyHandled": true
+      "lockPenaltyHandled": true,
+      "lockWaivedByAdmin": true
     },
     {
       "wonId": "WON-20260909-07",
@@ -504,10 +625,165 @@
       "cutOffTime": "09:10 · 09/09/2026",
       "warehouse": "Kho hàng SCSC / TCS Tân Sơn Nhất (Cửa số 4)",
       "cargoDeclaration": null,
-      "lockPenaltyHandled": true
+      "lockPenaltyHandled": true,
+      "lockWaivedByAdmin": true
     }
   ],
   "notifications": [
+    {
+      "id": 1789030801503,
+      "timestamp": 1789030801503,
+      "targetAgentCode": "AG-0892",
+      "title": "Đặt giá thành công chuyến VU138",
+      "message": "Bạn (AG-0892) đang dẫn đầu mức giá 23.000 đ/Kg cho chặng SGN - HAN.",
+      "time": "Vừa xong",
+      "type": "HIGHEST",
+      "read": true,
+      "link": "04-Detail.html?id=7"
+    },
+    {
+      "id": 1789030798327,
+      "timestamp": 1789030798327,
+      "targetAgentCode": "AG-0341",
+      "title": "Cảnh báo bị vượt giá chuyến VU138!",
+      "message": "Một đại lý đối thủ (Ẩn danh) vừa đặt mức giá mới 22.500 đ/Kg cho chặng SGN - HAN.",
+      "time": "Vừa xong",
+      "type": "OUTBID",
+      "read": false,
+      "link": "04-Detail.html?id=7"
+    },
+    {
+      "id": 1789030798326,
+      "timestamp": 1789030798326,
+      "targetAgentCode": "AG-0892",
+      "title": "Đặt giá thành công chuyến VU138",
+      "message": "Bạn (AG-0892) đang dẫn đầu mức giá 22.500 đ/Kg cho chặng SGN - HAN. (Tên công ty được che ẩn danh đối với các đối thủ)",
+      "time": "Vừa xong",
+      "type": "HIGHEST",
+      "read": true,
+      "link": "04-Detail.html?id=7"
+    },
+    {
+      "id": 1789030777930,
+      "timestamp": 1789030777169,
+      "targetAgentCode": "AG-0556",
+      "title": "🔓 TÀI KHOẢN ĐÃ ĐƯỢC MỞ KHÓA KÍCH HOẠT",
+      "message": "Tài khoản đại lý AG-0556 (Công ty TNHH Tiếp vận Toàn Cầu Golden Star) của bạn đã được Quản trị viên MỞ KHÓA. Lý do mở khóa: \"Đại lý đã nộp bổ sung tiền thanh toán sau quá hạn & được Ban Điều hành chấp thuận mở khóa\". Quyền tham gia đấu giá trên sàn đã được khôi phục.",
+      "time": "Vừa xong",
+      "type": "SYSTEM",
+      "read": false,
+      "link": "03-Index.html"
+    },
+    {
+      "id": 1789030774832,
+      "timestamp": 1789030774605,
+      "targetAgentCode": "AG-1024",
+      "title": "🔓 TÀI KHOẢN ĐÃ ĐƯỢC MỞ KHÓA KÍCH HOẠT",
+      "message": "Tài khoản đại lý AG-1024 (Công ty CP Giao nhận Kho vận Vinatrans) của bạn đã được Quản trị viên MỞ KHÓA. Lý do mở khóa: \"Đại lý đã nộp bổ sung tiền thanh toán sau quá hạn & được Ban Điều hành chấp thuận mở khóa\". Quyền tham gia đấu giá trên sàn đã được khôi phục.",
+      "time": "Vừa xong",
+      "type": "SYSTEM",
+      "read": false,
+      "link": "03-Index.html"
+    },
+    {
+      "id": 1789030773005,
+      "timestamp": 1789030772200,
+      "targetAgentCode": "AG-0892",
+      "title": "🔓 TÀI KHOẢN ĐÃ ĐƯỢC MỞ KHÓA KÍCH HOẠT",
+      "message": "Tài khoản đại lý AG-0892 (Công ty TNHH Vận tải ABC Logistics) của bạn đã được Quản trị viên MỞ KHÓA. Lý do mở khóa: \"Đại lý đã nộp bổ sung tiền thanh toán sau quá hạn & được Ban Điều hành chấp thuận mở khóa\". Quyền tham gia đấu giá trên sàn đã được khôi phục.",
+      "time": "Vừa xong",
+      "type": "SYSTEM",
+      "read": true,
+      "link": "03-Index.html"
+    },
+    {
+      "id": 1789030741164,
+      "timestamp": 1789030741164,
+      "targetAgentCode": "Chưa có",
+      "title": "Cảnh báo bị vượt giá chuyến VU138!",
+      "message": "Một đại lý đối thủ (Ẩn danh) vừa đặt mức giá mới 18.000 đ/Kg cho chặng SGN - HAN.",
+      "time": "Vừa xong",
+      "type": "OUTBID",
+      "read": false,
+      "link": "04-Detail.html?id=7"
+    },
+    {
+      "id": 1789030741163,
+      "timestamp": 1789030741163,
+      "targetAgentCode": "AG-0341",
+      "title": "Đặt giá thành công chuyến VU138",
+      "message": "Bạn (AG-0341) đang dẫn đầu mức giá 18.000 đ/Kg cho chặng SGN - HAN. (Tên công ty được che ẩn danh đối với các đối thủ)",
+      "time": "Vừa xong",
+      "type": "HIGHEST",
+      "read": true,
+      "link": "04-Detail.html?id=7"
+    },
+    {
+      "id": 1789030727058,
+      "timestamp": 1789030726414,
+      "targetAgentCode": "AG-0892",
+      "title": "🔔 [TUYẾN BẠN QUAN TÂM] Phiên mới: VU138 (SGN - HAN)",
+      "message": "Chuyến bay VU138 tuyến TP. Hồ Chí Minh ➔ Hà Nội mà Quý đại lý đang theo dõi vừa mở đấu giá tải trọng 3.000 Kg (Giá khởi điểm: 18.000 đ/Kg). Đặt giá ngay để không bỏ lỡ slot!",
+      "time": "Vừa xong",
+      "type": "AUCTION_OPEN",
+      "read": true,
+      "link": "04-Detail.html?id=7"
+    },
+    {
+      "id": 1789030726414,
+      "timestamp": 1789030726414,
+      "targetAgentCode": null,
+      "title": "Mở phiên đấu giá mới: Chuyến VU138 (SGN - HAN)",
+      "message": "Chuyến bay VU138 (TP. Hồ Chí Minh - Hà Nội) với tải trọng 3.000 Kg, giá khởi điểm 18.000 đ/Kg đã chính thức mở nhận giá thầu.",
+      "time": "Vừa xong",
+      "type": "AUCTION_OPEN",
+      "read": true,
+      "link": "04-Detail.html?id=7"
+    },
+    {
+      "id": 1789030723309,
+      "timestamp": 1789030722589,
+      "targetAgentCode": "AG-0892",
+      "title": "🔔 [TUYẾN BẠN QUAN TÂM] Phiên mới: VU136 (SGN - HAN)",
+      "message": "Chuyến bay VU136 tuyến TP. Hồ Chí Minh ➔ Hà Nội mà Quý đại lý đang theo dõi vừa mở đấu giá tải trọng 5.000 Kg (Giá khởi điểm: 18.000 đ/Kg). Đặt giá ngay để không bỏ lỡ slot!",
+      "time": "Vừa xong",
+      "type": "AUCTION_OPEN",
+      "read": true,
+      "link": "04-Detail.html?id=6"
+    },
+    {
+      "id": 1789030722589,
+      "timestamp": 1789030722589,
+      "targetAgentCode": null,
+      "title": "Mở phiên đấu giá mới: Chuyến VU136 (SGN - HAN)",
+      "message": "Chuyến bay VU136 (TP. Hồ Chí Minh - Hà Nội) với tải trọng 5.000 Kg, giá khởi điểm 18.000 đ/Kg đã chính thức mở nhận giá thầu.",
+      "time": "Vừa xong",
+      "type": "AUCTION_OPEN",
+      "read": true,
+      "link": "04-Detail.html?id=6"
+    },
+    {
+      "id": 1789030717686,
+      "timestamp": 1789030716713,
+      "targetAgentCode": "AG-0892",
+      "title": "🔔 [TUYẾN BẠN QUAN TÂM] Phiên mới: VU134 (SGN - HAN)",
+      "message": "Chuyến bay VU134 tuyến TP. Hồ Chí Minh ➔ Hà Nội mà Quý đại lý đang theo dõi vừa mở đấu giá tải trọng 10.000 Kg (Giá khởi điểm: 18.000 đ/Kg). Đặt giá ngay để không bỏ lỡ slot!",
+      "time": "Vừa xong",
+      "type": "AUCTION_OPEN",
+      "read": true,
+      "link": "04-Detail.html?id=5"
+    },
+    {
+      "id": 1789030716711,
+      "timestamp": 1789030716713,
+      "targetAgentCode": null,
+      "title": "Mở phiên đấu giá mới: Chuyến VU134 (SGN - HAN)",
+      "message": "Chuyến bay VU134 (TP. Hồ Chí Minh - Hà Nội) với tải trọng 10.000 Kg, giá khởi điểm 18.000 đ/Kg đã chính thức mở nhận giá thầu.",
+      "time": "Vừa xong",
+      "type": "AUCTION_OPEN",
+      "read": true,
+      "link": "04-Detail.html?id=5"
+    },
     {
       "id": 1789028050863,
       "targetAgentCode": "AG-0341",
@@ -595,7 +871,7 @@
       "message": "Phiên đấu giá chỉ còn dưới 30 phút. Đừng bỏ lỡ tải trọng tốt!",
       "time": "45 phút trước",
       "type": "CLOSING_SOON",
-      "read": false,
+      "read": true,
       "link": "04-Detail.html?id=1"
     },
     {
@@ -606,7 +882,7 @@
       "message": "Đại lý Công ty TNHH Vận tải ABC Logistics (AG-0892) đã trúng thầu chuyến bay VU450 (SGN - PQC) với giá 24.000 đ/Kg. Vui lòng hoàn tất thanh toán & khai báo hàng hóa trong 24h.",
       "time": "1 ngày trước",
       "type": "WON",
-      "read": false,
+      "read": true,
       "link": "07-WonAuction.html"
     },
     {
@@ -617,7 +893,7 @@
       "message": "Đại lý ẩn danh (AG-***) vừa đặt mức giá mới 19.500 đ/Kg cho chặng SGN - DAD. Bạn không còn dẫn đầu.",
       "time": "30 phút trước",
       "type": "OUTBID",
-      "read": false,
+      "read": true,
       "link": "04-Detail.html?id=2"
     },
     {
@@ -702,15 +978,16 @@
       "address": "123 Nguyễn Huệ, Quận 1, TP. Hồ Chí Minh",
       "province": "TP. Hồ Chí Minh",
       "tier": "TIER1",
-      "status": "Đã khóa",
+      "status": "Đang hoạt động",
       "joinedDate": "15/03/2024",
       "totalBids": 24,
       "totalWins": 8,
       "winRate": "33%",
       "totalSpentUSD": "12.4k",
       "totalSpentVND": 1600000000,
-      "lockedReason": "Hệ thống tự động khóa do quá hạn thanh toán đơn WON-2026-0814-01 (VU132 - SGN - HAN)",
-      "lockedAt": "15:11:53 10/9/2026"
+      "unlockedAt": "15:59:32 10/9/2026",
+      "unlockedBy": "admin",
+      "unlockedReason": "Đại lý đã nộp bổ sung tiền thanh toán sau quá hạn & được Ban Điều hành chấp thuận mở khóa"
     },
     {
       "id": 2,
@@ -725,15 +1002,16 @@
       "address": "406 Nguyễn Tất Thành, Quận 4, TP. Hồ Chí Minh",
       "province": "TP. Hồ Chí Minh",
       "tier": "TIER1",
-      "status": "Đã khóa",
+      "status": "Đang hoạt động",
       "joinedDate": "10/01/2024",
       "totalBids": 45,
       "totalWins": 16,
       "winRate": "36%",
       "totalSpentUSD": "28.2k",
       "totalSpentVND": 3640000000,
-      "lockedReason": "Hệ thống tự động khóa do quá hạn thanh toán đơn WON-2026-0815-02 (VU224 - SGN - DAD)",
-      "lockedAt": "13:00:00 9/9/2026"
+      "unlockedAt": "15:59:34 10/9/2026",
+      "unlockedBy": "admin",
+      "unlockedReason": "Đại lý đã nộp bổ sung tiền thanh toán sau quá hạn & được Ban Điều hành chấp thuận mở khóa"
     },
     {
       "id": 3,
@@ -748,15 +1026,16 @@
       "address": "88 Láng Hạ, Đống Đa, Hà Nội",
       "province": "Hà Nội",
       "tier": "TIER1",
-      "status": "Đã khóa",
+      "status": "Đang hoạt động",
       "joinedDate": "22/05/2024",
       "totalBids": 18,
       "totalWins": 5,
       "winRate": "28%",
       "totalSpentUSD": "8.0k",
       "totalSpentVND": 1030000000,
-      "lockedReason": "Hệ thống tự động khóa do quá hạn thanh toán đơn WON-20260909-07 (VU450 - SGN - PQC)",
-      "lockedAt": "09:10:00 9/9/2026"
+      "unlockedAt": "15:59:37 10/9/2026",
+      "unlockedBy": "admin",
+      "unlockedReason": "Đại lý đã nộp bổ sung tiền thanh toán sau quá hạn & được Ban Điều hành chấp thuận mở khóa"
     },
     {
       "id": 4,
@@ -831,6 +1110,36 @@
     }
   ],
   "emailLogs": [
+    {
+      "id": 1789030728679,
+      "to": "an.nguyen@abccargo.vn",
+      "type": "ROUTE_AUCTION_OPEN",
+      "subject": "[Vietravel Airlines Cargo] 🔔 MỞ ĐẤU GIÁ TUYẾN QUAN TÂM: Chuyến VU138 (SGN - HAN)",
+      "messageId": "<22cdb413-92d5-2686-e0fd-444a0729e23c@gmail.com>",
+      "isRealSmtp": true,
+      "previewUrl": null,
+      "sentAt": "15:58:48 10/9/2026"
+    },
+    {
+      "id": 1789030725571,
+      "to": "an.nguyen@abccargo.vn",
+      "type": "ROUTE_AUCTION_OPEN",
+      "subject": "[Vietravel Airlines Cargo] 🔔 MỞ ĐẤU GIÁ TUYẾN QUAN TÂM: Chuyến VU136 (SGN - HAN)",
+      "messageId": "<4e589770-ba81-6831-68cc-4a014f7e94ee@gmail.com>",
+      "isRealSmtp": true,
+      "previewUrl": null,
+      "sentAt": "15:58:45 10/9/2026"
+    },
+    {
+      "id": 1789030719456,
+      "to": "an.nguyen@abccargo.vn",
+      "type": "ROUTE_AUCTION_OPEN",
+      "subject": "[Vietravel Airlines Cargo] 🔔 MỞ ĐẤU GIÁ TUYẾN QUAN TÂM: Chuyến VU134 (SGN - HAN)",
+      "messageId": "<9100141b-2426-c3d8-0322-87be501a3a2b@gmail.com>",
+      "isRealSmtp": true,
+      "previewUrl": null,
+      "sentAt": "15:58:39 10/9/2026"
+    },
     {
       "id": 1789028053743,
       "to": "dung.hoang@saigonair.vn",

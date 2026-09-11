@@ -245,6 +245,7 @@
 
             const myBids = CargoStore.getMyBids();
             const auctions = CargoStore.getAuctions();
+            const wonAuctions = CargoStore.getWonAuctions ? CargoStore.getWonAuctions() : [];
 
             let filtered = myBids;
             if (currentTab !== 'ALL') {
@@ -272,13 +273,45 @@
 
             tbody.innerHTML = paginatedList.map(b => {
                 const auction = auctions.find(a => a.id == b.auctionId) || {};
+                const wonAuction = wonAuctions.find(w => String(w.auctionId) === String(b.auctionId) || (auction.flightNumber && w.flightNumber && w.flightNumber === auction.flightNumber)) || null;
+                const paymentStatus = wonAuction ? wonAuction.paymentStatus : null;
+                const cargoDeclared = wonAuction ? (CargoStore.isCargoDeclared ? CargoStore.isCargoDeclared(wonAuction) : !!(wonAuction.cargoDeclaration && wonAuction.cargoDeclaration.cargoName)) : false;
+
                 let statusBadge = '';
                 if (b.status === 'HIGHEST') {
                     statusBadge = '<span class="bg-green-100 text-green-700 font-bold px-2.5 py-1 rounded-full text-[10px] inline-flex items-center gap-1"><i class="fa-solid fa-crown"></i> Đang dẫn đầu</span>';
                 } else if (b.status === 'OUTBID') {
                     statusBadge = '<span class="bg-red-100 text-red-600 font-semibold px-2.5 py-1 rounded-full text-[10px]">Bị vượt giá</span>';
                 } else if (b.status === 'WON') {
-                    statusBadge = '<span class="bg-purple-100 text-purple-700 font-bold px-2.5 py-1 rounded-full text-[10px]"><i class="fa-solid fa-trophy mr-1"></i>Thắng thầu</span>';
+                    if (paymentStatus === 'PAID') {
+                        statusBadge = '<span class="bg-emerald-100 text-emerald-700 font-bold px-2.5 py-1 rounded-full text-[10px] inline-flex items-center gap-1"><i class="fa-solid fa-circle-check"></i> Đã thanh toán</span>';
+                    } else if (paymentStatus === 'PENDING_VERIFICATION') {
+                        statusBadge = '<span class="bg-amber-100 text-amber-700 font-bold px-2.5 py-1 rounded-full text-[10px] inline-flex items-center gap-1"><i class="fa-solid fa-hourglass-half"></i> Chờ xác nhận</span>';
+                    } else if (paymentStatus === 'EXPIRED') {
+                        statusBadge = '<span class="bg-red-100 text-red-700 font-bold px-2.5 py-1 rounded-full text-[10px] inline-flex items-center gap-1"><i class="fa-solid fa-ban"></i> Quá hạn</span>';
+                    } else {
+                        statusBadge = '<span class="bg-purple-100 text-purple-700 font-bold px-2.5 py-1 rounded-full text-[10px]"><i class="fa-solid fa-trophy mr-1"></i>Thắng thầu</span>';
+                    }
+                }
+
+                let wonActionHtml = '';
+                if (b.status === 'WON') {
+                    if (paymentStatus === 'PAID') {
+                        wonActionHtml = cargoDeclared
+                            ? '<span class="inline-flex items-center gap-1 bg-emerald-100 text-emerald-700 font-bold px-2.5 py-1.5 rounded-lg text-xs">Đã khai báo</span>'
+                            : `<a href="07-WonAuction.html?action=declare&flight=${encodeURIComponent(auction.flightNumber || '')}" class="inline-flex items-center gap-1 bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white font-bold px-2.5 py-1.5 rounded-lg text-xs transition shadow-xs" title="Khai báo hàng hóa">
+                                <i class="fa-solid fa-boxes-packing text-[10px]"></i> Khai báo
+                            </a>`;
+                    } else {
+                        wonActionHtml = `
+                            <a href="07-WonAuction.html?action=pay&flight=${encodeURIComponent(auction.flightNumber || '')}" class="inline-flex items-center gap-1 bg-gradient-to-r from-amber-500 to-orange-500 hover:from-amber-600 hover:to-orange-600 text-white font-bold px-2.5 py-1.5 rounded-lg text-xs transition shadow-xs" title="Chuyển qua thanh toán">
+                                <i class="fa-solid fa-qrcode text-[10px]"></i> Thanh toán
+                            </a>
+                            <a href="07-WonAuction.html?action=declare&flight=${encodeURIComponent(auction.flightNumber || '')}" class="inline-flex items-center gap-1 bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white font-bold px-2.5 py-1.5 rounded-lg text-xs transition shadow-xs" title="Khai báo hàng hóa">
+                                <i class="fa-solid fa-boxes-packing text-[10px]"></i> Khai báo
+                            </a>
+                        `;
+                    }
                 }
 
                 return `
@@ -307,14 +340,7 @@
                         </td>
                         <td class="py-3.5 px-5 text-right">
                             <div class="flex items-center justify-end gap-1.5">
-                                ${b.status === 'WON' ? `
-                                    <a href="07-WonAuction.html?action=pay&flight=${encodeURIComponent(auction.flightNumber || '')}" class="inline-flex items-center gap-1 bg-gradient-to-r from-amber-500 to-orange-500 hover:from-amber-600 hover:to-orange-600 text-white font-bold px-2.5 py-1.5 rounded-lg text-xs transition shadow-xs" title="Chuyển qua thanh toán">
-                                        <i class="fa-solid fa-qrcode text-[10px]"></i> Thanh toán
-                                    </a>
-                                    <a href="07-WonAuction.html?action=declare&flight=${encodeURIComponent(auction.flightNumber || '')}" class="inline-flex items-center gap-1 bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white font-bold px-2.5 py-1.5 rounded-lg text-xs transition shadow-xs" title="Khai báo hàng hóa">
-                                        <i class="fa-solid fa-boxes-packing text-[10px]"></i> Khai báo
-                                    </a>
-                                ` : ''}
+                                ${wonActionHtml}
                                 <a href="04-Detail.html?id=${b.auctionId}" class="inline-flex items-center gap-1.5 bg-blue-50 hover:bg-blue-100 text-blue-700 font-semibold px-3 py-1.5 rounded-lg text-xs transition">
                                     ${b.status === 'OUTBID' ? '<i class="fa-solid fa-rotate text-[10px]"></i> Đặt lại' : 'Chi tiết'}
                                 </a>
