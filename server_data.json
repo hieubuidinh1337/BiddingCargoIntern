@@ -1,5 +1,5 @@
 {
-  "version": 1789032848170,
+  "version": 1789089269182,
   "auctions": [
     {
       "id": 7,
@@ -10,21 +10,21 @@
       "destination": "HAN",
       "originName": "TP. Hồ Chí Minh",
       "destName": "Hà Nội",
-      "etd": "23:00 · 10/09/2026",
-      "eta": "01:15 · 11/09/2026",
-      "etdIso": "2026-09-10T16:00:00.000Z",
+      "etd": "16:15 · 11/09/2026",
+      "eta": "18:30 · 11/09/2026",
+      "etdIso": "2026-09-11T09:15:00.000Z",
       "aircraft": "Airbus A321neo Cargo",
       "capacityKg": 3000,
       "startingPriceKg": 18000,
       "currentPriceKg": 23000,
       "minStep": 500,
-      "endTime": "2026-09-10T16:44:55.339Z",
+      "endTime": "2026-09-11T04:15:00.000Z",
       "status": "OPEN",
       "leadingAgentCode": "AG-0892",
       "leadingAgentName": "Công ty TNHH Vận tải ABC Logistics",
       "bidsCount": 3,
       "specialNotes": "Tải trọng tổng hợp tiêu chuẩn IATA. Có hỗ trợ xe nâng hàng pallet tại sân bay.",
-      "cutOffTime": "Trước ETD 3 giờ",
+      "cutOffTime": "13:15 · 11/09/2026",
       "isAnonymous": false
     },
     {
@@ -36,21 +36,21 @@
       "destination": "HAN",
       "originName": "TP. Hồ Chí Minh",
       "destName": "Hà Nội",
-      "etd": "23:00 · 10/09/2026",
-      "eta": "01:15 · 11/09/2026",
-      "etdIso": "2026-09-10T16:00:00.000Z",
+      "etd": "19:15 · 11/09/2026",
+      "eta": "21:30 · 11/09/2026",
+      "etdIso": "2026-09-11T12:15:00.000Z",
       "aircraft": "Airbus A321neo Cargo",
       "capacityKg": 5000,
       "startingPriceKg": 18000,
       "currentPriceKg": 18000,
       "minStep": 500,
-      "endTime": "2026-09-10T16:44:55.339Z",
+      "endTime": "2026-09-11T07:15:00.000Z",
       "status": "OPEN",
       "leadingAgentCode": "Chưa có",
       "leadingAgentName": "Chưa có đại lý nào đặt giá",
       "bidsCount": 0,
       "specialNotes": "Tải trọng tổng hợp tiêu chuẩn IATA. Có hỗ trợ xe nâng hàng pallet tại sân bay.",
-      "cutOffTime": "Trước ETD 3 giờ"
+      "cutOffTime": "16:15 · 11/09/2026"
     },
     {
       "id": 5,
@@ -61,21 +61,21 @@
       "destination": "HAN",
       "originName": "TP. Hồ Chí Minh",
       "destName": "Hà Nội",
-      "etd": "23:00 · 10/09/2026",
-      "eta": "01:15 · 11/09/2026",
-      "etdIso": "2026-09-10T16:00:00.000Z",
+      "etd": "22:15 · 11/09/2026",
+      "eta": "00:30 · 12/09/2026",
+      "etdIso": "2026-09-11T15:15:00.000Z",
       "aircraft": "Airbus A321neo Cargo",
       "capacityKg": 10000,
       "startingPriceKg": 18000,
       "currentPriceKg": 18000,
       "minStep": 500,
-      "endTime": "2026-09-10T16:44:55.339Z",
+      "endTime": "2026-09-11T10:15:00.000Z",
       "status": "OPEN",
       "leadingAgentCode": "Chưa có",
       "leadingAgentName": "Chưa có đại lý nào đặt giá",
       "bidsCount": 0,
       "specialNotes": "Tải trọng tổng hợp tiêu chuẩn IATA. Có hỗ trợ xe nâng hàng pallet tại sân bay.",
-      "cutOffTime": "Trước ETD 3 giờ"
+      "cutOffTime": "19:15 · 11/09/2026"
     },
     {
       "id": 4,
@@ -143,21 +143,21 @@
       "destination": "DAD",
       "originName": "TP. Hồ Chí Minh",
       "destName": "Đà Nẵng",
-      "etd": "05:15 · 11/09/2026",
-      "eta": "06:35 · 11/09/2026",
+      "etd": "16:15 · 11/09/2026",
+      "eta": "17:35 · 11/09/2026",
       "aircraft": "Airbus A320-200",
       "capacityKg": 2000,
       "startingPriceKg": 12000,
       "currentPriceKg": 14500,
       "minStep": 500,
-      "endTime": "2026-09-10T17:15:00.000Z",
+      "endTime": "2026-09-11T04:15:00.000Z",
       "status": "OPEN",
       "leadingAgentCode": "AG-0341",
       "leadingAgentName": "Công ty TNHH SkyFreight Logistics Việt Nam",
       "bidsCount": 4,
       "specialNotes": "Ưu tiên bưu kiện bưu phẩm thương mại điện tử chuyển phát nhanh.",
-      "cutOffTime": "02:15 · 11/09/2026",
-      "etdIso": "2026-09-10T22:15:00.000Z",
+      "cutOffTime": "13:15 · 11/09/2026",
+      "etdIso": "2026-09-11T09:15:00.000Z",
       "isAnonymous": true
     },
     {
@@ -169,21 +169,21 @@
       "destination": "HAN",
       "originName": "TP. Hồ Chí Minh",
       "destName": "Hà Nội",
-      "etd": "08:15 · 11/09/2026",
-      "eta": "10:30 · 11/09/2026",
+      "etd": "19:15 · 11/09/2026",
+      "eta": "21:30 · 11/09/2026",
       "aircraft": "Airbus A321neo Cargo",
       "capacityKg": 3500,
       "startingPriceKg": 18000,
       "currentPriceKg": 56500,
       "minStep": 500,
-      "endTime": "2026-09-10T20:15:00.000Z",
+      "endTime": "2026-09-11T07:15:00.000Z",
       "status": "OPEN",
       "leadingAgentCode": "AG-0892",
       "leadingAgentName": "ABC Logistics",
       "bidsCount": 10,
       "specialNotes": "Hàng tổng hợp, hỗ trợ kho lạnh bảo quản thực phẩm & dược phẩm.",
-      "cutOffTime": "05:15 · 11/09/2026",
-      "etdIso": "2026-09-11T01:15:00.000Z"
+      "cutOffTime": "16:15 · 11/09/2026",
+      "etdIso": "2026-09-11T12:15:00.000Z"
     }
   ],
   "bids": [
@@ -649,7 +649,7 @@
       "message": "Một đại lý đối thủ (Ẩn danh) vừa đặt mức giá mới 22.500 đ/Kg cho chặng SGN - HAN.",
       "time": "Vừa xong",
       "type": "OUTBID",
-      "read": false,
+      "read": true,
       "link": "04-Detail.html?id=7"
     },
     {
@@ -671,7 +671,7 @@
       "message": "Tài khoản đại lý AG-0556 (Công ty TNHH Tiếp vận Toàn Cầu Golden Star) của bạn đã được Quản trị viên MỞ KHÓA. Lý do mở khóa: \"Đại lý đã nộp bổ sung tiền thanh toán sau quá hạn & được Ban Điều hành chấp thuận mở khóa\". Quyền tham gia đấu giá trên sàn đã được khôi phục.",
       "time": "Vừa xong",
       "type": "SYSTEM",
-      "read": false,
+      "read": true,
       "link": "03-Index.html"
     },
     {
@@ -682,7 +682,7 @@
       "message": "Tài khoản đại lý AG-1024 (Công ty CP Giao nhận Kho vận Vinatrans) của bạn đã được Quản trị viên MỞ KHÓA. Lý do mở khóa: \"Đại lý đã nộp bổ sung tiền thanh toán sau quá hạn & được Ban Điều hành chấp thuận mở khóa\". Quyền tham gia đấu giá trên sàn đã được khôi phục.",
       "time": "Vừa xong",
       "type": "SYSTEM",
-      "read": false,
+      "read": true,
       "link": "03-Index.html"
     },
     {
@@ -704,7 +704,7 @@
       "message": "Một đại lý đối thủ (Ẩn danh) vừa đặt mức giá mới 18.000 đ/Kg cho chặng SGN - HAN.",
       "time": "Vừa xong",
       "type": "OUTBID",
-      "read": false,
+      "read": true,
       "link": "04-Detail.html?id=7"
     },
     {
@@ -849,7 +849,7 @@
       "message": "Một đại lý đối thủ (Ẩn danh) vừa đặt mức giá mới 28.000 đ/Kg cho chặng HAN - PQC.",
       "time": "Vừa xong",
       "type": "OUTBID",
-      "read": false,
+      "read": true,
       "link": "04-Detail.html?id=3"
     },
     {
