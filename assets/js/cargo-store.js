@@ -2394,8 +2394,13 @@ const CargoStore = (function() {
             });
 
             // 1. Admin / Staff viewing on Admin Portal
+            // Only show notifications explicitly scoped to admin/staff.
+            // Agent-facing broadcasts (HIGHEST / OUTBID / WON / AUCTION_OPEN) must stay on the agent portal.
             if (isAdminPage && currentAdmin) {
-                const adminNotifs = allNotifs.filter(n => !n.targetAgentCode || n.targetRole === 'ADMIN' || n.targetRole === 'admin');
+                const adminNotifs = allNotifs.filter(n => {
+                    const role = String(n.targetRole || '').trim().toUpperCase();
+                    return role === 'ADMIN' || role === 'STAFF';
+                });
                 return adminNotifs.sort((a, b) => (Number(b.timestamp || b.createdAt || b.id) || 0) - (Number(a.timestamp || a.createdAt || a.id) || 0));
             }
 
