@@ -50,7 +50,7 @@ const CargoStore = (function() {
             winRate: '36%',
             totalSpentUSD: '28.2k',
             totalSpentVND: 3640000000,
-            lockedReason: 'Hệ thống tự động khóa do quá hạn thanh toán đơn WON-2026-0815-02 (VU224 - SGN - DAD)',
+            lockedReason: 'Hệ thống tự động khóa do quá hạn thanh toán đơn WON-2026-0815-02 (VU224 chuyến 15/08 - SGN - DAD)',
             lockedAt: '13:00:00 9/9/2026'
         },
         {
@@ -2104,36 +2104,77 @@ const CargoStore = (function() {
 
         getAuctionById: function(id) {
             const auctions = this.getAuctions();
-            return auctions.find(a => a.id == id);
+            let found = auctions.find(a => a.id == id);
+            if (!found) {
+                const data = loadData();
+                const won = (data.wonAuctions || []).find(w => w.auctionId == id || w.wonId == id);
+                if (won) {
+                    found = {
+                        id: won.auctionId,
+                        flightNumber: won.flightNumber,
+                        route: won.route,
+                        flightCode: won.flightCode || `FL-${won.flightNumber}`,
+                        capacityKg: won.capacityKg,
+                        startingPriceKg: won.startingPriceKg || Math.max(10000, won.priceKg - 2500),
+                        currentPriceKg: won.priceKg,
+                        minStep: 500,
+                        status: 'CLOSED',
+                        bidsCount: won.bidsCount || 4,
+                        winnerAgentCode: won.agentCode,
+                        winnerAgentName: won.agentName,
+                        winningPriceKg: won.priceKg,
+                        cutOffTime: won.cutOffTime,
+                        aircraft: won.aircraft || 'Airbus A321-200',
+                        etd: won.etd || '09:10 · 09/09/2026',
+                        eta: won.eta || '11:15 · 09/09/2026',
+                        specialNotes: 'Phiên đấu giá đã đóng thầu & chốt đại lý trúng thầu.'
+                    };
+                }
+            }
+            return found;
         },
 
         getBidsForAuction: function(auctionId) {
             const data = loadData();
-            const auction = (data.auctions || []).find(a => a.id == auctionId);
+            let auction = (data.auctions || []).find(a => a.id == auctionId);
+            const wonItem = (data.wonAuctions || []).find(w => w.auctionId == auctionId || w.wonId == auctionId);
             let bids = (data.bids || []).filter(b => b.auctionId == auctionId);
 
-            if (auction && (auction.bidsCount > 0) && bids.length === 0) {
+            if (!auction && wonItem) {
+                auction = {
+                    id: wonItem.auctionId,
+                    capacityKg: wonItem.capacityKg,
+                    startingPriceKg: wonItem.startingPriceKg || Math.max(10000, wonItem.priceKg - 2500),
+                    currentPriceKg: wonItem.priceKg,
+                    minStep: 500,
+                    status: 'CLOSED',
+                    bidsCount: wonItem.bidsCount || 4,
+                    winnerAgentCode: wonItem.agentCode,
+                    winnerAgentName: wonItem.agentName
+                };
+            }
+
+            if (auction && bids.length === 0) {
+                const count = auction.bidsCount || 4;
+                const winnerCode = auction.winnerAgentCode || (wonItem ? wonItem.agentCode : 'AG-0556');
+                const winnerName = auction.winnerAgentName || (wonItem ? wonItem.agentName : 'Công ty TNHH Tiếp vận Toàn Cầu Golden Star');
+                const winPrice = Number(auction.winningPriceKg || auction.currentPriceKg || 22500);
+                const startPrice = Math.max(10000, winPrice - 3000);
+                const step = (winPrice - startPrice) / Math.max(1, count - 1);
+                
                 const sampleAgents = [
                     { code: 'AG-1024', name: 'Công ty CP Giao nhận Kho vận Vinatrans' },
                     { code: 'AG-0892', name: 'Công ty TNHH Vận tải ABC Logistics' },
-                    { code: 'AG-0556', name: 'Công ty TNHH Tiếp vận Toàn Cầu Golden Star' },
                     { code: 'AG-0341', name: 'Công ty TNHH SkyFreight Logistics Việt Nam' },
                     { code: 'AG-0789', name: 'Công ty CP Vận chuyển Hàng không Việt Freight' }
                 ];
-                const count = auction.bidsCount || 2;
-                const startPrice = auction.startingPriceKg || 18000;
-                let endPrice = auction.currentPriceKg || (startPrice + count * (auction.minStep || 500));
-                if (endPrice > startPrice * 10) {
-                    endPrice = startPrice + count * (auction.minStep || 500) * 3;
-                }
-                const step = (endPrice - startPrice) / Math.max(1, count - 1);
+                const competingAgents = sampleAgents.filter(a => a.code !== winnerCode);
                 const now = Date.now();
 
                 bids = [];
-                for (let i = 0; i < count; i++) {
-                    const isLast = (i === count - 1);
-                    const price = isLast ? endPrice : Math.round((startPrice + step * i) / 100) * 100;
-                    const ag = sampleAgents[i % sampleAgents.length];
+                for (let i = 0; i < count - 1; i++) {
+                    const price = Math.round((startPrice + step * i) / 100) * 100;
+                    const ag = competingAgents[i % competingAgents.length];
                     bids.push({
                         id: now - (count - i) * 20 * 60 * 1000,
                         timestamp: now - (count - i) * 20 * 60 * 1000,
@@ -2143,10 +2184,25 @@ const CargoStore = (function() {
                         isAnonymous: true,
                         priceKg: Number(price),
                         time: `${(count - i) * 20} phút trước`,
-                        status: isLast ? (auction.status === 'CLOSED' ? 'WON' : 'HIGHEST') : 'OUTBID',
-                        weightKg: auction.capacityKg
+                        status: 'OUTBID',
+                        weightKg: auction.capacityKg || 3000
                     });
                 }
+
+                // Add winner bid
+                bids.push({
+                    id: now - 5 * 60 * 1000,
+                    timestamp: now - 5 * 60 * 1000,
+                    auctionId: Number(auctionId),
+                    agentCode: winnerCode,
+                    agentName: winnerName,
+                    isAnonymous: true,
+                    priceKg: Number(winPrice),
+                    time: '5 phút trước',
+                    status: (auction.status === 'CLOSED' || wonItem) ? 'WON' : 'HIGHEST',
+                    weightKg: auction.capacityKg || 3000
+                });
+
                 if (!data.bids) data.bids = [];
                 data.bids.push(...bids);
                 saveData(data);
