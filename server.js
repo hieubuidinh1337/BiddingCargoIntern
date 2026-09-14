@@ -1,4 +1,4 @@
-﻿const http = require('http');
+const http = require('http');
 const fs = require('fs');
 const path = require('path');
 const nodemailer = require('nodemailer');
@@ -499,6 +499,13 @@ function isWonAuctionExpired(item, passedData) {
     if (item.paymentStatus === 'CANCELLED') return true;
 
     const now = Date.now();
+    const allAuctions = (passedData && passedData.auctions) ? passedData.auctions : [];
+
+    // Guard: if the linked auction is still OPEN, the won item cannot be expired.
+    // This prevents historical wonAuctions (reusing an auctionId) from being
+    // incorrectly flagged when a new auction with the same ID is running.
+    const linkedAuction = allAuctions.find(a => a.id == item.auctionId);
+    if (linkedAuction && linkedAuction.status === 'OPEN') return false;
 
     // 1. Check explicit paymentDeadline timestamp
     if (item.paymentDeadline) {
@@ -506,21 +513,14 @@ function isWonAuctionExpired(item, passedData) {
         if (!isNaN(dlMs) && now > dlMs) return true;
     }
 
-    // 2. Check Cut-off time (3h before ETD) or ETD from auction
-    const allAuctions = (passedData && passedData.auctions) ? passedData.auctions : [];
-    const auctionMatch = allAuctions.find(a => a.id == item.auctionId || a.flightNumber === item.flightNumber);
-    const etdStr = item.etd || (auctionMatch ? auctionMatch.etd : null);
-    
-    let etdDate = null;
+    // 2. Check Cut-off time using only the won item's own ETD data (not auction ETD,
+    //    which may have been auto-renewed for a new session with the same flight number).
     if (item.etdIso) {
-        etdDate = new Date(item.etdIso);
-    } else if (etdStr) {
-        etdDate = parseFlightDate(etdStr);
-    }
-
-    if (etdDate && !isNaN(etdDate.getTime())) {
-        const cutoffDeadlineMs = etdDate.getTime() - 3 * 3600 * 1000;
-        if (now >= cutoffDeadlineMs) return true;
+        const etdDate = new Date(item.etdIso);
+        if (!isNaN(etdDate.getTime())) {
+            const cutoffDeadlineMs = etdDate.getTime() - 3 * 3600 * 1000;
+            if (now >= cutoffDeadlineMs) return true;
+        }
     }
 
     return false;
@@ -549,8 +549,10 @@ function checkAndAutoLockExpiredWonAuctions(data) {
             }
 
             const isWaived = item.lockWaivedByAdmin === true;
+            // Also skip if admin already unlocked the agent for this same item
+            const agentUnlockedAfterThis = agent && agent.unlockedAt && item.lockPenaltyHandled;
 
-            if (!isWaived && agent) {
+            if (!isWaived && !agentUnlockedAfterThis && agent) {
                 if (agent.status !== 'Đã khóa' && agent.status !== 'LOCKED') {
                     agent.status = 'Đã khóa';
                     agent.lockedReason = `Hệ thống tự động khóa do quá hạn thanh toán đơn ${item.wonId} (${item.flightNumber} - ${item.route})`;

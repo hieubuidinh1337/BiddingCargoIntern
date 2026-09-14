@@ -43,15 +43,13 @@ const CargoStore = (function() {
             address: '406 Nguyễn Tất Thành, Quận 4, TP. Hồ Chí Minh',
             province: 'TP. Hồ Chí Minh',
             tier: 'TIER1',
-            status: 'Đã khóa',
+            status: 'Đang hoạt động',
             joinedDate: '10/01/2024',
             totalBids: 45,
             totalWins: 16,
             winRate: '36%',
             totalSpentUSD: '28.2k',
-            totalSpentVND: 3640000000,
-            lockedReason: 'Hệ thống tự động khóa do quá hạn thanh toán đơn WON-2026-0815-02 (VU224 chuyến 15/08 - SGN - DAD)',
-            lockedAt: '13:00:00 9/9/2026'
+            totalSpentVND: 3640000000
         },
         {
             id: 3,
@@ -1185,6 +1183,13 @@ const CargoStore = (function() {
         if (item.paymentStatus === 'CANCELLED') return true;
 
         const now = Date.now();
+        const allAuctions = (passedData && passedData.auctions) ? passedData.auctions : ((typeof loadData === 'function') ? (loadData().auctions || []) : []);
+
+        // Guard: if the linked auction is still OPEN, the won item cannot be expired.
+        // This prevents historical wonAuctions sharing an auctionId with a newly created
+        // OPEN auction from being incorrectly flagged after a fresh clone/deploy.
+        const linkedAuction = allAuctions.find(a => a.id == item.auctionId);
+        if (linkedAuction && linkedAuction.status === 'OPEN') return false;
 
         // 1. Check explicit paymentDeadline timestamp
         if (item.paymentDeadline) {
@@ -1192,27 +1197,21 @@ const CargoStore = (function() {
             if (!isNaN(dlMs) && now > dlMs) return true;
         }
 
-        // 2. Check auction end time (+ 24h)
-        const allAuctions = (passedData && passedData.auctions) ? passedData.auctions : ((typeof loadData === 'function') ? (loadData().auctions || []) : []);
-        const auctionMatch = allAuctions.find(a => a.id == item.auctionId || a.flightNumber === item.flightNumber);
-        if (auctionMatch && auctionMatch.endTime) {
-            const endMs = new Date(auctionMatch.endTime).getTime();
+        // 2. Check auction end time (+ 24h) - only if linked auction exists and is CLOSED
+        if (linkedAuction && linkedAuction.endTime && linkedAuction.status === 'CLOSED') {
+            const endMs = new Date(linkedAuction.endTime).getTime();
             if (!isNaN(endMs) && (now > endMs + 24 * 3600 * 1000)) return true;
         }
 
-        // 3. Check Cut-off time (3h before ETD) or ETD from auction
-        const etdStr = item.etd || (auctionMatch ? auctionMatch.etd : null);
-        
-        let etdDate = null;
+        // 3. Check Cut-off time using only the won item's own ETD data.
+        // Do NOT use auction ETD, which may have been auto-renewed for a new session
+        // with the same flight number.
         if (item.etdIso) {
-            etdDate = new Date(item.etdIso);
-        } else if (etdStr) {
-            etdDate = parseFlightDate(etdStr);
-        }
-
-        if (etdDate && !isNaN(etdDate.getTime())) {
-            const cutoffDeadlineMs = etdDate.getTime() - 3 * 3600 * 1000;
-            if (now >= cutoffDeadlineMs) return true;
+            const etdDate = new Date(item.etdIso);
+            if (!isNaN(etdDate.getTime())) {
+                const cutoffDeadlineMs = etdDate.getTime() - 3 * 3600 * 1000;
+                if (now >= cutoffDeadlineMs) return true;
+            }
         }
 
         return false;
@@ -1325,8 +1324,11 @@ const CargoStore = (function() {
 
             const isWaived = item.lockWaivedByAdmin === true;
 
+            // Auto-lock agent account if not waived by Admin and agent hasn't been unlocked after this penalty
+            const agentUnlockedAfterThis = agent && agent.unlockedAt && item.lockPenaltyHandled;
+
             // Auto-lock agent account if not waived by Admin
-            if (!isWaived && agent) {
+            if (!isWaived && !agentUnlockedAfterThis && agent) {
                     if (agent.status !== 'Đã khóa' && agent.status !== 'LOCKED') {
                         agent.status = 'Đã khóa';
                         agent.lockedReason = `Hệ thống tự động khóa do quá hạn thanh toán đơn ${item.wonId} (${item.flightNumber} - ${item.route})`;
