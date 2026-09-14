@@ -1,4 +1,4 @@
-﻿<!DOCTYPE html>
+<!DOCTYPE html>
 <html lang="vi">
 <head>
     <meta charset="UTF-8">
@@ -640,8 +640,8 @@
                         <a href="05-AuctionDetail.html?id=${a.id}" class="inline-flex items-center gap-1 bg-blue-50 hover:bg-blue-100 text-blue-700 font-semibold px-2 py-1 rounded-lg transition" title="Xem chi tiết & lịch sử">
                             <i class="fa-solid fa-eye text-[10px]"></i> Xem
                         </a>
-                        ${(a.bidsCount && a.bidsCount > 0) ? `
-                            <button disabled class="inline-flex items-center gap-1 bg-gray-100 text-gray-400 font-semibold px-2 py-1 rounded-lg cursor-not-allowed opacity-60" title="Không thể sửa – đã có ${a.bidsCount} lượt đặt giá">
+                        ${(isOpen || (a.bidsCount && a.bidsCount > 0)) ? `
+                            <button disabled class="inline-flex items-center gap-1 bg-gray-100 text-gray-400 font-semibold px-2 py-1 rounded-lg cursor-not-allowed opacity-60" title="${isOpen ? 'Không thể sửa khi phiên đang mở' : `Không thể sửa – đã có ${a.bidsCount} lượt đặt giá`}">
                                 <i class="fa-solid fa-lock text-[10px]"></i> Sửa
                             </button>
                         ` : `
@@ -654,8 +654,8 @@
                                 <i class="fa-solid fa-gavel text-[10px]"></i> Chốt
                             </button>
                         ` : ''}
-                        ${(a.bidsCount && a.bidsCount > 0) ? `
-                            <button disabled class="inline-flex items-center gap-1 bg-gray-100 text-gray-400 font-semibold px-2 py-1 rounded-lg cursor-not-allowed opacity-60" title="Không thể xóa – đã có ${a.bidsCount} lượt đặt giá">
+                        ${(isOpen || (a.bidsCount && a.bidsCount > 0)) ? `
+                            <button disabled class="inline-flex items-center gap-1 bg-gray-100 text-gray-400 font-semibold px-2 py-1 rounded-lg cursor-not-allowed opacity-60" title="${isOpen ? 'Không thể xóa khi phiên đang mở' : `Không thể xóa – đã có ${a.bidsCount} lượt đặt giá`}">
                                 <i class="fa-solid fa-lock text-[10px]"></i> Xóa
                             </button>
                         ` : `

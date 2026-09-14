@@ -3344,6 +3344,13 @@ const CargoStore = (function() {
             const auction = data.auctions.find(a => a.id == id);
             if (!auction) return { success: false, message: 'Phiên đấu giá không tồn tại.' };
 
+            if (auction.status === 'OPEN' && !updateData.reopen && updateData.status !== 'CLOSED') {
+                return {
+                    success: false,
+                    message: `Không thể chỉnh sửa chuyến bay ${auction.flightNumber} khi phiên đang mở đấu giá. Vui lòng chốt thầu trước khi sửa.`
+                };
+            }
+
             // Only allow editing if no agent has placed a bid yet
             const hasBids = (auction.bidsCount && auction.bidsCount > 0) ||
                             (data.bids || []).some(b => b.auctionId == id);
@@ -3394,6 +3401,12 @@ const CargoStore = (function() {
             if (idx === -1) return { success: false, message: 'Phiên đấu giá không tồn tại.' };
 
             const auction = data.auctions[idx];
+            if (auction.status === 'OPEN') {
+                return {
+                    success: false,
+                    message: `Không thể xóa chuyến bay ${auction.flightNumber} khi phiên đang mở đấu giá. Vui lòng chốt thầu trước khi xóa.`
+                };
+            }
             const hasBids = (auction.bidsCount && auction.bidsCount > 0) ||
                             (data.bids || []).some(b => b.auctionId == id);
             if (hasBids) {
