@@ -187,15 +187,15 @@ const CargoStore = (function() {
         auctions: [
             {
                 id: 1,
-                flightCode: 'FL-VU130-260908',
+                flightCode: 'FL-VU130-260915',
                 flightNumber: 'VU130',
                 route: 'SGN - HAN',
                 origin: 'SGN',
                 destination: 'HAN',
                 originName: 'TP. Hồ Chí Minh',
                 destName: 'Hà Nội',
-                etd: '20:45 · 08/09/2026',
-                eta: '23:00 · 08/09/2026',
+                etd: '20:45 · 15/09/2026',
+                eta: '23:00 · 15/09/2026',
                 etdIso: new Date(Date.now() + 3 * 3600 * 1000 + 48 * 60 * 1000).toISOString(),
                 aircraft: 'Airbus A321neo Cargo',
                 capacityKg: 3500,
@@ -208,20 +208,20 @@ const CargoStore = (function() {
                 leadingAgentName: 'ABC Logistics',
                 bidsCount: 10,
                 specialNotes: 'Hàng tổng hợp, hỗ trợ kho lạnh bảo quản thực phẩm & dược phẩm.',
-                cutOffTime: '17:45 · 08/09/2026',
+                cutOffTime: '17:45 · 15/09/2026',
                 isAnonymous: true
             },
             {
                 id: 2,
-                flightCode: 'FL-VU224-260908',
+                flightCode: 'FL-VU224-260915',
                 flightNumber: 'VU224',
                 route: 'SGN - DAD',
                 origin: 'SGN',
                 destination: 'DAD',
                 originName: 'TP. Hồ Chí Minh',
                 destName: 'Đà Nẵng',
-                etd: '21:30 · 08/09/2026',
-                eta: '22:50 · 08/09/2026',
+                etd: '21:30 · 15/09/2026',
+                eta: '22:50 · 15/09/2026',
                 etdIso: new Date(Date.now() + 4 * 3600 * 1000 + 35 * 60 * 1000).toISOString(),
                 aircraft: 'Airbus A320-200',
                 capacityKg: 2000,
@@ -234,20 +234,20 @@ const CargoStore = (function() {
                 leadingAgentName: 'Vinatrans',
                 bidsCount: 4,
                 specialNotes: 'Ưu tiên bưu kiện bưu phẩm thương mại điện tử chuyển phát nhanh.',
-                cutOffTime: '18:30 · 08/09/2026',
+                cutOffTime: '18:30 · 15/09/2026',
                 isAnonymous: true
             },
             {
                 id: 3,
-                flightCode: 'FL-VU340-260908',
+                flightCode: 'FL-VU340-260915',
                 flightNumber: 'VU340',
                 route: 'HAN - PQC',
                 origin: 'HAN',
                 destination: 'PQC',
                 originName: 'Hà Nội',
                 destName: 'Phú Quốc',
-                etd: '22:45 · 08/09/2026',
-                eta: '01:00 · 09/09/2026',
+                etd: '22:45 · 15/09/2026',
+                eta: '01:00 · 16/09/2026',
                 etdIso: new Date(Date.now() + 5 * 3600 * 1000 + 50 * 60 * 1000).toISOString(),
                 aircraft: 'Airbus A321neo Cargo',
                 capacityKg: 4000,
@@ -260,7 +260,7 @@ const CargoStore = (function() {
                 leadingAgentName: 'Golden Star',
                 bidsCount: 6,
                 specialNotes: 'Hàng hải sản đông lạnh tươi sống đóng thùng xốp tiêu chuẩn IATA.',
-                cutOffTime: '19:45 · 08/09/2026',
+                cutOffTime: '19:45 · 15/09/2026',
                 isAnonymous: true
             },
             {
@@ -436,8 +436,9 @@ const CargoStore = (function() {
                 cargoDeclaration: null
             },
             {
+                // Historical - chuyến 15/08, auctionId 102 (không trùng với phiên VU224 hiện tại id=2)
                 wonId: 'WON-2026-0815-02',
-                auctionId: 2,
+                auctionId: 102,
                 agentCode: 'AG-1024',
                 agentName: 'Vinatrans Express',
                 flightNumber: 'VU224',
@@ -446,16 +447,19 @@ const CargoStore = (function() {
                 priceKg: 14500,
                 totalAmountVND: 29000000,
                 paymentDeadline: '2026-09-09T06:00:00.000Z',
-                paymentStatus: 'UNPAID',
+                paymentStatus: 'EXPIRED',
                 paidAt: null,
                 awbNumber: '998-22409811',
                 cutOffTime: '13:00 · 09/09/2026',
                 warehouse: 'Kho hàng TCS Tân Sơn Nhất (Cửa số 2)',
-                cargoDeclaration: null
+                cargoDeclaration: null,
+                lockPenaltyHandled: true,
+                lockWaivedByAdmin: true  // Admin đã miễn trừ, không lock lại
             },
             {
+                // Historical - chuyến 15/08, auctionId 101 (không trùng với phiên VU130 hiện tại id=1)
                 wonId: 'WON-2026-0815-03',
-                auctionId: 1,
+                auctionId: 101,
                 agentCode: 'AG-0892',
                 agentName: 'ABC Logistics',
                 flightNumber: 'VU130',
@@ -469,11 +473,14 @@ const CargoStore = (function() {
                 awbNumber: '998-13098722',
                 cutOffTime: '11:30 · 09/09/2026',
                 warehouse: 'Kho hàng SCSC Tân Sơn Nhất',
-                cargoDeclaration: null
+                cargoDeclaration: null,
+                lockPenaltyHandled: true,
+                lockWaivedByAdmin: true
             },
             {
+                // Historical - chuyến 15/08, auctionId 103 (không trùng với phiên VU340 hiện tại id=3)
                 wonId: 'WON-2026-0815-04',
-                auctionId: 3,
+                auctionId: 103,
                 agentCode: 'AG-0556',
                 agentName: 'Golden Star Logistics',
                 flightNumber: 'VU340',
@@ -821,6 +828,28 @@ const CargoStore = (function() {
                         updated = true;
                     }
                 });
+
+                // CRITICAL MIGRATION: Remap historical wonAuctions that still have old auctionIds
+                // conflicting with currently OPEN auctions (ids 1, 2, 3).
+                // This runs on any existing localStorage data from before the auctionId fix.
+                const HISTORICAL_ID_REMAP = { 1: 101, 2: 102, 3: 103 };
+                const openAuctionIds = new Set((data.auctions || []).filter(a => a.status === 'OPEN').map(a => Number(a.id)));
+                const historicalWonIds = new Set(['WON-2026-0815-02', 'WON-2026-0815-03', 'WON-2026-0815-04']);
+
+                data.wonAuctions.forEach(w => {
+                    if (!historicalWonIds.has(w.wonId)) return;
+                    const oldId = Number(w.auctionId);
+                    if (openAuctionIds.has(oldId) && HISTORICAL_ID_REMAP[oldId]) {
+                        w.auctionId = HISTORICAL_ID_REMAP[oldId];
+                        updated = true;
+                    }
+                    // Also ensure lockWaivedByAdmin is set for these historical entries
+                    if (!w.lockWaivedByAdmin) {
+                        w.lockWaivedByAdmin = true;
+                        w.lockPenaltyHandled = true;
+                        updated = true;
+                    }
+                });
             }
 
             // Purge credentials from any existing notifications
@@ -873,24 +902,17 @@ const CargoStore = (function() {
                 });
             }
 
-            // Migrate any old August 2026 or outdated auction dates to current/upcoming September 2026 dates
+            // Migrate any old August/early September 2026 dates to active September 2026 dates
             if (data.auctions && Array.isArray(data.auctions)) {
-                data.auctions.forEach(a => {
-                    if (a.etd && a.etd.includes('15/08/2026')) {
-                        a.etd = a.etd.replace('15/08/2026', '09/09/2026');
-                        if (a.eta) a.eta = a.eta.replace('15/08/2026', '09/09/2026');
-                        if (a.cutOffTime) a.cutOffTime = a.cutOffTime.replace('15/08/2026', '09/09/2026');
-                        if (a.flightCode) a.flightCode = a.flightCode.replace('260815', '260909');
-                        if (a.flightNumber === 'VU130') a.etdIso = '2026-09-09T07:30:00.000Z';
-                        if (a.flightNumber === 'VU224') a.etdIso = '2026-09-09T09:00:00.000Z';
-                        if (a.flightNumber === 'VU340') a.etdIso = '2026-09-09T12:15:00.000Z';
-                        updated = true;
-                    } else if (a.etd && a.etd.includes('14/08/2026')) {
-                        a.etd = a.etd.replace('14/08/2026', '08/09/2026');
-                        if (a.eta) a.eta = a.eta.replace('14/08/2026', '08/09/2026');
-                        if (a.cutOffTime) a.cutOffTime = a.cutOffTime.replace('14/08/2026', '08/09/2026');
-                        if (a.flightCode) a.flightCode = a.flightCode.replace('260814', '260908');
-                        if (a.flightNumber === 'VU132') a.etdIso = '2026-09-08T03:00:00.000Z';
+                data.auctions.forEach((a, idx) => {
+                    if (a.status === 'OPEN' && a.etd && (a.etd.includes('15/08/2026') || a.etd.includes('08/09/2026') || a.etd.includes('09/09/2026'))) {
+                        a.etd = a.etd.replace(/15\/08\/2026|08\/09\/2026|09\/09\/2026/g, '15/09/2026');
+                        if (a.eta) a.eta = a.eta.replace(/15\/08\/2026|08\/09\/2026|09\/09\/2026/g, '15/09/2026');
+                        if (a.cutOffTime) a.cutOffTime = a.cutOffTime.replace(/15\/08\/2026|08\/09\/2026|09\/09\/2026/g, '15/09/2026');
+                        if (a.flightCode) a.flightCode = a.flightCode.replace(/260815|260908|260909/g, '260915');
+                        if (a.flightNumber === 'VU130') a.etdIso = '2026-09-15T13:45:00.000Z';
+                        if (a.flightNumber === 'VU224') a.etdIso = '2026-09-15T14:30:00.000Z';
+                        if (a.flightNumber === 'VU340') a.etdIso = '2026-09-15T15:45:00.000Z';
                         updated = true;
                     }
                     // Reconcile expired OPEN auctions using the same policy as the server.
@@ -901,11 +923,12 @@ const CargoStore = (function() {
                             if (etdDate && !isNaN(etdDate.getTime()) && etdDate.getTime() > Date.now()) {
                                 const safeClose = Math.max(Date.now() + 2 * 3600 * 1000, etdDate.getTime() - 3 * 3600 * 1000);
                                 a.endTime = new Date(safeClose).toISOString();
+                                updated = true;
                             } else {
-                                const idxShift = Math.max(0, Math.min(2, idx));
-                                a.endTime = new Date(Date.now() + (idxShift === 0 ? 45 : (idxShift === 1 ? 90 : 120)) * 60 * 1000).toISOString();
+                                a.status = 'CLOSED';
+                                a.specialNotes = (a.specialNotes ? a.specialNotes + ' ' : '') + '(Phiên đã tự động đóng do chuyến bay đã cất cánh hoặc hết thời gian).';
+                                updated = true;
                             }
-                            updated = true;
                         }
                     }
                 });
@@ -4111,18 +4134,11 @@ const CargoStore = (function() {
 
             try {
                 if (typeof localStorage !== 'undefined') {
+                    // Clear any existing data so loadData() uses fresh defaultData
                     localStorage.removeItem(STORAGE_KEY);
-                    const fresh = JSON.parse(JSON.stringify(defaultData));
-                    fresh.version = Date.now();
-                    if (fresh.auctions && Array.isArray(fresh.auctions)) {
-                        const now = Date.now();
-                        fresh.auctions.forEach((a, idx) => {
-                            if (a.status === 'OPEN') {
-                                a.endTime = new Date(now + (idx === 0 ? 45 : (idx === 1 ? 90 : 120)) * 60 * 1000).toISOString();
-                            }
-                        });
-                    }
-                    localStorage.setItem(STORAGE_KEY, JSON.stringify(fresh));
+                    // Run loadData() so all migrations (auctionId remap, lockWaivedByAdmin, etc.)
+                    // are applied immediately, producing a clean and consistent state.
+                    const fresh = loadData();
                     window.dispatchEvent(new CustomEvent('cargostore_updated', { detail: fresh }));
                 }
             } catch (e) {
@@ -4130,6 +4146,7 @@ const CargoStore = (function() {
             }
             return { success: true, message: 'Đã khôi phục toàn bộ dữ liệu hệ thống về mặc định!' };
         }
+
     };
 })();
 

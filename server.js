@@ -438,7 +438,7 @@ function loadServerData() {
         }
     }
 
-    // Auto renew open auctions if expired
+    // Auto renew open auctions if ETD is in future, or close them if ETD passed
     const now = Date.now();
     if (serverData.auctions) {
         serverData.auctions.forEach((a, idx) => {
@@ -453,7 +453,15 @@ function loadServerData() {
                             return;
                         }
                     }
-                    a.endTime = new Date(now + (idx === 0 ? 45 : (idx === 1 ? 90 : 120)) * 60 * 1000).toISOString();
+                    const etdDate = a.etd ? parseFlightDate(a.etd) : null;
+                    if (etdDate && !isNaN(etdDate.getTime()) && etdDate.getTime() > now) {
+                        a.endTime = new Date(Math.max(now + 120 * 60 * 1000, etdDate.getTime() - 3 * 3600 * 1000)).toISOString();
+                        changed = true;
+                        return;
+                    }
+                    // Flight ETD has passed -> CLOSE auction
+                    a.status = 'CLOSED';
+                    a.specialNotes = (a.specialNotes ? a.specialNotes + ' ' : '') + '(Phiên đã tự động đóng do chuyến bay đã cất cánh).';
                     changed = true;
                 }
             }
