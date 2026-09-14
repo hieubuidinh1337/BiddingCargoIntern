@@ -1,4 +1,4 @@
-﻿<!DOCTYPE html>
+<!DOCTYPE html>
 <html lang="vi">
 <head>
     <meta charset="UTF-8">
@@ -1609,14 +1609,18 @@
             }
 
             // Payment & Cargo Declaration Status Filter
+            const isPaidWonItem = item => item.paymentStatus === 'PAID' || item.paymentStatus === 'PAID_LATE' || item.lockWaivedByAdmin === true;
+            const isPendingWonItem = item => item.paymentStatus === 'PENDING_VERIFICATION';
+            const isExpiredWonItem = item => !isPaidWonItem(item) && ((store && store.isWonAuctionExpired) ? store.isWonAuctionExpired(item) : false);
+
             if (statusFilter === 'PAID') {
-                list = list.filter(item => item.paymentStatus === 'PAID' || item.paymentStatus === 'PAID_LATE');
+                list = list.filter(item => isPaidWonItem(item));
             } else if (statusFilter === 'PENDING') {
-                list = list.filter(item => item.paymentStatus === 'PENDING_VERIFICATION');
+                list = list.filter(item => isPendingWonItem(item));
             } else if (statusFilter === 'EXPIRED') {
-                list = list.filter(item => item.paymentStatus !== 'PAID_LATE' && ((store && store.isWonAuctionExpired) ? store.isWonAuctionExpired(item) : false));
+                list = list.filter(item => isExpiredWonItem(item));
             } else if (statusFilter === 'UNPAID') {
-                list = list.filter(item => item.paymentStatus !== 'PAID' && item.paymentStatus !== 'PAID_LATE' && item.paymentStatus !== 'PENDING_VERIFICATION' && !((store && store.isWonAuctionExpired) ? store.isWonAuctionExpired(item) : false));
+                list = list.filter(item => !isPaidWonItem(item) && !isPendingWonItem(item) && !isExpiredWonItem(item));
             } else if (statusFilter === 'UNDECLARED') {
                 list = list.filter(item => (store && store.isCargoUndeclared) ? store.isCargoUndeclared(item) : (!item.cargoDeclaration || !item.cargoDeclaration.cargoName));
             } else if (statusFilter === 'DECLARED') {

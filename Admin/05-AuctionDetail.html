@@ -1,4 +1,4 @@
-﻿<!DOCTYPE html>
+<!DOCTYPE html>
 <html lang="vi">
 <head>
     <meta charset="UTF-8">
@@ -346,9 +346,13 @@
             const data = CargoStore.getData();
             const isAdmin = data.currentAdmin && data.currentAdmin.role === 'ADMIN';
 
+            const auctionBids = (data.bids || []).filter(b => Number(b.auctionId) === Number(auction.id));
+            const highestBidPrice = auctionBids.length > 0 ? Math.max(...auctionBids.map(b => Number(b.priceKg) || 0)) : 0;
+            const effectiveCurrentPrice = Math.max(Number(auction.currentPriceKg) || 0, Number(auction.startingPriceKg) || 0, highestBidPrice);
+
             document.getElementById('detCurrentPrice').innerHTML = (isOpen && !isAdmin) ? 
                 '<span class="text-gray-500">??? <span class="text-[10px] font-normal">(Bảo mật)</span></span>' : 
-                CargoStore.formatCurrency(auction.currentPriceKg) + '/Kg';
+                CargoStore.formatCurrency(effectiveCurrentPrice) + '/Kg';
 
             document.getElementById('detAircraft').textContent = auction.aircraft;
             document.getElementById('detEtd').textContent = auction.etd;

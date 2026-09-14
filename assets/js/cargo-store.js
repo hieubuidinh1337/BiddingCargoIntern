@@ -447,8 +447,8 @@ const CargoStore = (function() {
                 priceKg: 14500,
                 totalAmountVND: 29000000,
                 paymentDeadline: '2026-09-09T06:00:00.000Z',
-                paymentStatus: 'EXPIRED',
-                paidAt: null,
+                paymentStatus: 'PAID',
+                paidAt: '15/08/2026 14:00',
                 awbNumber: '998-22409811',
                 cutOffTime: '13:00 · 09/09/2026',
                 warehouse: 'Kho hàng TCS Tân Sơn Nhất (Cửa số 2)',
@@ -957,6 +957,11 @@ const CargoStore = (function() {
             }
 
             // Auto-close expired auctions and create won items/notifications for winners
+            // Reconcile auction current prices, leading agents, and bid counts with actual bid logs
+            if (reconcileAuctionSummaries(data)) {
+                updated = true;
+            }
+
             if (autoCloseExpiredAuctions(data)) {
                 updated = true;
             }
@@ -978,7 +983,59 @@ const CargoStore = (function() {
         }
     }
 
-    let lastServerVersion = 0;
+    function reconcileAuctionSummaries(data) {
+        if (!data || !Array.isArray(data.auctions)) return false;
+
+        let changed = false;
+        const allBids = Array.isArray(data.bids) ? data.bids : [];
+
+        data.auctions.forEach(a => {
+            const auctionBids = allBids
+                .filter(b => Number(b.auctionId) === Number(a.id))
+                .sort((x, y) => Number(y.priceKg) - Number(x.priceKg));
+
+            if (auctionBids.length > 0) {
+                const highestBid = auctionBids[0];
+                const highestPrice = Number(highestBid.priceKg);
+
+                if (Number.isFinite(highestPrice) && a.currentPriceKg !== highestPrice) {
+                    a.currentPriceKg = highestPrice;
+                    changed = true;
+                }
+
+                const normalizedLeaderCode = (highestBid.agentCode || '').trim();
+                const normalizedLeaderName = (highestBid.agentName || '').trim();
+
+                if ((a.leadingAgentCode || '').trim() !== normalizedLeaderCode ||
+                    (a.leadingAgentName || '').trim() !== normalizedLeaderName) {
+                    a.leadingAgentCode = normalizedLeaderCode;
+                    a.leadingAgentName = normalizedLeaderName;
+                    a.isAnonymous = highestBid.isAnonymous !== false;
+                    changed = true;
+                }
+
+                const bidCount = auctionBids.length;
+                if ((a.bidsCount || 0) !== bidCount) {
+                    a.bidsCount = bidCount;
+                    changed = true;
+                }
+            } else {
+                if (a.leadingAgentCode || a.leadingAgentName || (a.bidsCount || 0) !== 0 || (a.startingPriceKg && a.currentPriceKg !== a.startingPriceKg)) {
+                    a.leadingAgentCode = null;
+                    a.leadingAgentName = null;
+                    a.bidsCount = 0;
+                    if (a.startingPriceKg) {
+                        a.currentPriceKg = a.startingPriceKg;
+                    }
+                    changed = true;
+                }
+            }
+        });
+
+        return changed;
+    }
+
+    let lastServerVersion = Number(typeof localStorage !== 'undefined' ? localStorage.getItem('CARGO_BIDDING_SERVER_VERSION') : 0) || 0;
     let isSyncing = false;
     let saveServerTimeout = null;
     let lastLocalSaveTimestamp = 0;
@@ -1045,6 +1102,7 @@ const CargoStore = (function() {
                 }).then(r => r.json()).then(res => {
                     if (res && res.version) {
                         lastServerVersion = res.version;
+                        try { localStorage.setItem('CARGO_BIDDING_SERVER_VERSION', String(res.version)); } catch(e) {}
                     }
                 }).catch(err => {
                     // Offline fallback
@@ -1070,6 +1128,7 @@ const CargoStore = (function() {
             const serverData = await res.json();
             if (serverData && serverData.version && serverData.version !== lastServerVersion) {
                 lastServerVersion = serverData.version;
+                try { localStorage.setItem('CARGO_BIDDING_SERVER_VERSION', String(serverData.version)); } catch(e) {}
                 const local = loadData();
                 const oldStr = JSON.stringify(local);
 
@@ -1095,7 +1154,8 @@ const CargoStore = (function() {
                 if (serverData.bankConfig) local.bankConfig = serverData.bankConfig;
                 if (serverData.routeSubscriptions) local.routeSubscriptions = serverData.routeSubscriptions;
 
-                // Immediately check & enforce locks on merged server data
+                // Reconcile bids and enforce locks
+                reconcileAuctionSummaries(local);
                 checkAndAutoLockExpiredWonAuctions(local);
 
                 const newStr = JSON.stringify(local);
