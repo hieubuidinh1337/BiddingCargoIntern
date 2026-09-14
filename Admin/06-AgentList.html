@@ -149,6 +149,32 @@
                 <span>Các hồ sơ gửi lên từ trang <strong>Register.html</strong> sẽ xuất hiện tại đây. Nhấn <strong>"Phê duyệt & Cấp mã"</strong> để kích hoạt tài khoản đại lý.</span>
             </div>
 
+            <!-- Filter & Search Controls -->
+            <div class="bg-white p-3 sm:p-4 rounded-2xl border shadow-xs flex flex-col md:flex-row gap-3 items-stretch md:items-center justify-between">
+                <div class="relative flex-1">
+                    <i class="fa-solid fa-magnifying-glass absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400 text-xs"></i>
+                    <input type="text" id="regSearchInput" oninput="renderAgentsList()" placeholder="Tìm kiếm theo mã hồ sơ, tên công ty, MST, email, người đại diện..." class="w-full pl-9 pr-4 py-2 bg-slate-50 border border-slate-200 rounded-xl text-xs focus:bg-white focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition">
+                </div>
+                <div class="flex flex-wrap sm:flex-nowrap items-center gap-2 text-xs">
+                    <div class="flex items-center gap-1.5 min-w-[180px]">
+                        <span class="text-slate-500 font-medium whitespace-nowrap"><i class="fa-solid fa-filter text-slate-400"></i> Trạng thái:</span>
+                        <select id="regStatusFilter" onchange="renderAgentsList()" class="w-full bg-slate-50 border border-slate-200 rounded-xl px-2.5 py-2 font-medium text-slate-700 focus:outline-none focus:border-blue-500 transition">
+                            <option value="ALL">Tất cả trạng thái</option>
+                            <option value="PENDING">Chờ duyệt / Chưa phê duyệt</option>
+                            <option value="APPROVED">Đã phê duyệt</option>
+                            <option value="REJECTED">Đã từ chối</option>
+                        </select>
+                    </div>
+                    <div class="flex items-center gap-1.5 min-w-[150px]">
+                        <span class="text-slate-500 font-medium whitespace-nowrap"><i class="fa-solid fa-arrow-down-short-wide text-slate-400"></i> Sắp xếp:</span>
+                        <select id="regSortSelect" onchange="renderAgentsList()" class="w-full bg-slate-50 border border-slate-200 rounded-xl px-2.5 py-2 font-medium text-slate-700 focus:outline-none focus:border-blue-500 transition">
+                            <option value="NEWEST">Mới nhất</option>
+                            <option value="OLDEST">Cũ nhất</option>
+                        </select>
+                    </div>
+                </div>
+            </div>
+
             <div class="space-y-4" id="registrationsContainer">
                 <!-- Rendered by JS -->
             </div>
@@ -525,6 +551,27 @@
             controls.innerHTML = html;
         }
 
+        function getRegTimestamp(r) {
+            if (r.createdAt) {
+                const t = new Date(r.createdAt).getTime();
+                if (!isNaN(t) && t > 0) return t;
+            }
+            if (r.submittedAt) {
+                const t = new Date(r.submittedAt).getTime();
+                if (!isNaN(t) && t > 0) return t;
+                const parts = r.submittedAt.split(/[\s\/:]+/);
+                if (parts.length >= 5) {
+                    const d = new Date(parts[2], parts[1] - 1, parts[0], parts[3], parts[4]);
+                    if (!isNaN(d.getTime())) return d.getTime();
+                }
+            }
+            if (r.regId) {
+                const num = r.regId.replace(/\D/g, '');
+                if (num) return parseInt(num, 10);
+            }
+            return 0;
+        }
+
         function renderAgentsList() {
             if (typeof CargoStore === 'undefined') return;
             const data = CargoStore.getData();
@@ -574,11 +621,53 @@
             const settings = (window.CargoStore && CargoStore.getSystemSettings) ? CargoStore.getSystemSettings() : {};
             const isHiddenCredentials = settings.hideAgentCredentials !== false; // DEFAULT ALWAYS ON (TRUE)
 
+            // Read filter & search parameters
+            const regSearch = (document.getElementById('regSearchInput')?.value || '').trim().toLowerCase();
+            const regStatus = document.getElementById('regStatusFilter')?.value || 'ALL';
+            const regSort = document.getElementById('regSortSelect')?.value || 'NEWEST';
+
+            // Filter registrations
+            let filteredRegs = regs.filter(r => {
+                if (regStatus !== 'ALL' && r.status !== regStatus) {
+                    return false;
+                }
+                if (regSearch) {
+                    const matchId = (r.regId || '').toLowerCase().includes(regSearch);
+                    const matchCompany = (r.companyName || '').toLowerCase().includes(regSearch);
+                    const matchTax = (r.taxCode || '').toLowerCase().includes(regSearch);
+                    const matchEmail = (r.email || '').toLowerCase().includes(regSearch);
+                    const matchRep = (r.repName || '').toLowerCase().includes(regSearch);
+                    const matchPhone = (r.phone || '').toLowerCase().includes(regSearch);
+                    if (!matchId && !matchCompany && !matchTax && !matchEmail && !matchRep && !matchPhone) {
+                        return false;
+                    }
+                }
+                return true;
+            });
+
+            // Sort registrations
+            filteredRegs.sort((a, b) => {
+                const timeA = getRegTimestamp(a);
+                const timeB = getRegTimestamp(b);
+                if (regSort === 'OLDEST') {
+                    return timeA - timeB;
+                }
+                return timeB - timeA;
+            });
+
             const regContainer = document.getElementById('registrationsContainer');
             if (regs.length === 0) {
-                regContainer.innerHTML = `<div class="bg-white rounded-2xl border p-12 text-center text-gray-400">Chưa có hồ sơ đăng ký nào</div>`;
+                regContainer.innerHTML = `<div class="bg-white rounded-2xl border p-12 text-center text-slate-400 font-medium">Chưa có hồ sơ đăng ký nào</div>`;
+            } else if (filteredRegs.length === 0) {
+                regContainer.innerHTML = `
+                    <div class="bg-white rounded-2xl border p-12 text-center text-slate-400 font-medium space-y-2">
+                        <i class="fa-solid fa-filter-circle-xmark text-4xl text-slate-300"></i>
+                        <p class="text-sm font-semibold text-slate-700">Không tìm thấy hồ sơ đăng ký phù hợp</p>
+                        <p class="text-xs text-slate-500">Thử thay đổi từ khóa tìm kiếm hoặc điều kiện lọc trạng thái.</p>
+                    </div>
+                `;
             } else {
-                regContainer.innerHTML = regs.map((r, regIdx) => {
+                regContainer.innerHTML = filteredRegs.map((r) => {
                     const isPending = r.status === 'PENDING';
                     const isApproved = r.status === 'APPROVED';
 
