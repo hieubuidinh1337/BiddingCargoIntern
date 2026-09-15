@@ -801,7 +801,7 @@
             const search = (searchEl ? searchEl.value : '').toLowerCase();
             const status = statusEl ? statusEl.value : 'ALL';
 
-            let list = data.auctions || [];
+            let list = CargoStore.getAuctions();
 
             if (status !== 'ALL') {
                 list = list.filter(a => a.status === status);

@@ -192,14 +192,25 @@ if (staffCreateAccount.success) throw new Error('Lỗi phân quyền: STAFF vẫ
 
 // 8. USE CASE NHÂN VIÊN / ADMIN: Xóa chuyến bay đấu giá
 console.log('\n--- 8. Kiểm tra Xóa chuyến bay đấu giá ---');
-CargoStore.closeAuction(testAuctionId);
+const freshAuctionRes = CargoStore.createAuction({
+    flightNumber: 'VU998',
+    origin: 'SGN',
+    destination: 'HAN',
+    etd: '2026-09-17T18:00',
+    capacityKg: 5000,
+    startingPriceKg: 20000,
+    minStep: 1000
+});
+const targetId = freshAuctionRes.auction ? freshAuctionRes.auction.id : freshAuctionRes.id;
+CargoStore.closeAuction(targetId);
 const countBefore = CargoStore.getAuctions().length;
-const deleteRes = CargoStore.deleteAuction(testAuctionId);
-console.log('Xóa chuyến bay:', deleteRes.message);
+const deleteRes = CargoStore.deleteAuction(targetId);
+console.log('Xóa chuyến bay mới tạo (chưa có thầu):', deleteRes.message);
 const countAfter = CargoStore.getAuctions().length;
-if (countAfter !== countBefore - 1) {
+if (!deleteRes.success || countAfter !== countBefore - 1) {
     throw new Error('Chuyến bay chưa được xóa!');
 }
+console.log(`Số lượng chuyến bay: ${countBefore} -> ${countAfter} (Đã xóa thành công)`);
 console.log(`Số lượng chuyến bay: ${countBefore} -> ${countAfter} (Đã xóa thành công)`);
 
 // 9. KIỂM TRA ĐẤU GIÁ ẨN DANH & BẢO MẬT TÊN DOANH NGHIỆP

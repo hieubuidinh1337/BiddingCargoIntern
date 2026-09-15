@@ -826,12 +826,6 @@ const CargoStore = (function() {
                         w.auctionId = HISTORICAL_ID_REMAP[oldId];
                         updated = true;
                     }
-                    // Also ensure lockWaivedByAdmin is set for these historical entries
-                    if (!w.lockWaivedByAdmin) {
-                        w.lockWaivedByAdmin = true;
-                        w.lockPenaltyHandled = true;
-                        updated = true;
-                    }
                 });
             }
 
@@ -2159,14 +2153,48 @@ const CargoStore = (function() {
 
         getAuctions: function() {
             const data = loadData();
-            const auctions = data.auctions || [];
+            const auctions = Array.isArray(data.auctions) ? JSON.parse(JSON.stringify(data.auctions)) : [];
             const bids = data.bids || [];
+            const wonList = data.wonAuctions || [];
+
             auctions.forEach(a => {
                 const count = bids.filter(b => b.auctionId == a.id).length;
                 if (count > 0) {
                     a.bidsCount = count;
                 }
             });
+
+            wonList.forEach(w => {
+                const exists = auctions.some(a =>
+                    a.flightNumber && w.flightNumber && String(a.flightNumber).trim().toUpperCase() === String(w.flightNumber).trim().toUpperCase()
+                );
+                if (!exists) {
+                    auctions.push({
+                        id: w.auctionId,
+                        flightCode: w.flightCode || `FL-${w.flightNumber}`,
+                        flightNumber: w.flightNumber,
+                        route: w.route,
+                        origin: w.route ? w.route.split('-')[0].trim() : 'SGN',
+                        destination: w.route ? w.route.split('-')[1].trim() : 'PQC',
+                        capacityKg: w.capacityKg,
+                        startingPriceKg: w.startingPriceKg || Math.max(10000, w.priceKg - 2500),
+                        currentPriceKg: w.priceKg,
+                        minStep: 500,
+                        endTime: w.paymentDeadline || new Date().toISOString(),
+                        status: 'CLOSED',
+                        bidsCount: w.bidsCount || 4,
+                        winnerAgentCode: w.agentCode,
+                        winnerAgentName: w.agentName,
+                        winningPriceKg: w.priceKg,
+                        cutOffTime: w.cutOffTime,
+                        aircraft: w.aircraft || 'Airbus A321neo Cargo',
+                        etd: w.etd || '09/09/2026',
+                        eta: w.eta || '09/09/2026',
+                        specialNotes: 'Phiên đã đóng thầu & chốt đại lý trúng thầu.'
+                    });
+                }
+            });
+
             return auctions;
         },
 
@@ -3470,6 +3498,7 @@ const CargoStore = (function() {
 
             const removed = data.auctions.splice(idx, 1)[0];
             data.bids = (data.bids || []).filter(b => b.auctionId != id);
+            data.wonAuctions = (data.wonAuctions || []).filter(w => w.auctionId != id && w.wonId != id);
 
             saveData(data);
             return { success: true, message: `Đã xóa chuyến bay ${removed.flightNumber} khỏi hệ thống.` };
