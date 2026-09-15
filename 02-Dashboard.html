@@ -1,4 +1,4 @@
-﻿<!DOCTYPE html>
+<!DOCTYPE html>
 <html lang="vi">
 <head>
     <meta charset="UTF-8">
@@ -341,6 +341,7 @@
                                 <div class="space-y-1.5">
                                     <div class="flex items-center gap-2">
                                         <span class="bg-blue-600 text-white font-bold text-xs px-2.5 py-0.5 rounded-lg">${a.flightNumber}</span>
+                                        <span class="bg-slate-100 text-slate-600 font-mono font-semibold text-[10px] px-2 py-0.5 rounded-md border border-slate-200" title="Mã định danh phiên">${a.flightCode || '#' + a.id}</span>
                                         <span class="font-bold text-slate-900 text-sm">${a.route}</span>
                                         <span class="text-xs text-gray-400">· ${a.aircraft}</span>
                                         ${isLeading ? '<span class="bg-green-100 text-green-700 text-[10px] font-bold px-2 py-0.5 rounded-full flex items-center gap-1"><i class="fa-solid fa-crown"></i> Bạn đang dẫn đầu</span>' : ''}

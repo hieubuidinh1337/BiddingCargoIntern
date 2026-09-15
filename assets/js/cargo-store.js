@@ -2157,6 +2157,63 @@ const CargoStore = (function() {
             return routeDurations[pair] || 120;
         },
 
+        generateNextFlightNumber: function(origin = 'SGN', dest = 'HAN', skip = 0) {
+            const data = loadData();
+            const pair = `${(origin || '').trim().toUpperCase()}-${(dest || '').trim().toUpperCase()}`;
+            
+            const map = {
+                'SGN-HAN': ['VU130', 'VU132', 'VU134', 'VU136', 'VU138', 'VU140', 'VU142', 'VU144'],
+                'HAN-SGN': ['VU131', 'VU133', 'VU135', 'VU137', 'VU139', 'VU141', 'VU143', 'VU145'],
+                'SGN-DAD': ['VU220', 'VU222', 'VU224', 'VU226', 'VU228', 'VU230'],
+                'DAD-SGN': ['VU221', 'VU223', 'VU225', 'VU227', 'VU229', 'VU231'],
+                'HAN-DAD': ['VU240', 'VU242', 'VU244', 'VU246', 'VU248'],
+                'DAD-HAN': ['VU241', 'VU243', 'VU245', 'VU247', 'VU249'],
+                'HAN-PQC': ['VU340', 'VU342', 'VU344', 'VU346', 'VU348'],
+                'PQC-HAN': ['VU341', 'VU343', 'VU345', 'VU347', 'VU349'],
+                'SGN-PQC': ['VU450', 'VU452', 'VU454', 'VU456', 'VU458'],
+                'PQC-SGN': ['VU451', 'VU453', 'VU455', 'VU457', 'VU459'],
+                'DAD-PQC': ['VU510', 'VU512', 'VU514', 'VU516', 'VU518'],
+                'PQC-DAD': ['VU511', 'VU513', 'VU515', 'VU517', 'VU519']
+            };
+
+            const pool = map[pair] || ['VU600', 'VU602', 'VU604', 'VU606', 'VU608'];
+            const existingFlightNums = new Set((data.auctions || []).map(a => String(a.flightNumber || '').trim().toUpperCase()));
+
+            const unusedPool = pool.filter(fn => !existingFlightNums.has(fn));
+            if (unusedPool.length > 0) {
+                return unusedPool[Math.max(0, skip) % unusedPool.length];
+            }
+
+            const baseFn = pool[0];
+            let counter = 1 + skip;
+            let candidate = `${baseFn}-${String(counter).padStart(2, '0')}`;
+            while (existingFlightNums.has(candidate)) {
+                counter++;
+                candidate = `${baseFn}-${String(counter).padStart(2, '0')}`;
+            }
+            return candidate;
+        },
+
+        checkDuplicateFlightNumber: function(flightNumber, currentAuctionId = null) {
+            if (!flightNumber) return { isDuplicate: false };
+            const data = loadData();
+            const fn = String(flightNumber).trim().toUpperCase();
+
+            const existing = (data.auctions || []).find(a => {
+                if (currentAuctionId && Number(a.id) === Number(currentAuctionId)) return false;
+                return String(a.flightNumber || '').trim().toUpperCase() === fn;
+            });
+
+            if (existing) {
+                return {
+                    isDuplicate: true,
+                    message: `Số hiệu chuyến bay ${fn} đã được sử dụng cho phiên ${existing.flightCode || 'ID #' + existing.id} (${existing.route || ''}). Vui lòng chọn hoặc đổi số hiệu khác.`
+                };
+            }
+
+            return { isDuplicate: false };
+        },
+
         getAuctions: function() {
             const data = loadData();
             const auctions = Array.isArray(data.auctions) ? JSON.parse(JSON.stringify(data.auctions)) : [];
