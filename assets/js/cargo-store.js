@@ -3476,15 +3476,6 @@ const CargoStore = (function() {
             return { success: true, message: `Cập nhật thông số chuyến bay ${auction.flightNumber} thành công!`, auction: auction };
         },
 
-        closeAuction: function(id) {
-            const data = loadData();
-            const auction = data.auctions.find(a => a.id == id);
-            if (!auction) return { success: false, message: 'Phiên đấu giá không tồn tại.' };
-            auction.status = 'CLOSED';
-            saveData(data);
-            return { success: true, message: `Đã chốt phiên đấu giá chuyến bay ${auction.flightNumber}.`, auction: auction };
-        },
-
         deleteAuction: function(id) {
             const data = loadData();
             const idx = data.auctions.findIndex(a => a.id == id);
