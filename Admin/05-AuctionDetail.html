@@ -364,7 +364,7 @@
             const secCargo = document.getElementById('adminDeclaredCargoSection');
             if (secCargo) {
                 const wonList = data.wonAuctions || [];
-                const wonItem = wonList.find(w => w.auctionId == auction.id || w.flightNumber === auction.flightNumber);
+                const wonItem = wonList.find(w => Number(w.auctionId) === Number(auction.id));
                 if (wonItem) {
                     secCargo.classList.remove('hidden');
                     const decl = wonItem.cargoDeclaration;

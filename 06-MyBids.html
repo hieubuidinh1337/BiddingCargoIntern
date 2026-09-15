@@ -1,4 +1,4 @@
-﻿<!DOCTYPE html>
+<!DOCTYPE html>
 <html lang="vi">
 <head>
     <meta charset="UTF-8">
@@ -273,7 +273,7 @@
 
             tbody.innerHTML = paginatedList.map(b => {
                 const auction = auctions.find(a => a.id == b.auctionId) || {};
-                const wonAuction = wonAuctions.find(w => String(w.auctionId) === String(b.auctionId) || (auction.flightNumber && w.flightNumber && w.flightNumber === auction.flightNumber)) || null;
+                const wonAuction = wonAuctions.find(w => String(w.auctionId) === String(b.auctionId)) || null;
                 const paymentStatus = wonAuction ? wonAuction.paymentStatus : null;
                 const cargoDeclared = wonAuction ? (CargoStore.isCargoDeclared ? CargoStore.isCargoDeclared(wonAuction) : !!(wonAuction.cargoDeclaration && wonAuction.cargoDeclaration.cargoName)) : false;
 

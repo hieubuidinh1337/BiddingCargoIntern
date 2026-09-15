@@ -1,4 +1,4 @@
-﻿<!DOCTYPE html>
+<!DOCTYPE html>
 <html lang="vi">
 <head>
     <meta charset="UTF-8">
@@ -461,7 +461,7 @@
                 // Ensure won order entry exists in CargoStore so navigation works directly
                 if (CargoStore && CargoStore.getWonAuctions) {
                     const allWon = CargoStore.getWonAuctions();
-                    const existingWon = allWon.find(w => w.auctionId == currentAuction.id || w.flightNumber === flightNum);
+                    const existingWon = allWon.find(w => Number(w.auctionId) === Number(currentAuction.id));
                     if (!existingWon && CargoStore.closeAuction) {
                         CargoStore.closeAuction(currentAuction.id);
                     }
