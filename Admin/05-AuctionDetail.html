@@ -506,15 +506,16 @@
 
             const bids = CargoStore.getBidsForAuction(auction.id);
             const hasBids = bids.length > 0;
+            const canEdit = isOpen && !hasBids;
 
             btnContainer.innerHTML = `
-                ${hasBids ? `
-                    <button disabled class="bg-slate-200 text-slate-400 text-xs font-bold px-3.5 py-2 rounded-xl cursor-not-allowed opacity-70 flex items-center gap-1.5" title="Không thể sửa – đã có lượt đặt giá">
-                        <i class="fa-solid fa-lock"></i> Khóa sửa
+                ${canEdit ? `
+                    <button onclick="openDetailEditModal()" class="bg-amber-500 hover:bg-amber-600 text-white text-xs font-bold px-3.5 py-2 rounded-xl transition shadow flex items-center gap-1.5" title="Chỉnh sửa thông số">
+                        <i class="fa-solid fa-pen-to-square"></i> Sửa thông số
                     </button>
                 ` : `
-                    <button onclick="openDetailEditModal()" class="bg-amber-500 hover:bg-amber-600 text-white text-xs font-bold px-3.5 py-2 rounded-xl transition shadow flex items-center gap-1.5">
-                        <i class="fa-solid fa-pen-to-square"></i> Sửa thông số
+                    <button disabled class="bg-slate-200 text-slate-400 text-xs font-bold px-3.5 py-2 rounded-xl cursor-not-allowed opacity-70 flex items-center gap-1.5" title="${!isOpen ? 'Không thể sửa – phiên đấu giá đã đóng thầu' : `Không thể sửa – đã có ${bids.length} lượt đặt giá`}">
+                        <i class="fa-solid fa-lock"></i> Khóa sửa
                     </button>
                 `}
                 <button onclick="openDetailBroadcastModal()" class="bg-blue-600 hover:bg-blue-700 text-white text-xs font-bold px-3.5 py-2 rounded-xl transition shadow flex items-center gap-1.5">

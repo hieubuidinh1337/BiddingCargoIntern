@@ -778,23 +778,6 @@ const CargoStore = (function() {
                 });
             }
 
-            // Self-healing: Ensure at least 3 active OPEN auctions exist for the live portal demo
-            const openAuctionsList = (data.auctions || []).filter(a => a.status === 'OPEN');
-            if (openAuctionsList.length < 2) {
-                if (!data.auctions || data.auctions.length < 3) {
-                    data.auctions = JSON.parse(JSON.stringify(defaultData.auctions));
-                    updated = true;
-                } else {
-                    data.auctions.forEach((a, idx) => {
-                        if (a.id === 1 || a.id === 2 || a.id === 3 || idx < 3) {
-                            a.status = 'OPEN';
-                            a.endTime = new Date(now + (idx + 1) * 90 * 60 * 1000).toISOString();
-                            updated = true;
-                        }
-                    });
-                }
-            }
-
             if (!data.agentsList || !Array.isArray(data.agentsList) || data.agentsList.length === 0) {
                 data.agentsList = JSON.parse(JSON.stringify(seedAgents));
                 updated = true;
@@ -3404,17 +3387,17 @@ const CargoStore = (function() {
             const auction = data.auctions.find(a => a.id == id);
             if (!auction) return { success: false, message: 'Phiên đấu giá không tồn tại.' };
 
-            if (auction.status === 'OPEN' && !updateData.reopen && updateData.status !== 'CLOSED') {
+            if (auction.status === 'CLOSED' && !updateData.reopen) {
                 return {
                     success: false,
-                    message: `Không thể chỉnh sửa chuyến bay ${auction.flightNumber} khi phiên đang mở đấu giá. Vui lòng chốt thầu trước khi sửa.`
+                    message: `Không thể chỉnh sửa chuyến bay ${auction.flightNumber} vì phiên đấu giá đã đóng thầu.`
                 };
             }
 
             // Only allow editing if no agent has placed a bid yet
             const hasBids = (auction.bidsCount && auction.bidsCount > 0) ||
                             (data.bids || []).some(b => b.auctionId == id);
-            if (hasBids) {
+            if (hasBids && !updateData.reopen) {
                 return {
                     success: false,
                     message: `Không thể chỉnh sửa chuyến bay ${auction.flightNumber} (${auction.route}) vì đã có đại lý đặt giá (${auction.bidsCount || 0} lượt đấu giá). Chỉ được sửa thông số khi chưa có đại lý nào tham gia đấu giá.`
@@ -3453,6 +3436,15 @@ const CargoStore = (function() {
 
             saveData(data);
             return { success: true, message: `Cập nhật thông số chuyến bay ${auction.flightNumber} thành công!`, auction: auction };
+        },
+
+        closeAuction: function(id) {
+            const data = loadData();
+            const auction = data.auctions.find(a => a.id == id);
+            if (!auction) return { success: false, message: 'Phiên đấu giá không tồn tại.' };
+            auction.status = 'CLOSED';
+            saveData(data);
+            return { success: true, message: `Đã chốt phiên đấu giá chuyến bay ${auction.flightNumber}.`, auction: auction };
         },
 
         deleteAuction: function(id) {

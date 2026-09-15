@@ -192,6 +192,7 @@ if (staffCreateAccount.success) throw new Error('Lỗi phân quyền: STAFF vẫ
 
 // 8. USE CASE NHÂN VIÊN / ADMIN: Xóa chuyến bay đấu giá
 console.log('\n--- 8. Kiểm tra Xóa chuyến bay đấu giá ---');
+CargoStore.closeAuction(testAuctionId);
 const countBefore = CargoStore.getAuctions().length;
 const deleteRes = CargoStore.deleteAuction(testAuctionId);
 console.log('Xóa chuyến bay:', deleteRes.message);
