@@ -78,6 +78,14 @@ function injectStyles() {
 .__cb-file-preview video{max-width:100%;max-height:150px;border-radius:8px;margin-top:4px}
 .__cb-file-preview a{color:#93c5fd;font-size:12px;display:inline-flex;align-items:center;gap:4px;margin-top:4px;text-decoration:none}
 .__cb-file-preview a:hover{color:#fff}
+.__cb-confirm-close-box{background:rgba(245,158,11,.15);border:1px solid rgba(245,158,11,.4);border-radius:12px;padding:12px;margin:10px 0;text-align:left;animation:__cb-fadeIn .25s ease-out}
+.__cb-confirm-title{color:#fef08a;font-size:12.5px;font-weight:700;display:flex;align-items:center;gap:6px;margin-bottom:4px}
+.__cb-confirm-desc{color:#e2e8f0;font-size:11.5px;line-height:1.4;margin-bottom:10px}
+.__cb-confirm-actions{display:flex;gap:8px}
+.__cb-btn-keep{flex:1;background:linear-gradient(135deg,#1e40af,#7c3aed);color:#fff;border:none;border-radius:8px;padding:7px 10px;cursor:pointer;font-size:11.5px;font-weight:600;transition:opacity .15s}
+.__cb-btn-keep:hover{opacity:.85}
+.__cb-btn-decline{flex:1;background:rgba(239,68,68,.2);border:1px solid rgba(239,68,68,.4);color:#fca5a5;border-radius:8px;padding:7px 10px;cursor:pointer;font-size:11.5px;font-weight:600;transition:all .15s}
+.__cb-btn-decline:hover{background:rgba(239,68,68,.4);color:#fff}
 `;
   document.head.appendChild(s);
 }
@@ -177,25 +185,49 @@ function __cbRender() {
     setTimeout(() => { body.scrollTop = body.scrollHeight; }, 50);
     return;
   }
-  if (currentChat.status === 'ACTIVE') {
+  if (currentChat.status === 'ACTIVE' || currentChat.status === 'CLOSING_REQUEST') {
     const msgs = currentChat.messages || [];
     const currentMsgCount = msgs.length;
-    const chatChanged = _lastChatId !== currentChat.id || _lastStatus !== 'ACTIVE';
+    const chatChanged = _lastChatId !== currentChat.id || _lastStatus !== currentChat.status;
     if (footer) footer.style.display = 'flex';
     const name = currentChat.assignedName || 'Nhân viên';
-    if (statusTxt) statusTxt.textContent = `${name} đang hỗ trợ`;
+    if (statusTxt) {
+      statusTxt.textContent = currentChat.status === 'CLOSING_REQUEST'
+        ? `${name} muốn kết thúc chat`
+        : `${name} đang hỗ trợ`;
+    }
+
+    let confirmBoxHtml = '';
+    if (currentChat.status === 'CLOSING_REQUEST') {
+      confirmBoxHtml = `
+        <div class="__cb-confirm-close-box">
+          <div class="__cb-confirm-title">
+            <span>🔔 ${name} muốn kết thúc cuộc trò chuyện</span>
+          </div>
+          <div class="__cb-confirm-desc">
+            Bạn có còn thắc mắc hay muốn tiếp tục trao đổi thêm thông tin không?
+          </div>
+          <div class="__cb-confirm-actions">
+            <button class="__cb-btn-keep" onclick="__cbRespondClose('keep')">💬 Tiếp tục trao đổi</button>
+            <button class="__cb-btn-decline" onclick="__cbRespondClose('close')">❌ Kết thúc ngay</button>
+          </div>
+        </div>
+      `;
+    }
+
     if (chatChanged) {
-      // Full re-render only when chat changes
       body.innerHTML = msgs.map(m => {
         const side = m.sender === 'agent' ? 'agent' : (m.sender === 'system' ? 'system' : 'staff');
         return `<div class="__cb-msg ${side}">${m.text ? m.text.replace(/</g,'&lt;') : ''}${filePreviewHTML(m)}<div class="__cb-msg-time">${fmtTime(m.timestamp)}</div></div>`;
-      }).join('');
+      }).join('') + confirmBoxHtml;
       _lastMsgCount = currentMsgCount;
       _lastChatId = currentChat.id;
-      _lastStatus = 'ACTIVE';
+      _lastStatus = currentChat.status;
       setTimeout(() => { body.scrollTop = body.scrollHeight; }, 50);
     } else if (currentMsgCount > _lastMsgCount) {
-      // Append only new messages — no flicker!
+      const existingConfirm = document.querySelector('.__cb-confirm-close-box');
+      if (existingConfirm) existingConfirm.remove();
+
       const newMsgs = msgs.slice(_lastMsgCount);
       const wasAtBottom = body.scrollHeight - body.scrollTop - body.clientHeight < 60;
       newMsgs.forEach(m => {
@@ -206,6 +238,10 @@ function __cbRender() {
         body.appendChild(el);
       });
       _lastMsgCount = currentMsgCount;
+
+      if (confirmBoxHtml) {
+        body.insertAdjacentHTML('beforeend', confirmBoxHtml);
+      }
       if (wasAtBottom) body.scrollTop = body.scrollHeight;
     }
     return;
@@ -234,6 +270,21 @@ window.__cbSendText = async function() {
     const r = await fetch(API+'/api/chat/send', {method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({chatId:currentChat.id,sender:'agent',senderName:agentName,text})});
     const d = await r.json();
     if (d.success && d.message) { if (!currentChat.messages) currentChat.messages = []; currentChat.messages.push(d.message); __cbRender(); }
+  } catch(e) { console.error(e); }
+};
+window.__cbRespondClose = async function(action) {
+  if (!currentChat) return;
+  try {
+    const r = await fetch(API+'/api/chat/respond-close', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ chatId: currentChat.id, action: action, agentName: agentName })
+    });
+    const d = await r.json();
+    if (d.success && d.chat) {
+      currentChat = d.chat;
+      __cbRender();
+    }
   } catch(e) { console.error(e); }
 };
 window.__cbUploadFile = async function(input) {

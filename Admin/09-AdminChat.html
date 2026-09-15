@@ -1,4 +1,4 @@
-﻿<!DOCTYPE html>
+<!DOCTYPE html>
 <html lang="vi">
 <head>
 <meta charset="UTF-8">
@@ -178,12 +178,12 @@ function setTab(tab) {
 function renderList() {
   const q = (document.getElementById('search-inp').value || '').toLowerCase();
   const filtered = allChats.filter(c => {
-    const matchTab = c.status === currentTab;
+    const matchTab = currentTab === 'ACTIVE' ? (c.status === 'ACTIVE' || c.status === 'CLOSING_REQUEST') : c.status === currentTab;
     const matchQ = !q || (c.agentCode||'').toLowerCase().includes(q) || (c.agentName||'').toLowerCase().includes(q);
     return matchTab && matchQ;
   });
   document.getElementById('cnt-waiting').textContent = allChats.filter(c=>c.status==='WAITING').length;
-  document.getElementById('cnt-active').textContent = allChats.filter(c=>c.status==='ACTIVE').length;
+  document.getElementById('cnt-active').textContent = allChats.filter(c=>c.status==='ACTIVE'||c.status==='CLOSING_REQUEST').length;
   document.getElementById('cnt-closed').textContent = allChats.filter(c=>c.status==='CLOSED').length;
   const waitCount = allChats.filter(c=>c.status==='WAITING').length;
   const nb = document.getElementById('nav-badge');
@@ -198,8 +198,8 @@ function renderList() {
     const snippet = lastMsg ? (lastMsg.text ? lastMsg.text.substring(0,40)+(lastMsg.text.length>40?'...':'') : (lastMsg.fileName||'[File]')) : 'Chưa có tin nhắn';
     const unread = (c.messages||[]).filter(m=>m.sender==='agent'&&!m.read).length;
     const initials = (c.agentName||'?').slice(0,2).toUpperCase();
-    const badgeClass = c.status==='WAITING'?'badge-wait':c.status==='ACTIVE'?'badge-active':'badge-closed';
-    const badgeText = c.status==='WAITING'?'Chờ':c.status==='ACTIVE'?'Đang HT':'Đã xong';
+    const badgeClass = c.status==='WAITING'?'badge-wait':(c.status==='ACTIVE'||c.status==='CLOSING_REQUEST')?'badge-active':'badge-closed';
+    const badgeText = c.status==='WAITING'?'Chờ':c.status==='CLOSING_REQUEST'?'Đang chờ XN':c.status==='ACTIVE'?'Đang HT':'Đã xong';
     const isSelected = c.id === selectedChatId;
     return `<div class="chat-list-item ${isSelected?'active':''} px-3 py-3 border-b border-slate-800 flex gap-3 items-start" onclick="selectChat('${c.id}')">
       <div class="w-9 h-9 rounded-full bg-gradient-to-br from-blue-700 to-purple-700 flex items-center justify-center text-white font-bold text-xs flex-shrink-0">${initials}</div>
@@ -251,7 +251,11 @@ function renderChat() {
     actions.innerHTML = `<button class="btn-success" onclick="assignMe()"><i class="fa-solid fa-hand-point-up mr-1"></i>Nhận hỗ trợ</button>`;
   } else if (chat.status==='ACTIVE') {
     actions.innerHTML = `<span class="text-xs text-emerald-400 font-semibold"><i class="fa-solid fa-circle text-emerald-400 text-[8px] mr-1"></i>Đang hỗ trợ</span>
-    <button class="btn-danger" onclick="showCloseModal()"><i class="fa-solid fa-xmark mr-1"></i>Đóng trò chuyện</button>`;
+    <button class="bg-amber-600 hover:bg-amber-700 text-white font-semibold text-xs px-3 py-1.5 rounded-lg transition shadow flex items-center gap-1" onclick="requestClose()"><i class="fa-solid fa-paper-plane text-[11px]"></i>Yêu cầu kết thúc</button>
+    <button class="btn-danger text-xs" onclick="showCloseModal()"><i class="fa-solid fa-xmark mr-1"></i>Đóng ngay</button>`;
+  } else if (chat.status==='CLOSING_REQUEST') {
+    actions.innerHTML = `<span class="text-xs text-amber-400 font-semibold flex items-center gap-1.5"><i class="fa-solid fa-spinner animate-spin"></i>Đang chờ đại lý xác nhận...</span>
+    <button class="btn-danger text-xs ml-2" onclick="showCloseModal()"><i class="fa-solid fa-xmark mr-1"></i>Đóng ngay</button>`;
   } else {
     actions.innerHTML = `<span class="text-xs text-slate-500 font-semibold"><i class="fa-solid fa-lock mr-1"></i>Đã đóng${chat.closedAt?' · '+new Date(chat.closedAt).toLocaleString('vi-VN',{day:'2-digit',month:'2-digit',hour:'2-digit',minute:'2-digit'}):''}</span>`;
   }
@@ -268,7 +272,25 @@ function renderChat() {
   }).join('');
   setTimeout(()=>{ msgArea.scrollTop = msgArea.scrollHeight; }, 50);
   const inputArea = document.getElementById('chat-input-area');
-  if(inputArea) inputArea.style.display = chat.status==='ACTIVE'?'flex':'none';
+  if(inputArea) inputArea.style.display = (chat.status==='ACTIVE'||chat.status==='CLOSING_REQUEST')?'flex':'none';
+}
+
+async function requestClose() {
+  if (!selectedChatId) return;
+  try {
+    const r = await fetch('/api/chat/request-close', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ chatId: selectedChatId, closedByName: adminInfo.name })
+    });
+    const d = await r.json();
+    if (d.success) {
+      const idx = allChats.findIndex(c => c.id === selectedChatId);
+      if (idx >= 0) allChats[idx] = d.chat;
+      renderList();
+      renderChat();
+    }
+  } catch(e) { console.error(e); }
 }
 </script>
 <script>

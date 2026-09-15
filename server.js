@@ -1049,6 +1049,105 @@ const server = http.createServer((req, res) => {
         return;
     }
 
+    // POST /api/chat/request-close — Admin/Staff gửi yêu cầu đóng phiên chat đến Đại lý
+    if (pathname === '/api/chat/request-close' && req.method === 'POST') {
+        let body = '';
+        req.on('data', chunk => { body += chunk; });
+        req.on('error', err => { console.error('[request-close] Stream error:', err.message); if (!res.headersSent) { res.writeHead(400,{'Content-Type':'application/json'}); res.end(JSON.stringify({success:false,error:'Stream error'})); } });
+        req.on('end', () => {
+            try {
+                const { chatId, closedByName } = JSON.parse(body);
+                if (!chatId) {
+                    res.writeHead(400, { 'Content-Type': 'application/json' });
+                    res.end(JSON.stringify({ success: false, error: 'Thiếu chatId' }));
+                    return;
+                }
+                if (!Array.isArray(serverData.chats)) serverData.chats = [];
+                const chat = serverData.chats.find(c => c.id === chatId);
+                if (!chat) {
+                    res.writeHead(404, { 'Content-Type': 'application/json' });
+                    res.end(JSON.stringify({ success: false, error: 'Không tìm thấy phiên chat' }));
+                    return;
+                }
+                const now = Date.now();
+                chat.status = 'CLOSING_REQUEST';
+                if (!Array.isArray(chat.messages)) chat.messages = [];
+                chat.messages.push({
+                    id: 'MSG-' + now + '-reqclose',
+                    sender: 'system',
+                    senderName: 'Hệ thống',
+                    text: `🔔 ${closedByName || 'Nhân viên hỗ trợ'} đã gửi yêu cầu kết thúc cuộc trò chuyện. Đang chờ đại lý phản hồi xác nhận...`,
+                    fileUrl: null, fileName: null, fileType: null,
+                    timestamp: now, read: false
+                });
+                serverData.version = Date.now();
+                saveServerData();
+                res.writeHead(200, { 'Content-Type': 'application/json; charset=UTF-8' });
+                res.end(JSON.stringify({ success: true, chat }), 'utf-8');
+            } catch (err) {
+                if (!res.headersSent) { res.writeHead(400, { 'Content-Type': 'application/json' }); res.end(JSON.stringify({ success: false, error: err.message })); }
+            }
+        });
+        return;
+    }
+
+    // POST /api/chat/respond-close — Đại lý phản hồi tiếp tục hay kết thúc chat
+    if (pathname === '/api/chat/respond-close' && req.method === 'POST') {
+        let body = '';
+        req.on('data', chunk => { body += chunk; });
+        req.on('error', err => { console.error('[respond-close] Stream error:', err.message); if (!res.headersSent) { res.writeHead(400,{'Content-Type':'application/json'}); res.end(JSON.stringify({success:false,error:'Stream error'})); } });
+        req.on('end', () => {
+            try {
+                const { chatId, action, agentName } = JSON.parse(body);
+                if (!chatId) {
+                    res.writeHead(400, { 'Content-Type': 'application/json' });
+                    res.end(JSON.stringify({ success: false, error: 'Thiếu chatId' }));
+                    return;
+                }
+                if (!Array.isArray(serverData.chats)) serverData.chats = [];
+                const chat = serverData.chats.find(c => c.id === chatId);
+                if (!chat) {
+                    res.writeHead(404, { 'Content-Type': 'application/json' });
+                    res.end(JSON.stringify({ success: false, error: 'Không tìm thấy phiên chat' }));
+                    return;
+                }
+                const now = Date.now();
+                if (!Array.isArray(chat.messages)) chat.messages = [];
+
+                if (action === 'keep') {
+                    chat.status = 'ACTIVE';
+                    chat.messages.push({
+                        id: 'MSG-' + now + '-keep',
+                        sender: 'system',
+                        senderName: 'Hệ thống',
+                        text: `💬 Đại lý (${agentName || chat.agentName || 'Đại lý'}) muốn tiếp tục trao đổi thêm thông tin.`,
+                        fileUrl: null, fileName: null, fileType: null,
+                        timestamp: now, read: false
+                    });
+                } else {
+                    chat.status = 'CLOSED';
+                    chat.closedAt = new Date(now).toISOString();
+                    chat.messages.push({
+                        id: 'MSG-' + now + '-close',
+                        sender: 'system',
+                        senderName: 'Hệ thống',
+                        text: `✅ Cuộc trò chuyện đã kết thúc theo xác nhận từ Đại lý (${agentName || chat.agentName || 'Đại lý'}). Cảm ơn bạn!`,
+                        fileUrl: null, fileName: null, fileType: null,
+                        timestamp: now, read: false
+                    });
+                }
+
+                serverData.version = Date.now();
+                saveServerData();
+                res.writeHead(200, { 'Content-Type': 'application/json; charset=UTF-8' });
+                res.end(JSON.stringify({ success: true, chat }), 'utf-8');
+            } catch (err) {
+                if (!res.headersSent) { res.writeHead(400, { 'Content-Type': 'application/json' }); res.end(JSON.stringify({ success: false, error: err.message })); }
+            }
+        });
+        return;
+    }
+
     // POST /api/chat/close  — Admin/Staff đóng phiên chat
     if (pathname === '/api/chat/close' && req.method === 'POST') {
         let body = '';

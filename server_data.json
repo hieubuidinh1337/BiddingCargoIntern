@@ -1,6 +1,31 @@
 {
-  "version": 1789454368780,
+  "version": 1789460158939,
   "auctions": [
+    {
+      "id": 108,
+      "flightCode": "FL-VU136-260915",
+      "flightNumber": "VU136",
+      "route": "SGN - HAN",
+      "origin": "SGN",
+      "destination": "HAN",
+      "originName": "TP. Hồ Chí Minh",
+      "destName": "Hà Nội",
+      "etd": "21:00 · 15/09/2026",
+      "eta": "23:15 · 15/09/2026",
+      "etdIso": "2026-09-15T14:00:00.000Z",
+      "aircraft": "Airbus A321neo Cargo",
+      "capacityKg": 3000,
+      "startingPriceKg": 18000,
+      "currentPriceKg": 18000,
+      "minStep": 500,
+      "endTime": "2026-09-15T09:00:00.000Z",
+      "status": "OPEN",
+      "leadingAgentCode": null,
+      "leadingAgentName": null,
+      "bidsCount": 0,
+      "specialNotes": "Tải trọng tổng hợp tiêu chuẩn IATA. Có hỗ trợ xe nâng hàng pallet tại sân bay.",
+      "cutOffTime": "Trước ETD 3 giờ"
+    },
     {
       "id": 107,
       "flightCode": "FL-VU134-260915",
@@ -79,8 +104,8 @@
     },
     {
       "id": 104,
-      "flightCode": "FL-VU134-260915",
-      "flightNumber": "VU134",
+      "flightCode": "FL-VU138-260915",
+      "flightNumber": "VU138",
       "route": "SGN - HAN",
       "origin": "SGN",
       "destination": "HAN",
@@ -472,6 +497,17 @@
   ],
   "notifications": [
     {
+      "id": 1789454630463,
+      "timestamp": 1789454630463,
+      "targetAgentCode": null,
+      "title": "Mở phiên đấu giá mới: Chuyến VU136 (SGN - HAN)",
+      "message": "Chuyến bay VU136 (TP. Hồ Chí Minh - Hà Nội) với tải trọng 3.000 Kg, giá khởi điểm 18.000 đ/Kg đã chính thức mở nhận giá thầu.",
+      "time": "Vừa xong",
+      "type": "AUCTION_OPEN",
+      "read": false,
+      "link": "04-Detail.html?id=108"
+    },
+    {
       "id": 1789454368291,
       "timestamp": 1789454368291,
       "targetAgentCode": null,
@@ -584,7 +620,142 @@
     "memoPrefix": "CARGO"
   },
   "routeSubscriptions": {},
-  "chats": [],
+  "chats": [
+    {
+      "id": "CHAT-1789459115367",
+      "agentCode": "AG-0892",
+      "agentName": "Công ty TNHH Vận tải ABC Logistics",
+      "status": "CLOSED",
+      "createdAt": "2026-09-15T07:58:35.367Z",
+      "closedAt": "2026-09-15T08:15:06.168Z",
+      "assignedTo": "admin",
+      "assignedName": "Admin",
+      "messages": [
+        {
+          "id": "MSG-1789459115367-0",
+          "sender": "agent",
+          "senderName": "Công ty TNHH Vận tải ABC Logistics",
+          "text": "Cần hỗ trợ khẩn cấp",
+          "fileUrl": null,
+          "fileName": null,
+          "fileType": null,
+          "timestamp": 1789459115367,
+          "read": true
+        },
+        {
+          "id": "MSG-1789459115367-sys",
+          "sender": "system",
+          "senderName": "Hệ thống",
+          "text": "Yêu cầu hỗ trợ đã được gửi. Nhân viên sẽ phản hồi sớm nhất có thể. Vui lòng chờ trong giây lát...",
+          "fileUrl": null,
+          "fileName": null,
+          "fileType": null,
+          "timestamp": 1789459115368,
+          "read": false
+        },
+        {
+          "id": "MSG-1789459123120-assign",
+          "sender": "system",
+          "senderName": "Hệ thống",
+          "text": "Admin đã tham gia cuộc trò chuyện và sẵn sàng hỗ trợ bạn.",
+          "fileUrl": null,
+          "fileName": null,
+          "fileType": null,
+          "timestamp": 1789459123120,
+          "read": false
+        },
+        {
+          "id": "MSG-1789459131177-9719",
+          "sender": "staff",
+          "senderName": "Admin",
+          "text": "sdsdrj;",
+          "fileUrl": null,
+          "fileName": null,
+          "fileType": null,
+          "timestamp": 1789459131177,
+          "read": true
+        },
+        {
+          "id": "MSG-1789460106168-close",
+          "sender": "system",
+          "senderName": "Hệ thống",
+          "text": "Cuộc trò chuyện đã được Admin kết thúc. Cảm ơn bạn đã liên hệ!",
+          "fileUrl": null,
+          "fileName": null,
+          "fileType": null,
+          "timestamp": 1789460106168,
+          "read": false
+        }
+      ]
+    },
+    {
+      "id": "CHAT-1789460114347",
+      "agentCode": "AG-0892",
+      "agentName": "Công ty TNHH Vận tải ABC Logistics",
+      "status": "CLOSED",
+      "createdAt": "2026-09-15T08:15:14.347Z",
+      "closedAt": "2026-09-15T08:15:27.323Z",
+      "assignedTo": "admin",
+      "assignedName": "Admin",
+      "messages": [
+        {
+          "id": "MSG-1789460114347-0",
+          "sender": "agent",
+          "senderName": "Công ty TNHH Vận tải ABC Logistics",
+          "text": "Cần hỗ trợ khẩn cấp",
+          "fileUrl": null,
+          "fileName": null,
+          "fileType": null,
+          "timestamp": 1789460114347,
+          "read": true
+        },
+        {
+          "id": "MSG-1789460114347-sys",
+          "sender": "system",
+          "senderName": "Hệ thống",
+          "text": "Yêu cầu hỗ trợ đã được gửi. Nhân viên sẽ phản hồi sớm nhất có thể. Vui lòng chờ trong giây lát...",
+          "fileUrl": null,
+          "fileName": null,
+          "fileType": null,
+          "timestamp": 1789460114348,
+          "read": false
+        },
+        {
+          "id": "MSG-1789460116823-assign",
+          "sender": "system",
+          "senderName": "Hệ thống",
+          "text": "Admin đã tham gia cuộc trò chuyện và sẵn sàng hỗ trợ bạn.",
+          "fileUrl": null,
+          "fileName": null,
+          "fileType": null,
+          "timestamp": 1789460116823,
+          "read": false
+        },
+        {
+          "id": "MSG-1789460120010-7367",
+          "sender": "agent",
+          "senderName": "Công ty TNHH Vận tải ABC Logistics",
+          "text": "dwqdqwfkl;'",
+          "fileUrl": null,
+          "fileName": null,
+          "fileType": null,
+          "timestamp": 1789460120010,
+          "read": true
+        },
+        {
+          "id": "MSG-1789460127323-close",
+          "sender": "system",
+          "senderName": "Hệ thống",
+          "text": "Cuộc trò chuyện đã được Admin kết thúc. Cảm ơn bạn đã liên hệ!",
+          "fileUrl": null,
+          "fileName": null,
+          "fileType": null,
+          "timestamp": 1789460127323,
+          "read": false
+        }
+      ]
+    }
+  ],
   "agentsList": [
     {
       "id": 1,
