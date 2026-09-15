@@ -2510,20 +2510,20 @@ const CargoStore = (function() {
             const pathname = (typeof window !== 'undefined' && window.location && window.location.pathname) ? window.location.pathname : '';
             const isAdminPage = pathname.includes('/Admin/') || pathname.includes('/admin/');
 
-            // Admin / staff pages must always see the full won-auctions list.
-            if (isAdminPage || data.currentAdmin) {
+            // Admin / staff pages must see the full won-auctions list.
+            if (isAdminPage) {
                 return data.wonAuctions || [];
             }
 
-            if (!data.currentUser) {
-                return (data.wonAuctions || []).filter(w => !w.agentCode || String(w.agentCode).trim().toUpperCase() === 'AG-0892');
-            }
-            if (data.currentUser.role === 'ADMIN' || data.currentUser.role === 'STAFF') {
+            if (data.currentUser && (data.currentUser.role === 'ADMIN' || data.currentUser.role === 'STAFF')) {
                 return data.wonAuctions || [];
             }
-            const code = String(data.currentUser.agentCode || data.currentUser.code || '').trim().toUpperCase();
-            if (!code) return data.wonAuctions || [];
-            return (data.wonAuctions || []).filter(w => String(w.agentCode || '').trim().toUpperCase() === code);
+
+            const code = String((data.currentUser ? (data.currentUser.agentCode || data.currentUser.code) : '') || 'AG-0892').trim().toUpperCase();
+            return (data.wonAuctions || []).filter(w => {
+                const wCode = String(w.agentCode || '').trim().toUpperCase();
+                return wCode === code;
+            });
         },
 
         isCargoDeclared: function(item) {

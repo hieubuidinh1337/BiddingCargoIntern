@@ -273,7 +273,8 @@
 
             tbody.innerHTML = paginatedList.map(b => {
                 const auction = auctions.find(a => a.id == b.auctionId) || {};
-                const wonAuction = wonAuctions.find(w => String(w.auctionId) === String(b.auctionId)) || null;
+                const bidAgentCode = String(b.agentCode || (u ? (u.agentCode || u.code) : '') || 'AG-0892').trim().toUpperCase();
+                const wonAuction = wonAuctions.find(w => String(w.auctionId) === String(b.auctionId) && String(w.agentCode || '').trim().toUpperCase() === bidAgentCode) || null;
                 const paymentStatus = wonAuction ? wonAuction.paymentStatus : null;
                 const cargoDeclared = wonAuction ? (CargoStore.isCargoDeclared ? CargoStore.isCargoDeclared(wonAuction) : !!(wonAuction.cargoDeclaration && wonAuction.cargoDeclaration.cargoName)) : false;
 

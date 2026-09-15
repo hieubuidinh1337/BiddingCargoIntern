@@ -2313,7 +2313,7 @@
             if (actionParam) {
                 setTimeout(() => {
                     const store = getStore();
-                    const allWon = store ? (store.getWonAuctions ? store.getWonAuctions() : (store.getData().wonAuctions || [])) : [];
+                    const allWon = store ? (store.getWonAuctions ? store.getWonAuctions() : []) : [];
                     
                     let targetItem = null;
                     if (wonIdParam) {
