@@ -2257,7 +2257,11 @@ const CargoStore = (function() {
             }
 
             if (auction && bids.length === 0) {
-                const count = auction.bidsCount || 4;
+                // If auction is OPEN or explicitly has 0 bids, return empty array (do NOT generate sample bids for new auctions!)
+                if (auction.status === 'OPEN' || auction.bidsCount === 0 || !auction.bidsCount) {
+                    return [];
+                }
+                const count = (typeof auction.bidsCount === 'number' && auction.bidsCount > 0) ? auction.bidsCount : 4;
                 const winnerCode = auction.winnerAgentCode || (wonItem ? wonItem.agentCode : 'AG-0556');
                 const winnerName = auction.winnerAgentName || (wonItem ? wonItem.agentName : 'Công ty TNHH Tiếp vận Toàn Cầu Golden Star');
                 const winPrice = Number(auction.winningPriceKg || auction.currentPriceKg || 22500);
