@@ -1972,7 +1972,13 @@ const CargoStore = (function() {
                 }
             }
 
-            const newId = (data.auctions || []).reduce((max, a) => Math.max(max, Number(a.id) || 0), 0) + 1;
+            let maxId = 0;
+            (data.auctions || []).forEach(a => { maxId = Math.max(maxId, Number(a.id) || 0); });
+            (data.wonAuctions || []).forEach(w => { maxId = Math.max(maxId, Number(w.auctionId) || 0); });
+            (data.bids || []).forEach(b => { maxId = Math.max(maxId, Number(b.auctionId) || 0); });
+            (data.watchlist || []).forEach(w => { maxId = Math.max(maxId, Number(w.auctionId) || 0); });
+            (data.registrations || []).forEach(r => { maxId = Math.max(maxId, Number(r.auctionId) || 0); });
+            const newId = maxId + 1;
             const flightNumber = (auctionData.flightNumber || 'VU999').trim().toUpperCase();
             const origin = (auctionData.origin || 'SGN').trim().toUpperCase();
             const dest = (auctionData.destination || 'HAN').trim().toUpperCase();
@@ -3499,6 +3505,8 @@ const CargoStore = (function() {
             const removed = data.auctions.splice(idx, 1)[0];
             data.bids = (data.bids || []).filter(b => b.auctionId != id);
             data.wonAuctions = (data.wonAuctions || []).filter(w => w.auctionId != id && w.wonId != id);
+            data.watchlist = (data.watchlist || []).filter(w => w.auctionId != id);
+            data.registrations = (data.registrations || []).filter(r => r.auctionId != id);
 
             saveData(data);
             return { success: true, message: `Đã xóa chuyến bay ${removed.flightNumber} khỏi hệ thống.` };
