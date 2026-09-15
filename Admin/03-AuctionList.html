@@ -618,7 +618,7 @@
             const hasBids = bidsCount > 0;
 
             const canEdit = isOpen && !hasBids;
-            const canDelete = !isOpen && !hasBids;
+            const canDelete = !isOpen;
 
             return `
                 <tr class="hover:bg-slate-50 transition">
@@ -669,7 +669,7 @@
                                 <i class="fa-solid fa-trash text-[10px]"></i> Xóa
                             </button>
                         ` : `
-                            <button disabled class="inline-flex items-center gap-1 bg-gray-100 text-gray-400 font-semibold px-2 py-1 rounded-lg cursor-not-allowed opacity-60" title="${isOpen ? 'Không thể xóa khi phiên đang mở' : `Không thể xóa – đã có ${bidsCount} lượt đặt giá`}">
+                            <button disabled class="inline-flex items-center gap-1 bg-gray-100 text-gray-400 font-semibold px-2 py-1 rounded-lg cursor-not-allowed opacity-60" title="Không thể xóa khi phiên đang MỞ đấu giá">
                                 <i class="fa-solid fa-lock text-[10px]"></i> Xóa
                             </button>
                         `}

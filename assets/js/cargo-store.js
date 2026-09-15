@@ -3485,15 +3485,7 @@ const CargoStore = (function() {
             if (auction.status === 'OPEN') {
                 return {
                     success: false,
-                    message: `Không thể xóa chuyến bay ${auction.flightNumber} khi phiên đang mở đấu giá. Vui lòng chốt thầu trước khi xóa.`
-                };
-            }
-            const hasBids = (auction.bidsCount && auction.bidsCount > 0) ||
-                            (data.bids || []).some(b => b.auctionId == id);
-            if (hasBids) {
-                return {
-                    success: false,
-                    message: `Không thể xóa chuyến bay ${auction.flightNumber} vì đã có đại lý đặt giá. Chỉ được xóa chuyến bay khi chưa có người tham gia.`
+                    message: `Không thể xóa chuyến bay ${auction.flightNumber} khi phiên đang MỞ đấu giá. Vui lòng chốt thầu hoặc đóng phiên trước khi xóa.`
                 };
             }
 
@@ -3504,7 +3496,7 @@ const CargoStore = (function() {
             data.registrations = (data.registrations || []).filter(r => r.auctionId != id);
 
             saveData(data);
-            return { success: true, message: `Đã xóa chuyến bay ${removed.flightNumber} khỏi hệ thống.` };
+            return { success: true, message: `Đã xóa chuyến bay ${removed.flightNumber} và toàn bộ dữ liệu liên quan khỏi hệ thống.` };
         },
 
         sendBroadcastNotification: function(notifData) {
