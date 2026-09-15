@@ -415,7 +415,7 @@ const CargoStore = (function() {
                 weightKg: 3500
             }
         ],
-        watchlist: [1, 2, 3],
+        watchlist: [],
         wonAuctions: [
             {
                 wonId: 'WON-2026-0814-01',
@@ -669,6 +669,11 @@ const CargoStore = (function() {
 
             if (!data.routeSubscriptions) {
                 data.routeSubscriptions = JSON.parse(JSON.stringify(defaultData.routeSubscriptions));
+                updated = true;
+            }
+
+            if (!data.watchlist || (Array.isArray(data.watchlist) && data.watchlist.length === 3 && data.watchlist.includes(1) && data.watchlist.includes(2) && data.watchlist.includes(3))) {
+                data.watchlist = [];
                 updated = true;
             }
 
@@ -2663,6 +2668,26 @@ const CargoStore = (function() {
 
             const myCode = (user.agentCode || user.code || '').trim().toUpperCase();
 
+            // Find agent's approval / creation timestamp
+            let approvalTimestamp = 0;
+            const approvalNotif = allNotifs.find(n => {
+                const tCode = String(n.targetAgentCode || '').trim().toUpperCase();
+                return tCode === myCode && n.title && (n.title.includes('Phê duyệt Hồ sơ') || n.title.includes('PHÊ DUYỆT'));
+            });
+            if (approvalNotif) {
+                approvalTimestamp = Number(approvalNotif.timestamp || approvalNotif.createdAt || approvalNotif.id) || 0;
+            } else {
+                const agentObj = (data.agentsList || []).find(a => String(a.code || a.agentCode || '').trim().toUpperCase() === myCode);
+                if (agentObj) {
+                    const agentIdNum = Number(agentObj.id);
+                    if (!isNaN(agentIdNum) && agentIdNum > 1577836800000) {
+                        approvalTimestamp = agentIdNum;
+                    } else if (agentObj.createdAt) {
+                        approvalTimestamp = Number(agentObj.createdAt) || 0;
+                    }
+                }
+            }
+
             const agentNotifs = allNotifs.filter(n => {
                 // Admin / staff notifications must NEVER leak to agents
                 if (n.targetRole === 'ADMIN' || n.targetRole === 'admin' || n.targetRole === 'STAFF') return false;
@@ -2680,6 +2705,14 @@ const CargoStore = (function() {
                 }
 
                 // Untargeted general notifications (AUCTION_OPEN, CLOSING_SOON, SYSTEM)
+                // For newly registered/approved agents, only show notifications created on/after approval
+                if (approvalTimestamp > 0) {
+                    const nTs = Number(n.timestamp || n.createdAt || n.id) || 0;
+                    if (nTs < (approvalTimestamp - 60000)) {
+                        return false;
+                    }
+                }
+
                 return true;
             });
 

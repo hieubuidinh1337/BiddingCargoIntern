@@ -3,140 +3,30 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Danh sách Theo dõi (Watchlist) - Cargo Bidding | Vietravel Airlines</title>
-    <meta name="description" content="Theo dõi các phiên đấu giá cargo quan tâm, nhận cảnh báo kịp thời khi bị vượt giá.">
+    <title>Danh sách Theo dõi | Vietravel Airlines Cargo Bidding</title>
     <script src="https://cdn.tailwindcss.com"></script>
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <script src="assets/js/cargo-store.js"></script>
+    <script src="assets/js/header.js"></script>
     <style>
-        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap');
-        * { font-family: 'Inter', sans-serif; }
-
-        /* Countdown urgency pulsing */
-        .countdown-urgent { animation: pulse-red 1.2s ease-in-out infinite; }
-        @keyframes pulse-red {
-            0%, 100% { color: #ef4444; }
-            50% { color: #b91c1c; }
-        }
-
-        /* Card hover transition */
+        .price-bar { transition: width 0.5s ease-in-out; }
         .watch-card { transition: all 0.2s ease; }
-        .watch-card:hover { transform: translateY(-2px); box-shadow: 0 8px 30px rgba(0,0,0,0.08); }
-
-        /* Star button */
-        .star-btn { transition: all 0.15s ease; }
+        .watch-card:hover { transform: translateY(-2px); box-shadow: 0 12px 24px -10px rgba(0,0,0,0.1); }
+        .star-btn { transition: transform 0.2s ease; }
         .star-btn:hover { transform: scale(1.2); }
-
-        /* Route badge animation */
-        .live-dot { animation: live-blink 1s step-end infinite; }
-        @keyframes live-blink { 0%, 100% { opacity: 1; } 50% { opacity: 0; } }
-
-        /* Progress bar shimmer */
-        .price-bar { position: relative; overflow: hidden; }
-        .price-bar::after {
-            content: '';
-            position: absolute;
-            top: 0; left: -100%; width: 100%; height: 100%;
-            background: linear-gradient(90deg, transparent, rgba(255,255,255,0.3), transparent);
-            animation: shimmer 2s infinite;
-        }
-        @keyframes shimmer { to { left: 100%; } }
-
-        /* Empty state animation */
-        .empty-icon { animation: float 3s ease-in-out infinite; }
-        @keyframes float { 0%, 100% { transform: translateY(0); } 50% { transform: translateY(-8px); } }
-
-        /* Tabs */
-        .tab-btn.active { background: #2563eb; color: white; }
-        .tab-btn { transition: all 0.15s; }
+        .tab-btn.active { background-color: #2563eb; color: white; }
     </style>
 </head>
-<body class="bg-gray-50 text-gray-800">
+<body class="bg-slate-50 text-slate-800 antialiased font-sans min-h-screen">
 
-    <!-- HEADER NAVIGATION -->
-    <header class="bg-white border-b shadow-sm sticky top-0 z-50">
-        <div class="max-w-7xl mx-auto px-3 sm:px-4 py-2.5 sm:py-3 flex items-center justify-between">
-            <div class="flex items-center gap-2.5 sm:gap-6">
-                <!-- Mobile Menu Button -->
-                <button type="button" onclick="toggleAgentMobileNav()" class="md:hidden text-gray-600 hover:text-blue-600 p-1.5 rounded-xl hover:bg-gray-100 transition focus:outline-none" aria-label="Menu">
-                    <i class="fa-solid fa-bars text-base"></i>
-                </button>
-                <a href="02-Dashboard.html" class="flex items-center gap-2">
-                    <div class="w-8 h-8 sm:w-9 sm:h-9 bg-gradient-to-br from-blue-600 to-indigo-700 rounded-xl flex items-center justify-center text-white font-bold text-sm sm:text-base shadow">VN</div>
-                    <div>
-                        <span class="font-bold text-sm sm:text-base text-slate-900 block leading-tight">Cargo Bidding</span>
-                        <span class="text-[9px] sm:text-[10px] text-gray-400 uppercase tracking-wider block font-semibold">Agent Portal</span>
-                    </div>
-                </a>
-                <nav class="hidden md:flex items-center gap-1 text-sm font-medium">
-                    <a href="02-Dashboard.html" class="px-3 py-1.5 rounded-lg text-gray-600 hover:text-blue-600 hover:bg-gray-50 transition flex items-center gap-1.5">
-                        <i class="fa-solid fa-gauge-high text-xs"></i> Tổng quan
-                    </a>
-                    <a href="03-Index.html" class="px-3 py-1.5 rounded-lg text-gray-600 hover:text-blue-600 hover:bg-gray-50 transition flex items-center gap-1.5">
-                        <i class="fa-solid fa-gavel text-xs"></i> Sàn đấu giá
-                    </a>
-                    <a href="05-Watchlist.html" class="px-3 py-1.5 rounded-lg bg-amber-50 text-amber-600 font-semibold flex items-center gap-1.5 border border-amber-100">
-                        <i class="fa-solid fa-star text-xs"></i> Theo dõi
-                    </a>
-                    <a href="06-MyBids.html" class="px-3 py-1.5 rounded-lg text-gray-600 hover:text-blue-600 hover:bg-gray-50 transition flex items-center gap-1.5">
-                        <i class="fa-solid fa-clock-rotate-left text-xs"></i> Lịch sử thầu
-                    </a>
-                    <a href="07-WonAuction.html" class="px-3 py-1.5 rounded-lg text-gray-600 hover:text-blue-600 hover:bg-gray-50 transition flex items-center gap-1.5">
-                        <i class="fa-solid fa-trophy text-xs"></i> Thắng thầu
-                    </a>
-                </nav>
-            </div>
-            <div class="flex items-center gap-1.5 sm:gap-3">
-                <a href="08-Notifications.html" id="notifBell" class="relative p-1.5 sm:p-2 text-gray-500 hover:text-blue-600 rounded-xl hover:bg-gray-100 transition">
-                    <i class="fa-solid fa-bell text-base sm:text-lg"></i>
-                    <span id="headerNotifDot" class="absolute top-1 right-1 sm:top-1.5 sm:right-1.5 w-2.5 h-2.5 bg-red-500 rounded-full border-2 border-white animate-pulse" style="display:none"></span>
-                </a>
-                <div class="h-6 w-px bg-gray-200 hidden sm:block"></div>
-                <a href="09-Profile.html" class="flex items-center gap-2 hover:bg-gray-50 p-1 sm:p-1.5 rounded-xl transition">
-                    <div class="w-7 h-7 sm:w-8 sm:h-8 rounded-lg bg-blue-100 text-blue-700 flex items-center justify-center font-bold text-xs" id="headerUserAvatar">AG</div>
-                    <div class="hidden sm:block text-left">
-                        <p class="text-xs font-bold text-slate-800 leading-tight" id="headerCompanyName">ABC Logistics</p>
-                        <p class="text-[11px] text-gray-500 leading-none">Mã: <span class="text-blue-600 font-semibold" id="headerUserCode">AG-0892</span></p>
-                    </div>
-                </a>
-                <a href="01-Login.html" title="Đăng xuất" class="text-gray-400 hover:text-red-600 p-1.5 sm:p-2 transition">
-                    <i class="fa-solid fa-right-from-bracket"></i>
-                </a>
-            </div>
-        </div>
-        <!-- Mobile Drawer -->
-        <div id="agentMobileNav" class="hidden md:hidden bg-white border-t px-4 py-2.5 space-y-1 text-xs font-medium shadow-lg">
-            <a href="02-Dashboard.html" class="flex items-center gap-2 px-3 py-2 rounded-lg text-gray-700 hover:bg-gray-50 hover:text-blue-600 transition">
-                <i class="fa-solid fa-gauge-high w-4"></i> Tổng quan Dashboard
-            </a>
-            <a href="03-Index.html" class="flex items-center gap-2 px-3 py-2 rounded-lg text-gray-700 hover:bg-gray-50 hover:text-blue-600 transition">
-                <i class="fa-solid fa-gavel w-4"></i> Sàn đấu giá trực tiếp
-            </a>
-            <a href="05-Watchlist.html" class="flex items-center gap-2 px-3 py-2 rounded-lg bg-amber-50 text-amber-600 font-semibold transition">
-                <i class="fa-solid fa-star w-4"></i> Tuyến bay theo dõi
-            </a>
-            <a href="06-MyBids.html" class="flex items-center gap-2 px-3 py-2 rounded-lg text-gray-700 hover:bg-gray-50 hover:text-blue-600 transition">
-                <i class="fa-solid fa-clock-rotate-left w-4"></i> Lịch sử đặt thầu
-            </a>
-            <a href="07-WonAuction.html" class="flex items-center gap-2 px-3 py-2 rounded-lg text-gray-700 hover:bg-gray-50 hover:text-blue-600 transition">
-                <i class="fa-solid fa-trophy w-4"></i> Đơn hàng thắng thầu
-            </a>
-            <a href="08-Notifications.html" class="flex items-center gap-2 px-3 py-2 rounded-lg text-gray-700 hover:bg-gray-50 hover:text-blue-600 transition">
-                <i class="fa-solid fa-bell w-4"></i> Trung tâm thông báo
-            </a>
-            <a href="09-Profile.html" class="flex items-center gap-2 px-3 py-2 rounded-lg text-gray-700 hover:bg-gray-50 hover:text-blue-600 transition">
-                <i class="fa-solid fa-user-shield w-4"></i> Hồ sơ đại lý & Mã PIN
-            </a>
-            <a href="10-Terms.html" class="flex items-center gap-2 px-3 py-2 rounded-lg text-gray-500 hover:bg-gray-50 hover:text-gray-800 transition border-t pt-2 mt-1">
-                <i class="fa-solid fa-file-contract w-4"></i> Quy chế & Điều khoản
-            </a>
-        </div>
-    </header>
+    <!-- Global Header -->
+    <div id="siteHeader"></div>
 
-    <main class="max-w-7xl mx-auto px-3 sm:px-4 py-4 sm:py-6 space-y-4 sm:space-y-6">
+    <!-- Main Content Container -->
+    <main class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6 space-y-6">
 
-        <!-- Page Header with Stats -->
-        <div class="bg-gradient-to-r from-amber-600 via-orange-600 to-rose-600 rounded-2xl text-white p-4 sm:p-6 shadow-md relative overflow-hidden">
+        <!-- Watchlist Banner -->
+        <div class="bg-gradient-to-r from-amber-600 via-orange-600 to-amber-700 rounded-3xl p-6 sm:p-8 text-white shadow-xl relative overflow-hidden">
             <div class="absolute inset-0 opacity-10">
                 <svg width="100%" height="100%" xmlns="http://www.w3.org/2000/svg">
                     <defs><pattern id="pg" x="0" y="0" width="40" height="40" patternUnits="userSpaceOnUse">
@@ -156,15 +46,15 @@
                 </div>
                 <div class="grid grid-cols-3 gap-3">
                     <div class="bg-white/15 backdrop-blur-sm rounded-xl px-4 py-3 text-center">
-                        <p class="text-2xl font-bold" id="watchTotalCount">3</p>
+                        <p class="text-2xl font-bold" id="watchTotalCount">0</p>
                         <p class="text-xs text-white/70">Đang theo dõi</p>
                     </div>
                     <div class="bg-white/15 backdrop-blur-sm rounded-xl px-4 py-3 text-center">
-                        <p class="text-2xl font-bold" id="watchOpenCount">3</p>
+                        <p class="text-2xl font-bold" id="watchOpenCount">0</p>
                         <p class="text-xs text-white/70">Đang mở thầu</p>
                     </div>
                     <div class="bg-white/15 backdrop-blur-sm rounded-xl px-4 py-3 text-center">
-                        <p class="text-2xl font-bold" id="watchLeadingCount">1</p>
+                        <p class="text-2xl font-bold" id="watchLeadingCount">0</p>
                         <p class="text-xs text-white/70">Bạn đang dẫn đầu</p>
                     </div>
                 </div>
@@ -176,13 +66,13 @@
             <div class="flex items-center gap-2">
                 <div class="bg-white border rounded-xl p-1 flex items-center gap-1">
                     <button class="tab-btn active text-xs font-semibold px-3 py-1.5 rounded-lg" id="tabAll" onclick="filterTab('all')">
-                        Tất cả <span class="ml-1 bg-amber-100 text-amber-700 text-[10px] px-1.5 py-0.5 rounded-full" id="countAll">3</span>
+                        Tất cả <span class="ml-1 bg-amber-100 text-amber-700 text-[10px] px-1.5 py-0.5 rounded-full" id="countAll">0</span>
                     </button>
                     <button class="tab-btn text-xs font-semibold px-3 py-1.5 rounded-lg text-gray-600" id="tabOpen" onclick="filterTab('open')">
-                        Đang mở <span class="ml-1 bg-emerald-100 text-emerald-700 text-[10px] px-1.5 py-0.5 rounded-full" id="countOpen">3</span>
+                        Đang mở <span class="ml-1 bg-emerald-100 text-emerald-700 text-[10px] px-1.5 py-0.5 rounded-full" id="countOpen">0</span>
                     </button>
                     <button class="tab-btn text-xs font-semibold px-3 py-1.5 rounded-lg text-gray-600" id="tabLeading" onclick="filterTab('leading')">
-                        Dẫn đầu <span class="ml-1 bg-blue-100 text-blue-700 text-[10px] px-1.5 py-0.5 rounded-full" id="countLeading">1</span>
+                        Dẫn đầu <span class="ml-1 bg-blue-100 text-blue-700 text-[10px] px-1.5 py-0.5 rounded-full" id="countLeading">0</span>
                     </button>
                 </div>
             </div>
@@ -199,7 +89,7 @@
             </div>
         </div>
 
-        <!-- Watchlist Cards -->
+        <!-- Watchlist Cards Container -->
         <div id="watchlistContainer" class="space-y-4"></div>
 
         <!-- Pagination Bar -->
@@ -280,7 +170,8 @@
     function filterTab(tab) {
         currentFilter = tab;
         document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
-        document.getElementById('tab' + tab.charAt(0).toUpperCase() + tab.slice(1)).classList.add('active');
+        const activeTabEl = document.getElementById('tab' + tab.charAt(0).toUpperCase() + tab.slice(1));
+        if (activeTabEl) activeTabEl.classList.add('active');
         renderWatchlist();
     }
 
@@ -405,17 +296,19 @@
         const openCount = all.filter(a => a.status === 'OPEN').length;
         const leadingCount = all.filter(a => a.leadingAgentCode === currentAgentCode && a.status === 'OPEN').length;
 
-        document.getElementById('watchTotalCount').textContent = watchIds.length;
-        document.getElementById('watchOpenCount').textContent = openCount;
-        document.getElementById('watchLeadingCount').textContent = leadingCount;
-        document.getElementById('countAll').textContent = watchIds.length;
-        document.getElementById('countOpen').textContent = openCount;
-        document.getElementById('countLeading').textContent = leadingCount;
+        const setTxt = (id, val) => { const el = document.getElementById(id); if (el) el.textContent = val; };
+        setTxt('watchTotalCount', watchIds.length);
+        setTxt('watchOpenCount', openCount);
+        setTxt('watchLeadingCount', leadingCount);
+        setTxt('countAll', watchIds.length);
+        setTxt('countOpen', openCount);
+        setTxt('countLeading', leadingCount);
 
         const totalItems = list.length;
         renderWatchPaginationControls(totalItems);
 
         const container = document.getElementById('watchlistContainer');
+        if (!container) return;
 
         if (list.length === 0) {
             const msg = currentFilter === 'leading'
@@ -444,7 +337,6 @@
             const isClosed = a.status === 'CLOSED';
             const totalVal = a.currentPriceKg * a.capacityKg;
 
-            // Route icons
             const originMap = { SGN: '🏙️', HAN: '🏯', DAD: '🌊', PQC: '🌴', VCS: '🐠', VII: '🌋' };
             const originIcon = originMap[a.origin] || '✈️';
             const destIcon = originMap[a.destination] || '✈️';
@@ -454,8 +346,8 @@
                 <!-- Card Header -->
                 <div class="flex items-start justify-between p-5 pb-3 border-b border-gray-50">
                     <div class="flex items-center gap-3 flex-1 min-w-0">
-                        <!-- Watch Button -->
-                        <button id="star-${a.id}" onclick="removeWatch(${a.id})" title="Bỏ theo dõi" class="star-btn text-amber-400 hover:text-gray-300 text-2xl flex-shrink-0">
+                        <!-- Watch Star Button -->
+                        <button id="star-${a.id}" onclick="removeWatch(${a.id})" title="Bỏ theo dõi" class="star-btn text-amber-400 hover:text-gray-300 text-2xl flex-shrink-0 cursor-pointer">
                             <i class="fa-solid fa-star"></i>
                         </button>
 
@@ -487,8 +379,8 @@
                     </div>
                 </div>
 
-                <!-- Price Row -->
-                <div class="px-5 py-4 flex flex-col md:flex-row md:items-center justify-between gap-4">
+                <!-- Price Row & Actions -->
+                <div class="px-5 py-4 flex flex-col md:flex-row md:items-center justify-between gap-4 border-b border-gray-50">
                     <div class="flex items-center gap-6">
                         <!-- Current Price -->
                         <div>
@@ -520,31 +412,35 @@
                     <!-- Actions -->
                     <div class="flex items-center gap-2 flex-shrink-0">
                         ${a.status === 'OPEN' ? `
-                        <button onclick="openQuickBid(${a.id})" class="bg-blue-600 hover:bg-blue-700 text-white text-xs font-bold px-4 py-2.5 rounded-xl transition shadow flex items-center gap-1.5">
+                        <button onclick="openQuickBid(${a.id})" class="bg-blue-600 hover:bg-blue-700 text-white text-xs font-bold px-4 py-2.5 rounded-xl transition shadow flex items-center gap-1.5 cursor-pointer">
                             <i class="fa-solid fa-gavel"></i> Đặt giá nhanh
                         </button>
                         ` : ''}
-                        <a href="04-Detail.html?id=${a.id}" class="${a.status === 'OPEN' ? 'bg-gray-100 hover:bg-gray-200 text-gray-700' : 'bg-blue-600 hover:bg-blue-700 text-white shadow'} text-xs font-semibold px-4 py-2.5 rounded-xl transition flex items-center gap-1.5">
+                        <a href="04-Detail.html?id=${a.id}" class="${a.status === 'OPEN' ? 'bg-gray-100 hover:bg-gray-200 text-gray-700' : 'bg-blue-600 hover:bg-blue-700 text-white shadow'} text-xs font-semibold px-4 py-2.5 rounded-xl transition flex items-center gap-1.5 cursor-pointer">
                             <i class="fa-solid fa-arrow-right text-[10px]"></i>
                             ${a.status === 'OPEN' ? 'Chi tiết' : 'Xem kết quả'}
                         </a>
+                        <button onclick="removeWatch(${a.id})" class="bg-rose-50 hover:bg-rose-100 text-rose-600 border border-rose-200 hover:border-rose-300 text-xs font-semibold px-3.5 py-2.5 rounded-xl transition flex items-center gap-1.5 cursor-pointer shadow-2xs" title="Bỏ theo dõi chuyến bay này">
+                            <i class="fa-solid fa-star-half-stroke text-rose-500 text-[11px]"></i>
+                            <span>Bỏ theo dõi</span>
+                        </button>
                     </div>
                 </div>
 
                 <!-- Price Progress Bar (only for open) -->
                 ${a.status === 'OPEN' ? `
-                <div class="px-5 pb-4">
+                <div class="px-5 py-3 bg-slate-50/50">
                     <div class="flex justify-between text-[10px] text-gray-400 mb-1">
                         <span>Khởi điểm: ${formatCurrency(a.startingPriceKg)}/Kg</span>
                         <span class="text-blue-500 font-medium">+${incPct}%</span>
                     </div>
                     <div class="w-full h-2 bg-gray-100 rounded-full overflow-hidden">
-                        <div class="price-bar h-full ${isLeading ? 'bg-gradient-to-r from-emerald-400 to-blue-500' : (isUrgent ? 'bg-gradient-to-r from-orange-400 to-red-500' : 'bg-gradient-to-r from-blue-400 to-indigo-500)')} rounded-full transition-all" style="width: ${Math.min(100, incPct * 2)}%"></div>
+                        <div class="price-bar h-full ${isLeading ? 'bg-gradient-to-r from-emerald-400 to-blue-500' : (isUrgent ? 'bg-gradient-to-r from-orange-400 to-red-500' : 'bg-gradient-to-r from-blue-400 to-indigo-500')} rounded-full transition-all" style="width: ${Math.min(100, incPct * 2)}%"></div>
                     </div>
                 </div>
                 ` : ''}
 
-                <!-- Special Notes (collapsed by default) -->
+                <!-- Special Notes -->
                 ${a.specialNotes ? `
                 <div class="px-5 pb-4">
                     <div class="bg-amber-50 border border-amber-100 rounded-xl p-3 flex items-start gap-2">
@@ -569,6 +465,7 @@
         if (!data) return;
         const a = (data.auctions || []).find(x => x.id === auctionId);
         if (!a) return;
+        currentBidAuction = a;
         const hasBids = (a.bidsCount && a.bidsCount > 0);
         modalMinPrice = hasBids ? (a.currentPriceKg + (a.minStep || 500)) : (a.startingPriceKg || a.currentPriceKg);
         document.getElementById('modalFlightLabel').textContent = a.flightNumber + ' · ' + a.route;
@@ -600,18 +497,21 @@
         if (currentBidAuction) {
             CargoStore.placeBid(currentBidAuction.id, val);
             closeModal();
-            showToast('Đã đặt giá ' + val.toLocaleString('vi-VN') + ' đ/Kg thành công! ');
+            showToast('Đã đặt giá ' + val.toLocaleString('vi-VN') + ' đ/Kg thành công!');
             renderWatchlist();
         }
     }
 
     function showToast(msg, type) {
         const toast = document.getElementById('toastMsg');
+        if (!toast) return;
         const iconEl = toast.querySelector('i');
         const textEl = document.getElementById('toastText');
-        textEl.textContent = msg;
-        if (type === 'error') iconEl.className = 'fa-solid fa-circle-xmark text-red-400 text-base';
-        else iconEl.className = 'fa-solid fa-check-circle text-emerald-400 text-base';
+        if (textEl) textEl.textContent = msg;
+        if (iconEl) {
+            if (type === 'error') iconEl.className = 'fa-solid fa-circle-xmark text-red-400 text-base';
+            else iconEl.className = 'fa-solid fa-check-circle text-emerald-400 text-base';
+        }
         toast.classList.remove('hidden');
         setTimeout(() => toast.classList.add('hidden'), 3000);
     }
@@ -648,4 +548,3 @@
 <script src="assets/js/chat-bubble.js"></script>
 </body>
 </html>
-

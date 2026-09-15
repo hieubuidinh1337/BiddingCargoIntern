@@ -1,5 +1,5 @@
 {
-  "version": 1789460158939,
+  "version": 1789464097998,
   "auctions": [
     {
       "id": 108,
@@ -18,7 +18,7 @@
       "startingPriceKg": 18000,
       "currentPriceKg": 18000,
       "minStep": 500,
-      "endTime": "2026-09-15T09:00:00.000Z",
+      "endTime": "2026-09-15T11:21:23.576Z",
       "status": "OPEN",
       "leadingAgentCode": null,
       "leadingAgentName": null,
@@ -35,21 +35,21 @@
       "destination": "HAN",
       "originName": "TP. Hồ Chí Minh",
       "destName": "Hà Nội",
-      "etd": "19:00 · 15/09/2026",
-      "eta": "21:15 · 15/09/2026",
-      "etdIso": "2026-09-15T12:00:00.000Z",
+      "etd": "03:15 · 16/09/2026",
+      "eta": "05:30 · 16/09/2026",
+      "etdIso": "2026-09-15T20:15:00.000Z",
       "aircraft": "Airbus A321neo Cargo",
       "capacityKg": 3000,
       "startingPriceKg": 18000,
       "currentPriceKg": 18000,
       "minStep": 500,
-      "endTime": "2026-09-15T07:00:00.000Z",
+      "endTime": "2026-09-15T15:15:00.000Z",
       "status": "OPEN",
       "leadingAgentCode": null,
       "leadingAgentName": null,
       "bidsCount": 0,
       "specialNotes": "Tải trọng tổng hợp tiêu chuẩn IATA. Có hỗ trợ xe nâng hàng pallet tại sân bay.",
-      "cutOffTime": "Trước ETD 3 giờ"
+      "cutOffTime": "00:15 · 16/09/2026"
     },
     {
       "id": 106,
@@ -144,7 +144,7 @@
       "startingPriceKg": 18000,
       "currentPriceKg": 18000,
       "minStep": 500,
-      "endTime": "2026-09-15T00:39:28.273Z",
+      "endTime": "2026-09-15T03:13:52.259Z",
       "status": "CLOSED",
       "leadingAgentCode": null,
       "leadingAgentName": null,
@@ -167,13 +167,13 @@
       "destName": "Phú Quốc",
       "etd": "22:45 · 15/09/2026",
       "eta": "01:00 · 16/09/2026",
-      "etdIso": "2026-09-15T12:29:28.273Z",
+      "etdIso": "2026-09-15T15:03:52.259Z",
       "aircraft": "Airbus A321neo Cargo",
       "capacityKg": 4000,
       "startingPriceKg": 22000,
       "currentPriceKg": 22000,
       "minStep": 1000,
-      "endTime": "2026-09-15T09:29:28.273Z",
+      "endTime": "2026-09-15T12:03:52.259Z",
       "status": "OPEN",
       "leadingAgentCode": null,
       "leadingAgentName": null,
@@ -193,13 +193,13 @@
       "destName": "Đà Nẵng",
       "etd": "21:30 · 15/09/2026",
       "eta": "22:50 · 15/09/2026",
-      "etdIso": "2026-09-15T11:14:28.273Z",
+      "etdIso": "2026-09-15T13:48:52.259Z",
       "aircraft": "Airbus A320-200",
       "capacityKg": 2000,
       "startingPriceKg": 12000,
       "currentPriceKg": 12000,
       "minStep": 500,
-      "endTime": "2026-09-15T08:14:28.273Z",
+      "endTime": "2026-09-15T10:48:52.259Z",
       "status": "OPEN",
       "leadingAgentCode": null,
       "leadingAgentName": null,
@@ -219,13 +219,13 @@
       "destName": "Hà Nội",
       "etd": "20:45 · 15/09/2026",
       "eta": "23:00 · 15/09/2026",
-      "etdIso": "2026-09-15T10:27:28.265Z",
+      "etdIso": "2026-09-15T13:01:52.258Z",
       "aircraft": "Airbus A321neo Cargo",
       "capacityKg": 3500,
       "startingPriceKg": 18000,
       "currentPriceKg": 56500,
       "minStep": 500,
-      "endTime": "2026-09-15T07:27:28.273Z",
+      "endTime": "2026-09-15T10:01:52.259Z",
       "status": "OPEN",
       "leadingAgentCode": "AG-0892",
       "leadingAgentName": "ABC Logistics",
@@ -237,8 +237,8 @@
   ],
   "bids": [
     {
-      "id": 1789454188273,
-      "timestamp": 1789454188273,
+      "id": 1789463452259,
+      "timestamp": 1789463452259,
       "auctionId": 1,
       "agentCode": "AG-0892",
       "agentName": "ABC Logistics",
@@ -249,8 +249,8 @@
       "weightKg": 3500
     },
     {
-      "id": 1789454008273,
-      "timestamp": 1789454008273,
+      "id": 1789463272259,
+      "timestamp": 1789463272259,
       "auctionId": 1,
       "agentCode": "AG-0892",
       "agentName": "ABC Logistics",
@@ -261,8 +261,8 @@
       "weightKg": 3500
     },
     {
-      "id": 1789453468273,
-      "timestamp": 1789453468273,
+      "id": 1789462732259,
+      "timestamp": 1789462732259,
       "auctionId": 1,
       "agentCode": "AG-0556",
       "agentName": "Golden Star Forwarding",
@@ -273,8 +273,8 @@
       "weightKg": 3500
     },
     {
-      "id": 1789452868273,
-      "timestamp": 1789452868273,
+      "id": 1789462132259,
+      "timestamp": 1789462132259,
       "auctionId": 1,
       "agentCode": "AG-1024",
       "agentName": "Vinatrans Express",
@@ -285,8 +285,8 @@
       "weightKg": 3500
     },
     {
-      "id": 1789452268273,
-      "timestamp": 1789452268273,
+      "id": 1789461532259,
+      "timestamp": 1789461532259,
       "auctionId": 1,
       "agentCode": "AG-0556",
       "agentName": "Golden Star Forwarding",
@@ -297,8 +297,8 @@
       "weightKg": 3500
     },
     {
-      "id": 1789451848273,
-      "timestamp": 1789451848273,
+      "id": 1789461112259,
+      "timestamp": 1789461112259,
       "auctionId": 1,
       "agentCode": "AG-1024",
       "agentName": "Vinatrans Express",
@@ -309,8 +309,8 @@
       "weightKg": 3500
     },
     {
-      "id": 1789451488273,
-      "timestamp": 1789451488273,
+      "id": 1789460752259,
+      "timestamp": 1789460752259,
       "auctionId": 1,
       "agentCode": "AG-0556",
       "agentName": "Golden Star Forwarding",
@@ -321,8 +321,8 @@
       "weightKg": 3500
     },
     {
-      "id": 1789451248273,
-      "timestamp": 1789451248273,
+      "id": 1789460512259,
+      "timestamp": 1789460512259,
       "auctionId": 1,
       "agentCode": "AG-0892",
       "agentName": "ABC Logistics",
@@ -333,8 +333,8 @@
       "weightKg": 3500
     },
     {
-      "id": 1789451008273,
-      "timestamp": 1789451008273,
+      "id": 1789460272259,
+      "timestamp": 1789460272259,
       "auctionId": 1,
       "agentCode": "AG-0556",
       "agentName": "Golden Star Forwarding",
@@ -345,8 +345,8 @@
       "weightKg": 3500
     },
     {
-      "id": 1789450768273,
-      "timestamp": 1789450768273,
+      "id": 1789460032259,
+      "timestamp": 1789460032259,
       "auctionId": 1,
       "agentCode": "AG-1024",
       "agentName": "Vinatrans Express",
@@ -497,30 +497,8 @@
   ],
   "notifications": [
     {
-      "id": 1789454630463,
-      "timestamp": 1789454630463,
-      "targetAgentCode": null,
-      "title": "Mở phiên đấu giá mới: Chuyến VU136 (SGN - HAN)",
-      "message": "Chuyến bay VU136 (TP. Hồ Chí Minh - Hà Nội) với tải trọng 3.000 Kg, giá khởi điểm 18.000 đ/Kg đã chính thức mở nhận giá thầu.",
-      "time": "Vừa xong",
-      "type": "AUCTION_OPEN",
-      "read": false,
-      "link": "04-Detail.html?id=108"
-    },
-    {
-      "id": 1789454368291,
-      "timestamp": 1789454368291,
-      "targetAgentCode": null,
-      "title": "Mở phiên đấu giá mới: Chuyến VU134 (SGN - HAN)",
-      "message": "Chuyến bay VU134 (TP. Hồ Chí Minh - Hà Nội) với tải trọng 3.000 Kg, giá khởi điểm 15.000 đ/Kg đã chính thức mở nhận giá thầu.",
-      "time": "Vừa xong",
-      "type": "AUCTION_OPEN",
-      "read": false,
-      "link": "04-Detail.html?id=104"
-    },
-    {
       "id": 1,
-      "timestamp": 1789453648273,
+      "timestamp": 1789462912259,
       "targetAgentCode": "AG-0892",
       "title": "🚀 Bạn đang dẫn đầu thầu VU130 (SGN-HAN)",
       "message": "Mức giá 21.500 đ/Kg của bạn (AG-0892) đang là cao nhất cho chặng SGN - HAN. Giữ vững ưu thế!",
@@ -531,7 +509,7 @@
     },
     {
       "id": 2,
-      "timestamp": 1789452568273,
+      "timestamp": 1789461832259,
       "targetAgentCode": "AG-0892",
       "title": "⚠️ Cảnh báo bị vượt giá chuyến VU224 (SGN-DAD)!",
       "message": "Đại lý ẩn danh (AG-***) vừa đặt mức giá mới 19.500 đ/Kg cho chặng SGN - DAD. Bạn không còn dẫn đầu.",
@@ -542,7 +520,7 @@
     },
     {
       "id": 3,
-      "timestamp": 1789367968273,
+      "timestamp": 1789377232259,
       "targetAgentCode": "AG-0556",
       "title": "🏆 CHÚC MỪNG! Bạn đã thắng thầu chuyến bay VU450",
       "message": "Đại lý Công ty TNHH Tiếp vận Toàn Cầu Golden Star (AG-0556) đã trúng thầu chuyến bay VU450 (SGN - PQC) với giá 22.500 đ/Kg. Vui lòng hoàn tất thanh toán & khai báo hàng hóa trong 24h.",
@@ -553,7 +531,7 @@
     },
     {
       "id": 4,
-      "timestamp": 1789451668273,
+      "timestamp": 1789460932259,
       "targetAgentCode": "AG-0892",
       "title": "⏳ Cảnh báo sắp đóng thầu: Chuyến VU130",
       "message": "Phiên đấu giá chỉ còn dưới 30 phút. Đừng bỏ lỡ tải trọng tốt!",
