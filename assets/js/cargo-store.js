@@ -583,9 +583,9 @@ const CargoStore = (function() {
             {
                 id: 3,
                 timestamp: Date.now() - 86400000,
-                targetAgentCode: 'AG-0892',
+                targetAgentCode: 'AG-0556',
                 title: '🏆 CHÚC MỪNG! Bạn đã thắng thầu chuyến bay VU450',
-                message: 'Đại lý Công ty TNHH Vận tải ABC Logistics (AG-0892) đã trúng thầu chuyến bay VU450 (SGN - PQC) với giá 24.000 đ/Kg. Vui lòng hoàn tất thanh toán & khai báo hàng hóa trong 24h.',
+                message: 'Đại lý Công ty TNHH Tiếp vận Toàn Cầu Golden Star (AG-0556) đã trúng thầu chuyến bay VU450 (SGN - PQC) với giá 22.500 đ/Kg. Vui lòng hoàn tất thanh toán & khai báo hàng hóa trong 24h.',
                 time: '1 ngày trước',
                 type: 'WON',
                 read: false,
@@ -2497,7 +2497,7 @@ const CargoStore = (function() {
             const pathname = (typeof window !== 'undefined' && window.location && window.location.pathname) ? window.location.pathname : '';
             const isAdminPage = pathname.includes('/Admin/') || pathname.includes('/admin/');
 
-            if (isAdminPage || data.currentAdmin) {
+            if (isAdminPage) {
                 return data.bids || [];
             }
             const user = data.currentUser;
@@ -2607,13 +2607,22 @@ const CargoStore = (function() {
             const myCode = (user.agentCode || user.code || '').trim().toUpperCase();
 
             const agentNotifs = allNotifs.filter(n => {
-                // Admin reconciliation notifications must NEVER leak to agents
-                if (n.targetRole === 'ADMIN' || n.targetRole === 'admin') return false;
-                // If targeted to a specific agent, match exact agent code
-                if (n.targetAgentCode) {
-                    return n.targetAgentCode.trim().toUpperCase() === myCode;
+                // Admin / staff notifications must NEVER leak to agents
+                if (n.targetRole === 'ADMIN' || n.targetRole === 'admin' || n.targetRole === 'STAFF') return false;
+                
+                const targetCode = String(n.targetAgentCode || '').trim().toUpperCase();
+
+                // WON, OUTBID, HIGHEST, and PAYMENT_REMINDER notifications are strictly agent-specific
+                if (n.type === 'WON' || n.type === 'OUTBID' || n.type === 'HIGHEST' || n.type === 'PAYMENT_REMINDER') {
+                    return targetCode === myCode;
                 }
-                // Untargeted notifications are shown to all agents
+
+                // If targeted to a specific agent code, match exact agent code
+                if (targetCode) {
+                    return targetCode === myCode;
+                }
+
+                // Untargeted general notifications (AUCTION_OPEN, CLOSING_SOON, SYSTEM)
                 return true;
             });
 

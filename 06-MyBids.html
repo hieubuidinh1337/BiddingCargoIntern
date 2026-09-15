@@ -273,8 +273,10 @@
 
             tbody.innerHTML = paginatedList.map(b => {
                 const auction = auctions.find(a => a.id == b.auctionId) || {};
-                const bidAgentCode = String(b.agentCode || (u ? (u.agentCode || u.code) : '') || 'AG-0892').trim().toUpperCase();
+                const userCode = u ? String(u.agentCode || u.code || '').trim().toUpperCase() : '';
+                const bidAgentCode = String(b.agentCode || userCode || 'AG-0892').trim().toUpperCase();
                 const wonAuction = wonAuctions.find(w => String(w.auctionId) === String(b.auctionId) && String(w.agentCode || '').trim().toUpperCase() === bidAgentCode) || null;
+                const isActualWinner = !!wonAuction;
                 const paymentStatus = wonAuction ? wonAuction.paymentStatus : null;
                 const cargoDeclared = wonAuction ? (CargoStore.isCargoDeclared ? CargoStore.isCargoDeclared(wonAuction) : !!(wonAuction.cargoDeclaration && wonAuction.cargoDeclaration.cargoName)) : false;
 
@@ -284,9 +286,9 @@
                 let statusBadge = '';
                 if (b.status === 'HIGHEST') {
                     statusBadge = '<span class="bg-green-100 text-green-700 font-bold px-2.5 py-1 rounded-full text-[10px] inline-flex items-center gap-1"><i class="fa-solid fa-crown"></i> Đang dẫn đầu</span>';
-                } else if (b.status === 'OUTBID') {
+                } else if (b.status === 'OUTBID' || (b.status === 'WON' && !isActualWinner)) {
                     statusBadge = '<span class="bg-red-100 text-red-600 font-semibold px-2.5 py-1 rounded-full text-[10px]">Bị vượt giá</span>';
-                } else if (b.status === 'WON') {
+                } else if (b.status === 'WON' && isActualWinner) {
                     if (paymentStatus === 'PAID') {
                         statusBadge = '<span class="bg-emerald-100 text-emerald-700 font-bold px-2.5 py-1 rounded-full text-[10px] inline-flex items-center gap-1"><i class="fa-solid fa-circle-check"></i> Đã thanh toán</span>';
                     } else if (paymentStatus === 'PENDING_VERIFICATION') {
@@ -299,7 +301,7 @@
                 }
 
                 let wonActionHtml = '';
-                if (b.status === 'WON') {
+                if (b.status === 'WON' && isActualWinner) {
                     if (paymentStatus === 'PAID') {
                         wonActionHtml = cargoDeclared
                             ? '<span class="inline-flex items-center gap-1 bg-emerald-100 text-emerald-700 font-bold px-2.5 py-1.5 rounded-lg text-xs">Đã khai báo</span>'
