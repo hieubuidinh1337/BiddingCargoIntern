@@ -733,6 +733,24 @@ const CargoStore = (function() {
                     }
                 });
                 data.auctions = uniqueAuctions;
+
+                // Ensure no duplicate flight numbers across active auctions
+                const usedFlightNumbers = new Set(
+                    (data.wonAuctions || []).map(w => String(w.flightNumber || '').trim().toUpperCase()).filter(Boolean)
+                );
+                data.auctions.forEach(a => {
+                    const fn = String(a.flightNumber || '').trim().toUpperCase();
+                    if (!fn || usedFlightNumbers.has(fn)) {
+                        const freshFn = generateNextFlightNumber(a.origin || 'SGN', a.destination || 'HAN', 0, data);
+                        a.flightNumber = freshFn;
+                        const dateTag = String(a.flightCode || '').split('-').pop() || '260915';
+                        a.flightCode = `FL-${freshFn}-${dateTag}`;
+                        usedFlightNumbers.add(freshFn.toUpperCase());
+                        updated = true;
+                    } else {
+                        usedFlightNumbers.add(fn);
+                    }
+                });
             }
 
             // Reconcile auction summary fields from bid history so UI always reflects the real highest bid.
@@ -925,7 +943,7 @@ const CargoStore = (function() {
                             // Reassign a fresh flight number for this duplicate
                             const origin = (a.origin || 'SGN').trim().toUpperCase();
                             const dest = (a.destination || 'HAN').trim().toUpperCase();
-                            const freshFn = generateNextFlightNumber(origin, dest, 0);
+                            const freshFn = generateNextFlightNumber(origin, dest, 0, data);
                             a.flightNumber = freshFn;
                             const datePart = (a.flightCode && a.flightCode.split('-')[2]) || '260909';
                             a.flightCode = `FL-${freshFn}-${datePart}`;
@@ -1614,51 +1632,54 @@ const CargoStore = (function() {
         return new Date(etdDate.getTime() + durationMins * 60 * 1000);
     }
 
-    function generateNextFlightNumber(origin, destination, skipCount = 0) {
-        const data = loadData();
+    function generateNextFlightNumber(origin = 'SGN', destination = 'HAN', skipCount = 0, passedData = null) {
+        const data = passedData || loadData();
         const existingNumbers = new Set(
             (data.auctions || [])
-                .map(a => (a.flightNumber || '').trim().toUpperCase())
-                .concat((data.wonAuctions || []).map(w => (w.flightNumber || '').trim().toUpperCase()))
+                .map(a => String(a.flightNumber || '').trim().toUpperCase())
+                .concat((data.wonAuctions || []).map(w => String(w.flightNumber || '').trim().toUpperCase()))
                 .filter(Boolean)
         );
 
-        const pair = `${(origin || '').trim().toUpperCase()}-${(destination || '').trim().toUpperCase()}`;
+        const origStr = String(origin || 'SGN').trim().toUpperCase();
+        const destStr = String(destination || 'HAN').trim().toUpperCase();
+        const pair = `${origStr}-${destStr}`;
+
+        // Extended realistic flight number pools for Vietravel Airlines (VU)
+        // Even numbers for Southbound/Eastbound, Odd for Northbound/Westbound
         const routeBases = {
-            'SGN-HAN': [130, 132, 134, 136, 138, 140, 142, 144, 146, 148, 150, 152],
-            'HAN-SGN': [131, 133, 135, 137, 139, 141, 143, 145, 147, 149, 151, 153],
-            'SGN-DAD': [220, 222, 224, 226, 228, 230, 232, 234, 236, 238],
-            'DAD-SGN': [221, 223, 225, 227, 229, 231, 233, 235, 237, 239],
-            'HAN-DAD': [240, 242, 244, 246, 248, 250, 252, 254],
-            'DAD-HAN': [241, 243, 245, 247, 249, 251, 253, 255],
-            'HAN-PQC': [340, 342, 344, 346, 348, 350, 352, 354],
-            'PQC-HAN': [341, 343, 345, 347, 349, 351, 353, 355],
-            'SGN-PQC': [450, 452, 454, 456, 458, 460, 462, 464],
-            'PQC-SGN': [451, 453, 455, 457, 459, 461, 463, 465],
-            'DAD-PQC': [510, 512, 514, 516, 518, 520, 522, 524],
-            'PQC-DAD': [511, 513, 515, 517, 519, 521, 523, 525]
+            'SGN-HAN': [130, 132, 134, 136, 138, 140, 142, 144, 146, 148, 150, 152, 154, 156, 158, 160, 162, 164, 166, 168, 170, 172, 174, 176, 178, 180, 182, 184, 186, 188, 190, 192, 194, 196, 198],
+            'HAN-SGN': [131, 133, 135, 137, 139, 141, 143, 145, 147, 149, 151, 153, 155, 157, 159, 161, 163, 165, 167, 169, 171, 173, 175, 177, 179, 181, 183, 185, 187, 189, 191, 193, 195, 197, 199],
+            'SGN-DAD': [220, 222, 224, 226, 228, 230, 232, 234, 236, 238, 240, 242, 244, 246, 248, 250, 252, 254, 256, 258],
+            'DAD-SGN': [221, 223, 225, 227, 229, 231, 233, 235, 237, 239, 241, 243, 245, 247, 249, 251, 253, 255, 257, 259],
+            'HAN-DAD': [260, 262, 264, 266, 268, 270, 272, 274, 276, 278, 280, 282, 284, 286, 288, 290, 292, 294, 296, 298],
+            'DAD-HAN': [261, 263, 265, 267, 269, 271, 273, 275, 277, 279, 281, 283, 285, 287, 289, 291, 293, 295, 297, 299],
+            'HAN-PQC': [340, 342, 344, 346, 348, 350, 352, 354, 356, 358, 360, 362, 364, 366, 368, 370, 372, 374, 376, 378],
+            'PQC-HAN': [341, 343, 345, 347, 349, 351, 353, 355, 357, 359, 361, 363, 365, 367, 369, 371, 373, 375, 377, 379],
+            'SGN-PQC': [450, 452, 454, 456, 458, 460, 462, 464, 466, 468, 470, 472, 474, 476, 478, 480, 482, 484, 486, 488],
+            'PQC-SGN': [451, 453, 455, 457, 459, 461, 463, 465, 467, 469, 471, 473, 475, 477, 479, 481, 483, 485, 487, 489],
+            'DAD-PQC': [510, 512, 514, 516, 518, 520, 522, 524, 526, 528, 530, 532, 534, 536, 538, 540, 542, 544, 546, 548],
+            'PQC-DAD': [511, 513, 515, 517, 519, 521, 523, 525, 527, 529, 531, 533, 535, 537, 539, 541, 543, 545, 547, 549]
         };
 
-        const candidates = routeBases[pair] || [610, 612, 614, 616, 618, 620];
+        const defaultCandidates = [610, 612, 614, 616, 618, 620, 622, 624, 626, 628, 630, 632, 634, 636, 638, 640];
+        const candidates = routeBases[pair] || defaultCandidates;
         const available = candidates.filter(num => !existingNumbers.has(`VU${num}`));
 
         if (available.length > 0) {
-            const idx = Math.max(0, skipCount) % available.length;
-            return `VU${available[idx]}`;
+            const randomIndex = Math.floor(Math.random() * available.length);
+            return `VU${available[randomIndex]}`;
         }
 
-        // If all base candidate numbers are taken, find next unused even number
-        let candidateNum = (candidates[0] || 500);
-        while (existingNumbers.has(`VU${candidateNum}`)) {
-            candidateNum += 2;
+        // Fallback if primary numbers taken
+        const isEven = (candidates[0] % 2 === 0);
+        let randomNum = Math.floor(Math.random() * 400) * 2 + (isEven ? 100 : 101);
+        let attempts = 0;
+        while (existingNumbers.has(`VU${randomNum}`) && attempts < 500) {
+            randomNum = Math.floor(Math.random() * 400) * 2 + (isEven ? 100 : 101);
+            attempts++;
         }
-        for (let i = 0; i < skipCount; i++) {
-            candidateNum += 2;
-            while (existingNumbers.has(`VU${candidateNum}`)) {
-                candidateNum += 2;
-            }
-        }
-        return `VU${candidateNum}`;
+        return `VU${randomNum}`;
     }
 
     return {
@@ -2162,42 +2183,7 @@ const CargoStore = (function() {
             return routeDurations[pair] || 120;
         },
 
-        generateNextFlightNumber: function(origin = 'SGN', dest = 'HAN', skip = 0) {
-            const data = loadData();
-            const pair = `${(origin || '').trim().toUpperCase()}-${(dest || '').trim().toUpperCase()}`;
-            
-            const map = {
-                'SGN-HAN': ['VU130', 'VU132', 'VU134', 'VU136', 'VU138', 'VU140', 'VU142', 'VU144'],
-                'HAN-SGN': ['VU131', 'VU133', 'VU135', 'VU137', 'VU139', 'VU141', 'VU143', 'VU145'],
-                'SGN-DAD': ['VU220', 'VU222', 'VU224', 'VU226', 'VU228', 'VU230'],
-                'DAD-SGN': ['VU221', 'VU223', 'VU225', 'VU227', 'VU229', 'VU231'],
-                'HAN-DAD': ['VU240', 'VU242', 'VU244', 'VU246', 'VU248'],
-                'DAD-HAN': ['VU241', 'VU243', 'VU245', 'VU247', 'VU249'],
-                'HAN-PQC': ['VU340', 'VU342', 'VU344', 'VU346', 'VU348'],
-                'PQC-HAN': ['VU341', 'VU343', 'VU345', 'VU347', 'VU349'],
-                'SGN-PQC': ['VU450', 'VU452', 'VU454', 'VU456', 'VU458'],
-                'PQC-SGN': ['VU451', 'VU453', 'VU455', 'VU457', 'VU459'],
-                'DAD-PQC': ['VU510', 'VU512', 'VU514', 'VU516', 'VU518'],
-                'PQC-DAD': ['VU511', 'VU513', 'VU515', 'VU517', 'VU519']
-            };
 
-            const pool = map[pair] || ['VU600', 'VU602', 'VU604', 'VU606', 'VU608'];
-            const existingFlightNums = new Set((data.auctions || []).map(a => String(a.flightNumber || '').trim().toUpperCase()));
-
-            const unusedPool = pool.filter(fn => !existingFlightNums.has(fn));
-            if (unusedPool.length > 0) {
-                return unusedPool[Math.max(0, skip) % unusedPool.length];
-            }
-
-            const baseFn = pool[0];
-            let counter = 1 + skip;
-            let candidate = `${baseFn}-${String(counter).padStart(2, '0')}`;
-            while (existingFlightNums.has(candidate)) {
-                counter++;
-                candidate = `${baseFn}-${String(counter).padStart(2, '0')}`;
-            }
-            return candidate;
-        },
 
         checkDuplicateFlightNumber: function(flightNumber, currentAuctionId = null) {
             if (!flightNumber) return { isDuplicate: false };
