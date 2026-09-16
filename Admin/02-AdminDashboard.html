@@ -311,26 +311,28 @@
         function setAdminOpenPageSize(size) {
             adminOpenPageSize = Number(size) || 5;
             adminOpenCurrentPage = 1;
-            loadDashboard();
+            if (document.activeElement) document.activeElement.blur();
+            loadDashboard(true);
         }
 
         function goToAdminOpenPage(p) {
             adminOpenCurrentPage = p;
-            loadDashboard();
+            loadDashboard(true);
         }
 
         function setAdminCargoPageSize(size) {
             adminCargoPageSize = Number(size) || 5;
             adminCargoCurrentPage = 1;
-            loadDashboard();
+            if (document.activeElement) document.activeElement.blur();
+            loadDashboard(true);
         }
 
         function goToAdminCargoPage(p) {
             adminCargoCurrentPage = p;
-            loadDashboard();
+            loadDashboard(true);
         }
 
-        function loadDashboard() {
+        function loadDashboard(force = false) {
             if (typeof CargoStore === 'undefined') return;
 
             const data = CargoStore.getData();
@@ -448,7 +450,9 @@
                         return `<button type="button" onclick="goToAdminOpenPage(${p})" class="w-6 h-6 rounded border border-slate-200 bg-white hover:bg-slate-100 text-slate-700 font-semibold text-xs flex items-center justify-center transition cursor-pointer">${p}</button>`;
                     }).join('');
 
-                    openPagEl.innerHTML = `
+                    const activeOpenEl = document.activeElement;
+                    if (force || !activeOpenEl || !openPagEl.contains(activeOpenEl) || (activeOpenEl.tagName !== 'SELECT' && activeOpenEl.tagName !== 'INPUT')) {
+                        openPagEl.innerHTML = `
                         <div class="border-t pt-3 flex flex-col sm:flex-row items-center justify-between gap-3 text-xs text-slate-500">
                             <div class="flex items-center gap-3">
                                 <span>Hiển thị <strong>${openStartIndex + 1} - ${openEndIndex}</strong> trên tổng số <strong>${totalOpen}</strong> phiên</span>
@@ -586,7 +590,9 @@
                             return `<button type="button" onclick="goToAdminCargoPage(${p})" class="w-6 h-6 rounded border border-slate-200 bg-white hover:bg-slate-100 text-slate-700 font-semibold text-xs flex items-center justify-center transition cursor-pointer">${p}</button>`;
                         }).join('');
 
-                        cargoPagEl.innerHTML = `
+                        const activeCargoEl = document.activeElement;
+                        if (force || !activeCargoEl || !cargoPagEl.contains(activeCargoEl) || (activeCargoEl.tagName !== 'SELECT' && activeCargoEl.tagName !== 'INPUT')) {
+                            cargoPagEl.innerHTML = `
                             <div class="border-t pt-3 flex flex-col sm:flex-row items-center justify-between gap-3 text-xs text-slate-500">
                                 <div class="flex items-center gap-3">
                                     <span>Hiển thị <strong>${cargoStartIndex + 1} - ${cargoEndIndex}</strong> trên tổng số <strong>${totalWon}</strong> hồ sơ</span>

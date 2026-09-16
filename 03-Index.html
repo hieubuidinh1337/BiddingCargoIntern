@@ -187,17 +187,23 @@
         function setIndexPageSize(size) {
             indexPageSize = Number(size) || 9;
             indexCurrentPage = 1;
-            renderAuctions();
+            if (document.activeElement) document.activeElement.blur();
+            renderAuctions(true);
         }
 
         function goToIndexPage(page) {
             indexCurrentPage = page;
-            renderAuctions();
+            renderAuctions(true);
         }
 
-        function renderPaginationControls({ currentPage, totalItems, pageSize, onPageChangeName, onPageSizeChangeName, containerId, itemUnitLabel = 'phiên' }) {
+        function renderPaginationControls({ currentPage, totalItems, pageSize, onPageChangeName, onPageSizeChangeName, containerId, itemUnitLabel = 'phiên', force = false }) {
             const container = document.getElementById(containerId);
             if (!container) return;
+
+            const activeEl = document.activeElement;
+            if (!force && activeEl && container.contains(activeEl) && (activeEl.tagName === 'SELECT' || activeEl.tagName === 'INPUT')) {
+                return;
+            }
 
             if (totalItems === 0) {
                 container.innerHTML = '';

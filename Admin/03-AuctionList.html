@@ -688,28 +688,35 @@
         function setAllPageSize(size) {
             allPageSize = Number(size) || 10;
             allCurrentPage = 1;
-            renderAuctionsTable();
+            if (document.activeElement) document.activeElement.blur();
+            renderAuctionsTable(true);
         }
 
         function goToAllPage(page) {
             allCurrentPage = page;
-            renderAuctionsTable();
+            renderAuctionsTable(true);
         }
 
         function setOpenPageSize(size) {
             openPageSize = Number(size) || 10;
             openCurrentPage = 1;
-            renderAuctionsTable();
+            if (document.activeElement) document.activeElement.blur();
+            renderAuctionsTable(true);
         }
 
         function goToOpenPage(page) {
             openCurrentPage = page;
-            renderAuctionsTable();
+            renderAuctionsTable(true);
         }
 
-        function renderPaginationControls({ currentPage, totalItems, pageSize, onPageChangeName, onPageSizeChangeName, containerId, itemUnitLabel = 'phiên' }) {
+        function renderPaginationControls({ currentPage, totalItems, pageSize, onPageChangeName, onPageSizeChangeName, containerId, itemUnitLabel = 'phiên', force = false }) {
             const container = document.getElementById(containerId);
             if (!container) return;
+
+            const activeEl = document.activeElement;
+            if (!force && activeEl && container.contains(activeEl) && (activeEl.tagName === 'SELECT' || activeEl.tagName === 'INPUT')) {
+                return;
+            }
 
             if (totalItems === 0) {
                 container.innerHTML = '';
@@ -1580,6 +1587,9 @@
         // Cross-browser & Cross-tab sync
         let adminListUpdateTimeout = null;
         function onAdminListStoreUpdate() {
+            if (document.activeElement && (document.activeElement.tagName === 'SELECT' || document.activeElement.tagName === 'INPUT')) {
+                return;
+            }
             if (adminListUpdateTimeout) clearTimeout(adminListUpdateTimeout);
             adminListUpdateTimeout = setTimeout(() => {
                 renderAuctionsTable();
