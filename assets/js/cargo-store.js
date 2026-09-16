@@ -2254,17 +2254,15 @@ const CargoStore = (function() {
             });
 
             wonList.forEach(w => {
-                const exists = auctions.some(a =>
-                    a.flightNumber && w.flightNumber && String(a.flightNumber).trim().toUpperCase() === String(w.flightNumber).trim().toUpperCase()
-                );
+                const exists = auctions.some(a => String(a.id) === String(w.auctionId));
                 if (!exists) {
                     auctions.push({
                         id: w.auctionId,
-                        flightCode: w.flightCode || `FL-${w.flightNumber}`,
+                        flightCode: w.flightCode || `FL-${w.flightNumber}-CLOSED`,
                         flightNumber: w.flightNumber,
                         route: w.route,
                         origin: w.route ? w.route.split('-')[0].trim() : 'SGN',
-                        destination: w.route ? w.route.split('-')[1].trim() : 'PQC',
+                        destination: w.route ? w.route.split('-')[1].trim() : 'HAN',
                         capacityKg: w.capacityKg,
                         startingPriceKg: w.startingPriceKg || Math.max(10000, w.priceKg - 2500),
                         currentPriceKg: w.priceKg,
@@ -2289,10 +2287,10 @@ const CargoStore = (function() {
 
         getAuctionById: function(id) {
             const auctions = this.getAuctions();
-            let found = auctions.find(a => a.id == id);
+            let found = auctions.find(a => String(a.id) === String(id));
             if (!found) {
                 const data = loadData();
-                const won = (data.wonAuctions || []).find(w => w.auctionId == id || w.wonId == id);
+                const won = (data.wonAuctions || []).find(w => String(w.auctionId) === String(id) || String(w.wonId) === String(id));
                 if (won) {
                     found = {
                         id: won.auctionId,

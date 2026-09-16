@@ -203,6 +203,14 @@ describe('Vietravel Airlines Cargo Bidding System - API Automation Test Suite', 
             expect(sendRes.statusCode).toBe(200);
             expect(sendRes.body.success).toBe(true);
             expect(sendRes.body.message.text).toContain('bảo quản lạnh');
+
+            // Clean up test chat by closing it so it doesn't pollute WAITING admin chat list
+            await request(BASE_URL)
+                .post('/api/chat/close')
+                .send({
+                    chatId,
+                    closedByName: 'Automated Test Cleanup'
+                });
         });
     });
 
