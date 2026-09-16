@@ -216,4 +216,40 @@ SMTP_PASS=fcjuktvwjqhgilzb
 
 ---
 
+## 🧪 9. Kiểm Thử Tự Động & An Ninh Hệ Thống (QA Automation Testing & Security)
+
+Dự án được trang bị bộ kiểm thử tự động toàn diện **Jest & Supertest** phục vụ kiểm tra tự động tất cả các luồng nghiệp vụ API (Integration Test) và phòng ngừa lỗ hổng an ninh mạng.
+
+### 📋 Test Checklist Chi Tiết:
+
+#### 🟢 Kịch Bản Tích Cực (Happy Path):
+| Mã TC | Chức năng kiểm thử | Thao tác / API | Kết quả mong đợi |
+| :--- | :--- | :--- | :--- |
+| **HP-01** | Lấy cấu trúc dữ liệu sàn thầu | `GET /api/data` | Trả về Status `200 OK`, mảng `auctions` và `wonAuctions` đầy đủ từ CSDL SQLite. |
+| **HP-02** | Tạo mã QR Thanh toán MoMo | `POST /api/momo/create` | Trả về `200 OK`, `orderInfo` đúng chuẩn `AG0892-VU130-16092026`, tự động Cap số tiền Sandbox `<= 50.000.000 VNĐ`. |
+| **HP-03** | Webhook MoMo IPN Xác thực | `POST /api/momo/ipn` | Trực tiếp kiểm tra chữ ký HMAC-SHA256, tự động cập nhật đơn thầu sang `PAID` khi chữ ký hợp lệ. |
+| **HP-04** | Luồng Hỗ trợ Trực tuyến Chat | `POST /api/chat/create` & `POST /api/chat/send` | Khởi tạo phiên chat thành công, nhân viên và đại lý trao đổi tin nhắn real-time. |
+
+#### 🔴 Kịch Bản Tiêu Cực & Lỗ Hổng Bảo Mật (Negative Path & Security Edge Cases):
+| Mã TC | Kịch bản lỗi / Tấn công | Thao tác / API | Kết quả mong đợi |
+| :--- | :--- | :--- | :--- |
+| **NP-01** | Thiếu Tham số Mã Đơn hàng | `POST /api/momo/create` (Thiếu `wonId`) | Hệ thống chặn lỗi `400 Bad Request` ("wonId is required"). |
+| **NP-02** | Thanh toán Đơn thầu Không tồn tại | `POST /api/momo/create` (`wonId` ảo) | Hệ thống trả về `404 Not Found` ("Won auction not found"). |
+| **NP-03** | Thanh toán Trùng đơn Đã Trả tiền | `POST /api/momo/create` (Đơn đã `PAID`) | Hệ thống từ chối thanh toán lại, trả về `400 Bad Request`. |
+| **NP-04** | Giả mạo Chữ ký MoMo Webhook | `POST /api/momo/ipn` (Chữ ký giả) | Hệ thống phát hiện Signature Mismatch, trả về `400 Bad Request` ("Invalid signature"). |
+| **NP-05** | Tấn công Đọc file Ẩn Path Traversal | `GET /uploads/../../.env` | Hệ thống kích hoạt Security Guard, trả về `403 Forbidden` chặn đứng hành vi lấy file cấu hình. |
+| **NP-06** | Polling Trạng thái Thiếu Tham số | `GET /api/momo/status` | Trả về `400 Bad Request`. |
+
+### 🚀 Hướng Dẫn Chạy Test Tự Động (Run Automation Suite):
+
+```bash
+# Di chuyển vào thư mục dự án
+cd bidding-cargo-app
+
+# Thực thi toàn bộ bộ Test Suite tự động bằng Jest & Supertest
+npm test
+```
+
+---
+
 © 2026 **Vietravel Airlines Cargo Division**. All rights reserved.

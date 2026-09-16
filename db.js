@@ -238,10 +238,17 @@ async function initDatabase() {
     }
 }
 
-async function seedFullData(data) {
-    if (!data) return;
+let isSeeding = false;
 
-    await run('BEGIN TRANSACTION;');
+async function seedFullData(data) {
+    if (!data || isSeeding) return;
+    isSeeding = true;
+
+    try {
+        await exec('BEGIN TRANSACTION;');
+    } catch (e) {
+        // Transaction already active
+    }
 
     try {
         if (Array.isArray(data.auctions)) {
@@ -358,10 +365,12 @@ async function seedFullData(data) {
             await run('INSERT OR REPLACE INTO settings (key, value) VALUES (?, ?)', ['routeSubscriptions', JSON.stringify(data.routeSubscriptions)]);
         }
 
-        await run('COMMIT;');
+        await exec('COMMIT;').catch(() => {});
     } catch (err) {
-        await run('ROLLBACK;');
+        await exec('ROLLBACK;').catch(() => {});
         throw err;
+    } finally {
+        isSeeding = false;
     }
 }
 

@@ -790,6 +790,14 @@ const server = http.createServer((req, res) => {
     const parsedUrl = new URL(req.url, `http://${req.headers.host}`);
     let pathname = parsedUrl.pathname;
 
+    // Security Guard: Block sensitive system & hidden files (.env, database.sqlite, source code)
+    const rawUrl = req.url || '';
+    if (rawUrl.includes('..') || pathname.startsWith('/.') || pathname.includes('/.') || /^\/(database\.sqlite|server\.js|db\.js|package.*\.json)/i.test(pathname)) {
+        res.writeHead(403, { 'Content-Type': 'text/html; charset=UTF-8' });
+        res.end('<h1>403 Forbidden</h1><p>Access denied.</p>', 'utf-8');
+        return;
+    }
+
     // --- REST API: GET /api/data ---
     if (pathname === '/api/data' && req.method === 'GET') {
         if (reconcileAuctionSummaries(serverData)) {
@@ -2004,7 +2012,13 @@ const server = http.createServer((req, res) => {
 
     // --- Static File Serving: /uploads/ ---
     if (pathname.startsWith('/uploads/')) {
-        const uploadFile = path.join(UPLOADS_DIR, pathname.replace('/uploads/', ''));
+        const relativePath = pathname.replace('/uploads/', '');
+        const uploadFile = path.normalize(path.join(UPLOADS_DIR, relativePath));
+        if (!uploadFile.startsWith(UPLOADS_DIR)) {
+            res.writeHead(403, { 'Content-Type': 'text/plain; charset=UTF-8' });
+            res.end('403 Forbidden: Invalid file path');
+            return;
+        }
         fs.readFile(uploadFile, (err, content) => {
             if (err) {
                 res.writeHead(404); res.end('Not Found');
@@ -2021,7 +2035,12 @@ const server = http.createServer((req, res) => {
     // --- Static File Serving ---
     if (pathname === '/') pathname = '/00-Home.html';
 
-    let filePath = path.join(PUBLIC_DIR, pathname);
+    let filePath = path.normalize(path.join(PUBLIC_DIR, pathname));
+    if (!filePath.startsWith(PUBLIC_DIR)) {
+        res.writeHead(403, { 'Content-Type': 'text/html; charset=UTF-8' });
+        res.end('<h1>403 Forbidden</h1><p>Access denied.</p>', 'utf-8');
+        return;
+    }
     const ext = path.extname(filePath);
     let contentType = MIME_TYPES[ext] || 'application/octet-stream';
 
