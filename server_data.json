@@ -1,5 +1,5 @@
 {
-  "version": 1789532543936,
+  "version": 1789539237864,
   "auctions": [
     {
       "id": 108,
@@ -503,7 +503,8 @@
       "time": "Vừa xong",
       "type": "AGENT",
       "unread": true,
-      "targetRole": "ADMIN"
+      "targetRole": "ADMIN",
+      "read": true
     },
     {
       "id": 1789532501202,
@@ -513,7 +514,7 @@
       "message": "Mã hồ sơ REG-20260916-02 — Công ty TNHH Vận tải & Logistics Tân Sơn Nhất (MST: 0318998821) vừa nộp hồ sơ đăng ký trở thành đại lý. Người đại diện: Trần Hoàng Nam — nam.tran@tsn-logistics.vn. Vui lòng xét duyệt trong vòng 24h làm việc.",
       "time": "Vừa xong",
       "type": "REGISTRATION",
-      "read": false,
+      "read": true,
       "link": "../Admin/06-AgentList.html"
     },
     {
