@@ -1,227 +1,18 @@
-<!DOCTYPE html>
-<html lang="vi">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Trung tâm thông báo - Cargo Bidding | Vietravel Airlines</title>
-    <meta name="description" content="Nhận và quản lý toàn bộ thông báo biến động giá thầu, thắng thầu và nhắc nhở thanh toán.">
-    <script src="https://cdn.tailwindcss.com"></script>
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
-    <script src="assets/js/cargo-store.js"></script>
-    <style>
-        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap');
-        * { font-family: 'Inter', sans-serif; }
-        .notif-card { transition: all 0.25s ease; }
-        .notif-card:hover { transform: translateX(4px); }
-        .notif-card.unread { border-left: 3px solid #3b82f6; }
-        .notif-card.urgent { border-left: 3px solid #ef4444; }
-        .notif-card.won { border-left: 3px solid #10b981; }
-        .notif-card.warn { border-left: 3px solid #f59e0b; }
-        .badge-dot { width: 8px; height: 8px; border-radius: 50%; flex-shrink: 0; margin-top: 5px; }
-        .fade-in { animation: fadeInUp 0.3s ease forwards; opacity: 0; }
-        @keyframes fadeInUp { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
-        .filter-btn.active { background: #1e3a5f; color: white; }
-        .filter-btn { transition: all 0.15s; }
-        .empty-anim { animation: float 3s ease-in-out infinite; }
-        @keyframes float { 0%, 100% { transform: translateY(0); } 50% { transform: translateY(-10px); } }
-    </style>
-</head>
-<body class="bg-gray-50 text-gray-800">
+const fs = require('fs');
+const path = require('path');
 
-    <!-- HEADER -->
-    <header class="bg-white border-b shadow-sm sticky top-0 z-50">
-        <div class="max-w-4xl mx-auto px-3 sm:px-4 py-2.5 sm:py-3 flex items-center justify-between">
-            <div class="flex items-center gap-2 sm:gap-3">
-                <button type="button" onclick="toggleAgentMobileNav()" class="md:hidden text-gray-600 hover:text-blue-600 p-1.5 rounded-xl hover:bg-gray-100 transition focus:outline-none" aria-label="Menu">
-                    <i class="fa-solid fa-bars text-base"></i>
-                </button>
-                <a href="02-Dashboard.html" class="w-8 h-8 sm:w-9 sm:h-9 rounded-xl bg-gray-100 hover:bg-gray-200 flex items-center justify-center text-gray-600 hover:text-blue-600 transition">
-                    <i class="fa-solid fa-arrow-left text-xs sm:text-sm"></i>
-                </a>
-                <a href="02-Dashboard.html" class="flex items-center gap-2">
-                    <div class="w-8 h-8 bg-gradient-to-br from-blue-600 to-indigo-700 rounded-xl flex items-center justify-center text-white font-bold text-xs shadow">VN</div>
-                    <div>
-                        <span class="font-bold text-sm text-slate-900 block leading-tight">Cargo Bidding</span>
-                        <span class="text-[9px] sm:text-[10px] text-gray-400 uppercase tracking-wider font-semibold">Agent Portal</span>
-                    </div>
-                </a>
-                <span class="text-gray-300 hidden sm:inline">|</span>
-                <div class="hidden sm:block">
-                    <h1 class="font-bold text-base text-slate-900">Trung tâm thông báo</h1>
-                    <p class="text-xs text-gray-400">Biến động giá thầu & cập nhật hệ thống</p>
-                </div>
-            </div>
-            <div class="flex items-center gap-1.5 sm:gap-2">
-                <button onclick="markAllRead()" id="markAllBtn" class="text-[11px] sm:text-xs font-semibold text-blue-600 hover:text-blue-800 bg-blue-50 hover:bg-blue-100 px-2 sm:px-3 py-1.5 rounded-lg transition flex items-center gap-1">
-                    <i class="fa-solid fa-check-double text-[10px]"></i>
-                    <span class="hidden sm:inline">Đánh dấu</span> đã đọc
-                </button>
-                <button onclick="clearAllRead()" class="text-[11px] sm:text-xs font-semibold text-gray-500 hover:text-red-600 bg-gray-100 hover:bg-red-50 px-2 sm:px-3 py-1.5 rounded-lg transition flex items-center gap-1">
-                    <i class="fa-solid fa-trash text-[10px]"></i>
-                    <span class="hidden sm:inline">Xóa</span> đã đọc
-                </button>
-            </div>
-        </div>
-        <!-- Mobile Drawer -->
-        <div id="agentMobileNav" class="hidden md:hidden bg-white border-t px-4 py-2.5 space-y-1 text-xs font-medium shadow-lg">
-            <a href="02-Dashboard.html" class="flex items-center gap-2 px-3 py-2 rounded-lg text-gray-700 hover:bg-gray-50 hover:text-blue-600 transition">
-                <i class="fa-solid fa-gauge-high w-4"></i> Tổng quan Dashboard
-            </a>
-            <a href="03-Index.html" class="flex items-center gap-2 px-3 py-2 rounded-lg text-gray-700 hover:bg-gray-50 hover:text-blue-600 transition">
-                <i class="fa-solid fa-gavel w-4"></i> Sàn đấu giá trực tiếp
-            </a>
-            <a href="05-Watchlist.html" class="flex items-center gap-2 px-3 py-2 rounded-lg text-gray-700 hover:bg-gray-50 hover:text-blue-600 transition">
-                <i class="fa-solid fa-star w-4"></i> Tuyến bay theo dõi
-            </a>
-            <a href="06-MyBids.html" class="flex items-center gap-2 px-3 py-2 rounded-lg text-gray-700 hover:bg-gray-50 hover:text-blue-600 transition">
-                <i class="fa-solid fa-clock-rotate-left w-4"></i> Lịch sử đặt thầu
-            </a>
-            <a href="07-WonAuction.html" class="flex items-center gap-2 px-3 py-2 rounded-lg text-gray-700 hover:bg-gray-50 hover:text-blue-600 transition">
-                <i class="fa-solid fa-trophy w-4"></i> Đơn hàng thắng thầu
-            </a>
-            <a href="08-Notifications.html" class="flex items-center gap-2 px-3 py-2 rounded-lg bg-blue-50 text-blue-600 font-semibold transition">
-                <i class="fa-solid fa-bell w-4"></i> Trung tâm thông báo
-            </a>
-            <a href="09-Profile.html" class="flex items-center gap-2 px-3 py-2 rounded-lg text-gray-700 hover:bg-gray-50 hover:text-blue-600 transition">
-                <i class="fa-solid fa-user-shield w-4"></i> Hồ sơ đại lý & Mã PIN
-            </a>
-            <a href="10-Terms.html" class="flex items-center gap-2 px-3 py-2 rounded-lg text-gray-500 hover:bg-gray-50 hover:text-gray-800 transition border-t pt-2 mt-1">
-                <i class="fa-solid fa-file-contract w-4"></i> Quy chế & Điều khoản
-            </a>
-        </div>
-    </header>
+const filePath = path.join(__dirname, '..', '08-Notifications.html');
+let content = fs.readFileSync(filePath, 'utf8');
 
-    <main class="max-w-4xl mx-auto px-3 sm:px-4 py-4 sm:py-6 space-y-4 sm:space-y-5">
+// Replace the entire <script> block with a clean, fully working version
+const scriptStartMarker = '<script>';
+const scriptEndMarker = '</script>';
 
-        <!-- Notification Summary Stats -->
-        <div class="grid grid-cols-2 sm:grid-cols-4 gap-3">
-            <div class="bg-white rounded-xl border p-4 flex items-center gap-3 shadow-sm">
-                <div class="w-10 h-10 rounded-xl bg-blue-100 flex items-center justify-center">
-                    <i class="fa-solid fa-bell text-blue-600"></i>
-                </div>
-                <div>
-                    <p class="text-xl font-bold text-slate-900" id="statTotal">0</p>
-                    <p class="text-xs text-gray-500">Tổng thông báo</p>
-                </div>
-            </div>
-            <div class="bg-white rounded-xl border p-4 flex items-center gap-3 shadow-sm">
-                <div class="w-10 h-10 rounded-xl bg-red-100 flex items-center justify-center">
-                    <i class="fa-solid fa-circle-dot text-red-500"></i>
-                </div>
-                <div>
-                    <p class="text-xl font-bold text-red-600" id="statUnread">0</p>
-                    <p class="text-xs text-gray-500">Chưa đọc</p>
-                </div>
-            </div>
-            <div class="bg-white rounded-xl border p-4 flex items-center gap-3 shadow-sm">
-                <div class="w-10 h-10 rounded-xl bg-amber-100 flex items-center justify-center">
-                    <i class="fa-solid fa-arrow-trend-up text-amber-600"></i>
-                </div>
-                <div>
-                    <p class="text-xl font-bold text-amber-600" id="statOutbid">0</p>
-                    <p class="text-xs text-gray-500">Bị vượt giá</p>
-                </div>
-            </div>
-            <div class="bg-white rounded-xl border p-4 flex items-center gap-3 shadow-sm">
-                <div class="w-10 h-10 rounded-xl bg-emerald-100 flex items-center justify-center">
-                    <i class="fa-solid fa-trophy text-emerald-600"></i>
-                </div>
-                <div>
-                    <p class="text-xl font-bold text-emerald-600" id="statWon">0</p>
-                    <p class="text-xs text-gray-500">Thắng thầu</p>
-                </div>
-            </div>
-        </div>
+const scriptStartIndex = content.lastIndexOf(scriptStartMarker);
+const scriptEndIndex = content.lastIndexOf(scriptEndMarker);
 
-
-        <!-- Filter Bar -->
-        <div class="bg-white rounded-xl border p-1.5 shadow-sm flex items-center gap-1 overflow-x-auto">
-            <button onclick="setFilter('all')" class="filter-btn active text-xs font-semibold px-3 py-1.5 rounded-lg whitespace-nowrap" id="f-all">
-                <i class="fa-solid fa-list mr-1"></i>Tất cả
-            </button>
-            <button onclick="setFilter('unread')" class="filter-btn text-gray-600 text-xs font-semibold px-3 py-1.5 rounded-lg whitespace-nowrap" id="f-unread">
-                <i class="fa-solid fa-circle-dot mr-1 text-red-500"></i>Chưa đọc
-            </button>
-            <button onclick="setFilter('OUTBID')" class="filter-btn text-gray-600 text-xs font-semibold px-3 py-1.5 rounded-lg whitespace-nowrap" id="f-OUTBID">
-                <i class="fa-solid fa-arrow-trend-up mr-1 text-amber-500"></i>Bị vượt giá
-            </button>
-            <button onclick="setFilter('HIGHEST')" class="filter-btn text-gray-600 text-xs font-semibold px-3 py-1.5 rounded-lg whitespace-nowrap" id="f-HIGHEST">
-                <i class="fa-solid fa-crown mr-1 text-blue-500"></i>Dẫn đầu
-            </button>
-            <button onclick="setFilter('WON')" class="filter-btn text-gray-600 text-xs font-semibold px-3 py-1.5 rounded-lg whitespace-nowrap" id="f-WON">
-                <i class="fa-solid fa-trophy mr-1 text-emerald-500"></i>Trúng thầu
-            </button>
-            <button onclick="setFilter('AUCTION_OPEN')" class="filter-btn text-gray-600 text-xs font-semibold px-3 py-1.5 rounded-lg whitespace-nowrap" id="f-AUCTION_OPEN">
-                <i class="fa-solid fa-plane-departure mr-1 text-indigo-500"></i>Phiên mới
-            </button>
-            <button onclick="setFilter('SYSTEM')" class="filter-btn text-gray-600 text-xs font-semibold px-3 py-1.5 rounded-lg whitespace-nowrap" id="f-SYSTEM">
-                <i class="fa-solid fa-gear mr-1 text-gray-400"></i>Hệ thống
-            </button>
-        </div>
-
-        <!-- Selection Toolbar (Thanh chọn & thao tác xoá thông báo đã chọn) -->
-        <div id="selectionToolbar" class="bg-white rounded-xl border p-2.5 sm:px-4 shadow-sm flex flex-wrap items-center justify-between gap-2.5 text-xs transition-all">
-            <div class="flex items-center gap-3">
-                <label class="flex items-center gap-2 cursor-pointer font-semibold text-slate-700 select-none hover:text-slate-900">
-                    <input type="checkbox" id="selectAllCheckbox" onchange="toggleSelectAll(this.checked)" class="w-4 h-4 rounded border-gray-300 text-indigo-600 focus:ring-indigo-500 cursor-pointer">
-                    <span id="selectAllLabel">Chọn tất cả</span>
-                </label>
-                <span id="selectedCountBadge" class="hidden font-bold px-2.5 py-0.5 rounded-full bg-indigo-100 text-indigo-800 text-[11px] items-center gap-1">
-                    <i class="fa-solid fa-check-circle text-indigo-600"></i> Đã chọn <span id="selectedCountNum">0</span>
-                </span>
-            </div>
-            <div class="flex items-center gap-2 flex-wrap">
-                <button type="button" id="markSelectedReadBtn" onclick="markSelectedAsRead()" class="hidden px-3 py-1.5 rounded-lg bg-blue-50 hover:bg-blue-100 text-blue-700 font-semibold transition items-center gap-1.5 cursor-pointer">
-                    <i class="fa-solid fa-check-double text-[11px]"></i> Đánh dấu đã đọc (<span id="markReadCount">0</span>)
-                </button>
-                <button type="button" id="deleteSelectedBtn" onclick="confirmDeleteSelected()" class="hidden px-3.5 py-1.5 rounded-lg bg-red-50 hover:bg-red-600 text-red-600 hover:text-white font-bold transition items-center gap-1.5 border border-red-200 hover:border-red-600 cursor-pointer shadow-xs">
-                    <i class="fa-solid fa-trash-can text-[11px]"></i> Xóa thông báo đã chọn (<span id="deleteSelectedCount">0</span>)
-                </button>
-                <button type="button" id="deselectAllBtn" onclick="deselectAll()" class="hidden text-gray-500 hover:text-gray-800 font-medium px-2 py-1 cursor-pointer">
-                    Bỏ chọn
-                </button>
-            </div>
-        </div>
-
-        <!-- Notification Feed -->
-        <div id="notifList" class="space-y-3"></div>
-
-    </main>
-
-    <!-- Modal: Xác nhận xóa thông báo -->
-    <div id="deleteConfirmModal" class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-50 flex items-center justify-center p-4 hidden">
-        <div class="bg-white rounded-2xl max-w-md w-full shadow-2xl overflow-hidden animate-in fade-in zoom-in duration-200">
-            <div class="p-6 text-center space-y-4">
-                <div class="w-14 h-14 rounded-full bg-red-100 text-red-600 flex items-center justify-center text-2xl mx-auto">
-                    <i class="fa-solid fa-trash-can"></i>
-                </div>
-                <div>
-                    <h3 class="font-bold text-lg text-slate-900" id="deleteModalTitle">Xác nhận xóa thông báo</h3>
-                    <p class="text-xs text-gray-500 mt-1" id="deleteModalDesc">Bạn có chắc chắn muốn xóa các thông báo đã chọn? Thao tác này không thể hoàn tác.</p>
-                </div>
-            </div>
-            <div class="bg-slate-50 px-6 py-3.5 flex items-center justify-end gap-2.5 border-t">
-                <button type="button" onclick="closeDeleteModal()" class="px-4 py-2 border rounded-xl text-slate-600 hover:bg-white text-xs font-semibold cursor-pointer">
-                    Hủy bỏ
-                </button>
-                <button type="button" id="confirmDeleteBtn" onclick="executeDelete()" class="px-4 py-2 bg-red-600 hover:bg-red-700 text-white rounded-xl text-xs font-bold shadow transition flex items-center gap-1.5 cursor-pointer">
-                    <i class="fa-solid fa-trash-can text-[10px]"></i> Xác nhận xóa
-                </button>
-            </div>
-        </div>
-    </div>
-
-
-
-    <!-- Toast -->
-    <div id="toast" class="fixed bottom-6 right-6 z-50 hidden">
-        <div class="bg-slate-900 text-white rounded-xl px-4 py-3 shadow-xl flex items-center gap-3 text-sm font-medium">
-            <i class="fa-solid fa-check-circle text-emerald-400"></i>
-            <span id="toastText">Đã cập nhật</span>
-        </div>
-    </div>
-
-    <script>
+if (scriptStartIndex !== -1 && scriptEndIndex !== -1) {
+    const cleanScript = `<script>
     let currentFilter = 'all';
     let selectedNotifIds = new Set();
     let pendingDeleteIds = [];
@@ -326,15 +117,15 @@
                 'CLOSING_SOON': 'Không có cảnh báo sắp đóng thầu',
                 'SYSTEM': 'Không có thông báo hệ thống'
             };
-            container.innerHTML = `
+            container.innerHTML = \`
                 <div class="bg-white rounded-2xl border p-16 text-center shadow-sm">
                     <div class="empty-anim text-6xl mb-5">🔔</div>
-                    <p class="font-bold text-slate-700 text-lg">${msgs[currentFilter] || 'Trống'}</p>
+                    <p class="font-bold text-slate-700 text-lg">\${msgs[currentFilter] || 'Trống'}</p>
                     <p class="text-sm text-gray-400 mt-1">Các thông báo mới sẽ xuất hiện tại đây theo thời gian thực</p>
                     <a href="03-Index.html" class="inline-flex items-center gap-2 mt-5 bg-blue-600 hover:bg-blue-700 text-white text-sm font-semibold px-5 py-2.5 rounded-xl transition shadow">
                         <i class="fa-solid fa-gavel"></i> Tham gia đấu giá
                     </a>
-                </div>`;
+                </div>\`;
             updateSelectionUI();
             return;
         }
@@ -345,54 +136,54 @@
             const readClass = n.read ? '' : cfg.borderClass;
             const bgClass = isSelected ? 'bg-indigo-50/50 ring-2 ring-indigo-500/40' : (n.read ? 'bg-white' : (n.type === 'OUTBID' ? 'bg-amber-50/30' : (n.type === 'WON' ? 'bg-emerald-50/30' : (n.type === 'CLOSING_SOON' ? 'bg-red-50/20' : 'bg-blue-50/20'))));
 
-            return `
-            <div id="notif-card-${n.id}" class="notif-card ${readClass} ${bgClass} rounded-xl border shadow-sm fade-in transition" style="animation-delay:${idx * 0.03}s">
+            return \`
+            <div id="notif-card-\${n.id}" class="notif-card \${readClass} \${bgClass} rounded-xl border shadow-sm fade-in transition" style="animation-delay:\${idx * 0.03}s">
                 <div class="flex items-start gap-3.5 p-4">
                     <div class="pt-1.5 flex-shrink-0">
                         <input type="checkbox" class="notif-item-cb w-4 h-4 rounded border-gray-300 text-indigo-600 focus:ring-indigo-500 cursor-pointer" 
-                               value="${n.id}" 
-                               ${isSelected ? 'checked' : ''} 
-                               onchange="toggleSelectNotif('${n.id}', this.checked, event)">
+                               value="\${n.id}" 
+                               \${isSelected ? 'checked' : ''} 
+                               onchange="toggleSelectNotif('\${n.id}', this.checked, event)">
                     </div>
 
-                    <div class="w-10 h-10 rounded-xl ${cfg.iconBg} flex items-center justify-center flex-shrink-0 shadow-sm">
-                        <i class="fa-solid ${cfg.icon} ${cfg.iconColor} text-base"></i>
+                    <div class="w-10 h-10 rounded-xl \${cfg.iconBg} flex items-center justify-center flex-shrink-0 shadow-sm">
+                        <i class="fa-solid \${cfg.icon} \${cfg.iconColor} text-base"></i>
                     </div>
 
                     <div class="flex-1 min-w-0">
                         <div class="flex items-start justify-between gap-2 mb-1">
                             <div class="flex items-center gap-2 flex-wrap">
-                                ${!n.read ? `<span class="badge-dot ${cfg.dotColor}"></span>` : ''}
-                                <h3 class="font-bold text-sm text-slate-900">${n.title}</h3>
-                                <span class="text-[10px] font-semibold px-2 py-0.5 rounded-full ${cfg.labelBg}">${cfg.label}</span>
+                                \${!n.read ? \`<span class="badge-dot \${cfg.dotColor}"></span>\` : ''}
+                                <h3 class="font-bold text-sm text-slate-900">\${n.title}</h3>
+                                <span class="text-[10px] font-semibold px-2 py-0.5 rounded-full \${cfg.labelBg}">\${cfg.label}</span>
                             </div>
-                            <span class="text-[11px] text-gray-400 flex-shrink-0 whitespace-nowrap">${CargoStore.formatTimeAgo ? CargoStore.formatTimeAgo(n.timestamp || n.createdAt || n.id, n.time) : (n.time || '')}</span>
+                            <span class="text-[11px] text-gray-400 flex-shrink-0 whitespace-nowrap">\${CargoStore.formatTimeAgo ? CargoStore.formatTimeAgo(n.timestamp || n.createdAt || n.id, n.time) : (n.time || '')}</span>
                         </div>
-                        <p class="text-xs text-gray-600 leading-relaxed">${n.message}</p>
+                        <p class="text-xs text-gray-600 leading-relaxed">\${n.message}</p>
                         
                         <div class="flex items-center gap-3 mt-3 flex-wrap">
-                            ${n.link ? `
-                            <a href="${n.link}" onclick="markReadById('${n.id}')" class="inline-flex items-center gap-1 text-xs font-semibold text-blue-600 hover:text-blue-800 hover:underline transition">
+                            \${n.link ? \`
+                            <a href="\${n.link}" onclick="markReadById('\${n.id}')" class="inline-flex items-center gap-1 text-xs font-semibold text-blue-600 hover:text-blue-800 hover:underline transition">
                                 <i class="fa-solid fa-arrow-right text-[9px]"></i> Xem chi tiết
                             </a>
                             <span class="text-gray-200">|</span>
-                            ` : ''}
-                            ${!n.read ? `
-                            <button onclick="markReadById('${n.id}')" class="text-xs text-gray-400 hover:text-gray-700 hover:underline transition flex items-center gap-1 cursor-pointer">
+                            \` : ''}
+                            \${!n.read ? \`
+                            <button onclick="markReadById('\${n.id}')" class="text-xs text-gray-400 hover:text-gray-700 hover:underline transition flex items-center gap-1 cursor-pointer">
                                 <i class="fa-regular fa-circle-check text-[10px]"></i> Đánh dấu đã đọc
                             </button>
                             <span class="text-gray-200">|</span>
-                            ` : `
+                            \` : \`
                             <span class="text-xs text-gray-300 flex items-center gap-1"><i class="fa-solid fa-check text-[9px]"></i> Đã đọc</span>
                             <span class="text-gray-200">|</span>
-                            `}
-                            <button onclick="confirmDeleteSingle('${n.id}')" class="text-xs text-gray-400 hover:text-red-600 hover:underline transition flex items-center gap-1 cursor-pointer" title="Xóa thông báo này">
+                            \`}
+                            <button onclick="confirmDeleteSingle('\${n.id}')" class="text-xs text-gray-400 hover:text-red-600 hover:underline transition flex items-center gap-1 cursor-pointer" title="Xóa thông báo này">
                                 <i class="fa-regular fa-trash-can text-[10px]"></i> Xóa
                             </button>
                         </div>
                     </div>
 
-                    ${(() => {
+                    \${(() => {
                         if (n.type === 'OUTBID' && n.link) {
                             const allAuctions = CargoStore.getAuctions ? CargoStore.getAuctions() : [];
                             const match = (n.link || '').match(/id=([^&]+)/);
@@ -406,26 +197,26 @@
                                 }
                             }
                             if (isClosed) {
-                                return `
-                                <a href="${n.link}" onclick="markReadById('${n.id}')" class="flex-shrink-0 bg-slate-100 hover:bg-slate-200 text-slate-500 text-xs font-medium px-3 py-2 rounded-xl transition shadow-xs flex items-center gap-1.5 whitespace-nowrap" title="Phiên đấu giá đã đóng">
+                                return \`
+                                <a href="\${n.link}" onclick="markReadById('\${n.id}')" class="flex-shrink-0 bg-slate-100 hover:bg-slate-200 text-slate-500 text-xs font-medium px-3 py-2 rounded-xl transition shadow-xs flex items-center gap-1.5 whitespace-nowrap" title="Phiên đấu giá đã đóng">
                                     <i class="fa-solid fa-lock text-[10px]"></i> Đã đóng
-                                </a>`;
+                                </a>\`;
                             }
-                            return `
-                            <a href="${n.link}" onclick="markReadById('${n.id}')" class="flex-shrink-0 bg-amber-500 hover:bg-amber-600 text-white text-xs font-bold px-3 py-2 rounded-xl transition shadow flex items-center gap-1.5 whitespace-nowrap">
+                            return \`
+                            <a href="\${n.link}" onclick="markReadById('\${n.id}')" class="flex-shrink-0 bg-amber-500 hover:bg-amber-600 text-white text-xs font-bold px-3 py-2 rounded-xl transition shadow flex items-center gap-1.5 whitespace-nowrap">
                                 <i class="fa-solid fa-gavel text-[10px]"></i> Đặt lại ngay
-                            </a>`;
+                            </a>\`;
                         } else if (n.type === 'WON') {
-                            return `
-                            <a href="07-WonAuction.html" onclick="markReadById('${n.id}')" class="flex-shrink-0 bg-emerald-500 hover:bg-emerald-600 text-white text-xs font-bold px-3 py-2 rounded-xl transition shadow flex items-center gap-1.5 whitespace-nowrap">
+                            return \`
+                            <a href="07-WonAuction.html" onclick="markReadById('\${n.id}')" class="flex-shrink-0 bg-emerald-500 hover:bg-emerald-600 text-white text-xs font-bold px-3 py-2 rounded-xl transition shadow flex items-center gap-1.5 whitespace-nowrap">
                                 <i class="fa-solid fa-circle-check text-[10px]"></i> Xem đơn
-                            </a>`;
+                            </a>\`;
                         }
                         return '';
                     })()}
                 </div>
             </div>
-            `;
+            \`;
         }).join('');
 
         updateSelectionUI();
@@ -480,7 +271,7 @@
         }
 
         if (selectAllLabel) {
-            selectAllLabel.textContent = totalVisible > 0 ? `Chọn tất cả (${totalVisible})` : 'Chọn tất cả';
+            selectAllLabel.textContent = totalVisible > 0 ? \`Chọn tất cả (\${totalVisible})\` : 'Chọn tất cả';
         }
 
         if (selectedCount > 0) {
@@ -530,8 +321,8 @@
         }
 
         pendingDeleteIds = idsToDelete;
-        document.getElementById('deleteModalTitle').textContent = `Xác nhận xóa ${idsToDelete.length} thông báo`;
-        document.getElementById('deleteModalDesc').textContent = `Bạn có chắc chắn muốn xóa ${idsToDelete.length} thông báo đã chọn không? Thao tác này sẽ xóa vĩnh viễn khỏi danh sách.`;
+        document.getElementById('deleteModalTitle').textContent = \`Xác nhận xóa \${idsToDelete.length} thông báo\`;
+        document.getElementById('deleteModalDesc').textContent = \`Bạn có chắc chắn muốn xóa \${idsToDelete.length} thông báo đã chọn không? Thao tác này sẽ xóa vĩnh viễn khỏi danh sách.\`;
         document.getElementById('deleteConfirmModal').classList.remove('hidden');
     }
 
@@ -560,7 +351,7 @@
 
         pendingDeleteIds.forEach(id => selectedNotifIds.delete(id));
         closeDeleteModal();
-        showToast(`Đã xóa ${count} thông báo thành công`);
+        showToast(\`Đã xóa \${count} thông báo thành công\`);
         renderNotifications();
     }
 
@@ -580,7 +371,7 @@
             if (CargoStore.saveData) CargoStore.saveData(data);
         }
 
-        showToast(`Đã đánh dấu ${idsToMark.length} thông báo là đã đọc`);
+        showToast(\`Đã đánh dấu \${idsToMark.length} thông báo là đã đọc\`);
         renderNotifications();
     }
 
@@ -592,19 +383,19 @@
         const routes = subs.routes || [];
 
         if (routes.length === 0) {
-            container.innerHTML = `<span class="text-slate-400 italic text-[11px]">Chưa chọn tuyến nào</span>`;
+            container.innerHTML = \`<span class="text-slate-400 italic text-[11px]">Chưa chọn tuyến nào</span>\`;
             return;
         }
 
-        container.innerHTML = routes.map(r => `
+        container.innerHTML = routes.map(r => \`
             <span class="inline-flex items-center gap-1.5 bg-white border border-indigo-200 text-indigo-900 font-bold px-2 py-0.5 rounded-lg text-[10px] shadow-2xs">
                 <span class="w-1.5 h-1.5 rounded-full bg-indigo-500 animate-pulse"></span>
-                <span>${r}</span>
-                <button type="button" onclick="handleQuickToggleRoute('${r}')" class="text-slate-400 hover:text-red-500 ml-0.5 cursor-pointer" title="Tắt thông báo tuyến ${r}">
+                <span>\${r}</span>
+                <button type="button" onclick="handleQuickToggleRoute('\${r}')" class="text-slate-400 hover:text-red-500 ml-0.5 cursor-pointer" title="Tắt thông báo tuyến \${r}">
                     <i class="fa-solid fa-xmark text-[9px]"></i>
                 </button>
             </span>
-        `).join('');
+        \`).join('');
     }
 
     function handleQuickToggleRoute(routePair) {
@@ -619,23 +410,23 @@
 
         const subs = CargoStore.getRouteSubscriptions ? CargoStore.getRouteSubscriptions() : { routes: [] };
         const availableRoutes = CargoStore.getAvailableRoutes ? CargoStore.getAvailableRoutes() : [];
-        const curRoutes = (subs.routes || []).map(r => r.replace(/\s+/g, '').toUpperCase());
+        const curRoutes = (subs.routes || []).map(r => r.replace(/\\s+/g, '').toUpperCase());
 
         const grid = document.getElementById('routeCheckboxesGrid');
         if (grid) {
             grid.innerHTML = availableRoutes.map(r => {
-                const cleanPair = r.pair.replace(/\s+/g, '').toUpperCase();
+                const cleanPair = r.pair.replace(/\\s+/g, '').toUpperCase();
                 const isChecked = curRoutes.includes(cleanPair);
-                return `
-                    <label class="flex items-center justify-between p-3 rounded-xl border ${isChecked ? 'border-indigo-500 bg-indigo-50/60' : 'border-slate-200 bg-white hover:bg-slate-50'} transition cursor-pointer select-none">
+                return \`
+                    <label class="flex items-center justify-between p-3 rounded-xl border \${isChecked ? 'border-indigo-500 bg-indigo-50/60' : 'border-slate-200 bg-white hover:bg-slate-50'} transition cursor-pointer select-none">
                         <div class="flex items-center gap-2">
-                            <i class="fa-solid fa-plane-departure ${isChecked ? 'text-indigo-600' : 'text-slate-400'} text-xs"></i>
-                            <span class="font-bold text-slate-900 text-xs">${r.pair}</span>
-                            <span class="text-[10px] text-slate-500 hidden sm:inline">(${r.origin} ➔ ${r.dest})</span>
+                            <i class="fa-solid fa-plane-departure \${isChecked ? 'text-indigo-600' : 'text-slate-400'} text-xs"></i>
+                            <span class="font-bold text-slate-900 text-xs">\${r.pair}</span>
+                            <span class="text-[10px] text-slate-500 hidden sm:inline">(\${r.origin} ➔ \${r.dest})</span>
                         </div>
-                        <input type="checkbox" name="routeSubCheckbox" value="${r.pair}" ${isChecked ? 'checked' : ''} class="w-4 h-4 text-indigo-600 rounded border-slate-300 focus:ring-indigo-500">
+                        <input type="checkbox" name="routeSubCheckbox" value="\${r.pair}" \${isChecked ? 'checked' : ''} class="w-4 h-4 text-indigo-600 rounded border-slate-300 focus:ring-indigo-500">
                     </label>
-                `;
+                \`;
             }).join('');
         }
 
@@ -744,6 +535,11 @@
         }
     });
     window.addEventListener('cargostore_updated', renderNotifications);
-    </script>
-</body>
-</html>
+    </script>`;
+
+    content = content.substring(0, scriptStartIndex) + cleanScript + content.substring(scriptEndIndex + scriptEndMarker.length);
+    fs.writeFileSync(filePath, content, 'utf8');
+    console.log('Successfully cleaned up 08-Notifications.html script block!');
+} else {
+    console.error('Could not find script markers in 08-Notifications.html');
+}

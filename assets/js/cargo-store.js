@@ -892,18 +892,13 @@ const CargoStore = (function() {
                 });
             }
 
-            // Self-healing migration for notifications to ensure HIGHEST, OUTBID, WON are present for AG-0892
+            // Self-healing migration for notifications
             if (!data.notifications || !Array.isArray(data.notifications)) {
                 data.notifications = JSON.parse(JSON.stringify(defaultData.notifications));
                 updated = true;
-            } else {
-                (defaultData.notifications || []).forEach(defN => {
-                    const existing = data.notifications.find(n => n.id === defN.id || (n.type === defN.type && n.targetAgentCode === defN.targetAgentCode));
-                    if (!existing) {
-                        data.notifications.unshift(JSON.parse(JSON.stringify(defN)));
-                        updated = true;
-                    }
-                });
+            } else if (data.deletedNotificationIds && Array.isArray(data.deletedNotificationIds)) {
+                const delSet = new Set(data.deletedNotificationIds.map(String));
+                data.notifications = data.notifications.filter(n => !delSet.has(String(n.id)));
             }
 
             // Migrate any old August/early September 2026 dates to active September 2026 dates
@@ -2787,6 +2782,8 @@ const CargoStore = (function() {
         deleteNotification: function(id) {
             const data = loadData();
             if (!data.notifications) return { success: false, count: 0 };
+            if (!Array.isArray(data.deletedNotificationIds)) data.deletedNotificationIds = [];
+            data.deletedNotificationIds.push(String(id));
             const initialLen = data.notifications.length;
             data.notifications = data.notifications.filter(n => String(n.id) !== String(id));
             const deleted = initialLen - data.notifications.length;
@@ -2800,6 +2797,8 @@ const CargoStore = (function() {
             if (!Array.isArray(ids) || ids.length === 0) return { success: false, count: 0 };
             const data = loadData();
             if (!data.notifications) return { success: false, count: 0 };
+            if (!Array.isArray(data.deletedNotificationIds)) data.deletedNotificationIds = [];
+            ids.forEach(id => data.deletedNotificationIds.push(String(id)));
             const idSet = new Set(ids.map(id => String(id)));
             const initialLen = data.notifications.length;
             data.notifications = data.notifications.filter(n => !idSet.has(String(n.id)));
