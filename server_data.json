@@ -18,7 +18,7 @@
       "startingPriceKg": 18000,
       "currentPriceKg": 18000,
       "minStep": 500,
-      "endTime": "2026-09-16T06:20:55.171Z",
+      "endTime": "2026-09-16T08:50:04.416Z",
       "status": "OPEN",
       "leadingAgentCode": null,
       "leadingAgentName": null,
@@ -448,12 +448,21 @@
       "priceKg": 18500,
       "totalAmountVND": 46250000,
       "paymentDeadline": "2026-09-09T11:00:00.000Z",
-      "paymentStatus": "PAID",
-      "paidAt": "08/09/2026 15:45",
+      "paymentStatus": "EXPIRED",
+      "paidAt": null,
       "awbNumber": "998-22688192",
       "cutOffTime": "18:00 · 09/09/2026",
       "warehouse": "Kho hàng TCS Tân Sơn Nhất (Cửa số 3)",
-      "cargoDeclaration": null
+      "cargoDeclaration": null,
+      "lockPenaltyHandled": true,
+      "momoOrderId": "WON2026081605_1789541713722",
+      "momoRequestId": "WON2026081605_REQ_1789541713722",
+      "momoOrderInfo": "AG0892-VU226-16092026",
+      "momoPayUrl": "https://test-payment.momo.vn/v2/gateway/pay?t=TU9NT0JLVU4yMDE4MDUyOXxXT04yMDI2MDgxNjA1XzE3ODk1NDE3MTM3MjI&s=648ec67c65cc78deeeb01865a656c96d9a5a7f610a0e1d3c35ed9f81762b1fda",
+      "momoQrCodeUrl": "00020101021226110007vn.momo38630010A000000727013300069704030119MOMO1262590000000360208QRIBFTTA53037045405500005802VN62470515MMTJ2pMDNCDqoQR070100819AG0892VU2261609202663045844",
+      "momoDeeplink": "momo://app?action=payWithApp&isScanQR=false&scanQR=false&serviceType=app&sid=TU9NT0JLVU4yMDE4MDUyOXxXT04yMDI2MDgxNjA1XzE3ODk1NDE3MTM3MjI&v=3.0",
+      "momoCreatedAt": "2026-09-16T06:55:14.439Z",
+      "momoExpiresAt": "2026-09-16T07:10:14.439Z"
     },
     {
       "wonId": "WON-20260908-06",
@@ -496,6 +505,15 @@
     }
   ],
   "notifications": [
+    {
+      "id": 1789541515872,
+      "targetAgentCode": "AG-0892",
+      "title": "⚠️ TÀI KHOẢN ĐÃ BỊ KHÓA DO QUÁ HẠN THANH TOÁN",
+      "message": "Tài khoản đại lý AG-0892 đã bị hệ thống tự động KHÓA do không hoàn tất thanh toán đơn hàng thắng thầu WON-2026-0816-05 (Chuyến bay VU226) trước hạn chót. Quyền tham gia đấu giá trên sàn đã bị tạm ngưng. Vui lòng liên hệ Ban Điều hành Cargo để xử lý.",
+      "time": "Vừa xong",
+      "type": "ALERT",
+      "unread": true
+    },
     {
       "id": 1789532542470,
       "title": "Từ chối hồ sơ REG-20260916-02",
@@ -810,13 +828,15 @@
       "address": "123 Nguyễn Huệ, Quận 1, TP. Hồ Chí Minh",
       "province": "TP. Hồ Chí Minh",
       "tier": "TIER1",
-      "status": "Đang hoạt động",
+      "status": "Đã khóa",
       "joinedDate": "15/03/2024",
       "totalBids": 24,
       "totalWins": 8,
       "winRate": "33%",
       "totalSpentUSD": "12.4k",
-      "totalSpentVND": 1600000000
+      "totalSpentVND": 1600000000,
+      "lockedReason": "Hệ thống tự động khóa do quá hạn thanh toán đơn WON-2026-0816-05 (VU226 - SGN - DAD)",
+      "lockedAt": "13:51:54 16/9/2026"
     },
     {
       "id": 2,

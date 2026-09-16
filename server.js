@@ -1,4 +1,6 @@
 const http = require('http');
+const https = require('https');
+const crypto = require('crypto');
 const fs = require('fs');
 const path = require('path');
 const nodemailer = require('nodemailer');
@@ -1686,6 +1688,319 @@ const server = http.createServer((req, res) => {
                 res.end(JSON.stringify({ success: false, error: err.message }));
             }
         });
+        return;
+    }
+
+    // ============================================================
+    // === MOMO PAYMENT GATEWAY API ENDPOINTS =====================
+    // ============================================================
+
+    /**
+     * Generate standardized MoMo orderInfo
+     * Format: {AgentCode}-{AuctionId}-{DDMMYYYY}
+     * All uppercase, no whitespace
+     * Example: Agent "AG 0892", auction "VU134", date 17/9/2026 -> "AG0892-VU134-17092026"
+     */
+    function generateMoMoOrderInfo(agentCode, auctionId, date) {
+        const cleanAgent = String(agentCode || '').toUpperCase().replace(/[^A-Z0-9]/g, '');
+        const cleanAuction = String(auctionId || '').toUpperCase().replace(/[^A-Z0-9]/g, '');
+        const d = date instanceof Date ? date : new Date();
+        const dd = String(d.getDate()).padStart(2, '0');
+        const mm = String(d.getMonth() + 1).padStart(2, '0');
+        const yyyy = String(d.getFullYear());
+        return `${cleanAgent}-${cleanAuction}-${dd}${mm}${yyyy}`;
+    }
+
+    // MoMo config from env
+    const momoConfig = {
+        partnerCode: process.env.MOMO_PARTNER_CODE || 'MOMOBKUN20180529',
+        accessKey: process.env.MOMO_ACCESS_KEY || 'klm05TvNBzhg7h7j',
+        secretKey: process.env.MOMO_SECRET_KEY || 'at67qH6mk8w5Y1nAyMoYKMWACiEi2bsa',
+        endpoint: process.env.MOMO_ENDPOINT || 'https://test-payment.momo.vn',
+        ipnUrl: process.env.MOMO_IPN_URL || 'http://localhost:8085/api/momo/ipn',
+        redirectUrl: process.env.MOMO_REDIRECT_URL || 'http://localhost:8085/07-WonAuction.html'
+    };
+
+    // --- POST /api/momo/create --- Create MoMo payment request
+    if (pathname === '/api/momo/create' && req.method === 'POST') {
+        let body = '';
+        req.on('data', chunk => { body += chunk; });
+        req.on('end', () => {
+            try {
+                const { wonId } = JSON.parse(body);
+                if (!wonId) {
+                    res.writeHead(400, { 'Content-Type': 'application/json; charset=UTF-8' });
+                    res.end(JSON.stringify({ success: false, error: 'wonId is required' }));
+                    return;
+                }
+
+                // Find the won auction
+                const wonList = serverData.wonAuctions || [];
+                const wonItem = wonList.find(w => w.wonId === wonId);
+                if (!wonItem) {
+                    res.writeHead(404, { 'Content-Type': 'application/json; charset=UTF-8' });
+                    res.end(JSON.stringify({ success: false, error: 'Won auction not found: ' + wonId }));
+                    return;
+                }
+
+                // Already paid check
+                if (wonItem.paymentStatus === 'PAID' || wonItem.paymentStatus === 'PAID_LATE') {
+                    res.writeHead(400, { 'Content-Type': 'application/json; charset=UTF-8' });
+                    res.end(JSON.stringify({ success: false, error: 'Order already paid' }));
+                    return;
+                }
+
+                let amount = Math.round(Number(wonItem.totalAmountVND) || 0);
+                
+                if (amount <= 0) {
+                    res.writeHead(400, { 'Content-Type': 'application/json; charset=UTF-8' });
+                    res.end(JSON.stringify({ success: false, error: 'Invalid amount' }));
+                    return;
+                }
+
+                // Generate orderInfo in standardized format
+                const flightOrAuctionId = wonItem.flightNumber || String(wonItem.auctionId || '');
+                const orderInfo = generateMoMoOrderInfo(wonItem.agentCode, flightOrAuctionId, new Date());
+
+                // Build MoMo request - clean wonId for orderId to avoid invalid chars
+                const cleanWonId = String(wonId).replace(/[^A-Za-z0-9]/g, '');
+                const orderId = cleanWonId + '_' + Date.now();
+                const requestId = cleanWonId + '_REQ_' + Date.now();
+                const extraData = '';
+                const requestType = 'captureWallet';
+
+                // Raw signature string (alphabetical order per MoMo docs)
+                const rawSignature = [
+                    'accessKey=' + momoConfig.accessKey,
+                    'amount=' + amount,
+                    'extraData=' + extraData,
+                    'ipnUrl=' + momoConfig.ipnUrl,
+                    'orderId=' + orderId,
+                    'orderInfo=' + orderInfo,
+                    'partnerCode=' + momoConfig.partnerCode,
+                    'redirectUrl=' + momoConfig.redirectUrl,
+                    'requestId=' + requestId,
+                    'requestType=' + requestType
+                ].join('&');
+
+                const signature = crypto
+                    .createHmac('sha256', momoConfig.secretKey)
+                    .update(rawSignature)
+                    .digest('hex');
+
+                const momoRequestBody = JSON.stringify({
+                    partnerCode: momoConfig.partnerCode,
+                    requestType: requestType,
+                    ipnUrl: momoConfig.ipnUrl,
+                    redirectUrl: momoConfig.redirectUrl,
+                    orderId: orderId,
+                    amount: amount,
+                    orderInfo: orderInfo,
+                    requestId: requestId,
+                    extraData: extraData,
+                    signature: signature,
+                    lang: 'vi'
+                });
+
+                console.log('[MoMo] Creating payment request:', { wonId, orderId, amount, orderInfo });
+
+                // POST to MoMo API
+                const momoUrl = new URL('/v2/gateway/api/create', momoConfig.endpoint);
+                const momoReqOptions = {
+                    hostname: momoUrl.hostname,
+                    port: 443,
+                    path: momoUrl.pathname,
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Content-Length': Buffer.byteLength(momoRequestBody)
+                    }
+                };
+
+                const momoReq = https.request(momoReqOptions, (momoRes) => {
+                    let momoData = '';
+                    momoRes.on('data', chunk => { momoData += chunk; });
+                    momoRes.on('end', () => {
+                        try {
+                            const momoResult = JSON.parse(momoData);
+                            console.log('[MoMo] Response:', momoResult.resultCode, momoResult.message);
+
+                            if (momoResult.resultCode === 0) {
+                                // Save MoMo order data to won auction
+                                wonItem.momoOrderId = orderId;
+                                wonItem.momoRequestId = requestId;
+                                wonItem.momoOrderInfo = orderInfo;
+                                wonItem.momoPayUrl = momoResult.payUrl || null;
+                                wonItem.momoQrCodeUrl = momoResult.qrCodeUrl || null;
+                                wonItem.momoDeeplink = momoResult.deeplink || null;
+                                wonItem.momoCreatedAt = new Date().toISOString();
+                                wonItem.momoExpiresAt = new Date(Date.now() + 15 * 60 * 1000).toISOString();
+                                saveServerData();
+
+                                res.writeHead(200, { 'Content-Type': 'application/json; charset=UTF-8' });
+                                res.end(JSON.stringify({
+                                    success: true,
+                                    orderId: orderId,
+                                    orderInfo: orderInfo,
+                                    amount: amount,
+                                    payUrl: momoResult.payUrl || null,
+                                    qrCodeUrl: momoResult.qrCodeUrl || null,
+                                    deeplink: momoResult.deeplink || null,
+                                    expiresAt: wonItem.momoExpiresAt
+                                }));
+                            } else {
+                                res.writeHead(400, { 'Content-Type': 'application/json; charset=UTF-8' });
+                                res.end(JSON.stringify({
+                                    success: false,
+                                    error: momoResult.message || 'MoMo payment creation failed',
+                                    resultCode: momoResult.resultCode
+                                }));
+                            }
+                        } catch (parseErr) {
+                            console.error('[MoMo] Parse error:', parseErr.message);
+                            res.writeHead(500, { 'Content-Type': 'application/json; charset=UTF-8' });
+                            res.end(JSON.stringify({ success: false, error: 'Failed to parse MoMo response' }));
+                        }
+                    });
+                });
+
+                momoReq.on('error', (err) => {
+                    console.error('[MoMo] Request error:', err.message);
+                    res.writeHead(500, { 'Content-Type': 'application/json; charset=UTF-8' });
+                    res.end(JSON.stringify({ success: false, error: 'Failed to connect to MoMo: ' + err.message }));
+                });
+
+                momoReq.setTimeout(30000, () => {
+                    momoReq.destroy();
+                    res.writeHead(504, { 'Content-Type': 'application/json; charset=UTF-8' });
+                    res.end(JSON.stringify({ success: false, error: 'MoMo request timeout (30s)' }));
+                });
+
+                momoReq.write(momoRequestBody);
+                momoReq.end();
+            } catch (err) {
+                console.error('[MoMo] Create error:', err.message);
+                if (!res.headersSent) {
+                    res.writeHead(500, { 'Content-Type': 'application/json; charset=UTF-8' });
+                    res.end(JSON.stringify({ success: false, error: err.message }));
+                }
+            }
+        });
+        return;
+    }
+
+    // --- POST /api/momo/ipn --- MoMo IPN Webhook (callback from MoMo)
+    if (pathname === '/api/momo/ipn' && req.method === 'POST') {
+        let body = '';
+        req.on('data', chunk => { body += chunk; });
+        req.on('end', () => {
+            try {
+                const ipnData = JSON.parse(body);
+                console.log('[MoMo IPN] Received:', JSON.stringify(ipnData));
+
+                // Verify IPN signature
+                const ipnRawSignature = [
+                    'accessKey=' + momoConfig.accessKey,
+                    'amount=' + ipnData.amount,
+                    'extraData=' + (ipnData.extraData || ''),
+                    'message=' + (ipnData.message || ''),
+                    'orderId=' + ipnData.orderId,
+                    'orderInfo=' + (ipnData.orderInfo || ''),
+                    'orderType=' + (ipnData.orderType || ''),
+                    'partnerCode=' + ipnData.partnerCode,
+                    'payType=' + (ipnData.payType || ''),
+                    'requestId=' + ipnData.requestId,
+                    'responseTime=' + ipnData.responseTime,
+                    'resultCode=' + ipnData.resultCode,
+                    'transId=' + ipnData.transId
+                ].join('&');
+
+                const expectedSignature = crypto
+                    .createHmac('sha256', momoConfig.secretKey)
+                    .update(ipnRawSignature)
+                    .digest('hex');
+
+                if (ipnData.signature !== expectedSignature) {
+                    console.error('[MoMo IPN] Signature mismatch! Expected:', expectedSignature, 'Got:', ipnData.signature);
+                    res.writeHead(400, { 'Content-Type': 'application/json' });
+                    res.end(JSON.stringify({ success: false, error: 'Invalid signature' }));
+                    return;
+                }
+
+                console.log('[MoMo IPN] Signature verified OK. resultCode:', ipnData.resultCode);
+
+                // Find won auction by momoOrderId
+                const wonList = serverData.wonAuctions || [];
+                const wonItem = wonList.find(w => w.momoOrderId === ipnData.orderId);
+
+                if (wonItem && ipnData.resultCode === 0) {
+                    // Payment successful
+                    const now = new Date();
+                    const paidAtStr = now.toLocaleString('vi-VN', { hour: '2-digit', minute: '2-digit', day: '2-digit', month: '2-digit', year: 'numeric' });
+                    wonItem.paymentStatus = 'PAID';
+                    wonItem.paidAt = paidAtStr;
+                    wonItem.momoTransId = ipnData.transId;
+                    wonItem.momoPayType = ipnData.payType || 'qr';
+                    wonItem.momoPaidAt = now.toISOString();
+
+                    // If agent account was locked due to this order, unlock it
+                    const agentCode = wonItem.agentCode;
+                    if (agentCode && serverData.agentsList) {
+                        const agent = serverData.agentsList.find(a => (a.code || '').toUpperCase() === agentCode.toUpperCase());
+                        if (agent && agent.isLocked) {
+                            agent.isLocked = false;
+                            agent.lockedReason = null;
+                            console.log('[MoMo IPN] Auto-unlocked agent:', agentCode);
+                        }
+                    }
+
+                    saveServerData();
+                    console.log('[MoMo IPN] Payment confirmed for:', wonItem.wonId, 'transId:', ipnData.transId);
+                } else if (wonItem) {
+                    console.log('[MoMo IPN] Payment failed/cancelled for:', wonItem.wonId, 'resultCode:', ipnData.resultCode);
+                } else {
+                    console.warn('[MoMo IPN] No matching won auction for orderId:', ipnData.orderId);
+                }
+
+                // MoMo expects 204 No Content
+                res.writeHead(204);
+                res.end();
+            } catch (err) {
+                console.error('[MoMo IPN] Error:', err.message);
+                res.writeHead(500);
+                res.end();
+            }
+        });
+        return;
+    }
+
+    // --- GET /api/momo/status --- Polling endpoint for frontend
+    if (pathname === '/api/momo/status' && req.method === 'GET') {
+        const wonId = parsedUrl.searchParams.get('wonId');
+        if (!wonId) {
+            res.writeHead(400, { 'Content-Type': 'application/json; charset=UTF-8' });
+            res.end(JSON.stringify({ success: false, error: 'wonId query param required' }));
+            return;
+        }
+
+        const wonList = serverData.wonAuctions || [];
+        const wonItem = wonList.find(w => w.wonId === wonId);
+        if (!wonItem) {
+            res.writeHead(404, { 'Content-Type': 'application/json; charset=UTF-8' });
+            res.end(JSON.stringify({ success: false, error: 'Won auction not found' }));
+            return;
+        }
+
+        res.writeHead(200, { 'Content-Type': 'application/json; charset=UTF-8', 'Cache-Control': 'no-cache' });
+        res.end(JSON.stringify({
+            success: true,
+            wonId: wonItem.wonId,
+            paymentStatus: wonItem.paymentStatus,
+            paidAt: wonItem.paidAt || null,
+            momoTransId: wonItem.momoTransId || null,
+            momoOrderId: wonItem.momoOrderId || null,
+            momoOrderInfo: wonItem.momoOrderInfo || null
+        }));
         return;
     }
 

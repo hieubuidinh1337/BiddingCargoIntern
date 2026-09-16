@@ -399,6 +399,20 @@
                     </div>
                 </div>
 
+                <!-- Payment Method Tab Switcher -->
+                <div class="flex items-center bg-slate-100 rounded-2xl p-1 gap-1">
+                    <button type="button" onclick="switchPaymentTab('bank')" id="payTabBankBtn"
+                            class="flex-1 flex items-center justify-center gap-2 px-4 py-2.5 rounded-xl text-xs font-bold transition-all duration-200 bg-white text-blue-700 shadow-sm border border-blue-200 cursor-pointer">
+                        <i class="fa-solid fa-building-columns"></i> Chuyển khoản Ngân hàng (VietQR)
+                    </button>
+                    <button type="button" onclick="switchPaymentTab('momo')" id="payTabMomoBtn"
+                            class="flex-1 flex items-center justify-center gap-2 px-4 py-2.5 rounded-xl text-xs font-bold transition-all duration-200 text-slate-500 hover:text-pink-600 hover:bg-white/60 cursor-pointer">
+                        <i class="fa-solid fa-wallet"></i> Thanh toán MoMo <span class="bg-pink-100 text-pink-700 text-[10px] px-1.5 py-0.5 rounded-full font-bold">MỚI</span>
+                    </button>
+                </div>
+
+                <!-- TAB 1: Bank Transfer (existing content) -->
+                <div id="payTabBankContent">
                 <div class="grid grid-cols-1 lg:grid-cols-12 gap-6">
                     <!-- Left: VietQR Code Box (5 cols) -->
                     <div class="lg:col-span-5 bg-gradient-to-b from-slate-50 to-blue-50/40 rounded-2xl border p-4 flex flex-col items-center justify-between text-center space-y-3">
@@ -542,6 +556,137 @@
                         </form>
                     </div>
                 </div>
+                </div><!-- End payTabBankContent -->
+
+                <!-- TAB 2: MoMo Payment -->
+                <div id="payTabMomoContent" class="hidden">
+                    <div class="bg-gradient-to-br from-pink-50 via-white to-fuchsia-50 rounded-2xl border-2 border-pink-200 p-6 space-y-5">
+                        <!-- MoMo Header -->
+                        <div class="flex items-center justify-between">
+                            <div class="flex items-center gap-3">
+                                <div class="w-12 h-12 bg-gradient-to-br from-pink-500 to-rose-600 rounded-2xl flex items-center justify-center text-white text-xl font-black shadow-lg shadow-pink-200">
+                                    <i class="fa-solid fa-wallet"></i>
+                                </div>
+                                <div>
+                                    <h4 class="font-bold text-sm text-slate-900">Thanh toán qua Ví MoMo</h4>
+                                    <p class="text-[11px] text-slate-500">Quét QR hoặc mở App MoMo để thanh toán tức thì</p>
+                                </div>
+                            </div>
+                            <div id="momoStatusBadge" class="px-3 py-1.5 rounded-full text-[11px] font-bold bg-slate-100 text-slate-600 border border-slate-200">
+                                <i class="fa-solid fa-circle-info"></i> Chưa tạo mã
+                            </div>
+                        </div>
+
+                        <!-- MoMo QR + Info Grid -->
+                        <div id="momoBeforeCreate" class="text-center py-8 space-y-4">
+                            <div class="w-20 h-20 mx-auto bg-pink-100 rounded-3xl flex items-center justify-center text-pink-400 text-3xl">
+                                <i class="fa-solid fa-qrcode"></i>
+                            </div>
+                            <div>
+                                <p class="font-bold text-slate-800 text-sm">Bấm nút bên dưới để tạo mã thanh toán MoMo</p>
+                                <p class="text-[11px] text-slate-500 mt-1">Mã QR có hiệu lực <strong>15 phút</strong>. Sau đó bạn có thể tạo lại mã mới.</p>
+                            </div>
+                            <button type="button" onclick="createMoMoPayment()" id="btnCreateMomo"
+                                    class="inline-flex items-center gap-2.5 bg-gradient-to-r from-pink-500 to-rose-600 hover:from-pink-600 hover:to-rose-700 text-white font-bold px-6 py-3 rounded-2xl shadow-lg shadow-pink-200 transition-all duration-200 cursor-pointer text-sm">
+                                <i class="fa-solid fa-bolt"></i> Tạo mã thanh toán MoMo ngay
+                            </button>
+                        </div>
+
+                        <!-- MoMo Active Payment (hidden until created) -->
+                        <div id="momoActivePayment" class="hidden space-y-5">
+                            <div class="grid grid-cols-1 lg:grid-cols-2 gap-5">
+                                <!-- Left: QR Code -->
+                                <div class="bg-white rounded-2xl border shadow-sm p-5 flex flex-col items-center space-y-3">
+                                    <div class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-pink-100 text-pink-800 font-bold text-[11px]">
+                                        <i class="fa-solid fa-bolt text-amber-500"></i> Quét mã QR MoMo
+                                    </div>
+                                    <div class="relative bg-slate-50 p-3 rounded-2xl border">
+                                        <img id="momoQrImg" src="" alt="MoMo QR Code" class="w-52 h-52 object-contain rounded-lg">
+                                        <div id="momoQrLoading" class="absolute inset-0 bg-white/90 flex flex-col items-center justify-center gap-2 rounded-2xl">
+                                            <i class="fa-solid fa-spinner fa-spin text-pink-600 text-2xl"></i>
+                                            <span class="text-[11px] text-gray-500">Đang tạo mã QR MoMo...</span>
+                                        </div>
+                                    </div>
+                                    <!-- Countdown Timer -->
+                                    <div id="momoCountdownBox" class="w-full bg-amber-50 border border-amber-200 rounded-xl p-3 text-center">
+                                        <p class="text-[10px] text-amber-700 font-semibold">Mã QR hết hạn sau:</p>
+                                        <p id="momoCountdownText" class="text-lg font-black text-amber-900 font-mono tracking-wider">15:00</p>
+                                    </div>
+                                    <!-- Deeplink button for mobile -->
+                                    <a id="momoDeeplinkBtn" href="#" target="_blank" rel="noopener"
+                                       class="w-full bg-gradient-to-r from-pink-500 to-rose-600 hover:from-pink-600 hover:to-rose-700 text-white font-bold py-2.5 px-4 rounded-xl transition flex items-center justify-center gap-2 text-xs shadow-md cursor-pointer">
+                                        <i class="fa-solid fa-external-link-alt"></i> Mở App MoMo để thanh toán
+                                    </a>
+                                </div>
+
+                                <!-- Right: Order Info + Status -->
+                                <div class="space-y-4">
+                                    <!-- Order Info Copy Box -->
+                                    <div class="bg-white rounded-2xl border shadow-sm p-4 space-y-3">
+                                        <h5 class="font-bold text-slate-900 flex items-center gap-2 text-xs">
+                                            <i class="fa-solid fa-file-invoice text-pink-600"></i>
+                                            Thông tin giao dịch MoMo
+                                        </h5>
+                                        <div class="divide-y divide-slate-100">
+                                            <div class="py-2 flex items-center justify-between">
+                                                <span class="text-gray-500 font-medium">Số tiền:</span>
+                                                <span id="momoAmountDisplay" class="font-bold text-base text-red-600">0 đ</span>
+                                            </div>
+                                            <div class="py-2.5 flex flex-col sm:flex-row sm:items-center justify-between gap-2">
+                                                <div>
+                                                    <span class="text-pink-900 font-bold block">Nội dung chuyển khoản:</span>
+                                                    <span class="text-[10px] text-pink-700">Format: {Mã đại lý}-{Mã phiên}-{DDMMYYYY}</span>
+                                                </div>
+                                                <div class="flex items-center gap-2">
+                                                    <span id="momoOrderInfoText" class="font-mono font-bold text-xs bg-pink-50 px-2.5 py-1.5 rounded-lg border border-pink-300 text-pink-900 shadow-xs">-</span>
+                                                    <button type="button" onclick="copyMoMoOrderInfo()" class="px-3 py-1.5 rounded-lg bg-pink-600 hover:bg-pink-700 text-white font-semibold text-[11px] transition flex items-center gap-1 shadow-xs cursor-pointer">
+                                                        <i class="fa-solid fa-copy"></i> Copy
+                                                    </button>
+                                                </div>
+                                            </div>
+                                            <div class="py-2 flex items-center justify-between">
+                                                <span class="text-gray-500 font-medium">Mã đơn MoMo:</span>
+                                                <span id="momoOrderIdDisplay" class="font-mono text-xs text-slate-700">-</span>
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                    <!-- Polling Status Live -->
+                                    <div id="momoPollingStatus" class="bg-blue-50 border border-blue-200 rounded-2xl p-4 space-y-2">
+                                        <div class="flex items-center gap-2">
+                                            <div class="w-2.5 h-2.5 bg-blue-500 rounded-full animate-pulse"></div>
+                                            <span class="font-bold text-blue-900 text-xs">Đang chờ thanh toán...</span>
+                                        </div>
+                                        <p class="text-[11px] text-blue-700">Hệ thống tự động kiểm tra trạng thái mỗi <strong>4 giây</strong>. Sau khi thanh toán thành công trên MoMo, trạng thái sẽ cập nhật tự động.</p>
+                                        <div id="momoPollingDots" class="flex items-center gap-1 pt-1">
+                                            <span class="w-1.5 h-1.5 bg-blue-400 rounded-full animate-bounce" style="animation-delay:0s"></span>
+                                            <span class="w-1.5 h-1.5 bg-blue-400 rounded-full animate-bounce" style="animation-delay:0.15s"></span>
+                                            <span class="w-1.5 h-1.5 bg-blue-400 rounded-full animate-bounce" style="animation-delay:0.3s"></span>
+                                            <span class="text-[10px] text-blue-500 ml-1">Polling active</span>
+                                        </div>
+                                    </div>
+
+                                    <!-- Success box (hidden) -->
+                                    <div id="momoSuccessBox" class="hidden bg-emerald-50 border-2 border-emerald-300 rounded-2xl p-5 text-center space-y-3">
+                                        <div class="w-14 h-14 mx-auto bg-emerald-500 rounded-full flex items-center justify-center text-white text-2xl shadow-lg shadow-emerald-200">
+                                            <i class="fa-solid fa-check"></i>
+                                        </div>
+                                        <h4 class="font-extrabold text-emerald-900 text-base">Thanh toán MoMo thành công!</h4>
+                                        <p class="text-xs text-emerald-700">Mã giao dịch MoMo: <strong id="momoSuccessTransId" class="font-mono">-</strong></p>
+                                        <p class="text-xs text-emerald-700">Thời gian: <strong id="momoSuccessPaidAt">-</strong></p>
+                                    </div>
+
+                                    <!-- Recreate button (hidden, shown when expired) -->
+                                    <button type="button" onclick="createMoMoPayment()" id="btnRecreateMomo"
+                                            class="hidden w-full bg-gradient-to-r from-pink-500 to-rose-600 hover:from-pink-600 hover:to-rose-700 text-white font-bold py-2.5 px-4 rounded-xl shadow transition flex items-center justify-center gap-2 text-xs cursor-pointer">
+                                        <i class="fa-solid fa-rotate"></i> Tạo lại mã thanh toán MoMo mới
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div><!-- End payTabMomoContent -->
+
             </div>
         </div>
     </div>
@@ -2145,15 +2290,366 @@
             qrImg.onerror = () => qrLoading.classList.add('hidden');
             qrImg.src = qrUrl;
 
+            // Reset to bank tab and reset MoMo UI when opening
+            switchPaymentTab('bank');
+            resetMoMoUI();
+            stopMoMoPolling();
+            stopMoMoCountdown();
+
             document.getElementById('paymentInstructionModal').classList.remove('hidden');
         }
 
         function closePaymentModal() {
+            stopMoMoPolling();
+            stopMoMoCountdown();
             document.getElementById('paymentInstructionModal').classList.add('hidden');
             currentActivePayWonId = null;
             currentUploadedProofBase64 = null;
             renderWonAuctions(true);
         }
+
+        // ============================================================
+        // === MOMO PAYMENT INTEGRATION (Frontend) ====================
+        // ============================================================
+
+        let momoPollingInterval = null;
+        let momoCountdownInterval = null;
+        let momoCurrentWonId = null;
+
+        function switchPaymentTab(tab) {
+            const bankContent = document.getElementById('payTabBankContent');
+            const momoContent = document.getElementById('payTabMomoContent');
+            const bankBtn = document.getElementById('payTabBankBtn');
+            const momoBtn = document.getElementById('payTabMomoBtn');
+
+            if (!bankContent || !momoContent || !bankBtn || !momoBtn) return;
+
+            const activeClass = 'bg-white shadow-sm border border-blue-200 text-blue-700';
+            const momoActiveClass = 'bg-white shadow-sm border border-pink-300 text-pink-700';
+            const inactiveClass = 'text-slate-500 hover:text-slate-700 hover:bg-white/60';
+            const momoInactiveClass = 'text-slate-500 hover:text-pink-600 hover:bg-white/60';
+
+            if (tab === 'momo') {
+                bankContent.classList.add('hidden');
+                momoContent.classList.remove('hidden');
+                bankBtn.className = `flex-1 flex items-center justify-center gap-2 px-4 py-2.5 rounded-xl text-xs font-bold transition-all duration-200 ${inactiveClass} cursor-pointer`;
+                momoBtn.className = `flex-1 flex items-center justify-center gap-2 px-4 py-2.5 rounded-xl text-xs font-bold transition-all duration-200 ${momoActiveClass} cursor-pointer`;
+            } else {
+                bankContent.classList.remove('hidden');
+                momoContent.classList.add('hidden');
+                bankBtn.className = `flex-1 flex items-center justify-center gap-2 px-4 py-2.5 rounded-xl text-xs font-bold transition-all duration-200 ${activeClass} cursor-pointer`;
+                momoBtn.className = `flex-1 flex items-center justify-center gap-2 px-4 py-2.5 rounded-xl text-xs font-bold transition-all duration-200 ${momoInactiveClass} cursor-pointer`;
+            }
+        }
+
+        function createMoMoPayment() {
+            const wonId = currentActivePayWonId;
+            if (!wonId) {
+                showToast('Không tìm thấy mã đơn hàng!', false);
+                return;
+            }
+
+            momoCurrentWonId = wonId;
+
+            // Show loading state
+            const createBtn = document.getElementById('btnCreateMomo');
+            const recreateBtn = document.getElementById('btnRecreateMomo');
+            if (createBtn) {
+                createBtn.disabled = true;
+                createBtn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Đang tạo mã MoMo...';
+            }
+            if (recreateBtn) recreateBtn.classList.add('hidden');
+
+            const statusBadge = document.getElementById('momoStatusBadge');
+            if (statusBadge) {
+                statusBadge.className = 'px-3 py-1.5 rounded-full text-[11px] font-bold bg-amber-100 text-amber-800 border border-amber-200';
+                statusBadge.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Đang khởi tạo...';
+            }
+
+            fetch('/api/momo/create', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ wonId: wonId })
+            })
+            .then(r => r.json())
+            .then(data => {
+                if (data.success) {
+                    console.log('[MoMo] Payment created:', data);
+                    showMoMoActivePayment(data);
+                    startMoMoPolling(wonId);
+                    startMoMoCountdown(data.expiresAt);
+                    showToast('Đã tạo mã thanh toán MoMo thành công!', true);
+                } else {
+                    showToast('Lỗi tạo MoMo: ' + (data.error || 'Unknown error'), false);
+                    resetMoMoUI();
+                }
+            })
+            .catch(err => {
+                console.error('[MoMo] Create error:', err);
+                showToast('Lỗi kết nối MoMo: ' + err.message, false);
+                resetMoMoUI();
+            });
+        }
+
+        function showMoMoActivePayment(data) {
+            const beforeCreate = document.getElementById('momoBeforeCreate');
+            const activePayment = document.getElementById('momoActivePayment');
+            if (beforeCreate) beforeCreate.classList.add('hidden');
+            if (activePayment) activePayment.classList.remove('hidden');
+
+            // QR Code
+            const qrImg = document.getElementById('momoQrImg');
+            const qrLoading = document.getElementById('momoQrLoading');
+            if (qrImg && data.qrCodeUrl) {
+                qrLoading && qrLoading.classList.remove('hidden');
+                qrImg.onload = () => qrLoading && qrLoading.classList.add('hidden');
+                qrImg.onerror = () => {
+                    qrLoading && qrLoading.classList.add('hidden');
+                    // Fallback: if qrCodeUrl is EMV format, use payUrl QR instead
+                    if (data.payUrl) {
+                        qrImg.src = `https://api.qrserver.com/v1/create-qr-code/?size=250x250&data=${encodeURIComponent(data.payUrl)}`;
+                    }
+                };
+                // MoMo qrCodeUrl may be EMV string, not image URL. Use QR generator.
+                if (data.qrCodeUrl.startsWith('http')) {
+                    qrImg.src = data.qrCodeUrl;
+                } else {
+                    // EMV string - generate QR image from it
+                    qrImg.src = `https://api.qrserver.com/v1/create-qr-code/?size=250x250&data=${encodeURIComponent(data.qrCodeUrl)}`;
+                    qrLoading && qrLoading.classList.add('hidden');
+                }
+            } else if (qrImg && data.payUrl) {
+                // Fallback: Generate QR from payUrl
+                qrImg.src = `https://api.qrserver.com/v1/create-qr-code/?size=250x250&data=${encodeURIComponent(data.payUrl)}`;
+                qrLoading && qrLoading.classList.add('hidden');
+            }
+
+            // Deeplink
+            const deeplinkBtn = document.getElementById('momoDeeplinkBtn');
+            if (deeplinkBtn) {
+                if (data.deeplink) {
+                    deeplinkBtn.href = data.deeplink;
+                    deeplinkBtn.classList.remove('hidden');
+                } else if (data.payUrl) {
+                    deeplinkBtn.href = data.payUrl;
+                    deeplinkBtn.classList.remove('hidden');
+                } else {
+                    deeplinkBtn.classList.add('hidden');
+                }
+            }
+
+            // Order Info
+            const orderInfoEl = document.getElementById('momoOrderInfoText');
+            if (orderInfoEl) orderInfoEl.textContent = data.orderInfo || '-';
+
+            const orderIdEl = document.getElementById('momoOrderIdDisplay');
+            if (orderIdEl) orderIdEl.textContent = data.orderId || '-';
+
+            const amountEl = document.getElementById('momoAmountDisplay');
+            if (amountEl) amountEl.textContent = fmtNum(data.amount) + ' đ';
+
+            // Status badge
+            const statusBadge = document.getElementById('momoStatusBadge');
+            if (statusBadge) {
+                statusBadge.className = 'px-3 py-1.5 rounded-full text-[11px] font-bold bg-pink-100 text-pink-800 border border-pink-200 animate-pulse';
+                statusBadge.innerHTML = '<i class="fa-solid fa-clock"></i> Chờ thanh toán';
+            }
+
+            // Show polling, hide success
+            const pollingBox = document.getElementById('momoPollingStatus');
+            const successBox = document.getElementById('momoSuccessBox');
+            if (pollingBox) pollingBox.classList.remove('hidden');
+            if (successBox) successBox.classList.add('hidden');
+        }
+
+        function resetMoMoUI() {
+            const beforeCreate = document.getElementById('momoBeforeCreate');
+            const activePayment = document.getElementById('momoActivePayment');
+            if (beforeCreate) beforeCreate.classList.remove('hidden');
+            if (activePayment) activePayment.classList.add('hidden');
+
+            const createBtn = document.getElementById('btnCreateMomo');
+            if (createBtn) {
+                createBtn.disabled = false;
+                createBtn.innerHTML = '<i class="fa-solid fa-bolt"></i> Tạo mã thanh toán MoMo ngay';
+            }
+
+            const statusBadge = document.getElementById('momoStatusBadge');
+            if (statusBadge) {
+                statusBadge.className = 'px-3 py-1.5 rounded-full text-[11px] font-bold bg-slate-100 text-slate-600 border border-slate-200';
+                statusBadge.innerHTML = '<i class="fa-solid fa-circle-info"></i> Chưa tạo mã';
+            }
+        }
+
+        function startMoMoPolling(wonId) {
+            stopMoMoPolling();
+            momoCurrentWonId = wonId;
+
+            momoPollingInterval = setInterval(() => {
+                if (!momoCurrentWonId) {
+                    stopMoMoPolling();
+                    return;
+                }
+
+                fetch(`/api/momo/status?wonId=${encodeURIComponent(momoCurrentWonId)}`)
+                    .then(r => r.json())
+                    .then(data => {
+                        if (data.success && data.paymentStatus === 'PAID') {
+                            console.log('[MoMo] Payment confirmed via polling!');
+                            onMoMoPaymentSuccess(data);
+                        }
+                    })
+                    .catch(err => {
+                        console.warn('[MoMo Polling] Error:', err.message);
+                    });
+            }, 4000); // Every 4 seconds
+
+            console.log('[MoMo] Polling started for:', wonId);
+        }
+
+        function stopMoMoPolling() {
+            if (momoPollingInterval) {
+                clearInterval(momoPollingInterval);
+                momoPollingInterval = null;
+                console.log('[MoMo] Polling stopped');
+            }
+        }
+
+        function startMoMoCountdown(expiresAtIso) {
+            stopMoMoCountdown();
+
+            const expiresAt = new Date(expiresAtIso).getTime();
+            const countdownEl = document.getElementById('momoCountdownText');
+            const countdownBox = document.getElementById('momoCountdownBox');
+
+            function updateCountdown() {
+                const now = Date.now();
+                const diff = expiresAt - now;
+
+                if (diff <= 0) {
+                    // Expired
+                    stopMoMoCountdown();
+                    stopMoMoPolling();
+                    if (countdownEl) countdownEl.textContent = '00:00';
+                    if (countdownBox) {
+                        countdownBox.className = 'w-full bg-red-50 border border-red-200 rounded-xl p-3 text-center';
+                        countdownBox.querySelector('p:first-child').textContent = 'Mã QR đã hết hạn!';
+                        countdownBox.querySelector('p:first-child').className = 'text-[10px] text-red-700 font-bold';
+                    }
+                    if (countdownEl) {
+                        countdownEl.textContent = 'HẾT HẠN';
+                        countdownEl.className = 'text-lg font-black text-red-600 font-mono tracking-wider';
+                    }
+
+                    const statusBadge = document.getElementById('momoStatusBadge');
+                    if (statusBadge) {
+                        statusBadge.className = 'px-3 py-1.5 rounded-full text-[11px] font-bold bg-red-100 text-red-800 border border-red-200';
+                        statusBadge.innerHTML = '<i class="fa-solid fa-clock"></i> Mã đã hết hạn';
+                    }
+
+                    // Show recreate button
+                    const recreateBtn = document.getElementById('btnRecreateMomo');
+                    if (recreateBtn) recreateBtn.classList.remove('hidden');
+
+                    // Hide polling status
+                    const pollingBox = document.getElementById('momoPollingStatus');
+                    if (pollingBox) pollingBox.classList.add('hidden');
+
+                    return;
+                }
+
+                const mins = Math.floor(diff / 60000);
+                const secs = Math.floor((diff % 60000) / 1000);
+                if (countdownEl) {
+                    countdownEl.textContent = `${String(mins).padStart(2, '0')}:${String(secs).padStart(2, '0')}`;
+
+                    // Color changes based on time remaining
+                    if (diff < 60000) { // less than 1 min
+                        countdownEl.className = 'text-lg font-black text-red-600 font-mono tracking-wider animate-pulse';
+                    } else if (diff < 180000) { // less than 3 min
+                        countdownEl.className = 'text-lg font-black text-amber-800 font-mono tracking-wider';
+                    } else {
+                        countdownEl.className = 'text-lg font-black text-amber-900 font-mono tracking-wider';
+                    }
+                }
+            }
+
+            updateCountdown();
+            momoCountdownInterval = setInterval(updateCountdown, 1000);
+        }
+
+        function stopMoMoCountdown() {
+            if (momoCountdownInterval) {
+                clearInterval(momoCountdownInterval);
+                momoCountdownInterval = null;
+            }
+        }
+
+        function onMoMoPaymentSuccess(data) {
+            stopMoMoPolling();
+            stopMoMoCountdown();
+
+            // Update status badge
+            const statusBadge = document.getElementById('momoStatusBadge');
+            if (statusBadge) {
+                statusBadge.className = 'px-3 py-1.5 rounded-full text-[11px] font-bold bg-emerald-100 text-emerald-800 border border-emerald-200';
+                statusBadge.innerHTML = '<i class="fa-solid fa-check-circle"></i> Đã thanh toán';
+            }
+
+            // Hide polling, show success
+            const pollingBox = document.getElementById('momoPollingStatus');
+            const successBox = document.getElementById('momoSuccessBox');
+            if (pollingBox) pollingBox.classList.add('hidden');
+            if (successBox) successBox.classList.remove('hidden');
+
+            const transIdEl = document.getElementById('momoSuccessTransId');
+            const paidAtEl = document.getElementById('momoSuccessPaidAt');
+            if (transIdEl) transIdEl.textContent = data.momoTransId || '-';
+            if (paidAtEl) paidAtEl.textContent = data.paidAt || new Date().toLocaleString('vi-VN');
+
+            // Update countdown to show success
+            const countdownBox = document.getElementById('momoCountdownBox');
+            if (countdownBox) {
+                countdownBox.className = 'w-full bg-emerald-50 border border-emerald-200 rounded-xl p-3 text-center';
+            }
+            const countdownEl = document.getElementById('momoCountdownText');
+            if (countdownEl) {
+                countdownEl.textContent = '✓ THÀNH CÔNG';
+                countdownEl.className = 'text-lg font-black text-emerald-600 font-mono tracking-wider';
+            }
+            const countdownLabel = countdownBox?.querySelector('p:first-child');
+            if (countdownLabel) {
+                countdownLabel.textContent = 'Thanh toán MoMo hoàn tất!';
+                countdownLabel.className = 'text-[10px] text-emerald-700 font-bold';
+            }
+
+            showToast('🎉 Thanh toán MoMo thành công! Đơn hàng đã được xác nhận.', true);
+
+            // Refresh the won auctions list after short delay
+            setTimeout(() => {
+                const store = getStore();
+                if (store && store.syncFromServer) store.syncFromServer();
+                renderWonAuctions(true);
+            }, 1500);
+        }
+
+        function copyMoMoOrderInfo() {
+            const el = document.getElementById('momoOrderInfoText');
+            if (!el) return;
+            const txt = el.textContent.trim();
+            navigator.clipboard.writeText(txt).then(() => {
+                showToast('Đã sao chép nội dung MoMo: ' + txt, true);
+            }).catch(() => {
+                const temp = document.createElement('textarea');
+                temp.value = txt;
+                document.body.appendChild(temp);
+                temp.select();
+                document.execCommand('copy');
+                document.body.removeChild(temp);
+                showToast('Đã sao chép nội dung MoMo: ' + txt, true);
+            });
+        }
+
 
         function copyPaymentText(elementId, labelName) {
             const el = document.getElementById(elementId);
