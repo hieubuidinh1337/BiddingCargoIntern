@@ -1,3 +1,4 @@
+require('dotenv').config();
 const http = require('http');
 const https = require('https');
 const crypto = require('crypto');
@@ -7,21 +8,6 @@ const nodemailer = require('nodemailer');
 const db = require('./db.js');
 const UPLOADS_DIR = path.join(__dirname, 'uploads');
 if (!fs.existsSync(UPLOADS_DIR)) fs.mkdirSync(UPLOADS_DIR, { recursive: true });
-// Load local .env if present
-if (fs.existsSync(path.join(__dirname, '.env'))) {
-    try {
-        const envLines = fs.readFileSync(path.join(__dirname, '.env'), 'utf8').split(/\r?\n/);
-        for (const line of envLines) {
-            const trimmed = line.trim();
-            if (trimmed && !trimmed.startsWith('#') && trimmed.includes('=')) {
-                const idx = trimmed.indexOf('=');
-                const key = trimmed.slice(0, idx).trim();
-                const val = trimmed.slice(idx + 1).trim();
-                if (!process.env[key]) process.env[key] = val;
-            }
-        }
-    } catch (e) {}
-}
 
 const PORT = 8085;
 const PUBLIC_DIR = __dirname;
