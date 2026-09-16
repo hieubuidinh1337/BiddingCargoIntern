@@ -391,14 +391,10 @@ async function loadServerDataAsync() {
     try {
         await db.initDatabase();
         serverData = await db.getFullServerData();
+        console.log('[Database] 100% data loaded successfully from SQLite RDBMS.');
     } catch (e) {
-        console.error('[Database] Failed to load data from SQLite database, falling back to JSON:', e);
-        if (fs.existsSync(DB_FILE)) {
-            const raw = fs.readFileSync(DB_FILE, 'utf8');
-            serverData = JSON.parse(raw);
-        } else {
-            serverData = JSON.parse(JSON.stringify(defaultSharedData));
-        }
+        console.error('[Database] Failed to load data from SQLite database:', e);
+        serverData = JSON.parse(JSON.stringify(defaultSharedData));
     }
 
     let changed = false;
@@ -583,11 +579,6 @@ function checkAndAutoLockExpiredWonAuctions(data) {
 }
 
 function saveServerData() {
-    try {
-        fs.writeFileSync(DB_FILE, JSON.stringify(serverData, null, 2), 'utf8');
-    } catch (e) {
-        console.error('Error saving server_data.json:', e);
-    }
     if (db) {
         db.seedFullData(serverData).catch(err => {
             console.error('[Database] Sync to SQLite error:', err.message);

@@ -23,7 +23,7 @@ Hệ thống được thiết kế theo kiến trúc Web đa tầng hiện đạ
 | **Chat Bubble Component** | `assets/js/chat-bubble.js` | Chat Widget thông minh cho Đại lý với thuật toán *Incremental Append & Smart Change Detection* (không Flicker). |
 | **Thư viện Xuất PDF** | `html2pdf.js`, `html2canvas`, `jspdf` | Tạo và xuất Phiếu xác nhận thắng thầu & Lệnh bàn giao tải trọng chuẩn định dạng A4 PDF sắc nét, không bị trích đoạn. |
 | **Backend Server** | Node.js Native HTTP Server (`server.js`) | Chạy tại cổng `8085`, xử lý Static Files, REST API Endpoints, File Uploads, Stream Error Handlers, Nodemailer SMTP. |
-| **Cơ sở dữ liệu (Database)** | Centralized JSON DB (`server_data.json`) | Lưu trữ trạng thái phiên đấu giá, lượt thầu, hồ sơ đại lý, đơn trúng thầu, nhật ký email, phiên chat hỗ trợ & cấu hình. |
+| **Cơ sở dữ liệu (Database)** | SQLite 3 RDBMS (`database.sqlite`) | Lưu trữ toàn bộ dữ liệu quan hệ chuẩn ACID với Write-Ahead Logging (WAL) Mode, chống race-condition & data corruption tuyệt đối. Đã chuyển đổi 100% và tắt JSON DB legacy. |
 | **Đồng bộ Client (Store)** | `CargoStore` (`assets/js/cargo-store.js`) | Quản lý state tập trung tại client, kết hợp `LocalStorage` fallback và phát sự kiện đồng bộ đa tab (`storage` & `cargostore_updated`). |
 | **Dịch vụ Email (SMTP)** | Nodemailer (Gmail / Custom SMTP) | Tự động gửi email thông báo phê duyệt hồ sơ, xác nhận trúng thầu, xác nhận thanh toán real-time với định dạng HTML template thương hiệu. |
 
@@ -151,8 +151,9 @@ bidding-cargo-app/
 │   ├── fix_bids_data.js       # Script sinh & chuẩn hóa dữ liệu thầu ẩn danh
 │   ├── test_email_send.js     # Script kiểm tra tích hợp gửi email Nodemailer SMTP
 │   └── test_use_cases.js      # Script kiểm tra tự động các kịch bản nghiệp vụ (Use Cases)
+├── db.js                    # Database Access Layer (SQLite 3 WAL Mode)
+├── database.sqlite          # File CSDL Relational Database chính thức
 ├── server.js                # Node.js Server Backend API & Nodemailer SMTP Service
-├── server_data.json         # Database JSON lưu trữ dữ liệu tập trung
 └── README.md                # Tài liệu hướng dẫn chi tiết hệ thống
 ```
 

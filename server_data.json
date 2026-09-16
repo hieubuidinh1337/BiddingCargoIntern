@@ -1,5 +1,5 @@
 {
-  "version": 1789544239285,
+  "version": 1789544522156,
   "auctions": [
     {
       "id": 108,
@@ -751,6 +751,33 @@
       "priceKg": 500,
       "totalAmountVND": 50000,
       "paymentStatus": "PAID"
+    },
+    {
+      "wonId": "TEST_WON_1789544522126",
+      "auctionId": 1,
+      "agentCode": "AG-0892",
+      "flightNumber": "VU130",
+      "route": "SGN - HAN",
+      "capacityKg": 100,
+      "priceKg": 500,
+      "totalAmountVND": 50000,
+      "paymentStatus": "PAID",
+      "momoOrderId": "TEST_WON_1789544522126_ORD",
+      "paidAt": "14:42 16/09/2026",
+      "momoTransId": "MOMO_TRANS_1789544522132",
+      "momoPayType": "qr",
+      "momoPaidAt": "2026-09-16T07:42:02.135Z"
+    },
+    {
+      "wonId": "WON_PAID_TEST_1789544522153",
+      "auctionId": 1,
+      "agentCode": "AG-0892",
+      "flightNumber": "VU130",
+      "route": "SGN - HAN",
+      "capacityKg": 100,
+      "priceKg": 500,
+      "totalAmountVND": 50000,
+      "paymentStatus": "PAID"
     }
   ],
   "notifications": [
@@ -1318,6 +1345,51 @@
           "fileName": null,
           "fileType": null,
           "timestamp": 1789544239271,
+          "read": false
+        }
+      ]
+    },
+    {
+      "id": "CHAT-1789544522142",
+      "agentCode": "AG-TEST-1789544522141",
+      "agentName": "Test Agent Ltd",
+      "status": "WAITING",
+      "createdAt": "2026-09-16T07:42:02.142Z",
+      "closedAt": null,
+      "assignedTo": null,
+      "assignedName": null,
+      "messages": [
+        {
+          "id": "MSG-1789544522142-0",
+          "sender": "agent",
+          "senderName": "Test Agent Ltd",
+          "text": "Cần hỗ trợ thông tin tải trọng chuyến bay VU130",
+          "fileUrl": null,
+          "fileName": null,
+          "fileType": null,
+          "timestamp": 1789544522142,
+          "read": false
+        },
+        {
+          "id": "MSG-1789544522142-sys",
+          "sender": "system",
+          "senderName": "Hệ thống",
+          "text": "Yêu cầu hỗ trợ đã được gửi. Nhân viên sẽ phản hồi sớm nhất có thể. Vui lòng chờ trong giây lát...",
+          "fileUrl": null,
+          "fileName": null,
+          "fileType": null,
+          "timestamp": 1789544522143,
+          "read": false
+        },
+        {
+          "id": "MSG-1789544522146-6620",
+          "sender": "agent",
+          "senderName": "Test Agent Ltd",
+          "text": "Lô hàng thực phẩm bảo quản lạnh có cần đóng thùng xốp không?",
+          "fileUrl": null,
+          "fileName": null,
+          "fileType": null,
+          "timestamp": 1789544522146,
           "read": false
         }
       ]
