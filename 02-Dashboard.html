@@ -309,8 +309,12 @@
             if (kpiWins) kpiWins.innerHTML = `${wonAuctions.length} <span class="text-xs text-gray-400 font-normal">đơn</span>`;
 
             // === Unpaid & Undeclared counts ===
-            const unpaidCount = wonAuctions.filter(w => w.paymentStatus !== 'PAID' && w.paymentStatus !== 'PAID_LATE').length;
-            const undeclaredCount = wonAuctions.filter(w => (CargoStore.isCargoUndeclared ? CargoStore.isCargoUndeclared(w) : (!w.cargoDeclaration || !w.cargoDeclaration.cargoName))).length;
+            const isPaidWonItem = w => (CargoStore.isWonAuctionPaid ? CargoStore.isWonAuctionPaid(w) : (w.paymentStatus === 'PAID' || w.paymentStatus === 'PAID_LATE' || w.lockWaivedByAdmin === true));
+            const isPendingWonItem = w => (CargoStore.isWonAuctionPending ? CargoStore.isWonAuctionPending(w) : (w.paymentStatus === 'PENDING_VERIFICATION'));
+            const isExpiredWonItem = w => !isPaidWonItem(w) && ((CargoStore.isWonAuctionExpired) ? CargoStore.isWonAuctionExpired(w) : false);
+
+            const unpaidCount = wonAuctions.filter(w => (CargoStore.isWonAuctionUnpaid ? CargoStore.isWonAuctionUnpaid(w) : (!isPaidWonItem(w) && !isPendingWonItem(w) && !isExpiredWonItem(w)))).length;
+            const undeclaredCount = wonAuctions.filter(w => (CargoStore.isCargoUndeclared ? CargoStore.isCargoUndeclared(w) : (!isExpiredWonItem(w) && (!w.cargoDeclaration || !w.cargoDeclaration.cargoName)))).length;
 
             const dashUnpaid = document.getElementById('dashUnpaidCount');
             if (dashUnpaid) dashUnpaid.textContent = unpaidCount;
@@ -355,7 +359,7 @@
                                     <div class="text-left sm:text-right">
                                         <p class="text-xs text-gray-400">Giá hiện tại</p>
                                         <p class="text-base font-bold text-blue-600">${CargoStore.formatCurrency(a.currentPriceKg)}<span class="text-xs font-normal text-gray-500">/Kg</span></p>
-                                        <p class="text-[11px] text-orange-600 font-medium"><i class="fa-regular fa-clock mr-1"></i>Còn ${timer.hours > 0 ? timer.hours + 'h ' : ''}${timer.minutes}m ${timer.seconds}s</p>
+                                        <p class="text-[11px] text-orange-600 font-medium dash-timer-text" data-endtime="${a.endTime}"><i class="fa-regular fa-clock mr-1"></i><span class="timer-val">Còn ${timer.hours > 0 ? timer.hours + 'h ' : ''}${timer.minutes}m ${timer.seconds}s</span></p>
                                     </div>
                                     <a href="04-Detail.html?id=${a.id}" class="bg-blue-600 hover:bg-blue-700 text-white text-xs font-semibold px-4 py-2.5 rounded-xl transition shadow flex items-center gap-1.5 flex-shrink-0">
                                         <span>Đặt giá</span> <i class="fa-solid fa-arrow-right text-[10px]"></i>
@@ -437,9 +441,34 @@
             }
         }
 
+        function updateDashCountdowns() {
+            if (typeof document !== 'undefined' && document.hidden) return;
+            const timerEls = document.querySelectorAll('.dash-timer-text');
+            let needsRefresh = false;
+
+            timerEls.forEach(el => {
+                const endTime = el.getAttribute('data-endtime');
+                if (!endTime) return;
+                const timer = CargoStore.getTimeRemaining(endTime);
+                const valEl = el.querySelector('.timer-val');
+                if (valEl) {
+                    if (timer.total <= 0) {
+                        valEl.textContent = 'Đã đóng thầu';
+                        needsRefresh = true;
+                    } else {
+                        valEl.textContent = `Còn ${timer.hours > 0 ? timer.hours + 'h ' : ''}${timer.minutes}m ${timer.seconds}s`;
+                    }
+                }
+            });
+
+            if (needsRefresh) {
+                safeRenderDashboard();
+            }
+        }
+
         document.addEventListener('DOMContentLoaded', function() {
             safeRenderDashboard();
-            setInterval(safeRenderDashboard, 1000);
+            setInterval(updateDashCountdowns, 1000);
         });
 
         // Cross-browser & Cross-tab sync: when store updates, re-render safely

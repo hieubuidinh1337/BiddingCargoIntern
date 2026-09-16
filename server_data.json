@@ -1,5 +1,5 @@
 {
-  "version": 1789521488383,
+  "version": 1789532543936,
   "auctions": [
     {
       "id": 108,
@@ -18,7 +18,7 @@
       "startingPriceKg": 18000,
       "currentPriceKg": 18000,
       "minStep": 500,
-      "endTime": "2026-09-16T04:15:00.000Z",
+      "endTime": "2026-09-16T06:20:55.171Z",
       "status": "OPEN",
       "leadingAgentCode": null,
       "leadingAgentName": null,
@@ -497,26 +497,35 @@
   ],
   "notifications": [
     {
-      "id": 1,
-      "timestamp": 1789462912259,
-      "targetAgentCode": "AG-0892",
-      "title": "🚀 Bạn đang dẫn đầu thầu VU130 (SGN-HAN)",
-      "message": "Mức giá 21.500 đ/Kg của bạn (AG-0892) đang là cao nhất cho chặng SGN - HAN. Giữ vững ưu thế!",
-      "time": "12 phút trước",
-      "type": "HIGHEST",
-      "read": false,
-      "link": "04-Detail.html?id=1"
+      "id": 1789532542470,
+      "title": "Từ chối hồ sơ REG-20260916-02",
+      "message": "Hồ sơ đại lý Công ty TNHH Vận tải & Logistics Tân Sơn Nhất đã bị từ chối. Lý do: \"Không liên hệ được với người phụ trách qua số điện thoại/email đã cung cấp để xác thực.\"",
+      "time": "Vừa xong",
+      "type": "AGENT",
+      "unread": true,
+      "targetRole": "ADMIN"
     },
     {
-      "id": 2,
-      "timestamp": 1789461832259,
-      "targetAgentCode": "AG-0892",
-      "title": "⚠️ Cảnh báo bị vượt giá chuyến VU224 (SGN-DAD)!",
-      "message": "Đại lý ẩn danh (AG-***) vừa đặt mức giá mới 19.500 đ/Kg cho chặng SGN - DAD. Bạn không còn dẫn đầu.",
-      "time": "30 phút trước",
-      "type": "OUTBID",
+      "id": 1789532501202,
+      "timestamp": 1789532501202,
+      "targetRole": "ADMIN",
+      "title": "📋 HỒ SƠ ĐĂNG KÝ MỚI: Công ty TNHH Vận tải & Logistics Tân Sơn Nhất",
+      "message": "Mã hồ sơ REG-20260916-02 — Công ty TNHH Vận tải & Logistics Tân Sơn Nhất (MST: 0318998821) vừa nộp hồ sơ đăng ký trở thành đại lý. Người đại diện: Trần Hoàng Nam — nam.tran@tsn-logistics.vn. Vui lòng xét duyệt trong vòng 24h làm việc.",
+      "time": "Vừa xong",
+      "type": "REGISTRATION",
       "read": false,
-      "link": "04-Detail.html?id=2"
+      "link": "../Admin/06-AgentList.html"
+    },
+    {
+      "id": 4,
+      "timestamp": 1789460932259,
+      "targetAgentCode": "AG-0892",
+      "title": "⏳ Cảnh báo sắp đóng thầu: Chuyến VU130",
+      "message": "Phiên đấu giá chỉ còn dưới 30 phút. Đừng bỏ lỡ tải trọng tốt!",
+      "time": "45 phút trước",
+      "type": "CLOSING_SOON",
+      "read": false,
+      "link": "04-Detail.html?id=1"
     },
     {
       "id": 3,
@@ -530,18 +539,70 @@
       "link": "07-WonAuction.html"
     },
     {
-      "id": 4,
-      "timestamp": 1789460932259,
+      "id": 2,
+      "timestamp": 1789461832259,
       "targetAgentCode": "AG-0892",
-      "title": "⏳ Cảnh báo sắp đóng thầu: Chuyến VU130",
-      "message": "Phiên đấu giá chỉ còn dưới 30 phút. Đừng bỏ lỡ tải trọng tốt!",
-      "time": "45 phút trước",
-      "type": "CLOSING_SOON",
+      "title": "⚠️ Cảnh báo bị vượt giá chuyến VU224 (SGN-DAD)!",
+      "message": "Đại lý ẩn danh (AG-***) vừa đặt mức giá mới 19.500 đ/Kg cho chặng SGN - DAD. Bạn không còn dẫn đầu.",
+      "time": "30 phút trước",
+      "type": "OUTBID",
+      "read": false,
+      "link": "04-Detail.html?id=2"
+    },
+    {
+      "id": 1,
+      "timestamp": 1789462912259,
+      "targetAgentCode": "AG-0892",
+      "title": "🚀 Bạn đang dẫn đầu thầu VU130 (SGN-HAN)",
+      "message": "Mức giá 21.500 đ/Kg của bạn (AG-0892) đang là cao nhất cho chặng SGN - HAN. Giữ vững ưu thế!",
+      "time": "12 phút trước",
+      "type": "HIGHEST",
       "read": false,
       "link": "04-Detail.html?id=1"
     }
   ],
   "registrations": [
+    {
+      "regId": "REG-20260916-02",
+      "companyName": "Công ty TNHH Vận tải & Logistics Tân Sơn Nhất",
+      "taxCode": "0318998821",
+      "businessLicense": "GPKD-8899/2025/SNH",
+      "address": "45 Trường Sơn, Phường 2, Quận Tân Bình, TP. Hồ Chí Minh",
+      "field": "Freight Forwarder",
+      "repName": "Trần Hoàng Nam",
+      "repPosition": "Giám đốc Logistics Cargo",
+      "email": "nam.tran@tsn-logistics.vn",
+      "phone": "0988776655",
+      "citizenId": "079095001234",
+      "notifEmail": "",
+      "password": "Demo@123456",
+      "pin": "9999",
+      "documents": [
+        {
+          "name": "GPKD_TanSonNhat_Scan.pdf",
+          "dataUrl": null,
+          "type": "application/pdf",
+          "size": 0
+        },
+        {
+          "name": "UyQuyen_Cargo_IATA.pdf",
+          "dataUrl": null,
+          "type": "application/pdf",
+          "size": 0
+        },
+        {
+          "name": "CCCD_TranHoangNam.pdf",
+          "dataUrl": null,
+          "type": "application/pdf",
+          "size": 0
+        }
+      ],
+      "status": "REJECTED",
+      "submittedAt": "16/9/2026 11:21",
+      "rejectionReason": "Không liên hệ được với người phụ trách qua số điện thoại/email đã cung cấp để xác thực.",
+      "rejectReason": "Không liên hệ được với người phụ trách qua số điện thoại/email đã cung cấp để xác thực.",
+      "rejectedAt": "2026-09-16T04:22:22.470Z"
+    },
     {
       "regId": "REG-2026-0805-01",
       "companyName": "Công ty TNHH Giao nhận Sao Mai Express",
@@ -873,6 +934,26 @@
     }
   ],
   "emailLogs": [
+    {
+      "id": 1789532545678,
+      "to": "nam.tran@tsn-logistics.vn",
+      "type": "REGISTRATION_REJECTED",
+      "subject": "[Vietravel Airlines Cargo] Yêu cầu bổ sung / Kết quả xét duyệt hồ sơ đại lý - REG-20260916-02",
+      "messageId": "<d4db641d-8076-19ae-7b60-5f4fb08e1fa7@gmail.com>",
+      "isRealSmtp": true,
+      "previewUrl": null,
+      "sentAt": "11:22:25 16/9/2026"
+    },
+    {
+      "id": 1789532504858,
+      "to": "nam.tran@tsn-logistics.vn",
+      "type": "REGISTRATION_SUBMITTED",
+      "subject": "[Vietravel Airlines Cargo] Tiếp nhận hồ sơ đăng ký đại lý - REG-20260916-02",
+      "messageId": "<8c80d006-e3b5-0696-f7ad-1f8d366ebe4e@gmail.com>",
+      "isRealSmtp": true,
+      "previewUrl": null,
+      "sentAt": "11:21:44 16/9/2026"
+    },
     {
       "id": 1789444082800,
       "to": "an.nguyen@abccargo.vn",

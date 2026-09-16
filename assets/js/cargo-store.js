@@ -1322,7 +1322,7 @@ const CargoStore = (function() {
         // CRITICAL PROTECTION: If agent already reported bank transfer (PENDING_VERIFICATION),
         // order is protected from auto-cancellation & account lock while Admin reconciles!
         if (item.paymentStatus === 'PENDING_VERIFICATION') return false;
-        if (item.paymentStatus === 'CANCELLED') return true;
+        if (item.paymentStatus === 'CANCELLED' || item.paymentStatus === 'EXPIRED') return true;
 
         const now = Date.now();
         const allAuctions = (passedData && passedData.auctions) ? passedData.auctions : ((typeof loadData === 'function') ? (loadData().auctions || []) : []);
@@ -2643,6 +2643,24 @@ const CargoStore = (function() {
             });
         },
 
+        isWonAuctionPaid: function(item) {
+            if (!item) return false;
+            return item.paymentStatus === 'PAID' || item.paymentStatus === 'PAID_LATE' || item.lockWaivedByAdmin === true;
+        },
+
+        isWonAuctionPending: function(item) {
+            if (!item) return false;
+            return item.paymentStatus === 'PENDING_VERIFICATION';
+        },
+
+        isWonAuctionUnpaid: function(item, passedData = null) {
+            if (!item) return false;
+            if (this.isWonAuctionPaid(item)) return false;
+            if (this.isWonAuctionPending(item)) return false;
+            if (this.isWonAuctionExpired(item, passedData)) return false;
+            return true;
+        },
+
         isCargoDeclared: function(item) {
             if (!item || !item.cargoDeclaration) return false;
             const decl = item.cargoDeclaration;
@@ -2650,6 +2668,8 @@ const CargoStore = (function() {
         },
 
         isCargoUndeclared: function(item) {
+            if (!item) return false;
+            if (this.isWonAuctionExpired(item)) return false;
             return !this.isCargoDeclared(item);
         },
 

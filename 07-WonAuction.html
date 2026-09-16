@@ -1615,8 +1615,8 @@
             }
 
             // Payment & Cargo Declaration Status Filter
-            const isPaidWonItem = item => item.paymentStatus === 'PAID' || item.paymentStatus === 'PAID_LATE' || item.lockWaivedByAdmin === true;
-            const isPendingWonItem = item => item.paymentStatus === 'PENDING_VERIFICATION';
+            const isPaidWonItem = item => (store && store.isWonAuctionPaid) ? store.isWonAuctionPaid(item) : (item.paymentStatus === 'PAID' || item.paymentStatus === 'PAID_LATE' || item.lockWaivedByAdmin === true);
+            const isPendingWonItem = item => (store && store.isWonAuctionPending) ? store.isWonAuctionPending(item) : (item.paymentStatus === 'PENDING_VERIFICATION');
             const isExpiredWonItem = item => !isPaidWonItem(item) && ((store && store.isWonAuctionExpired) ? store.isWonAuctionExpired(item) : false);
 
             if (statusFilter === 'PAID') {
@@ -1626,9 +1626,9 @@
             } else if (statusFilter === 'EXPIRED') {
                 list = list.filter(item => isExpiredWonItem(item));
             } else if (statusFilter === 'UNPAID') {
-                list = list.filter(item => !isPaidWonItem(item) && !isPendingWonItem(item) && !isExpiredWonItem(item));
+                list = list.filter(item => (store && store.isWonAuctionUnpaid) ? store.isWonAuctionUnpaid(item) : (!isPaidWonItem(item) && !isPendingWonItem(item) && !isExpiredWonItem(item)));
             } else if (statusFilter === 'UNDECLARED') {
-                list = list.filter(item => (store && store.isCargoUndeclared) ? store.isCargoUndeclared(item) : (!item.cargoDeclaration || !item.cargoDeclaration.cargoName));
+                list = list.filter(item => (store && store.isCargoUndeclared) ? store.isCargoUndeclared(item) : (!isExpiredWonItem(item) && (!item.cargoDeclaration || !item.cargoDeclaration.cargoName)));
             } else if (statusFilter === 'DECLARED') {
                 list = list.filter(item => (store && store.isCargoDeclared) ? store.isCargoDeclared(item) : (item.cargoDeclaration && !!item.cargoDeclaration.cargoName));
             }
@@ -1662,14 +1662,27 @@
             if (!list || list.length === 0) {
                 renderWonPaginationControls(0);
                 const isFiltered = !!searchKeyword || statusFilter !== 'ALL';
+                let filterSubText = 'Vui lòng thử tìm kiếm bằng từ khóa khác hoặc điều chỉnh bộ lọc';
+                if (statusFilter === 'UNPAID') {
+                    const allUserWon = (store && store.getWonAuctions) ? store.getWonAuctions() : [];
+                    const hasPending = allUserWon.some(w => isPendingWonItem(w));
+                    const hasExpired = allUserWon.some(w => isExpiredWonItem(w));
+                    if (hasPending) {
+                        filterSubText = 'Đơn của bạn đang chờ Admin xác nhận thanh toán. Vui lòng chọn bộ lọc "Chờ Admin xác nhận thanh toán".';
+                    } else if (hasExpired) {
+                        filterSubText = 'Đơn của bạn đã quá hạn thanh toán. Vui lòng chọn bộ lọc "Đã hủy do quá hạn".';
+                    } else {
+                        filterSubText = 'Bạn hiện không có đơn thắng thầu nào cần thanh toán.';
+                    }
+                }
                 container.innerHTML = `
                     <div class="bg-white rounded-2xl border p-12 text-center text-gray-400 shadow-sm">
                         <i class="fa-solid ${isFiltered ? 'fa-magnifying-glass' : 'fa-trophy'} text-4xl mb-3 text-slate-300"></i>
                         <p class="font-bold text-slate-700 text-base">${isFiltered ? 'Không tìm thấy đơn thắng thầu nào phù hợp' : 'Bạn chưa có đơn thắng thầu nào'}</p>
-                        <p class="text-xs text-gray-400 mt-1 mb-3">${isFiltered ? 'Vui lòng thử tìm kiếm bằng từ khóa khác hoặc điều chỉnh bộ lọc' : 'Hãy tham gia đặt giá trên sàn đấu giá để sở hữu các slot vận chuyển hàng hóa tốt nhất'}</p>
+                        <p class="text-xs text-gray-400 mt-1 mb-3">${isFiltered ? filterSubText : 'Hãy tham gia đặt giá trên sàn đấu giá để sở hữu các slot vận chuyển hàng hóa tốt nhất'}</p>
                         ${isFiltered ? `
-                            <button onclick="document.getElementById('wonSearchInput').value=''; document.getElementById('wonStatusFilter').value='ALL'; document.getElementById('wonSortSelect').value='NEWEST'; renderWonAuctions();" class="inline-flex items-center gap-1.5 bg-slate-100 hover:bg-slate-200 text-slate-700 font-semibold text-xs px-3.5 py-2 rounded-xl transition">
-                                <i class="fa-solid fa-rotate-left"></i> Xóa bộ lọc tìm kiếm
+                            <button onclick="document.getElementById('wonSearchInput').value=''; document.getElementById('wonStatusFilter').value='ALL'; document.getElementById('wonSortSelect').value='NEWEST'; renderWonAuctions();" class="inline-flex items-center gap-1.5 bg-slate-100 hover:bg-slate-200 text-slate-700 font-semibold text-xs px-3.5 py-2 rounded-xl transition cursor-pointer">
+                                <i class="fa-solid fa-rotate-left"></i> Xem tất cả đơn thắng thầu
                             </button>
                         ` : `
                             <a href="03-Index.html" class="inline-flex items-center gap-1.5 bg-blue-600 hover:bg-blue-700 text-white font-semibold text-xs px-4 py-2.5 rounded-xl shadow transition">

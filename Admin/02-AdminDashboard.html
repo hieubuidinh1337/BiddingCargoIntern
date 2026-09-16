@@ -423,8 +423,8 @@
                             <td class="py-3 px-3">
                                 ${displayLeader}
                             </td>
-                            <td class="py-3 px-3 text-orange-600 font-semibold text-[11px]">
-                                ${timer.isEnded ? 'Đã hết giờ' : `${timer.hours > 0 ? timer.hours + 'h ' : ''}${timer.minutes}m ${timer.seconds}s`}
+                            <td class="py-3 px-3 text-orange-600 font-semibold text-[11px] admin-timer-cell" data-endtime="${a.endTime}">
+                                <span class="timer-val">${timer.isEnded ? 'Đã hết giờ' : `${timer.hours > 0 ? timer.hours + 'h ' : ''}${timer.minutes}m ${timer.seconds}s`}</span>
                             </td>
                             <td class="py-3 px-3 text-right">
                                 <a href="05-AuctionDetail.html?id=${a.id}" class="bg-slate-100 hover:bg-blue-50 text-blue-700 font-medium px-2.5 py-1.5 rounded-lg text-xs transition inline-flex items-center gap-1">
@@ -482,6 +482,7 @@
                     `;
                 }
             }
+        }
 
             // 6. Pending Registrations queue
             const regBox = document.getElementById('adminPendingRegistrations');
@@ -624,6 +625,7 @@
                 }
             }
         }
+    }
 
         function openDashCargoModal(wonId) {
             const data = CargoStore.getData();
@@ -724,9 +726,34 @@
             }
         }
 
+        function updateAdminDashCountdowns() {
+            if (typeof document !== 'undefined' && document.hidden) return;
+            const timerEls = document.querySelectorAll('.admin-timer-cell');
+            let needsRefresh = false;
+
+            timerEls.forEach(el => {
+                const endTime = el.getAttribute('data-endtime');
+                if (!endTime) return;
+                const timer = CargoStore.getTimeRemaining(endTime);
+                const valEl = el.querySelector('.timer-val');
+                if (valEl) {
+                    if (timer.total <= 0) {
+                        valEl.textContent = 'Đã hết giờ';
+                        needsRefresh = true;
+                    } else {
+                        valEl.textContent = `${timer.hours > 0 ? timer.hours + 'h ' : ''}${timer.minutes}m ${timer.seconds}s`;
+                    }
+                }
+            });
+
+            if (needsRefresh) {
+                safeLoadDashboard();
+            }
+        }
+
         document.addEventListener('DOMContentLoaded', function() {
             safeLoadDashboard();
-            setInterval(safeLoadDashboard, 1000);
+            setInterval(updateAdminDashCountdowns, 1000);
             if (window.CargoStore && CargoStore.syncAdminHeaderUI) CargoStore.syncAdminHeaderUI();
         });
 

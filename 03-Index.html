@@ -446,8 +446,8 @@
                             <!-- Countdown & Status -->
                             <div class="flex items-center justify-between text-xs pt-2 border-t border-gray-200">
                                 ${a.status === 'OPEN' ? `
-                                    <span class="text-orange-600 font-semibold flex items-center gap-1.5">
-                                        <i class="fa-regular fa-clock"></i> Còn: ${timer.hours}h ${timer.minutes}m ${timer.seconds}s
+                                    <span class="auction-timer-text text-orange-600 font-semibold flex items-center gap-1.5" data-endtime="${a.endTime}" data-status="${a.status}">
+                                        <i class="fa-regular fa-clock"></i> <span class="timer-value">Còn: ${timer.hours}h ${timer.minutes}m ${timer.seconds}s</span>
                                     </span>
                                 ` : `
                                     <span class="text-gray-400 font-medium"><i class="fa-solid fa-lock mr-1"></i> Đã đóng thầu</span>
@@ -601,6 +601,33 @@
             renderAuctions();
         }
 
+        function updateIndexCountdowns() {
+            if (typeof document !== 'undefined' && document.hidden) return;
+            const timerEls = document.querySelectorAll('.auction-timer-text');
+            let needsFullRefresh = false;
+
+            timerEls.forEach(el => {
+                const status = el.getAttribute('data-status');
+                const endTime = el.getAttribute('data-endtime');
+                if (status !== 'OPEN' || !endTime) return;
+
+                const timer = CargoStore.getTimeRemaining(endTime);
+                const valEl = el.querySelector('.timer-value');
+                if (valEl) {
+                    if (timer.total <= 0) {
+                        el.outerHTML = `<span class="text-gray-400 font-medium"><i class="fa-solid fa-lock mr-1"></i> Đã đóng thầu</span>`;
+                        needsFullRefresh = true;
+                    } else {
+                        valEl.textContent = `Còn: ${timer.hours}h ${timer.minutes}m ${timer.seconds}s`;
+                    }
+                }
+            });
+
+            if (needsFullRefresh) {
+                renderAuctions();
+            }
+        }
+
         document.addEventListener('DOMContentLoaded', function() {
             renderAuctions();
             document.getElementById('routeFilter').addEventListener('change', () => { indexCurrentPage = 1; renderAuctions(); });
@@ -608,14 +635,8 @@
             document.getElementById('sortFilter')?.addEventListener('change', () => { indexCurrentPage = 1; renderAuctions(); });
             document.getElementById('searchInput').addEventListener('input', () => { indexCurrentPage = 1; renderAuctions(); });
 
-            // Timer update
-            setInterval(function() {
-                if (typeof document !== 'undefined' && document.hidden) return;
-                if (document.activeElement && (document.activeElement.tagName === 'SELECT' || document.activeElement.tagName === 'INPUT')) {
-                    return;
-                }
-                renderAuctions();
-            }, 1000);
+            // Lightweight 1-second countdown update (Zero DOM destruction)
+            setInterval(updateIndexCountdowns, 1000);
         });
 
         // Cross-browser & Cross-tab sync
