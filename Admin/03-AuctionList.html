@@ -591,7 +591,7 @@
         function updateTabBadges() {
             if (typeof CargoStore === 'undefined') return;
             const data = CargoStore.getData();
-            const auctions = data.auctions || [];
+            const auctions = CargoStore.getAuctions ? CargoStore.getAuctions() : (data.auctions || []);
             const wonAuctions = data.wonAuctions || [];
 
             const bAll = document.getElementById('allCountBadge');
@@ -847,7 +847,8 @@
             // Populate Tab 2: Open auctions table
             const tbodyOpen = document.getElementById('openAuctionsTableBody');
             if (tbodyOpen) {
-                const openList = (data.auctions || []).filter(a => a.status === 'OPEN');
+                const allAuctions = CargoStore.getAuctions ? CargoStore.getAuctions() : (data.auctions || []);
+                const openList = allAuctions.filter(a => a.status === 'OPEN');
                 const totalOpenItems = openList.length;
                 const totalOpenPages = Math.ceil(totalOpenItems / openPageSize) || 1;
                 if (openCurrentPage > totalOpenPages) openCurrentPage = totalOpenPages;

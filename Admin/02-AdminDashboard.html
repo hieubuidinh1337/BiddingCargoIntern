@@ -1,4 +1,4 @@
-﻿<!DOCTYPE html>
+<!DOCTYPE html>
 <html lang="vi">
 <head>
     <meta charset="UTF-8">
@@ -334,7 +334,7 @@
             if (typeof CargoStore === 'undefined') return;
 
             const data = CargoStore.getData();
-            const auctions = data.auctions || [];
+            const auctions = CargoStore.getAuctions ? CargoStore.getAuctions() : (data.auctions || []);
 
             // 1. Open Auctions
             const openAuctions = auctions.filter(a => a.status === 'OPEN');
