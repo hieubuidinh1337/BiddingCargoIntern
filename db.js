@@ -159,6 +159,19 @@ async function initDatabase() {
             rejectionReason TEXT
         );
 
+        CREATE TABLE IF NOT EXISTS users (
+            id TEXT PRIMARY KEY,
+            username TEXT UNIQUE,
+            agentCode TEXT,
+            password TEXT,
+            pin TEXT,
+            role TEXT,
+            fullName TEXT,
+            email TEXT,
+            companyName TEXT,
+            status TEXT
+        );
+
         CREATE TABLE IF NOT EXISTS agents (
             code TEXT PRIMARY KEY,
             name TEXT,
@@ -170,7 +183,9 @@ async function initDatabase() {
             isLocked INTEGER DEFAULT 0,
             lockedReason TEXT,
             lockedAt TEXT,
-            unlockedAt TEXT
+            unlockedAt TEXT,
+            password TEXT,
+            pin TEXT
         );
 
         CREATE TABLE IF NOT EXISTS chats (
@@ -215,6 +230,10 @@ async function initDatabase() {
         );
     `);
 
+    // Ensure columns exist on existing database
+    try { await exec('ALTER TABLE agents ADD COLUMN password TEXT;'); } catch (e) {}
+    try { await exec('ALTER TABLE agents ADD COLUMN pin TEXT;'); } catch (e) {}
+
     // Indexes for high performance
     await exec(`
         CREATE INDEX IF NOT EXISTS idx_bids_auctionId ON bids(auctionId);
@@ -222,6 +241,34 @@ async function initDatabase() {
         CREATE INDEX IF NOT EXISTS idx_chats_agentCode ON chats(agentCode);
         CREATE INDEX IF NOT EXISTS idx_chat_msgs_chatId ON chat_messages(chatId);
     `);
+
+    // Ensure default users exist
+    const userCountResult = await get('SELECT COUNT(*) as count FROM users');
+    if (!userCountResult || userCountResult.count === 0) {
+        const defaultUsers = [
+            { id: 'USR-001', username: 'admin', agentCode: 'VU-ADMIN-01', password: 'admin2026', pin: '1234', role: 'ADMIN', fullName: 'Quản Trị Viên VU', email: 'admin@vietravelairlines.vn', companyName: 'Vietravel Airlines HQ', status: 'ACTIVE' },
+            { id: 'USR-002', username: 'staff01', agentCode: 'VU-OPS-88', password: 'staff2026', pin: '1234', role: 'STAFF', fullName: 'Nhân Viên Điều Hành Cargo', email: 'staff@vietravelairlines.vn', companyName: 'Trung Tâm Kho Vận Vietravel Cargo', status: 'ACTIVE' },
+            { id: 'USR-003', username: 'AG-0892', agentCode: 'AG-0892', password: 'abc123456', pin: '1234', role: 'AGENT', fullName: 'Nguyễn Văn An', email: 'an.nguyen@abccargo.vn', companyName: 'Công ty TNHH Vận tải ABC Logistics', status: 'ACTIVE' },
+            { id: 'USR-004', username: 'AG-1024', agentCode: 'AG-1024', password: 'vina123456', pin: '1234', role: 'AGENT', fullName: 'Lê Minh Khang', email: 'khang.le@vinatrans.com.vn', companyName: 'Công ty CP Giao nhận Kho vận Vinatrans', status: 'ACTIVE' },
+            { id: 'USR-005', username: 'AG-0556', agentCode: 'AG-0556', password: 'star123456', pin: '1234', role: 'AGENT', fullName: 'Phạm Thu Thảo', email: 'thao.pham@dhlvietnam.com', companyName: 'Công ty TNHH Tiếp vận Toàn Cầu Golden Star', status: 'ACTIVE' },
+            { id: 'USR-006', username: 'AG-0341', agentCode: 'AG-0341', password: 'sky123456', pin: '1234', role: 'AGENT', fullName: 'Hoàng Văn Dũng', email: 'dung.hoang@saigonair.vn', companyName: 'Công ty TNHH SkyFreight Logistics Việt Nam', status: 'ACTIVE' },
+            { id: 'USR-007', username: 'AG-0789', agentCode: 'AG-0789', password: 'viet123456', pin: '1234', role: 'AGENT', fullName: 'Nguyễn Thị Hoa', email: 'hoa.nt@vietfreight.vn', companyName: 'Công ty CP Vận chuyển Hàng không Việt Freight', status: 'ACTIVE' }
+        ];
+        for (const u of defaultUsers) {
+            await run(`
+                INSERT OR REPLACE INTO users (id, username, agentCode, password, pin, role, fullName, email, companyName, status)
+                VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+            `, [u.id, u.username, u.agentCode, u.password, u.pin, u.role, u.fullName, u.email, u.companyName, u.status]);
+        }
+    }
+
+    // Ensure agent passwords and pins are populated in agents table
+    await run("UPDATE agents SET password = 'abc123456', pin = '1234' WHERE (password IS NULL OR password = '') AND UPPER(code) = 'AG-0892';");
+    await run("UPDATE agents SET password = 'vina123456', pin = '1234' WHERE (password IS NULL OR password = '') AND UPPER(code) = 'AG-1024';");
+    await run("UPDATE agents SET password = 'star123456', pin = '1234' WHERE (password IS NULL OR password = '') AND UPPER(code) = 'AG-0556';");
+    await run("UPDATE agents SET password = 'sky123456', pin = '1234' WHERE (password IS NULL OR password = '') AND UPPER(code) = 'AG-0341';");
+    await run("UPDATE agents SET password = 'viet123456', pin = '1234' WHERE (password IS NULL OR password = '') AND UPPER(code) = 'AG-0789';");
+    await run("UPDATE agents SET password = 'abc123456', pin = '1234' WHERE password IS NULL OR password = '';");
 
     // Check if initial seeding from server_data.json is needed
     const countResult = await get('SELECT COUNT(*) as count FROM auctions');
@@ -321,14 +368,43 @@ async function seedFullData(data) {
             }
         }
 
+        const defaultUsers = [
+            { id: 'USR-001', username: 'admin', agentCode: 'VU-ADMIN-01', password: 'admin2026', pin: '1234', role: 'ADMIN', fullName: 'Quản Trị Viên VU', email: 'admin@vietravelairlines.vn', companyName: 'Vietravel Airlines HQ', status: 'ACTIVE' },
+            { id: 'USR-002', username: 'staff01', agentCode: 'VU-OPS-88', password: 'staff2026', pin: '1234', role: 'STAFF', fullName: 'Nhân Viên Điều Hành Cargo', email: 'staff@vietravelairlines.vn', companyName: 'Trung Tâm Kho Vận Vietravel Cargo', status: 'ACTIVE' },
+            { id: 'USR-003', username: 'AG-0892', agentCode: 'AG-0892', password: 'abc123456', pin: '1234', role: 'AGENT', fullName: 'Nguyễn Văn An', email: 'an.nguyen@abccargo.vn', companyName: 'Công ty TNHH Vận tải ABC Logistics', status: 'ACTIVE' },
+            { id: 'USR-004', username: 'AG-1024', agentCode: 'AG-1024', password: 'vina123456', pin: '1234', role: 'AGENT', fullName: 'Lê Minh Khang', email: 'khang.le@vinatrans.com.vn', companyName: 'Công ty CP Giao nhận Kho vận Vinatrans', status: 'ACTIVE' },
+            { id: 'USR-005', username: 'AG-0556', agentCode: 'AG-0556', password: 'star123456', pin: '1234', role: 'AGENT', fullName: 'Phạm Thu Thảo', email: 'thao.pham@dhlvietnam.com', companyName: 'Công ty TNHH Tiếp vận Toàn Cầu Golden Star', status: 'ACTIVE' },
+            { id: 'USR-006', username: 'AG-0341', agentCode: 'AG-0341', password: 'sky123456', pin: '1234', role: 'AGENT', fullName: 'Hoàng Văn Dũng', email: 'dung.hoang@saigonair.vn', companyName: 'Công ty TNHH SkyFreight Logistics Việt Nam', status: 'ACTIVE' },
+            { id: 'USR-007', username: 'AG-0789', agentCode: 'AG-0789', password: 'viet123456', pin: '1234', role: 'AGENT', fullName: 'Nguyễn Thị Hoa', email: 'hoa.nt@vietfreight.vn', companyName: 'Công ty CP Vận chuyển Hàng không Việt Freight', status: 'ACTIVE' }
+        ];
+
+        for (const u of defaultUsers) {
+            await run(`
+                INSERT OR REPLACE INTO users (id, username, agentCode, password, pin, role, fullName, email, companyName, status)
+                VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+            `, [u.id, u.username, u.agentCode, u.password, u.pin, u.role, u.fullName, u.email, u.companyName, u.status]);
+        }
+
+        const defaultPwdMap = {
+            'AG-0892': 'abc123456',
+            'AG-1024': 'vina123456',
+            'AG-0556': 'star123456',
+            'AG-0341': 'sky123456',
+            'AG-0789': 'viet123456'
+        };
+
         if (Array.isArray(data.agentsList)) {
             for (const ag of data.agentsList) {
+                const codeUpper = String(ag.code || '').toUpperCase();
+                const pwd = ag.password || defaultPwdMap[codeUpper] || 'abc123456';
+                const pin = ag.pin || '1234';
                 await run(`
-                    INSERT OR REPLACE INTO agents (code, name, companyName, taxCode, email, phone, status, isLocked, lockedReason, lockedAt, unlockedAt)
-                    VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+                    INSERT OR REPLACE INTO agents (code, name, companyName, taxCode, email, phone, status, isLocked, lockedReason, lockedAt, unlockedAt, password, pin)
+                    VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
                 `, [
                     ag.code, ag.name || ag.companyName || '', ag.companyName || '', ag.taxCode || '', ag.email || '',
-                    ag.phone || '', ag.status || 'Hoạt động', ag.isLocked ? 1 : 0, ag.lockedReason || null, ag.lockedAt || null, ag.unlockedAt || null
+                    ag.phone || '', ag.status || 'Hoạt động', ag.isLocked ? 1 : 0, ag.lockedReason || null, ag.lockedAt || null, ag.unlockedAt || null,
+                    pwd, pin
                 ]);
             }
         }
@@ -382,10 +458,19 @@ async function getFullServerData() {
     const notifications = await all('SELECT * FROM notifications ORDER BY id DESC');
     const dbRegs = await all('SELECT * FROM registrations');
     const dbAgents = await all('SELECT * FROM agents');
+    const dbUsers = await all('SELECT * FROM users');
     const dbChats = await all('SELECT * FROM chats ORDER BY createdAt DESC');
     const dbMessages = await all('SELECT * FROM chat_messages ORDER BY timestamp ASC');
     const dbSettingsRows = await all('SELECT * FROM settings');
     const emailLogsRows = await all('SELECT * FROM email_logs ORDER BY id DESC LIMIT 50');
+
+    const defaultPwdMap = {
+        'AG-0892': 'abc123456',
+        'AG-1024': 'vina123456',
+        'AG-0556': 'star123456',
+        'AG-0341': 'sky123456',
+        'AG-0789': 'viet123456'
+    };
 
     // Parse registrations documents JSON
     const registrations = dbRegs.map(r => ({
@@ -450,10 +535,16 @@ async function getFullServerData() {
             read: Boolean(n.read)
         })),
         registrations,
-        agentsList: dbAgents.map(ag => ({
-            ...ag,
-            isLocked: Boolean(ag.isLocked)
-        })),
+        agentsList: dbAgents.map(ag => {
+            const codeUpper = String(ag.code || '').toUpperCase();
+            return {
+                ...ag,
+                isLocked: Boolean(ag.isLocked),
+                password: ag.password || defaultPwdMap[codeUpper] || 'abc123456',
+                pin: ag.pin || '1234'
+            };
+        }),
+        usersList: dbUsers,
         chats: Array.from(chatsMap.values()),
         settings: settingsMap.settings || {},
         bankConfig: settingsMap.bankConfig || {},
