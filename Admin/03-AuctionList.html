@@ -1061,26 +1061,33 @@
             const adminSort = document.getElementById('adminWonSort')?.value || 'NEWEST';
 
             if (adminSearch) {
+                const cleanSearch = adminSearch.replace(/[\s-]/g, '').toLowerCase();
                 list = list.filter(w => {
                     const wonId = (w.wonId || '').toLowerCase();
+                    const cleanWonId = wonId.replace(/[\s-]/g, '');
                     const flightNumber = (w.flightNumber || '').toLowerCase();
+                    const cleanFlightNumber = flightNumber.replace(/[\s-]/g, '');
                     const route = (w.route || '').toLowerCase();
+                    const cleanRoute = route.replace(/[\s-]/g, '');
                     const agentCode = (w.agentCode || '').toLowerCase();
+                    const cleanAgentCode = agentCode.replace(/[\s-]/g, '');
                     const awb = (w.awbNumber || '').toLowerCase();
+                    const cleanAwb = awb.replace(/[\s-]/g, '');
                     const decl = w.cargoDeclaration || {};
                     const cargoName = (decl.cargoName || '').toLowerCase();
                     const hawb = (decl.hawbNumber || '').toLowerCase();
+                    const cleanHawb = hawb.replace(/[\s-]/g, '');
                     const agentInfo = (data.agentsList || []).find(a => (a.code || '').toUpperCase() === (w.agentCode || '').toUpperCase());
                     const agentName = agentInfo ? (agentInfo.companyName || '').toLowerCase() : '';
 
-                    return wonId.includes(adminSearch) ||
-                        flightNumber.includes(adminSearch) ||
-                        route.includes(adminSearch) ||
-                        agentCode.includes(adminSearch) ||
+                    return wonId.includes(adminSearch) || (cleanSearch && cleanWonId.includes(cleanSearch)) ||
+                        flightNumber.includes(adminSearch) || (cleanSearch && cleanFlightNumber.includes(cleanSearch)) ||
+                        route.includes(adminSearch) || (cleanSearch && cleanRoute.includes(cleanSearch)) ||
+                        agentCode.includes(adminSearch) || (cleanSearch && cleanAgentCode.includes(cleanSearch)) ||
                         agentName.includes(adminSearch) ||
-                        awb.includes(adminSearch) ||
+                        awb.includes(adminSearch) || (cleanSearch && cleanAwb.includes(cleanSearch)) ||
                         cargoName.includes(adminSearch) ||
-                        hawb.includes(adminSearch);
+                        hawb.includes(adminSearch) || (cleanSearch && cleanHawb.includes(cleanSearch));
                 });
             }
 

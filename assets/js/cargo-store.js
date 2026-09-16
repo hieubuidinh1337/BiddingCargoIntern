@@ -1132,22 +1132,74 @@ const CargoStore = (function() {
                 const local = loadData();
                 const oldStr = JSON.stringify(local);
 
-                // Merge shared collections from server by ID to preserve local created items
+                // Merge shared collections from server by ID to preserve local created/updated items
                 if (serverData.auctions && Array.isArray(serverData.auctions)) {
                     const auctionMap = new Map();
                     serverData.auctions.forEach(a => auctionMap.set(a.id, a));
                     (local.auctions || []).forEach(a => {
-                        if (!auctionMap.has(a.id)) {
+                        const serverItem = auctionMap.get(a.id);
+                        if (!serverItem) {
                             auctionMap.set(a.id, a);
+                        } else {
+                            if (a.status === 'CLOSED' && serverItem.status === 'OPEN') {
+                                auctionMap.set(a.id, { ...serverItem, status: 'CLOSED', winnerAgentCode: a.winnerAgentCode || serverItem.winnerAgentCode, winnerAgentName: a.winnerAgentName || serverItem.winnerAgentName });
+                            }
                         }
                     });
                     local.auctions = Array.from(auctionMap.values()).sort((a, b) => (b.id || 0) - (a.id || 0));
                 }
 
-                local.bids = serverData.bids || local.bids;
-                local.wonAuctions = serverData.wonAuctions || local.wonAuctions;
-                local.notifications = serverData.notifications || local.notifications;
-                local.registrations = serverData.registrations || local.registrations;
+                if (serverData.wonAuctions && Array.isArray(serverData.wonAuctions)) {
+                    const wonMap = new Map();
+                    serverData.wonAuctions.forEach(w => {
+                        const key = String(w.wonId || w.auctionId || w.id);
+                        wonMap.set(key, w);
+                    });
+                    (local.wonAuctions || []).forEach(w => {
+                        const key = String(w.wonId || w.auctionId || w.id);
+                        const existing = wonMap.get(key);
+                        if (!existing) {
+                            wonMap.set(key, w);
+                        } else {
+                            wonMap.set(key, { ...existing, ...w });
+                        }
+                    });
+                    local.wonAuctions = Array.from(wonMap.values());
+                }
+
+                if (serverData.bids && Array.isArray(serverData.bids)) {
+                    const bidMap = new Map();
+                    serverData.bids.forEach(b => bidMap.set(String(b.id), b));
+                    (local.bids || []).forEach(b => {
+                        if (!bidMap.has(String(b.id))) {
+                            bidMap.set(String(b.id), b);
+                        }
+                    });
+                    local.bids = Array.from(bidMap.values()).sort((a, b) => (b.timestamp || b.id || 0) - (a.timestamp || a.id || 0));
+                }
+
+                if (serverData.notifications && Array.isArray(serverData.notifications)) {
+                    const notifMap = new Map();
+                    serverData.notifications.forEach(n => notifMap.set(String(n.id), n));
+                    (local.notifications || []).forEach(n => {
+                        if (!notifMap.has(String(n.id))) {
+                            notifMap.set(String(n.id), n);
+                        }
+                    });
+                    local.notifications = Array.from(notifMap.values()).sort((a, b) => (b.id || 0) - (a.id || 0));
+                }
+
+                if (serverData.registrations && Array.isArray(serverData.registrations)) {
+                    const regMap = new Map();
+                    serverData.registrations.forEach(r => regMap.set(String(r.id), r));
+                    (local.registrations || []).forEach(r => {
+                        if (!regMap.has(String(r.id))) {
+                            regMap.set(String(r.id), r);
+                        }
+                    });
+                    local.registrations = Array.from(regMap.values());
+                }
+
                 local.agentsList = serverData.agentsList || local.agentsList;
                 local.adminsList = serverData.adminsList || local.adminsList;
                 if (serverData.settings) local.settings = serverData.settings;

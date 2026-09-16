@@ -1588,22 +1588,28 @@
             const sortMode = document.getElementById('wonSortSelect')?.value || 'NEWEST';
 
             if (searchKeyword) {
+                const cleanSearch = searchKeyword.replace(/[\s-]/g, '').toLowerCase();
                 list = list.filter(item => {
                     const wonId = (item.wonId || '').toLowerCase();
+                    const cleanWonId = wonId.replace(/[\s-]/g, '');
                     const flightNumber = (item.flightNumber || '').toLowerCase();
+                    const cleanFlightNumber = flightNumber.replace(/[\s-]/g, '');
                     const route = (item.route || '').toLowerCase();
+                    const cleanRoute = route.replace(/[\s-]/g, '');
                     const awb = (item.awbNumber || '').toLowerCase();
+                    const cleanAwb = awb.replace(/[\s-]/g, '');
                     const decl = item.cargoDeclaration || {};
                     const cargoName = (decl.cargoName || '').toLowerCase();
                     const hawb = (decl.hawbNumber || '').toLowerCase();
+                    const cleanHawb = hawb.replace(/[\s-]/g, '');
                     const consignee = (decl.consigneeName || '').toLowerCase();
 
-                    return wonId.includes(searchKeyword) ||
-                        flightNumber.includes(searchKeyword) ||
-                        route.includes(searchKeyword) ||
-                        awb.includes(searchKeyword) ||
+                    return wonId.includes(searchKeyword) || (cleanSearch && cleanWonId.includes(cleanSearch)) ||
+                        flightNumber.includes(searchKeyword) || (cleanSearch && cleanFlightNumber.includes(cleanSearch)) ||
+                        route.includes(searchKeyword) || (cleanSearch && cleanRoute.includes(cleanSearch)) ||
+                        awb.includes(searchKeyword) || (cleanSearch && cleanAwb.includes(cleanSearch)) ||
                         cargoName.includes(searchKeyword) ||
-                        hawb.includes(searchKeyword) ||
+                        hawb.includes(searchKeyword) || (cleanSearch && cleanHawb.includes(cleanSearch)) ||
                         consignee.includes(searchKeyword);
                 });
             }
