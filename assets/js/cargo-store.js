@@ -866,8 +866,12 @@ const CargoStore = (function() {
                 });
             }
 
-            // Normalize wonAuctions dates if unparseable
+            // Normalize wonAuctions dates if unparseable and purge TEST_ items
             if (data.wonAuctions && Array.isArray(data.wonAuctions)) {
+                const initCount = data.wonAuctions.length;
+                data.wonAuctions = data.wonAuctions.filter(w => w && w.wonId && !String(w.wonId).startsWith('TEST_') && !String(w.wonId).startsWith('WON_PAID_TEST_'));
+                if (data.wonAuctions.length !== initCount) updated = true;
+
                 data.wonAuctions.forEach(w => {
                     if (w.cutOffTime) {
                         if (w.cutOffTime.includes('15/08/2026')) w.cutOffTime = w.cutOffTime.replace('15/08/2026', '09/09/2026');
@@ -1150,32 +1154,11 @@ const CargoStore = (function() {
                 }
 
                 if (serverData.wonAuctions && Array.isArray(serverData.wonAuctions)) {
-                    const wonMap = new Map();
-                    serverData.wonAuctions.forEach(w => {
-                        const key = String(w.wonId || w.auctionId || w.id);
-                        wonMap.set(key, w);
-                    });
-                    (local.wonAuctions || []).forEach(w => {
-                        const key = String(w.wonId || w.auctionId || w.id);
-                        const existing = wonMap.get(key);
-                        if (!existing) {
-                            wonMap.set(key, w);
-                        } else {
-                            wonMap.set(key, { ...existing, ...w });
-                        }
-                    });
-                    local.wonAuctions = Array.from(wonMap.values());
+                    local.wonAuctions = serverData.wonAuctions.filter(w => w && w.wonId && !String(w.wonId).startsWith('TEST_') && !String(w.wonId).startsWith('WON_PAID_TEST_'));
                 }
 
                 if (serverData.bids && Array.isArray(serverData.bids)) {
-                    const bidMap = new Map();
-                    serverData.bids.forEach(b => bidMap.set(String(b.id), b));
-                    (local.bids || []).forEach(b => {
-                        if (!bidMap.has(String(b.id))) {
-                            bidMap.set(String(b.id), b);
-                        }
-                    });
-                    local.bids = Array.from(bidMap.values()).sort((a, b) => (b.timestamp || b.id || 0) - (a.timestamp || a.id || 0));
+                    local.bids = serverData.bids.filter(b => b && !String(b.id).startsWith('TEST_')).sort((a, b) => (b.timestamp || b.id || 0) - (a.timestamp || a.id || 0));
                 }
 
                 if (serverData.notifications && Array.isArray(serverData.notifications)) {

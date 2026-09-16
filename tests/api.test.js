@@ -34,11 +34,7 @@ describe('Vietravel Airlines Cargo Bidding System - API Automation Test Suite', 
             // Find a valid unpaid won auction
             const dataRes = await request(BASE_URL).get('/api/data');
             const unpaidWon = dataRes.body.wonAuctions.find(w => w.paymentStatus === 'UNPAID');
-
-            if (!unpaidWon) {
-                console.warn('Skip HP-02: No unpaid won auction found for testing');
-                return;
-            }
+            expect(unpaidWon).toBeDefined();
 
             const res = await request(BASE_URL)
                 .post('/api/momo/create')
@@ -49,12 +45,15 @@ describe('Vietravel Airlines Cargo Bidding System - API Automation Test Suite', 
             expect(res.body).toHaveProperty('orderId');
             expect(res.body).toHaveProperty('orderInfo');
             expect(res.body).toHaveProperty('amount');
+            expect(res.body).toHaveProperty('payUrl');
+            expect(res.body).toHaveProperty('qrCodeUrl');
             expect(res.body.amount).toBeLessThanOrEqual(50000000); // Verify Sandbox Amount Cap
+            expect(res.body.orderInfo).toContain(unpaidWon.agentCode.replace('-', ''));
 
             // Verify orderInfo format: {AgentCode}-{AuctionCode}-{DDMMYYYY}
             const orderInfoRegex = /^[A-Z0-9]+-[A-Z0-9]+-\d{8}$/;
             expect(orderInfoRegex.test(res.body.orderInfo)).toBe(true);
-        });
+        }, 15000);
 
         test('HP-05: Sealed-Bid Privacy Guard - GET /api/data?agentCode=AG-0892 should mask competitor bids for OPEN auctions', async () => {
             const res = await request(BASE_URL).get('/api/data?agentCode=AG-0892');
