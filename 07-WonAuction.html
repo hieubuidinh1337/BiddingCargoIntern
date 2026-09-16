@@ -492,7 +492,7 @@
                             <div class="p-3.5 flex flex-col sm:flex-row sm:items-center justify-between gap-2 bg-emerald-50/60">
                                 <div>
                                     <span class="text-emerald-900 font-bold block">Nội dung chuyển khoản (Bắt buộc):</span>
-                                    <span class="text-[10px] text-emerald-700">Dùng đúng cú pháp để Admin nhận diện và khớp đơn tức thì</span>
+                                    <span class="text-[10px] text-emerald-700">Format: {Mã đại lý}-{Mã phiên}-{DDMMYYYY}</span>
                                 </div>
                                 <div class="flex items-center gap-2">
                                     <span id="payModalMemo" class="font-mono font-bold text-xs bg-white px-2.5 py-1.5 rounded-lg border border-emerald-300 text-emerald-800 shadow-xs">CARGO WON-XXXX AG-0892</span>
@@ -2189,7 +2189,8 @@
                 branch: 'Chi nhánh Tân Bình - TP. Hồ Chí Minh'
             };
 
-            const memo = (store.generatePaymentMemo) ? store.generatePaymentMemo(item.wonId, item.agentCode) : `CARGO ${item.wonId} ${item.agentCode || 'AG-0892'}`;
+            const flightOrAuctionId = item.flightNumber || String(item.auctionId || '');
+            const memo = generateTransferMemo(item.agentCode, flightOrAuctionId, new Date());
 
             // Populate Modal Fields
             document.getElementById('payModalWonId').textContent = item.wonId;
@@ -2306,6 +2307,19 @@
             currentActivePayWonId = null;
             currentUploadedProofBase64 = null;
             renderWonAuctions(true);
+        }
+
+        // ============================================================
+        // === TRANSFER MEMO FORMAT (VietQR & MoMo shared format) =====
+        // ============================================================
+        function generateTransferMemo(agentCode, auctionId, date) {
+            const cleanAgent = String(agentCode || '').toUpperCase().replace(/[^A-Z0-9]/g, '');
+            const cleanAuction = String(auctionId || '').toUpperCase().replace(/[^A-Z0-9]/g, '');
+            const d = date instanceof Date ? date : new Date();
+            const dd = String(d.getDate()).padStart(2, '0');
+            const mm = String(d.getMonth() + 1).padStart(2, '0');
+            const yyyy = String(d.getFullYear());
+            return `${cleanAgent}-${cleanAuction}-${dd}${mm}${yyyy}`;
         }
 
         // ============================================================

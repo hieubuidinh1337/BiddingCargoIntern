@@ -4,6 +4,7 @@ const crypto = require('crypto');
 const fs = require('fs');
 const path = require('path');
 const nodemailer = require('nodemailer');
+const db = require('./db.js');
 const UPLOADS_DIR = path.join(__dirname, 'uploads');
 if (!fs.existsSync(UPLOADS_DIR)) fs.mkdirSync(UPLOADS_DIR, { recursive: true });
 // Load local .env if present
@@ -400,18 +401,18 @@ function reconcileAuctionSummaries(data) {
     return changed;
 }
 
-function loadServerData() {
+async function loadServerDataAsync() {
     try {
+        await db.initDatabase();
+        serverData = await db.getFullServerData();
+    } catch (e) {
+        console.error('[Database] Failed to load data from SQLite database, falling back to JSON:', e);
         if (fs.existsSync(DB_FILE)) {
             const raw = fs.readFileSync(DB_FILE, 'utf8');
             serverData = JSON.parse(raw);
         } else {
             serverData = JSON.parse(JSON.stringify(defaultSharedData));
-            saveServerData();
         }
-    } catch (e) {
-        console.error('Error loading server_data.json:', e);
-        serverData = JSON.parse(JSON.stringify(defaultSharedData));
     }
 
     let changed = false;
@@ -601,6 +602,11 @@ function saveServerData() {
     } catch (e) {
         console.error('Error saving server_data.json:', e);
     }
+    if (db) {
+        db.seedFullData(serverData).catch(err => {
+            console.error('[Database] Sync to SQLite error:', err.message);
+        });
+    }
 }
 
 // Auto-delete chats that have been CLOSED for more than 7 days
@@ -618,7 +624,7 @@ function cleanupClosedChats(data) {
     return data.chats.length !== before;
 }
 
-loadServerData();
+// loadServerDataAsync is invoked at server startup below
 
 // --- Nodemailer & Email Service Helper ---
 let mailTransporter = null;
@@ -1758,6 +1764,12 @@ const server = http.createServer((req, res) => {
                     return;
                 }
 
+                // MoMo Sandbox limits amount to 50,000,000 VND max
+                if (momoConfig.partnerCode === 'MOMOBKUN20180529' && amount > 50000000) {
+                    console.warn(`[MoMo Sandbox] Total amount ${amount} VND exceeds 50M VND sandbox limit. Adjusting to 50,000,000 VND for test transaction.`);
+                    amount = 50000000;
+                }
+
                 // Generate orderInfo in standardized format
                 const flightOrAuctionId = wonItem.flightNumber || String(wonItem.auctionId || '');
                 const orderInfo = generateMoMoOrderInfo(wonItem.agentCode, flightOrAuctionId, new Date());
@@ -2057,8 +2069,15 @@ server.on('error', (err) => {
     }
 });
 
-server.listen(PORT, () => {
-    console.log(`Vietravel Airlines Bidding Cargo app running at http://localhost:${PORT}/`);
-});
+(async () => {
+    try {
+        await loadServerDataAsync();
+        server.listen(PORT, () => {
+            console.log(`Vietravel Airlines Bidding Cargo app running at http://localhost:${PORT}/ (SQLite WAL DB Connected)`);
+        });
+    } catch (err) {
+        console.error('[Fatal] Database initialization error:', err);
+    }
+})();
 
 
