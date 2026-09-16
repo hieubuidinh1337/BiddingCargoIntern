@@ -1191,10 +1191,17 @@ const CargoStore = (function() {
 
                 if (serverData.registrations && Array.isArray(serverData.registrations)) {
                     const regMap = new Map();
-                    serverData.registrations.forEach(r => regMap.set(String(r.id), r));
+                    serverData.registrations.forEach(r => {
+                        const key = String(r.regId || r.id || r.taxCode || r.email);
+                        regMap.set(key, r);
+                    });
                     (local.registrations || []).forEach(r => {
-                        if (!regMap.has(String(r.id))) {
-                            regMap.set(String(r.id), r);
+                        const key = String(r.regId || r.id || r.taxCode || r.email);
+                        const existing = regMap.get(key);
+                        if (!existing) {
+                            regMap.set(key, r);
+                        } else {
+                            regMap.set(key, { ...existing, ...r });
                         }
                     });
                     local.registrations = Array.from(regMap.values());
