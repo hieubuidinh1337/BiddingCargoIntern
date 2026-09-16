@@ -72,20 +72,26 @@ describe('Vietravel Airlines Cargo Bidding System - API Automation Test Suite', 
         });
 
         test('HP-06: Atomic Sealed-Bid Placement - POST /api/bids/place should place bid atomically', async () => {
+            const dataRes = await request(BASE_URL).get('/api/data');
+            const targetAuction = dataRes.body.auctions.find(a => a.status === 'OPEN');
+            expect(targetAuction).toBeDefined();
+
+            const minBid = (targetAuction.currentPriceKg || targetAuction.startingPriceKg || 20000) + (targetAuction.minStep || 500);
+
             const res = await request(BASE_URL)
                 .post('/api/bids/place')
                 .send({
-                    auctionId: 1,
+                    auctionId: targetAuction.id,
                     agentCode: 'AG-0892',
                     agentName: 'ABC Logistics',
-                    priceKg: 65000,
-                    isAnonymous: true
+                    priceKg: minBid,
+                    weightKg: 1000
                 });
 
             expect(res.statusCode).toBe(200);
             expect(res.body.success).toBe(true);
             expect(res.body).toHaveProperty('bid');
-            expect(res.body.bid.priceKg).toBe(65000);
+            expect(res.body.bid.priceKg).toBe(minBid);
         });
 
         test('HP-03: POST /api/momo/ipn with valid HMAC-SHA256 signature should update order paymentStatus to PAID', async () => {
@@ -102,9 +108,9 @@ describe('Vietravel Airlines Cargo Bidding System - API Automation Test Suite', 
             const wonAuctions = dataRes.body.wonAuctions || [];
             wonAuctions.push({
                 wonId,
-                auctionId: 1,
+                auctionId: 9999,
                 agentCode: 'AG-0892',
-                flightNumber: 'VU130',
+                flightNumber: 'TEST_VU999',
                 route: 'SGN - HAN',
                 capacityKg: 100,
                 priceKg: 500,
@@ -295,5 +301,19 @@ describe('Vietravel Airlines Cargo Bidding System - API Automation Test Suite', 
             expect(res.statusCode).toBe(400);
             expect(res.body.success).toBe(false);
         });
+    });
+
+    afterAll(async () => {
+        try {
+            await db.run("DELETE FROM won_auctions WHERE wonId LIKE 'TEST_%' OR wonId LIKE 'WON_PAID_TEST_%'");
+            await db.run("DELETE FROM bids WHERE id LIKE 'TEST_%' OR id LIKE 'TEST_BID_%'");
+            const dataRes = await request(BASE_URL).get('/api/data');
+            if (dataRes.body && Array.isArray(dataRes.body.wonAuctions)) {
+                const cleanedWon = dataRes.body.wonAuctions.filter(w => !String(w.wonId).startsWith('TEST_') && !String(w.wonId).startsWith('WON_PAID_TEST_'));
+                await request(BASE_URL).post('/api/data').send({ wonAuctions: cleanedWon });
+            }
+        } catch (err) {
+            console.error('Failed to cleanup test data:', err.message);
+        }
     });
 });
