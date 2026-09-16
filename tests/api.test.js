@@ -56,6 +56,38 @@ describe('Vietravel Airlines Cargo Bidding System - API Automation Test Suite', 
             expect(orderInfoRegex.test(res.body.orderInfo)).toBe(true);
         });
 
+        test('HP-05: Sealed-Bid Privacy Guard - GET /api/data?agentCode=AG-0892 should mask competitor bids for OPEN auctions', async () => {
+            const res = await request(BASE_URL).get('/api/data?agentCode=AG-0892');
+            expect(res.statusCode).toBe(200);
+
+            // Bids returned for OPEN auctions must belong ONLY to AG-0892
+            const openAuctions = res.body.auctions.filter(a => a.status === 'OPEN');
+            const openAuctionIds = new Set(openAuctions.map(a => a.id));
+
+            res.body.bids.forEach(bid => {
+                if (openAuctionIds.has(bid.auctionId)) {
+                    expect(bid.agentCode.toUpperCase()).toBe('AG-0892');
+                }
+            });
+        });
+
+        test('HP-06: Atomic Sealed-Bid Placement - POST /api/bids/place should place bid atomically', async () => {
+            const res = await request(BASE_URL)
+                .post('/api/bids/place')
+                .send({
+                    auctionId: 1,
+                    agentCode: 'AG-0892',
+                    agentName: 'ABC Logistics',
+                    priceKg: 65000,
+                    isAnonymous: true
+                });
+
+            expect(res.statusCode).toBe(200);
+            expect(res.body.success).toBe(true);
+            expect(res.body).toHaveProperty('bid');
+            expect(res.body.bid.priceKg).toBe(65000);
+        });
+
         test('HP-03: POST /api/momo/ipn with valid HMAC-SHA256 signature should update order paymentStatus to PAID', async () => {
             const wonId = 'TEST_WON_' + Date.now();
             const orderId = wonId + '_ORD';

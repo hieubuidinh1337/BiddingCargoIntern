@@ -465,6 +465,88 @@ async function getFullServerData() {
     };
 }
 
+async function placeBidAtomic({ auctionId, agentCode, agentName, priceKg, isAnonymous = true, weightKg = 0 }) {
+    const agent = await get('SELECT * FROM agents WHERE UPPER(code) = UPPER(?)', [agentCode]);
+    if (agent && (agent.isLocked === 1 || agent.status === 'Đã khóa' || agent.status === 'LOCKED')) {
+        throw new Error('Tài khoản đại lý đã bị khóa, không thể đặt thầu');
+    }
+
+    const auction = await get('SELECT * FROM auctions WHERE id = ?', [auctionId]);
+    if (!auction) {
+        throw new Error('Chuyến bay đấu giá không tồn tại');
+    }
+    if (auction.status !== 'OPEN') {
+        throw new Error('Phiên đấu giá đã đóng hoặc chưa mở');
+    }
+
+    const now = Date.now();
+    const endMs = new Date(auction.endTime).getTime();
+    if (!isNaN(endMs) && now > endMs) {
+        await run('UPDATE auctions SET status = "CLOSED" WHERE id = ?', [auctionId]);
+        throw new Error('Phiên đấu giá đã hết giờ');
+    }
+
+    const minStep = Number(auction.minStep) || 500;
+    const currentPrice = Number(auction.currentPriceKg) || Number(auction.startingPriceKg) || 0;
+    const minPriceRequired = currentPrice + ((Number(auction.bidsCount) || 0) > 0 ? minStep : 0);
+
+    if (Number(priceKg) < minPriceRequired) {
+        throw new Error(`Giá đặt (${new Intl.NumberFormat('vi-VN').format(priceKg)}đ) phải lớn hơn hoặc bằng giá tối thiểu (${new Intl.NumberFormat('vi-VN').format(minPriceRequired)}đ)`);
+    }
+
+    const bidId = 'BID-' + now + '-' + Math.floor(Math.random() * 1000);
+    const timeStr = 'Vừa xong';
+
+    try {
+        await run('BEGIN IMMEDIATE TRANSACTION;');
+    } catch (e) {}
+
+    try {
+        await run(`
+            INSERT INTO bids (id, timestamp, auctionId, agentCode, agentName, isAnonymous, priceKg, time, status, weightKg)
+            VALUES (?, ?, ?, ?, ?, ?, ?, ?, 'HIGHEST', ?)
+        `, [bidId, now, auctionId, agentCode, agentName, isAnonymous ? 1 : 0, Number(priceKg), timeStr, Number(weightKg) || Number(auction.capacityKg) || 0]);
+
+        await run(`
+            UPDATE bids SET status = 'OUTBID' WHERE auctionId = ? AND id != ?
+        `, [auctionId, bidId]);
+
+        const newBidCount = (Number(auction.bidsCount) || 0) + 1;
+        await run(`
+            UPDATE auctions SET 
+                currentPriceKg = ?,
+                leadingAgentCode = ?,
+                leadingAgentName = ?,
+                bidsCount = ?
+            WHERE id = ?
+        `, [Number(priceKg), agentCode, agentName, newBidCount, auctionId]);
+
+        await run('COMMIT;').catch(() => {});
+        return {
+            id: bidId,
+            timestamp: now,
+            auctionId,
+            agentCode,
+            agentName,
+            isAnonymous: Boolean(isAnonymous),
+            priceKg: Number(priceKg),
+            time: timeStr,
+            status: 'HIGHEST',
+            weightKg: Number(weightKg) || Number(auction.capacityKg) || 0
+        };
+    } catch (err) {
+        await run('ROLLBACK;').catch(() => {});
+        throw err;
+    }
+}
+
+async function createAuditLog(actorRole, actorId, action, target, details = '') {
+    await run(`
+        INSERT INTO notifications (targetAgentCode, title, message, time, type, read, link)
+        VALUES (?, ?, ?, ?, 'AUDIT', 0, NULL)
+    `, [actorId, `[AUDIT] ${action}`, `[${actorRole}] ${actorId} - ${action} trên ${target}: ${details}`, new Date().toLocaleString('vi-VN')]);
+}
+
 module.exports = {
     getDb,
     run,
@@ -473,5 +555,7 @@ module.exports = {
     exec,
     initDatabase,
     seedFullData,
-    getFullServerData
+    getFullServerData,
+    placeBidAtomic,
+    createAuditLog
 };

@@ -801,11 +801,156 @@ const server = http.createServer((req, res) => {
             saveServerData();
         }
         if (!Array.isArray(serverData.chats)) serverData.chats = [];
+
+        const agentCode = parsedUrl.searchParams.get('agentCode');
+        const role = parsedUrl.searchParams.get('role');
+        const isPrivileged = role === 'admin' || role === 'staff';
+
+        // Deep copy data payload for security sanitization
+        let clientPayload = JSON.parse(JSON.stringify(serverData));
+
+        // 🔒 SEC-03: Filter auctions by Agent Route Subscriptions if agentCode is present & restricted
+        if (!isPrivileged && agentCode && clientPayload.routeSubscriptions && clientPayload.routeSubscriptions[agentCode]) {
+            const allowedRoutes = clientPayload.routeSubscriptions[agentCode].routes || [];
+            if (allowedRoutes.length > 0) {
+                clientPayload.auctions = clientPayload.auctions.filter(a => allowedRoutes.includes(a.route));
+            }
+        }
+
+        // 🔒 SEC-01: SEALED-BID PRIVACY GUARD (Strict Sealed-Bid Rule)
+        // If requester is Agent or Guest (not Admin/Staff), mask individual bids for OPEN auctions
+        if (!isPrivileged) {
+            const openAuctionIds = new Set(
+                (clientPayload.auctions || [])
+                    .filter(a => a.status === 'OPEN')
+                    .map(a => Number(a.id))
+            );
+
+            clientPayload.bids = (clientPayload.bids || []).filter(b => {
+                const isAuctionOpen = openAuctionIds.has(Number(b.auctionId));
+                if (!isAuctionOpen) return true; // Sealed bid revealed after auction CLOSED
+                // While OPEN, an agent ONLY sees their OWN bids
+                return agentCode && String(b.agentCode || '').toUpperCase() === String(agentCode).toUpperCase();
+            });
+
+            // Mask leading agent name in OPEN auction summaries for competitors
+            (clientPayload.auctions || []).forEach(a => {
+                if (a.status === 'OPEN' && a.isAnonymous !== false) {
+                    if (!agentCode || String(a.leadingAgentCode || '').toUpperCase() !== String(agentCode).toUpperCase()) {
+                        a.leadingAgentCode = 'AG-***';
+                        a.leadingAgentName = 'Đại lý ẩn danh (AG-***)';
+                    }
+                }
+            });
+        }
+
         res.writeHead(200, {
             'Content-Type': 'application/json; charset=UTF-8',
             'Cache-Control': 'no-cache, no-store, must-revalidate'
         });
-        res.end(JSON.stringify(serverData), 'utf-8');
+        res.end(JSON.stringify(clientPayload), 'utf-8');
+        return;
+    }
+
+    // --- REST API: POST /api/bids/place (Atomic Sealed-Bid Placement) ---
+    if (pathname === '/api/bids/place' && req.method === 'POST') {
+        readBody(req).then(async (body) => {
+            try {
+                const { auctionId, agentCode, agentName, priceKg, isAnonymous, weightKg } = JSON.parse(body || '{}');
+                if (!auctionId || !agentCode || !priceKg) {
+                    res.writeHead(400, { 'Content-Type': 'application/json; charset=UTF-8' });
+                    res.end(JSON.stringify({ success: false, error: 'Thiếu auctionId, agentCode hoặc priceKg' }));
+                    return;
+                }
+
+                // Call SQLite atomic transaction
+                const placedBid = await db.placeBidAtomic({
+                    auctionId: Number(auctionId),
+                    agentCode,
+                    agentName: agentName || agentCode,
+                    priceKg: Number(priceKg),
+                    isAnonymous: isAnonymous !== false,
+                    weightKg: Number(weightKg) || 0
+                });
+
+                // Refresh in-memory state from database
+                serverData = await db.getFullServerData();
+
+                res.writeHead(200, { 'Content-Type': 'application/json; charset=UTF-8' });
+                res.end(JSON.stringify({
+                    success: true,
+                    bid: placedBid,
+                    message: `Đặt thầu thành công mức giá ${new Intl.NumberFormat('vi-VN').format(priceKg)}đ / Kg!`
+                }), 'utf-8');
+            } catch (err) {
+                res.writeHead(400, { 'Content-Type': 'application/json; charset=UTF-8' });
+                res.end(JSON.stringify({ success: false, error: err.message }));
+            }
+        }).catch(err => {
+            res.writeHead(400, { 'Content-Type': 'application/json' });
+            res.end(JSON.stringify({ success: false, error: 'Stream error' }));
+        });
+        return;
+    }
+
+    // --- REST API: POST /api/registration/approve (Admin Agent Approval) ---
+    if (pathname === '/api/registration/approve' && req.method === 'POST') {
+        readBody(req).then(async (body) => {
+            try {
+                const { regId, approvedBy } = JSON.parse(body || '{}');
+                if (!regId) {
+                    res.writeHead(400, { 'Content-Type': 'application/json; charset=UTF-8' });
+                    res.end(JSON.stringify({ success: false, error: 'regId is required' }));
+                    return;
+                }
+
+                const regList = serverData.registrations || [];
+                const reg = regList.find(r => r.regId === regId);
+                if (!reg) {
+                    res.writeHead(404, { 'Content-Type': 'application/json; charset=UTF-8' });
+                    res.end(JSON.stringify({ success: false, error: 'Hồ sơ đăng ký không tồn tại' }));
+                    return;
+                }
+
+                const randomCode = 'AG-' + String(Math.floor(1000 + Math.random() * 9000));
+                reg.status = 'APPROVED';
+                reg.approvedAt = new Date().toLocaleString('vi-VN');
+                reg.agentCode = randomCode;
+
+                if (!serverData.agentsList) serverData.agentsList = [];
+                let agent = serverData.agentsList.find(a => (a.taxCode && a.taxCode === reg.taxCode) || a.code === randomCode);
+                if (!agent) {
+                    agent = {
+                        code: randomCode,
+                        name: reg.companyName,
+                        companyName: reg.companyName,
+                        taxCode: reg.taxCode,
+                        email: reg.email,
+                        phone: reg.phone,
+                        status: 'Hoạt động',
+                        isLocked: false
+                    };
+                    serverData.agentsList.push(agent);
+                } else {
+                    agent.status = 'Hoạt động';
+                    agent.isLocked = false;
+                    agent.code = randomCode;
+                }
+
+                saveServerData();
+                await db.createAuditLog('ADMIN', approvedBy || 'admin', 'APPROVE_REGISTRATION', regId, `Cấp mã đại lý ${randomCode} cho ${reg.companyName}`);
+
+                res.writeHead(200, { 'Content-Type': 'application/json; charset=UTF-8' });
+                res.end(JSON.stringify({
+                    success: true,
+                    agentCode: randomCode,
+                    message: `Hồ sơ ${regId} đã được duyệt thành công! Mã đại lý cấp: ${randomCode}`
+                }), 'utf-8');
+            } catch (err) {
+                res.writeHead(500, { 'Content-Type': 'application/json; charset=UTF-8' });
+                res.end(JSON.stringify({ success: false, error: err.message }));
+            }
+        });
         return;
     }
 
