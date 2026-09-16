@@ -344,6 +344,14 @@ async function seedFullData(data) {
         }
 
         if (Array.isArray(data.notifications)) {
+            const keepIds = data.notifications.map(n => n.id).filter(Boolean);
+            if (keepIds.length > 0) {
+                const placeholders = keepIds.map(() => '?').join(',');
+                await run(`DELETE FROM notifications WHERE id NOT IN (${placeholders})`, keepIds);
+            } else {
+                await run('DELETE FROM notifications');
+            }
+
             for (const n of data.notifications) {
                 await run(`
                     INSERT OR REPLACE INTO notifications (id, targetAgentCode, title, message, time, type, read, link)

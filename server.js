@@ -1990,6 +1990,19 @@ const server = http.createServer((req, res) => {
                                     deeplink: momoResult.deeplink || null,
                                     expiresAt: wonItem.momoExpiresAt
                                 }));
+                            } else if (wonItem.momoQrCodeUrl && wonItem.momoExpiresAt && new Date(wonItem.momoExpiresAt).getTime() > Date.now()) {
+                                console.log('[MoMo Fallback] Returning existing unexpired QR code for wonId:', wonId);
+                                res.writeHead(200, { 'Content-Type': 'application/json; charset=UTF-8' });
+                                res.end(JSON.stringify({
+                                    success: true,
+                                    orderId: wonItem.momoOrderId,
+                                    orderInfo: wonItem.momoOrderInfo || orderInfo,
+                                    amount: amount,
+                                    payUrl: wonItem.momoPayUrl,
+                                    qrCodeUrl: wonItem.momoQrCodeUrl,
+                                    deeplink: wonItem.momoDeeplink,
+                                    expiresAt: wonItem.momoExpiresAt
+                                }));
                             } else {
                                 res.writeHead(400, { 'Content-Type': 'application/json; charset=UTF-8' });
                                 res.end(JSON.stringify({

@@ -1162,14 +1162,7 @@ const CargoStore = (function() {
                 }
 
                 if (serverData.notifications && Array.isArray(serverData.notifications)) {
-                    const notifMap = new Map();
-                    serverData.notifications.forEach(n => notifMap.set(String(n.id), n));
-                    (local.notifications || []).forEach(n => {
-                        if (!notifMap.has(String(n.id))) {
-                            notifMap.set(String(n.id), n);
-                        }
-                    });
-                    local.notifications = Array.from(notifMap.values()).sort((a, b) => (b.id || 0) - (a.id || 0));
+                    local.notifications = serverData.notifications.sort((a, b) => (b.id || 0) - (a.id || 0));
                 }
 
                 if (serverData.registrations && Array.isArray(serverData.registrations)) {
