@@ -813,13 +813,8 @@ const server = http.createServer((req, res) => {
         // Deep copy data payload for security sanitization
         let clientPayload = JSON.parse(JSON.stringify(serverData));
 
-        // 🔒 SEC-03: Filter auctions by Agent Route Subscriptions if agentCode is present & restricted
-        if (!isPrivileged && agentCode && clientPayload.routeSubscriptions && clientPayload.routeSubscriptions[agentCode]) {
-            const allowedRoutes = clientPayload.routeSubscriptions[agentCode].routes || [];
-            if (allowedRoutes.length > 0) {
-                clientPayload.auctions = clientPayload.auctions.filter(a => allowedRoutes.includes(a.route));
-            }
-        }
+        // Route Subscriptions are used for notifications (email/push alerts), not for hiding auctions on the main exchange catalog.
+        // All agents can view all active auctions on the platform.
 
         // 🔒 SEC-01: SEALED-BID PRIVACY GUARD (Strict Sealed-Bid Rule)
         // If requester is Agent or Guest (not Admin/Staff), mask individual bids for OPEN auctions
