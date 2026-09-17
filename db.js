@@ -333,14 +333,8 @@ async function seedFullData(data) {
             }
         }
 
-        // Ensure default admin/staff/system agents exist in agents table
-        const systemAgents = [
-            { code: 'VU-ADMIN-01', name: 'Quản Trị Viên VU', companyName: 'Vietravel Airlines HQ' },
-            { code: 'VU-OPS-88', name: 'Nhân Viên Điều Hành Cargo', companyName: 'Trung Tâm Kho Vận Vietravel Cargo' },
-            { code: 'ADMIN', name: 'Ban Quản Trị Hệ Thống', companyName: 'Vietravel Airlines Admin' },
-            { code: 'ALL', name: 'Toàn Bộ Hệ Thống', companyName: 'Vietravel Airlines System' },
-            { code: 'SYSTEM', name: 'Hệ Thống Tự Động', companyName: 'System Operations' },
-            { code: 'STAFF', name: 'Nhân Viên Khai Thác', companyName: 'Vietravel Cargo Ops' },
+        // Ensure canonical agents exist in agents table
+        const defaultAgents = [
             { code: 'AG-0892', name: 'ABC Logistics', companyName: 'Công ty TNHH Vận tải ABC Logistics' },
             { code: 'AG-1024', name: 'Vinatrans', companyName: 'Công ty CP Giao nhận Kho vận Vinatrans' },
             { code: 'AG-0556', name: 'Golden Star', companyName: 'Công ty TNHH Tiếp vận Toàn Cầu Golden Star' },
@@ -348,19 +342,20 @@ async function seedFullData(data) {
             { code: 'AG-0789', name: 'Viet Freight', companyName: 'Công ty CP Vận chuyển Hàng không Việt Freight' }
         ];
 
-        for (const sa of systemAgents) {
+        for (const sa of defaultAgents) {
             await run(`
                 INSERT OR IGNORE INTO agents (code, name, companyName, status, password, pin)
                 VALUES (?, ?, ?, 'Hoạt động', '123456', '1234')
             `, [sa.code, sa.name, sa.companyName]);
         }
 
-        // Auto-insert any missing agent codes referenced in chats, wonAuctions, notifications, bids into agents table
+        // Auto-insert any missing real agent codes referenced in chats, wonAuctions, notifications, bids
         const referencedAgentCodes = new Set();
-        if (Array.isArray(data.chats)) data.chats.forEach(c => c.agentCode && referencedAgentCodes.add(String(c.agentCode)));
-        if (Array.isArray(data.wonAuctions)) data.wonAuctions.forEach(w => w.agentCode && referencedAgentCodes.add(String(w.agentCode)));
-        if (Array.isArray(data.notifications)) data.notifications.forEach(n => n.targetAgentCode && referencedAgentCodes.add(String(n.targetAgentCode)));
-        if (Array.isArray(data.bids)) data.bids.forEach(b => b.agentCode && referencedAgentCodes.add(String(b.agentCode)));
+        const pseudoSystemCodes = new Set(['ALL', 'STAFF', 'SYSTEM', 'ADMIN', 'VU-ADMIN-01', 'VU-OPS-88']);
+        if (Array.isArray(data.chats)) data.chats.forEach(c => c.agentCode && !pseudoSystemCodes.has(String(c.agentCode).toUpperCase()) && referencedAgentCodes.add(String(c.agentCode)));
+        if (Array.isArray(data.wonAuctions)) data.wonAuctions.forEach(w => w.agentCode && !pseudoSystemCodes.has(String(w.agentCode).toUpperCase()) && referencedAgentCodes.add(String(w.agentCode)));
+        if (Array.isArray(data.notifications)) data.notifications.forEach(n => n.targetAgentCode && !pseudoSystemCodes.has(String(n.targetAgentCode).toUpperCase()) && referencedAgentCodes.add(String(n.targetAgentCode)));
+        if (Array.isArray(data.bids)) data.bids.forEach(b => b.agentCode && !pseudoSystemCodes.has(String(b.agentCode).toUpperCase()) && referencedAgentCodes.add(String(b.agentCode)));
 
         for (const code of referencedAgentCodes) {
             await run(`
@@ -602,15 +597,22 @@ async function getFullServerData() {
             read: Boolean(n.read)
         })),
         registrations,
-        agentsList: dbAgents.map(ag => {
-            const codeUpper = String(ag.code || '').toUpperCase();
-            return {
-                ...ag,
-                isLocked: Boolean(ag.isLocked),
-                password: ag.password || defaultPwdMap[codeUpper] || 'abc123456',
-                pin: ag.pin || '1234'
-            };
-        }),
+        agentsList: dbAgents
+            .filter(ag => {
+                const codeUpper = String(ag.code || '').toUpperCase();
+                if (['ALL', 'STAFF', 'SYSTEM', 'ADMIN', 'VU-ADMIN-01', 'VU-OPS-88'].includes(codeUpper)) return false;
+                if (!ag.repName && !ag.email && !ag.taxCode && !ag.phone) return false;
+                return true;
+            })
+            .map(ag => {
+                const codeUpper = String(ag.code || '').toUpperCase();
+                return {
+                    ...ag,
+                    isLocked: Boolean(ag.isLocked),
+                    password: ag.password || defaultPwdMap[codeUpper] || 'abc123456',
+                    pin: ag.pin || '1234'
+                };
+            }),
         usersList: dbUsers,
         chats: Array.from(chatsMap.values()),
         settings: settingsMap.settings || {},

@@ -940,6 +940,18 @@ const CargoStore = (function() {
             if (!data.agentsList || !Array.isArray(data.agentsList) || data.agentsList.length === 0) {
                 data.agentsList = JSON.parse(JSON.stringify(seedAgents));
                 updated = true;
+            } else {
+                const initialCount = data.agentsList.length;
+                data.agentsList = data.agentsList.filter(ag => {
+                    if (!ag) return false;
+                    const codeUpper = String(ag.code || '').toUpperCase();
+                    if (['ALL', 'STAFF', 'SYSTEM', 'ADMIN', 'VU-ADMIN-01', 'VU-OPS-88'].includes(codeUpper)) return false;
+                    if (!ag.repName && !ag.email && !ag.taxCode && !ag.phone) return false;
+                    return true;
+                });
+                if (data.agentsList.length !== initialCount) {
+                    updated = true;
+                }
             }
 
             if (!data.adminsList || !Array.isArray(data.adminsList) || data.adminsList.length === 0) {
@@ -1303,7 +1315,15 @@ const CargoStore = (function() {
                     local.registrations = Array.from(regMap.values());
                 }
 
-                local.agentsList = serverData.agentsList || local.agentsList;
+                if (serverData.agentsList && Array.isArray(serverData.agentsList)) {
+                    local.agentsList = serverData.agentsList.filter(ag => {
+                        if (!ag) return false;
+                        const codeUpper = String(ag.code || '').toUpperCase();
+                        if (['ALL', 'STAFF', 'SYSTEM', 'ADMIN', 'VU-ADMIN-01', 'VU-OPS-88'].includes(codeUpper)) return false;
+                        if (!ag.repName && !ag.email && !ag.taxCode && !ag.phone) return false;
+                        return true;
+                    });
+                }
                 local.adminsList = serverData.adminsList || local.adminsList;
                 if (serverData.settings) local.settings = serverData.settings;
                 if (serverData.bankConfig) local.bankConfig = serverData.bankConfig;

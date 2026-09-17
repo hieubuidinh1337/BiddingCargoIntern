@@ -866,10 +866,19 @@
             const agentSort = document.getElementById('agentSortSelect')?.value || 'CODE_ASC';
 
             let filteredAgents = agents.filter(ag => {
+                if (!ag) return false;
                 const codeUpper = (ag.code || '').toUpperCase();
                 const nameUpper = (ag.companyName || '').toUpperCase();
-                const isTestAgent = codeUpper.includes('AG-TEST') || nameUpper.includes('AG-TEST') || nameUpper.includes('TEST AGENT');
+
+                // Exclude pseudo system accounts and empty records
+                if (['ALL', 'STAFF', 'SYSTEM', 'ADMIN', 'VU-ADMIN-01', 'VU-OPS-88'].includes(codeUpper)) {
+                    return false;
+                }
+                if (!ag.repName && !ag.email && !ag.taxCode && !ag.phone) {
+                    return false;
+                }
                 
+                const isTestAgent = codeUpper.includes('AG-TEST') || nameUpper.includes('AG-TEST') || nameUpper.includes('TEST AGENT');
                 if (hideTestAgents && isTestAgent) {
                     return false;
                 }
