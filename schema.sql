@@ -102,6 +102,7 @@ CREATE TABLE IF NOT EXISTS won_auctions (
     awbNumber TEXT,
     cutOffTime TEXT,
     warehouse TEXT,
+    cargo_declaration_json TEXT,
     lockWaivedByAdmin INTEGER DEFAULT 0,
     lockPenaltyHandled INTEGER DEFAULT 0,
     momoOrderId TEXT,
@@ -195,6 +196,22 @@ CREATE TABLE IF NOT EXISTS settings (
     value TEXT
 );
 
+-- 12. ACTIVITY_LOGS TABLE (Full Audit Trail of User Actions)
+CREATE TABLE IF NOT EXISTS activity_logs (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    timestamp TEXT,
+    rawTime BIGINT,
+    actor TEXT,
+    username TEXT,
+    role TEXT,
+    actionCategory TEXT,
+    actionTitle TEXT,
+    target TEXT,
+    details TEXT,
+    ip TEXT,
+    device TEXT
+);
+
 -- INDEXES FOR HIGH PERFORMANCE
 CREATE INDEX IF NOT EXISTS idx_bids_auctionId ON bids(auctionId);
 CREATE INDEX IF NOT EXISTS idx_bids_agentCode ON bids(agentCode);
@@ -218,8 +235,10 @@ INSERT OR IGNORE INTO agents (code, name, companyName, taxCode, email, phone, st
 INSERT OR IGNORE INTO users (id, username, agentCode, password, pin, role, fullName, email, companyName, status) VALUES
 ('USR-001', 'admin', 'VU-ADMIN-01', 'admin2026', '1234', 'ADMIN', 'Quản Trị Viên VU', 'admin@vietravelairlines.vn', 'Vietravel Airlines HQ', 'ACTIVE'),
 ('USR-002', 'staff01', 'VU-OPS-88', 'staff2026', '1234', 'STAFF', 'Nhân Viên Điều Hành Cargo', 'staff@vietravelairlines.vn', 'Trung Tâm Kho Vận Vietravel Cargo', 'ACTIVE'),
+('USR-008', 'staff02', 'VU-OPS-88', 'staff2026', '1234', 'STAFF', 'Nhân Viên Thẩm Định Đại Lý', 'staff02@vietravelairlines.vn', 'Phòng Thẩm Định Đại Lý', 'ACTIVE'),
 ('USR-003', 'AG-0892', 'AG-0892', 'abc123456', '1234', 'AGENT', 'Nguyễn Văn An', 'an.nguyen@abccargo.vn', 'Công ty TNHH Vận tải ABC Logistics', 'ACTIVE'),
 ('USR-004', 'AG-1024', 'AG-1024', 'vina123456', '1234', 'AGENT', 'Lê Minh Khang', 'khang.le@vinatrans.com.vn', 'Công ty CP Giao nhận Kho vận Vinatrans', 'ACTIVE'),
 ('USR-005', 'AG-0556', 'AG-0556', 'star123456', '1234', 'AGENT', 'Phạm Thu Thảo', 'thao.pham@dhlvietnam.com', 'Công ty TNHH Tiếp vận Toàn Cầu Golden Star', 'ACTIVE'),
 ('USR-006', 'AG-0341', 'AG-0341', 'sky123456', '1234', 'AGENT', 'Hoàng Văn Dũng', 'dung.hoang@saigonair.vn', 'Công ty TNHH SkyFreight Logistics Việt Nam', 'ACTIVE'),
 ('USR-007', 'AG-0789', 'AG-0789', 'viet123456', '1234', 'AGENT', 'Nguyễn Thị Hoa', 'hoa.nt@vietfreight.vn', 'Công ty CP Vận chuyển Hàng không Việt Freight', 'ACTIVE');
+

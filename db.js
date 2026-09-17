@@ -151,6 +151,7 @@ async function initDatabase() {
             awbNumber TEXT,
             cutOffTime TEXT,
             warehouse TEXT,
+            cargo_declaration_json TEXT,
             lockWaivedByAdmin INTEGER DEFAULT 0,
             lockPenaltyHandled INTEGER DEFAULT 0,
             momoOrderId TEXT,
@@ -254,10 +255,11 @@ async function initDatabase() {
         );
     `);
 
-    // Ensure columns exist on existing database
+    // Ensure columns exist on existing database (migration guard)
     try { await exec('ALTER TABLE agents ADD COLUMN password TEXT;'); } catch (e) {}
     try { await exec('ALTER TABLE agents ADD COLUMN pin TEXT;'); } catch (e) {}
     try { await exec('ALTER TABLE notifications ADD COLUMN targetRole TEXT;'); } catch (e) {}
+    try { await exec('ALTER TABLE won_auctions ADD COLUMN cargo_declaration_json TEXT;'); } catch (e) {}
 
     // Indexes for high performance
     await exec(`
@@ -273,6 +275,7 @@ async function initDatabase() {
         const defaultUsers = [
             { id: 'USR-001', username: 'admin', agentCode: 'VU-ADMIN-01', password: 'admin2026', pin: '1234', role: 'ADMIN', fullName: 'Quản Trị Viên VU', email: 'admin@vietravelairlines.vn', companyName: 'Vietravel Airlines HQ', status: 'ACTIVE' },
             { id: 'USR-002', username: 'staff01', agentCode: 'VU-OPS-88', password: 'staff2026', pin: '1234', role: 'STAFF', fullName: 'Nhân Viên Điều Hành Cargo', email: 'staff@vietravelairlines.vn', companyName: 'Trung Tâm Kho Vận Vietravel Cargo', status: 'ACTIVE' },
+            { id: 'USR-008', username: 'staff02', agentCode: 'VU-OPS-88', password: 'staff2026', pin: '1234', role: 'STAFF', fullName: 'Nhân Viên Thẩm Định Đại Lý', email: 'staff02@vietravelairlines.vn', companyName: 'Phòng Thẩm Định Đại Lý', status: 'ACTIVE' },
             { id: 'USR-003', username: 'AG-0892', agentCode: 'AG-0892', password: 'abc123456', pin: '1234', role: 'AGENT', fullName: 'Nguyễn Văn An', email: 'an.nguyen@abccargo.vn', companyName: 'Công ty TNHH Vận tải ABC Logistics', status: 'ACTIVE' },
             { id: 'USR-004', username: 'AG-1024', agentCode: 'AG-1024', password: 'vina123456', pin: '1234', role: 'AGENT', fullName: 'Lê Minh Khang', email: 'khang.le@vinatrans.com.vn', companyName: 'Công ty CP Giao nhận Kho vận Vinatrans', status: 'ACTIVE' },
             { id: 'USR-005', username: 'AG-0556', agentCode: 'AG-0556', password: 'star123456', pin: '1234', role: 'AGENT', fullName: 'Phạm Thu Thảo', email: 'thao.pham@dhlvietnam.com', companyName: 'Công ty TNHH Tiếp vận Toàn Cầu Golden Star', status: 'ACTIVE' },
@@ -400,12 +403,14 @@ async function seedFullData(data) {
         const defaultUsers = [
             { id: 'USR-001', username: 'admin', agentCode: 'VU-ADMIN-01', password: 'admin2026', pin: '1234', role: 'ADMIN', fullName: 'Quản Trị Viên VU', email: 'admin@vietravelairlines.vn', companyName: 'Vietravel Airlines HQ', status: 'ACTIVE' },
             { id: 'USR-002', username: 'staff01', agentCode: 'VU-OPS-88', password: 'staff2026', pin: '1234', role: 'STAFF', fullName: 'Nhân Viên Điều Hành Cargo', email: 'staff@vietravelairlines.vn', companyName: 'Trung Tâm Kho Vận Vietravel Cargo', status: 'ACTIVE' },
+            { id: 'USR-008', username: 'staff02', agentCode: 'VU-OPS-88', password: 'staff2026', pin: '1234', role: 'STAFF', fullName: 'Nhân Viên Thẩm Định Đại Lý', email: 'staff02@vietravelairlines.vn', companyName: 'Phòng Thẩm Định Đại Lý', status: 'ACTIVE' },
             { id: 'USR-003', username: 'AG-0892', agentCode: 'AG-0892', password: 'abc123456', pin: '1234', role: 'AGENT', fullName: 'Nguyễn Văn An', email: 'an.nguyen@abccargo.vn', companyName: 'Công ty TNHH Vận tải ABC Logistics', status: 'ACTIVE' },
             { id: 'USR-004', username: 'AG-1024', agentCode: 'AG-1024', password: 'vina123456', pin: '1234', role: 'AGENT', fullName: 'Lê Minh Khang', email: 'khang.le@vinatrans.com.vn', companyName: 'Công ty CP Giao nhận Kho vận Vinatrans', status: 'ACTIVE' },
             { id: 'USR-005', username: 'AG-0556', agentCode: 'AG-0556', password: 'star123456', pin: '1234', role: 'AGENT', fullName: 'Phạm Thu Thảo', email: 'thao.pham@dhlvietnam.com', companyName: 'Công ty TNHH Tiếp vận Toàn Cầu Golden Star', status: 'ACTIVE' },
             { id: 'USR-006', username: 'AG-0341', agentCode: 'AG-0341', password: 'sky123456', pin: '1234', role: 'AGENT', fullName: 'Hoàng Văn Dũng', email: 'dung.hoang@saigonair.vn', companyName: 'Công ty TNHH SkyFreight Logistics Việt Nam', status: 'ACTIVE' },
             { id: 'USR-007', username: 'AG-0789', agentCode: 'AG-0789', password: 'viet123456', pin: '1234', role: 'AGENT', fullName: 'Nguyễn Thị Hoa', email: 'hoa.nt@vietfreight.vn', companyName: 'Công ty CP Vận chuyển Hàng không Việt Freight', status: 'ACTIVE' }
         ];
+
 
         for (const u of defaultUsers) {
             await run(`
@@ -434,15 +439,18 @@ async function seedFullData(data) {
             for (const w of data.wonAuctions) {
                 const wAuctionId = (w.auctionId && !isNaN(Number(w.auctionId))) ? Number(w.auctionId) : null;
                 const wAgentCode = (w.agentCode && String(w.agentCode).trim()) ? String(w.agentCode).trim() : null;
+                // Serialize cargoDeclaration (IATA form) as JSON blob for persistence
+                const cargoJson = w.cargoDeclaration ? JSON.stringify(w.cargoDeclaration) : null;
                 await run(`
                     INSERT OR REPLACE INTO won_auctions
-                    (wonId, auctionId, agentCode, flightNumber, route, capacityKg, priceKg, totalAmountVND, paymentDeadline, paymentStatus, paidAt, awbNumber, cutOffTime, warehouse, lockWaivedByAdmin, lockPenaltyHandled, momoOrderId, momoRequestId, momoOrderInfo, momoPayUrl, momoQrCodeUrl, momoDeeplink, momoTransId, momoPaidAt, momoCreatedAt, momoExpiresAt)
-                    VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+                    (wonId, auctionId, agentCode, flightNumber, route, capacityKg, priceKg, totalAmountVND, paymentDeadline, paymentStatus, paidAt, awbNumber, cutOffTime, warehouse, cargo_declaration_json, lockWaivedByAdmin, lockPenaltyHandled, momoOrderId, momoRequestId, momoOrderInfo, momoPayUrl, momoQrCodeUrl, momoDeeplink, momoTransId, momoPaidAt, momoCreatedAt, momoExpiresAt)
+                    VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
                 `, [
                     w.wonId, wAuctionId, wAgentCode, w.flightNumber, w.route, w.capacityKg || 0, w.priceKg || 0,
                     w.totalAmountVND || 0, w.paymentDeadline || null, w.paymentStatus || 'UNPAID', w.paidAt || null,
-                    w.awbNumber || null, w.cutOffTime || null, w.warehouse || null, w.lockWaivedByAdmin ? 1 : 0,
-                    w.lockPenaltyHandled ? 1 : 0, w.momoOrderId || null, w.momoRequestId || null, w.momoOrderInfo || null,
+                    w.awbNumber || null, w.cutOffTime || null, w.warehouse || null, cargoJson,
+                    w.lockWaivedByAdmin ? 1 : 0, w.lockPenaltyHandled ? 1 : 0,
+                    w.momoOrderId || null, w.momoRequestId || null, w.momoOrderInfo || null,
                     w.momoPayUrl || null, w.momoQrCodeUrl || null, w.momoDeeplink || null, w.momoTransId || null,
                     w.momoPaidAt || null, w.momoCreatedAt || null, w.momoExpiresAt || null
                 ]);
@@ -605,7 +613,12 @@ async function getFullServerData() {
             priceKg: Number(w.priceKg),
             totalAmountVND: Number(w.totalAmountVND),
             lockWaivedByAdmin: Boolean(w.lockWaivedByAdmin),
-            lockPenaltyHandled: Boolean(w.lockPenaltyHandled)
+            lockPenaltyHandled: Boolean(w.lockPenaltyHandled),
+            // Deserialize cargoDeclaration JSON blob back to object
+            cargoDeclaration: w.cargo_declaration_json
+                ? (() => { try { return JSON.parse(w.cargo_declaration_json); } catch(_) { return null; } })()
+                : null,
+            cargo_declaration_json: undefined // strip raw column from response
         })),
         notifications: notifications.map(n => ({
             ...n,
@@ -764,6 +777,17 @@ async function createAuditLog(actorRole, actorId, action, target, details = '') 
     `, [actorId, `[AUDIT] ${action}`, `[${actorRole}] ${actorId} - ${action} trên ${target}: ${details}`, new Date().toLocaleString('vi-VN')]);
 }
 
+function close() {
+    return new Promise((resolve, reject) => {
+        if (!db) return resolve();
+        db.close((err) => {
+            db = null;
+            if (err) reject(err);
+            else resolve();
+        });
+    });
+}
+
 module.exports = {
     getDb,
     run,
@@ -776,5 +800,6 @@ module.exports = {
     placeBidAtomic,
     purgeUnregisteredBids,
     checkpointWal,
-    createAuditLog
+    createAuditLog,
+    close
 };

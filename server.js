@@ -556,8 +556,9 @@ function checkAndAutoLockExpiredWonAuctions(data) {
             const agentUnlockedAfterThis = agent && agent.unlockedAt && item.lockPenaltyHandled;
 
             if (!isWaived && !agentUnlockedAfterThis && agent) {
-                if (agent.status !== 'Đã khóa' && agent.status !== 'LOCKED') {
-                    agent.status = 'Đã khóa';
+                if (agent.status !== 'LOCKED') {
+                    agent.status = 'LOCKED';
+                    agent.isLocked = true;
                     agent.lockedReason = `Hệ thống tự động khóa do quá hạn thanh toán đơn ${item.wonId} (${item.flightNumber} - ${item.route})`;
                     agent.lockedAt = new Date().toLocaleString('vi-VN');
                     item.lockPenaltyHandled = true;
@@ -589,8 +590,9 @@ function checkAndAutoLockExpiredWonAuctions(data) {
 }
 
 function saveServerData() {
-    if (db) {
+    if (db && db.getDb && db.getDb()) {
         db.seedFullData(serverData).catch(err => {
+            if (err.message && err.message.includes('Database handle is closed')) return; // test teardown
             console.error('[Database] Sync to SQLite error:', err.message);
         });
     }
@@ -1152,6 +1154,7 @@ const server = http.createServer((req, res) => {
                     serverData.wonAuctions = Array.from(wonMap.values());
                 }
                 if (incoming.notifications) serverData.notifications = incoming.notifications;
+                if (incoming.activityLogs && Array.isArray(incoming.activityLogs)) serverData.activityLogs = incoming.activityLogs;
                 if (incoming.registrations) serverData.registrations = incoming.registrations;
                 if (incoming.agentsList) serverData.agentsList = incoming.agentsList;
                 if (incoming.adminsList) serverData.adminsList = incoming.adminsList;
@@ -1163,9 +1166,7 @@ const server = http.createServer((req, res) => {
                 if (incoming.routeSubscriptions) serverData.routeSubscriptions = incoming.routeSubscriptions;
                 if (incoming.chats) serverData.chats = incoming.chats;
 
-                if (reconcileAuctionSummaries(serverData)) {
-                    changed = true;
-                }
+                reconcileAuctionSummaries(serverData);
                 checkAndAutoLockExpiredWonAuctions(serverData);
                 serverData.version = Date.now();
                 saveServerData();
@@ -2431,15 +2432,30 @@ server.on('error', (err) => {
     }
 });
 
-(async () => {
-    try {
-        await loadServerDataAsync();
-        server.listen(PORT, () => {
-            console.log(`Vietravel Airlines Bidding Cargo app running at http://localhost:${PORT}/ (SQLite WAL DB Connected)`);
+// Export server + startup for programmatic use in tests
+async function startServer(port) {
+    await loadServerDataAsync();
+    return new Promise((resolve, reject) => {
+        const targetPort = port || PORT;
+        server.listen(targetPort, () => {
+            console.log(`Vietravel Airlines Bidding Cargo app running at http://localhost:${targetPort}/ (SQLite WAL DB Connected)`);
+            resolve(server);
         });
-    } catch (err) {
-        console.error('[Fatal] Database initialization error:', err);
-    }
-})();
+        server.once('error', reject);
+    });
+}
+
+module.exports = { server, startServer, PORT, loadServerDataAsync };
+
+// Auto-start only when run directly (not when required by tests)
+if (require.main === module) {
+    (async () => {
+        try {
+            await startServer();
+        } catch (err) {
+            console.error('[Fatal] Database initialization error:', err);
+        }
+    })();
+}
 
 

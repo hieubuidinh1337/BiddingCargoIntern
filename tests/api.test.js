@@ -1,17 +1,32 @@
 const request = require('supertest');
 const crypto = require('crypto');
-const fs = require('fs');
-const path = require('path');
 const db = require('../db.js');
+const { startServer, server } = require('../server.js');
 
-const BASE_URL = process.env.BASE_URL || 'http://localhost:8085';
+// ============================================================
+// Lifecycle: Start / Stop server for the test run
+// ============================================================
+beforeAll(async () => {
+    // Use a free port range for tests so we never clash with a running dev server
+    await startServer(8086);
+}, 30000);
 
+afterAll(async () => {
+    // Close HTTP server
+    await new Promise((resolve) => server.close(resolve));
+    // Close SQLite connection
+    try { await db.close(); } catch (_) { /* ignore */ }
+}, 15000);
+
+// ============================================================
+// Helpers
+// ============================================================
+const api = () => request(server);
+
+// ============================================================
+// TEST SUITE
+// ============================================================
 describe('Vietravel Airlines Cargo Bidding System - API Automation Test Suite', () => {
-
-    beforeAll(async () => {
-        // Ensure database is initialized before running tests
-        await db.initDatabase();
-    });
 
     // ============================================================
     // 1. HAPPY PATH TEST CASES (Kịch bản tích cực)
@@ -19,7 +34,7 @@ describe('Vietravel Airlines Cargo Bidding System - API Automation Test Suite', 
     describe('🟢 HAPPY PATH TESTS (Người dùng dùng đúng cách)', () => {
 
         test('HP-01: GET /api/data should return 200 OK with valid database schema', async () => {
-            const res = await request(BASE_URL).get('/api/data');
+            const res = await api().get('/api/data');
 
             expect(res.statusCode).toBe(200);
             expect(res.headers['content-type']).toContain('application/json');
@@ -31,14 +46,14 @@ describe('Vietravel Airlines Cargo Bidding System - API Automation Test Suite', 
         });
 
         test('HP-02: POST /api/momo/create should generate valid MoMo QR payment request with standardized orderInfo', async () => {
-            const dataRes = await request(BASE_URL).get('/api/data');
+            const dataRes = await api().get('/api/data');
             let unpaidWon = (dataRes.body.wonAuctions || []).find(w => w.paymentStatus === 'UNPAID');
             if (!unpaidWon) {
                 const wonList = dataRes.body.wonAuctions || [];
                 if (wonList.length > 0) {
                     wonList[0].paymentStatus = 'UNPAID';
                     unpaidWon = wonList[0];
-                    await request(BASE_URL).post('/api/data').send({ wonAuctions: wonList });
+                    await api().post('/api/data').send({ wonAuctions: wonList });
                 } else {
                     unpaidWon = {
                         wonId: 'WON-2026-0814-01',
@@ -54,12 +69,12 @@ describe('Vietravel Airlines Cargo Bidding System - API Automation Test Suite', 
                         awbNumber: '998-12345678',
                         cutOffTime: 'Trước ETD 3 giờ'
                     };
-                    await request(BASE_URL).post('/api/data').send({ wonAuctions: [unpaidWon] });
+                    await api().post('/api/data').send({ wonAuctions: [unpaidWon] });
                 }
             }
             expect(unpaidWon).toBeDefined();
 
-            const res = await request(BASE_URL)
+            const res = await api()
                 .post('/api/momo/create')
                 .send({ wonId: unpaidWon.wonId });
 
@@ -79,7 +94,7 @@ describe('Vietravel Airlines Cargo Bidding System - API Automation Test Suite', 
         }, 15000);
 
         test('HP-05: Sealed-Bid Privacy Guard - GET /api/data?agentCode=AG-0892 should mask competitor bids for OPEN auctions', async () => {
-            const res = await request(BASE_URL).get('/api/data?agentCode=AG-0892');
+            const res = await api().get('/api/data?agentCode=AG-0892');
             expect(res.statusCode).toBe(200);
 
             // Bids returned for OPEN auctions must belong ONLY to AG-0892
@@ -94,14 +109,14 @@ describe('Vietravel Airlines Cargo Bidding System - API Automation Test Suite', 
         });
 
         test('HP-06: Atomic Sealed-Bid Placement - POST /api/bids/place should place bid atomically', async () => {
-            const dataRes = await request(BASE_URL).get('/api/data');
+            const dataRes = await api().get('/api/data');
             const targetAuction = dataRes.body.auctions.find(a => a.status === 'OPEN');
             expect(targetAuction).toBeDefined();
 
             const basePrice = Number(targetAuction.currentPriceKg || targetAuction.startingPriceKg || 20000);
             const minBid = basePrice + 50000;
 
-            const res = await request(BASE_URL)
+            const res = await api()
                 .post('/api/bids/place')
                 .send({
                     auctionId: targetAuction.id,
@@ -127,7 +142,7 @@ describe('Vietravel Airlines Cargo Bidding System - API Automation Test Suite', 
             const accessKey = process.env.MOMO_ACCESS_KEY || 'klm05TvNBzhg7h7j';
 
             // Insert won auction via API to ensure server memory & SQLite are in sync
-            const dataRes = await request(BASE_URL).get('/api/data');
+            const dataRes = await api().get('/api/data');
             const wonAuctions = dataRes.body.wonAuctions || [];
             wonAuctions.push({
                 wonId,
@@ -141,7 +156,7 @@ describe('Vietravel Airlines Cargo Bidding System - API Automation Test Suite', 
                 paymentStatus: 'UNPAID',
                 momoOrderId: orderId
             });
-            await request(BASE_URL).post('/api/data').send({ wonAuctions });
+            await api().post('/api/data').send({ wonAuctions });
 
             const responseTime = Date.now();
             const transId = 'MOMO_TRANS_' + Date.now();
@@ -182,14 +197,14 @@ describe('Vietravel Airlines Cargo Bidding System - API Automation Test Suite', 
                 signature: validSignature
             };
 
-            const res = await request(BASE_URL)
+            const res = await api()
                 .post('/api/momo/ipn')
                 .send(ipnPayload);
 
             expect(res.statusCode).toBe(204); // MoMo IPN standard return status
 
             // Verify order status in DB updated to PAID
-            const statusRes = await request(BASE_URL).get(`/api/momo/status?wonId=${wonId}`);
+            const statusRes = await api().get(`/api/momo/status?wonId=${wonId}`);
             expect(statusRes.statusCode).toBe(200);
             expect(statusRes.body.paymentStatus).toBe('PAID');
             expect(statusRes.body.momoTransId).toBe(transId);
@@ -199,7 +214,7 @@ describe('Vietravel Airlines Cargo Bidding System - API Automation Test Suite', 
             const agentCode = 'AG-TEST-' + Date.now();
 
             // Create new chat session
-            const createRes = await request(BASE_URL)
+            const createRes = await api()
                 .post('/api/chat/create')
                 .send({
                     agentCode,
@@ -215,7 +230,7 @@ describe('Vietravel Airlines Cargo Bidding System - API Automation Test Suite', 
             const chatId = createRes.body.chat.id;
 
             // Send follow up message
-            const sendRes = await request(BASE_URL)
+            const sendRes = await api()
                 .post('/api/chat/send')
                 .send({
                     chatId,
@@ -229,7 +244,7 @@ describe('Vietravel Airlines Cargo Bidding System - API Automation Test Suite', 
             expect(sendRes.body.message.text).toContain('bảo quản lạnh');
 
             // Clean up test chat by closing it so it doesn't pollute WAITING admin chat list
-            await request(BASE_URL)
+            await api()
                 .post('/api/chat/close')
                 .send({
                     chatId,
@@ -244,7 +259,7 @@ describe('Vietravel Airlines Cargo Bidding System - API Automation Test Suite', 
     describe('🔴 NEGATIVE PATH TESTS (Người dùng nhập sai / Phá hệ thống / Security)', () => {
 
         test('NP-01: POST /api/momo/create without wonId should return 400 Bad Request', async () => {
-            const res = await request(BASE_URL)
+            const res = await api()
                 .post('/api/momo/create')
                 .send({});
 
@@ -254,7 +269,7 @@ describe('Vietravel Airlines Cargo Bidding System - API Automation Test Suite', 
         });
 
         test('NP-02: POST /api/momo/create with non-existent wonId should return 404 Not Found', async () => {
-            const res = await request(BASE_URL)
+            const res = await api()
                 .post('/api/momo/create')
                 .send({ wonId: 'WON-FAKE-999999' });
 
@@ -265,7 +280,7 @@ describe('Vietravel Airlines Cargo Bidding System - API Automation Test Suite', 
 
         test('NP-03: POST /api/momo/create for an ALREADY PAID order should return 400 Bad Request', async () => {
             const wonId = 'WON_PAID_TEST_' + Date.now();
-            const dataRes = await request(BASE_URL).get('/api/data');
+            const dataRes = await api().get('/api/data');
             const wonAuctions = dataRes.body.wonAuctions || [];
             wonAuctions.push({
                 wonId,
@@ -278,9 +293,9 @@ describe('Vietravel Airlines Cargo Bidding System - API Automation Test Suite', 
                 totalAmountVND: 50000,
                 paymentStatus: 'PAID'
             });
-            await request(BASE_URL).post('/api/data').send({ wonAuctions });
+            await api().post('/api/data').send({ wonAuctions });
 
-            const res = await request(BASE_URL)
+            const res = await api()
                 .post('/api/momo/create')
                 .send({ wonId });
 
@@ -306,7 +321,7 @@ describe('Vietravel Airlines Cargo Bidding System - API Automation Test Suite', 
                 signature: 'INVALID_HACKER_SIGNATURE_12345'
             };
 
-            const res = await request(BASE_URL)
+            const res = await api()
                 .post('/api/momo/ipn')
                 .send(ipnPayload);
 
@@ -316,7 +331,7 @@ describe('Vietravel Airlines Cargo Bidding System - API Automation Test Suite', 
         });
 
         test('NP-05: GET /uploads/../../.env Path Traversal security attempt should be blocked', async () => {
-            const res = await request(BASE_URL).get('/uploads/../../.env');
+            const res = await api().get('/uploads/../../.env');
 
             // Must NOT return 200 with raw .env content
             expect(res.statusCode).not.toBe(200);
@@ -327,7 +342,7 @@ describe('Vietravel Airlines Cargo Bidding System - API Automation Test Suite', 
         });
 
         test('NP-06: GET /api/momo/status without wonId query param should return 400 Bad Request', async () => {
-            const res = await request(BASE_URL).get('/api/momo/status');
+            const res = await api().get('/api/momo/status');
 
             expect(res.statusCode).toBe(400);
             expect(res.body.success).toBe(false);
@@ -338,10 +353,10 @@ describe('Vietravel Airlines Cargo Bidding System - API Automation Test Suite', 
         try {
             await db.run("DELETE FROM won_auctions WHERE wonId LIKE 'TEST_%' OR wonId LIKE 'WON_PAID_TEST_%'");
             await db.run("DELETE FROM bids WHERE id LIKE 'TEST_%' OR id LIKE 'TEST_BID_%'");
-            const dataRes = await request(BASE_URL).get('/api/data');
+            const dataRes = await api().get('/api/data');
             if (dataRes.body && Array.isArray(dataRes.body.wonAuctions)) {
                 const cleanedWon = dataRes.body.wonAuctions.filter(w => !String(w.wonId).startsWith('TEST_') && !String(w.wonId).startsWith('WON_PAID_TEST_'));
-                await request(BASE_URL).post('/api/data').send({ wonAuctions: cleanedWon });
+                await api().post('/api/data').send({ wonAuctions: cleanedWon });
             }
         } catch (err) {
             console.error('Failed to cleanup test data:', err.message);

@@ -12,90 +12,190 @@
     <!-- html2pdf.js for real PDF export -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
 </head>
-<body class="bg-slate-100 text-slate-800 antialiased min-h-screen flex flex-col">
+<body class="bg-slate-100 text-slate-800 antialiased min-h-screen flex flex-col">    <!-- ═══════════════════════════════════════════
+         ADMIN HEADER — VU Cargo Admin Portal
+         Premium dark navigation — DO NOT EDIT MANUALLY
+         ═══════════════════════════════════════════ -->
+    <style>
+        /* ── Admin Header ── */
+        #adminHeader {
+            background: linear-gradient(135deg, #0f172a 0%, #1e293b 60%, #0f172a 100%);
+            border-bottom: 1px solid rgba(59,130,246,0.18);
+            position: sticky; top: 0; z-index: 50;
+            box-shadow: 0 2px 20px rgba(0,0,0,0.35);
+        }
+        #adminHeader::after {
+            content: '';
+            display: block;
+            height: 2px;
+            background: linear-gradient(90deg, transparent 0%, #3b82f6 30%, #6366f1 65%, transparent 100%);
+        }
+        .admin-inner {
+            max-width: 1400px; margin: 0 auto;
+            padding: 0 1rem;
+            display: flex; align-items: center; justify-content: space-between;
+            height: 58px; gap: 0.75rem;
+        }
+        .admin-brand { display:flex; align-items:center; gap:0.75rem; text-decoration:none; flex-shrink:0; }
+        .admin-brand img { height: 32px; object-fit:contain; filter: brightness(0) invert(1); }
+        .admin-brand-sep { width:1px; height:28px; background:rgba(255,255,255,0.15); }
+        .admin-brand-text { font-size:0.8125rem; font-weight:700; color:#e2e8f0; letter-spacing:0.04em; white-space:nowrap; }
+        .admin-brand-sub { font-size:0.6rem; font-weight:600; color:#94a3b8; text-transform:uppercase; letter-spacing:0.1em; display:block; }
 
-    <!-- Header Navigation -->
-    <header class="bg-white sticky top-0 z-50 border-b border-slate-200/80 shadow-xs">
-        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-2.5 flex items-center justify-between">
-            <div class="flex items-center gap-3 sm:gap-6">
-                <!-- Mobile Menu Button -->
-                <button type="button" onclick="toggleAdminMobileNav()" class="md:hidden text-slate-600 hover:text-slate-900 p-1.5 rounded-xl hover:bg-slate-100 transition focus:outline-none" aria-label="Menu">
-                    <i class="fa-solid fa-bars text-base"></i>
-                </button>
+        /* Desktop Nav */
+        .admin-nav { display:none; align-items:center; gap:2px; }
+        @media (min-width:768px) { .admin-nav { display:flex; } }
+        .nav-item-admin {
+            display:flex; align-items:center; gap:5px;
+            padding: 5px 10px; border-radius: 8px;
+            font-size:0.72rem; font-weight:600; color:rgba(203,213,225,0.85);
+            text-decoration:none; white-space:nowrap;
+            transition: all 0.15s ease;
+            border: 1px solid transparent;
+        }
+        .nav-item-admin:hover {
+            color:#fff; background:rgba(255,255,255,0.08);
+            border-color:rgba(255,255,255,0.1);
+        }
+        .nav-item-admin.active {
+            color:#fff; background:rgba(59,130,246,0.85);
+            border-color:rgba(59,130,246,0.5);
+            box-shadow: 0 0 12px rgba(59,130,246,0.35);
+        }
+        .nav-item-admin.chat-item {
+            color:#c4b5fd; background:rgba(139,92,246,0.12);
+            border-color:rgba(139,92,246,0.25);
+        }
+        .nav-item-admin.chat-item:hover {
+            color:#e9d5ff; background:rgba(139,92,246,0.22);
+        }
+        .nav-item-admin.active-chat {
+            color:#fff; background:rgba(139,92,246,0.75);
+            border-color:rgba(139,92,246,0.5);
+            box-shadow:0 0 12px rgba(139,92,246,0.35);
+        }
+        .chat-badge {
+            background:#ef4444; color:#fff; font-size:0.6rem;
+            font-weight:700; padding:0 5px; border-radius:999px; min-width:16px;
+            text-align:center; line-height:16px; height:16px;
+        }
 
-                <a href="02-AdminDashboard.html" class="flex items-center gap-2.5 shrink-0">
-                    <img src="../assets/images/vietravel-logo-doc.png" alt="Vietravel Airlines" class="h-8 sm:h-9 object-contain" />
-                    <span class="font-extrabold text-xs sm:text-sm text-slate-900 tracking-tight border-l border-slate-200 pl-2.5">Cargo Admin</span>
-                </a>
-                <nav class="hidden md:flex items-center gap-1 text-xs font-semibold">
-                    <a href="02-AdminDashboard.html" class="px-3 py-1.5 rounded-xl text-slate-600 hover:text-blue-600 hover:bg-slate-100 transition flex items-center gap-1.5 whitespace-nowrap">
-                        <i class="fa-solid fa-chart-pie"></i> Dashboard
-                    </a>
-                    <a href="03-AuctionList.html" class="px-3 py-1.5 rounded-xl text-slate-600 hover:text-blue-600 hover:bg-slate-100 transition flex items-center gap-1.5 whitespace-nowrap">
-                        <i class="fa-solid fa-list-check"></i> Quản lý phiên
-                    </a>
-                    <a href="04-CreateAuction.html" class="px-3 py-1.5 rounded-xl text-slate-600 hover:text-blue-600 hover:bg-slate-100 transition flex items-center gap-1.5 whitespace-nowrap">
-                        <i class="fa-solid fa-plus-circle"></i> Tạo phiên mới
-                    </a>
-                    <a href="06-AgentList.html" class="px-3 py-1.5 rounded-xl text-slate-600 hover:text-blue-600 hover:bg-slate-100 transition flex items-center gap-1.5 whitespace-nowrap">
-                        <i class="fa-solid fa-building-user"></i> Đại lý &amp; Duyệt đơn
-                    </a>
-                    <a href="07-Reports.html" class="px-3 py-1.5 rounded-xl bg-blue-50 text-blue-600 font-extrabold flex items-center gap-1.5 whitespace-nowrap">
-                        <i class="fa-solid fa-chart-line"></i> Báo cáo
-                    </a>
-                    <a href="08-Settings.html" class="px-3 py-1.5 rounded-xl text-slate-600 hover:text-blue-600 hover:bg-slate-100 transition flex items-center gap-1.5 whitespace-nowrap">
-                        <i class="fa-solid fa-sliders"></i> Cài đặt
-                    </a>
-                    <a href="10-AuditLogs.html" class="px-3 py-1.5 rounded-xl text-slate-600 hover:text-blue-600 hover:bg-slate-100 transition flex items-center gap-1.5 whitespace-nowrap">
-                        <i class="fa-solid fa-clock-rotate-left"></i> Nhật ký
-                    </a>
-                    <a href="09-AdminChat.html" class="px-3 py-1.5 rounded-xl bg-purple-50 text-purple-700 hover:bg-purple-100 transition flex items-center gap-1.5 font-bold whitespace-nowrap"><i class="fa-solid fa-headset"></i> Chat Hỗ trợ<span id="admin-chat-badge" class="hidden bg-red-500 text-white text-[9px] font-bold px-1.5 py-0.5 rounded-full ml-1">0</span></a>
-                </nav>
-            </div>
-            <div class="flex items-center gap-2">
-                <span class="admin-header-role text-[10px] font-bold px-2 py-0.5 rounded-full bg-blue-50 text-blue-700 border border-blue-200 inline-flex items-center gap-1 whitespace-nowrap">
-                    <i class="fa-solid fa-shield-halved text-[9px]"></i> QUẢN TRỊ VIÊN
-                </span>
-                <div class="flex items-center gap-2 border-l border-slate-200 pl-2.5 ml-1">
-                    <div class="w-7 h-7 rounded-full bg-slate-900 text-white flex items-center justify-center font-bold text-xs admin-header-avatar shadow-xs">
-                        TQ
-                    </div>
-                    <span class="text-xs text-slate-800 font-bold admin-header-name hidden sm:inline">Trần Quản Trị</span>
-                    <a href="01-AdminLogin.html" onclick="if(window.CargoStore) CargoStore.logoutAdmin()" title="Đăng xuất" class="text-slate-400 hover:text-red-500 p-1 transition ml-1">
-                        <i class="fa-solid fa-power-off text-xs"></i>
-                    </a>
+        /* Right Bar */
+        .admin-right { display:flex; align-items:center; gap:0.5rem; flex-shrink:0; }
+        .admin-public-link {
+            display:none; align-items:center; gap:5px;
+            font-size:0.68rem; font-weight:600; color:rgba(148,163,184,0.9);
+            background:rgba(255,255,255,0.06); border:1px solid rgba(255,255,255,0.1);
+            padding:4px 10px; border-radius:8px; text-decoration:none;
+            transition:all 0.15s;
+        }
+        @media (min-width:1024px) { .admin-public-link { display:flex; } }
+        .admin-public-link:hover { color:#fff; background:rgba(255,255,255,0.1); }
+        .admin-sep { width:1px; height:24px; background:rgba(255,255,255,0.12); }
+        .admin-avatar {
+            width:32px; height:32px; border-radius:50%;
+            background:linear-gradient(135deg,#3b82f6,#6366f1);
+            color:#fff; font-weight:800; font-size:0.7rem;
+            display:flex; align-items:center; justify-content:center;
+            border:2px solid rgba(255,255,255,0.15);
+            flex-shrink:0;
+        }
+        .admin-user-info { display:none; flex-direction:column; text-align:right; }
+        @media (min-width:640px) { .admin-user-info { display:flex; } }
+        .admin-user-name { font-size:0.72rem; font-weight:700; color:#e2e8f0; line-height:1.2; }
+        .admin-user-role { font-size:0.6rem; font-weight:700; color:#60a5fa; text-transform:uppercase; letter-spacing:0.08em; }
+        .admin-logout {
+            color:rgba(148,163,184,0.7); padding:6px; border-radius:8px;
+            text-decoration:none; transition:all 0.15s; font-size:0.8rem;
+            border:1px solid transparent;
+        }
+        .admin-logout:hover { color:#f87171; background:rgba(239,68,68,0.1); border-color:rgba(239,68,68,0.2); }
+
+        /* Mobile hamburger */
+        .admin-hamburger {
+            display:flex; align-items:center; justify-content:center;
+            width:34px; height:34px; border-radius:8px;
+            background:rgba(255,255,255,0.07); border:1px solid rgba(255,255,255,0.12);
+            color:#cbd5e1; cursor:pointer; font-size:0.85rem;
+            transition:all 0.15s;
+        }
+        .admin-hamburger:hover { background:rgba(255,255,255,0.12); color:#fff; }
+        @media (min-width:768px) { .admin-hamburger { display:none; } }
+
+        /* Mobile dropdown */
+        #adminMobileNav {
+            display:none; padding: 0.75rem 1rem;
+            background:#1e293b; border-top:1px solid rgba(255,255,255,0.08);
+            max-width:1400px; margin:0 auto;
+        }
+        #adminMobileNav.open { display:block; }
+        .mobile-nav-item {
+            display:flex; align-items:center; gap:0.6rem;
+            padding:8px 12px; border-radius:8px; margin-bottom:2px;
+            font-size:0.76rem; font-weight:600; color:#cbd5e1;
+            text-decoration:none; transition:all 0.15s;
+        }
+        .mobile-nav-item:hover { color:#fff; background:rgba(255,255,255,0.08); }
+        .mobile-nav-item.active { color:#fff; background:rgba(59,130,246,0.75); }
+        .mobile-nav-item.chat-item { color:#c4b5fd; }
+        .mobile-nav-item.active-chat { color:#fff; background:rgba(139,92,246,0.75); }
+    </style>
+    <header id="adminHeader">
+        <div class="admin-inner">
+            <!-- Brand -->
+            <button type="button" class="admin-hamburger" onclick="document.getElementById('adminMobileNav').classList.toggle('open')" aria-label="Menu">
+                <i class="fa-solid fa-bars"></i>
+            </button>
+            <a href="02-AdminDashboard.html" class="admin-brand">
+                <img src="../assets/images/vietravel-logo-doc.png" alt="Vietravel Airlines" />
+                <div class="admin-brand-sep"></div>
+                <div>
+                    <span class="admin-brand-sub">Portal Quản Trị</span>
+                    <span class="admin-brand-text">Cargo Admin</span>
                 </div>
+            </a>
+
+            <!-- Desktop Nav -->
+            <nav class="admin-nav">
+                    <a href="02-AdminDashboard.html" class="nav-item-admin"><i class="fa-solid fa-gauge-high"></i>Dashboard</a>
+                    <a href="03-AuctionList.html" class="nav-item-admin"><i class="fa-solid fa-list-check"></i>Quản lý phiên</a>
+                    <a href="04-CreateAuction.html" class="nav-item-admin"><i class="fa-solid fa-circle-plus"></i>Tạo phiên</a>
+                    <a href="06-AgentList.html" class="nav-item-admin"><i class="fa-solid fa-building-user"></i>Đại lý</a>
+                    <a href="07-Reports.html" class="nav-item-admin active"><i class="fa-solid fa-chart-line"></i>Báo cáo</a>
+                    <a href="08-Settings.html" class="nav-item-admin"><i class="fa-solid fa-sliders"></i>Cài đặt</a>
+                    <a href="10-AuditLogs.html" class="nav-item-admin"><i class="fa-solid fa-clock-rotate-left"></i>Nhật ký</a>
+                    <a href="09-AdminChat.html" class="nav-item-admin chat-item"><i class="fa-solid fa-headset"></i>Chat<span id="admin-chat-badge" class="hidden chat-badge">0</span></a>
+            </nav>
+
+            <!-- Right Bar -->
+            <div class="admin-right">
+                <a href="../00-Home.html" target="_blank" class="admin-public-link">
+                    <i class="fa-solid fa-arrow-up-right-from-square text-[9px]"></i> Sàn công khai
+                </a>
+                <div class="admin-sep"></div>
+                <div class="admin-avatar admin-header-avatar">AD</div>
+                <div class="admin-user-info">
+                    <span class="admin-user-name admin-header-name">Quản trị viên</span>
+                    <span class="admin-user-role admin-header-role">QUẢN TRỊ VIÊN</span>
+                </div>
+                <a href="01-AdminLogin.html" onclick="if(window.CargoStore) CargoStore.logoutAdmin()" class="admin-logout" title="Đăng xuất">
+                    <i class="fa-solid fa-power-off"></i>
+                </a>
             </div>
         </div>
 
-        <!-- Mobile Navigation Menu Dropdown -->
-        <div id="adminMobileNav" class="hidden md:hidden bg-white border-t border-slate-200 px-4 py-3 space-y-1 text-xs font-semibold shadow-lg">
-            <a href="02-AdminDashboard.html" class="flex items-center gap-2 px-3 py-2 rounded-xl text-slate-700 hover:text-blue-600 hover:bg-slate-50 transition font-medium">
-                <i class="fa-solid fa-chart-pie w-4"></i> Bảng điều khiển
-            </a>
-            <a href="03-AuctionList.html" class="flex items-center gap-2 px-3 py-2 rounded-xl text-slate-700 hover:text-blue-600 hover:bg-slate-50 transition font-medium">
-                <i class="fa-solid fa-list-check w-4"></i> Quản lý phiên đấu giá
-            </a>
-            <a href="04-CreateAuction.html" class="flex items-center gap-2 px-3 py-2 rounded-xl text-slate-700 hover:text-blue-600 hover:bg-slate-50 transition font-medium">
-                <i class="fa-solid fa-plus-circle w-4"></i> Tạo phiên mới
-            </a>
-            <a href="06-AgentList.html" class="flex items-center gap-2 px-3 py-2 rounded-xl text-slate-700 hover:text-blue-600 hover:bg-slate-50 transition font-medium">
-                <i class="fa-solid fa-building-user w-4"></i> Đại lý &amp; Duyệt đơn
-            </a>
-            <a href="07-Reports.html" class="flex items-center gap-2 px-3 py-2 rounded-xl text-slate-700 hover:text-blue-600 hover:bg-slate-50 transition font-medium">
-                <i class="fa-solid fa-chart-line w-4"></i> Báo cáo doanh thu
-            </a>
-            <a href="08-Settings.html" class="flex items-center gap-2 px-3 py-2 rounded-xl text-slate-700 hover:text-blue-600 hover:bg-slate-50 transition font-medium">
-                <i class="fa-solid fa-sliders w-4"></i> Cài đặt hệ thống
-            </a>
-            <a href="10-AuditLogs.html" class="flex items-center gap-2 px-3 py-2 rounded-xl text-slate-700 hover:text-blue-600 hover:bg-slate-50 transition font-medium">
-                <i class="fa-solid fa-clock-rotate-left w-4"></i> Nhật ký hoạt động
-            </a>
-            <a href="09-AdminChat.html" class="flex items-center gap-2 px-3 py-2 rounded-xl bg-purple-50 text-purple-700 hover:bg-purple-100 transition font-medium">
-                <i class="fa-solid fa-headset w-4"></i> Chat Hỗ trợ
-            </a>
-            <a href="../00-Home.html" target="_blank" class="flex items-center gap-2 px-3 py-2 rounded-xl text-blue-600 hover:bg-blue-50 transition border-t border-slate-200 pt-2.5 mt-1 font-medium">
-                <i class="fa-solid fa-external-link w-4"></i> Xem Sàn công khai
+        <!-- Mobile Dropdown -->
+        <div id="adminMobileNav">
+            <a href="02-AdminDashboard.html" class="mobile-nav-item"><i class="fa-solid fa-gauge-high w-4"></i>Dashboard</a>
+            <a href="03-AuctionList.html" class="mobile-nav-item"><i class="fa-solid fa-list-check w-4"></i>Quản lý phiên</a>
+            <a href="04-CreateAuction.html" class="mobile-nav-item"><i class="fa-solid fa-circle-plus w-4"></i>Tạo phiên</a>
+            <a href="06-AgentList.html" class="mobile-nav-item"><i class="fa-solid fa-building-user w-4"></i>Đại lý</a>
+            <a href="07-Reports.html" class="mobile-nav-item active"><i class="fa-solid fa-chart-line w-4"></i>Báo cáo</a>
+            <a href="08-Settings.html" class="mobile-nav-item"><i class="fa-solid fa-sliders w-4"></i>Cài đặt</a>
+            <a href="10-AuditLogs.html" class="mobile-nav-item"><i class="fa-solid fa-clock-rotate-left w-4"></i>Nhật ký</a>
+            <a href="09-AdminChat.html" class="mobile-nav-item chat-item"><i class="fa-solid fa-headset w-4"></i>Chat<span id="admin-chat-badge-m" class="hidden chat-badge ml-auto">0</span></a>
+            <a href="../00-Home.html" target="_blank" class="mobile-nav-item" style="border-top:1px solid rgba(255,255,255,0.08);margin-top:6px;padding-top:10px">
+                <i class="fa-solid fa-arrow-up-right-from-square w-4"></i> Xem Sàn công khai
             </a>
         </div>
     </header>

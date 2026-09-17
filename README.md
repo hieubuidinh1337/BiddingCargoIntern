@@ -221,6 +221,8 @@ SMTP_PASS=fcjuktvwjqhgilzb
 
 Dự án được trang bị bộ kiểm thử tự động toàn diện **Jest & Supertest** phục vụ kiểm tra tự động tất cả các luồng nghiệp vụ API (Integration Test) và phòng ngừa lỗ hổng an ninh mạng.
 
+> **Trạng thái hiện tại (v1.2):** ✅ **12/12 Test Cases PASS** — Bộ test tự khởi/tắt HTTP Server tại cổng `8086` (không cần server đang chạy riêng).
+
 ### 📋 Test Checklist Chi Tiết:
 
 #### 🟢 Kịch Bản Tích Cực (Happy Path):
@@ -230,6 +232,8 @@ Dự án được trang bị bộ kiểm thử tự động toàn diện **Jest 
 | **HP-02** | Tạo mã QR Thanh toán MoMo | `POST /api/momo/create` | Trả về `200 OK`, `orderInfo` đúng chuẩn `AG0892-VU130-16092026`, tự động Cap số tiền Sandbox `<= 50.000.000 VNĐ`. |
 | **HP-03** | Webhook MoMo IPN Xác thực | `POST /api/momo/ipn` | Trực tiếp kiểm tra chữ ký HMAC-SHA256, tự động cập nhật đơn thầu sang `PAID` khi chữ ký hợp lệ. |
 | **HP-04** | Luồng Hỗ trợ Trực tuyến Chat | `POST /api/chat/create` & `POST /api/chat/send` | Khởi tạo phiên chat thành công, nhân viên và đại lý trao đổi tin nhắn real-time. |
+| **HP-05** | Sealed-Bid Privacy Guard | `GET /api/data?agentCode=AG-0892` | Giá thầu đối thủ trong phiên OPEN được ẩn danh thành `AG-***` — không rò rỉ thông tin cạnh tranh. |
+| **HP-06** | Đặt thầu Atomic Sealed-Bid | `POST /api/bids/place` | Lượt bid được ghi nhận nguyên tử vào SQLite, trả về `200 OK` với object `bid` đầy đủ. |
 
 #### 🔴 Kịch Bản Tiêu Cực & Lỗ Hổng Bảo Mật (Negative Path & Security Edge Cases):
 | Mã TC | Kịch bản lỗi / Tấn công | Thao tác / API | Kết quả mong đợi |
@@ -250,6 +254,48 @@ cd bidding-cargo-app
 # Thực thi toàn bộ bộ Test Suite tự động bằng Jest & Supertest
 npm test
 ```
+
+> **Lưu ý:** Bộ test tự động khởi động server nội bộ tại cổng `8086` trong `beforeAll` và tắt trong `afterAll` — **không cần** chạy `node server.js` trước.
+
+---
+
+## 🔧 10. Các Lỗi Đã Sửa (Bug Fixes — v1.1 & v1.2)
+
+### v1.1 — Backend & Test Suite
+| File | Vấn đề | Trạng thái |
+| :--- | :--- | :--- |
+| `server.js` | Biến `changed` chưa khai báo trong handler POST `/api/data` gây `ReferenceError` tiềm ẩn | ✅ Đã sửa |
+| `server.js` | Server không thể dừng sau test, gây `ECONNREFUSED` trong Jest (không có `module.exports`) | ✅ Đã sửa |
+| `server.js` | `saveServerData()` gọi SQLite sau khi DB đã đóng trong quá trình test teardown | ✅ Đã sửa |
+| `db.js` | Thiếu hàm `close()` để đóng kết nối SQLite sau khi Jest chạy xong | ✅ Đã sửa |
+| `tests/api.test.js` | Dùng URL string `http://localhost:8085` nên lỗi `ECONNREFUSED` khi server chưa chạy | ✅ Đã sửa |
+
+### v1.2 — HTML ↔ DB Schema Audit & Admin UI
+| File | Vấn đề | Trạng thái |
+| :--- | :--- | :--- |
+| `db.js`, `schema.sql` | `cargoDeclaration` chỉ lưu LocalStorage, không persist SQLite → mất dữ liệu khi xóa cache | ✅ Thêm column `cargo_declaration_json TEXT` + migration |
+| `server.js` | Status agent không nhất quán: HTML so sánh `'LOCKED'` nhưng server ghi `'Đã khóa'` | ✅ Chuẩn hóa sang `'LOCKED'` |
+| `schema.sql` | Bảng `activity_logs` có trong `db.js` nhưng thiếu trong `schema.sql` | ✅ Thêm DDL vào `schema.sql` |
+| `db.js` | `staff02/staff2026` ghi trong README nhưng không seed vào DB | ✅ Thêm USR-008 vào cả hai hàm seed |
+| `cargo-store.js` | Hardcoded `http://localhost:8085/api/data` trong `saveData()` và `syncWithServer()` | ✅ Đổi sang relative `/api/data` |
+| `Admin/10-AuditLogs.html` | Nav links sai: `01-Dashboard.html`, `02-AuctionManagement.html`... không tồn tại | ✅ Đổi sang đúng tên file |
+| `Admin/*.html` (9 trang) | Header trắng đơn giản, thiếu nhất quán — không nổi bật | ✅ Redesign: Premium dark header đồng bộ |
+
+---
+
+## 🎨 11. Admin Portal — Premium Dark Header (v1.2)
+
+Toàn bộ 9 trang Admin Portal (`02-AdminDashboard.html` → `10-AuditLogs.html`) đã được nâng cấp header đồng bộ:
+
+| Đặc điểm | Chi tiết |
+| :--- | :--- |
+| **Background** | Dark navy gradient `#0f172a → #1e293b` |
+| **Accent line** | Bottom border gradient xanh tím |
+| **Active nav item** | Blue glow pill `rgba(59,130,246,0.85)` + `box-shadow` |
+| **Chat nav item** | Purple accent riêng biệt |
+| **Logo** | Tự động trắng trên nền tối (`filter: brightness(0) invert(1)`) |
+| **Mobile** | Hamburger → dropdown dark đồng bộ |
+| **Active state** | Mỗi trang tự highlight đúng nav item tương ứng |
 
 ---
 

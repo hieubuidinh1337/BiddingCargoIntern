@@ -235,7 +235,7 @@ async function buildDoc() {
                         alignment: AlignmentType.CENTER,
                         spacing: { before: 100, after: 600 },
                         children: [
-                            new TextRun({ text: "Version v1.0", bold: true, size: 26, color: "D97706", font: "Times New Roman" })
+                            new TextRun({ text: "Version v1.2", bold: true, size: 26, color: "D97706", font: "Times New Roman" })
                         ]
                     }),
                     new Paragraph({ spacing: { before: 1200, after: 200 } }),
@@ -305,7 +305,7 @@ async function buildDoc() {
                     bullet("Tự động hóa Thanh toán & Phát hành vận đơn: Tích hợp trực tiếp cổng thanh toán MoMo QR Code với xác thực chữ ký số HMAC-SHA256 realtime, cập nhật trạng thái đơn hàng tức thì."),
                     bullet("Truy xuất Nguồn gốc & Nhật ký An ninh: Toàn bộ thao tác đặt giá, phê duyệt hồ sơ và giao dịch được ghi vết lưu trữ trên hệ thống SQLite / SQL Server 2022."),
 
-                    heading1("2. TỔỔNG QUAN LUỒNG NGHIỆP VỤ & SƠ ĐỒ HOẠT ĐỘNG (SYSTEM FLOWS)"),
+                    heading1("2. TỔNG QUAN LUỒNG NGHIỆP VỤ & SƠ ĐỒ HOẠT ĐỘNG (SYSTEM FLOWS)"),
                     paragraph("Hệ thống bao gồm 5 Luồng Nghiệp vụ chính (End-to-End Business Workflows) vận hành giữa hai phân hệ chính: Phân hệ Đại lý (Agent Portal) và Phân hệ Quản trị (Admin Operations Portal)."),
 
                     heading2("2.1. Sơ đồ tổng thể các Luồng Nghiệp vụ"),
@@ -375,12 +375,63 @@ async function buildDoc() {
 
                     heading1("5. TIÊU CHUẨN AN NINH & BẢO MẬT HỆ THỐNG"),
                     bullet("Xác thực Chữ ký số MoMo IPN: Đảm bảo 100% các giao dịch thanh toán được xác thực HMAC-SHA256, chống giả mạo request thanh toán giả (Anti-Replay & Anti-Tampering)."),
-                    bullet("Bảo mật Chống Path Traversal: Đường dẫn truy cập tập tin `/uploads/` được mã hóa kiểm tra ngặt nghèo, ngăn chặn các cuộc tấn công đọc file hệ thống trái phép."),
-                    bullet("Bảo mật Sealed-Bid Privacy: Dữ liệu giá thầu được mã hóa phân quyền trả về theo token/session của từng đại lý, đảm bảo không rò rỉ dữ liệu cạnh tranh."),
-                    bullet("SQL Injection & Atomic Transaction: Mọi câu lệnh thao tác SQLite/SQL Server đều sử dụng Parameterized Query và Transaction cô lập (Isolation level)."),
+                    bullet("Bảo mật Chống Path Traversal: Đường dẫn truy cập tập tin /uploads/ được kiểm tra ngặt nghèo, ngăn chặn các cuộc tấn công đọc file hệ thống trái phép."),
+                    bullet("Bảo mật Sealed-Bid Privacy: Dữ liệu giá thầu được phân quyền trả về theo agentCode của từng đại lý, đảm bảo không rò rỉ dữ liệu cạnh tranh."),
+                    bullet("SQL Injection & Atomic Transaction: Mọi câu lệnh thao tác SQLite đều sử dụng Parameterized Query và Transaction cô lập."),
 
-                    heading1("6. KẾT LUẬN & HƯỚNG DẪN VẬN HÀNH"),
-                    paragraph("Giải pháp Sàn Đấu Giá Tải Trọng Hàng Không Vietravel Airlines (VU Air Cargo Bidding) v1.0 đã đáp ứng hoàn hảo các yêu cầu về nghiệp vụ vận tải hàng không hiện đại, mang lại quy trình minh bạch, tốc độ và tối ưu doanh thu khai thác tối đa cho Hãng."),
+                    heading1("6. KIỂM THỬ TỰ ĐỘNG (AUTOMATION TEST SUITE — JEST & SUPERTEST)"),
+                    paragraph("Trạng thái v1.1: 12/12 Test Cases PASS — bộ test tự khởi động HTTP Server nội bộ (cổng 8086), không phụ thuộc server đang chạy ngoài."),
+                    createStyledTable(
+                        ["Mã TC", "Kịch bản", "API Endpoint", "Kết quả"],
+                        [
+                            ["HP-01", "Lấy cấu trúc dữ liệu sàn thầu", "GET /api/data", "200 OK — auctions & wonAuctions hợp lệ"],
+                            ["HP-02", "Tạo mã QR Thanh toán MoMo", "POST /api/momo/create", "200 OK — orderInfo chuẩn, amount capped 50M VND"],
+                            ["HP-03", "Webhook MoMo IPN HMAC-SHA256", "POST /api/momo/ipn", "204 No Content — paymentStatus cập nhật PAID"],
+                            ["HP-04", "Luồng hỗ trợ Chat Realtime", "POST /api/chat/create + send", "200 OK — phiên chat tạo & nhắn tin thành công"],
+                            ["HP-05", "Sealed-Bid Privacy Guard", "GET /api/data?agentCode=AG-0892", "200 OK — bids đối thủ bị ẩn danh AG-***"],
+                            ["HP-06", "Đặt thầu Atomic SQLite", "POST /api/bids/place", "200 OK — bid ghi nguyên tử vào DB"],
+                            ["NP-01", "Thiếu wonId", "POST /api/momo/create", "400 — wonId is required"],
+                            ["NP-02", "wonId không tồn tại", "POST /api/momo/create", "404 — Won auction not found"],
+                            ["NP-03", "Đơn đã PAID thanh toán lại", "POST /api/momo/create", "400 — Order already paid"],
+                            ["NP-04", "Chữ ký HMAC giả mạo", "POST /api/momo/ipn", "400 — Invalid signature"],
+                            ["NP-05", "Path Traversal ../../.env", "GET /uploads/../../.env", "403 Forbidden — Security Guard chặn"],
+                            ["NP-06", "Thiếu wonId query param", "GET /api/momo/status", "400 Bad Request"]
+                        ]
+                    ),
+
+                    heading1("7. CÁC LỖI ĐÃ SỬA (BUG FIXES — v1.1)"),
+                    createStyledTable(
+                        ["File", "Vấn đề", "Trạng thái"],
+                        [
+                            ["server.js", "Biến 'changed' chưa khai báo trong POST /api/data — gây ReferenceError tiềm ẩn", "Đã sửa"],
+                            ["server.js", "Thiếu module.exports — server không thể dừng sau test, gây ECONNREFUSED trong Jest", "Đã sửa"],
+                            ["server.js", "saveServerData() gọi SQLite sau khi DB đóng trong test teardown", "Đã sửa"],
+                            ["db.js", "Thiếu hàm close() để đóng kết nối SQLite khi Jest kết thúc", "Đã sửa"],
+                            ["tests/api.test.js", "Dùng URL string localhost:8085 — ECONNREFUSED khi server chưa chạy", "Đã sửa"]
+                        ]
+                    ),
+
+                    heading1("9. KIỂM TRĂ HTML ↔ DB SCHEMA & NÂNG CẤP GIAO DIỆN (v1.2)"),
+                    paragraph("Kết quả kiểm tra toàn bộ 20 trang HTML đối chiếu với SQLite schema: 0 API endpoint sai, 6 issues phát hiện và đã xử lý hoàn toàn."),
+                    createStyledTable(
+                        ["File", "Vấn đề phát hiện", "Trạng thái"],
+                        [
+                            ["db.js, schema.sql", "cargoDeclaration (khai báo hàng hóa IATA) chỉ lưu LocalStorage, không persist SQLite", "Đã sửa: thêm cargo_declaration_json TEXT + migration"],
+                            ["server.js", "Agent status không nhất quán: HTML so sánh 'LOCKED', server ghi 'Đã khóa'", "Đã sửa: chuẩn hóa sang 'LOCKED'"],
+                            ["schema.sql", "Bảng activity_logs có trong db.js nhưng thiếu trong schema.sql", "Đã sửa: thêm DDL đầy đủ"],
+                            ["db.js", "staff02/staff2026 ghi trong tài liệu nhưng không seed vào DB", "Đã sửa: thêm USR-008"],
+                            ["cargo-store.js", "Hardcoded localhost:8085/api/data trong saveData() và syncWithServer()", "Đã sửa: dùng relative /api/data"],
+                            ["Admin/10-AuditLogs.html", "Nav links sai: 01-Dashboard.html, 02-AuctionManagement.html không tồn tại", "Đã sửa: đổi sang đúng tên file"],
+                            ["Admin/*.html (9 trang)", "Header trắng đơn giản, thiếu nhất quán thiết kế", "Đã redesign: Premium dark header đồng bộ toàn portal"]
+                        ]
+                    ),
+                    paragraph("Admin Portal Premium Dark Header — 9 trang đồng bộ: Dark navy gradient (#0f172a → #1e293b), accent line gradient xanh-tím, Blue glow pill cho active nav, Purple accent riêng cho Chat, mobile hamburger dropdown."),
+
+                    heading1("& KIỂM THỬ TỰ ĐỘNG CẬP NHẬT — 12/12 Test Cases PASS (v1.2)"),
+                    paragraph("Bộ test Jest & Supertest vẫn duy trì 12/12 PASS sau toàn bộ các thay đổi v1.2 — không có regression."),
+
+                    heading1("10. KẾT LUẬN & HƯỚNG DẪN VẬN HÀNH"),
+                    paragraph("Giải pháp Sàn Đấu Giá Tải Trọng Hàng Không Vietravel Airlines (VU Air Cargo Bidding) v1.2 đã đáp ứng hoàn hảo các yêu cầu về nghiệp vụ vận tải hàng không hiện đại, mang lại quy trình minh bạch, tốc độ và tối ưu doanh thu khai thác tối đa cho Hãng."),
                     paragraph("Mọi thắc mắc kỹ thuật hoặc hỗ trợ vận hành xin vui lòng liên hệ:"),
                     bullet("Khối Khai thác Vận tải Hàng hóa - Vietravel Airlines"),
                     bullet("Trụ sở chính: Số 172 Ngọc Khánh, Phường Giảng Võ, Thành phố Hà Nội, Việt Nam"),
