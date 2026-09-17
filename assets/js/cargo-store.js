@@ -2785,15 +2785,38 @@ const CargoStore = (function() {
                 if (isAdminNotif(n)) return false;
                 
                 const targetCode = String(n.targetAgentCode || '').trim().toUpperCase();
+                const titleUpper = String(n.title || '').toUpperCase();
+                const msgUpper = String(n.message || '').toUpperCase();
+                const combinedText = titleUpper + ' ' + msgUpper;
 
-                // WON, OUTBID, HIGHEST, and PAYMENT_REMINDER notifications are strictly agent-specific
-                if (n.type === 'WON' || n.type === 'OUTBID' || n.type === 'HIGHEST' || n.type === 'PAYMENT_REMINDER') {
-                    return targetCode === myCode;
+                // WON, OUTBID, HIGHEST, PAYMENT_REMINDER, and REGISTRATION_APPROVED/REJECTED are strictly agent-specific
+                const isAgentSpecific = (
+                    n.type === 'WON' || n.type === 'OUTBID' || n.type === 'HIGHEST' || n.type === 'PAYMENT_REMINDER' ||
+                    n.type === 'REGISTRATION_APPROVED' || n.type === 'REGISTRATION_REJECTED' || n.type === 'AGENT' ||
+                    titleUpper.includes('PHÊ DUYỆT HỒ SƠ') || titleUpper.includes('CẤP MÃ ĐẠI LÝ') || titleUpper.includes('TỪ CHỐI HỒ SƠ') ||
+                    titleUpper.includes('KHÓA TÀI KHOẢN') || msgUpper.includes('CẤP MÃ ĐẠI LÝ') || msgUpper.includes('MÃ ĐẠI LÝ CHÍNH THỨC')
+                );
+
+                if (isAgentSpecific) {
+                    if (targetCode) {
+                        return targetCode === myCode;
+                    }
+                    const codeMatch = combinedText.match(/AG-\d{4}/);
+                    if (codeMatch) {
+                        return codeMatch[0] === myCode;
+                    }
+                    return false; // Do not leak untargeted agent-specific approvals
                 }
 
                 // If targeted to a specific agent code, match exact agent code
                 if (targetCode) {
                     return targetCode === myCode;
+                }
+
+                // Check if title or message mentions a specific AG-xxxx code of ANOTHER agent
+                const codeInText = combinedText.match(/AG-\d{4}/);
+                if (codeInText && codeInText[0] !== myCode) {
+                    return false;
                 }
 
                 // Untargeted general notifications (AUCTION_OPEN, CLOSING_SOON, SYSTEM)

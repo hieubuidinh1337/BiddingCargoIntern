@@ -337,6 +337,10 @@ async function seedFullData(data) {
         const systemAgents = [
             { code: 'VU-ADMIN-01', name: 'Quản Trị Viên VU', companyName: 'Vietravel Airlines HQ' },
             { code: 'VU-OPS-88', name: 'Nhân Viên Điều Hành Cargo', companyName: 'Trung Tâm Kho Vận Vietravel Cargo' },
+            { code: 'ADMIN', name: 'Ban Quản Trị Hệ Thống', companyName: 'Vietravel Airlines Admin' },
+            { code: 'ALL', name: 'Toàn Bộ Hệ Thống', companyName: 'Vietravel Airlines System' },
+            { code: 'SYSTEM', name: 'Hệ Thống Tự Động', companyName: 'System Operations' },
+            { code: 'STAFF', name: 'Nhân Viên Khai Thác', companyName: 'Vietravel Cargo Ops' },
             { code: 'AG-0892', name: 'ABC Logistics', companyName: 'Công ty TNHH Vận tải ABC Logistics' },
             { code: 'AG-1024', name: 'Vinatrans', companyName: 'Công ty CP Giao nhận Kho vận Vinatrans' },
             { code: 'AG-0556', name: 'Golden Star', companyName: 'Công ty TNHH Tiếp vận Toàn Cầu Golden Star' },
@@ -351,27 +355,18 @@ async function seedFullData(data) {
             `, [sa.code, sa.name, sa.companyName]);
         }
 
-        // Auto-insert any missing agent codes from chats or wonAuctions into agents table
-        if (Array.isArray(data.chats)) {
-            for (const c of data.chats) {
-                if (c.agentCode) {
-                    await run(`
-                        INSERT OR IGNORE INTO agents (code, name, companyName, status, password, pin)
-                        VALUES (?, ?, ?, 'Hoạt động', '123456', '1234')
-                    `, [c.agentCode, c.agentName || 'Đại lý', c.agentName || 'Đại lý']);
-                }
-            }
-        }
+        // Auto-insert any missing agent codes referenced in chats, wonAuctions, notifications, bids into agents table
+        const referencedAgentCodes = new Set();
+        if (Array.isArray(data.chats)) data.chats.forEach(c => c.agentCode && referencedAgentCodes.add(String(c.agentCode)));
+        if (Array.isArray(data.wonAuctions)) data.wonAuctions.forEach(w => w.agentCode && referencedAgentCodes.add(String(w.agentCode)));
+        if (Array.isArray(data.notifications)) data.notifications.forEach(n => n.targetAgentCode && referencedAgentCodes.add(String(n.targetAgentCode)));
+        if (Array.isArray(data.bids)) data.bids.forEach(b => b.agentCode && referencedAgentCodes.add(String(b.agentCode)));
 
-        if (Array.isArray(data.wonAuctions)) {
-            for (const w of data.wonAuctions) {
-                if (w.agentCode) {
-                    await run(`
-                        INSERT OR IGNORE INTO agents (code, name, companyName, status, password, pin)
-                        VALUES (?, ?, ?, 'Hoạt động', '123456', '1234')
-                    `, [w.agentCode, 'Đại lý thắng thầu', 'Đại lý thắng thầu']);
-                }
-            }
+        for (const code of referencedAgentCodes) {
+            await run(`
+                INSERT OR IGNORE INTO agents (code, name, companyName, status, password, pin)
+                VALUES (?, ?, ?, 'Hoạt động', '123456', '1234')
+            `, [code, `Đại lý (${code})`, `Công ty Đại lý ${code}`]);
         }
 
         // 2. Insert auctions SECOND so child tables referencing auctions(id) satisfy Foreign Keys
@@ -391,15 +386,18 @@ async function seedFullData(data) {
             }
         }
 
-        // Auto-insert missing auction IDs from wonAuctions if any
-        if (Array.isArray(data.wonAuctions)) {
-            for (const w of data.wonAuctions) {
-                if (w.auctionId) {
-                    await run(`
-                        INSERT OR IGNORE INTO auctions (id, flightNumber, route, status, startingPriceKg, currentPriceKg)
-                        VALUES (?, 'VU-HIST', 'SGN - HAN', 'CLOSED', 18000, 22000)
-                    `, [w.auctionId]);
-                }
+        // Auto-insert missing auction IDs from wonAuctions or bids if any
+        const referencedAuctionIds = new Set();
+        if (Array.isArray(data.wonAuctions)) data.wonAuctions.forEach(w => w.auctionId && referencedAuctionIds.add(w.auctionId));
+        if (Array.isArray(data.bids)) data.bids.forEach(b => b.auctionId && referencedAuctionIds.add(b.auctionId));
+
+        for (const aId of referencedAuctionIds) {
+            const numId = Number(aId);
+            if (!isNaN(numId) && numId > 0) {
+                await run(`
+                    INSERT OR IGNORE INTO auctions (id, flightNumber, route, status, startingPriceKg, currentPriceKg)
+                    VALUES (?, 'VU-HIST', 'SGN - HAN', 'CLOSED', 18000, 22000)
+                `, [numId]);
             }
         }
 
@@ -424,11 +422,13 @@ async function seedFullData(data) {
         // 4. Insert bids
         if (Array.isArray(data.bids)) {
             for (const b of data.bids) {
+                const bAuctionId = (b.auctionId && !isNaN(Number(b.auctionId))) ? Number(b.auctionId) : null;
+                const bAgentCode = (b.agentCode && String(b.agentCode).trim()) ? String(b.agentCode).trim() : null;
                 await run(`
                     INSERT OR REPLACE INTO bids (id, timestamp, auctionId, agentCode, agentName, isAnonymous, priceKg, time, status, weightKg)
                     VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
                 `, [
-                    String(b.id), b.timestamp || Date.now(), b.auctionId, b.agentCode, b.agentName,
+                    String(b.id), b.timestamp || Date.now(), bAuctionId, bAgentCode, b.agentName,
                     b.isAnonymous ? 1 : 0, b.priceKg || 0, b.time || '', b.status || 'OUTBID', b.weightKg || 0
                 ]);
             }
@@ -437,12 +437,14 @@ async function seedFullData(data) {
         // 5. Insert won_auctions
         if (Array.isArray(data.wonAuctions)) {
             for (const w of data.wonAuctions) {
+                const wAuctionId = (w.auctionId && !isNaN(Number(w.auctionId))) ? Number(w.auctionId) : null;
+                const wAgentCode = (w.agentCode && String(w.agentCode).trim()) ? String(w.agentCode).trim() : null;
                 await run(`
                     INSERT OR REPLACE INTO won_auctions
                     (wonId, auctionId, agentCode, flightNumber, route, capacityKg, priceKg, totalAmountVND, paymentDeadline, paymentStatus, paidAt, awbNumber, cutOffTime, warehouse, lockWaivedByAdmin, lockPenaltyHandled, momoOrderId, momoRequestId, momoOrderInfo, momoPayUrl, momoQrCodeUrl, momoDeeplink, momoTransId, momoPaidAt, momoCreatedAt, momoExpiresAt)
                     VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
                 `, [
-                    w.wonId, w.auctionId, w.agentCode, w.flightNumber, w.route, w.capacityKg || 0, w.priceKg || 0,
+                    w.wonId, wAuctionId, wAgentCode, w.flightNumber, w.route, w.capacityKg || 0, w.priceKg || 0,
                     w.totalAmountVND || 0, w.paymentDeadline || null, w.paymentStatus || 'UNPAID', w.paidAt || null,
                     w.awbNumber || null, w.cutOffTime || null, w.warehouse || null, w.lockWaivedByAdmin ? 1 : 0,
                     w.lockPenaltyHandled ? 1 : 0, w.momoOrderId || null, w.momoRequestId || null, w.momoOrderInfo || null,
