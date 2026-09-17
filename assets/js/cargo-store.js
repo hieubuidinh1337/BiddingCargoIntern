@@ -627,8 +627,8 @@ const CargoStore = (function() {
             minIncrement: 500,
             cutoffHours: 3,
             paymentWindowHours: 24,
-            hotline: '1900-xxxx',
-            supportEmail: 'cargo-bidding@airline.vn',
+            hotline: '1900.6686',
+            supportEmail: 'customercare@vietravelairlines.vn',
             hideAgentCredentials: true,
             smtp: {
                 host: 'smtp.gmail.com',
@@ -1855,7 +1855,7 @@ const CargoStore = (function() {
                     success: false,
                     isLocked: true,
                     lockedReason: reason,
-                    message: `Tài khoản đại lý ${agent.code} (${agent.companyName}) hiện đang bị KHÓA.\n\nLý do khóa: "${reason}".\n\nVui lòng liên hệ Ban Điều hành hoặc Hotline 1900 6699 để được hỗ trợ mở khóa.`
+                    message: `Tài khoản đại lý ${agent.code} (${agent.companyName}) hiện đang bị KHÓA.\n\nLý do khóa: "${reason}".\n\nVui lòng liên hệ Ban Điều hành hoặc Hotline 1900.6686 để được hỗ trợ mở khóa.`
                 };
             }
 

@@ -892,8 +892,8 @@
     "minIncrement": 500,
     "cutoffHours": 3,
     "paymentWindowHours": 24,
-    "hotline": "1900-xxxx",
-    "supportEmail": "cargo-bidding@airline.vn",
+    "hotline": "1900.6686",
+    "supportEmail": "customercare@vietravelairlines.vn",
     "hideAgentCredentials": true,
     "smtp": {
       "host": "smtp.gmail.com",
