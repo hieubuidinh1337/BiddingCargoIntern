@@ -564,10 +564,45 @@ async function getFullServerData() {
     };
 }
 
+async function purgeUnregisteredBids() {
+    const dbAgents = await all('SELECT code FROM agents WHERE code IS NOT NULL AND code != ""');
+    const dbUsers = await all('SELECT agentCode FROM users WHERE agentCode IS NOT NULL AND agentCode != ""');
+
+    const validCodes = new Set([
+        ...dbAgents.map(a => String(a.code).trim().toUpperCase()),
+        ...dbUsers.map(u => String(u.agentCode).trim().toUpperCase())
+    ].filter(Boolean));
+
+    const allBids = await all('SELECT id, agentCode FROM bids');
+    const invalidIds = allBids
+        .filter(b => {
+            const code = String(b.agentCode || '').trim().toUpperCase();
+            return !code || code === 'AG-***' || code === 'ANONYMOUS' || !validCodes.has(code);
+        })
+        .map(b => b.id);
+
+    if (invalidIds.length > 0) {
+        console.log(`[Database] Purging ${invalidIds.length} invalid/anonymous bids not in declared agents/users tables...`);
+        const placeholders = invalidIds.map(() => '?').join(',');
+        await run(`DELETE FROM bids WHERE id IN (${placeholders})`, invalidIds);
+        console.log(`[Database] ✅ Purged ${invalidIds.length} invalid bids from SQLite.`);
+    }
+    return invalidIds.length;
+}
+
 async function placeBidAtomic({ auctionId, agentCode, agentName, priceKg, isAnonymous = true, weightKg = 0 }) {
+    if (!agentCode || agentCode.trim().toUpperCase() === 'AG-***' || agentCode.trim().toUpperCase() === 'ANONYMOUS') {
+        throw new Error('Mã đại lý không hợp lệ hoặc là mã ẩn danh (AG-***)');
+    }
+
     const agent = await get('SELECT * FROM agents WHERE UPPER(code) = UPPER(?)', [agentCode]);
     if (agent && (agent.isLocked === 1 || agent.status === 'Đã khóa' || agent.status === 'LOCKED')) {
         throw new Error('Tài khoản đại lý đã bị khóa, không thể đặt thầu');
+    }
+
+    const user = agent ? null : await get('SELECT * FROM users WHERE UPPER(agentCode) = UPPER(?)', [agentCode]);
+    if (!agent && !user) {
+        throw new Error('Đại lý chưa được khai báo hoặc không tồn tại trong hệ thống');
     }
 
     const auction = await get('SELECT * FROM auctions WHERE id = ?', [auctionId]);
@@ -656,5 +691,6 @@ module.exports = {
     seedFullData,
     getFullServerData,
     placeBidAtomic,
+    purgeUnregisteredBids,
     createAuditLog
 };

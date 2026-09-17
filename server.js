@@ -394,7 +394,13 @@ function reconcileAuctionSummaries(data) {
 async function loadServerDataAsync() {
     try {
         await db.initDatabase();
+        const purgedCount = await db.purgeUnregisteredBids();
         serverData = await db.getFullServerData();
+        if (purgedCount > 0) {
+            console.log(`[Database] Reconciling ${purgedCount} purged bids across all auctions...`);
+            reconcileAuctionSummaries(serverData);
+            await db.seedFullData(serverData);
+        }
         console.log('[Database] 100% data loaded successfully from SQLite RDBMS.');
     } catch (e) {
         console.error('[Database] Failed to load data from SQLite database:', e);
@@ -979,18 +985,31 @@ const server = http.createServer((req, res) => {
                     serverData.auctions = Array.from(map.values()).sort((a, b) => (b.id || 0) - (a.id || 0));
                 }
                 if (incoming.bids && Array.isArray(incoming.bids)) {
+                    const validAgentCodes = new Set([
+                        ...(serverData.agentsList || []).map(a => String(a.code || '').trim().toUpperCase()),
+                        ...(serverData.usersList || []).map(u => String(u.agentCode || '').trim().toUpperCase()),
+                        'AG-0892', 'AG-1024', 'AG-0556', 'AG-0341', 'AG-0789'
+                    ].filter(Boolean));
+
+                    const validIncomingBids = incoming.bids.filter(b => {
+                        if (!b) return false;
+                        const code = String(b.agentCode || '').trim().toUpperCase();
+                        return code && code !== 'AG-***' && code !== 'ANONYMOUS' && validAgentCodes.has(code);
+                    });
+
                     const bidMap = new Map();
                     (serverData.bids || []).forEach(b => {
                         if (b) {
-                            const key = String(b.id || `${b.timestamp}_${b.agentCode}_${b.auctionId}`);
-                            bidMap.set(key, b);
+                            const code = String(b.agentCode || '').trim().toUpperCase();
+                            if (code && code !== 'AG-***' && code !== 'ANONYMOUS' && validAgentCodes.has(code)) {
+                                const key = String(b.id || `${b.timestamp}_${b.agentCode}_${b.auctionId}`);
+                                bidMap.set(key, b);
+                            }
                         }
                     });
-                    incoming.bids.forEach(b => {
-                        if (b) {
-                            const key = String(b.id || `${b.timestamp}_${b.agentCode}_${b.auctionId}`);
-                            bidMap.set(key, b);
-                        }
+                    validIncomingBids.forEach(b => {
+                        const key = String(b.id || `${b.timestamp}_${b.agentCode}_${b.auctionId}`);
+                        bidMap.set(key, b);
                     });
                     serverData.bids = Array.from(bidMap.values()).sort((a, b) => (b.timestamp || b.id || 0) - (a.timestamp || a.id || 0));
                 }
