@@ -368,10 +368,10 @@
         const leadingCount = all.filter(a => a.leadingAgentCode === currentAgentCode && a.status === 'OPEN').length;
 
         const setTxt = (id, val) => { const el = document.getElementById(id); if (el) el.textContent = val; };
-        setTxt('watchTotalCount', watchIds.length);
+        setTxt('watchTotalCount', all.length);
         setTxt('watchOpenCount', openCount);
         setTxt('watchLeadingCount', leadingCount);
-        setTxt('countAll', watchIds.length);
+        setTxt('countAll', all.length);
         setTxt('countOpen', openCount);
         setTxt('countLeading', leadingCount);
 
@@ -384,7 +384,7 @@
         if (list.length === 0) {
             const msg = currentFilter === 'leading'
                 ? 'Bạn chưa đang dẫn đầu ở phiên nào trong watchlist'
-                : (watchIds.length === 0 ? 'Chưa có chuyến bay nào trong danh sách theo dõi' : 'Không có chuyến bay nào khớp với bộ lọc hiện tại');
+                : (all.length === 0 ? 'Chưa có chuyến bay nào trong danh sách theo dõi' : 'Không có chuyến bay nào khớp với bộ lọc hiện tại');
             container.innerHTML = `
                 <div class="bg-white rounded-2xl border p-16 text-center">
                     <div class="empty-icon text-6xl mb-4">⭐</div>

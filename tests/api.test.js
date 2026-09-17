@@ -98,7 +98,8 @@ describe('Vietravel Airlines Cargo Bidding System - API Automation Test Suite', 
             const targetAuction = dataRes.body.auctions.find(a => a.status === 'OPEN');
             expect(targetAuction).toBeDefined();
 
-            const minBid = 990000;
+            const basePrice = Number(targetAuction.currentPriceKg || targetAuction.startingPriceKg || 20000);
+            const minBid = basePrice + 50000;
 
             const res = await request(BASE_URL)
                 .post('/api/bids/place')
