@@ -999,27 +999,29 @@ const server = http.createServer((req, res) => {
                         'AG-0892', 'AG-1024', 'AG-0556', 'AG-0341', 'AG-0789'
                     ].filter(Boolean));
 
-                    const validIncomingBids = incoming.bids.filter(b => {
+                    const allBidsList = [...(serverData.bids || []), ...incoming.bids].filter(b => {
                         if (!b) return false;
                         const code = String(b.agentCode || '').trim().toUpperCase();
                         return code && code !== 'AG-***' && code !== 'ANONYMOUS' && validAgentCodes.has(code);
                     });
 
+                    // Sort descending by timestamp / ID so official BID- IDs take precedence
+                    allBidsList.sort((a, b) => Number(b.timestamp || b.id || 0) - Number(a.timestamp || a.id || 0));
+
                     const bidMap = new Map();
-                    (serverData.bids || []).forEach(b => {
-                        if (b) {
-                            const code = String(b.agentCode || '').trim().toUpperCase();
-                            if (code && code !== 'AG-***' && code !== 'ANONYMOUS' && validAgentCodes.has(code)) {
-                                const key = String(b.id || `${b.timestamp}_${b.agentCode}_${b.auctionId}`);
+                    allBidsList.forEach(b => {
+                        const code = String(b.agentCode || '').trim().toUpperCase();
+                        const key = `${Number(b.auctionId)}_${code}_${Number(b.priceKg)}`;
+                        if (!bidMap.has(key)) {
+                            bidMap.set(key, b);
+                        } else {
+                            const existing = bidMap.get(key);
+                            if (String(b.id || '').startsWith('BID-') && !String(existing.id || '').startsWith('BID-')) {
                                 bidMap.set(key, b);
                             }
                         }
                     });
-                    validIncomingBids.forEach(b => {
-                        const key = String(b.id || `${b.timestamp}_${b.agentCode}_${b.auctionId}`);
-                        bidMap.set(key, b);
-                    });
-                    serverData.bids = Array.from(bidMap.values()).sort((a, b) => (b.timestamp || b.id || 0) - (a.timestamp || a.id || 0));
+                    serverData.bids = Array.from(bidMap.values()).sort((a, b) => Number(b.priceKg) - Number(a.priceKg));
                 }
                 if (incoming.wonAuctions && Array.isArray(incoming.wonAuctions)) {
                     const wonMap = new Map();

@@ -737,6 +737,34 @@ const CargoStore = (function() {
         routeSubscriptions: {}
     };
 
+    function deduplicateBids(bidsList) {
+        if (!Array.isArray(bidsList)) return [];
+        const bidMap = new Map();
+        const sorted = [...bidsList].sort((a, b) => {
+            const timeA = Number(a.timestamp || a.id || 0);
+            const timeB = Number(b.timestamp || b.id || 0);
+            return timeB - timeA;
+        });
+
+        sorted.forEach(b => {
+            if (!b) return;
+            const code = String(b.agentCode || '').trim().toUpperCase();
+            if (!code || code === 'AG-***' || code === 'ANONYMOUS') return;
+
+            const key = `${Number(b.auctionId)}_${code}_${Number(b.priceKg)}`;
+            if (!bidMap.has(key)) {
+                bidMap.set(key, b);
+            } else {
+                const existing = bidMap.get(key);
+                if (String(b.id || '').startsWith('BID-') && !String(existing.id || '').startsWith('BID-')) {
+                    bidMap.set(key, b);
+                }
+            }
+        });
+
+        return Array.from(bidMap.values()).sort((a, b) => Number(b.priceKg) - Number(a.priceKg));
+    }
+
     function loadData() {
         try {
             const raw = localStorage.getItem(STORAGE_KEY);
@@ -762,6 +790,14 @@ const CargoStore = (function() {
             if (!data.watchlist || !Array.isArray(data.watchlist)) {
                 data.watchlist = [];
                 updated = true;
+            }
+
+            if (data.bids && Array.isArray(data.bids)) {
+                const origCount = data.bids.length;
+                data.bids = deduplicateBids(data.bids);
+                if (data.bids.length !== origCount) {
+                    updated = true;
+                }
             }
 
             // Ensure data.auctions has default seed if missing or empty
@@ -1277,20 +1313,8 @@ const CargoStore = (function() {
                 }
 
                 if (serverData.bids && Array.isArray(serverData.bids)) {
-                    const localBidMap = new Map();
-                    (local.bids || []).forEach(b => {
-                        if (b) {
-                            const key = String(b.id || `${b.timestamp}_${b.agentCode}_${b.auctionId}`);
-                            localBidMap.set(key, b);
-                        }
-                    });
-                    serverData.bids.forEach(b => {
-                        if (b && !String(b.id).startsWith('TEST_')) {
-                            const key = String(b.id || `${b.timestamp}_${b.agentCode}_${b.auctionId}`);
-                            localBidMap.set(key, b);
-                        }
-                    });
-                    local.bids = Array.from(localBidMap.values()).sort((a, b) => (b.timestamp || b.id || 0) - (a.timestamp || a.id || 0));
+                    const combined = [...(local.bids || []), ...serverData.bids];
+                    local.bids = deduplicateBids(combined);
                 }
 
                 if (serverData.notifications && Array.isArray(serverData.notifications)) {
@@ -2459,9 +2483,11 @@ const CargoStore = (function() {
 
         getBidsForAuction: function(auctionId) {
             const data = loadData();
-            let auction = (data.auctions || []).find(a => a.id == auctionId);
-            const wonItem = (data.wonAuctions || []).find(w => w.auctionId == auctionId || w.wonId == auctionId);
-            let bids = (data.bids || []).filter(b => b.auctionId == auctionId);
+            let auction = (data.auctions || []).find(a => Number(a.id) === Number(auctionId));
+            const wonItem = (data.wonAuctions || []).find(w => Number(w.auctionId) === Number(auctionId) || String(w.wonId) === String(auctionId));
+            if (!data.bids) data.bids = [];
+            data.bids = deduplicateBids(data.bids);
+            let bids = data.bids.filter(b => Number(b.auctionId) === Number(auctionId));
 
             if (!auction && wonItem) {
                 auction = {
@@ -2532,10 +2558,11 @@ const CargoStore = (function() {
 
                 if (!data.bids) data.bids = [];
                 data.bids.push(...bids);
+                data.bids = deduplicateBids(data.bids);
                 saveData(data);
             }
 
-            return bids.sort((a, b) => b.priceKg - a.priceKg);
+            return deduplicateBids(bids);
         },
 
         getPublicAgentName: function(agentCode, agentName, isAnonymous = true, viewerContext = null) {
@@ -2683,9 +2710,11 @@ const CargoStore = (function() {
                 });
             }
 
+            data.bids = deduplicateBids(data.bids);
+
             const isHttp = typeof window !== 'undefined' && window.location && window.location.protocol && window.location.protocol.startsWith('http');
 
-            saveData(data, !isHttp);
+            saveData(data, true);
 
             // Dispatch atomic bid placement to central server if running over HTTP
             if (isHttp) {
@@ -3656,6 +3685,10 @@ const CargoStore = (function() {
                 consigneeName: cargoData.consigneeName || '',
                 consigneeAddress: cargoData.consigneeAddress || '',
                 specialNotes: cargoData.specialNotes || '',
+                dgrDocName: cargoData.dgrDocName || null,
+                dgrDocUrl: cargoData.dgrDocUrl || null,
+                dgrDocSize: cargoData.dgrDocSize || null,
+                dgrDocUploadedAt: cargoData.dgrDocUploadedAt || null,
                 updatedAt: new Date().toLocaleString('vi-VN')
             };
 
