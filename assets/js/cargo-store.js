@@ -2563,7 +2563,7 @@ const CargoStore = (function() {
                 });
             }
 
-            saveData(data);
+            saveData(data, true);
 
             // Dispatch atomic bid placement to central server if running over HTTP
             if (typeof window !== 'undefined') {
@@ -2581,6 +2581,11 @@ const CargoStore = (function() {
                         isAnonymous: anonFlag,
                         weightKg: auction.capacityKg
                     })
+                }).then(r => r.json()).then(res => {
+                    if (res && res.success && res.bid) {
+                        // Immediately sync with server response
+                        syncWithServer();
+                    }
                 }).catch(() => {});
             }
 
@@ -2728,20 +2733,28 @@ const CargoStore = (function() {
                 };
             });
 
+            const isAdminNotif = (n) => {
+                if (!n) return false;
+                const role = String(n.targetRole || '').trim().toUpperCase();
+                if (role === 'ADMIN' || role === 'STAFF') return true;
+                if (n.type === 'REGISTRATION' || n.type === 'AUDIT') return true;
+                if (n.link && (n.link.includes('/Admin/') || n.link.includes('Admin/'))) return true;
+                const title = String(n.title || '').toUpperCase();
+                if (title.includes('HỒ SƠ ĐĂNG KÝ MỚI') || title.includes('[AUDIT]') || title.includes('HỒ SƠ REG-') || title.includes('XÉT DUYỆT HỒ SƠ')) return true;
+                return false;
+            };
+
             // 1. Admin / Staff viewing on Admin Portal
             // Only show notifications explicitly scoped to admin/staff.
             // Agent-facing broadcasts (HIGHEST / OUTBID / WON / AUCTION_OPEN) must stay on the agent portal.
             if (isAdminPage && currentAdmin) {
-                const adminNotifs = allNotifs.filter(n => {
-                    const role = String(n.targetRole || '').trim().toUpperCase();
-                    return role === 'ADMIN' || role === 'STAFF';
-                });
+                const adminNotifs = allNotifs.filter(n => isAdminNotif(n));
                 return adminNotifs.sort((a, b) => (Number(b.timestamp || b.createdAt || b.id) || 0) - (Number(a.timestamp || a.createdAt || a.id) || 0));
             }
 
             // 2. Logged-in Agent viewing on Agent Portal
             if (!user) {
-                const publicNotifs = allNotifs.filter(n => (n.type === 'SYSTEM' || n.type === 'ANNOUNCEMENT' || n.isBroadcast === true) && n.targetRole !== 'ADMIN');
+                const publicNotifs = allNotifs.filter(n => !isAdminNotif(n) && (n.type === 'SYSTEM' || n.type === 'ANNOUNCEMENT' || n.isBroadcast === true));
                 return publicNotifs.sort((a, b) => (Number(b.timestamp || b.createdAt || b.id) || 0) - (Number(a.timestamp || a.createdAt || a.id) || 0));
             }
 
@@ -2768,8 +2781,8 @@ const CargoStore = (function() {
             }
 
             const agentNotifs = allNotifs.filter(n => {
-                // Admin / staff notifications must NEVER leak to agents
-                if (n.targetRole === 'ADMIN' || n.targetRole === 'admin' || n.targetRole === 'STAFF') return false;
+                // Admin / staff / registration / audit notifications must NEVER leak to agents
+                if (isAdminNotif(n)) return false;
                 
                 const targetCode = String(n.targetAgentCode || '').trim().toUpperCase();
 

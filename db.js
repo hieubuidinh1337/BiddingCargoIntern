@@ -170,6 +170,7 @@ async function initDatabase() {
         CREATE TABLE IF NOT EXISTS notifications (
             id INTEGER PRIMARY KEY AUTOINCREMENT,
             targetAgentCode TEXT,
+            targetRole TEXT,
             title TEXT,
             message TEXT,
             time TEXT,
@@ -241,6 +242,7 @@ async function initDatabase() {
     // Ensure columns exist on existing database
     try { await exec('ALTER TABLE agents ADD COLUMN password TEXT;'); } catch (e) {}
     try { await exec('ALTER TABLE agents ADD COLUMN pin TEXT;'); } catch (e) {}
+    try { await exec('ALTER TABLE notifications ADD COLUMN targetRole TEXT;'); } catch (e) {}
 
     // Indexes for high performance
     await exec(`
@@ -306,101 +308,7 @@ async function seedFullData(data) {
     }
 
     try {
-        if (Array.isArray(data.auctions)) {
-            for (const a of data.auctions) {
-                await run(`
-                    INSERT OR REPLACE INTO auctions 
-                    (id, flightCode, flightNumber, route, origin, destination, originName, destName, etd, eta, etdIso, aircraft, capacityKg, startingPriceKg, currentPriceKg, minStep, endTime, status, leadingAgentCode, leadingAgentName, bidsCount, winnerAgentCode, winnerAgentName, winningPriceKg, specialNotes, cutOffTime)
-                    VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
-                `, [
-                    a.id, a.flightCode || null, a.flightNumber || null, a.route || null, a.origin || null, a.destination || null,
-                    a.originName || null, a.destName || null, a.etd || null, a.eta || null, a.etdIso || null, a.aircraft || null,
-                    a.capacityKg || 0, a.startingPriceKg || 0, a.currentPriceKg || 0, a.minStep || 0, a.endTime || null,
-                    a.status || 'OPEN', a.leadingAgentCode || null, a.leadingAgentName || null, a.bidsCount || 0,
-                    a.winnerAgentCode || null, a.winnerAgentName || null, a.winningPriceKg || 0, a.specialNotes || null, a.cutOffTime || null
-                ]);
-            }
-        }
-
-        if (Array.isArray(data.bids)) {
-            for (const b of data.bids) {
-                await run(`
-                    INSERT OR REPLACE INTO bids (id, timestamp, auctionId, agentCode, agentName, isAnonymous, priceKg, time, status, weightKg)
-                    VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
-                `, [
-                    String(b.id), b.timestamp || Date.now(), b.auctionId, b.agentCode, b.agentName,
-                    b.isAnonymous ? 1 : 0, b.priceKg || 0, b.time || '', b.status || 'OUTBID', b.weightKg || 0
-                ]);
-            }
-        }
-
-        if (Array.isArray(data.wonAuctions)) {
-            for (const w of data.wonAuctions) {
-                await run(`
-                    INSERT OR REPLACE INTO won_auctions
-                    (wonId, auctionId, agentCode, flightNumber, route, capacityKg, priceKg, totalAmountVND, paymentDeadline, paymentStatus, paidAt, awbNumber, cutOffTime, warehouse, lockWaivedByAdmin, lockPenaltyHandled, momoOrderId, momoRequestId, momoOrderInfo, momoPayUrl, momoQrCodeUrl, momoDeeplink, momoTransId, momoPaidAt, momoCreatedAt, momoExpiresAt)
-                    VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
-                `, [
-                    w.wonId, w.auctionId, w.agentCode, w.flightNumber, w.route, w.capacityKg || 0, w.priceKg || 0,
-                    w.totalAmountVND || 0, w.paymentDeadline || null, w.paymentStatus || 'UNPAID', w.paidAt || null,
-                    w.awbNumber || null, w.cutOffTime || null, w.warehouse || null, w.lockWaivedByAdmin ? 1 : 0,
-                    w.lockPenaltyHandled ? 1 : 0, w.momoOrderId || null, w.momoRequestId || null, w.momoOrderInfo || null,
-                    w.momoPayUrl || null, w.momoQrCodeUrl || null, w.momoDeeplink || null, w.momoTransId || null,
-                    w.momoPaidAt || null, w.momoCreatedAt || null, w.momoExpiresAt || null
-                ]);
-            }
-        }
-
-        if (Array.isArray(data.notifications)) {
-            const keepIds = data.notifications.map(n => n.id).filter(Boolean);
-            if (keepIds.length > 0) {
-                const placeholders = keepIds.map(() => '?').join(',');
-                await run(`DELETE FROM notifications WHERE id NOT IN (${placeholders})`, keepIds);
-            } else {
-                await run('DELETE FROM notifications');
-            }
-
-            for (const n of data.notifications) {
-                await run(`
-                    INSERT OR REPLACE INTO notifications (id, targetAgentCode, title, message, time, type, read, link)
-                    VALUES (?, ?, ?, ?, ?, ?, ?, ?)
-                `, [
-                    n.id || null, n.targetAgentCode || null, n.title || '', n.message || '', n.time || '', n.type || 'INFO',
-                    n.read ? 1 : 0, n.link || null
-                ]);
-            }
-        }
-
-        if (Array.isArray(data.registrations)) {
-            for (const r of data.registrations) {
-                await run(`
-                    INSERT OR REPLACE INTO registrations (regId, companyName, taxCode, address, field, repName, repPosition, email, phone, documents, status, submittedAt, rejectionReason)
-                    VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
-                `, [
-                    r.regId, r.companyName || '', r.taxCode || '', r.address || '', r.field || '', r.repName || '',
-                    r.repPosition || '', r.email || '', r.phone || '', JSON.stringify(r.documents || []), r.status || 'PENDING',
-                    r.submittedAt || '', r.rejectionReason || r.rejectReason || null
-                ]);
-            }
-        }
-
-        const defaultUsers = [
-            { id: 'USR-001', username: 'admin', agentCode: 'VU-ADMIN-01', password: 'admin2026', pin: '1234', role: 'ADMIN', fullName: 'Quản Trị Viên VU', email: 'admin@vietravelairlines.vn', companyName: 'Vietravel Airlines HQ', status: 'ACTIVE' },
-            { id: 'USR-002', username: 'staff01', agentCode: 'VU-OPS-88', password: 'staff2026', pin: '1234', role: 'STAFF', fullName: 'Nhân Viên Điều Hành Cargo', email: 'staff@vietravelairlines.vn', companyName: 'Trung Tâm Kho Vận Vietravel Cargo', status: 'ACTIVE' },
-            { id: 'USR-003', username: 'AG-0892', agentCode: 'AG-0892', password: 'abc123456', pin: '1234', role: 'AGENT', fullName: 'Nguyễn Văn An', email: 'an.nguyen@abccargo.vn', companyName: 'Công ty TNHH Vận tải ABC Logistics', status: 'ACTIVE' },
-            { id: 'USR-004', username: 'AG-1024', agentCode: 'AG-1024', password: 'vina123456', pin: '1234', role: 'AGENT', fullName: 'Lê Minh Khang', email: 'khang.le@vinatrans.com.vn', companyName: 'Công ty CP Giao nhận Kho vận Vinatrans', status: 'ACTIVE' },
-            { id: 'USR-005', username: 'AG-0556', agentCode: 'AG-0556', password: 'star123456', pin: '1234', role: 'AGENT', fullName: 'Phạm Thu Thảo', email: 'thao.pham@dhlvietnam.com', companyName: 'Công ty TNHH Tiếp vận Toàn Cầu Golden Star', status: 'ACTIVE' },
-            { id: 'USR-006', username: 'AG-0341', agentCode: 'AG-0341', password: 'sky123456', pin: '1234', role: 'AGENT', fullName: 'Hoàng Văn Dũng', email: 'dung.hoang@saigonair.vn', companyName: 'Công ty TNHH SkyFreight Logistics Việt Nam', status: 'ACTIVE' },
-            { id: 'USR-007', username: 'AG-0789', agentCode: 'AG-0789', password: 'viet123456', pin: '1234', role: 'AGENT', fullName: 'Nguyễn Thị Hoa', email: 'hoa.nt@vietfreight.vn', companyName: 'Công ty CP Vận chuyển Hàng không Việt Freight', status: 'ACTIVE' }
-        ];
-
-        for (const u of defaultUsers) {
-            await run(`
-                INSERT OR REPLACE INTO users (id, username, agentCode, password, pin, role, fullName, email, companyName, status)
-                VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
-            `, [u.id, u.username, u.agentCode, u.password, u.pin, u.role, u.fullName, u.email, u.companyName, u.status]);
-        }
-
+        // 1. Insert agents FIRST so child tables referencing agents(code) satisfy Foreign Keys
         const defaultPwdMap = {
             'AG-0892': 'abc123456',
             'AG-1024': 'vina123456',
@@ -425,6 +333,161 @@ async function seedFullData(data) {
             }
         }
 
+        // Ensure default admin/staff/system agents exist in agents table
+        const systemAgents = [
+            { code: 'VU-ADMIN-01', name: 'Quản Trị Viên VU', companyName: 'Vietravel Airlines HQ' },
+            { code: 'VU-OPS-88', name: 'Nhân Viên Điều Hành Cargo', companyName: 'Trung Tâm Kho Vận Vietravel Cargo' },
+            { code: 'AG-0892', name: 'ABC Logistics', companyName: 'Công ty TNHH Vận tải ABC Logistics' },
+            { code: 'AG-1024', name: 'Vinatrans', companyName: 'Công ty CP Giao nhận Kho vận Vinatrans' },
+            { code: 'AG-0556', name: 'Golden Star', companyName: 'Công ty TNHH Tiếp vận Toàn Cầu Golden Star' },
+            { code: 'AG-0341', name: 'SkyFreight', companyName: 'Công ty TNHH SkyFreight Logistics Việt Nam' },
+            { code: 'AG-0789', name: 'Viet Freight', companyName: 'Công ty CP Vận chuyển Hàng không Việt Freight' }
+        ];
+
+        for (const sa of systemAgents) {
+            await run(`
+                INSERT OR IGNORE INTO agents (code, name, companyName, status, password, pin)
+                VALUES (?, ?, ?, 'Hoạt động', '123456', '1234')
+            `, [sa.code, sa.name, sa.companyName]);
+        }
+
+        // Auto-insert any missing agent codes from chats or wonAuctions into agents table
+        if (Array.isArray(data.chats)) {
+            for (const c of data.chats) {
+                if (c.agentCode) {
+                    await run(`
+                        INSERT OR IGNORE INTO agents (code, name, companyName, status, password, pin)
+                        VALUES (?, ?, ?, 'Hoạt động', '123456', '1234')
+                    `, [c.agentCode, c.agentName || 'Đại lý', c.agentName || 'Đại lý']);
+                }
+            }
+        }
+
+        if (Array.isArray(data.wonAuctions)) {
+            for (const w of data.wonAuctions) {
+                if (w.agentCode) {
+                    await run(`
+                        INSERT OR IGNORE INTO agents (code, name, companyName, status, password, pin)
+                        VALUES (?, ?, ?, 'Hoạt động', '123456', '1234')
+                    `, [w.agentCode, 'Đại lý thắng thầu', 'Đại lý thắng thầu']);
+                }
+            }
+        }
+
+        // 2. Insert auctions SECOND so child tables referencing auctions(id) satisfy Foreign Keys
+        if (Array.isArray(data.auctions)) {
+            for (const a of data.auctions) {
+                await run(`
+                    INSERT OR REPLACE INTO auctions 
+                    (id, flightCode, flightNumber, route, origin, destination, originName, destName, etd, eta, etdIso, aircraft, capacityKg, startingPriceKg, currentPriceKg, minStep, endTime, status, leadingAgentCode, leadingAgentName, bidsCount, winnerAgentCode, winnerAgentName, winningPriceKg, specialNotes, cutOffTime)
+                    VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+                `, [
+                    a.id, a.flightCode || null, a.flightNumber || null, a.route || null, a.origin || null, a.destination || null,
+                    a.originName || null, a.destName || null, a.etd || null, a.eta || null, a.etdIso || null, a.aircraft || null,
+                    a.capacityKg || 0, a.startingPriceKg || 0, a.currentPriceKg || 0, a.minStep || 0, a.endTime || null,
+                    a.status || 'OPEN', a.leadingAgentCode || null, a.leadingAgentName || null, a.bidsCount || 0,
+                    a.winnerAgentCode || null, a.winnerAgentName || null, a.winningPriceKg || 0, a.specialNotes || null, a.cutOffTime || null
+                ]);
+            }
+        }
+
+        // Auto-insert missing auction IDs from wonAuctions if any
+        if (Array.isArray(data.wonAuctions)) {
+            for (const w of data.wonAuctions) {
+                if (w.auctionId) {
+                    await run(`
+                        INSERT OR IGNORE INTO auctions (id, flightNumber, route, status, startingPriceKg, currentPriceKg)
+                        VALUES (?, 'VU-HIST', 'SGN - HAN', 'CLOSED', 18000, 22000)
+                    `, [w.auctionId]);
+                }
+            }
+        }
+
+        // 3. Insert users
+        const defaultUsers = [
+            { id: 'USR-001', username: 'admin', agentCode: 'VU-ADMIN-01', password: 'admin2026', pin: '1234', role: 'ADMIN', fullName: 'Quản Trị Viên VU', email: 'admin@vietravelairlines.vn', companyName: 'Vietravel Airlines HQ', status: 'ACTIVE' },
+            { id: 'USR-002', username: 'staff01', agentCode: 'VU-OPS-88', password: 'staff2026', pin: '1234', role: 'STAFF', fullName: 'Nhân Viên Điều Hành Cargo', email: 'staff@vietravelairlines.vn', companyName: 'Trung Tâm Kho Vận Vietravel Cargo', status: 'ACTIVE' },
+            { id: 'USR-003', username: 'AG-0892', agentCode: 'AG-0892', password: 'abc123456', pin: '1234', role: 'AGENT', fullName: 'Nguyễn Văn An', email: 'an.nguyen@abccargo.vn', companyName: 'Công ty TNHH Vận tải ABC Logistics', status: 'ACTIVE' },
+            { id: 'USR-004', username: 'AG-1024', agentCode: 'AG-1024', password: 'vina123456', pin: '1234', role: 'AGENT', fullName: 'Lê Minh Khang', email: 'khang.le@vinatrans.com.vn', companyName: 'Công ty CP Giao nhận Kho vận Vinatrans', status: 'ACTIVE' },
+            { id: 'USR-005', username: 'AG-0556', agentCode: 'AG-0556', password: 'star123456', pin: '1234', role: 'AGENT', fullName: 'Phạm Thu Thảo', email: 'thao.pham@dhlvietnam.com', companyName: 'Công ty TNHH Tiếp vận Toàn Cầu Golden Star', status: 'ACTIVE' },
+            { id: 'USR-006', username: 'AG-0341', agentCode: 'AG-0341', password: 'sky123456', pin: '1234', role: 'AGENT', fullName: 'Hoàng Văn Dũng', email: 'dung.hoang@saigonair.vn', companyName: 'Công ty TNHH SkyFreight Logistics Việt Nam', status: 'ACTIVE' },
+            { id: 'USR-007', username: 'AG-0789', agentCode: 'AG-0789', password: 'viet123456', pin: '1234', role: 'AGENT', fullName: 'Nguyễn Thị Hoa', email: 'hoa.nt@vietfreight.vn', companyName: 'Công ty CP Vận chuyển Hàng không Việt Freight', status: 'ACTIVE' }
+        ];
+
+        for (const u of defaultUsers) {
+            await run(`
+                INSERT OR REPLACE INTO users (id, username, agentCode, password, pin, role, fullName, email, companyName, status)
+                VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+            `, [u.id, u.username, u.agentCode, u.password, u.pin, u.role, u.fullName, u.email, u.companyName, u.status]);
+        }
+
+        // 4. Insert bids
+        if (Array.isArray(data.bids)) {
+            for (const b of data.bids) {
+                await run(`
+                    INSERT OR REPLACE INTO bids (id, timestamp, auctionId, agentCode, agentName, isAnonymous, priceKg, time, status, weightKg)
+                    VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+                `, [
+                    String(b.id), b.timestamp || Date.now(), b.auctionId, b.agentCode, b.agentName,
+                    b.isAnonymous ? 1 : 0, b.priceKg || 0, b.time || '', b.status || 'OUTBID', b.weightKg || 0
+                ]);
+            }
+        }
+
+        // 5. Insert won_auctions
+        if (Array.isArray(data.wonAuctions)) {
+            for (const w of data.wonAuctions) {
+                await run(`
+                    INSERT OR REPLACE INTO won_auctions
+                    (wonId, auctionId, agentCode, flightNumber, route, capacityKg, priceKg, totalAmountVND, paymentDeadline, paymentStatus, paidAt, awbNumber, cutOffTime, warehouse, lockWaivedByAdmin, lockPenaltyHandled, momoOrderId, momoRequestId, momoOrderInfo, momoPayUrl, momoQrCodeUrl, momoDeeplink, momoTransId, momoPaidAt, momoCreatedAt, momoExpiresAt)
+                    VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+                `, [
+                    w.wonId, w.auctionId, w.agentCode, w.flightNumber, w.route, w.capacityKg || 0, w.priceKg || 0,
+                    w.totalAmountVND || 0, w.paymentDeadline || null, w.paymentStatus || 'UNPAID', w.paidAt || null,
+                    w.awbNumber || null, w.cutOffTime || null, w.warehouse || null, w.lockWaivedByAdmin ? 1 : 0,
+                    w.lockPenaltyHandled ? 1 : 0, w.momoOrderId || null, w.momoRequestId || null, w.momoOrderInfo || null,
+                    w.momoPayUrl || null, w.momoQrCodeUrl || null, w.momoDeeplink || null, w.momoTransId || null,
+                    w.momoPaidAt || null, w.momoCreatedAt || null, w.momoExpiresAt || null
+                ]);
+            }
+        }
+
+        // 6. Insert notifications
+        if (Array.isArray(data.notifications)) {
+            const keepIds = data.notifications.map(n => n.id).filter(Boolean);
+            if (keepIds.length > 0) {
+                const placeholders = keepIds.map(() => '?').join(',');
+                await run(`DELETE FROM notifications WHERE id NOT IN (${placeholders})`, keepIds);
+            } else {
+                await run('DELETE FROM notifications');
+            }
+
+            for (const n of data.notifications) {
+                await run(`
+                    INSERT OR REPLACE INTO notifications (id, targetAgentCode, targetRole, title, message, time, type, read, link)
+                    VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
+                `, [
+                    n.id || null, n.targetAgentCode || null, n.targetRole || null, n.title || '', n.message || '', n.time || '', n.type || 'INFO',
+                    n.read ? 1 : 0, n.link || null
+                ]);
+            }
+        }
+
+        // 7. Insert registrations
+        if (Array.isArray(data.registrations)) {
+            for (const r of data.registrations) {
+                await run(`
+                    INSERT OR REPLACE INTO registrations (regId, companyName, taxCode, address, field, repName, repPosition, email, phone, documents, status, submittedAt, rejectionReason)
+                    VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+                `, [
+                    r.regId, r.companyName || '', r.taxCode || '', r.address || '', r.field || '', r.repName || '',
+                    r.repPosition || '', r.email || '', r.phone || '', JSON.stringify(r.documents || []), r.status || 'PENDING',
+                    r.submittedAt || '', r.rejectionReason || r.rejectReason || null
+                ]);
+            }
+        }
+
+        // 8. Insert chats and chat_messages
         if (Array.isArray(data.chats)) {
             for (const c of data.chats) {
                 await run(`
@@ -458,6 +521,7 @@ async function seedFullData(data) {
         }
 
         await exec('COMMIT;').catch(() => {});
+        await checkpointWal();
     } catch (err) {
         await exec('ROLLBACK;').catch(() => {});
         throw err;
@@ -664,6 +728,7 @@ async function placeBidAtomic({ auctionId, agentCode, agentName, priceKg, isAnon
         `, [Number(priceKg), agentCode, agentName, newBidCount, auctionId]);
 
         await run('COMMIT;').catch(() => {});
+        await checkpointWal();
         return {
             id: bidId,
             timestamp: now,
@@ -680,6 +745,12 @@ async function placeBidAtomic({ auctionId, agentCode, agentName, priceKg, isAnon
         await run('ROLLBACK;').catch(() => {});
         throw err;
     }
+}
+
+async function checkpointWal() {
+    try {
+        await run('PRAGMA wal_checkpoint(FULL);');
+    } catch (e) {}
 }
 
 async function createAuditLog(actorRole, actorId, action, target, details = '') {
@@ -700,5 +771,6 @@ module.exports = {
     getFullServerData,
     placeBidAtomic,
     purgeUnregisteredBids,
+    checkpointWal,
     createAuditLog
 };
