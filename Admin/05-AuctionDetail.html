@@ -31,6 +31,16 @@
                     </a>
                     <a href="04-CreateAuction.html" class="px-3 py-1.5 rounded-lg text-slate-300 hover:text-white hover:bg-slate-800 transition flex items-center gap-1.5">
                         <i class="fa-solid fa-plus-circle"></i> Tạo phiên mới
+            </a>
+                <nav class="hidden md:flex items-center gap-1 text-xs font-medium">
+                    <a href="02-AdminDashboard.html" class="px-3 py-1.5 rounded-lg text-slate-300 hover:text-white hover:bg-slate-800 transition flex items-center gap-1.5">
+                        <i class="fa-solid fa-chart-pie"></i> Dashboard
+                    </a>
+                    <a href="03-AuctionList.html" class="px-3 py-1.5 rounded-lg bg-blue-600 text-white font-semibold flex items-center gap-1.5">
+                        <i class="fa-solid fa-list-check"></i> Quản lý phiên
+                    </a>
+                    <a href="04-CreateAuction.html" class="px-3 py-1.5 rounded-lg text-slate-300 hover:text-white hover:bg-slate-800 transition flex items-center gap-1.5">
+                        <i class="fa-solid fa-plus-circle"></i> Tạo phiên mới
                     </a>
                     <a href="06-AgentList.html" class="px-3 py-1.5 rounded-lg text-slate-300 hover:text-white hover:bg-slate-800 transition flex items-center gap-1.5">
                         <i class="fa-solid fa-building-user"></i> Đại lý & Duyệt đơn
@@ -41,12 +51,10 @@
                     <a href="08-Settings.html" class="px-3 py-1.5 rounded-lg text-slate-300 hover:text-white hover:bg-slate-800 transition flex items-center gap-1.5">
                         <i class="fa-solid fa-sliders"></i> Cài đặt
                     </a>
+                    <a href="10-AuditLogs.html" class="px-3 py-1.5 rounded-lg text-slate-300 hover:text-white hover:bg-slate-800 transition flex items-center gap-1.5">
+                        <i class="fa-solid fa-clock-rotate-left"></i> Nhật ký
+                    </a>
                     <a href="09-AdminChat.html" class="px-3 py-1.5 rounded-lg bg-purple-600/20 text-purple-300 hover:text-white hover:bg-purple-700 transition flex items-center gap-1.5 font-semibold"><i class="fa-solid fa-headset mr-1"></i>Chat Hỗ trợ<span id="admin-chat-badge" class="hidden bg-red-500 text-white text-[9px] font-bold px-1.5 py-0.5 rounded-full ml-1.5">0</span></a>
-                    
-                </nav>
-            </div>
-            <div class="flex items-center gap-2">
-                <span class="admin-header-role text-[9px] sm:text-[10px] font-bold px-1.5 sm:px-2 py-0.5 rounded-full bg-blue-500/20 text-blue-400 border border-blue-500/30 inline-flex items-center gap-1 whitespace-nowrap">
                     <i class="fa-solid fa-shield-halved text-[8px] sm:text-[9px]"></i> QUẢN TRỊ VIÊN
                 </span>
                 <span class="text-xs text-slate-200 font-semibold admin-header-name hidden sm:inline">Trần Quản Trị</span>
@@ -488,7 +496,10 @@
                             ` : ''}
 
                             ${!isPaid && !isExpired ? `
-                                <div class="pt-2 flex justify-end">
+                                <div class="pt-2 flex justify-end gap-2">
+                                    <button onclick="handleDetailRejectPayment('${wonItem.wonId}')" class="bg-rose-600 hover:bg-rose-700 text-white font-bold px-4 py-2 rounded-xl text-xs transition shadow flex items-center gap-1.5 cursor-pointer">
+                                        <i class="fa-solid fa-circle-xmark"></i> Từ chối biên lai & Yêu cầu nộp lại
+                                    </button>
                                     <button onclick="handleDetailConfirmPayment('${wonItem.wonId}')" class="bg-emerald-600 hover:bg-emerald-700 text-white font-bold px-4 py-2 rounded-xl text-xs transition shadow flex items-center gap-1.5 cursor-pointer">
                                         <i class="fa-solid fa-circle-check"></i> Xác nhận Đã nhận tiền (Khớp lệnh)
                                     </button>

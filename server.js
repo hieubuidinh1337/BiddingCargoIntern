@@ -865,6 +865,87 @@ const server = http.createServer((req, res) => {
         return;
     }
 
+    // --- REST API: GET /api/logs ---
+    if (pathname === '/api/logs' && req.method === 'GET') {
+        const role = parsedUrl.searchParams.get('role');
+        const category = parsedUrl.searchParams.get('category');
+        const search = parsedUrl.searchParams.get('q');
+        let logs = serverData.activityLogs || [];
+
+        if (role && role !== 'ALL') {
+            logs = logs.filter(l => (l.role || '').toUpperCase() === role.toUpperCase());
+        }
+        if (category && category !== 'ALL') {
+            logs = logs.filter(l => (l.actionCategory || '') === category);
+        }
+        if (search) {
+            const q = search.toLowerCase().trim();
+            logs = logs.filter(l =>
+                (l.actor || '').toLowerCase().includes(q) ||
+                (l.username || '').toLowerCase().includes(q) ||
+                (l.actionTitle || '').toLowerCase().includes(q) ||
+                (l.target || '').toLowerCase().includes(q) ||
+                (l.details || '').toLowerCase().includes(q) ||
+                (l.ip || '').includes(q)
+            );
+        }
+
+        res.writeHead(200, { 'Content-Type': 'application/json; charset=UTF-8' });
+        res.end(JSON.stringify({ success: true, logs: logs }), 'utf-8');
+        return;
+    }
+
+    // --- REST API: POST /api/logs ---
+    if (pathname === '/api/logs' && req.method === 'POST') {
+        readBody(req).then(async (body) => {
+            try {
+                const logData = JSON.parse(body || '{}');
+                if (!serverData.activityLogs) serverData.activityLogs = [];
+                
+                const now = new Date();
+                const pad = n => String(n).padStart(2, '0');
+                const timestampStr = `${pad(now.getDate())}/${pad(now.getMonth() + 1)}/${now.getFullYear()} ${pad(now.getHours())}:${pad(now.getMinutes())}:${pad(now.getSeconds())}`;
+
+                const newLog = {
+                    id: Date.now() + Math.floor(Math.random() * 1000),
+                    timestamp: timestampStr,
+                    rawTime: now.getTime(),
+                    actor: logData.actor || 'Quản trị viên',
+                    username: logData.username || 'admin',
+                    role: logData.role || 'ADMIN',
+                    actionCategory: logData.actionCategory || 'Khác',
+                    actionTitle: logData.actionTitle || 'Thao tác hệ thống',
+                    target: logData.target || 'N/A',
+                    details: logData.details || '',
+                    ip: logData.ip || req.socket.remoteAddress || '113.161.42.12',
+                    device: logData.device || 'Web App'
+                };
+
+                serverData.activityLogs.unshift(newLog);
+                if (serverData.activityLogs.length > 1000) {
+                    serverData.activityLogs = serverData.activityLogs.slice(0, 1000);
+                }
+                saveServerData();
+
+                res.writeHead(200, { 'Content-Type': 'application/json; charset=UTF-8' });
+                res.end(JSON.stringify({ success: true, log: newLog }), 'utf-8');
+            } catch (err) {
+                res.writeHead(400, { 'Content-Type': 'application/json; charset=UTF-8' });
+                res.end(JSON.stringify({ success: false, error: err.message }), 'utf-8');
+            }
+        });
+        return;
+    }
+
+    // --- REST API: DELETE /api/logs (Clear Audit Logs) ---
+    if (pathname === '/api/logs' && req.method === 'DELETE') {
+        serverData.activityLogs = [];
+        saveServerData();
+        res.writeHead(200, { 'Content-Type': 'application/json; charset=UTF-8' });
+        res.end(JSON.stringify({ success: true, message: 'Đã xóa toàn bộ nhật ký hoạt động hệ thống.' }), 'utf-8');
+        return;
+    }
+
     // --- REST API: POST /api/bids/place (Atomic Sealed-Bid Placement) ---
     if (pathname === '/api/bids/place' && req.method === 'POST') {
         readBody(req).then(async (body) => {
@@ -1712,6 +1793,36 @@ const server = http.createServer((req, res) => {
 
                             <p style="text-align:center;margin:24px 0;">
                                 <a href="http://localhost:8085/07-WonAuction.html" style="display:inline-block;background-color:#1565c0;color:#ffffff;font-weight:bold;padding:12px 28px;border-radius:6px;text-decoration:none;">XEM TẢI PHIẾU BÀN GIAO KHO</a>
+                            </p>
+                        `
+                    });
+                } else if (type === 'PAYMENT_REJECTED') {
+                    const wonData = reqData.wonData || {};
+                    const wonId = wonData.wonId || reqData.wonId || 'WON-ORDER';
+                    const flightNum = wonData.flightNumber || reqData.flightNumber || '';
+                    const route = wonData.route || reqData.route || '';
+                    const rejReason = reqData.reason || wonData.rejectionReason || 'Biên lai hoặc mã giao dịch không hợp lệ';
+                    const fmtNum = (n) => new Intl.NumberFormat('vi-VN').format(n);
+
+                    subject = `[Vietravel Airlines Cargo] ❌ YÊU CẦU NỘP LẠI BIÊN LAI THANH TOÁN - Đơn hàng ${wonId}`;
+                    html = buildEmailHtml({
+                        title: 'Yêu Cầu Nộp Lại Biên Lai Thanh Toán',
+                        subtitle: `Mã đơn: ${wonId} &middot; Chuyến bay ${flightNum}`,
+                        contentHtml: `
+                            <p>Kính gửi Quý đại lý,</p>
+                            <p style="color:#d32f2f;font-weight:bold;">Ban Tài chính & Tra soát Vietravel Airlines Cargo đã kiểm tra thông tin chuyển khoản cho đơn hàng ${wonId} và yêu cầu Quý đại lý NỘP LẠI BIÊN LAI THANH TOÁN.</p>
+
+                            <table role="presentation" width="100%" cellpadding="8" cellspacing="0" style="background:#ffebee;border:1px solid #ffcdd2;border-radius:6px;margin:16px 0;">
+                                <tr><td style="color:#555;border-bottom:1px solid #e0e0e0;width:35%;">Mã đơn thắng thầu:</td><td style="font-weight:bold;color:#1565c0;font-family:monospace;">${wonId}</td></tr>
+                                <tr><td style="color:#555;border-bottom:1px solid #e0e0e0;">Chuyến bay / Tuyến:</td><td>${flightNum} (${route})</td></tr>
+                                <tr><td style="color:#555;border-bottom:1px solid #e0e0e0;">Lý do từ chối biên lai:</td><td style="font-weight:bold;color:#d32f2f;font-size:14px;">${rejReason}</td></tr>
+                                <tr><td style="color:#555;">Thời gian tra soát:</td><td style="font-weight:bold;color:#333;">${new Date().toLocaleString('vi-VN')}</td></tr>
+                            </table>
+
+                            <p style="margin-top:16px;">Vui lòng kiểm tra lại sao kê chuyển khoản ngân hàng, chụp rõ ảnh biên lai/mã FT và truy cập sàn đấu giá để <strong>NỘP LẠI BIÊN LAI MỚI</strong> trước thời hạn Cut-off.</p>
+
+                            <p style="text-align:center;margin:24px 0;">
+                                <a href="http://localhost:8085/07-WonAuction.html" style="display:inline-block;background-color:#d32f2f;color:#ffffff;font-weight:bold;padding:12px 28px;border-radius:6px;text-decoration:none;">NỘP LẠI BIÊN LAI THANH TOÁN</a>
                             </p>
                         `
                     });

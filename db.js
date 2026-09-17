@@ -222,6 +222,21 @@ async function initDatabase() {
             FOREIGN KEY(chatId) REFERENCES chats(id) ON DELETE CASCADE ON UPDATE CASCADE
         );
 
+        CREATE TABLE IF NOT EXISTS activity_logs (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            timestamp TEXT,
+            rawTime BIGINT,
+            actor TEXT,
+            username TEXT,
+            role TEXT,
+            actionCategory TEXT,
+            actionTitle TEXT,
+            target TEXT,
+            details TEXT,
+            ip TEXT,
+            device TEXT
+        );
+
         CREATE TABLE IF NOT EXISTS email_logs (
             id INTEGER PRIMARY KEY AUTOINCREMENT,
             toAddress TEXT,

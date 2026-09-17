@@ -734,7 +734,87 @@ const CargoStore = (function() {
             branch: 'Chi nhánh Tân Bình - TP. Hồ Chí Minh',
             memoPrefix: 'CARGO'
         },
-        routeSubscriptions: {}
+        routeSubscriptions: {},
+        activityLogs: [
+            {
+                id: 101,
+                timestamp: '17/09/2026 14:45:10',
+                actor: 'Trần Quản Trị',
+                username: 'admin',
+                role: 'ADMIN',
+                actionCategory: 'Thanh toán',
+                actionTitle: 'Từ chối biên lai thanh toán',
+                target: 'WON-VU198-001',
+                details: 'Từ chối biên lai thanh toán đơn WON-VU198-001 của đại lý AG-0892. Lý do: Mã giao dịch ngân hàng không tồn tại trên hệ thống sao kê.',
+                ip: '113.161.42.12',
+                device: 'Chrome 128 / Windows 11'
+            },
+            {
+                id: 102,
+                timestamp: '17/09/2026 14:10:22',
+                actor: 'Nguyễn Văn Đạt',
+                username: 'dat.nguyen',
+                role: 'STAFF',
+                actionCategory: 'Phiên đấu giá',
+                actionTitle: 'Tạo mới phiên đấu giá',
+                target: 'VU134',
+                details: 'Khởi tạo phiên đấu giá VU134 (SGN - HAN) cất cánh 18/09/2026 08:30. Tải trọng: 3,500 Kg, Giá sàn: 18,000đ/Kg, Bước giá: 300đ.',
+                ip: '113.161.42.15',
+                device: 'Edge 127 / Windows 11'
+            },
+            {
+                id: 103,
+                timestamp: '17/09/2026 11:30:05',
+                actor: 'Trần Quản Trị',
+                username: 'admin',
+                role: 'ADMIN',
+                actionCategory: 'Quản lý Đại lý',
+                actionTitle: 'Mở khóa tài khoản đại lý',
+                target: 'AG-0512',
+                details: 'Phê duyệt mở khóa tài khoản cho đại lý AG-0512 (Công ty Vận chuyển Sao Mai Express). Lý do: Đại lý đã hoàn tất bổ sung nộp tiền phạt quá hạn.',
+                ip: '113.161.42.12',
+                device: 'Chrome 128 / Windows 11'
+            },
+            {
+                id: 104,
+                timestamp: '17/09/2026 09:15:40',
+                actor: 'Lê Minh Thuận',
+                username: 'thuan.le',
+                role: 'STAFF',
+                actionCategory: 'Thanh toán',
+                actionTitle: 'Phê duyệt xác nhận thanh toán',
+                target: 'WON-VU220-003',
+                details: 'Duyệt xác nhận thanh toán thành công số tiền 35.400.000 VNĐ cho đơn thầu WON-VU220-003 của đại lý AG-0892.',
+                ip: '113.161.42.18',
+                device: 'Firefox 129 / macOS'
+            },
+            {
+                id: 105,
+                timestamp: '16/09/2026 16:50:12',
+                actor: 'Trần Quản Trị',
+                username: 'admin',
+                role: 'ADMIN',
+                actionCategory: 'Cấu hình hệ thống',
+                actionTitle: 'Cập nhật tham số hệ thống',
+                target: 'System Settings',
+                details: 'Điều chỉnh Bước giá tối thiểu mặc định từ 500đ -> 300đ/Kg và Hạn chốt thầu trước ETD thành 5 giờ.',
+                ip: '113.161.42.12',
+                device: 'Chrome 128 / Windows 11'
+            },
+            {
+                id: 106,
+                timestamp: '16/09/2026 08:00:01',
+                actor: 'Trần Quản Trị',
+                username: 'admin',
+                role: 'ADMIN',
+                actionCategory: 'Tài khoản',
+                actionTitle: 'Tạo tài khoản nhân viên mới',
+                target: 'dat.nguyen',
+                details: 'Cấp mới tài khoản Nhân viên điều hành (STAFF) cho Nguyễn Văn Đạt (Phòng Điều hành Bay Cargo).',
+                ip: '113.161.42.12',
+                device: 'Chrome 128 / Windows 11'
+            }
+        ]
     };
 
     function deduplicateBids(bidsList) {
@@ -2250,7 +2330,10 @@ const CargoStore = (function() {
             }
 
             const startingPriceKg = Number(auctionData.startingPriceKg) || 18000;
-            const minStep = Number(auctionData.minStep) || 500;
+            const defaultMinIncrement = (data.settings && data.settings.minIncrement) ? Number(data.settings.minIncrement) : 500;
+            const minStep = (auctionData.minStep !== undefined && auctionData.minStep !== null && auctionData.minStep !== '') 
+                ? Number(auctionData.minStep) 
+                : defaultMinIncrement;
 
             const formattedEtd = this.formatFlightDateDisplay(parsedEtd);
             const formattedEta = auctionData.eta ? this.formatFlightDateDisplay(auctionData.eta) : 'Chưa cập nhật';
@@ -2352,6 +2435,13 @@ const CargoStore = (function() {
             });
 
             saveData(data);
+
+            this.logActivity({
+                actionCategory: 'Phiên đấu giá',
+                actionTitle: 'Tạo mới phiên đấu giá',
+                target: flightNumber,
+                details: `Khởi tạo phiên đấu giá ${flightCode} (${origin} - ${dest}), cất cánh ${formattedEtd}. Tải trọng: ${this.formatNumber(capacityKg)} Kg, Giá sàn: ${this.formatCurrency(startingPriceKg)}/Kg, Bước giá: ${this.formatCurrency(minStep)}.`
+            });
 
             return {
                 success: true,
@@ -3560,6 +3650,58 @@ const CargoStore = (function() {
             return { success: true, message: `Đã xác nhận nhận thanh toán thành công cho đơn ${wonId}! Email thông báo đã tự động gửi đến đại lý.`, item: item };
         },
 
+        rejectPayment: function(wonId, reason) {
+            const data = loadData();
+            if (!data.wonAuctions) data.wonAuctions = [];
+            const item = data.wonAuctions.find(w => w.wonId === wonId);
+            if (!item) {
+                return { success: false, message: `Không tìm thấy đơn thắng thầu "${wonId}".` };
+            }
+
+            const rejReason = (reason || '').trim() || 'Biên lai chuyển khoản hoặc mã giao dịch không hợp lệ / không khớp sao kê ngân hàng.';
+
+            item.paymentStatus = 'UNPAID';
+            item.notifiedAt = null;
+            
+            if (!item.paymentProof) item.paymentProof = {};
+            item.paymentProof.status = 'REJECTED';
+            item.paymentProof.rejectionReason = rejReason;
+            item.paymentProof.rejectedAt = new Date().toLocaleString('vi-VN');
+
+            // Find agent email to dispatch PAYMENT_REJECTED email
+            const targetCode = (item.agentCode || '').toUpperCase();
+            const agentAccount = (data.agentsList || []).find(a => (a.code || '').toUpperCase() === targetCode);
+            const defaultTargetEmail = (data.currentUser && data.currentUser.email) ? data.currentUser.email : 'jome7093@gmail.com';
+            const targetEmail = (agentAccount && agentAccount.email) ? agentAccount.email : defaultTargetEmail;
+
+            CargoStore.sendEmailNotification({
+                type: 'PAYMENT_REJECTED',
+                to: targetEmail,
+                wonData: item,
+                reason: rejReason
+            });
+
+            // Create system notification for agent
+            if (!data.notifications) data.notifications = [];
+            data.notifications.unshift({
+                id: Date.now(),
+                targetAgentCode: item.agentCode,
+                title: `⚠️ Biên lai thanh toán đơn ${item.wonId} bị từ chối`,
+                message: `Ban Điều hành đã từ chối biên lai thanh toán cho đơn hàng ${item.wonId} (Chuyến bay ${item.flightNumber} - ${item.route}). Lý do: "${rejReason}". Vui lòng kiểm tra và nộp lại biên lai mới.`,
+                time: 'Vừa xong',
+                type: 'SYSTEM',
+                read: false,
+                link: '07-WonAuction.html'
+            });
+
+            saveData(data);
+            return {
+                success: true,
+                message: `Đã từ chối biên lai thanh toán cho đơn ${wonId}! Email yêu cầu nộp lại biên lai đã tự động gửi đến đại lý (${item.agentCode}).`,
+                item: item
+            };
+        },
+
         notifyPaymentSent: function(wonId, paymentDetails = {}) {
             const data = loadData();
             if (!data.wonAuctions) data.wonAuctions = [];
@@ -3864,6 +4006,12 @@ const CargoStore = (function() {
             }
 
             saveData(data);
+            this.logActivity({
+                actionCategory: 'Phiên đấu giá',
+                actionTitle: 'Cập nhật phiên đấu giá',
+                target: auction.flightNumber,
+                details: `Chỉnh sửa thông số chuyến ${auction.flightNumber} (${auction.route || 'Vietravel Airlines'}).`
+            });
             return { success: true, message: `Cập nhật thông số chuyến bay ${auction.flightNumber} thành công!`, auction: auction };
         },
 
@@ -3887,6 +4035,12 @@ const CargoStore = (function() {
             data.registrations = (data.registrations || []).filter(r => r.auctionId != id);
 
             saveData(data);
+            this.logActivity({
+                actionCategory: 'Phiên đấu giá',
+                actionTitle: 'Xóa phiên đấu giá',
+                target: removed.flightNumber,
+                details: `Xóa phiên đấu giá chuyến bay ${removed.flightNumber} (${removed.route}) khỏi hệ thống.`
+            });
             return { success: true, message: `Đã xóa chuyến bay ${removed.flightNumber} và toàn bộ dữ liệu liên quan khỏi hệ thống.` };
         },
 
@@ -4115,6 +4269,77 @@ const CargoStore = (function() {
 
         getSystemSettings: function() {
             return loadData().settings || defaultData.settings;
+        },
+
+        logActivity: function(logInfo) {
+            const data = loadData();
+            if (!data.activityLogs) data.activityLogs = defaultData.activityLogs || [];
+
+            const currentAdmin = data.currentAdmin || { username: 'admin', fullName: 'Trần Quản Trị', role: 'ADMIN' };
+            const now = new Date();
+            const pad = n => String(n).padStart(2, '0');
+            const timestampStr = `${pad(now.getDate())}/${pad(now.getMonth() + 1)}/${now.getFullYear()} ${pad(now.getHours())}:${pad(now.getMinutes())}:${pad(now.getSeconds())}`;
+
+            const newLog = {
+                id: Date.now() + Math.floor(Math.random() * 1000),
+                timestamp: timestampStr,
+                rawTime: now.getTime(),
+                actor: logInfo.actor || currentAdmin.fullName || currentAdmin.username || 'Quản trị viên',
+                username: logInfo.username || currentAdmin.username || 'admin',
+                role: logInfo.role || currentAdmin.role || 'ADMIN',
+                actionCategory: logInfo.actionCategory || 'Khác',
+                actionTitle: logInfo.actionTitle || 'Thao tác hệ thống',
+                target: logInfo.target || 'N/A',
+                details: logInfo.details || '',
+                ip: logInfo.ip || '113.161.42.12',
+                device: (typeof navigator !== 'undefined' && navigator.userAgent)
+                    ? (navigator.userAgent.includes('Windows') ? 'Windows Chrome' : 'Web Browser')
+                    : 'Server Node.js'
+            };
+
+            data.activityLogs.unshift(newLog);
+            if (data.activityLogs.length > 1000) {
+                data.activityLogs = data.activityLogs.slice(0, 1000);
+            }
+            saveData(data);
+            return newLog;
+        },
+
+        getActivityLogs: function(filters = {}) {
+            const data = loadData();
+            let logs = data.activityLogs || defaultData.activityLogs || [];
+
+            if (filters.role && filters.role !== 'ALL') {
+                logs = logs.filter(l => (l.role || '').toUpperCase() === filters.role.toUpperCase());
+            }
+
+            if (filters.category && filters.category !== 'ALL') {
+                logs = logs.filter(l => (l.actionCategory || '') === filters.category);
+            }
+
+            if (filters.search) {
+                const q = filters.search.toLowerCase().trim();
+                logs = logs.filter(l =>
+                    (l.actor || '').toLowerCase().includes(q) ||
+                    (l.username || '').toLowerCase().includes(q) ||
+                    (l.actionTitle || '').toLowerCase().includes(q) ||
+                    (l.target || '').toLowerCase().includes(q) ||
+                    (l.details || '').toLowerCase().includes(q) ||
+                    (l.ip || '').includes(q)
+                );
+            }
+
+            return logs;
+        },
+
+        clearActivityLogs: function() {
+            const data = loadData();
+            if (data.currentAdmin && data.currentAdmin.role === 'STAFF') {
+                return { success: false, message: 'Nhân viên (STAFF) không có quyền xóa nhật ký hệ thống.' };
+            }
+            data.activityLogs = [];
+            saveData(data);
+            return { success: true, message: 'Đã xóa toàn bộ nhật ký hoạt động hệ thống.' };
         },
 
         logoutAgent: function() {

@@ -2048,6 +2048,8 @@
                 let headerGradient = 'from-blue-700 to-indigo-800';
                 let headerIcon = 'fa-clock';
 
+                const isRejected = item.paymentProof && item.paymentProof.status === 'REJECTED';
+
                 if (isPaid) {
                     statusBadgeText = 'ĐÃ HOÀN TẤT THANH TOÁN';
                     statusBadgeClass = 'bg-emerald-400 text-emerald-950';
@@ -2063,6 +2065,11 @@
                     statusBadgeClass = 'bg-rose-500 text-white font-bold';
                     headerGradient = 'from-slate-800 to-rose-950';
                     headerIcon = 'fa-ban';
+                } else if (isRejected) {
+                    statusBadgeText = 'BIÊN LAI BỊ TỪ CHỐI - CẦN NỘP LẠI';
+                    statusBadgeClass = 'bg-rose-500 text-white font-bold animate-pulse';
+                    headerGradient = 'from-rose-800 to-red-900';
+                    headerIcon = 'fa-triangle-exclamation';
                 } else if (isPending) {
                     statusBadgeText = 'ĐÃ BÁO CHUYỂN KHOẢN (CHỜ ADMIN XÁC NHẬN)';
                     statusBadgeClass = 'bg-blue-400 text-blue-950 animate-pulse';
@@ -2096,60 +2103,99 @@
                         </div>
 
                         <div class="p-6 space-y-6">
-                            <!-- Cảnh báo chế tài khóa tài khoản / Thông báo khóa -->
-                            ${isExpired ? `
-                                <div class="bg-rose-50 border-2 border-rose-300 rounded-2xl p-4 flex items-start gap-3.5 text-xs text-rose-950 shadow-sm">
-                                    <div class="w-10 h-10 rounded-xl bg-rose-600 text-white flex items-center justify-center font-bold text-lg flex-shrink-0 shadow-sm">
-                                        <i class="fa-solid fa-lock"></i>
-                                    </div>
-                                    <div class="flex-1 space-y-1">
-                                        <strong class="text-rose-900 text-sm flex items-center gap-2 font-extrabold uppercase">
-                                            <i class="fa-solid fa-ban text-rose-600"></i> Đơn hàng đã quá hạn thanh toán · Tài khoản đại lý bị khóa
-                                        </strong>
-                                        <p class="text-rose-800 leading-relaxed font-medium">
-                                            Đơn hàng đã quá thời hạn quy định (Hạn chót Cut-off: <strong class="text-rose-950 underline">${formatEffectiveDeadline(item)}</strong>) mà chưa hoàn tất thanh toán. Theo quy chế sàn đấu giá Vietravel Airlines, hệ thống đã <span class="font-extrabold underline">TỰ ĐỘNG KHÓA TÀI KHOẢN ĐẠI LÝ</span> và thu hồi quyền tham gia đấu giá cũng như toàn bộ slot tải trọng của đơn hàng này.
-                                        </p>
-                                    </div>
-                                </div>
-                            ` : (isPending ? `
-                                <div class="bg-gradient-to-r from-emerald-500/10 via-blue-500/10 to-teal-500/10 border-2 border-emerald-400 rounded-2xl p-4 flex items-start gap-3.5 text-xs text-emerald-950 shadow-sm">
-                                    <div class="w-10 h-10 rounded-xl bg-emerald-600 text-white flex items-center justify-center font-bold text-lg flex-shrink-0 shadow-sm">
-                                        <i class="fa-solid fa-shield-check"></i>
-                                    </div>
-                                    <div class="flex-1 space-y-1">
-                                        <div class="flex flex-wrap items-center justify-between gap-2">
-                                            <strong class="text-emerald-900 text-sm flex items-center gap-2 font-extrabold uppercase">
-                                                <i class="fa-solid fa-clock-rotate-left text-emerald-700"></i> Đã ghi nhận báo chuyển khoản · Bảo lưu slot & tài khoản an toàn
-                                            </strong>
-                                            <span class="bg-emerald-700 text-white font-mono font-bold px-2.5 py-1 rounded-full text-[11px] shadow-sm">
-                                                Đã nộp lúc: ${item.notifiedAt || 'Vừa xong'}
-                                            </span>
+                            <!-- Cảnh báo chế tài khóa tài khoản / Thông báo khóa / Cảnh báo từ chối -->
+                            ${(() => {
+                                if (isExpired) {
+                                    return `
+                                        <div class="bg-rose-50 border-2 border-rose-300 rounded-2xl p-4 flex items-start gap-3.5 text-xs text-rose-950 shadow-sm">
+                                            <div class="w-10 h-10 rounded-xl bg-rose-600 text-white flex items-center justify-center font-bold text-lg flex-shrink-0 shadow-sm">
+                                                <i class="fa-solid fa-lock"></i>
+                                            </div>
+                                            <div class="flex-1 space-y-1">
+                                                <strong class="text-rose-900 text-sm flex items-center gap-2 font-extrabold uppercase">
+                                                    <i class="fa-solid fa-ban text-rose-600"></i> Đơn hàng đã quá hạn thanh toán · Tài khoản đại lý bị khóa
+                                                </strong>
+                                                <p class="text-rose-800 leading-relaxed font-medium">
+                                                    Đơn hàng đã quá thời hạn quy định (Hạn chót Cut-off: <strong class="text-rose-950 underline">${formatEffectiveDeadline(item)}</strong>) mà chưa hoàn tất thanh toán. Theo quy chế sàn đấu giá Vietravel Airlines, hệ thống đã <span class="font-extrabold underline">TỰ ĐỘNG KHÓA TÀI KHOẢN ĐẠI LÝ</span> và thu hồi quyền tham gia đấu giá cũng như toàn bộ slot tải trọng của đơn hàng này.
+                                                </p>
+                                            </div>
                                         </div>
-                                        <p class="text-slate-700 leading-relaxed font-medium">
-                                            Quý đại lý đã nộp thông tin chuyển khoản thành công. <strong>Hệ thống tự động bảo lưu slot bay và tài khoản của Quý đại lý ở trạng thái an toàn tuyệt đối (Không bị hủy đơn, không bị khóa tài khoản)</strong> trong suốt thời gian Ban Điều hành đối soát sao kê ngân hàng.
-                                        </p>
-                                    </div>
-                                </div>
-                            ` : (!isPaid ? `
-                                <div class="bg-gradient-to-r from-amber-500/10 via-rose-500/10 to-amber-500/10 border-2 border-dashed border-amber-400 rounded-2xl p-4 flex items-start gap-3.5 text-xs text-amber-950 shadow-sm">
-                                    <div class="w-10 h-10 rounded-xl bg-amber-500 text-white flex items-center justify-center font-bold text-lg flex-shrink-0 shadow-sm">
-                                        <i class="fa-solid fa-triangle-exclamation"></i>
-                                    </div>
-                                    <div class="flex-1 space-y-1">
-                                        <div class="flex flex-wrap items-center justify-between gap-2">
-                                            <strong class="text-amber-900 text-sm flex items-center gap-2 font-extrabold uppercase">
-                                                <i class="fa-solid fa-shield-halved text-rose-600"></i> Cảnh báo thanh toán & Chế tài khóa tài khoản
-                                            </strong>
-                                            <span class="bg-rose-600 text-white font-mono font-bold px-2.5 py-1 rounded-full text-[11px] shadow-sm">
-                                                Hạn chót: ${formatEffectiveDeadline(item)}
-                                            </span>
+                                    `;
+                                }
+                                if (isRejected) {
+                                    return `
+                                        <div class="bg-rose-50 border-2 border-rose-300 rounded-2xl p-4 flex items-start gap-3.5 text-xs text-rose-950 shadow-sm">
+                                            <div class="w-10 h-10 rounded-xl bg-rose-600 text-white flex items-center justify-center font-bold text-lg flex-shrink-0 shadow-sm">
+                                                <i class="fa-solid fa-triangle-exclamation"></i>
+                                            </div>
+                                            <div class="flex-1 space-y-1">
+                                                <div class="flex flex-wrap items-center justify-between gap-2">
+                                                    <strong class="text-rose-900 text-sm font-extrabold uppercase flex items-center gap-1.5">
+                                                        <i class="fa-solid fa-circle-xmark text-rose-600"></i> Biên lai chuyển khoản bị từ chối · Yêu cầu nộp lại
+                                                    </strong>
+                                                    <span class="text-[10px] bg-rose-100 text-rose-800 border border-rose-300 font-bold px-2 py-0.5 rounded-full font-mono">BÁO CÁO LẠI</span>
+                                                </div>
+                                                <p class="text-rose-800 leading-relaxed font-medium">
+                                                    <strong>Lý do từ chối từ Ban Điều hành:</strong> "${item.paymentProof.rejectionReason || 'Thông tin biên lai hoặc mã giao dịch không hợp lệ'}"
+                                                </p>
+                                                <p class="text-[11px] text-rose-700">
+                                                    Thời gian từ chối: ${item.paymentProof.rejectedAt || 'Vừa xong'} &middot; Vui lòng kiểm tra lại thông tin chuyển khoản và nộp lại biên lai mới trước hạn Cut-off!
+                                                </p>
+                                                <div class="pt-1">
+                                                    <button onclick="openPaymentModal('${item.wonId}')" class="px-4 py-2 bg-rose-600 hover:bg-rose-700 text-white font-bold rounded-xl transition shadow text-xs flex items-center gap-1.5 cursor-pointer">
+                                                        <i class="fa-solid fa-rotate-left"></i> Nộp lại Biên lai Thanh toán & Mã GD mới
+                                                    </button>
+                                                </div>
+                                            </div>
                                         </div>
-                                        <p class="text-slate-700 leading-relaxed font-medium">
-                                            Quý đại lý vui lòng hoàn tất chuyển khoản trước thời gian hạn chót. <span class="text-rose-700 font-extrabold underline decoration-rose-400">LƯU Ý QUAN TRỌNG: NẾU QUÁ HẠN MÀ CHƯA THANH TOÁN, HỆ THỐNG SẼ TỰ ĐỘNG KHÓA TÀI KHOẢN ĐẠI LÝ</span> và ngắt toàn bộ quyền tham gia sàn đấu giá Vietravel Airlines!
-                                        </p>
-                                    </div>
-                                </div>
-                            ` : ''))}
+                                    `;
+                                }
+                                if (isPending) {
+                                    return `
+                                        <div class="bg-gradient-to-r from-emerald-500/10 via-blue-500/10 to-teal-500/10 border-2 border-emerald-400 rounded-2xl p-4 flex items-start gap-3.5 text-xs text-emerald-950 shadow-sm">
+                                            <div class="w-10 h-10 rounded-xl bg-emerald-600 text-white flex items-center justify-center font-bold text-lg flex-shrink-0 shadow-sm">
+                                                <i class="fa-solid fa-shield-check"></i>
+                                            </div>
+                                            <div class="flex-1 space-y-1">
+                                                <div class="flex flex-wrap items-center justify-between gap-2">
+                                                    <strong class="text-emerald-900 text-sm flex items-center gap-2 font-extrabold uppercase">
+                                                        <i class="fa-solid fa-clock-rotate-left text-emerald-700"></i> Đã ghi nhận báo chuyển khoản · Bảo lưu slot & tài khoản an toàn
+                                                    </strong>
+                                                    <span class="bg-emerald-700 text-white font-mono font-bold px-2.5 py-1 rounded-full text-[11px] shadow-sm">
+                                                        Đã nộp lúc: ${item.notifiedAt || 'Vừa xong'}
+                                                    </span>
+                                                </div>
+                                                <p class="text-slate-700 leading-relaxed font-medium">
+                                                    Quý đại lý đã nộp thông tin chuyển khoản thành công. <strong>Hệ thống tự động bảo lưu slot bay và tài khoản của Quý đại lý ở trạng thái an toàn tuyệt đối (Không bị hủy đơn, không bị khóa tài khoản)</strong> trong suốt thời gian Ban Điều hành đối soát sao kê ngân hàng.
+                                                </p>
+                                            </div>
+                                        </div>
+                                    `;
+                                }
+                                if (!isPaid) {
+                                    return `
+                                        <div class="bg-gradient-to-r from-amber-500/10 via-rose-500/10 to-amber-500/10 border-2 border-dashed border-amber-400 rounded-2xl p-4 flex items-start gap-3.5 text-xs text-amber-950 shadow-sm">
+                                            <div class="w-10 h-10 rounded-xl bg-amber-500 text-white flex items-center justify-center font-bold text-lg flex-shrink-0 shadow-sm">
+                                                <i class="fa-solid fa-triangle-exclamation"></i>
+                                            </div>
+                                            <div class="flex-1 space-y-1">
+                                                <div class="flex flex-wrap items-center justify-between gap-2">
+                                                    <strong class="text-amber-900 text-sm flex items-center gap-2 font-extrabold uppercase">
+                                                        <i class="fa-solid fa-shield-halved text-rose-600"></i> Cảnh báo thanh toán & Chế tài khóa tài khoản
+                                                    </strong>
+                                                    <span class="bg-rose-600 text-white font-mono font-bold px-2.5 py-1 rounded-full text-[11px] shadow-sm">
+                                                        Hạn chót: ${formatEffectiveDeadline(item)}
+                                                    </span>
+                                                </div>
+                                                <p class="text-slate-700 leading-relaxed font-medium">
+                                                    Quý đại lý vui lòng hoàn tất chuyển khoản trước thời gian hạn chót. <span class="text-rose-700 font-extrabold underline decoration-rose-400">LƯU Ý QUAN TRỌNG: NẾU QUÁ HẠN MÀ CHƯA THANH TOÁN, HỆ THỐNG SẼ TỰ ĐỘNG KHÓA TÀI KHOẢN ĐẠI LÝ</span> và ngắt toàn bộ quyền tham gia sàn đấu giá Vietravel Airlines!
+                                                </p>
+                                            </div>
+                                        </div>
+                                    `;
+                                }
+                                return '';
+                            })()}
 
                             <div class="grid grid-cols-2 md:grid-cols-4 gap-4">
                                 <div class="bg-slate-50 p-4 rounded-xl border">
@@ -2427,6 +2473,20 @@
                 `;
                 submitBtn.style.display = 'flex';
                 submitBtn.innerHTML = '<i class="fa-solid fa-rotate"></i> Cập nhật lại thông tin chuyển khoản';
+            } else if (item.paymentProof && item.paymentProof.status === 'REJECTED') {
+                statusBadge.className = 'text-[10px] font-bold px-2 py-0.5 rounded-full bg-rose-500/20 text-rose-300 border border-rose-400/30';
+                statusBadge.textContent = 'BIÊN LAI BỊ TỪ CHỐI';
+                noticeBox.className = 'p-3.5 rounded-2xl bg-rose-50 border border-rose-200 text-rose-950 flex items-start gap-3';
+                noticeBox.innerHTML = `
+                    <i class="fa-solid fa-triangle-exclamation text-rose-600 text-base mt-0.5 flex-shrink-0"></i>
+                    <div class="space-y-0.5">
+                        <p class="font-bold text-rose-900">❌ Biên lai thanh toán trước đó đã bị từ chối!</p>
+                        <p class="text-rose-800"><strong>Lý do từ Ban Điều hành:</strong> "${item.paymentProof.rejectionReason || 'Thông tin biên lai hoặc mã giao dịch không hợp lệ'}"</p>
+                        <p class="text-[11px] text-rose-700 mt-1">Thời gian từ chối: ${item.paymentProof.rejectedAt || 'Vừa xong'}. Vui lòng tải lại ảnh chụp biên lai mới hoặc nhập lại đúng Mã GD/FT ngân hàng.</p>
+                    </div>
+                `;
+                submitBtn.style.display = 'flex';
+                submitBtn.innerHTML = '<i class="fa-solid fa-rotate-left"></i> Nộp lại Biên lai Thanh toán mới';
             } else {
                 statusBadge.className = 'text-[10px] font-bold px-2 py-0.5 rounded-full bg-amber-500/20 text-amber-300 border border-amber-400/30';
                 statusBadge.textContent = 'Chờ thanh toán';

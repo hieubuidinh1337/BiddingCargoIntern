@@ -41,6 +41,9 @@
                     <a href="08-Settings.html" class="px-3 py-1.5 rounded-lg text-slate-300 hover:text-white hover:bg-slate-800 transition flex items-center gap-1.5">
                         <i class="fa-solid fa-sliders"></i> Cài đặt
                     </a>
+                    <a href="10-AuditLogs.html" class="px-3 py-1.5 rounded-lg text-slate-300 hover:text-white hover:bg-slate-800 transition flex items-center gap-1.5">
+                        <i class="fa-solid fa-clock-rotate-left"></i> Nhật ký
+                    </a>
                     <a href="09-AdminChat.html" class="px-3 py-1.5 rounded-lg bg-purple-600/20 text-purple-300 hover:text-white hover:bg-purple-700 transition flex items-center gap-1.5 font-semibold"><i class="fa-solid fa-headset mr-1"></i>Chat Hỗ trợ<span id="admin-chat-badge" class="hidden bg-red-500 text-white text-[9px] font-bold px-1.5 py-0.5 rounded-full ml-1.5">0</span></a>
                     
                 </nav>
@@ -673,10 +676,21 @@
             }
         }
 
+        function initSystemDefaults() {
+            if (window.CargoStore && CargoStore.getSystemSettings) {
+                const sys = CargoStore.getSystemSettings();
+                if (sys && sys.minIncrement) {
+                    const minStepEl = document.getElementById('minStep');
+                    if (minStepEl) minStepEl.value = sys.minIncrement;
+                }
+            }
+        }
+
         document.addEventListener('DOMContentLoaded', function() {
             initDateInputs();
             attachFieldListeners();
             updateVolumePreview();
+            initSystemDefaults();
             if (window.CargoStore && CargoStore.syncAdminHeaderUI) CargoStore.syncAdminHeaderUI();
         });
 
@@ -684,6 +698,7 @@
         if (document.readyState === 'complete' || document.readyState === 'interactive') {
             initDateInputs();
             attachFieldListeners();
+            initSystemDefaults();
         }
 
         document.getElementById('createAuctionForm').addEventListener('submit', function(e) {

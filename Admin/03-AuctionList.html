@@ -67,6 +67,9 @@
                     <a href="08-Settings.html" class="px-3 py-1.5 rounded-lg text-slate-300 hover:text-white hover:bg-slate-800 transition flex items-center gap-1.5">
                         <i class="fa-solid fa-sliders"></i> Cài đặt
                     </a>
+                    <a href="10-AuditLogs.html" class="px-3 py-1.5 rounded-lg text-slate-300 hover:text-white hover:bg-slate-800 transition flex items-center gap-1.5">
+                        <i class="fa-solid fa-clock-rotate-left"></i> Nhật ký
+                    </a>
                     <a href="09-AdminChat.html" class="px-3 py-1.5 rounded-lg bg-purple-600/20 text-purple-300 hover:text-white hover:bg-purple-700 transition flex items-center gap-1.5 font-semibold"><i class="fa-solid fa-headset mr-1"></i>Chat Hỗ trợ<span id="admin-chat-badge" class="hidden bg-red-500 text-white text-[9px] font-bold px-1.5 py-0.5 rounded-full ml-1.5">0</span></a>
                     
                 </nav>
@@ -520,6 +523,60 @@
             </div>
             <div class="bg-slate-50 px-6 py-3 border-t flex items-center justify-between gap-3 flex-shrink-0" id="adminPayProofModalFooter">
                 <!-- Action Buttons Rendered by JS -->
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal 5: Từ chối biên lai thanh toán & Yêu cầu nộp lại dành cho Admin -->
+    <div id="adminRejectPaymentModal" class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-50 flex items-center justify-center p-4 hidden">
+        <div class="bg-white rounded-3xl max-w-lg w-full p-6 shadow-2xl space-y-4 border border-slate-200 animate-in fade-in zoom-in-95 duration-200">
+            <div class="flex items-center justify-between border-b pb-3">
+                <h3 class="font-bold text-slate-900 text-sm flex items-center gap-2">
+                    <i class="fa-solid fa-triangle-exclamation text-rose-600 text-base"></i>
+                    Từ chối Biên lai Thanh toán (Đơn <span id="rejectModalWonId" class="font-mono text-blue-600 font-bold">-</span>)
+                </h3>
+                <button onclick="closeAdminRejectPaymentModal()" class="text-slate-400 hover:text-slate-600 text-lg cursor-pointer transition">
+                    <i class="fa-solid fa-xmark"></i>
+                </button>
+            </div>
+
+            <input type="hidden" id="rejectModalTargetWonId">
+
+            <p class="text-xs text-slate-600 leading-normal">
+                Vui lòng chọn hoặc nhập <strong>Lý do từ chối biên lai chuyển khoản / mã giao dịch</strong>. Lý do này sẽ được hệ thống gửi tự động qua <strong>Email</strong> và <strong>Thông báo</strong> tới Quý đại lý để họ làm thủ tục nộp lại biên lai mới.
+            </p>
+
+            <!-- Quick Reason Selection Buttons -->
+            <div>
+                <label class="block font-bold text-slate-700 text-xs mb-1.5">Gợi ý lý do phổ biến (Bấm để chọn nhanh):</label>
+                <div class="flex flex-wrap gap-1.5 text-[11px]">
+                    <button type="button" onclick="selectQuickRejectReason('Mã giao dịch / Mã FT ngân hàng không tồn tại trên hệ thống sao kê')" class="px-2.5 py-1 bg-slate-100 hover:bg-rose-50 hover:text-rose-700 border hover:border-rose-300 rounded-lg text-slate-700 font-medium transition cursor-pointer">
+                        ❌ Mã FT không tồn tại
+                    </button>
+                    <button type="button" onclick="selectQuickRejectReason('Ảnh biên lai mờ / bị cắt góc, không thấy rõ thông tin giao dịch')" class="px-2.5 py-1 bg-slate-100 hover:bg-rose-50 hover:text-rose-700 border hover:border-rose-300 rounded-lg text-slate-700 font-medium transition cursor-pointer">
+                        ❌ Ảnh mờ / thiếu thông tin
+                    </button>
+                    <button type="button" onclick="selectQuickRejectReason('Số tiền chuyển khoản thiếu so với tổng tiền đơn hàng thắng thầu')" class="px-2.5 py-1 bg-slate-100 hover:bg-rose-50 hover:text-rose-700 border hover:border-rose-300 rounded-lg text-slate-700 font-medium transition cursor-pointer">
+                        ❌ Chuyển thiếu số tiền
+                    </button>
+                    <button type="button" onclick="selectQuickRejectReason('Nội dung chuyển khoản không đúng cú pháp quy định')" class="px-2.5 py-1 bg-slate-100 hover:bg-rose-50 hover:text-rose-700 border hover:border-rose-300 rounded-lg text-slate-700 font-medium transition cursor-pointer">
+                        ❌ Cú pháp CK sai
+                    </button>
+                </div>
+            </div>
+
+            <div>
+                <label class="block font-bold text-slate-700 text-xs mb-1">Chi tiết lý do từ chối <span class="text-red-500">*</span></label>
+                <textarea id="rejectReasonInput" rows="3" placeholder="Nhập chi tiết lý do từ chối biên lai thanh toán gửi cho đại lý..." class="w-full border rounded-xl p-3 outline-none focus:ring-2 focus:ring-rose-500 text-xs text-slate-800 leading-relaxed"></textarea>
+            </div>
+
+            <div class="flex items-center justify-end gap-2 pt-2 border-t">
+                <button type="button" onclick="closeAdminRejectPaymentModal()" class="px-4 py-2 border rounded-xl text-slate-600 hover:bg-slate-100 font-medium text-xs cursor-pointer transition">
+                    Hủy bỏ
+                </button>
+                <button type="button" onclick="handleConfirmRejectPayment()" class="px-5 py-2 bg-rose-600 hover:bg-rose-700 text-white font-bold rounded-xl text-xs shadow transition flex items-center gap-1.5 cursor-pointer">
+                    <i class="fa-solid fa-paper-plane"></i> Từ chối & Gửi Email cho Đại lý
+                </button>
             </div>
         </div>
     </div>
@@ -1266,9 +1323,14 @@
                                     <i class="fa-solid fa-check"></i> Đã nhận đủ tiền
                                 </span>
                             ` : `
-                                <button onclick="handleAdminConfirmPayment('${item.wonId}')" class="inline-flex items-center gap-1.5 bg-emerald-600 hover:bg-emerald-700 text-white font-bold px-3 py-1.5 rounded-xl text-xs transition shadow-sm cursor-pointer">
-                                    <i class="fa-solid fa-receipt"></i> Xác nhận Đã nhận tiền
-                                </button>
+                                <div class="flex items-center justify-end gap-1.5">
+                                    <button onclick="handleAdminConfirmPayment('${item.wonId}')" class="inline-flex items-center gap-1 bg-emerald-600 hover:bg-emerald-700 text-white font-bold px-2.5 py-1.5 rounded-xl text-xs transition shadow-sm cursor-pointer" title="Xác nhận nhận đủ tiền">
+                                        <i class="fa-solid fa-receipt"></i> Duyệt tiền
+                                    </button>
+                                    <button onclick="openAdminRejectPaymentModal('${item.wonId}')" class="inline-flex items-center gap-1 bg-rose-600 hover:bg-rose-700 text-white font-bold px-2 py-1.5 rounded-xl text-xs transition shadow-sm cursor-pointer" title="Từ chối biên lai & Yêu cầu nộp lại">
+                                        <i class="fa-solid fa-circle-xmark"></i> Từ chối
+                                    </button>
+                                </div>
                             `)}
                         </td>
                     </tr>
@@ -1506,6 +1568,9 @@
                         Đóng
                     </button>
                     ${!isPaid && !isExpired ? `
+                        <button onclick="openAdminRejectPaymentModal('${item.wonId}')" class="px-4 py-2 bg-rose-600 hover:bg-rose-700 text-white font-bold rounded-xl transition shadow flex items-center gap-1.5 cursor-pointer">
+                            <i class="fa-solid fa-circle-xmark"></i> Từ chối biên lai & Yêu cầu nộp lại
+                        </button>
                         <button onclick="handleAdminConfirmPaymentFromModal('${item.wonId}')" class="px-5 py-2 bg-emerald-600 hover:bg-emerald-700 text-white font-bold rounded-xl transition shadow flex items-center gap-1.5 cursor-pointer">
                             <i class="fa-solid fa-circle-check"></i> Xác nhận Đã nhận đủ tiền (Khớp lệnh)
                         </button>
@@ -1518,6 +1583,52 @@
 
         function closeAdminPaymentProofModal() {
             document.getElementById('adminPaymentProofModal').classList.add('hidden');
+        }
+
+        function openAdminRejectPaymentModal(wonId) {
+            const targetId = wonId || (document.getElementById('adminPayProofWonId') ? document.getElementById('adminPayProofWonId').textContent : '');
+            if (!targetId || targetId === '-') return;
+            document.getElementById('rejectModalWonId').textContent = targetId;
+            document.getElementById('rejectModalTargetWonId').value = targetId;
+            document.getElementById('rejectReasonInput').value = '';
+            document.getElementById('adminRejectPaymentModal').classList.remove('hidden');
+        }
+
+        function closeAdminRejectPaymentModal() {
+            document.getElementById('adminRejectPaymentModal').classList.add('hidden');
+        }
+
+        function selectQuickRejectReason(reasonText) {
+            const input = document.getElementById('rejectReasonInput');
+            if (input) {
+                input.value = reasonText;
+                input.focus();
+            }
+        }
+
+        function handleConfirmRejectPayment() {
+            const wonId = document.getElementById('rejectModalTargetWonId').value;
+            const reason = document.getElementById('rejectReasonInput').value.trim();
+            if (!wonId) return;
+
+            if (!reason) {
+                alert('Vui lòng chọn hoặc nhập lý do từ chối biên lai thanh toán!');
+                document.getElementById('rejectReasonInput').focus();
+                return;
+            }
+
+            if (confirm(`Xác nhận TỪ CHỐI biên lai thanh toán cho đơn hàng ${wonId}?\n\nHệ thống sẽ tự động gửi Email thông báo kèm lý do "${reason}" cho đại lý để họ nộp lại biên lai.`)) {
+                const res = CargoStore.rejectPayment(wonId, reason);
+                if (res && res.success) {
+                    alert(res.message);
+                    closeAdminRejectPaymentModal();
+                    closeAdminPaymentProofModal();
+                    renderAuctionsTable();
+                    renderWonAuctionsAdminTable();
+                } else {
+                    alert((res && res.message) || 'Lỗi xử lý từ chối biên lai!');
+                }
+            }
         }
 
         function handleAdminConfirmPaymentFromModal(wonId) {

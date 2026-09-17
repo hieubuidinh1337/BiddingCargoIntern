@@ -1,0 +1,493 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Nhật ký hoạt động - Cargo Bidding Admin</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+    <script src="../assets/js/cargo-store.js"></script>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap');
+        body { font-family: 'Inter', sans-serif; }
+    </style>
+</head>
+<body class="bg-slate-100 text-slate-800 antialiased min-h-screen flex flex-col">
+
+    <!-- Header Navigation -->
+    <header class="bg-slate-900 text-white sticky top-0 z-50 border-b border-slate-800 shadow-sm">
+        <div class="max-w-7xl mx-auto px-4 py-2.5 flex items-center justify-between">
+            <div class="flex items-center gap-3 sm:gap-6">
+                <!-- Mobile Menu Button -->
+                <button type="button" onclick="toggleAdminMobileNav()" class="md:hidden text-slate-300 hover:text-white p-1.5 rounded-lg hover:bg-slate-800 transition focus:outline-none" aria-label="Menu">
+                    <i class="fa-solid fa-bars text-base"></i>
+                </button>
+
+                <a href="02-AdminDashboard.html" class="flex items-center gap-2.5 shrink-0">
+                    <img src="../assets/images/vietravel-logo-doc-white.png" alt="Vietravel Airlines" class="h-8 sm:h-9 object-contain" />
+                    <span class="font-bold text-xs sm:text-sm text-white tracking-tight border-l border-slate-700 pl-2.5">Cargo Bidding Admin</span>
+                </a>
+                <nav class="hidden md:flex items-center gap-1 text-xs font-medium">
+                    <a href="02-AdminDashboard.html" class="px-3 py-1.5 rounded-lg text-slate-300 hover:text-white hover:bg-slate-800 transition flex items-center gap-1.5">
+                        <i class="fa-solid fa-chart-pie"></i> Dashboard
+                    </a>
+                    <a href="03-AuctionList.html" class="px-3 py-1.5 rounded-lg text-slate-300 hover:text-white hover:bg-slate-800 transition flex items-center gap-1.5">
+                        <i class="fa-solid fa-list-check"></i> Quản lý phiên
+                    </a>
+                    <a href="04-CreateAuction.html" class="px-3 py-1.5 rounded-lg text-slate-300 hover:text-white hover:bg-slate-800 transition flex items-center gap-1.5">
+                        <i class="fa-solid fa-plus-circle"></i> Tạo phiên mới
+                    </a>
+                    <a href="06-AgentList.html" class="px-3 py-1.5 rounded-lg text-slate-300 hover:text-white hover:bg-slate-800 transition flex items-center gap-1.5">
+                        <i class="fa-solid fa-building-user"></i> Đại lý & Duyệt đơn
+                    </a>
+                    <a href="07-Reports.html" class="px-3 py-1.5 rounded-lg text-slate-300 hover:text-white hover:bg-slate-800 transition flex items-center gap-1.5">
+                        <i class="fa-solid fa-chart-line"></i> Báo cáo
+                    </a>
+                    <a href="08-Settings.html" class="px-3 py-1.5 rounded-lg text-slate-300 hover:text-white hover:bg-slate-800 transition flex items-center gap-1.5">
+                        <i class="fa-solid fa-sliders"></i> Cài đặt
+                    </a>
+                    <a href="10-AuditLogs.html" class="px-3 py-1.5 rounded-lg bg-blue-600 text-white font-semibold flex items-center gap-1.5">
+                        <i class="fa-solid fa-clock-rotate-left"></i> Nhật ký
+                    </a>
+                    <a href="09-AdminChat.html" class="px-3 py-1.5 rounded-lg bg-purple-600/20 text-purple-300 hover:text-white hover:bg-purple-700 transition flex items-center gap-1.5 font-semibold"><i class="fa-solid fa-headset mr-1"></i>Chat Hỗ trợ<span id="admin-chat-badge" class="hidden bg-red-500 text-white text-[9px] font-bold px-1.5 py-0.5 rounded-full ml-1.5">0</span></a>
+                </nav>
+            </div>
+            <div class="flex items-center gap-2">
+                <span class="admin-header-role text-[9px] sm:text-[10px] font-bold px-1.5 sm:px-2 py-0.5 rounded-full bg-blue-500/20 text-blue-400 border border-blue-500/30 inline-flex items-center gap-1 whitespace-nowrap">
+                    <i class="fa-solid fa-shield-halved text-[8px] sm:text-[9px]"></i> QUẢN TRỊ VIÊN
+                </span>
+                <span class="text-xs text-slate-200 font-semibold admin-header-name hidden sm:inline">Trần Quản Trị</span>
+                <a href="01-AdminLogin.html" onclick="if(window.CargoStore) CargoStore.logoutAdmin()" title="Đăng xuất" class="text-slate-400 hover:text-red-400 p-1">
+                    <i class="fa-solid fa-power-off text-xs"></i>
+                </a>
+            </div>
+        </div>
+
+        <!-- Mobile Navigation Menu Dropdown -->
+        <div id="adminMobileNav" class="hidden md:hidden bg-slate-950 border-t border-slate-800 px-4 py-2.5 space-y-1 text-xs font-medium">
+            <a href="02-AdminDashboard.html" class="flex items-center gap-2 px-3 py-2 rounded-lg text-slate-300 hover:text-white hover:bg-slate-800 transition">
+                <i class="fa-solid fa-chart-pie w-4"></i> Bảng điều khiển
+            </a>
+            <a href="03-AuctionList.html" class="flex items-center gap-2 px-3 py-2 rounded-lg text-slate-300 hover:text-white hover:bg-slate-800 transition">
+                <i class="fa-solid fa-list-check w-4"></i> Quản lý phiên đấu giá
+            </a>
+            <a href="04-CreateAuction.html" class="flex items-center gap-2 px-3 py-2 rounded-lg text-slate-300 hover:text-white hover:bg-slate-800 transition">
+                <i class="fa-solid fa-plus-circle w-4"></i> Tạo phiên mới
+            </a>
+            <a href="06-AgentList.html" class="flex items-center gap-2 px-3 py-2 rounded-lg text-slate-300 hover:text-white hover:bg-slate-800 transition">
+                <i class="fa-solid fa-building-user w-4"></i> Đại lý & Duyệt đơn
+            </a>
+            <a href="07-Reports.html" class="flex items-center gap-2 px-3 py-2 rounded-lg text-slate-300 hover:text-white hover:bg-slate-800 transition">
+                <i class="fa-solid fa-chart-line w-4"></i> Báo cáo doanh thu & sản lượng
+            </a>
+            <a href="08-Settings.html" class="flex items-center gap-2 px-3 py-2 rounded-lg text-slate-300 hover:text-white hover:bg-slate-800 transition">
+                <i class="fa-solid fa-sliders w-4"></i> Cài đặt hệ thống
+            </a>
+            <a href="10-AuditLogs.html" class="flex items-center gap-2 px-3 py-2 rounded-lg bg-blue-600 text-white font-semibold">
+                <i class="fa-solid fa-clock-rotate-left w-4"></i> Nhật ký hoạt động
+            </a>
+            <a href="../00-Home.html" target="_blank" class="flex items-center gap-2 px-3 py-2 rounded-lg text-blue-400 hover:text-blue-300 hover:bg-slate-800 transition border-t border-slate-850 pt-2.5 mt-1">
+                <i class="fa-solid fa-external-link w-4"></i> Xem Sàn công khai
+            </a>
+        </div>
+    </header>
+
+    <!-- Main Container -->
+    <main class="flex-1 max-w-7xl w-full mx-auto px-4 sm:px-6 py-6 space-y-6">
+
+        <!-- Page Header Banner -->
+        <div class="flex flex-col md:flex-row md:items-center justify-between gap-4 bg-white p-5 rounded-2xl border border-slate-200/80 shadow-xs">
+            <div>
+                <div class="flex items-center gap-2 mb-1">
+                    <span class="px-2.5 py-0.5 rounded-full text-[10px] font-extrabold bg-blue-100 text-blue-800 uppercase tracking-wider">Audit Security System</span>
+                    <span class="text-xs text-slate-400">| Ghi vết thời gian thực</span>
+                </div>
+                <h1 class="text-xl sm:text-2xl font-black text-slate-900 flex items-center gap-2">
+                    <i class="fa-solid fa-clock-rotate-left text-blue-600"></i> Nhật ký hoạt động (Audit Logs)
+                </h1>
+                <p class="text-xs text-slate-500 mt-1">Theo dõi toàn bộ lịch sử thao tác của Quản trị viên (ADMIN) và Nhân viên điều hành (STAFF) trên hệ thống Sàn Đấu giá Cargo.</p>
+            </div>
+            
+            <div class="flex items-center gap-2 self-start md:self-auto">
+                <button type="button" onclick="exportLogsCSV()" class="px-3.5 py-2 rounded-xl border border-slate-300 bg-white hover:bg-slate-50 text-slate-700 text-xs font-bold transition shadow-xs flex items-center gap-1.5">
+                    <i class="fa-solid fa-file-excel text-emerald-600 text-sm"></i> Xuất Báo cáo CSV
+                </button>
+                <button type="button" id="btnClearLogs" onclick="clearLogsConfirm()" class="px-3.5 py-2 rounded-xl bg-rose-50 text-rose-700 border border-rose-200 hover:bg-rose-100 text-xs font-bold transition shadow-xs flex items-center gap-1.5">
+                    <i class="fa-solid fa-trash-can"></i> Xóa nhật ký cũ
+                </button>
+            </div>
+        </div>
+
+        <!-- Metric KPI Cards -->
+        <div class="grid grid-cols-2 sm:grid-cols-4 gap-4">
+            <div class="bg-white p-4 rounded-2xl border border-slate-200/80 shadow-xs flex items-center gap-3">
+                <div class="w-10 h-10 rounded-xl bg-blue-50 text-blue-600 flex items-center justify-center font-bold text-lg flex-shrink-0">
+                    <i class="fa-solid fa-list"></i>
+                </div>
+                <div>
+                    <span class="text-[11px] font-semibold text-slate-400 uppercase tracking-wider block">Tổng Nhật ký</span>
+                    <span id="statTotalLogs" class="text-lg font-black text-slate-900">0</span>
+                </div>
+            </div>
+
+            <div class="bg-white p-4 rounded-2xl border border-slate-200/80 shadow-xs flex items-center gap-3">
+                <div class="w-10 h-10 rounded-xl bg-indigo-50 text-indigo-600 flex items-center justify-center font-bold text-lg flex-shrink-0">
+                    <i class="fa-solid fa-user-shield"></i>
+                </div>
+                <div>
+                    <span class="text-[11px] font-semibold text-slate-400 uppercase tracking-wider block">Thao tác Admin</span>
+                    <span id="statAdminLogs" class="text-lg font-black text-indigo-700">0</span>
+                </div>
+            </div>
+
+            <div class="bg-white p-4 rounded-2xl border border-slate-200/80 shadow-xs flex items-center gap-3">
+                <div class="w-10 h-10 rounded-xl bg-purple-50 text-purple-600 flex items-center justify-center font-bold text-lg flex-shrink-0">
+                    <i class="fa-solid fa-user-gear"></i>
+                </div>
+                <div>
+                    <span class="text-[11px] font-semibold text-slate-400 uppercase tracking-wider block">Thao tác Staff</span>
+                    <span id="statStaffLogs" class="text-lg font-black text-purple-700">0</span>
+                </div>
+            </div>
+
+            <div class="bg-white p-4 rounded-2xl border border-slate-200/80 shadow-xs flex items-center gap-3">
+                <div class="w-10 h-10 rounded-xl bg-rose-50 text-rose-600 flex items-center justify-center font-bold text-lg flex-shrink-0">
+                    <i class="fa-solid fa-ban"></i>
+                </div>
+                <div>
+                    <span class="text-[11px] font-semibold text-slate-400 uppercase tracking-wider block">Từ chối / Cảnh báo</span>
+                    <span id="statRejectLogs" class="text-lg font-black text-rose-600">0</span>
+                </div>
+            </div>
+        </div>
+
+        <!-- Filter & Search Toolbar -->
+        <div class="bg-white p-4 rounded-2xl border border-slate-200/80 shadow-xs space-y-3">
+            <div class="grid grid-cols-1 sm:grid-cols-12 gap-3">
+                <!-- Search Box -->
+                <div class="sm:col-span-5 relative">
+                    <i class="fa-solid fa-magnifying-glass absolute left-3.5 top-3 text-slate-400 text-xs"></i>
+                    <input type="text" id="logSearchInput" oninput="renderLogs()" placeholder="Tìm theo Tên, Username, Hành động, Mã đơn/chuyến, IP..."
+                           class="w-full bg-slate-50 border border-slate-200 rounded-xl pl-9 pr-3.5 py-2 text-xs text-slate-800 font-medium placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:bg-white transition">
+                </div>
+
+                <!-- Category Filter -->
+                <div class="sm:col-span-3">
+                    <select id="logCategoryFilter" onchange="renderLogs()" class="w-full bg-slate-50 border border-slate-200 rounded-xl px-3 py-2 text-xs font-semibold text-slate-700 focus:outline-none focus:ring-2 focus:ring-blue-500 transition">
+                        <option value="ALL">📁 Tất cả danh mục</option>
+                        <option value="Thanh toán">💳 Phê duyệt & Thanh toán</option>
+                        <option value="Phiên đấu giá">✈️ Quản lý Phiên thầu</option>
+                        <option value="Quản lý Đại lý">🏢 Hồ sơ & Đại lý</option>
+                        <option value="Cấu hình hệ thống">⚙️ Cấu hình hệ thống</option>
+                        <option value="Tài khoản">👤 Nhân viên & Tài khoản</option>
+                        <option value="Đăng nhập">🔑 Đăng nhập / Đăng xuất</option>
+                    </select>
+                </div>
+
+                <!-- Role Filter -->
+                <div class="sm:col-span-2">
+                    <select id="logRoleFilter" onchange="renderLogs()" class="w-full bg-slate-50 border border-slate-200 rounded-xl px-3 py-2 text-xs font-semibold text-slate-700 focus:outline-none focus:ring-2 focus:ring-blue-500 transition">
+                        <option value="ALL">👥 Tất cả vai trò</option>
+                        <option value="ADMIN">🛡️ ADMIN (Quản trị viên)</option>
+                        <option value="STAFF">🎧 STAFF (Nhân viên)</option>
+                    </select>
+                </div>
+
+                <!-- Reset Filters Button -->
+                <div class="sm:col-span-2">
+                    <button type="button" onclick="resetFilters()" class="w-full h-full py-2 bg-slate-100 hover:bg-slate-200 text-slate-700 text-xs font-bold rounded-xl transition flex items-center justify-center gap-1.5 border border-slate-200">
+                        <i class="fa-solid fa-arrow-rotate-left"></i> Đặt lại bộ lọc
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Audit Log Table -->
+        <div class="bg-white rounded-2xl border border-slate-200/80 shadow-xs overflow-hidden">
+            <div class="px-5 py-3.5 border-b border-slate-100 bg-slate-50/50 flex items-center justify-between">
+                <div class="flex items-center gap-2">
+                    <span class="w-2.5 h-2.5 rounded-full bg-emerald-500 animate-pulse"></span>
+                    <h3 class="text-xs font-extrabold uppercase tracking-wider text-slate-700">Lịch sử nhật ký hoạt động hệ thống</h3>
+                </div>
+                <span id="resultCountBadge" class="text-xs font-bold text-slate-500 bg-slate-200/70 px-2.5 py-0.5 rounded-full">0 kết quả</span>
+            </div>
+
+            <div class="overflow-x-auto">
+                <table class="w-full text-left border-collapse">
+                    <thead>
+                        <tr class="bg-slate-100/70 text-[11px] font-bold text-slate-600 uppercase tracking-wider border-b border-slate-200">
+                            <th class="px-4 py-3 min-w-[150px]">Thời gian</th>
+                            <th class="px-4 py-3 min-w-[160px]">Người thực hiện</th>
+                            <th class="px-4 py-3 min-w-[140px]">Danh mục</th>
+                            <th class="px-4 py-3 min-w-[200px]">Hành động & Đối tượng</th>
+                            <th class="px-4 py-3 min-w-[300px]">Nội dung chi tiết</th>
+                            <th class="px-4 py-3 min-w-[140px]">Địa chỉ IP</th>
+                        </tr>
+                    </thead>
+                    <tbody id="logsTableBody" class="divide-y divide-slate-100 text-xs text-slate-700">
+                        <!-- Populated dynamically -->
+                    </tbody>
+                </table>
+            </div>
+
+            <!-- Empty State -->
+            <div id="emptyLogsState" class="hidden p-12 text-center text-slate-400">
+                <i class="fa-solid fa-clock-rotate-left text-4xl mb-3 text-slate-300 block"></i>
+                <p class="font-bold text-slate-700 text-sm">Không tìm thấy nhật ký hoạt động nào</p>
+                <p class="text-xs text-slate-400 mt-1">Thử thay đổi từ khóa tìm kiếm hoặc chọn lại bộ lọc danh mục / vai trò.</p>
+            </div>
+        </div>
+
+    </main>
+
+    <!-- Footer -->
+    <footer class="bg-white border-t border-slate-200 py-4 text-center text-xs text-slate-500">
+        <p>© 2026 Vietravel Airlines Cargo Bidding System · Audit Security Logs Engine</p>
+    </footer>
+
+    <!-- Log Detail Modal -->
+    <div id="logDetailModal" class="hidden fixed inset-0 z-[9999] bg-slate-900/60 backdrop-blur-xs flex items-center justify-center p-4">
+        <div class="bg-white rounded-2xl max-w-xl w-full shadow-2xl overflow-hidden border border-slate-200 animate-in fade-in duration-200">
+            <div class="px-5 py-3.5 bg-slate-900 text-white flex items-center justify-between border-b border-slate-800">
+                <div class="flex items-center gap-2">
+                    <div class="w-7 h-7 bg-blue-600 rounded-lg flex items-center justify-center text-xs text-white shadow-xs">
+                        <i class="fa-solid fa-circle-info"></i>
+                    </div>
+                    <h3 class="font-bold text-sm text-white">Chi tiết Nhật ký Hoạt động</h3>
+                </div>
+                <button type="button" onclick="closeLogModal()" class="text-slate-400 hover:text-white text-base">
+                    <i class="fa-solid fa-xmark"></i>
+                </button>
+            </div>
+
+            <div class="p-5 space-y-4 text-xs">
+                <div class="grid grid-cols-2 gap-3 bg-slate-50 p-3.5 rounded-xl border border-slate-200/80">
+                    <div>
+                        <span class="text-slate-400 text-[10px] block font-semibold uppercase">Thời gian thực hiện</span>
+                        <span id="modalLogTime" class="font-bold text-slate-900">--</span>
+                    </div>
+                    <div>
+                        <span class="text-slate-400 text-[10px] block font-semibold uppercase">Địa chỉ IP & Thiết bị</span>
+                        <span id="modalLogIp" class="font-bold text-slate-900">--</span>
+                    </div>
+                    <div>
+                        <span class="text-slate-400 text-[10px] block font-semibold uppercase">Người thực hiện</span>
+                        <span id="modalLogActor" class="font-bold text-blue-700">--</span>
+                    </div>
+                    <div>
+                        <span class="text-slate-400 text-[10px] block font-semibold uppercase">Danh mục</span>
+                        <span id="modalLogCategory" class="font-bold text-slate-800">--</span>
+                    </div>
+                </div>
+
+                <div>
+                    <span class="text-slate-500 font-bold block mb-1">Hành động chính:</span>
+                    <p id="modalLogTitle" class="font-extrabold text-sm text-slate-900 bg-blue-50/60 p-2.5 rounded-lg border border-blue-100">--</p>
+                </div>
+
+                <div>
+                    <span class="text-slate-500 font-bold block mb-1">Chi tiết nội dung thao tác:</span>
+                    <div id="modalLogDetails" class="bg-slate-900 text-slate-200 p-3.5 rounded-xl font-mono text-[11px] leading-relaxed break-words whitespace-pre-wrap max-h-48 overflow-y-auto">--</div>
+                </div>
+            </div>
+
+            <div class="px-5 py-3 bg-slate-50 border-t border-slate-200 flex items-center justify-end">
+                <button type="button" onclick="closeLogModal()" class="px-5 py-2 bg-slate-800 hover:bg-slate-900 text-white font-bold rounded-xl text-xs transition">
+                    Đóng cửa sổ
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- JavaScript Handlers -->
+    <script>
+        function toggleAdminMobileNav() {
+            const nav = document.getElementById('adminMobileNav');
+            if (nav) nav.classList.toggle('hidden');
+        }
+
+        function getCategoryBadgeClass(category) {
+            switch (category) {
+                case 'Thanh toán':
+                    return 'bg-emerald-50 text-emerald-700 border-emerald-200/80';
+                case 'Phiên đấu giá':
+                    return 'bg-blue-50 text-blue-700 border-blue-200/80';
+                case 'Quản lý Đại lý':
+                    return 'bg-purple-50 text-purple-700 border-purple-200/80';
+                case 'Cấu hình hệ thống':
+                    return 'bg-slate-100 text-slate-800 border-slate-200';
+                case 'Tài khoản':
+                    return 'bg-rose-50 text-rose-700 border-rose-200/80';
+                case 'Đăng nhập':
+                    return 'bg-cyan-50 text-cyan-700 border-cyan-200/80';
+                default:
+                    return 'bg-gray-100 text-gray-700 border-gray-200';
+            }
+        }
+
+        function renderLogs() {
+            if (typeof CargoStore === 'undefined') return;
+
+            const search = document.getElementById('logSearchInput').value;
+            const category = document.getElementById('logCategoryFilter').value;
+            const role = document.getElementById('logRoleFilter').value;
+
+            const logs = CargoStore.getActivityLogs({
+                search: search,
+                category: category,
+                role: role
+            });
+
+            // Update Metric KPIs
+            const allLogs = CargoStore.getActivityLogs({ role: 'ALL', category: 'ALL' });
+            document.getElementById('statTotalLogs').textContent = allLogs.length.toLocaleString('vi-VN');
+            document.getElementById('statAdminLogs').textContent = allLogs.filter(l => (l.role || '').toUpperCase() === 'ADMIN').length.toLocaleString('vi-VN');
+            document.getElementById('statStaffLogs').textContent = allLogs.filter(l => (l.role || '').toUpperCase() === 'STAFF').length.toLocaleString('vi-VN');
+            document.getElementById('statRejectLogs').textContent = allLogs.filter(l => (l.actionTitle || '').includes('Từ chối') || (l.actionTitle || '').includes('Khóa')).length.toLocaleString('vi-VN');
+
+            document.getElementById('resultCountBadge').textContent = `${logs.length.toLocaleString('vi-VN')} kết quả`;
+
+            const tbody = document.getElementById('logsTableBody');
+            const emptyState = document.getElementById('emptyLogsState');
+
+            if (logs.length === 0) {
+                tbody.innerHTML = '';
+                emptyState.classList.remove('hidden');
+                return;
+            }
+
+            emptyState.classList.add('hidden');
+            tbody.innerHTML = logs.map(l => {
+                const isStaff = (l.role || '').toUpperCase() === 'STAFF';
+                const roleBadge = isStaff
+                    ? '<span class="px-1.5 py-0.5 rounded text-[9px] font-bold bg-purple-100 text-purple-700 border border-purple-200">STAFF</span>'
+                    : '<span class="px-1.5 py-0.5 rounded text-[9px] font-bold bg-blue-100 text-blue-700 border border-blue-200">ADMIN</span>';
+
+                const categoryBadgeClass = getCategoryBadgeClass(l.actionCategory);
+
+                const isReject = (l.actionTitle || '').includes('Từ chối') || (l.actionTitle || '').includes('Khóa');
+                const actionTitleFormatted = isReject
+                    ? `<span class="font-bold text-rose-600 flex items-center gap-1"><i class="fa-solid fa-triangle-exclamation text-[10px]"></i> ${l.actionTitle || ''}</span>`
+                    : `<span class="font-bold text-slate-900">${l.actionTitle || ''}</span>`;
+
+                return `
+                    <tr class="hover:bg-slate-50/80 transition cursor-pointer" onclick='openLogModal(${JSON.stringify(l).replace(/'/g, "&apos;")})'>
+                        <td class="px-4 py-3 text-slate-500 font-mono text-[11px] whitespace-nowrap">
+                            <i class="fa-regular fa-clock mr-1 text-slate-400"></i>${l.timestamp}
+                        </td>
+                        <td class="px-4 py-3">
+                            <div class="font-bold text-slate-900 flex items-center gap-1.5">
+                                ${l.actor} ${roleBadge}
+                            </div>
+                            <span class="text-[10px] text-slate-400 font-mono">@${l.username}</span>
+                        </td>
+                        <td class="px-4 py-3">
+                            <span class="px-2 py-1 rounded-lg text-[10px] font-bold border ${categoryBadgeClass}">
+                                ${l.actionCategory || 'Khác'}
+                            </span>
+                        </td>
+                        <td class="px-4 py-3">
+                            ${actionTitleFormatted}
+                            ${l.target && l.target !== 'N/A' ? `<span class="inline-block mt-0.5 text-[10px] font-mono px-1.5 py-0.2 rounded bg-slate-100 text-slate-600 border border-slate-200">Mã: ${l.target}</span>` : ''}
+                        </td>
+                        <td class="px-4 py-3 max-w-xs truncate text-slate-600" title="${(l.details || '').replace(/"/g, '&quot;')}">
+                            ${l.details || '-'}
+                        </td>
+                        <td class="px-4 py-3 text-slate-500 font-mono text-[11px]">
+                            <div>${l.ip || '113.161.42.12'}</div>
+                            <span class="text-[9px] text-slate-400 block">${l.device || 'Web Browser'}</span>
+                        </td>
+                    </tr>
+                `;
+            }).join('');
+        }
+
+        function resetFilters() {
+            document.getElementById('logSearchInput').value = '';
+            document.getElementById('logCategoryFilter').value = 'ALL';
+            document.getElementById('logRoleFilter').value = 'ALL';
+            renderLogs();
+        }
+
+        function openLogModal(log) {
+            if (!log) return;
+            document.getElementById('modalLogTime').textContent = log.timestamp || '--';
+            document.getElementById('modalLogIp').textContent = `${log.ip || '113.161.42.12'} (${log.device || 'Web'})`;
+            document.getElementById('modalLogActor').textContent = `${log.actor} (@${log.username}) - [${log.role}]`;
+            document.getElementById('modalLogCategory').textContent = log.actionCategory || 'Khác';
+            document.getElementById('modalLogTitle').textContent = log.actionTitle || '--';
+            document.getElementById('modalLogDetails').textContent = log.details || 'Không có ghi chú thêm.';
+
+            document.getElementById('logDetailModal').classList.remove('hidden');
+        }
+
+        function closeLogModal() {
+            document.getElementById('logDetailModal').classList.add('hidden');
+        }
+
+        function exportLogsCSV() {
+            if (typeof CargoStore === 'undefined') return;
+            const search = document.getElementById('logSearchInput').value;
+            const category = document.getElementById('logCategoryFilter').value;
+            const role = document.getElementById('logRoleFilter').value;
+
+            const logs = CargoStore.getActivityLogs({ search, category, role });
+            if (logs.length === 0) {
+                alert('Không có dữ liệu nhật ký nào để xuất báo cáo!');
+                return;
+            }
+
+            let csvContent = '\uFEFF'; // UTF-8 BOM for Excel encoding
+            csvContent += 'STT,Thời Gian,Người Thực Hiện,Username,Vai Trò,Danh Mục,Hành Động,Đối Tượng,Nội Dung Chi Tiết,Địa Chỉ IP,Thiết Bị\n';
+
+            logs.forEach((l, idx) => {
+                const escapeCsv = (str) => `"${String(str || '').replace(/"/g, '""')}"`;
+                csvContent += `${idx + 1},${escapeCsv(l.timestamp)},${escapeCsv(l.actor)},${escapeCsv(l.username)},${escapeCsv(l.role)},${escapeCsv(l.actionCategory)},${escapeCsv(l.actionTitle)},${escapeCsv(l.target)},${escapeCsv(l.details)},${escapeCsv(l.ip)},${escapeCsv(l.device)}\n`;
+            });
+
+            const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+            const link = document.createElement('a');
+            const url = URL.createObjectURL(blob);
+            link.setAttribute('href', url);
+            link.setAttribute('download', `Audit_Logs_Vietravel_Cargo_${new Date().toISOString().slice(0, 10)}.csv`);
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
+        }
+
+        function clearLogsConfirm() {
+            if (typeof CargoStore === 'undefined') return;
+            const currentAdmin = CargoStore.getCurrentAdmin ? CargoStore.getCurrentAdmin() : null;
+            if (currentAdmin && currentAdmin.role === 'STAFF') {
+                alert('❌ Access Denied: Tài khoản Nhân viên (STAFF) không có quyền xóa nhật ký hoạt động hệ thống. Thao tác này chỉ dành cho Quản trị viên (ADMIN).');
+                return;
+            }
+
+            if (confirm('⚠️ VÀO CẢNH BÁO XÓA NHẬT KÝ:\n\nBạn có chắc chắn muốn xóa TOÀN BỘ nhật ký hoạt động hệ thống không?\nHành động này không thể hoàn tác!')) {
+                const res = CargoStore.clearActivityLogs();
+                if (res.success) {
+                    alert(res.message);
+                    renderLogs();
+                } else {
+                    alert('❌ ' + res.message);
+                }
+            }
+        }
+
+        document.addEventListener('DOMContentLoaded', function() {
+            if (window.CargoStore && CargoStore.syncAdminHeaderUI) CargoStore.syncAdminHeaderUI();
+            
+            // Hide clear logs button for STAFF role
+            if (window.CargoStore && CargoStore.getCurrentAdmin) {
+                const admin = CargoStore.getCurrentAdmin();
+                if (admin && admin.role === 'STAFF') {
+                    const btn = document.getElementById('btnClearLogs');
+                    if (btn) btn.classList.add('hidden');
+                }
+            }
+
+            renderLogs();
+        });
+    </script>
+</body>
+</html>
