@@ -58,8 +58,38 @@ async function initDatabase() {
     await run('PRAGMA journal_mode = WAL;');
     await run('PRAGMA foreign_keys = ON;');
 
-    // Create Tables
+    // Create Tables with full relational Foreign Keys
     await exec(`
+        CREATE TABLE IF NOT EXISTS agents (
+            code TEXT PRIMARY KEY,
+            name TEXT,
+            companyName TEXT,
+            taxCode TEXT,
+            email TEXT,
+            phone TEXT,
+            status TEXT,
+            isLocked INTEGER DEFAULT 0,
+            lockedReason TEXT,
+            lockedAt TEXT,
+            unlockedAt TEXT,
+            password TEXT,
+            pin TEXT
+        );
+
+        CREATE TABLE IF NOT EXISTS users (
+            id TEXT PRIMARY KEY,
+            username TEXT UNIQUE,
+            agentCode TEXT,
+            password TEXT,
+            pin TEXT,
+            role TEXT,
+            fullName TEXT,
+            email TEXT,
+            companyName TEXT,
+            status TEXT,
+            FOREIGN KEY(agentCode) REFERENCES agents(code) ON DELETE SET NULL ON UPDATE CASCADE
+        );
+
         CREATE TABLE IF NOT EXISTS auctions (
             id INTEGER PRIMARY KEY,
             flightCode TEXT,
@@ -86,7 +116,9 @@ async function initDatabase() {
             winnerAgentName TEXT,
             winningPriceKg INTEGER,
             specialNotes TEXT,
-            cutOffTime TEXT
+            cutOffTime TEXT,
+            FOREIGN KEY(leadingAgentCode) REFERENCES agents(code) ON DELETE SET NULL ON UPDATE CASCADE,
+            FOREIGN KEY(winnerAgentCode) REFERENCES agents(code) ON DELETE SET NULL ON UPDATE CASCADE
         );
 
         CREATE TABLE IF NOT EXISTS bids (
@@ -100,7 +132,8 @@ async function initDatabase() {
             time TEXT,
             status TEXT,
             weightKg INTEGER,
-            FOREIGN KEY(auctionId) REFERENCES auctions(id) ON DELETE CASCADE
+            FOREIGN KEY(auctionId) REFERENCES auctions(id) ON DELETE CASCADE ON UPDATE CASCADE,
+            FOREIGN KEY(agentCode) REFERENCES agents(code) ON DELETE CASCADE ON UPDATE CASCADE
         );
 
         CREATE TABLE IF NOT EXISTS won_auctions (
@@ -129,7 +162,9 @@ async function initDatabase() {
             momoTransId TEXT,
             momoPaidAt TEXT,
             momoCreatedAt TEXT,
-            momoExpiresAt TEXT
+            momoExpiresAt TEXT,
+            FOREIGN KEY(auctionId) REFERENCES auctions(id) ON DELETE SET NULL ON UPDATE CASCADE,
+            FOREIGN KEY(agentCode) REFERENCES agents(code) ON DELETE CASCADE ON UPDATE CASCADE
         );
 
         CREATE TABLE IF NOT EXISTS notifications (
@@ -140,7 +175,8 @@ async function initDatabase() {
             time TEXT,
             type TEXT,
             read INTEGER DEFAULT 0,
-            link TEXT
+            link TEXT,
+            FOREIGN KEY(targetAgentCode) REFERENCES agents(code) ON DELETE SET NULL ON UPDATE CASCADE
         );
 
         CREATE TABLE IF NOT EXISTS registrations (
@@ -159,35 +195,6 @@ async function initDatabase() {
             rejectionReason TEXT
         );
 
-        CREATE TABLE IF NOT EXISTS users (
-            id TEXT PRIMARY KEY,
-            username TEXT UNIQUE,
-            agentCode TEXT,
-            password TEXT,
-            pin TEXT,
-            role TEXT,
-            fullName TEXT,
-            email TEXT,
-            companyName TEXT,
-            status TEXT
-        );
-
-        CREATE TABLE IF NOT EXISTS agents (
-            code TEXT PRIMARY KEY,
-            name TEXT,
-            companyName TEXT,
-            taxCode TEXT,
-            email TEXT,
-            phone TEXT,
-            status TEXT,
-            isLocked INTEGER DEFAULT 0,
-            lockedReason TEXT,
-            lockedAt TEXT,
-            unlockedAt TEXT,
-            password TEXT,
-            pin TEXT
-        );
-
         CREATE TABLE IF NOT EXISTS chats (
             id TEXT PRIMARY KEY,
             agentCode TEXT,
@@ -196,7 +203,8 @@ async function initDatabase() {
             createdAt TEXT,
             closedAt TEXT,
             assignedTo TEXT,
-            assignedName TEXT
+            assignedName TEXT,
+            FOREIGN KEY(agentCode) REFERENCES agents(code) ON DELETE CASCADE ON UPDATE CASCADE
         );
 
         CREATE TABLE IF NOT EXISTS chat_messages (
@@ -210,7 +218,7 @@ async function initDatabase() {
             fileType TEXT,
             timestamp BIGINT,
             read INTEGER DEFAULT 0,
-            FOREIGN KEY(chatId) REFERENCES chats(id) ON DELETE CASCADE
+            FOREIGN KEY(chatId) REFERENCES chats(id) ON DELETE CASCADE ON UPDATE CASCADE
         );
 
         CREATE TABLE IF NOT EXISTS email_logs (
