@@ -386,21 +386,6 @@ async function seedFullData(data) {
             }
         }
 
-        // Auto-insert missing auction IDs from wonAuctions or bids if any
-        const referencedAuctionIds = new Set();
-        if (Array.isArray(data.wonAuctions)) data.wonAuctions.forEach(w => w.auctionId && referencedAuctionIds.add(w.auctionId));
-        if (Array.isArray(data.bids)) data.bids.forEach(b => b.auctionId && referencedAuctionIds.add(b.auctionId));
-
-        for (const aId of referencedAuctionIds) {
-            const numId = Number(aId);
-            if (!isNaN(numId) && numId > 0) {
-                await run(`
-                    INSERT OR IGNORE INTO auctions (id, flightNumber, route, status, startingPriceKg, currentPriceKg)
-                    VALUES (?, 'VU-HIST', 'SGN - HAN', 'CLOSED', 18000, 22000)
-                `, [numId]);
-            }
-        }
-
         // 3. Insert users
         const defaultUsers = [
             { id: 'USR-001', username: 'admin', agentCode: 'VU-ADMIN-01', password: 'admin2026', pin: '1234', role: 'ADMIN', fullName: 'Quản Trị Viên VU', email: 'admin@vietravelairlines.vn', companyName: 'Vietravel Airlines HQ', status: 'ACTIVE' },

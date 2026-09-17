@@ -179,50 +179,85 @@
         </div>
 
         <!-- Tab 2: Active Agents -->
-        <div id="sectionAgents" class="hidden bg-white rounded-2xl border shadow-sm overflow-hidden">
-            <div class="p-4 bg-slate-50/70 border-b flex items-center justify-between">
-                <span class="text-xs text-slate-600 font-semibold">Danh sách đại lý đang tham gia sàn đấu giá tải trọng</span>
-                <span class="text-[11px] text-slate-500">Thao tác: Khóa / Mở khóa kích hoạt tài khoản đại lý</span>
-            </div>
-            <div class="sm:hidden px-3 pt-2">
-                <div class="flex items-center gap-1.5 text-[11px] text-slate-500 bg-slate-50 px-3 py-1.5 rounded-lg border border-slate-200">
-                    <i class="fa-solid fa-arrows-left-right text-blue-500"></i>
-                    <span>Bảng nhiều cột: Vuốt sang ngang để xem đầy đủ</span>
+        <div id="sectionAgents" class="hidden space-y-4">
+            <!-- Filter & Search Controls for Active Agents -->
+            <div class="bg-white p-3 sm:p-4 rounded-2xl border shadow-xs flex flex-col md:flex-row gap-3 items-stretch md:items-center justify-between">
+                <div class="relative flex-1">
+                    <i class="fa-solid fa-magnifying-glass absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400 text-xs"></i>
+                    <input type="text" id="agentSearchInput" oninput="currentAgentsPage=1; renderAgentsList()" placeholder="Tìm kiếm đại lý theo Mã đại lý, Tên công ty, Người đại diện, Email, MST, SĐT..." class="w-full pl-9 pr-4 py-2 bg-slate-50 border border-slate-200 rounded-xl text-xs focus:bg-white focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition">
                 </div>
-            </div>
-            <div class="overflow-x-auto">
-                <table class="w-full text-left text-xs min-w-[780px] whitespace-nowrap">
-                    <thead class="bg-slate-50 text-slate-600 font-semibold border-b">
-                        <tr>
-                            <th class="py-3.5 px-4 whitespace-nowrap">Mã đại lý</th>
-                            <th class="py-3.5 px-4 whitespace-nowrap">Tên doanh nghiệp</th>
-                            <th class="py-3.5 px-4 whitespace-nowrap">Người đại diện</th>
-                            <th class="py-3.5 px-4 whitespace-nowrap">Liên hệ & Email</th>
-                            <th class="py-3.5 px-4 whitespace-nowrap">MST</th>
-                            <th class="py-3.5 px-4 whitespace-nowrap">Trạng thái</th>
-                            <th class="py-3.5 px-4 text-right whitespace-nowrap">Thao tác quản trị</th>
-                        </tr>
-                    </thead>
-                    <tbody class="divide-y divide-gray-100" id="agentsTableBody">
-                        <!-- Populated by JS -->
-                    </tbody>
-                </table>
+                <div class="flex flex-wrap sm:flex-nowrap items-center gap-2 text-xs">
+                    <!-- Test Agent Filter Checkbox -->
+                    <label class="flex items-center gap-2 bg-slate-50 border border-slate-200 rounded-xl px-3 py-2 cursor-pointer font-medium text-slate-700 hover:bg-slate-100 transition whitespace-nowrap">
+                        <input type="checkbox" id="hideTestAgentsCheckbox" onchange="currentAgentsPage=1; renderAgentsList()" checked class="w-4 h-4 rounded text-blue-600 focus:ring-blue-500 border-slate-300">
+                        <span class="flex items-center gap-1.5"><i class="fa-solid fa-filter-circle-xmark text-blue-600"></i> Lọc / Ẩn đại lý Test (AG-TEST)</span>
+                    </label>
+
+                    <div class="flex items-center gap-1.5 min-w-[140px]">
+                        <span class="text-slate-500 font-medium whitespace-nowrap"><i class="fa-solid fa-filter text-slate-400"></i> Trạng thái:</span>
+                        <select id="agentStatusFilter" onchange="currentAgentsPage=1; renderAgentsList()" class="w-full bg-slate-50 border border-slate-200 rounded-xl px-2.5 py-2 font-medium text-slate-700 focus:outline-none focus:border-blue-500 transition">
+                            <option value="ALL">Tất cả trạng thái</option>
+                            <option value="ACTIVE">Đang hoạt động</option>
+                            <option value="LOCKED">Đã khóa</option>
+                        </select>
+                    </div>
+
+                    <div class="flex items-center gap-1.5 min-w-[140px]">
+                        <span class="text-slate-500 font-medium whitespace-nowrap"><i class="fa-solid fa-arrow-down-short-wide text-slate-400"></i> Sắp xếp:</span>
+                        <select id="agentSortSelect" onchange="currentAgentsPage=1; renderAgentsList()" class="w-full bg-slate-50 border border-slate-200 rounded-xl px-2.5 py-2 font-medium text-slate-700 focus:outline-none focus:border-blue-500 transition">
+                            <option value="CODE_ASC">Mã đại lý (A-Z)</option>
+                            <option value="CODE_DESC">Mã đại lý (Z-A)</option>
+                            <option value="NAME_ASC">Tên công ty (A-Z)</option>
+                        </select>
+                    </div>
+                </div>
             </div>
 
-            <!-- Pagination Bar for Agents -->
-            <div id="agentsPaginationBar" class="bg-white border-t p-4 flex flex-col sm:flex-row items-center justify-between gap-3 text-xs text-slate-600">
-                <div class="flex items-center gap-2">
-                    <span>Hiển thị</span>
-                    <select id="agentsItemsPerPage" onchange="changeAgentsItemsPerPage(this.value)" class="border rounded-lg px-2.5 py-1 text-xs bg-white font-medium focus:ring-2 focus:ring-blue-500 outline-none">
-                        <option value="5">5 đại lý / trang</option>
-                        <option value="10" selected>10 đại lý / trang</option>
-                        <option value="20">20 đại lý / trang</option>
-                        <option value="50">50 đại lý / trang</option>
-                    </select>
-                    <span id="agentsTotalCountText" class="text-slate-500">(Tổng số: 0 đại lý)</span>
+            <div class="bg-white rounded-2xl border shadow-sm overflow-hidden">
+                <div class="p-4 bg-slate-50/70 border-b flex items-center justify-between">
+                    <span class="text-xs text-slate-600 font-semibold">Danh sách đại lý đang tham gia sàn đấu giá tải trọng</span>
+                    <span class="text-[11px] text-slate-500">Thao tác: Khóa / Mở khóa kích hoạt tài khoản đại lý</span>
                 </div>
-                <div id="agentsPaginationControls" class="flex items-center gap-1.5">
-                    <!-- JS rendered -->
+                <div class="sm:hidden px-3 pt-2">
+                    <div class="flex items-center gap-1.5 text-[11px] text-slate-500 bg-slate-50 px-3 py-1.5 rounded-lg border border-slate-200">
+                        <i class="fa-solid fa-arrows-left-right text-blue-500"></i>
+                        <span>Bảng nhiều cột: Vuốt sang ngang để xem đầy đủ</span>
+                    </div>
+                </div>
+                <div class="overflow-x-auto">
+                    <table class="w-full text-left text-xs min-w-[780px] whitespace-nowrap">
+                        <thead class="bg-slate-50 text-slate-600 font-semibold border-b">
+                            <tr>
+                                <th class="py-3.5 px-4 whitespace-nowrap">Mã đại lý</th>
+                                <th class="py-3.5 px-4 whitespace-nowrap">Tên doanh nghiệp</th>
+                                <th class="py-3.5 px-4 whitespace-nowrap">Người đại diện</th>
+                                <th class="py-3.5 px-4 whitespace-nowrap">Liên hệ & Email</th>
+                                <th class="py-3.5 px-4 whitespace-nowrap">MST</th>
+                                <th class="py-3.5 px-4 whitespace-nowrap">Trạng thái</th>
+                                <th class="py-3.5 px-4 text-right whitespace-nowrap">Thao tác quản trị</th>
+                            </tr>
+                        </thead>
+                        <tbody class="divide-y divide-gray-100" id="agentsTableBody">
+                            <!-- Populated by JS -->
+                        </tbody>
+                    </table>
+                </div>
+
+                <!-- Pagination Bar for Agents -->
+                <div id="agentsPaginationBar" class="bg-white border-t p-4 flex flex-col sm:flex-row items-center justify-between gap-3 text-xs text-slate-600">
+                    <div class="flex items-center gap-2">
+                        <span>Hiển thị</span>
+                        <select id="agentsItemsPerPage" onchange="changeAgentsItemsPerPage(this.value)" class="border rounded-lg px-2.5 py-1 text-xs bg-white font-medium focus:ring-2 focus:ring-blue-500 outline-none">
+                            <option value="5">5 đại lý / trang</option>
+                            <option value="10" selected>10 đại lý / trang</option>
+                            <option value="20">20 đại lý / trang</option>
+                            <option value="50">50 đại lý / trang</option>
+                        </select>
+                        <span id="agentsTotalCountText" class="text-slate-500">(Tổng số: 0 đại lý)</span>
+                    </div>
+                    <div id="agentsPaginationControls" class="flex items-center gap-1.5">
+                        <!-- JS rendered -->
+                    </div>
                 </div>
             </div>
         </div>
@@ -823,45 +858,99 @@
 
             // 2. Render Active Agents
             const agents = data.agentsList || [];
-            document.getElementById('agentCountBadge').textContent = agents.length;
-            renderAgentsPaginationControls(agents.length);
+            
+            // Read filter & search parameters for active agents
+            const agentSearch = (document.getElementById('agentSearchInput')?.value || '').trim().toLowerCase();
+            const agentStatus = document.getElementById('agentStatusFilter')?.value || 'ALL';
+            const hideTestAgents = document.getElementById('hideTestAgentsCheckbox')?.checked !== false; // Checked by default
+            const agentSort = document.getElementById('agentSortSelect')?.value || 'CODE_ASC';
+
+            let filteredAgents = agents.filter(ag => {
+                const codeUpper = (ag.code || '').toUpperCase();
+                const nameUpper = (ag.companyName || '').toUpperCase();
+                const isTestAgent = codeUpper.includes('AG-TEST') || nameUpper.includes('AG-TEST') || nameUpper.includes('TEST AGENT');
+                
+                if (hideTestAgents && isTestAgent) {
+                    return false;
+                }
+
+                const isLocked = ag.status === 'Đã khóa' || ag.status === 'LOCKED';
+                if (agentStatus === 'ACTIVE' && isLocked) return false;
+                if (agentStatus === 'LOCKED' && !isLocked) return false;
+
+                if (agentSearch) {
+                    const matchCode = (ag.code || '').toLowerCase().includes(agentSearch);
+                    const matchName = (ag.companyName || '').toLowerCase().includes(agentSearch);
+                    const matchRep = (ag.repName || '').toLowerCase().includes(agentSearch);
+                    const matchEmail = (ag.email || '').toLowerCase().includes(agentSearch);
+                    const matchPhone = (ag.phone || '').toLowerCase().includes(agentSearch);
+                    const matchTax = (ag.taxCode || '').toLowerCase().includes(agentSearch);
+                    if (!matchCode && !matchName && !matchRep && !matchEmail && !matchPhone && !matchTax) {
+                        return false;
+                    }
+                }
+
+                return true;
+            });
+
+            // Sort filtered agents
+            filteredAgents.sort((a, b) => {
+                if (agentSort === 'CODE_ASC') return (a.code || '').localeCompare(b.code || '');
+                if (agentSort === 'CODE_DESC') return (b.code || '').localeCompare(a.code || '');
+                if (agentSort === 'NAME_ASC') return (a.companyName || '').localeCompare(b.companyName || '');
+                return 0;
+            });
+
+            document.getElementById('agentCountBadge').textContent = filteredAgents.length;
+            renderAgentsPaginationControls(filteredAgents.length);
 
             const tbody = document.getElementById('agentsTableBody');
-            const startIdx = (currentAgentsPage - 1) * agentsItemsPerPage;
-            const paginatedAgents = agents.slice(startIdx, startIdx + agentsItemsPerPage);
-
-            tbody.innerHTML = paginatedAgents.map(ag => {
-                const isLocked = ag.status === 'Đã khóa' || ag.status === 'LOCKED';
-                return `
-                    <tr class="hover:bg-slate-50 transition">
-                        <td class="py-3.5 px-4 font-mono font-bold text-blue-600">${ag.code}</td>
-                        <td class="py-3.5 px-4 font-bold text-slate-800">${ag.companyName}</td>
-                        <td class="py-3.5 px-4 text-slate-700 font-medium">${ag.repName}</td>
-                        <td class="py-3.5 px-4 text-slate-600">${ag.phone}<br><span class="text-[10px] text-gray-400">${ag.email}</span></td>
-                        <td class="py-3.5 px-4 font-mono text-slate-600">${ag.taxCode}</td>
-                        <td class="py-3.5 px-4 min-w-[180px] max-w-[280px]">
-                            ${isLocked ? `
-                                <span class="bg-red-100 text-red-700 font-bold px-2.5 py-1 rounded-full text-[10px] inline-flex items-center gap-1 whitespace-nowrap"><i class="fa-solid fa-ban"></i> ĐÃ KHÓA</span>
-                                ${ag.lockedReason ? `<p class="text-[10px] text-red-600 mt-1 font-medium leading-tight whitespace-normal break-words"><i class="fa-solid fa-triangle-exclamation text-[9px]"></i> ${ag.lockedReason}</p>` : ''}
-                            ` : `
-                                <span class="bg-emerald-100 text-emerald-700 font-bold px-2.5 py-1 rounded-full text-[10px] inline-flex items-center gap-1 whitespace-nowrap"><i class="fa-solid fa-circle-check"></i> HOẠT ĐỘNG</span>
-                                ${ag.unlockedReason ? `<p class="text-[10px] text-emerald-700 mt-1 font-medium leading-tight whitespace-normal break-words bg-emerald-50/80 p-1.5 rounded-md border border-emerald-200"><i class="fa-solid fa-key text-[9px] text-emerald-600"></i> <strong>Lý do mở khóa:</strong> "${ag.unlockedReason}" ${ag.unlockedAt ? `<span class="block text-[9px] text-gray-400 mt-0.5">${ag.unlockedAt}</span>` : ''}</p>` : ''}
-                            `}
-                        </td>
-                        <td class="py-3.5 px-4 text-right space-x-1.5 whitespace-nowrap">
-                            ${isStaff ? `
-                                <button disabled class="inline-flex items-center gap-1 bg-slate-100 text-slate-400 font-semibold px-2 py-1 rounded-lg opacity-60 cursor-not-allowed" title="Chỉ ADMIN mới có quyền khóa/kích hoạt tài khoản đại lý">
-                                    <i class="fa-solid ${isLocked ? 'fa-lock-open' : 'fa-lock'} text-[10px]"></i> ${isLocked ? 'Kích hoạt' : 'Khóa'}
-                                </button>
-                            ` : `
-                                <button onclick="handleToggleLock('${ag.code}', 'agent')" class="inline-flex items-center gap-1 ${isLocked ? 'bg-emerald-50 hover:bg-emerald-100 text-emerald-700' : 'bg-red-50 hover:bg-red-100 text-red-600'} font-semibold px-2 py-1 rounded-lg transition" title="${isLocked ? 'Mở khóa / Kích hoạt tài khoản' : 'Khóa tài khoản đại lý'}">
-                                    <i class="fa-solid ${isLocked ? 'fa-lock-open' : 'fa-lock'} text-[10px]"></i> ${isLocked ? 'Kích hoạt' : 'Khóa'}
-                                </button>
-                            `}
+            if (filteredAgents.length === 0) {
+                tbody.innerHTML = `
+                    <tr>
+                        <td colspan="7" class="py-8 text-center text-slate-400 font-medium">
+                            <i class="fa-solid fa-folder-open text-2xl mb-2 text-slate-300 block"></i>
+                            Không tìm thấy đại lý nào phù hợp với điều kiện tìm kiếm/lọc
                         </td>
                     </tr>
                 `;
-            }).join('');
+            } else {
+                const startIdx = (currentAgentsPage - 1) * agentsItemsPerPage;
+                const paginatedAgents = filteredAgents.slice(startIdx, startIdx + agentsItemsPerPage);
+
+                tbody.innerHTML = paginatedAgents.map(ag => {
+                    const isLocked = ag.status === 'Đã khóa' || ag.status === 'LOCKED';
+                    return `
+                        <tr class="hover:bg-slate-50 transition">
+                            <td class="py-3.5 px-4 font-mono font-bold text-blue-600">${ag.code}</td>
+                            <td class="py-3.5 px-4 font-bold text-slate-800">${ag.companyName}</td>
+                            <td class="py-3.5 px-4 text-slate-700 font-medium">${ag.repName || '-'}</td>
+                            <td class="py-3.5 px-4 text-slate-600">${ag.phone || '-'}<br><span class="text-[10px] text-gray-400">${ag.email || '-'}</span></td>
+                            <td class="py-3.5 px-4 font-mono text-slate-600">${ag.taxCode || '-'}</td>
+                            <td class="py-3.5 px-4 min-w-[180px] max-w-[280px]">
+                                ${isLocked ? `
+                                    <span class="bg-red-100 text-red-700 font-bold px-2.5 py-1 rounded-full text-[10px] inline-flex items-center gap-1 whitespace-nowrap"><i class="fa-solid fa-ban"></i> ĐÃ KHÓA</span>
+                                    ${ag.lockedReason ? `<p class="text-[10px] text-red-600 mt-1 font-medium leading-tight whitespace-normal break-words"><i class="fa-solid fa-triangle-exclamation text-[9px]"></i> ${ag.lockedReason}</p>` : ''}
+                                ` : `
+                                    <span class="bg-emerald-100 text-emerald-700 font-bold px-2.5 py-1 rounded-full text-[10px] inline-flex items-center gap-1 whitespace-nowrap"><i class="fa-solid fa-circle-check"></i> HOẠT ĐỘNG</span>
+                                    ${ag.unlockedReason ? `<p class="text-[10px] text-emerald-700 mt-1 font-medium leading-tight whitespace-normal break-words bg-emerald-50/80 p-1.5 rounded-md border border-emerald-200"><i class="fa-solid fa-key text-[9px] text-emerald-600"></i> <strong>Lý do mở khóa:</strong> "${ag.unlockedReason}" ${ag.unlockedAt ? `<span class="block text-[9px] text-gray-400 mt-0.5">${ag.unlockedAt}</span>` : ''}</p>` : ''}
+                                `}
+                            </td>
+                            <td class="py-3.5 px-4 text-right space-x-1.5 whitespace-nowrap">
+                                ${isStaff ? `
+                                    <button disabled class="inline-flex items-center gap-1 bg-slate-100 text-slate-400 font-semibold px-2 py-1 rounded-lg opacity-60 cursor-not-allowed" title="Chỉ ADMIN mới có quyền khóa/kích hoạt tài khoản đại lý">
+                                        <i class="fa-solid ${isLocked ? 'fa-lock-open' : 'fa-lock'} text-[10px]"></i> ${isLocked ? 'Kích hoạt' : 'Khóa'}
+                                    </button>
+                                ` : `
+                                    <button onclick="handleToggleLock('${ag.code}', 'agent')" class="inline-flex items-center gap-1 ${isLocked ? 'bg-emerald-50 hover:bg-emerald-100 text-emerald-700' : 'bg-red-50 hover:bg-red-100 text-red-600'} font-semibold px-2 py-1 rounded-lg transition" title="${isLocked ? 'Mở khóa / Kích hoạt tài khoản' : 'Khóa tài khoản đại lý'}">
+                                        <i class="fa-solid ${isLocked ? 'fa-lock-open' : 'fa-lock'} text-[10px]"></i> ${isLocked ? 'Kích hoạt' : 'Khóa'}
+                                    </button>
+                                `}
+                            </td>
+                        </tr>
+                    `;
+                }).join('');
+            }
 
             // 3. Render Staff Members
             const staffList = data.adminsList || [];

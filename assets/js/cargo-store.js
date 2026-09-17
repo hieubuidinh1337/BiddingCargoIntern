@@ -288,8 +288,95 @@ const CargoStore = (function() {
                 winnerAgentCode: 'AG-0892',
                 winnerAgentName: 'ABC Logistics',
                 winningPriceKg: 22000,
-                specialNotes: 'Phiên đã đóng hôm nay, thắng thầu chính thức.',
+                specialNotes: 'Phiên đã đóng thầu, chờ hoàn tất thủ tục thanh toán.',
                 cutOffTime: '07:00 · 08/09/2026',
+                isAnonymous: true
+            },
+            {
+                id: 5,
+                flightCode: 'FL-VU226-260909',
+                flightNumber: 'VU226',
+                route: 'SGN - DAD',
+                origin: 'SGN',
+                destination: 'DAD',
+                originName: 'TP. Hồ Chí Minh',
+                destName: 'Đà Nẵng',
+                etd: '21:00 · 09/09/2026',
+                eta: '22:15 · 09/09/2026',
+                etdIso: '2026-09-09T14:00:00.000Z',
+                aircraft: 'Airbus A321neo Cargo',
+                capacityKg: 2500,
+                startingPriceKg: 15000,
+                currentPriceKg: 18500,
+                minStep: 500,
+                endTime: '2026-09-09T09:00:00.000Z',
+                status: 'CLOSED',
+                leadingAgentCode: 'AG-0892',
+                leadingAgentName: 'Công ty TNHH Vận tải ABC Logistics',
+                bidsCount: 6,
+                winnerAgentCode: 'AG-0892',
+                winnerAgentName: 'Công ty TNHH Vận tải ABC Logistics',
+                winningPriceKg: 18500,
+                specialNotes: 'Phiên đã hoàn tất thanh toán, lô hàng đã phát hành AWB.',
+                cutOffTime: '18:00 · 09/09/2026',
+                isAnonymous: true
+            },
+            {
+                id: 6,
+                flightCode: 'FL-VU198-260908',
+                flightNumber: 'VU198',
+                route: 'SGN - HAN',
+                origin: 'SGN',
+                destination: 'HAN',
+                originName: 'TP. Hồ Chí Minh',
+                destName: 'Hà Nội',
+                etd: '17:00 · 08/09/2026',
+                eta: '19:15 · 08/09/2026',
+                etdIso: '2026-09-08T10:00:00.000Z',
+                aircraft: 'Airbus A321neo Cargo',
+                capacityKg: 2000,
+                startingPriceKg: 12000,
+                currentPriceKg: 14500,
+                minStep: 500,
+                endTime: '2026-09-08T05:00:00.000Z',
+                status: 'CLOSED',
+                leadingAgentCode: 'AG-0892',
+                leadingAgentName: 'Công ty TNHH Vận tải ABC Logistics',
+                bidsCount: 8,
+                winnerAgentCode: 'AG-0892',
+                winnerAgentName: 'Công ty TNHH Vận tải ABC Logistics',
+                winningPriceKg: 14500,
+                specialNotes: 'Lô hàng đã thanh toán thành công, phiếu bàn giao cut-off hợp lệ.',
+                cutOffTime: 'Trước ETD 3 giờ',
+                isAnonymous: true
+            },
+            {
+                id: 7,
+                flightCode: 'FL-VU450-260909',
+                flightNumber: 'VU450',
+                route: 'SGN - PQC',
+                origin: 'SGN',
+                destination: 'PQC',
+                originName: 'TP. Hồ Chí Minh',
+                destName: 'Phú Quốc',
+                etd: '12:10 · 09/09/2026',
+                eta: '13:20 · 09/09/2026',
+                etdIso: '2026-09-09T05:10:00.000Z',
+                aircraft: 'Airbus A320-200',
+                capacityKg: 3000,
+                startingPriceKg: 18000,
+                currentPriceKg: 22500,
+                minStep: 500,
+                endTime: '2026-09-09T00:10:00.000Z',
+                status: 'CLOSED',
+                leadingAgentCode: 'AG-0556',
+                leadingAgentName: 'Công ty TNHH Tiếp vận Toàn Cầu Golden Star',
+                bidsCount: 4,
+                winnerAgentCode: 'AG-0556',
+                winnerAgentName: 'Công ty TNHH Tiếp vận Toàn Cầu Golden Star',
+                winningPriceKg: 22500,
+                specialNotes: 'Quá hạn thanh toán 24h, slot đã được hoàn về cho hệ thống.',
+                cutOffTime: '09:10 · 09/09/2026',
                 isAnonymous: true
             }
         ],
@@ -734,23 +821,54 @@ const CargoStore = (function() {
                 });
                 data.auctions = uniqueAuctions;
 
-                // Ensure no duplicate flight numbers across active auctions
-                const usedFlightNumbers = new Set(
-                    (data.wonAuctions || []).map(w => String(w.flightNumber || '').trim().toUpperCase()).filter(Boolean)
-                );
-                data.auctions.forEach(a => {
-                    const fn = String(a.flightNumber || '').trim().toUpperCase();
-                    if (!fn || usedFlightNumbers.has(fn)) {
-                        const freshFn = generateNextFlightNumber(a.origin || 'SGN', a.destination || 'HAN', 0, data);
-                        a.flightNumber = freshFn;
-                        const dateTag = String(a.flightCode || '').split('-').pop() || '260915';
-                        a.flightCode = `FL-${freshFn}-${dateTag}`;
-                        usedFlightNumbers.add(freshFn.toUpperCase());
+                // Reconcile wonAuctions with auctions and clean up orphan wonAuctions
+                if (data.wonAuctions && Array.isArray(data.wonAuctions)) {
+                    const validAuctionMap = new Map(data.auctions.map(a => [Number(a.id), a]));
+                    const initialWonCount = data.wonAuctions.length;
+
+                    // Delete wonAuctions whose auctionId does not exist in auctions
+                    data.wonAuctions = data.wonAuctions.filter(w => {
+                        const aId = Number(w.auctionId);
+                        return !isNaN(aId) && validAuctionMap.has(aId);
+                    });
+
+                    if (data.wonAuctions.length !== initialWonCount) {
                         updated = true;
-                    } else {
-                        usedFlightNumbers.add(fn);
                     }
-                });
+
+                    // Synchronize fields between wonAuctions and matching auctions
+                    data.wonAuctions.forEach(w => {
+                        const auction = validAuctionMap.get(Number(w.auctionId));
+                        if (auction) {
+                            if (!w.flightNumber && auction.flightNumber) {
+                                w.flightNumber = auction.flightNumber;
+                                updated = true;
+                            }
+                            if (!w.route && auction.route) {
+                                w.route = auction.route;
+                                updated = true;
+                            }
+                            if ((!w.capacityKg || Number(w.capacityKg) <= 0) && auction.capacityKg) {
+                                w.capacityKg = Number(auction.capacityKg);
+                                updated = true;
+                            }
+                            if (auction.status === 'CLOSED') {
+                                if (auction.winnerAgentCode !== w.agentCode) {
+                                    auction.winnerAgentCode = w.agentCode;
+                                    updated = true;
+                                }
+                                if (auction.winnerAgentName !== w.agentName) {
+                                    auction.winnerAgentName = w.agentName;
+                                    updated = true;
+                                }
+                                if (auction.winningPriceKg !== w.priceKg) {
+                                    auction.winningPriceKg = w.priceKg;
+                                    updated = true;
+                                }
+                            }
+                        }
+                    });
+                }
             }
 
             // Reconcile auction summary fields from bid history so UI always reflects the real highest bid.
@@ -913,44 +1031,6 @@ const CargoStore = (function() {
                         if (a.flightNumber === 'VU224') a.etdIso = '2026-09-15T14:30:00.000Z';
                         if (a.flightNumber === 'VU340') a.etdIso = '2026-09-15T15:45:00.000Z';
                         updated = true;
-                    }
-                    // Reconcile expired OPEN auctions using the same policy as the server.
-                    if (a.status === 'OPEN') {
-                        const endMs = new Date(a.endTime).getTime();
-                        if (isNaN(endMs) || endMs <= Date.now()) {
-                            const etdDate = a.etdIso ? new Date(a.etdIso) : parseFlightDate(a.etd);
-                            if (etdDate && !isNaN(etdDate.getTime()) && etdDate.getTime() > Date.now()) {
-                                const safeClose = Math.max(Date.now() + 2 * 3600 * 1000, etdDate.getTime() - 3 * 3600 * 1000);
-                                a.endTime = new Date(safeClose).toISOString();
-                                updated = true;
-                            } else {
-                                a.status = 'CLOSED';
-                                a.specialNotes = (a.specialNotes ? a.specialNotes + ' ' : '') + '(Phiên đã tự động đóng do chuyến bay đã cất cánh hoặc hết thời gian).';
-                                updated = true;
-                            }
-                        }
-                    }
-                });
-
-                // Deduplicate any open auctions that accidentally share identical flightNumber
-                const seenOpenFlightNumbers = new Set();
-                data.auctions.forEach(a => {
-                    const fn = (a.flightNumber || '').trim().toUpperCase();
-                    if (!fn) return;
-                    if (a.status === 'OPEN' || a.status === 'UPCOMING') {
-                        if (seenOpenFlightNumbers.has(fn)) {
-                            // Reassign a fresh flight number for this duplicate
-                            const origin = (a.origin || 'SGN').trim().toUpperCase();
-                            const dest = (a.destination || 'HAN').trim().toUpperCase();
-                            const freshFn = generateNextFlightNumber(origin, dest, 0, data);
-                            a.flightNumber = freshFn;
-                            const datePart = (a.flightCode && a.flightCode.split('-')[2]) || '260909';
-                            a.flightCode = `FL-${freshFn}-${datePart}`;
-                            seenOpenFlightNumbers.add(freshFn);
-                            updated = true;
-                        } else {
-                            seenOpenFlightNumbers.add(fn);
-                        }
                     }
                 });
             }
