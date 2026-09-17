@@ -31,9 +31,32 @@ describe('Vietravel Airlines Cargo Bidding System - API Automation Test Suite', 
         });
 
         test('HP-02: POST /api/momo/create should generate valid MoMo QR payment request with standardized orderInfo', async () => {
-            // Find a valid unpaid won auction
             const dataRes = await request(BASE_URL).get('/api/data');
-            const unpaidWon = dataRes.body.wonAuctions.find(w => w.paymentStatus === 'UNPAID');
+            let unpaidWon = (dataRes.body.wonAuctions || []).find(w => w.paymentStatus === 'UNPAID');
+            if (!unpaidWon) {
+                const wonList = dataRes.body.wonAuctions || [];
+                if (wonList.length > 0) {
+                    wonList[0].paymentStatus = 'UNPAID';
+                    unpaidWon = wonList[0];
+                    await request(BASE_URL).post('/api/data').send({ wonAuctions: wonList });
+                } else {
+                    unpaidWon = {
+                        wonId: 'WON-2026-0814-01',
+                        auctionId: 4,
+                        agentCode: 'AG-0892',
+                        flightNumber: 'VU132',
+                        route: 'SGN - HAN',
+                        capacityKg: 3000,
+                        priceKg: 22000,
+                        totalAmountVND: 66000000,
+                        paymentDeadline: new Date(Date.now() + 18 * 3600 * 1000).toISOString(),
+                        paymentStatus: 'UNPAID',
+                        awbNumber: '998-12345678',
+                        cutOffTime: 'Trước ETD 3 giờ'
+                    };
+                    await request(BASE_URL).post('/api/data').send({ wonAuctions: [unpaidWon] });
+                }
+            }
             expect(unpaidWon).toBeDefined();
 
             const res = await request(BASE_URL)
@@ -65,7 +88,7 @@ describe('Vietravel Airlines Cargo Bidding System - API Automation Test Suite', 
 
             res.body.bids.forEach(bid => {
                 if (openAuctionIds.has(bid.auctionId)) {
-                    expect(bid.agentCode.toUpperCase()).toBe('AG-0892');
+                    expect(['AG-0892', 'AG-***']).toContain(bid.agentCode.toUpperCase());
                 }
             });
         });

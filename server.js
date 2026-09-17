@@ -825,11 +825,19 @@ const server = http.createServer((req, res) => {
                     .map(a => Number(a.id))
             );
 
-            clientPayload.bids = (clientPayload.bids || []).filter(b => {
+            // While OPEN, anonymize competitor identities (agentCode & agentName) for competitors
+            // so all agents see the realtime bid log with price & time, but competitors are shown as "Đại lý ẩn danh (AG-***)"
+            clientPayload.bids = (clientPayload.bids || []).map(b => {
                 const isAuctionOpen = openAuctionIds.has(Number(b.auctionId));
-                if (!isAuctionOpen) return true; // Sealed bid revealed after auction CLOSED
-                // While OPEN, an agent ONLY sees their OWN bids
-                return agentCode && String(b.agentCode || '').toUpperCase() === String(agentCode).toUpperCase();
+                if (!isAuctionOpen) return b;
+                const isMine = agentCode && String(b.agentCode || '').trim().toUpperCase() === String(agentCode).trim().toUpperCase();
+                if (isMine) return b;
+                return {
+                    ...b,
+                    agentCode: 'AG-***',
+                    agentName: 'Đại lý ẩn danh (AG-***)',
+                    isAnonymous: true
+                };
             });
 
             // Mask leading agent name in OPEN auction summaries for competitors

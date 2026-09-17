@@ -2552,6 +2552,26 @@ const CargoStore = (function() {
             }
 
             saveData(data);
+
+            // Dispatch atomic bid placement to central server if running over HTTP
+            if (typeof window !== 'undefined') {
+                const apiUrl = (window.location && window.location.protocol && window.location.protocol.startsWith('http'))
+                    ? '/api/bids/place'
+                    : 'http://localhost:8085/api/bids/place';
+                fetch(apiUrl, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        auctionId: Number(auctionId),
+                        agentCode: user.agentCode,
+                        agentName: user.companyName,
+                        priceKg: Number(bidPriceKg),
+                        isAnonymous: anonFlag,
+                        weightKg: auction.capacityKg
+                    })
+                }).catch(() => {});
+            }
+
             return { success: true, bid: newBid, auction: auction };
         },
 
