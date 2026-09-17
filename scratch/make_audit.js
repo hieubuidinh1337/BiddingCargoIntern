@@ -1,4 +1,6 @@
-<!DOCTYPE html>
+const fs = require('fs');
+
+const htmlContent = `<!DOCTYPE html>
 <html lang="vi">
 <head>
     <meta charset="UTF-8">
@@ -368,7 +370,7 @@
             if (!tsStr) return Date.now();
             if (typeof tsStr === 'number') return tsStr;
             const clean = String(tsStr).trim();
-            const parts = clean.match(/^(\d{1,2})\/(\d{1,2})\/(\d{4})(?:\s+(\d{1,2}):(\d{2})(?::(\d{2}))?)?$/);
+            const parts = clean.match(/^(\\d{1,2})\\/(\\d{1,2})\\/(\\d{4})(?:\\s+(\\d{1,2}):(\\d{2})(?::(\\d{2}))?)?$/);
             if (parts) {
                 return new Date(parseInt(parts[3], 10), parseInt(parts[2], 10) - 1, parseInt(parts[1], 10), parts[4] ? parseInt(parts[4], 10) : 0, parts[5] ? parseInt(parts[5], 10) : 0, parts[6] ? parseInt(parts[6], 10) : 0).getTime();
             }
@@ -682,8 +684,8 @@
                 return;
             }
 
-            let csvContent = 'data:text/csv;charset=utf-8,\uFEFF';
-            csvContent += 'ID,Thời gian,Người thực hiện,Username,Vai trò,Danh mục,Hành động,Target,IP,Thiết bị,Chi tiết\n';
+            let csvContent = 'data:text/csv;charset=utf-8,\\uFEFF';
+            csvContent += 'ID,Thời gian,Người thực hiện,Username,Vai trò,Danh mục,Hành động,Target,IP,Thiết bị,Chi tiết\\n';
 
             logs.forEach(l => {
                 const row = [
@@ -699,7 +701,7 @@
                     '"' + (l.device || '').replace(/"/g, '""') + '"',
                     '"' + (l.details || '').replace(/"/g, '""') + '"'
                 ].join(',');
-                csvContent += row + '\n';
+                csvContent += row + '\\n';
             });
 
             const encodedUri = encodeURI(csvContent);
@@ -712,4 +714,7 @@
         }
     </script>
 </body>
-</html>
+</html>`;
+
+fs.writeFileSync('Admin/10-AuditLogs.html', htmlContent, 'utf8');
+console.log('Admin/10-AuditLogs.html updated: Clear logs button removed & 7-day immutable retention badges added!');

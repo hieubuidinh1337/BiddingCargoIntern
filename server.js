@@ -970,6 +970,43 @@ const server = http.createServer((req, res) => {
                 // Refresh in-memory state from database
                 serverData = await db.getFullServerData();
 
+                // Log bidding activity into activity_logs DB & in-memory serverData
+                try {
+                    const pad = n => String(n).padStart(2, '0');
+                    const now = new Date();
+                    const timestampStr = `${pad(now.getDate())}/${pad(now.getMonth() + 1)}/${now.getFullYear()} ${pad(now.getHours())}:${pad(now.getMinutes())}:${pad(now.getSeconds())}`;
+                    const agentObj = (serverData.agentsList || []).find(a => (a.code || '').toUpperCase() === (agentCode || '').toUpperCase());
+                    const aucObj = (serverData.auctions || []).find(a => a.id == auctionId);
+                    const actorName = (agentObj ? (agentObj.repName || agentObj.companyName) : agentName || agentCode);
+                    const flightStr = aucObj ? aucObj.flightNumber : `AUC-${auctionId}`;
+                    const priceFormatted = new Intl.NumberFormat('vi-VN').format(priceKg);
+                    const detailsStr = `Đại lý ${(agentObj ? agentObj.companyName : agentCode)} đặt thầu thành công mức giá ${priceFormatted}đ/Kg cho chuyến bay ${flightStr} (${aucObj ? aucObj.route : ''}).`;
+
+                    await db.run(
+                        `INSERT INTO activity_logs (timestamp, rawTime, actor, username, role, actionCategory, actionTitle, target, details, ip, device)
+                         VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+                        [timestampStr, now.getTime(), actorName, agentCode, 'AGENT', 'Đấu giá', 'Đặt giá thầu', flightStr, detailsStr, '113.161.42.12', 'Web Client']
+                    ).catch(e => console.error('Failed to log bid activity to db:', e));
+
+                    if (!serverData.activityLogs) serverData.activityLogs = [];
+                    serverData.activityLogs.unshift({
+                        id: Date.now() + Math.floor(Math.random() * 1000),
+                        timestamp: timestampStr,
+                        rawTime: now.getTime(),
+                        actor: actorName,
+                        username: agentCode,
+                        role: 'AGENT',
+                        actionCategory: 'Đấu giá',
+                        actionTitle: 'Đặt giá thầu',
+                        target: flightStr,
+                        details: detailsStr,
+                        ip: '113.161.42.12',
+                        device: 'Web Client'
+                    });
+                } catch (logErr) {
+                    console.error('[Server] Error logging bid activity:', logErr);
+                }
+
                 res.writeHead(200, { 'Content-Type': 'application/json; charset=UTF-8' });
                 res.end(JSON.stringify({
                     success: true,

@@ -1,4 +1,4 @@
-<!DOCTYPE html>
+﻿<!DOCTYPE html>
 <html lang="vi">
 <head>
     <meta charset="UTF-8">
@@ -8,80 +8,89 @@
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
     <script src="../assets/js/cargo-store.js"></script>
 </head>
-<body class="bg-slate-100 text-slate-800">
+<body class="bg-slate-100 text-slate-800 antialiased min-h-screen flex flex-col">
 
-    <header class="bg-slate-900 text-white sticky top-0 z-50 border-b border-slate-800 shadow-sm">
-        <div class="max-w-7xl mx-auto px-4 py-2.5 flex items-center justify-between">
+    <!-- Header Navigation -->
+    <header class="bg-white sticky top-0 z-50 border-b border-slate-200/80 shadow-xs">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-2.5 flex items-center justify-between">
             <div class="flex items-center gap-3 sm:gap-6">
                 <!-- Mobile Menu Button -->
-                <button type="button" onclick="toggleAdminMobileNav()" class="md:hidden text-slate-300 hover:text-white p-1.5 rounded-lg hover:bg-slate-800 transition focus:outline-none" aria-label="Menu">
+                <button type="button" onclick="toggleAdminMobileNav()" class="md:hidden text-slate-600 hover:text-slate-900 p-1.5 rounded-xl hover:bg-slate-100 transition focus:outline-none" aria-label="Menu">
                     <i class="fa-solid fa-bars text-base"></i>
                 </button>
 
                 <a href="02-AdminDashboard.html" class="flex items-center gap-2.5 shrink-0">
-                <img src="../assets/images/vietravel-logo-doc-white.png" alt="Vietravel Airlines" class="h-8 sm:h-9 object-contain" />
-                <span class="font-bold text-xs sm:text-sm text-white tracking-tight border-l border-slate-700 pl-2.5">Cargo Bidding Admin</span>
-            </a>
-                <nav class="hidden md:flex items-center gap-1 text-xs font-medium">
-                    <a href="02-AdminDashboard.html" class="px-3 py-1.5 rounded-lg text-slate-300 hover:text-white hover:bg-slate-800 transition flex items-center gap-1.5">
+                    <img src="../assets/images/vietravel-logo-doc.png" alt="Vietravel Airlines" class="h-8 sm:h-9 object-contain" />
+                    <span class="font-extrabold text-xs sm:text-sm text-slate-900 tracking-tight border-l border-slate-200 pl-2.5">Cargo Admin</span>
+                </a>
+                <nav class="hidden md:flex items-center gap-1 text-xs font-semibold">
+                    <a href="02-AdminDashboard.html" class="px-3 py-1.5 rounded-xl text-slate-600 hover:text-blue-600 hover:bg-slate-100 transition flex items-center gap-1.5 whitespace-nowrap">
                         <i class="fa-solid fa-chart-pie"></i> Dashboard
                     </a>
-                    <a href="03-AuctionList.html" class="px-3 py-1.5 rounded-lg text-slate-300 hover:text-white hover:bg-slate-800 transition flex items-center gap-1.5">
+                    <a href="03-AuctionList.html" class="px-3 py-1.5 rounded-xl text-slate-600 hover:text-blue-600 hover:bg-slate-100 transition flex items-center gap-1.5 whitespace-nowrap">
                         <i class="fa-solid fa-list-check"></i> Quản lý phiên
                     </a>
-                    <a href="04-CreateAuction.html" class="px-3 py-1.5 rounded-lg text-slate-300 hover:text-white hover:bg-slate-800 transition flex items-center gap-1.5">
+                    <a href="04-CreateAuction.html" class="px-3 py-1.5 rounded-xl text-slate-600 hover:text-blue-600 hover:bg-slate-100 transition flex items-center gap-1.5 whitespace-nowrap">
                         <i class="fa-solid fa-plus-circle"></i> Tạo phiên mới
                     </a>
-                    <a href="06-AgentList.html" class="px-3 py-1.5 rounded-lg text-slate-300 hover:text-white hover:bg-slate-800 transition flex items-center gap-1.5">
-                        <i class="fa-solid fa-building-user"></i> Đại lý & Duyệt đơn
+                    <a href="06-AgentList.html" class="px-3 py-1.5 rounded-xl text-slate-600 hover:text-blue-600 hover:bg-slate-100 transition flex items-center gap-1.5 whitespace-nowrap">
+                        <i class="fa-solid fa-building-user"></i> Đại lý &amp; Duyệt đơn
                     </a>
-                    <a href="07-Reports.html" class="px-3 py-1.5 rounded-lg text-slate-300 hover:text-white hover:bg-slate-800 transition flex items-center gap-1.5">
+                    <a href="07-Reports.html" class="px-3 py-1.5 rounded-xl text-slate-600 hover:text-blue-600 hover:bg-slate-100 transition flex items-center gap-1.5 whitespace-nowrap">
                         <i class="fa-solid fa-chart-line"></i> Báo cáo
                     </a>
-                    <a href="08-Settings.html" class="px-3 py-1.5 rounded-lg bg-blue-600 text-white font-semibold flex items-center gap-1.5">
+                    <a href="08-Settings.html" class="px-3 py-1.5 rounded-xl bg-blue-50 text-blue-600 font-extrabold flex items-center gap-1.5 whitespace-nowrap">
                         <i class="fa-solid fa-sliders"></i> Cài đặt
                     </a>
-                    <a href="10-AuditLogs.html" class="px-3 py-1.5 rounded-lg text-slate-300 hover:text-white hover:bg-slate-800 transition flex items-center gap-1.5">
+                    <a href="10-AuditLogs.html" class="px-3 py-1.5 rounded-xl text-slate-600 hover:text-blue-600 hover:bg-slate-100 transition flex items-center gap-1.5 whitespace-nowrap">
                         <i class="fa-solid fa-clock-rotate-left"></i> Nhật ký
                     </a>
-                    <a href="09-AdminChat.html" class="px-3 py-1.5 rounded-lg bg-purple-600/20 text-purple-300 hover:text-white hover:bg-purple-700 transition flex items-center gap-1.5 font-semibold"><i class="fa-solid fa-headset mr-1"></i>Chat Hỗ trợ<span id="admin-chat-badge" class="hidden bg-red-500 text-white text-[9px] font-bold px-1.5 py-0.5 rounded-full ml-1.5">0</span></a>
-                    
+                    <a href="09-AdminChat.html" class="px-3 py-1.5 rounded-xl bg-purple-50 text-purple-700 hover:bg-purple-100 transition flex items-center gap-1.5 font-bold whitespace-nowrap"><i class="fa-solid fa-headset"></i> Chat Hỗ trợ<span id="admin-chat-badge" class="hidden bg-red-500 text-white text-[9px] font-bold px-1.5 py-0.5 rounded-full ml-1">0</span></a>
                 </nav>
             </div>
             <div class="flex items-center gap-2">
-                <span class="admin-header-role text-[9px] sm:text-[10px] font-bold px-1.5 sm:px-2 py-0.5 rounded-full bg-blue-500/20 text-blue-400 border border-blue-500/30 inline-flex items-center gap-1 whitespace-nowrap">
-                    <i class="fa-solid fa-shield-halved text-[8px] sm:text-[9px]"></i> QUẢN TRỊ VIÊN
+                <span class="admin-header-role text-[10px] font-bold px-2 py-0.5 rounded-full bg-blue-50 text-blue-700 border border-blue-200 inline-flex items-center gap-1 whitespace-nowrap">
+                    <i class="fa-solid fa-shield-halved text-[9px]"></i> QUẢN TRỊ VIÊN
                 </span>
-                <span class="text-xs text-slate-200 font-semibold admin-header-name hidden sm:inline">Trần Quản Trị</span>
-                <a href="01-AdminLogin.html" onclick="if(window.CargoStore) CargoStore.logoutAdmin()" title="Đăng xuất" class="text-slate-400 hover:text-red-400 p-1">
-                    <i class="fa-solid fa-power-off text-xs"></i>
-                </a>
+                <div class="flex items-center gap-2 border-l border-slate-200 pl-2.5 ml-1">
+                    <div class="w-7 h-7 rounded-full bg-slate-900 text-white flex items-center justify-center font-bold text-xs admin-header-avatar shadow-xs">
+                        TQ
+                    </div>
+                    <span class="text-xs text-slate-800 font-bold admin-header-name hidden sm:inline">Trần Quản Trị</span>
+                    <a href="01-AdminLogin.html" onclick="if(window.CargoStore) CargoStore.logoutAdmin()" title="Đăng xuất" class="text-slate-400 hover:text-red-500 p-1 transition ml-1">
+                        <i class="fa-solid fa-power-off text-xs"></i>
+                    </a>
+                </div>
             </div>
         </div>
 
         <!-- Mobile Navigation Menu Dropdown -->
-        <div id="adminMobileNav" class="hidden md:hidden bg-slate-950 border-t border-slate-800 px-4 py-2.5 space-y-1 text-xs font-medium">
-            <a href="02-AdminDashboard.html" class="flex items-center gap-2.5 shrink-0">
-                <img src="../assets/images/vietravel-logo-doc-white.png" alt="Vietravel Airlines" class="h-8 sm:h-9 object-contain" />
-                <span class="font-bold text-xs sm:text-sm text-white tracking-tight border-l border-slate-700 pl-2.5">Cargo Bidding Admin</span>
+        <div id="adminMobileNav" class="hidden md:hidden bg-white border-t border-slate-200 px-4 py-3 space-y-1 text-xs font-semibold shadow-lg">
+            <a href="02-AdminDashboard.html" class="flex items-center gap-2 px-3 py-2 rounded-xl text-slate-700 hover:text-blue-600 hover:bg-slate-50 transition font-medium">
+                <i class="fa-solid fa-chart-pie w-4"></i> Bảng điều khiển
             </a>
-            <a href="03-AuctionList.html" class="flex items-center gap-2 px-3 py-2 rounded-lg text-slate-300 hover:text-white hover:bg-slate-800 transition">
+            <a href="03-AuctionList.html" class="flex items-center gap-2 px-3 py-2 rounded-xl text-slate-700 hover:text-blue-600 hover:bg-slate-50 transition font-medium">
                 <i class="fa-solid fa-list-check w-4"></i> Quản lý phiên đấu giá
             </a>
-            <a href="04-CreateAuction.html" class="flex items-center gap-2 px-3 py-2 rounded-lg text-slate-300 hover:text-white hover:bg-slate-800 transition">
+            <a href="04-CreateAuction.html" class="flex items-center gap-2 px-3 py-2 rounded-xl text-slate-700 hover:text-blue-600 hover:bg-slate-50 transition font-medium">
                 <i class="fa-solid fa-plus-circle w-4"></i> Tạo phiên mới
             </a>
-            <a href="06-AgentList.html" class="flex items-center gap-2 px-3 py-2 rounded-lg text-slate-300 hover:text-white hover:bg-slate-800 transition">
-                <i class="fa-solid fa-building-user w-4"></i> Đại lý & Duyệt đơn
+            <a href="06-AgentList.html" class="flex items-center gap-2 px-3 py-2 rounded-xl text-slate-700 hover:text-blue-600 hover:bg-slate-50 transition font-medium">
+                <i class="fa-solid fa-building-user w-4"></i> Đại lý &amp; Duyệt đơn
             </a>
-            <a href="07-Reports.html" class="flex items-center gap-2 px-3 py-2 rounded-lg text-slate-300 hover:text-white hover:bg-slate-800 transition">
-                <i class="fa-solid fa-chart-line w-4"></i> Báo cáo doanh thu & sản lượng
+            <a href="07-Reports.html" class="flex items-center gap-2 px-3 py-2 rounded-xl text-slate-700 hover:text-blue-600 hover:bg-slate-50 transition font-medium">
+                <i class="fa-solid fa-chart-line w-4"></i> Báo cáo doanh thu
             </a>
-            <a href="08-Settings.html" class="flex items-center gap-2 px-3 py-2 rounded-lg bg-blue-600 text-white font-semibold">
+            <a href="08-Settings.html" class="flex items-center gap-2 px-3 py-2 rounded-xl text-slate-700 hover:text-blue-600 hover:bg-slate-50 transition font-medium">
                 <i class="fa-solid fa-sliders w-4"></i> Cài đặt hệ thống
             </a>
-                    
-            <a href="../00-Home.html" target="_blank" class="flex items-center gap-2 px-3 py-2 rounded-lg text-blue-400 hover:text-blue-300 hover:bg-slate-800 transition border-t border-slate-850 pt-2.5 mt-1">
+            <a href="10-AuditLogs.html" class="flex items-center gap-2 px-3 py-2 rounded-xl text-slate-700 hover:text-blue-600 hover:bg-slate-50 transition font-medium">
+                <i class="fa-solid fa-clock-rotate-left w-4"></i> Nhật ký hoạt động
+            </a>
+            <a href="09-AdminChat.html" class="flex items-center gap-2 px-3 py-2 rounded-xl bg-purple-50 text-purple-700 hover:bg-purple-100 transition font-medium">
+                <i class="fa-solid fa-headset w-4"></i> Chat Hỗ trợ
+            </a>
+            <a href="../00-Home.html" target="_blank" class="flex items-center gap-2 px-3 py-2 rounded-xl text-blue-600 hover:bg-blue-50 transition border-t border-slate-200 pt-2.5 mt-1 font-medium">
                 <i class="fa-solid fa-external-link w-4"></i> Xem Sàn công khai
             </a>
         </div>

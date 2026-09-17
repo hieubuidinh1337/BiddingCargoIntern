@@ -289,13 +289,18 @@
                                     <i class="fa-solid fa-file-pdf"></i>
                                 </div>
                                 <div class="min-w-0">
-                                    <p id="dgrFileName" class="font-bold text-slate-800 text-xs truncate max-w-[260px]">msds_dgr_cert.pdf</p>
+                                    <p id="dgrFileName" class="font-bold text-slate-800 text-xs truncate max-w-[220px]">msds_dgr_cert.pdf</p>
                                     <p id="dgrFileSize" class="text-[10px] text-emerald-700 font-medium">1.2 MB • Đã sẵn sàng đính kèm</p>
                                 </div>
                             </div>
-                            <button type="button" onclick="event.stopPropagation(); removeDgrFile();" class="text-slate-400 hover:text-red-600 p-1 rounded transition-colors text-xs" title="Xóa file">
-                                <i class="fa-solid fa-trash-can"></i>
-                            </button>
+                            <div class="flex items-center gap-1.5 flex-shrink-0">
+                                <button type="button" id="btnViewDgrDoc" onclick="event.stopPropagation(); viewDgrDocument();" class="hidden text-[11px] font-semibold text-blue-600 hover:text-white hover:bg-blue-600 border border-blue-300 hover:border-blue-600 px-2.5 py-1 rounded-lg transition-all flex items-center gap-1" title="Xem chứng từ DGR/MSDS">
+                                    <i class="fa-solid fa-eye"></i> Xem
+                                </button>
+                                <button type="button" onclick="event.stopPropagation(); removeDgrFile();" class="text-slate-400 hover:text-red-600 p-1 rounded transition-colors text-xs" title="Xóa file">
+                                    <i class="fa-solid fa-trash-can"></i>
+                                </button>
+                            </div>
                         </div>
                     </div>
                     <div id="dgrErrorMsg" class="hidden text-[11px] text-red-600 font-semibold flex items-center gap-1">
@@ -1077,7 +1082,8 @@
                                 <tr>
                                     <td style="padding: 4px 6px; background: #fff7ed; font-weight: 700; color: #c2410c; border: 1px solid #cbd5e1;">Chứng từ an toàn DGR / MSDS:</td>
                                     <td style="padding: 4px 6px; font-weight: 700; color: #15803d; border: 1px solid #cbd5e1;" colspan="3">
-                                        <span style="color: #16a34a; font-weight: 800;">✓ Đã đính kèm & xác thực MSDS:</span> ${decl.dgrDocName} (${decl.dgrDocSize || 'PDF/MSDS'})
+                                        <span style="color: #16a34a; font-weight: 800;">✓ Đã đính kèm & xác thực MSDS:</span>
+                                        ${decl.dgrDocUrl ? `<a href="${decl.dgrDocUrl}" target="_blank" style="color: #1d4ed8; text-decoration: underline; font-weight: 700; margin-left: 4px;" title="Nhấp để xem chứng từ DGR/MSDS">${decl.dgrDocName} (${decl.dgrDocSize || 'PDF/MSDS'}) ↗</a>` : `${decl.dgrDocName} (${decl.dgrDocSize || 'PDF/MSDS'})`}
                                     </td>
                                 </tr>
                                 ` : ''}
@@ -1441,6 +1447,15 @@
                         iconEl.innerHTML = '<i class="fa-solid fa-file-pdf"></i>';
                     }
                 }
+                // Show/hide the view button based on whether a URL (base64 data) is available
+                const viewBtn = document.getElementById('btnViewDgrDoc');
+                if (viewBtn) {
+                    if (currentDgrFile.url) {
+                        viewBtn.classList.remove('hidden');
+                    } else {
+                        viewBtn.classList.add('hidden');
+                    }
+                }
                 if (dropzone) {
                     dropzone.classList.remove('border-red-400', 'bg-red-50/50');
                     dropzone.classList.add('border-emerald-300');
@@ -1448,6 +1463,8 @@
             } else {
                 if (emptyPrompt) emptyPrompt.classList.remove('hidden');
                 if (filePreview) filePreview.classList.add('hidden');
+                const viewBtn = document.getElementById('btnViewDgrDoc');
+                if (viewBtn) viewBtn.classList.add('hidden');
                 if (dropzone) {
                     dropzone.classList.remove('border-emerald-300', 'border-red-400', 'bg-red-50/50');
                 }
@@ -1459,6 +1476,24 @@
             const fileInput = document.getElementById('declDgrFile');
             if (fileInput) fileInput.value = '';
             renderDgrFilePreview();
+        }
+
+        function viewDgrDocument() {
+            if (!currentDgrFile || !currentDgrFile.url) return;
+            const url = currentDgrFile.url;
+            const name = currentDgrFile.name || 'dgr_msds_document';
+            // Open in new tab — browser will render PDF/image natively
+            const w = window.open();
+            if (w) {
+                const ext = (name.split('.').pop() || '').toLowerCase();
+                if (['jpg', 'jpeg', 'png', 'webp'].includes(ext)) {
+                    w.document.write(`<html><head><title>${name} — DGR/MSDS</title><style>body{margin:0;background:#111;display:flex;justify-content:center;align-items:flex-start;min-height:100vh;} img{max-width:100%;height:auto;margin:auto;display:block;}</style></head><body><img src="${url}" alt="${name}" /></body></html>`);
+                } else {
+                    // For PDF: use embed
+                    w.document.write(`<html><head><title>${name} — DGR/MSDS</title><style>body,html{margin:0;padding:0;height:100%;} embed{width:100%;height:100%;}</style></head><body><embed src="${url}" type="application/pdf" width="100%" height="100%" /></body></html>`);
+                }
+                w.document.close();
+            }
         }
 
         function resetDgrError() {

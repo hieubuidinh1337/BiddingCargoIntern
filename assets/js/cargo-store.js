@@ -857,6 +857,21 @@ const CargoStore = (function() {
 
             let updated = false;
 
+            
+            if (data.activityLogs && Array.isArray(data.activityLogs)) {
+                const now = Date.now();
+                const SEVEN_DAYS_MS = 7 * 24 * 60 * 60 * 1000;
+                const origLen = data.activityLogs.length;
+                data.activityLogs = data.activityLogs.filter(l => {
+                    const timeMs = l.rawTime || parseTimestamp(l.timestamp);
+                    if (!timeMs) return true;
+                    return (now - timeMs) <= SEVEN_DAYS_MS;
+                });
+                if (data.activityLogs.length !== origLen) {
+                    updated = true;
+                }
+            }
+
             if (!data.bankConfig) {
                 data.bankConfig = JSON.parse(JSON.stringify(defaultData.bankConfig));
                 updated = true;
@@ -1512,6 +1527,25 @@ const CargoStore = (function() {
         return `${pad(d.getHours())}:${pad(d.getMinutes())} ${pad(d.getDate())}/${pad(d.getMonth() + 1)}/${d.getFullYear()}`;
     }
 
+    
+    function parseTimestamp(tsStr) {
+        if (!tsStr) return Date.now();
+        if (typeof tsStr === 'number') return tsStr;
+        const clean = String(tsStr).trim();
+        const parts = clean.match(/^(\d{1,2})\/(\d{1,2})\/(\d{4})(?:\s+(\d{1,2}):(\d{2})(?::(\d{2}))?)?$/);
+        if (parts) {
+            const day = parseInt(parts[1], 10);
+            const month = parseInt(parts[2], 10) - 1;
+            const year = parseInt(parts[3], 10);
+            const hour = parts[4] ? parseInt(parts[4], 10) : 0;
+            const min = parts[5] ? parseInt(parts[5], 10) : 0;
+            const sec = parts[6] ? parseInt(parts[6], 10) : 0;
+            return new Date(year, month, day, hour, min, sec).getTime();
+        }
+        const d = new Date(tsStr);
+        return isNaN(d.getTime()) ? Date.now() : d.getTime();
+    }
+
     function parseFlightDate(dateStr) {
         if (!dateStr) return null;
         if (dateStr instanceof Date) return isNaN(dateStr.getTime()) ? null : dateStr;
@@ -1972,6 +2006,7 @@ const CargoStore = (function() {
         calculatePaymentDeadline: calculatePaymentDeadline,
         formatPaymentDeadlineText: formatPaymentDeadlineText,
         parseFlightDate: parseFlightDate,
+        parseTimestamp: parseTimestamp,
         isWonAuctionExpired: isWonAuctionExpired,
         checkAndAutoLockExpiredWonAuctions: checkAndAutoLockExpiredWonAuctions,
         getFlightDurationMinutes: getFlightDurationMinutes,
