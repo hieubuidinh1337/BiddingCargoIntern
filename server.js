@@ -980,8 +980,16 @@ const server = http.createServer((req, res) => {
                 const incoming = JSON.parse(body);
                 if (incoming.auctions && Array.isArray(incoming.auctions)) {
                     const map = new Map();
-                    (serverData.auctions || []).forEach(a => map.set(a.id, a));
-                    incoming.auctions.forEach(a => map.set(a.id, a));
+                    (serverData.auctions || []).forEach(a => {
+                        if (a && a.origin && a.destination && a.flightNumber && a.flightNumber !== 'VU-HIST') {
+                            map.set(a.id, a);
+                        }
+                    });
+                    incoming.auctions.forEach(a => {
+                        if (a && a.origin && a.destination && a.flightNumber && a.flightNumber !== 'VU-HIST') {
+                            map.set(a.id, a);
+                        }
+                    });
                     serverData.auctions = Array.from(map.values()).sort((a, b) => (b.id || 0) - (a.id || 0));
                 }
                 if (incoming.bids && Array.isArray(incoming.bids)) {

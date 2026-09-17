@@ -770,6 +770,24 @@ const CargoStore = (function() {
                 updated = true;
             }
 
+            // Sanitize and filter out corrupted dummy auctions (e.g. missing origin/destination/flightNumber or VU-HIST)
+            if (data.auctions && Array.isArray(data.auctions)) {
+                const initialCount = data.auctions.length;
+                data.auctions = data.auctions.filter(a =>
+                    a &&
+                    a.flightNumber &&
+                    a.flightNumber !== 'VU-HIST' &&
+                    a.origin &&
+                    a.destination &&
+                    a.originName &&
+                    a.destName &&
+                    (a.capacityKg || 0) > 0
+                );
+                if (data.auctions.length !== initialCount) {
+                    updated = true;
+                }
+            }
+
             // Auto-refresh ETD and end time for OPEN auctions if expired & deduplicate
             const now = Date.now();
             const pad = n => String(n).padStart(2, '0');
@@ -1225,9 +1243,11 @@ const CargoStore = (function() {
 
                 // Merge shared collections from server by ID to preserve local created/updated items
                 if (serverData.auctions && Array.isArray(serverData.auctions)) {
+                    const validServerAuctions = serverData.auctions.filter(a => a && a.origin && a.destination && a.flightNumber && a.flightNumber !== 'VU-HIST' && (a.capacityKg || 0) > 0);
                     const auctionMap = new Map();
-                    serverData.auctions.forEach(a => auctionMap.set(a.id, a));
+                    validServerAuctions.forEach(a => auctionMap.set(a.id, a));
                     (local.auctions || []).forEach(a => {
+                        if (!a || !a.origin || !a.destination || !a.flightNumber || a.flightNumber === 'VU-HIST' || !a.originName || !a.destName || (a.capacityKg || 0) <= 0) return;
                         const serverItem = auctionMap.get(a.id);
                         if (!serverItem) {
                             auctionMap.set(a.id, a);

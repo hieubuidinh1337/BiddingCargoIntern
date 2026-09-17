@@ -1,5 +1,5 @@
 {
-  "version": 1789628073242,
+  "version": 1789628348988,
   "currentUser": {
     "id": 1,
     "role": "agent",
@@ -167,13 +167,13 @@
       "destName": "Hà Nội",
       "etd": "20:45 · 17/09/2026",
       "eta": "23:00 · 17/09/2026",
-      "etdIso": "2026-09-17T10:42:33.238Z",
+      "etdIso": "2026-09-17T10:47:08.985Z",
       "aircraft": "Airbus A321neo Cargo",
       "capacityKg": 3500,
       "startingPriceKg": 18000,
       "currentPriceKg": 56500,
       "minStep": 500,
-      "endTime": "2026-09-17T07:42:33.238Z",
+      "endTime": "2026-09-17T07:47:08.985Z",
       "status": "OPEN",
       "leadingAgentCode": "AG-0892",
       "leadingAgentName": "Công ty TNHH Vận tải ABC Logistics",
@@ -193,13 +193,13 @@
       "destName": "Đà Nẵng",
       "etd": "21:30 · 17/09/2026",
       "eta": "22:50 · 17/09/2026",
-      "etdIso": "2026-09-17T11:29:33.238Z",
+      "etdIso": "2026-09-17T11:34:08.985Z",
       "aircraft": "Airbus A320-200",
       "capacityKg": 2000,
       "startingPriceKg": 12000,
       "currentPriceKg": 14500,
       "minStep": 500,
-      "endTime": "2026-09-17T08:29:33.238Z",
+      "endTime": "2026-09-17T08:34:08.985Z",
       "status": "OPEN",
       "leadingAgentCode": "AG-1024",
       "leadingAgentName": "Công ty CP Giao nhận Kho vận Vinatrans",
@@ -219,13 +219,13 @@
       "destName": "Phú Quốc",
       "etd": "22:45 · 17/09/2026",
       "eta": "01:00 · 18/09/2026",
-      "etdIso": "2026-09-17T12:44:33.238Z",
+      "etdIso": "2026-09-17T12:49:08.985Z",
       "aircraft": "Airbus A321neo Cargo",
       "capacityKg": 4000,
       "startingPriceKg": 22000,
       "currentPriceKg": 30000,
       "minStep": 1000,
-      "endTime": "2026-09-17T09:44:33.238Z",
+      "endTime": "2026-09-17T09:49:08.985Z",
       "status": "OPEN",
       "leadingAgentCode": "AG-0556",
       "leadingAgentName": "Công ty TNHH Tiếp vận Toàn Cầu Golden Star",
@@ -251,7 +251,7 @@
       "startingPriceKg": 18000,
       "currentPriceKg": 22000,
       "minStep": 500,
-      "endTime": "2026-09-17T00:54:33.238Z",
+      "endTime": "2026-09-17T00:59:08.985Z",
       "status": "CLOSED",
       "leadingAgentCode": "AG-0892",
       "leadingAgentName": "Công ty TNHH Vận tải ABC Logistics",
@@ -353,8 +353,8 @@
   ],
   "bids": [
     {
-      "id": 1789627893238,
-      "timestamp": 1789627893238,
+      "id": 1789628168985,
+      "timestamp": 1789628168985,
       "auctionId": 1,
       "agentCode": "AG-0892",
       "agentName": "Công ty TNHH Vận tải ABC Logistics",
@@ -365,8 +365,8 @@
       "weightKg": 3500
     },
     {
-      "id": 1789627713238,
-      "timestamp": 1789627713238,
+      "id": 1789627988985,
+      "timestamp": 1789627988985,
       "auctionId": 1,
       "agentCode": "AG-0892",
       "agentName": "Công ty TNHH Vận tải ABC Logistics",
@@ -377,8 +377,8 @@
       "weightKg": 3500
     },
     {
-      "id": 1789627173238,
-      "timestamp": 1789627173238,
+      "id": 1789627448985,
+      "timestamp": 1789627448985,
       "auctionId": 1,
       "agentCode": "AG-0556",
       "agentName": "Công ty TNHH Tiếp vận Toàn Cầu Golden Star",
@@ -389,8 +389,8 @@
       "weightKg": 3500
     },
     {
-      "id": 1789626573238,
-      "timestamp": 1789626573238,
+      "id": 1789626848985,
+      "timestamp": 1789626848985,
       "auctionId": 1,
       "agentCode": "AG-1024",
       "agentName": "Công ty CP Giao nhận Kho vận Vinatrans",
@@ -401,8 +401,8 @@
       "weightKg": 3500
     },
     {
-      "id": 1789627473238,
-      "timestamp": 1789627473238,
+      "id": 1789627748985,
+      "timestamp": 1789627748985,
       "auctionId": 2,
       "agentCode": "AG-1024",
       "agentName": "Công ty CP Giao nhận Kho vận Vinatrans",
@@ -413,8 +413,8 @@
       "weightKg": 2000
     },
     {
-      "id": 1789626273238,
-      "timestamp": 1789626273238,
+      "id": 1789626548985,
+      "timestamp": 1789626548985,
       "auctionId": 2,
       "agentCode": "AG-0892",
       "agentName": "Công ty TNHH Vận tải ABC Logistics",
@@ -425,8 +425,8 @@
       "weightKg": 2000
     },
     {
-      "id": 1789627773238,
-      "timestamp": 1789627773238,
+      "id": 1789628048985,
+      "timestamp": 1789628048985,
       "auctionId": 3,
       "agentCode": "AG-0556",
       "agentName": "Công ty TNHH Tiếp vận Toàn Cầu Golden Star",
@@ -437,8 +437,8 @@
       "weightKg": 4000
     },
     {
-      "id": 1789626873238,
-      "timestamp": 1789626873238,
+      "id": 1789627148985,
+      "timestamp": 1789627148985,
       "auctionId": 3,
       "agentCode": "AG-0341",
       "agentName": "Công ty TNHH SkyFreight Logistics Việt Nam",
@@ -449,8 +449,8 @@
       "weightKg": 4000
     },
     {
-      "id": 1789624473238,
-      "timestamp": 1789624473238,
+      "id": 1789624748985,
+      "timestamp": 1789624748985,
       "auctionId": 6,
       "agentCode": "AG-0892",
       "agentName": "Công ty TNHH Vận tải ABC Logistics",
@@ -472,7 +472,7 @@
       "capacityKg": 3000,
       "priceKg": 22000,
       "totalAmountVND": 66000000,
-      "paymentDeadline": "2026-09-18T00:54:33.238Z",
+      "paymentDeadline": "2026-09-18T00:59:08.985Z",
       "paymentStatus": "UNPAID",
       "paidAt": null,
       "awbNumber": "998-12345678",
@@ -592,8 +592,8 @@
   ],
   "notifications": [
     {
-      "id": 1789627773238,
-      "timestamp": 1789627773238,
+      "id": 1789628048985,
+      "timestamp": 1789628048985,
       "targetAgentCode": "AG-0892",
       "title": "Đặt giá thành công chuyến VU130",
       "message": "Bạn (AG-0892) đang dẫn đầu mức giá 56.500đ/Kg cho chặng SGN - HAN.",
@@ -603,8 +603,8 @@
       "link": "04-Detail.html?id=1"
     },
     {
-      "id": 1789627173238,
-      "timestamp": 1789627173238,
+      "id": 1789627448985,
+      "timestamp": 1789627448985,
       "targetAgentCode": "AG-0892",
       "title": "Thông báo trúng thầu lô hàng VU198!",
       "message": "Chúc mừng đại lý AG-0892 đã trúng thầu chính thức chuyến VU198 (SGN - HAN) với giá 14.500đ/Kg.",
