@@ -1153,7 +1153,20 @@ const CargoStore = (function() {
                 }
 
                 if (serverData.bids && Array.isArray(serverData.bids)) {
-                    local.bids = serverData.bids.filter(b => b && !String(b.id).startsWith('TEST_')).sort((a, b) => (b.timestamp || b.id || 0) - (a.timestamp || a.id || 0));
+                    const localBidMap = new Map();
+                    (local.bids || []).forEach(b => {
+                        if (b) {
+                            const key = String(b.id || `${b.timestamp}_${b.agentCode}_${b.auctionId}`);
+                            localBidMap.set(key, b);
+                        }
+                    });
+                    serverData.bids.forEach(b => {
+                        if (b && !String(b.id).startsWith('TEST_')) {
+                            const key = String(b.id || `${b.timestamp}_${b.agentCode}_${b.auctionId}`);
+                            localBidMap.set(key, b);
+                        }
+                    });
+                    local.bids = Array.from(localBidMap.values()).sort((a, b) => (b.timestamp || b.id || 0) - (a.timestamp || a.id || 0));
                 }
 
                 if (serverData.notifications && Array.isArray(serverData.notifications)) {

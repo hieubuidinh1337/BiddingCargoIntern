@@ -350,6 +350,10 @@ function reconcileAuctionSummaries(data) {
             const highestBid = auctionBids[0];
             const highestPrice = Number(highestBid.priceKg);
 
+            auctionBids.forEach((b, idx) => {
+                b.status = (idx === 0) ? 'HIGHEST' : 'OUTBID';
+            });
+
             if (Number.isFinite(highestPrice) && a.currentPriceKg !== highestPrice) {
                 a.currentPriceKg = highestPrice;
                 changed = true;
@@ -971,8 +975,32 @@ const server = http.createServer((req, res) => {
                     incoming.auctions.forEach(a => map.set(a.id, a));
                     serverData.auctions = Array.from(map.values()).sort((a, b) => (b.id || 0) - (a.id || 0));
                 }
-                if (incoming.bids) serverData.bids = incoming.bids;
-                if (incoming.wonAuctions) serverData.wonAuctions = incoming.wonAuctions;
+                if (incoming.bids && Array.isArray(incoming.bids)) {
+                    const bidMap = new Map();
+                    (serverData.bids || []).forEach(b => {
+                        if (b) {
+                            const key = String(b.id || `${b.timestamp}_${b.agentCode}_${b.auctionId}`);
+                            bidMap.set(key, b);
+                        }
+                    });
+                    incoming.bids.forEach(b => {
+                        if (b) {
+                            const key = String(b.id || `${b.timestamp}_${b.agentCode}_${b.auctionId}`);
+                            bidMap.set(key, b);
+                        }
+                    });
+                    serverData.bids = Array.from(bidMap.values()).sort((a, b) => (b.timestamp || b.id || 0) - (a.timestamp || a.id || 0));
+                }
+                if (incoming.wonAuctions && Array.isArray(incoming.wonAuctions)) {
+                    const wonMap = new Map();
+                    (serverData.wonAuctions || []).forEach(w => {
+                        if (w && w.wonId) wonMap.set(String(w.wonId), w);
+                    });
+                    incoming.wonAuctions.forEach(w => {
+                        if (w && w.wonId) wonMap.set(String(w.wonId), w);
+                    });
+                    serverData.wonAuctions = Array.from(wonMap.values());
+                }
                 if (incoming.notifications) serverData.notifications = incoming.notifications;
                 if (incoming.registrations) serverData.registrations = incoming.registrations;
                 if (incoming.agentsList) serverData.agentsList = incoming.agentsList;
