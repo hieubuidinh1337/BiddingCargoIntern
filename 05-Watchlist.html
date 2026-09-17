@@ -348,12 +348,11 @@
         const data = CargoStore.getData ? CargoStore.getData() : null;
         if (!data) return;
 
-        const watchIds = data.watchlist || [];
-        const auctions = data.auctions || [];
+        const all = CargoStore.getWatchlistAuctions ? CargoStore.getWatchlistAuctions() : [];
         const currentAgentCode = data.currentUser?.agentCode || '';
         const sort = document.getElementById('sortSelect')?.value || 'closing';
 
-        let list = auctions.filter(a => watchIds.includes(a.id));
+        let list = [...all];
 
         // Apply tab filter
         if (currentFilter === 'open') list = list.filter(a => a.status === 'OPEN');
@@ -365,7 +364,6 @@
         else if (sort === 'price_asc') list.sort((a, b) => a.currentPriceKg - b.currentPriceKg);
         else if (sort === 'capacity') list.sort((a, b) => b.capacityKg - a.capacityKg);
 
-        const all = auctions.filter(a => watchIds.includes(a.id));
         const openCount = all.filter(a => a.status === 'OPEN').length;
         const leadingCount = all.filter(a => a.leadingAgentCode === currentAgentCode && a.status === 'OPEN').length;
 

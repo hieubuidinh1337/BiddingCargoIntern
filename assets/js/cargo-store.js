@@ -672,7 +672,7 @@ const CargoStore = (function() {
                 updated = true;
             }
 
-            if (!data.watchlist || (Array.isArray(data.watchlist) && data.watchlist.length === 3 && data.watchlist.includes(1) && data.watchlist.includes(2) && data.watchlist.includes(3))) {
+            if (!data.watchlist || !Array.isArray(data.watchlist)) {
                 data.watchlist = [];
                 updated = true;
             }
@@ -2595,27 +2595,46 @@ const CargoStore = (function() {
         toggleWatchlist: function(auctionId) {
             const data = loadData();
             const id = Number(auctionId);
-            const index = data.watchlist.indexOf(id);
+            if (!id || isNaN(id)) return false;
+
+            if (!Array.isArray(data.watchlist)) data.watchlist = [];
+
+            const normalizedList = data.watchlist
+                .map(w => typeof w === 'object' ? Number(w.auctionId || w.id) : Number(w))
+                .filter(n => !isNaN(n) && n > 0);
+
+            const index = normalizedList.indexOf(id);
             let isWatched = false;
+
             if (index > -1) {
-                data.watchlist.splice(index, 1);
+                normalizedList.splice(index, 1);
                 isWatched = false;
             } else {
-                data.watchlist.push(id);
+                normalizedList.push(id);
                 isWatched = true;
             }
+
+            data.watchlist = Array.from(new Set(normalizedList));
             saveData(data);
             return isWatched;
         },
 
         isWatched: function(auctionId) {
             const data = loadData();
-            return data.watchlist.includes(Number(auctionId));
+            const id = Number(auctionId);
+            if (!id || isNaN(id) || !Array.isArray(data.watchlist)) return false;
+            return data.watchlist.some(w => (typeof w === 'object' ? Number(w.auctionId || w.id) : Number(w)) === id);
         },
 
         getWatchlistAuctions: function() {
             const data = loadData();
-            return data.auctions.filter(a => data.watchlist.includes(a.id));
+            if (!Array.isArray(data.watchlist)) return [];
+            const watchedIds = new Set(
+                data.watchlist
+                    .map(w => typeof w === 'object' ? Number(w.auctionId || w.id) : Number(w))
+                    .filter(n => !isNaN(n) && n > 0)
+            );
+            return (data.auctions || []).filter(a => watchedIds.has(Number(a.id)));
         },
 
         getMyBids: function() {
