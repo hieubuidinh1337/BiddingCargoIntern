@@ -1118,9 +1118,22 @@ const CargoStore = (function() {
 
         try {
             isSyncing = true;
-            const apiUrl = (window.location && window.location.protocol.startsWith('http'))
+            const local = loadData();
+            const isAdminSession = !!(local.currentAdmin || (typeof window !== 'undefined' && window.location && window.location.pathname.includes('/Admin/')));
+            const currentAgentCode = (local.currentUser && local.currentUser.agentCode) ? local.currentUser.agentCode : null;
+
+            let queryParams = [];
+            if (isAdminSession) {
+                queryParams.push('role=admin');
+            } else if (currentAgentCode) {
+                queryParams.push(`agentCode=${encodeURIComponent(currentAgentCode)}`);
+            }
+
+            const baseUrl = (window.location && window.location.protocol.startsWith('http'))
                 ? '/api/data'
                 : 'http://localhost:8085/api/data';
+
+            const apiUrl = queryParams.length > 0 ? `${baseUrl}?${queryParams.join('&')}` : baseUrl;
 
             const res = await fetch(apiUrl);
             if (!res.ok) return;
@@ -1128,7 +1141,6 @@ const CargoStore = (function() {
             if (serverData && serverData.version && serverData.version !== lastServerVersion) {
                 lastServerVersion = serverData.version;
                 try { localStorage.setItem('CARGO_BIDDING_SERVER_VERSION', String(serverData.version)); } catch(e) {}
-                const local = loadData();
                 const oldStr = JSON.stringify(local);
 
                 // Merge shared collections from server by ID to preserve local created/updated items

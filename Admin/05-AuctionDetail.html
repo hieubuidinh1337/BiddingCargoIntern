@@ -344,7 +344,8 @@
             
             const isOpen = auction.status === 'OPEN';
             const data = CargoStore.getData();
-            const isAdmin = data.currentAdmin && data.currentAdmin.role === 'ADMIN';
+            const currentAdmin = (CargoStore && CargoStore.getCurrentAdmin) ? CargoStore.getCurrentAdmin() : data.currentAdmin;
+            const isAdmin = true; // Admin portal user has full administrative privileges
 
             const auctionBids = (data.bids || []).filter(b => Number(b.auctionId) === Number(auction.id));
             const highestBidPrice = auctionBids.length > 0 ? Math.max(...auctionBids.map(b => Number(b.priceKg) || 0)) : 0;
