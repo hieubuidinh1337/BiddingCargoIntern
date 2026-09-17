@@ -2563,13 +2563,13 @@ const CargoStore = (function() {
                 });
             }
 
-            saveData(data, true);
+            const isHttp = typeof window !== 'undefined' && window.location && window.location.protocol && window.location.protocol.startsWith('http');
+
+            saveData(data, !isHttp);
 
             // Dispatch atomic bid placement to central server if running over HTTP
-            if (typeof window !== 'undefined') {
-                const apiUrl = (window.location && window.location.protocol && window.location.protocol.startsWith('http'))
-                    ? '/api/bids/place'
-                    : 'http://localhost:8085/api/bids/place';
+            if (isHttp) {
+                const apiUrl = '/api/bids/place';
                 fetch(apiUrl, {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
@@ -2583,8 +2583,9 @@ const CargoStore = (function() {
                     })
                 }).then(r => r.json()).then(res => {
                     if (res && res.success && res.bid) {
-                        // Immediately sync with server response
-                        syncWithServer();
+                        if (typeof syncWithServer === 'function') {
+                            syncWithServer();
+                        }
                     }
                 }).catch(() => {});
             }

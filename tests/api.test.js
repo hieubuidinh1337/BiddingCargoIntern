@@ -105,8 +105,8 @@ describe('Vietravel Airlines Cargo Bidding System - API Automation Test Suite', 
                 .post('/api/bids/place')
                 .send({
                     auctionId: targetAuction.id,
-                    agentCode: 'AG-0892',
-                    agentName: 'ABC Logistics',
+                    agentCode: 'AG-1024',
+                    agentName: 'Vinatrans',
                     priceKg: minBid,
                     weightKg: 1000
                 });
