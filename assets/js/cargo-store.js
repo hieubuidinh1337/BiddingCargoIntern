@@ -860,12 +860,14 @@ const CargoStore = (function() {
             
             if (data.activityLogs && Array.isArray(data.activityLogs)) {
                 const now = Date.now();
-                const SEVEN_DAYS_MS = 7 * 24 * 60 * 60 * 1000;
+                const NINETY_DAYS_MS = 90 * 24 * 60 * 60 * 1000;
                 const origLen = data.activityLogs.length;
                 data.activityLogs = data.activityLogs.filter(l => {
+                    if (!l) return false;
                     const timeMs = l.rawTime || parseTimestamp(l.timestamp);
-                    if (!timeMs) return true;
-                    return (now - timeMs) <= SEVEN_DAYS_MS;
+                    if (!timeMs || isNaN(timeMs)) return true;
+                    const age = now - timeMs;
+                    return age <= NINETY_DAYS_MS && age >= -86400000;
                 });
                 if (data.activityLogs.length !== origLen) {
                     updated = true;
@@ -1335,7 +1337,8 @@ const CargoStore = (function() {
                         adminsList: data.adminsList,
                         settings: data.settings,
                         bankConfig: data.bankConfig,
-                        routeSubscriptions: data.routeSubscriptions
+                        routeSubscriptions: data.routeSubscriptions,
+                        activityLogs: data.activityLogs
                     })
                 }).then(r => r.json()).then(res => {
                     if (res && res.version) {
@@ -1439,6 +1442,15 @@ const CargoStore = (function() {
                         return true;
                     });
                 }
+                if (serverData.activityLogs && Array.isArray(serverData.activityLogs)) {
+                    const logMap = new Map();
+                    serverData.activityLogs.forEach(l => { if (l && l.id) logMap.set(l.id, l); });
+                    (local.activityLogs || []).forEach(l => { if (l && l.id) logMap.set(l.id, l); });
+                    local.activityLogs = Array.from(logMap.values())
+                        .sort((a, b) => (b.rawTime || parseTimestamp(b.timestamp) || b.id || 0) - (a.rawTime || parseTimestamp(a.timestamp) || a.id || 0))
+                        .slice(0, 1000);
+                }
+
                 local.adminsList = serverData.adminsList || local.adminsList;
                 if (serverData.settings) local.settings = serverData.settings;
                 if (serverData.bankConfig) local.bankConfig = serverData.bankConfig;
@@ -4560,9 +4572,9 @@ const CargoStore = (function() {
                 el.innerHTML = isStaff ? '<i class="fa-solid fa-user-gear text-[9px]"></i> ' + roleName : '<i class="fa-solid fa-shield-halved text-[9px]"></i> ' + roleName;
             });
 
-            // Hide AgentList nav links for STAFF across headers & dashboard
+            // Hide AgentList & AuditLogs nav links for STAFF across headers & dashboard
             if (isStaff) {
-                document.querySelectorAll('a[href*="06-AgentList.html"]').forEach(el => {
+                document.querySelectorAll('a[href*="06-AgentList.html"], a[href*="10-AuditLogs.html"]').forEach(el => {
                     el.style.display = 'none';
                 });
             }
@@ -4579,6 +4591,27 @@ const CargoStore = (function() {
                             <h2 class="text-xl font-bold text-slate-900">Truy cập bị từ chối (Access Denied)</h2>
                             <p class="text-xs text-slate-600 leading-relaxed">
                                 Tài khoản <strong>Nhân viên Điều hành (STAFF)</strong> không có quyền sử dụng trang Quản lý Đại lý & Phê duyệt hồ sơ. Thao tác này thuộc thẩm quyền của <strong>Quản trị viên (ADMIN)</strong>.
+                            </p>
+                            <a href="02-AdminDashboard.html" class="inline-block bg-blue-600 hover:bg-blue-700 text-white text-xs font-bold px-6 py-3 rounded-xl transition shadow">
+                                Quay lại Admin Dashboard
+                            </a>
+                        </div>
+                    `;
+                }
+            }
+
+            // Block access on 10-AuditLogs.html for STAFF
+            if (isStaff && typeof window !== 'undefined' && window.location.pathname.includes('10-AuditLogs.html')) {
+                const main = document.querySelector('main');
+                if (main) {
+                    main.innerHTML = `
+                        <div class="max-w-xl mx-auto my-12 bg-white rounded-3xl p-8 border shadow-xl text-center space-y-4">
+                            <div class="w-16 h-16 bg-red-100 text-red-600 rounded-2xl mx-auto flex items-center justify-center text-3xl shadow-sm">
+                                <i class="fa-solid fa-ban"></i>
+                            </div>
+                            <h2 class="text-xl font-bold text-slate-900">Truy cập bị từ chối (Access Denied)</h2>
+                            <p class="text-xs text-slate-600 leading-relaxed">
+                                Tài khoản <strong>Nhân viên Điều hành (STAFF)</strong> không có quyền xem <strong>Nhật ký hoạt động & Bảo mật hệ thống</strong>. Thao tác này thuộc thẩm quyền của <strong>Quản trị viên (ADMIN)</strong>.
                             </p>
                             <a href="02-AdminDashboard.html" class="inline-block bg-blue-600 hover:bg-blue-700 text-white text-xs font-bold px-6 py-3 rounded-xl transition shadow">
                                 Quay lại Admin Dashboard
