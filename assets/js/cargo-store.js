@@ -2150,6 +2150,15 @@ const CargoStore = (function() {
             };
 
             saveData(data);
+            this.logActivity({
+                actor: agent.companyName || agent.repName || agent.code,
+                username: agent.code,
+                role: 'AGENT',
+                actionCategory: 'Đăng nhập',
+                actionTitle: 'Đăng nhập hệ thống Agent',
+                target: 'Sàn Đấu giá Cargo',
+                details: `Đại lý ${agent.companyName || agent.code} (Mã: ${agent.code}) đăng nhập thành công vào hệ thống Sàn Đấu Giá Cargo.`
+            });
             return { success: true, user: data.currentUser };
         },
 
@@ -4473,6 +4482,18 @@ const CargoStore = (function() {
         logoutAgent: function() {
             if (typeof window !== 'undefined') window._isManualLogout = true;
             const data = loadData();
+            if (data.currentUser) {
+                const cur = data.currentUser;
+                this.logActivity({
+                    actor: cur.companyName || cur.fullName || cur.agentCode || 'Đại lý',
+                    username: cur.agentCode || 'AGENT',
+                    role: 'AGENT',
+                    actionCategory: 'Đăng nhập',
+                    actionTitle: 'Đăng xuất hệ thống Agent',
+                    target: 'Sàn Đấu giá Cargo',
+                    details: `Đại lý ${cur.companyName || cur.agentCode} (Mã: ${cur.agentCode}) đã đăng xuất khỏi hệ thống.`
+                });
+            }
             data.currentUser = null;
             saveData(data);
         },
@@ -4650,8 +4671,12 @@ const CargoStore = (function() {
             const userAnchor = document.querySelector('header a[href*="01-AdminLogin"], header a[onclick*="logoutAdmin"], header .admin-header-name, header .admin-header-role');
             if (!userAnchor) return;
 
-            const targetContainer = userAnchor.closest('.flex.items-center') || userAnchor.parentElement;
+            const targetContainer = userAnchor.closest('.admin-right') || userAnchor.closest('.flex.items-center') || userAnchor.parentElement;
             if (!targetContainer) return;
+
+            const sepEl = targetContainer.querySelector('.admin-sep');
+            const avatarEl = targetContainer.querySelector('.admin-avatar, .admin-header-avatar') || targetContainer.querySelector('.admin-user-info');
+            const insertionTarget = sepEl || avatarEl || targetContainer.querySelector('.admin-header-role') || userAnchor;
 
             // If not mounted yet, mount bell container before user profile elements
             let bellWrapper = document.getElementById('adminNotifBellWrapper');
@@ -4708,8 +4733,11 @@ const CargoStore = (function() {
                     </div>
                 `;
 
-                const roleEl = targetContainer.querySelector('.admin-header-role') || userAnchor;
-                targetContainer.insertBefore(bellWrapper, roleEl);
+                if (insertionTarget) {
+                    targetContainer.insertBefore(bellWrapper, insertionTarget);
+                } else {
+                    targetContainer.appendChild(bellWrapper);
+                }
 
                 // Toggle click handler
                 const btn = bellWrapper.querySelector('#adminNotifBellBtn');
@@ -4728,6 +4756,10 @@ const CargoStore = (function() {
                         dropdown.classList.add('hidden');
                     }
                 });
+            } else {
+                if (insertionTarget && bellWrapper.nextElementSibling !== insertionTarget) {
+                    targetContainer.insertBefore(bellWrapper, insertionTarget);
+                }
             }
 
             this.renderAdminNotificationList();

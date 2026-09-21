@@ -217,19 +217,15 @@
                     Nhật Ký Hoạt Động & Bảo Mật
                 </h1>
                 <p class="text-xs sm:text-sm text-slate-500 mt-0.5">
-                    Ghi nhận đầy đủ thông tin đăng nhập/đăng xuất của Admin, Staff, Đại lý. Nhật ký được khóa bất biến và tự động làm sạch sau 7 ngày.
+                    Ghi nhận đầy đủ thông tin đăng nhập/đăng xuất của Admin, Staff, Đại lý. Hệ thống tự động lưu trữ nhật ký trong 90 ngày (3 tháng).
                 </p>
             </div>
 
             <!-- ACTION BUTTONS & SECURITY POLICY BADGES -->
             <div class="flex flex-wrap items-center gap-2 self-start md:self-auto">
-                <div class="inline-flex items-center gap-1.5 px-3 py-2 text-xs font-semibold text-purple-700 bg-purple-50 border border-purple-200/80 rounded-xl" title="Quy định bảo mật: Không tài khoản nào kể cả Admin được quyền chỉnh sửa hoặc xóa nhật ký">
-                    <i class="fa-solid fa-shield-halved text-purple-600"></i>
-                    Bất biến (Không thể xóa)
-                </div>
-                <div class="inline-flex items-center gap-1.5 px-3 py-2 text-xs font-semibold text-blue-700 bg-blue-50 border border-blue-200/80 rounded-xl" title="Hệ thống tự động dọn dẹp và hủy nhật ký cũ sau 7 ngày lưu trữ">
+                <div class="inline-flex items-center gap-1.5 px-3 py-2 text-xs font-semibold text-blue-700 bg-blue-50 border border-blue-200/80 rounded-xl" title="Hệ thống tự động dọn dẹp nhật ký cũ sau 90 ngày lưu trữ">
                     <i class="fa-solid fa-clock-rotate-left text-blue-600"></i>
-                    Tự động xóa sau 7 ngày
+                    Tự động xóa sau 90 ngày (3 tháng)
                 </div>
                 <button onclick="exportLogsCSV()" class="inline-flex items-center gap-2 px-3.5 py-2 text-xs font-semibold text-slate-700 bg-white border border-slate-300 rounded-xl hover:bg-slate-50 hover:border-slate-400 transition-all shadow-sm">
                     <i class="fa-solid fa-file-csv text-emerald-600 text-sm"></i>
@@ -245,7 +241,7 @@
                 <div>
                     <p class="text-xs font-medium text-slate-500 uppercase tracking-wider">Tổng nhật ký</p>
                     <p class="text-2xl font-extrabold text-slate-900 mt-1" id="kpiTotalLogs">0</p>
-                    <p class="text-xs text-slate-400 mt-0.5">Lưu trữ trong 7 ngày</p>
+                    <p class="text-xs text-slate-400 mt-0.5">Lưu trữ 90 ngày (3 tháng)</p>
                 </div>
                 <div class="w-12 h-12 rounded-xl bg-purple-50 text-purple-600 flex items-center justify-center text-xl font-bold shadow-inner">
                     <i class="fa-solid fa-list-check"></i>
@@ -353,10 +349,12 @@
                 <!-- Time Filter -->
                 <div class="lg:col-span-2">
                     <select id="timeFilter" onchange="handleFilterChange()" class="w-full px-3 py-2 text-xs bg-slate-50 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 font-medium text-slate-700">
-                        <option value="ALL">Thời gian: 7 ngày qua</option>
+                        <option value="ALL">Thời gian: Tất cả (90 ngày)</option>
                         <option value="TODAY">Hôm nay</option>
-                        <option value="3DAYS">3 ngày qua</option>
                         <option value="7DAYS">7 ngày qua</option>
+                        <option value="30DAYS">30 ngày qua</option>
+                        <option value="90DAYS">90 ngày qua (3 tháng)</option>
+                        <option value="CUSTOM">📅 Lọc theo ngày cụ thể...</option>
                     </select>
                 </div>
 
@@ -365,6 +363,24 @@
                     <button onclick="resetFilters()" title="Đặt lại bộ lọc" class="w-full py-2 text-xs font-semibold text-slate-600 bg-slate-100 hover:bg-slate-200 rounded-xl transition-all flex items-center justify-center gap-1">
                         <i class="fa-solid fa-rotate-left"></i>
                         <span class="lg:hidden xl:inline">Đặt lại</span>
+                    </button>
+                </div>
+
+                <!-- Custom Date Range Picker Container -->
+                <div id="customDateContainer" class="hidden col-span-full pt-2 pb-1 border-t border-slate-100 flex flex-wrap items-center gap-3 text-xs bg-blue-50/50 p-2.5 rounded-xl border border-blue-100 mt-1">
+                    <span class="font-bold text-slate-700 flex items-center gap-1">
+                        <i class="fa-solid fa-calendar-days text-blue-600"></i> Chọn khoảng ngày:
+                    </span>
+                    <div class="flex items-center gap-1.5">
+                        <label for="fromDate" class="text-slate-600 font-medium text-xs">Từ ngày:</label>
+                        <input type="date" id="fromDate" onchange="handleFilterChange()" class="px-2.5 py-1.5 text-xs bg-white border border-slate-200 rounded-lg text-slate-700 focus:outline-none focus:ring-2 focus:ring-blue-500/20 font-medium cursor-pointer shadow-xs">
+                    </div>
+                    <div class="flex items-center gap-1.5">
+                        <label for="toDate" class="text-slate-600 font-medium text-xs">Đến ngày:</label>
+                        <input type="date" id="toDate" onchange="handleFilterChange()" class="px-2.5 py-1.5 text-xs bg-white border border-slate-200 rounded-lg text-slate-700 focus:outline-none focus:ring-2 focus:ring-blue-500/20 font-medium cursor-pointer shadow-xs">
+                    </div>
+                    <button type="button" onclick="handleFilterChange()" class="px-3 py-1.5 bg-blue-600 hover:bg-blue-700 text-white rounded-lg text-xs font-bold transition shadow-xs flex items-center gap-1">
+                        <i class="fa-solid fa-filter"></i> Lọc ngày
                     </button>
                 </div>
             </div>
@@ -574,6 +590,15 @@
             currentFilters.category = document.getElementById('categoryFilter').value;
             currentFilters.timeRange = document.getElementById('timeFilter').value;
 
+            const customBox = document.getElementById('customDateContainer');
+            if (customBox) {
+                if (currentFilters.timeRange === 'CUSTOM') {
+                    customBox.classList.remove('hidden');
+                } else {
+                    customBox.classList.add('hidden');
+                }
+            }
+
             currentPage = 1;
             renderLogs();
         }
@@ -583,6 +608,11 @@
             document.getElementById('roleFilter').value = 'ALL';
             document.getElementById('categoryFilter').value = 'ALL';
             document.getElementById('timeFilter').value = 'ALL';
+            if (document.getElementById('fromDate')) document.getElementById('fromDate').value = '';
+            if (document.getElementById('toDate')) document.getElementById('toDate').value = '';
+
+            const customBox = document.getElementById('customDateContainer');
+            if (customBox) customBox.classList.add('hidden');
 
             currentFilters = { search: '', role: 'ALL', category: 'ALL', timeRange: 'ALL' };
             currentPage = 1;
@@ -623,6 +653,15 @@
                     if (currentFilters.timeRange === 'TODAY') return (now - raw) < oneDay;
                     if (currentFilters.timeRange === '3DAYS') return (now - raw) < 3 * oneDay;
                     if (currentFilters.timeRange === '7DAYS') return (now - raw) < 7 * oneDay;
+                    if (currentFilters.timeRange === '30DAYS') return (now - raw) < 30 * oneDay;
+                    if (currentFilters.timeRange === '90DAYS') return (now - raw) < 90 * oneDay;
+                    if (currentFilters.timeRange === 'CUSTOM') {
+                        const fromVal = document.getElementById('fromDate')?.value;
+                        const toVal = document.getElementById('toDate')?.value;
+                        const fromTs = fromVal ? new Date(fromVal + 'T00:00:00').getTime() : 0;
+                        const toTs = toVal ? new Date(toVal + 'T23:59:59.999').getTime() : Infinity;
+                        return raw >= fromTs && raw <= toTs;
+                    }
                     return true;
                 });
             }
