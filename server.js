@@ -36,10 +36,10 @@ const defaultSharedData = {
             route: 'SGN - HAN',
             origin: 'SGN',
             destination: 'HAN',
-            originName: 'TP. Há»“ ChÃ­ Minh',
-            destName: 'HÃ  Ná»™i',
-            etd: '14:30 Â· 15/08/2026',
-            eta: '16:45 Â· 15/08/2026',
+            originName: 'TP. Hồ Chí Minh',
+            destName: 'Hà Nội',
+            etd: '14:30 · 15/08/2026',
+            eta: '16:45 · 15/08/2026',
             aircraft: 'Airbus A321neo Cargo',
             capacityKg: 3500,
             startingPriceKg: 18000,
@@ -50,8 +50,8 @@ const defaultSharedData = {
             leadingAgentCode: 'AG-0892',
             leadingAgentName: 'ABC Logistics',
             bidsCount: 7,
-            specialNotes: 'HÃ ng tá»•ng há»£p, há»— trá»£ kho láº¡nh báº£o quáº£n thá»±c pháº©m & dÆ°á»£c pháº©m.',
-            cutOffTime: '11:30 Â· 15/08/2026'
+            specialNotes: 'Hàng tổng hợp, hỗ trợ kho lạnh bảo quản thực phẩm & dược phẩm.',
+            cutOffTime: '11:30 · 15/08/2026'
         },
         {
             id: 2,
@@ -60,10 +60,10 @@ const defaultSharedData = {
             route: 'SGN - DAD',
             origin: 'SGN',
             destination: 'DAD',
-            originName: 'TP. Há»“ ChÃ­ Minh',
-            destName: 'ÄÃ  Náºµng',
-            etd: '16:00 Â· 15/08/2026',
-            eta: '17:20 Â· 15/08/2026',
+            originName: 'TP. Hồ Chí Minh',
+            destName: 'Đà Nẵng',
+            etd: '16:00 · 15/08/2026',
+            eta: '17:20 · 15/08/2026',
             aircraft: 'Airbus A320-200',
             capacityKg: 2000,
             startingPriceKg: 12000,
@@ -74,8 +74,8 @@ const defaultSharedData = {
             leadingAgentCode: 'AG-1024',
             leadingAgentName: 'Vinatrans',
             bidsCount: 4,
-            specialNotes: 'Æ¯u tiÃªn bÆ°u kiá»‡n bÆ°u pháº©m thÆ°Æ¡ng máº¡i Ä‘iá»‡n tá»­ chuyá»ƒn phÃ¡t nhanh.',
-            cutOffTime: '13:00 Â· 15/08/2026'
+            specialNotes: 'Ưu tiên bưu kiện bưu phẩm thương mại điện tử chuyển phát nhanh.',
+            cutOffTime: '13:00 · 15/08/2026'
         },
         {
             id: 3,
@@ -84,10 +84,10 @@ const defaultSharedData = {
             route: 'HAN - PQC',
             origin: 'HAN',
             destination: 'PQC',
-            originName: 'HÃ  Ná»™i',
-            destName: 'PhÃº Quá»‘c',
-            etd: '19:15 Â· 15/08/2026',
-            eta: '21:30 Â· 15/08/2026',
+            originName: 'Hà Nội',
+            destName: 'Phú Quốc',
+            etd: '19:15 · 15/08/2026',
+            eta: '21:30 · 15/08/2026',
             aircraft: 'Airbus A321neo Cargo',
             capacityKg: 4000,
             startingPriceKg: 22000,
@@ -98,8 +98,8 @@ const defaultSharedData = {
             leadingAgentCode: 'AG-0556',
             leadingAgentName: 'Golden Star',
             bidsCount: 5,
-            specialNotes: 'HÃ ng háº£i sáº£n Ä‘Ã´ng láº¡nh tÆ°Æ¡i sá»‘ng Ä‘Ã³ng thÃ¹ng xá»‘p tiÃªu chuáº©n IATA.',
-            cutOffTime: '16:00 Â· 15/08/2026'
+            specialNotes: 'Hàng hải sản đông lạnh tươi sống đóng thùng xốp tiêu chuẩn IATA.',
+            cutOffTime: '16:00 · 15/08/2026'
         },
         {
             id: 4,
@@ -108,10 +108,10 @@ const defaultSharedData = {
             route: 'SGN - HAN',
             origin: 'SGN',
             destination: 'HAN',
-            originName: 'TP. Há»“ ChÃ­ Minh',
-            destName: 'HÃ  Ná»™i',
-            etd: '10:00 Â· 14/08/2026',
-            eta: '12:15 Â· 14/08/2026',
+            originName: 'TP. Hồ Chí Minh',
+            destName: 'Hà Nội',
+            etd: '10:00 · 14/08/2026',
+            eta: '12:15 · 14/08/2026',
             aircraft: 'Airbus A321-200',
             capacityKg: 3000,
             startingPriceKg: 18000,
@@ -125,8 +125,8 @@ const defaultSharedData = {
             winnerAgentCode: 'AG-0892',
             winnerAgentName: 'ABC Logistics',
             winningPriceKg: 22000,
-            specialNotes: 'PhiÃªn Ä‘Ã£ Ä‘Ã³ng hÃ´m qua, tháº¯ng tháº§u chÃ­nh thá»©c.',
-            cutOffTime: '07:00 Â· 14/08/2026'
+            specialNotes: 'Phiên đã đóng hôm qua, thắng thầu chính thức.',
+            cutOffTime: '07:00 · 14/08/2026'
         }
     ],
     bids: [
@@ -138,7 +138,7 @@ const defaultSharedData = {
             agentName: 'ABC Logistics',
             isAnonymous: true,
             priceKg: 56500,
-            time: '3 phÃºt trÆ°á»›c',
+            time: '3 phút trước',
             status: 'HIGHEST',
             weightKg: 3500
         },
@@ -150,7 +150,7 @@ const defaultSharedData = {
             agentName: 'ABC Logistics',
             isAnonymous: true,
             priceKg: 56000,
-            time: '6 phÃºt trÆ°á»›c',
+            time: '6 phút trước',
             status: 'OUTBID',
             weightKg: 3500
         },
@@ -162,7 +162,7 @@ const defaultSharedData = {
             agentName: 'Golden Star Forwarding',
             isAnonymous: true,
             priceKg: 41500,
-            time: '15 phÃºt trÆ°á»›c',
+            time: '15 phút trước',
             status: 'OUTBID',
             weightKg: 3500
         },
@@ -174,7 +174,7 @@ const defaultSharedData = {
             agentName: 'Vinatrans Express',
             isAnonymous: true,
             priceKg: 39000,
-            time: '25 phÃºt trÆ°á»›c',
+            time: '25 phút trước',
             status: 'OUTBID',
             weightKg: 3500
         },
@@ -186,7 +186,7 @@ const defaultSharedData = {
             agentName: 'Golden Star Forwarding',
             isAnonymous: true,
             priceKg: 25000,
-            time: '35 phÃºt trÆ°á»›c',
+            time: '35 phút trước',
             status: 'OUTBID',
             weightKg: 3500
         },
@@ -198,7 +198,7 @@ const defaultSharedData = {
             agentName: 'Vinatrans Express',
             isAnonymous: true,
             priceKg: 24500,
-            time: '42 phÃºt trÆ°á»›c',
+            time: '42 phút trước',
             status: 'OUTBID',
             weightKg: 3500
         },
@@ -210,7 +210,7 @@ const defaultSharedData = {
             agentName: 'Golden Star Forwarding',
             isAnonymous: true,
             priceKg: 23000,
-            time: '48 phÃºt trÆ°á»›c',
+            time: '48 phút trước',
             status: 'OUTBID',
             weightKg: 3500
         },
@@ -222,7 +222,7 @@ const defaultSharedData = {
             agentName: 'ABC Logistics',
             isAnonymous: true,
             priceKg: 21500,
-            time: '52 phÃºt trÆ°á»›c',
+            time: '52 phút trước',
             status: 'OUTBID',
             weightKg: 3500
         },
@@ -234,7 +234,7 @@ const defaultSharedData = {
             agentName: 'Golden Star Forwarding',
             isAnonymous: true,
             priceKg: 20000,
-            time: '56 phÃºt trÆ°á»›c',
+            time: '56 phút trước',
             status: 'OUTBID',
             weightKg: 3500
         },
@@ -246,7 +246,7 @@ const defaultSharedData = {
             agentName: 'Vinatrans Express',
             isAnonymous: true,
             priceKg: 19000,
-            time: '1 giá» trÆ°á»›c',
+            time: '1 giờ trước',
             status: 'OUTBID',
             weightKg: 3500
         }
@@ -266,15 +266,15 @@ const defaultSharedData = {
             paidAt: null,
             awbNumber: '998-12345678',
             cutOffTime: '15/08/2026 06:00',
-            warehouse: 'Kho hÃ ng TCS TÃ¢n SÆ¡n Nháº¥t (Cá»­a sá»‘ 4)'
+            warehouse: 'Kho hàng TCS Tân Sơn Nhất (Cửa số 4)'
         }
     ],
     notifications: [
         {
             id: 1,
-            title: 'Báº¡n Ä‘ang dáº«n Ä‘áº§u tháº§u VU130',
-            message: 'Má»©c giÃ¡ 21,500 Ä‘/Kg cá»§a báº¡n Ä‘ang lÃ  cao nháº¥t cho chuyáº¿n SGN-HAN.',
-            time: '12 phÃºt trÆ°á»›c',
+            title: 'Bạn đang dẫn đầu thầu VU130',
+            message: 'Mức giá 21,500 đ/Kg của bạn đang là cao nhất cho chuyến SGN-HAN.',
+            time: '12 phút trước',
             type: 'HIGHEST',
             read: false,
             link: '04-Detail.html?id=1'
@@ -283,12 +283,12 @@ const defaultSharedData = {
     registrations: [
         {
             regId: 'REG-2026-0805-01',
-            companyName: 'CÃ´ng ty TNHH Giao nháº­n Sao Mai Express',
+            companyName: 'Công ty TNHH Giao nhận Sao Mai Express',
             taxCode: '0315998877',
-            address: '77 Báº¡ch Äáº±ng, PhÆ°á»ng 2, Quáº­n TÃ¢n BÃ¬nh, TP.HCM',
+            address: '77 Bạch Đằng, Phường 2, Quận Tân Bình, TP.HCM',
             field: 'Cargo Agent',
-            repName: 'HoÃ ng Äá»©c Trá»ng',
-            repPosition: 'GiÃ¡m Ä‘á»‘c Ä‘iá»u hÃ nh',
+            repName: 'Hoàng Đức Trọng',
+            repPosition: 'Giám đốc điều hành',
             email: 'trong.hoang@saomaiexpress.vn',
             phone: '0933 887 766',
             documents: ['GPKD_SaoMai_Scan.pdf', 'UyQuyen_Cargo_SaoMai.pdf', 'CCCD_HoangDucTrong.pdf'],
@@ -313,10 +313,10 @@ const defaultSharedData = {
         }
     },
     bankConfig: {
-        bankName: 'NgÃ¢n hÃ ng TMCP Ngoáº¡i ThÆ°Æ¡ng Viá»‡t Nam (Vietcombank)',
+        bankName: 'Ngân hàng TMCP Ngoại Thương Việt Nam (Vietcombank)',
         accountNumber: '1029384756',
         accountName: 'CONG TY CP HANG KHONG VIETRAVEL',
-        branch: 'Chi nhÃ¡nh TÃ¢n BÃ¬nh - TP. Há»“ ChÃ­ Minh',
+        branch: 'Chi nhánh Tân Bình - TP. Hồ Chí Minh',
         memoPrefix: 'CARGO',
         bankBin: '970436'
     },
@@ -456,7 +456,7 @@ async function loadServerDataAsync() {
                     }
                     // Flight ETD has passed -> CLOSE auction
                     a.status = 'CLOSED';
-                    a.specialNotes = (a.specialNotes ? a.specialNotes + ' ' : '') + '(PhiÃªn Ä‘Ã£ tá»± Ä‘á»™ng Ä‘Ã³ng do chuyáº¿n bay Ä‘Ã£ cáº¥t cÃ¡nh).';
+                    a.specialNotes = (a.specialNotes ? a.specialNotes + ' ' : '') + '(Phiên đã tự động đóng do chuyến bay đã cất cánh).';
                     changed = true;
                 }
             }
@@ -477,7 +477,7 @@ async function loadServerDataAsync() {
 function parseFlightDate(dateStr) {
     if (!dateStr) return null;
     if (dateStr instanceof Date) return isNaN(dateStr.getTime()) ? null : dateStr;
-    const cleanStr = String(dateStr).replace(/Â·|-/g, ' ').replace(/\s+/g, ' ').trim();
+    const cleanStr = String(dateStr).replace(/·|-/g, ' ').replace(/\s+/g, ' ').trim();
 
     const p1 = cleanStr.match(/^(\d{1,2}):(\d{2})\s+(\d{1,2})\/(\d{1,2})\/(\d{4})$/);
     const p2 = cleanStr.match(/^(\d{1,2})\/(\d{1,2})\/(\d{4})\s+(\d{1,2}):(\d{2})$/);
@@ -559,7 +559,7 @@ function checkAndAutoLockExpiredWonAuctions(data) {
                 if (agent.status !== 'LOCKED') {
                     agent.status = 'LOCKED';
                     agent.isLocked = true;
-                    agent.lockedReason = `Há»‡ thá»‘ng tá»± Ä‘á»™ng khÃ³a do quÃ¡ háº¡n thanh toÃ¡n Ä‘Æ¡n ${item.wonId} (${item.flightNumber} - ${item.route})`;
+                    agent.lockedReason = `Hệ thống tự động khóa do quá hạn thanh toán đơn ${item.wonId} (${item.flightNumber} - ${item.route})`;
                     agent.lockedAt = new Date().toLocaleString('vi-VN');
                     item.lockPenaltyHandled = true;
                     modified = true;
@@ -567,16 +567,16 @@ function checkAndAutoLockExpiredWonAuctions(data) {
                     const hasNotif = (data.notifications || []).some(n => 
                         (n.targetAgentCode || '').toUpperCase() === targetCode &&
                         n.type === 'ALERT' &&
-                        (n.title || '').includes('TÃ€I KHOáº¢N ÄÃƒ Bá»Š KHÃ“A')
+                        (n.title || '').includes('TÀI KHOẢN ĐÃ BỊ KHÓA')
                     );
                     if (!hasNotif) {
                         const notifId = Date.now() + Math.floor(Math.random() * 1000);
                         data.notifications.unshift({
                             id: notifId,
                             targetAgentCode: item.agentCode,
-                            title: `âš ï¸ TÃ€I KHOáº¢N ÄÃƒ Bá»Š KHÃ“A DO QUÃ Háº N THANH TOÃN`,
-                            message: `TÃ i khoáº£n Ä‘áº¡i lÃ½ ${item.agentCode} Ä‘Ã£ bá»‹ há»‡ thá»‘ng tá»± Ä‘á»™ng KHÃ“A do khÃ´ng hoÃ n táº¥t thanh toÃ¡n Ä‘Æ¡n hÃ ng tháº¯ng tháº§u ${item.wonId} (Chuyáº¿n bay ${item.flightNumber}) trÆ°á»›c háº¡n chÃ³t. Quyá»n tham gia Ä‘áº¥u giÃ¡ trÃªn sÃ n Ä‘Ã£ bá»‹ táº¡m ngÆ°ng. Vui lÃ²ng liÃªn há»‡ Ban Äiá»u hÃ nh Cargo Ä‘á»ƒ xá»­ lÃ½.`,
-                            time: 'Vá»«a xong',
+                            title: `⚠️ TÀI KHOẢN ĐÃ BỊ KHÓA DO QUÁ HẠN THANH TOÁN`,
+                            message: `Tài khoản đại lý ${item.agentCode} đã bị hệ thống tự động KHÓA do không hoàn tất thanh toán đơn hàng thắng thầu ${item.wonId} (Chuyến bay ${item.flightNumber}) trước hạn chót. Quyền tham gia đấu giá trên sàn đã bị tạm ngưng. Vui lòng liên hệ Ban Điều hành Cargo để xử lý.`,
+                            time: 'Vừa xong',
                             type: 'ALERT',
                             unread: true
                         });
@@ -659,9 +659,9 @@ async function getMailTransporter() {
             tls: {
                 rejectUnauthorized: false
             },
-            connectionTimeout: 15000, // 15 giÃ¢y timeout káº¿t ná»‘i
-            greetingTimeout: 10000,   // 10 giÃ¢y timeout greeting
-            socketTimeout: 20000      // 20 giÃ¢y timeout socket
+            connectionTimeout: 15000, // 15 giây timeout kết nối
+            greetingTimeout: 10000,   // 10 giây timeout greeting
+            socketTimeout: 20000      // 20 giây timeout socket
         });
         lastSmtpFingerprint = currentFingerprint;
         console.log(`[Nodemailer] Configured REAL SMTP transporter: ${host}:${port} (${user})`);
@@ -731,9 +731,9 @@ function buildEmailHtml({ title, subtitle, contentHtml, footerNote }) {
   <!-- Footer -->
   <tr>
     <td style="background-color:#f9f9f9;padding:20px 28px;border-top:1px solid #eeeeee;text-align:center;font-size:12px;color:#888888;">
-      <p style="margin:0 0 4px 0;font-weight:bold;color:#555555;">Ban Quáº£n lÃ½ HÃ ng hÃ³a Vietravel Airlines (VU Cargo)</p>
+      <p style="margin:0 0 4px 0;font-weight:bold;color:#555555;">Ban Quản lý Hàng hóa Vietravel Airlines (VU Cargo)</p>
       <p style="margin:0 0 8px 0;">Hotline: <strong style="color:#1e3a5f;">1900 6699</strong> &middot; ops-cargo@vietravelairlines.vn</p>
-      <p style="margin:0;font-size:11px;color:#aaaaaa;">${footerNote || 'Email thÃ´ng bÃ¡o tá»« Há»‡ thá»‘ng VU Cargo.'}</p>
+      <p style="margin:0;font-size:11px;color:#aaaaaa;">${footerNote || 'Email thông báo từ Hệ thống VU Cargo.'}</p>
     </td>
   </tr>
 </table>
@@ -754,8 +754,8 @@ function htmlToPlainText(html) {
         .replace(/<[^>]+>/g, '')
         .replace(/&nbsp;/g, ' ')
         .replace(/&amp;/g, '&')
-        .replace(/&middot;/g, 'Â·')
-        .replace(/&mdash;/g, 'â€”')
+        .replace(/&middot;/g, '·')
+        .replace(/&mdash;/g, '—')
         .replace(/\n{3,}/g, '\n\n')
         .trim();
 }
@@ -834,7 +834,7 @@ const server = http.createServer((req, res) => {
             );
 
             // While OPEN, anonymize competitor identities (agentCode & agentName) for competitors
-            // so all agents see the realtime bid log with price & time, but competitors are shown as "Äáº¡i lÃ½ áº©n danh (AG-***)"
+            // so all agents see the realtime bid log with price & time, but competitors are shown as "Đại lý ẩn danh (AG-***)"
             clientPayload.bids = (clientPayload.bids || []).map(b => {
                 const isAuctionOpen = openAuctionIds.has(Number(b.auctionId));
                 if (!isAuctionOpen) return b;
@@ -843,7 +843,7 @@ const server = http.createServer((req, res) => {
                 return {
                     ...b,
                     agentCode: 'AG-***',
-                    agentName: 'Äáº¡i lÃ½ áº©n danh (AG-***)',
+                    agentName: 'Đại lý ẩn danh (AG-***)',
                     isAnonymous: true
                 };
             });
@@ -853,7 +853,7 @@ const server = http.createServer((req, res) => {
                 if (a.status === 'OPEN' && a.isAnonymous !== false) {
                     if (!agentCode || String(a.leadingAgentCode || '').toUpperCase() !== String(agentCode).toUpperCase()) {
                         a.leadingAgentCode = 'AG-***';
-                        a.leadingAgentName = 'Äáº¡i lÃ½ áº©n danh (AG-***)';
+                        a.leadingAgentName = 'Đại lý ẩn danh (AG-***)';
                     }
                 }
             });
@@ -920,11 +920,11 @@ const server = http.createServer((req, res) => {
                     id: logData.id || (Date.now() + Math.floor(Math.random() * 1000)),
                     timestamp: timestampStr,
                     rawTime: now.getTime(),
-                    actor: logData.actor || 'Quáº£n trá»‹ viÃªn',
+                    actor: logData.actor || 'Quản trị viên',
                     username: logData.username || 'admin',
                     role: logData.role || 'ADMIN',
-                    actionCategory: logData.actionCategory || 'KhÃ¡c',
-                    actionTitle: logData.actionTitle || 'Thao tÃ¡c há»‡ thá»‘ng',
+                    actionCategory: logData.actionCategory || 'Khác',
+                    actionTitle: logData.actionTitle || 'Thao tác hệ thống',
                     target: logData.target || 'N/A',
                     details: logData.details || '',
                     ip: logData.ip || req.socket.remoteAddress || '113.161.42.12',
@@ -952,7 +952,7 @@ const server = http.createServer((req, res) => {
         serverData.activityLogs = [];
         saveServerData();
         res.writeHead(200, { 'Content-Type': 'application/json; charset=UTF-8' });
-        res.end(JSON.stringify({ success: true, message: 'ÄÃ£ xÃ³a toÃ n bá»™ nháº­t kÃ½ hoáº¡t Ä‘á»™ng há»‡ thá»‘ng.' }), 'utf-8');
+        res.end(JSON.stringify({ success: true, message: 'Đã xóa toàn bộ nhật ký hoạt động hệ thống.' }), 'utf-8');
         return;
     }
 
@@ -963,7 +963,7 @@ const server = http.createServer((req, res) => {
                 const { auctionId, agentCode, agentName, priceKg, isAnonymous, weightKg } = JSON.parse(body || '{}');
                 if (!auctionId || !agentCode || !priceKg) {
                     res.writeHead(400, { 'Content-Type': 'application/json; charset=UTF-8' });
-                    res.end(JSON.stringify({ success: false, error: 'Thiáº¿u auctionId, agentCode hoáº·c priceKg' }));
+                    res.end(JSON.stringify({ success: false, error: 'Thiếu auctionId, agentCode hoặc priceKg' }));
                     return;
                 }
 
@@ -990,12 +990,12 @@ const server = http.createServer((req, res) => {
                     const actorName = (agentObj ? (agentObj.repName || agentObj.companyName) : agentName || agentCode);
                     const flightStr = aucObj ? aucObj.flightNumber : `AUC-${auctionId}`;
                     const priceFormatted = new Intl.NumberFormat('vi-VN').format(priceKg);
-                    const detailsStr = `Äáº¡i lÃ½ ${(agentObj ? agentObj.companyName : agentCode)} Ä‘áº·t tháº§u thÃ nh cÃ´ng má»©c giÃ¡ ${priceFormatted}Ä‘/Kg cho chuyáº¿n bay ${flightStr} (${aucObj ? aucObj.route : ''}).`;
+                    const detailsStr = `Đại lý ${(agentObj ? agentObj.companyName : agentCode)} đặt thầu thành công mức giá ${priceFormatted}đ/Kg cho chuyến bay ${flightStr} (${aucObj ? aucObj.route : ''}).`;
 
                     await db.run(
                         `INSERT INTO activity_logs (timestamp, rawTime, actor, username, role, actionCategory, actionTitle, target, details, ip, device)
                          VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
-                        [timestampStr, now.getTime(), actorName, agentCode, 'AGENT', 'Äáº¥u giÃ¡', 'Äáº·t giÃ¡ tháº§u', flightStr, detailsStr, '113.161.42.12', 'Web Client']
+                        [timestampStr, now.getTime(), actorName, agentCode, 'AGENT', 'Đấu giá', 'Đặt giá thầu', flightStr, detailsStr, '113.161.42.12', 'Web Client']
                     ).catch(e => console.error('Failed to log bid activity to db:', e));
 
                     if (!serverData.activityLogs) serverData.activityLogs = [];
@@ -1006,8 +1006,8 @@ const server = http.createServer((req, res) => {
                         actor: actorName,
                         username: agentCode,
                         role: 'AGENT',
-                        actionCategory: 'Äáº¥u giÃ¡',
-                        actionTitle: 'Äáº·t giÃ¡ tháº§u',
+                        actionCategory: 'Đấu giá',
+                        actionTitle: 'Đặt giá thầu',
                         target: flightStr,
                         details: detailsStr,
                         ip: '113.161.42.12',
@@ -1021,7 +1021,7 @@ const server = http.createServer((req, res) => {
                 res.end(JSON.stringify({
                     success: true,
                     bid: placedBid,
-                    message: `Äáº·t tháº§u thÃ nh cÃ´ng má»©c giÃ¡ ${new Intl.NumberFormat('vi-VN').format(priceKg)}Ä‘ / Kg!`
+                    message: `Đặt thầu thành công mức giá ${new Intl.NumberFormat('vi-VN').format(priceKg)}đ / Kg!`
                 }), 'utf-8');
             } catch (err) {
                 res.writeHead(400, { 'Content-Type': 'application/json; charset=UTF-8' });
@@ -1049,7 +1049,7 @@ const server = http.createServer((req, res) => {
                 const reg = regList.find(r => r.regId === regId);
                 if (!reg) {
                     res.writeHead(404, { 'Content-Type': 'application/json; charset=UTF-8' });
-                    res.end(JSON.stringify({ success: false, error: 'Há»“ sÆ¡ Ä‘Äƒng kÃ½ khÃ´ng tá»“n táº¡i' }));
+                    res.end(JSON.stringify({ success: false, error: 'Hồ sơ đăng ký không tồn tại' }));
                     return;
                 }
 
@@ -1068,12 +1068,12 @@ const server = http.createServer((req, res) => {
                         taxCode: reg.taxCode,
                         email: reg.email,
                         phone: reg.phone,
-                        status: 'Hoáº¡t Ä‘á»™ng',
+                        status: 'Hoạt động',
                         isLocked: false
                     };
                     serverData.agentsList.push(agent);
                 } else {
-                    agent.status = 'Hoáº¡t Ä‘á»™ng';
+                    agent.status = 'Hoạt động';
                     agent.isLocked = false;
                     agent.code = randomCode;
                 }
@@ -1087,26 +1087,26 @@ const server = http.createServer((req, res) => {
                     id: _now.getTime() + Math.floor(Math.random() * 1000),
                     timestamp: _tsStr,
                     rawTime: _now.getTime(),
-                    actor: approvedBy || 'Quáº£n trá»‹ viÃªn',
+                    actor: approvedBy || 'Quản trị viên',
                     username: approvedBy || 'admin',
                     role: 'ADMIN',
-                    actionCategory: 'Quáº£n lÃ½ Äáº¡i lÃ½',
-                    actionTitle: 'Táº¡o tÃ i khoáº£n Äáº¡i lÃ½ má»›i',
+                    actionCategory: 'Quản lý Đại lý',
+                    actionTitle: 'Tạo tài khoản Đại lý mới',
                     target: randomCode,
-                    details: `Duyá»‡t há»“ sÆ¡ Ä‘Äƒng kÃ½ ${regId} vÃ  cáº¥p mÃ£ Ä‘áº¡i lÃ½ ${randomCode} cho cÃ´ng ty ${reg.companyName} (MST: ${reg.taxCode || 'N/A'}).`,
+                    details: `Duyệt hồ sơ đăng ký ${regId} và cấp mã đại lý ${randomCode} cho công ty ${reg.companyName} (MST: ${reg.taxCode || 'N/A'}).`,
                     ip: req.socket.remoteAddress || '127.0.0.1',
                     device: 'Admin Portal'
                 });
                 if (serverData.activityLogs.length > 1000) serverData.activityLogs = serverData.activityLogs.slice(0, 1000);
 
                 saveServerData();
-                await db.createAuditLog('ADMIN', approvedBy || 'admin', 'APPROVE_REGISTRATION', regId, `Cáº¥p mÃ£ Ä‘áº¡i lÃ½ ${randomCode} cho ${reg.companyName}`);
+                await db.createAuditLog('ADMIN', approvedBy || 'admin', 'APPROVE_REGISTRATION', regId, `Cấp mã đại lý ${randomCode} cho ${reg.companyName}`);
 
                 res.writeHead(200, { 'Content-Type': 'application/json; charset=UTF-8' });
                 res.end(JSON.stringify({
                     success: true,
                     agentCode: randomCode,
-                    message: `Há»“ sÆ¡ ${regId} Ä‘Ã£ Ä‘Æ°á»£c duyá»‡t thÃ nh cÃ´ng! MÃ£ Ä‘áº¡i lÃ½ cáº¥p: ${randomCode}`
+                    message: `Hồ sơ ${regId} đã được duyệt thành công! Mã đại lý cấp: ${randomCode}`
                 }), 'utf-8');
             } catch (err) {
                 res.writeHead(500, { 'Content-Type': 'application/json; charset=UTF-8' });
@@ -1232,7 +1232,7 @@ const server = http.createServer((req, res) => {
     // --- CHAT SUPPORT API ---
     // ============================================================
 
-    // GET /api/chat  â€” Láº¥y danh sÃ¡ch chat (agent xem cá»§a mÃ¬nh, admin/staff xem táº¥t cáº£)
+    // GET /api/chat  — Lấy danh sách chat (agent xem của mình, admin/staff xem tất cả)
     if (pathname === '/api/chat' && req.method === 'GET') {
         if (!Array.isArray(serverData.chats)) serverData.chats = [];
         if (cleanupClosedChats(serverData)) saveServerData();
@@ -1245,18 +1245,18 @@ const server = http.createServer((req, res) => {
         return;
     }
 
-    // POST /api/chat/create  â€” Äáº¡i lÃ½ táº¡o phiÃªn chat má»›i
+    // POST /api/chat/create  — Đại lý tạo phiên chat mới
     if (pathname === '/api/chat/create' && req.method === 'POST') {
         readBody(req).then(body => {
             try {
                 const { agentCode, agentName, text } = JSON.parse(body);
                 if (!agentCode || !text) {
                     res.writeHead(400, { 'Content-Type': 'application/json' });
-                    res.end(JSON.stringify({ success: false, error: 'Thiáº¿u agentCode hoáº·c text' }));
+                    res.end(JSON.stringify({ success: false, error: 'Thiếu agentCode hoặc text' }));
                     return;
                 }
                 if (!Array.isArray(serverData.chats)) serverData.chats = [];
-                // Kiá»ƒm tra Ä‘Ã£ cÃ³ phiÃªn OPEN/WAITING/ACTIVE chÆ°a
+                // Kiểm tra đã có phiên OPEN/WAITING/ACTIVE chưa
                 const existing = serverData.chats.find(c => c.agentCode === agentCode && c.status !== 'CLOSED');
                 if (existing) {
                     res.writeHead(200, { 'Content-Type': 'application/json; charset=UTF-8' });
@@ -1289,8 +1289,8 @@ const server = http.createServer((req, res) => {
                         {
                             id: 'MSG-' + now + '-sys',
                             sender: 'system',
-                            senderName: 'Há»‡ thá»‘ng',
-                            text: 'YÃªu cáº§u há»— trá»£ Ä‘Ã£ Ä‘Æ°á»£c gá»­i. NhÃ¢n viÃªn sáº½ pháº£n há»“i sá»›m nháº¥t cÃ³ thá»ƒ. Vui lÃ²ng chá» trong giÃ¢y lÃ¡t...',
+                            senderName: 'Hệ thống',
+                            text: 'Yêu cầu hỗ trợ đã được gửi. Nhân viên sẽ phản hồi sớm nhất có thể. Vui lòng chờ trong giây lát...',
                             fileUrl: null,
                             fileName: null,
                             fileType: null,
@@ -1314,7 +1314,7 @@ const server = http.createServer((req, res) => {
         return;
     }
 
-    // POST /api/chat/send  â€” Gá»­i tin nháº¯n (text hoáº·c file)
+    // POST /api/chat/send  — Gửi tin nhắn (text hoặc file)
     if (pathname === '/api/chat/send' && req.method === 'POST') {
         let body = '';
         req.on('data', chunk => { body += chunk; });
@@ -1324,19 +1324,19 @@ const server = http.createServer((req, res) => {
                 const { chatId, sender, senderName, text, fileUrl, fileName, fileType } = JSON.parse(body);
                 if (!chatId || !sender || (!text && !fileUrl)) {
                     res.writeHead(400, { 'Content-Type': 'application/json' });
-                    res.end(JSON.stringify({ success: false, error: 'Thiáº¿u chatId, sender hoáº·c ná»™i dung tin nháº¯n' }));
+                    res.end(JSON.stringify({ success: false, error: 'Thiếu chatId, sender hoặc nội dung tin nhắn' }));
                     return;
                 }
                 if (!Array.isArray(serverData.chats)) serverData.chats = [];
                 const chat = serverData.chats.find(c => c.id === chatId);
                 if (!chat) {
                     res.writeHead(404, { 'Content-Type': 'application/json' });
-                    res.end(JSON.stringify({ success: false, error: 'KhÃ´ng tÃ¬m tháº¥y phiÃªn chat' }));
+                    res.end(JSON.stringify({ success: false, error: 'Không tìm thấy phiên chat' }));
                     return;
                 }
                 if (chat.status === 'CLOSED') {
                     res.writeHead(400, { 'Content-Type': 'application/json' });
-                    res.end(JSON.stringify({ success: false, error: 'PhiÃªn chat Ä‘Ã£ Ä‘Ã³ng' }));
+                    res.end(JSON.stringify({ success: false, error: 'Phiên chat đã đóng' }));
                     return;
                 }
                 const now = Date.now();
@@ -1364,7 +1364,7 @@ const server = http.createServer((req, res) => {
         return;
     }
 
-    // POST /api/chat/assign  â€” Admin/Staff nháº­n phiÃªn Ä‘á»ƒ há»— trá»£
+    // POST /api/chat/assign  — Admin/Staff nhận phiên để hỗ trợ
     if (pathname === '/api/chat/assign' && req.method === 'POST') {
         let body = '';
         req.on('data', chunk => { body += chunk; });
@@ -1375,14 +1375,14 @@ const server = http.createServer((req, res) => {
                 const { chatId, staffId, staffName } = JSON.parse(body);
                 if (!chatId || !staffId) {
                     res.writeHead(400, { 'Content-Type': 'application/json' });
-                    res.end(JSON.stringify({ success: false, error: 'Thiáº¿u chatId hoáº·c staffId' }));
+                    res.end(JSON.stringify({ success: false, error: 'Thiếu chatId hoặc staffId' }));
                     return;
                 }
                 if (!Array.isArray(serverData.chats)) serverData.chats = [];
                 const chat = serverData.chats.find(c => c.id === chatId);
                 if (!chat) {
                     res.writeHead(404, { 'Content-Type': 'application/json' });
-                    res.end(JSON.stringify({ success: false, error: 'KhÃ´ng tÃ¬m tháº¥y phiÃªn chat' }));
+                    res.end(JSON.stringify({ success: false, error: 'Không tìm thấy phiên chat' }));
                     return;
                 }
                 chat.status = 'ACTIVE';
@@ -1393,8 +1393,8 @@ const server = http.createServer((req, res) => {
                 chat.messages.push({
                     id: 'MSG-' + now + '-assign',
                     sender: 'system',
-                    senderName: 'Há»‡ thá»‘ng',
-                    text: `${staffName || staffId} Ä‘Ã£ tham gia cuá»™c trÃ² chuyá»‡n vÃ  sáºµn sÃ ng há»— trá»£ báº¡n.`,
+                    senderName: 'Hệ thống',
+                    text: `${staffName || staffId} đã tham gia cuộc trò chuyện và sẵn sàng hỗ trợ bạn.`,
                     fileUrl: null, fileName: null, fileType: null,
                     timestamp: now, read: false
                 });
@@ -1409,7 +1409,7 @@ const server = http.createServer((req, res) => {
         return;
     }
 
-    // POST /api/chat/request-close â€” Admin/Staff gá»­i yÃªu cáº§u Ä‘Ã³ng phiÃªn chat Ä‘áº¿n Äáº¡i lÃ½
+    // POST /api/chat/request-close — Admin/Staff gửi yêu cầu đóng phiên chat đến Đại lý
     if (pathname === '/api/chat/request-close' && req.method === 'POST') {
         let body = '';
         req.on('data', chunk => { body += chunk; });
@@ -1419,14 +1419,14 @@ const server = http.createServer((req, res) => {
                 const { chatId, closedByName } = JSON.parse(body);
                 if (!chatId) {
                     res.writeHead(400, { 'Content-Type': 'application/json' });
-                    res.end(JSON.stringify({ success: false, error: 'Thiáº¿u chatId' }));
+                    res.end(JSON.stringify({ success: false, error: 'Thiếu chatId' }));
                     return;
                 }
                 if (!Array.isArray(serverData.chats)) serverData.chats = [];
                 const chat = serverData.chats.find(c => c.id === chatId);
                 if (!chat) {
                     res.writeHead(404, { 'Content-Type': 'application/json' });
-                    res.end(JSON.stringify({ success: false, error: 'KhÃ´ng tÃ¬m tháº¥y phiÃªn chat' }));
+                    res.end(JSON.stringify({ success: false, error: 'Không tìm thấy phiên chat' }));
                     return;
                 }
                 const now = Date.now();
@@ -1435,8 +1435,8 @@ const server = http.createServer((req, res) => {
                 chat.messages.push({
                     id: 'MSG-' + now + '-reqclose',
                     sender: 'system',
-                    senderName: 'Há»‡ thá»‘ng',
-                    text: `ðŸ”” ${closedByName || 'NhÃ¢n viÃªn há»— trá»£'} Ä‘Ã£ gá»­i yÃªu cáº§u káº¿t thÃºc cuá»™c trÃ² chuyá»‡n. Äang chá» Ä‘áº¡i lÃ½ pháº£n há»“i xÃ¡c nháº­n...`,
+                    senderName: 'Hệ thống',
+                    text: `🔔 ${closedByName || 'Nhân viên hỗ trợ'} đã gửi yêu cầu kết thúc cuộc trò chuyện. Đang chờ đại lý phản hồi xác nhận...`,
                     fileUrl: null, fileName: null, fileType: null,
                     timestamp: now, read: false
                 });
@@ -1451,7 +1451,7 @@ const server = http.createServer((req, res) => {
         return;
     }
 
-    // POST /api/chat/respond-close â€” Äáº¡i lÃ½ pháº£n há»“i tiáº¿p tá»¥c hay káº¿t thÃºc chat
+    // POST /api/chat/respond-close — Đại lý phản hồi tiếp tục hay kết thúc chat
     if (pathname === '/api/chat/respond-close' && req.method === 'POST') {
         let body = '';
         req.on('data', chunk => { body += chunk; });
@@ -1461,14 +1461,14 @@ const server = http.createServer((req, res) => {
                 const { chatId, action, agentName } = JSON.parse(body);
                 if (!chatId) {
                     res.writeHead(400, { 'Content-Type': 'application/json' });
-                    res.end(JSON.stringify({ success: false, error: 'Thiáº¿u chatId' }));
+                    res.end(JSON.stringify({ success: false, error: 'Thiếu chatId' }));
                     return;
                 }
                 if (!Array.isArray(serverData.chats)) serverData.chats = [];
                 const chat = serverData.chats.find(c => c.id === chatId);
                 if (!chat) {
                     res.writeHead(404, { 'Content-Type': 'application/json' });
-                    res.end(JSON.stringify({ success: false, error: 'KhÃ´ng tÃ¬m tháº¥y phiÃªn chat' }));
+                    res.end(JSON.stringify({ success: false, error: 'Không tìm thấy phiên chat' }));
                     return;
                 }
                 const now = Date.now();
@@ -1479,8 +1479,8 @@ const server = http.createServer((req, res) => {
                     chat.messages.push({
                         id: 'MSG-' + now + '-keep',
                         sender: 'system',
-                        senderName: 'Há»‡ thá»‘ng',
-                        text: `ðŸ’¬ Äáº¡i lÃ½ (${agentName || chat.agentName || 'Äáº¡i lÃ½'}) muá»‘n tiáº¿p tá»¥c trao Ä‘á»•i thÃªm thÃ´ng tin.`,
+                        senderName: 'Hệ thống',
+                        text: `💬 Đại lý (${agentName || chat.agentName || 'Đại lý'}) muốn tiếp tục trao đổi thêm thông tin.`,
                         fileUrl: null, fileName: null, fileType: null,
                         timestamp: now, read: false
                     });
@@ -1490,8 +1490,8 @@ const server = http.createServer((req, res) => {
                     chat.messages.push({
                         id: 'MSG-' + now + '-close',
                         sender: 'system',
-                        senderName: 'Há»‡ thá»‘ng',
-                        text: `âœ… Cuá»™c trÃ² chuyá»‡n Ä‘Ã£ káº¿t thÃºc theo xÃ¡c nháº­n tá»« Äáº¡i lÃ½ (${agentName || chat.agentName || 'Äáº¡i lÃ½'}). Cáº£m Æ¡n báº¡n!`,
+                        senderName: 'Hệ thống',
+                        text: `✅ Cuộc trò chuyện đã kết thúc theo xác nhận từ Đại lý (${agentName || chat.agentName || 'Đại lý'}). Cảm ơn bạn!`,
                         fileUrl: null, fileName: null, fileType: null,
                         timestamp: now, read: false
                     });
@@ -1508,7 +1508,7 @@ const server = http.createServer((req, res) => {
         return;
     }
 
-    // POST /api/chat/close  â€” Admin/Staff Ä‘Ã³ng phiÃªn chat
+    // POST /api/chat/close  — Admin/Staff đóng phiên chat
     if (pathname === '/api/chat/close' && req.method === 'POST') {
         let body = '';
         req.on('data', chunk => { body += chunk; });
@@ -1519,14 +1519,14 @@ const server = http.createServer((req, res) => {
                 const { chatId, closedByName } = JSON.parse(body);
                 if (!chatId) {
                     res.writeHead(400, { 'Content-Type': 'application/json' });
-                    res.end(JSON.stringify({ success: false, error: 'Thiáº¿u chatId' }));
+                    res.end(JSON.stringify({ success: false, error: 'Thiếu chatId' }));
                     return;
                 }
                 if (!Array.isArray(serverData.chats)) serverData.chats = [];
                 const chat = serverData.chats.find(c => c.id === chatId);
                 if (!chat) {
                     res.writeHead(404, { 'Content-Type': 'application/json' });
-                    res.end(JSON.stringify({ success: false, error: 'KhÃ´ng tÃ¬m tháº¥y phiÃªn chat' }));
+                    res.end(JSON.stringify({ success: false, error: 'Không tìm thấy phiên chat' }));
                     return;
                 }
                 const now = Date.now();
@@ -1536,8 +1536,8 @@ const server = http.createServer((req, res) => {
                 chat.messages.push({
                     id: 'MSG-' + now + '-close',
                     sender: 'system',
-                    senderName: 'Há»‡ thá»‘ng',
-                    text: `Cuá»™c trÃ² chuyá»‡n Ä‘Ã£ Ä‘Æ°á»£c ${closedByName || 'nhÃ¢n viÃªn há»— trá»£'} káº¿t thÃºc. Cáº£m Æ¡n báº¡n Ä‘Ã£ liÃªn há»‡!`,
+                    senderName: 'Hệ thống',
+                    text: `Cuộc trò chuyện đã được ${closedByName || 'nhân viên hỗ trợ'} kết thúc. Cảm ơn bạn đã liên hệ!`,
                     fileUrl: null, fileName: null, fileType: null,
                     timestamp: now, read: false
                 });
@@ -1552,7 +1552,7 @@ const server = http.createServer((req, res) => {
         return;
     }
 
-    // POST /api/chat/read  â€” ÄÃ¡nh dáº¥u tin nháº¯n Ä‘Ã£ Ä‘á»c
+    // POST /api/chat/read  — Đánh dấu tin nhắn đã đọc
     if (pathname === '/api/chat/read' && req.method === 'POST') {
         let body = '';
         req.on('data', chunk => { body += chunk; });
@@ -1563,7 +1563,7 @@ const server = http.createServer((req, res) => {
                 const { chatId, readerRole } = JSON.parse(body); // readerRole: 'agent' | 'staff'
                 if (!chatId) {
                     res.writeHead(400, { 'Content-Type': 'application/json' });
-                    res.end(JSON.stringify({ success: false, error: 'Thiáº¿u chatId' }));
+                    res.end(JSON.stringify({ success: false, error: 'Thiếu chatId' }));
                     return;
                 }
                 if (!Array.isArray(serverData.chats)) serverData.chats = [];
@@ -1668,7 +1668,7 @@ const server = http.createServer((req, res) => {
             res.writeHead(200, { 'Content-Type': 'application/json; charset=UTF-8' });
             res.end(JSON.stringify({
                 success: true,
-                message: 'ÄÃ£ khÃ´i phá»¥c toÃ n bá»™ dá»¯ liá»‡u mÃ¡y chá»§ vá» tráº¡ng thÃ¡i máº·c Ä‘á»‹nh ban Ä‘áº§u thÃ nh cÃ´ng!',
+                message: 'Đã khôi phục toàn bộ dữ liệu máy chủ về trạng thái mặc định ban đầu thành công!',
                 version: serverData.version
             }), 'utf-8');
         } catch (err) {
@@ -1690,118 +1690,118 @@ const server = http.createServer((req, res) => {
                 const recipient = to || (regData && regData.email);
                 if (!recipient) {
                     res.writeHead(400, { 'Content-Type': 'application/json' });
-                    res.end(JSON.stringify({ success: false, error: 'Thiáº¿u Ä‘á»‹a chá»‰ email ngÆ°á»i nháº­n (to / regData.email)' }));
+                    res.end(JSON.stringify({ success: false, error: 'Thiếu địa chỉ email người nhận (to / regData.email)' }));
                     return;
                 }
 
-                let subject = customSubject || '[Vietravel Airlines Cargo] ThÃ´ng bÃ¡o há»‡ thá»‘ng';
+                let subject = customSubject || '[Vietravel Airlines Cargo] Thông báo hệ thống';
                 let html = customHtml || '';
-                const companyName = (regData && regData.companyName) || 'QuÃ½ doanh nghiá»‡p';
-                const repName = (regData && regData.repName) || 'QuÃ½ Ä‘áº¡i lÃ½';
+                const companyName = (regData && regData.companyName) || 'Quý doanh nghiệp';
+                const repName = (regData && regData.repName) || 'Quý đại lý';
                 const regId = (regData && regData.regId) || 'REG-PENDING';
 
                 if (type === 'TEST_EMAIL') {
-                    subject = `[Vietravel Airlines Cargo] KIá»‚M TRA Káº¾T Ná»I EMAIL THÃ€NH CÃ”NG (${new Date().toLocaleTimeString('vi-VN')})`;
+                    subject = `[Vietravel Airlines Cargo] KIỂM TRA KẾT NỐI EMAIL THÀNH CÔNG (${new Date().toLocaleTimeString('vi-VN')})`;
                     html = buildEmailHtml({
-                        title: 'Kiá»ƒm tra Cáº¥u hÃ¬nh Email ThÃ nh cÃ´ng',
-                        subtitle: 'Há»‡ thá»‘ng Äáº¥u giÃ¡ HÃ ng hÃ³a Vietravel Airlines Cargo',
+                        title: 'Kiểm tra Cấu hình Email Thành công',
+                        subtitle: 'Hệ thống Đấu giá Hàng hóa Vietravel Airlines Cargo',
                         contentHtml: `
-                            <p>Xin chÃ o <strong>${recipient}</strong>,</p>
-                            <p style="color:#2e7d32;font-weight:bold;">Cáº¥u hÃ¬nh gá»­i thÆ° SMTP cá»§a báº¡n Ä‘Ã£ hoáº¡t Ä‘á»™ng chÃ­nh xÃ¡c.</p>
+                            <p>Xin chào <strong>${recipient}</strong>,</p>
+                            <p style="color:#2e7d32;font-weight:bold;">Cấu hình gửi thư SMTP của bạn đã hoạt động chính xác.</p>
                             
                             <table role="presentation" width="100%" cellpadding="8" cellspacing="0" style="background:#f0f7f0;border:1px solid #c8e6c9;border-radius:6px;margin:16px 0;">
-                                <tr><td style="color:#555;border-bottom:1px solid #e0e0e0;">Há»™p thÆ° nháº­n:</td><td style="font-weight:bold;color:#1565c0;">${recipient}</td></tr>
-                                <tr><td style="color:#555;border-bottom:1px solid #e0e0e0;">Thá»i gian gá»­i:</td><td>${new Date().toLocaleString('vi-VN')}</td></tr>
-                                <tr><td style="color:#555;">Tráº¡ng thÃ¡i:</td><td style="font-weight:bold;color:#2e7d32;">HOáº T Äá»˜NG (REAL SMTP)</td></tr>
+                                <tr><td style="color:#555;border-bottom:1px solid #e0e0e0;">Hộp thư nhận:</td><td style="font-weight:bold;color:#1565c0;">${recipient}</td></tr>
+                                <tr><td style="color:#555;border-bottom:1px solid #e0e0e0;">Thời gian gửi:</td><td>${new Date().toLocaleString('vi-VN')}</td></tr>
+                                <tr><td style="color:#555;">Trạng thái:</td><td style="font-weight:bold;color:#2e7d32;">HOẠT ĐỘNG (REAL SMTP)</td></tr>
                             </table>
 
-                            <p style="margin-top:16px;">Tá»« bÃ¢y giá», cÃ¡c thÃ´ng bÃ¡o sáº½ Ä‘Æ°á»£c gá»­i trá»±c tiáº¿p Ä‘áº¿n hÃ²m thÆ° nÃ y:</p>
+                            <p style="margin-top:16px;">Từ bây giờ, các thông báo sẽ được gửi trực tiếp đến hòm thư này:</p>
                             <ul style="padding-left:20px;line-height:1.7;">
-                                <li>XÃ¡c nháº­n tiáº¿p nháº­n há»“ sÆ¡ Ä‘áº¡i lÃ½.</li>
-                                <li>ThÃ´ng bÃ¡o káº¿t quáº£ phÃª duyá»‡t vÃ  cáº¥p MÃ£ Äáº¡i lÃ½.</li>
-                                <li>Phiáº¿u xÃ¡c nháº­n tháº¯ng tháº§u.</li>
+                                <li>Xác nhận tiếp nhận hồ sơ đại lý.</li>
+                                <li>Thông báo kết quả phê duyệt và cấp Mã Đại lý.</li>
+                                <li>Phiếu xác nhận thắng thầu.</li>
                             </ul>
                         `
                     });
                 } else if (type === 'REGISTRATION_SUBMITTED') {
-                    subject = `[Vietravel Airlines Cargo] Tiáº¿p nháº­n há»“ sÆ¡ Ä‘Äƒng kÃ½ Ä‘áº¡i lÃ½ - ${regId}`;
+                    subject = `[Vietravel Airlines Cargo] Tiếp nhận hồ sơ đăng ký đại lý - ${regId}`;
                     html = buildEmailHtml({
-                        title: 'XÃ¡c nháº­n Tiáº¿p nháº­n Há»“ sÆ¡ ÄÄƒng kÃ½ Äáº¡i lÃ½',
-                        subtitle: `MÃ£ há»“ sÆ¡: ${regId}`,
+                        title: 'Xác nhận Tiếp nhận Hồ sơ Đăng ký Đại lý',
+                        subtitle: `Mã hồ sơ: ${regId}`,
                         contentHtml: `
-                            <p>KÃ­nh gá»­i <strong>${repName}</strong> (Äáº¡i diá»‡n <strong>${companyName}</strong>),</p>
-                            <p>Há»‡ thá»‘ng Vietravel Airlines trÃ¢n trá»ng thÃ´ng bÃ¡o Ä‘Ã£ tiáº¿p nháº­n thÃ nh cÃ´ng há»“ sÆ¡ Ä‘Äƒng kÃ½ Ä‘áº¡i lÃ½ cá»§a QuÃ½ cÃ´ng ty.</p>
+                            <p>Kính gửi <strong>${repName}</strong> (Đại diện <strong>${companyName}</strong>),</p>
+                            <p>Hệ thống Vietravel Airlines trân trọng thông báo đã tiếp nhận thành công hồ sơ đăng ký đại lý của Quý công ty.</p>
                             
                             <table role="presentation" width="100%" cellpadding="8" cellspacing="0" style="background:#f5f5f5;border:1px solid #e0e0e0;border-radius:6px;margin:16px 0;">
-                                <tr><td style="color:#555;border-bottom:1px solid #e0e0e0;">MÃ£ tiáº¿p nháº­n:</td><td style="font-weight:bold;color:#1565c0;font-family:monospace;">${regId}</td></tr>
-                                <tr><td style="color:#555;border-bottom:1px solid #e0e0e0;">TÃªn doanh nghiá»‡p:</td><td>${companyName}</td></tr>
-                                <tr><td style="color:#555;border-bottom:1px solid #e0e0e0;">MÃ£ sá»‘ thuáº¿:</td><td>${(regData && regData.taxCode) || '-'}</td></tr>
-                                <tr><td style="color:#555;border-bottom:1px solid #e0e0e0;">NgÆ°á»i Ä‘áº¡i diá»‡n:</td><td>${repName} (${(regData && regData.repPosition) || 'Äáº¡i diá»‡n'})</td></tr>
-                                <tr><td style="color:#555;border-bottom:1px solid #e0e0e0;">Sá»‘ Ä‘iá»‡n thoáº¡i:</td><td>${(regData && regData.phone) || '-'}</td></tr>
-                                <tr><td style="color:#555;border-bottom:1px solid #e0e0e0;">Thá»i gian tiáº¿p nháº­n:</td><td>${(regData && regData.submittedAt) || new Date().toLocaleString('vi-VN')}</td></tr>
-                                <tr><td style="color:#555;">Tráº¡ng thÃ¡i:</td><td style="font-weight:bold;color:#e65100;">CHá»œ XÃ‰T DUYá»†T</td></tr>
+                                <tr><td style="color:#555;border-bottom:1px solid #e0e0e0;">Mã tiếp nhận:</td><td style="font-weight:bold;color:#1565c0;font-family:monospace;">${regId}</td></tr>
+                                <tr><td style="color:#555;border-bottom:1px solid #e0e0e0;">Tên doanh nghiệp:</td><td>${companyName}</td></tr>
+                                <tr><td style="color:#555;border-bottom:1px solid #e0e0e0;">Mã số thuế:</td><td>${(regData && regData.taxCode) || '-'}</td></tr>
+                                <tr><td style="color:#555;border-bottom:1px solid #e0e0e0;">Người đại diện:</td><td>${repName} (${(regData && regData.repPosition) || 'Đại diện'})</td></tr>
+                                <tr><td style="color:#555;border-bottom:1px solid #e0e0e0;">Số điện thoại:</td><td>${(regData && regData.phone) || '-'}</td></tr>
+                                <tr><td style="color:#555;border-bottom:1px solid #e0e0e0;">Thời gian tiếp nhận:</td><td>${(regData && regData.submittedAt) || new Date().toLocaleString('vi-VN')}</td></tr>
+                                <tr><td style="color:#555;">Trạng thái:</td><td style="font-weight:bold;color:#e65100;">CHỜ XÉT DUYỆT</td></tr>
                             </table>
 
-                            <p style="margin-top:16px;"><strong>Quy trÃ¬nh tiáº¿p theo:</strong></p>
+                            <p style="margin-top:16px;"><strong>Quy trình tiếp theo:</strong></p>
                             <ol style="padding-left:20px;line-height:1.7;">
-                                <li>Ban Äiá»u hÃ nh sáº½ tháº©m Ä‘á»‹nh há»“ sÆ¡ trong vÃ²ng <strong>24 giá» lÃ m viá»‡c</strong>.</li>
-                                <li>Khi há»“ sÆ¡ Ä‘Æ°á»£c duyá»‡t, há»‡ thá»‘ng sáº½ gá»­i email kÃ¨m <strong>MÃ£ Äáº¡i lÃ½ (AG-xxxx)</strong>.</li>
-                                <li>QuÃ½ cÃ´ng ty dÃ¹ng MÃ£ Ä‘áº¡i lÃ½, Máº­t kháº©u vÃ  MÃ£ PIN Ä‘á»ƒ Ä‘Äƒng nháº­p tham gia Ä‘áº¥u giÃ¡.</li>
+                                <li>Ban Điều hành sẽ thẩm định hồ sơ trong vòng <strong>24 giờ làm việc</strong>.</li>
+                                <li>Khi hồ sơ được duyệt, hệ thống sẽ gửi email kèm <strong>Mã Đại lý (AG-xxxx)</strong>.</li>
+                                <li>Quý công ty dùng Mã đại lý, Mật khẩu và Mã PIN để đăng nhập tham gia đấu giá.</li>
                             </ol>
                         `
                     });
                 } else if (type === 'REGISTRATION_APPROVED') {
                     const finalCode = agentCode || (regData && regData.code) || 'AG-0001';
-                    subject = `[Vietravel Airlines Cargo] CHÃšC Má»ªNG! Há»“ sÆ¡ Äáº¡i lÃ½ Ä‘Ã£ Ä‘Æ°á»£c PHÃŠ DUYá»†T - MÃ£: ${finalCode}`;
+                    subject = `[Vietravel Airlines Cargo] CHÚC MỪNG! Hồ sơ Đại lý đã được PHÊ DUYỆT - Mã: ${finalCode}`;
                     html = buildEmailHtml({
-                        title: 'ChÃºc má»«ng! Há»“ sÆ¡ Äáº¡i lÃ½ Ä‘Ã£ Ä‘Æ°á»£c PHÃŠ DUYá»†T',
-                        subtitle: `MÃ£ Ä‘áº¡i lÃ½ chÃ­nh thá»©c: ${finalCode}`,
+                        title: 'Chúc mừng! Hồ sơ Đại lý đã được PHÊ DUYỆT',
+                        subtitle: `Mã đại lý chính thức: ${finalCode}`,
                         contentHtml: `
-                            <p>KÃ­nh gá»­i <strong>${repName}</strong> (Äáº¡i diá»‡n <strong>${companyName}</strong>),</p>
-                            <p style="color:#2e7d32;font-weight:bold;">Há»“ sÆ¡ Ä‘Äƒng kÃ½ Ä‘áº¡i lÃ½ cá»§a QuÃ½ cÃ´ng ty Ä‘Ã£ Ä‘Æ°á»£c tháº©m Ä‘á»‹nh vÃ  phÃª duyá»‡t thÃ nh cÃ´ng.</p>
+                            <p>Kính gửi <strong>${repName}</strong> (Đại diện <strong>${companyName}</strong>),</p>
+                            <p style="color:#2e7d32;font-weight:bold;">Hồ sơ đăng ký đại lý của Quý công ty đã được thẩm định và phê duyệt thành công.</p>
                             
                             <table role="presentation" width="100%" cellpadding="8" cellspacing="0" style="background:#f0f7f0;border:1px solid #c8e6c9;border-radius:6px;margin:16px 0;">
-                                <tr><td style="color:#555;border-bottom:1px solid #e0e0e0;">MÃ£ Äáº¡i lÃ½:</td><td style="font-weight:bold;color:#2e7d32;font-family:monospace;font-size:16px;">${finalCode}</td></tr>
-                                <tr><td style="color:#555;border-bottom:1px solid #e0e0e0;">TÃªn doanh nghiá»‡p:</td><td>${companyName}</td></tr>
-                                <tr><td style="color:#555;border-bottom:1px solid #e0e0e0;">TÃªn Ä‘Äƒng nháº­p:</td><td style="font-family:monospace;font-weight:bold;">${finalCode} hoáº·c MST (${(regData && regData.taxCode) || ''})</td></tr>
-                                <tr><td style="color:#555;border-bottom:1px solid #e0e0e0;">Máº­t kháº©u:</td><td style="font-family:monospace;">Máº­t kháº©u QuÃ½ vá»‹ Ä‘Ã£ Ä‘Äƒng kÃ½</td></tr>
-                                <tr><td style="color:#555;border-bottom:1px solid #e0e0e0;">MÃ£ PIN:</td><td style="font-family:monospace;">MÃ£ PIN QuÃ½ vá»‹ Ä‘Ã£ Ä‘Äƒng kÃ½</td></tr>
-                                <tr><td style="color:#555;">Tráº¡ng thÃ¡i:</td><td style="font-weight:bold;color:#2e7d32;">ÄÃƒ HOáº T Äá»˜NG</td></tr>
+                                <tr><td style="color:#555;border-bottom:1px solid #e0e0e0;">Mã Đại lý:</td><td style="font-weight:bold;color:#2e7d32;font-family:monospace;font-size:16px;">${finalCode}</td></tr>
+                                <tr><td style="color:#555;border-bottom:1px solid #e0e0e0;">Tên doanh nghiệp:</td><td>${companyName}</td></tr>
+                                <tr><td style="color:#555;border-bottom:1px solid #e0e0e0;">Tên đăng nhập:</td><td style="font-family:monospace;font-weight:bold;">${finalCode} hoặc MST (${(regData && regData.taxCode) || ''})</td></tr>
+                                <tr><td style="color:#555;border-bottom:1px solid #e0e0e0;">Mật khẩu:</td><td style="font-family:monospace;">Mật khẩu Quý vị đã đăng ký</td></tr>
+                                <tr><td style="color:#555;border-bottom:1px solid #e0e0e0;">Mã PIN:</td><td style="font-family:monospace;">Mã PIN Quý vị đã đăng ký</td></tr>
+                                <tr><td style="color:#555;">Trạng thái:</td><td style="font-weight:bold;color:#2e7d32;">ĐÃ HOẠT ĐỘNG</td></tr>
                             </table>
 
                             <p style="text-align:center;margin:24px 0;">
-                                <a href="http://localhost:8085/01-Login.html" style="display:inline-block;background-color:#1565c0;color:#ffffff;font-weight:bold;padding:12px 28px;border-radius:6px;text-decoration:none;">ÄÄ‚NG NHáº¬P THAM GIA Äáº¤U GIÃ</a>
+                                <a href="http://localhost:8085/01-Login.html" style="display:inline-block;background-color:#1565c0;color:#ffffff;font-weight:bold;padding:12px 28px;border-radius:6px;text-decoration:none;">ĐĂNG NHẬP THAM GIA ĐẤU GIÁ</a>
                             </p>
 
-                            <p><strong>HÆ°á»›ng dáº«n tham gia Ä‘áº¥u giÃ¡:</strong></p>
-                                <li>Theo dÃµi káº¿t quáº£ trÃºng tháº§u vÃ  xÃ¡c nháº­n há»£p Ä‘á»“ng váº­n chuyá»ƒn Ä‘iá»‡n tá»­ ngay trÃªn á»©ng dá»¥ng.</li>
+                            <p><strong>Hướng dẫn tham gia đấu giá:</strong></p>
+                                <li>Theo dõi kết quả trúng thầu và xác nhận hợp đồng vận chuyển điện tử ngay trên ứng dụng.</li>
                             </ul>
                         `
                     });
                 } else if (type === 'REGISTRATION_REJECTED') {
-                    const finalReason = reason || (regData && (regData.rejectionReason || regData.rejectReason)) || 'Há»“ sÆ¡ chÆ°a Ä‘áº¡t tiÃªu chuáº©n theo quy cháº¿ xÃ©t duyá»‡t Ä‘áº¡i lÃ½';
-                    subject = `[Vietravel Airlines Cargo] YÃªu cáº§u bá»• sung / Káº¿t quáº£ xÃ©t duyá»‡t há»“ sÆ¡ Ä‘áº¡i lÃ½ - ${regId}`;
+                    const finalReason = reason || (regData && (regData.rejectionReason || regData.rejectReason)) || 'Hồ sơ chưa đạt tiêu chuẩn theo quy chế xét duyệt đại lý';
+                    subject = `[Vietravel Airlines Cargo] Yêu cầu bổ sung / Kết quả xét duyệt hồ sơ đại lý - ${regId}`;
                     html = buildEmailHtml({
-                        title: 'ThÃ´ng bÃ¡o Káº¿t quáº£ XÃ©t duyá»‡t Há»“ sÆ¡ Äáº¡i lÃ½',
-                        subtitle: `MÃ£ há»“ sÆ¡: ${regId}`,
+                        title: 'Thông báo Kết quả Xét duyệt Hồ sơ Đại lý',
+                        subtitle: `Mã hồ sơ: ${regId}`,
                         contentHtml: `
-                            <p>KÃ­nh gá»­i <strong>${repName}</strong> (Äáº¡i diá»‡n <strong>${companyName}</strong>),</p>
-                            <p>Ban Äiá»u hÃ nh Äáº¥u giÃ¡ Vietravel Airlines Cargo trÃ¢n trá»ng cáº£m Æ¡n QuÃ½ doanh nghiá»‡p Ä‘Ã£ ná»™p há»“ sÆ¡ Ä‘Äƒng kÃ½ tham gia sÃ n Ä‘áº¥u giÃ¡.</p>
+                            <p>Kính gửi <strong>${repName}</strong> (Đại diện <strong>${companyName}</strong>),</p>
+                            <p>Ban Điều hành Đấu giá Vietravel Airlines Cargo trân trọng cảm ơn Quý doanh nghiệp đã nộp hồ sơ đăng ký tham gia sàn đấu giá.</p>
                             
                             <table role="presentation" width="100%" cellpadding="8" cellspacing="0" style="background:#fff3e0;border:1px solid #ffe0b2;border-radius:6px;margin:16px 0;">
-                                <tr><td style="color:#555;border-bottom:1px solid #e0e0e0;width:35%;">MÃ£ há»“ sÆ¡:</td><td style="font-weight:bold;color:#e65100;">${regId}</td></tr>
-                                <tr><td style="color:#555;border-bottom:1px solid #e0e0e0;">Doanh nghiá»‡p:</td><td>${companyName}</td></tr>
-                                <tr><td style="color:#555;border-bottom:1px solid #e0e0e0;">Káº¿t quáº£ xÃ©t duyá»‡t:</td><td style="font-weight:bold;color:#d32f2f;">Tá»ª CHá»I / YÃŠU Cáº¦U Bá»” SUNG</td></tr>
-                                <tr><td style="color:#555;vertical-align:top;">LÃ½ do & HÆ°á»›ng dáº«n:</td><td style="color:#d32f2f;font-weight:bold;line-height:1.5;">${finalReason}</td></tr>
+                                <tr><td style="color:#555;border-bottom:1px solid #e0e0e0;width:35%;">Mã hồ sơ:</td><td style="font-weight:bold;color:#e65100;">${regId}</td></tr>
+                                <tr><td style="color:#555;border-bottom:1px solid #e0e0e0;">Doanh nghiệp:</td><td>${companyName}</td></tr>
+                                <tr><td style="color:#555;border-bottom:1px solid #e0e0e0;">Kết quả xét duyệt:</td><td style="font-weight:bold;color:#d32f2f;">TỪ CHỐI / YÊU CẦU BỔ SUNG</td></tr>
+                                <tr><td style="color:#555;vertical-align:top;">Lý do & Hướng dẫn:</td><td style="color:#d32f2f;font-weight:bold;line-height:1.5;">${finalReason}</td></tr>
                             </table>
 
-                            <p style="margin-top:16px;">Äá»ƒ khÃ´ng lÃ m giÃ¡n Ä‘oáº¡n káº¿ hoáº¡ch tham gia Ä‘áº¥u giÃ¡ táº£i trá»ng, QuÃ½ cÃ´ng ty vui lÃ²ng báº¥m vÃ o nÃºt bÃªn dÆ°á»›i Ä‘á»ƒ chá»‰nh sá»­a vÃ  bá»• sung thÃ´ng tin cáº§n thiáº¿t:</p>
+                            <p style="margin-top:16px;">Để không làm gián đoạn kế hoạch tham gia đấu giá tải trọng, Quý công ty vui lòng bấm vào nút bên dưới để chỉnh sửa và bổ sung thông tin cần thiết:</p>
 
                             <p style="text-align:center;margin:24px 0;">
-                                <a href="http://localhost:8085/Register.html?resubmit=${regId}" style="display:inline-block;background-color:#d32f2f;color:#ffffff;font-weight:bold;padding:12px 28px;border-radius:6px;text-decoration:none;box-shadow:0 2px 4px rgba(0,0,0,0.15);">CHá»ˆNH Sá»¬A & Bá»” SUNG Há»’ SÆ </a>
+                                <a href="http://localhost:8085/Register.html?resubmit=${regId}" style="display:inline-block;background-color:#d32f2f;color:#ffffff;font-weight:bold;padding:12px 28px;border-radius:6px;text-decoration:none;box-shadow:0 2px 4px rgba(0,0,0,0.15);">CHỈNH SỬA & BỔ SUNG HỒ SƠ</a>
                             </p>
 
-                            <p style="font-size:12px;color:#666;">Náº¿u cáº§n há»— trá»£ thÃªm, QuÃ½ doanh nghiá»‡p vui lÃ²ng liÃªn há»‡ Ban Quáº£n trá»‹ qua Hotline <strong>1900 1337</strong> hoáº·c email <strong>cargo@vietravelairlines.vn</strong>.</p>
+                            <p style="font-size:12px;color:#666;">Nếu cần hỗ trợ thêm, Quý doanh nghiệp vui lòng liên hệ Ban Quản trị qua Hotline <strong>1900 1337</strong> hoặc email <strong>cargo@vietravelairlines.vn</strong>.</p>
                         `
                     });
                 } else if (type === 'AUCTION_WON') {
@@ -1815,33 +1815,33 @@ const server = http.createServer((req, res) => {
                     const awb = wonData.awbNumber || '998-XXXXXXXX';
                     const fmtNum = (n) => new Intl.NumberFormat('vi-VN').format(n);
 
-                    subject = `[Vietravel Airlines Cargo] CHÃšC Má»ªNG TRÃšNG THáº¦U! ÄÆ¡n hÃ ng ${wonId} - Chuyáº¿n ${flightNum} (${route})`;
+                    subject = `[Vietravel Airlines Cargo] CHÚC MỪNG TRÚNG THẦU! Đơn hàng ${wonId} - Chuyến ${flightNum} (${route})`;
                     html = buildEmailHtml({
-                        title: 'ChÃºc má»«ng QuÃ½ Ä‘áº¡i lÃ½ Ä‘Ã£ TRÃšNG THáº¦U!',
-                        subtitle: `MÃ£ Ä‘Æ¡n trÃºng tháº§u: ${wonId} &middot; Chuyáº¿n bay ${flightNum}`,
+                        title: 'Chúc mừng Quý đại lý đã TRÚNG THẦU!',
+                        subtitle: `Mã đơn trúng thầu: ${wonId} &middot; Chuyến bay ${flightNum}`,
                         contentHtml: `
-                            <p>KÃ­nh gá»­i QuÃ½ Ä‘áº¡i lÃ½ <strong>${reqData.agentName || 'á»¦y quyá»n'}</strong> (${reqData.agentCode || 'AG'}),</p>
-                            <p style="color:#2e7d32;font-weight:bold;">Vietravel Airlines Cargo trÃ¢n trá»ng thÃ´ng bÃ¡o QuÃ½ cÃ´ng ty Ä‘Ã£ chÃ­nh thá»©c THáº®NG THáº¦U lÃ´ hÃ ng táº£i trá»ng Ä‘Æ°á»ng hÃ ng khÃ´ng.</p>
+                            <p>Kính gửi Quý đại lý <strong>${reqData.agentName || 'Ủy quyền'}</strong> (${reqData.agentCode || 'AG'}),</p>
+                            <p style="color:#2e7d32;font-weight:bold;">Vietravel Airlines Cargo trân trọng thông báo Quý công ty đã chính thức THẮNG THẦU lô hàng tải trọng đường hàng không.</p>
 
                             <table role="presentation" width="100%" cellpadding="8" cellspacing="0" style="background:#f0f7f0;border:1px solid #c8e6c9;border-radius:6px;margin:16px 0;">
-                                <tr><td style="color:#555;border-bottom:1px solid #e0e0e0;">MÃ£ Ä‘Æ¡n tháº¯ng tháº§u:</td><td style="font-weight:bold;color:#1565c0;font-family:monospace;">${wonId}</td></tr>
-                                <tr><td style="color:#555;border-bottom:1px solid #e0e0e0;">Chuyáº¿n bay / Tuyáº¿n:</td><td style="font-weight:bold;color:#333;">${flightNum} (${route})</td></tr>
-                                <tr><td style="color:#555;border-bottom:1px solid #e0e0e0;">Táº£i trá»ng chá»‘t tháº¯ng:</td><td style="font-weight:bold;color:#1565c0;">${fmtNum(capacityKg)} Kg</td></tr>
-                                <tr><td style="color:#555;border-bottom:1px solid #e0e0e0;">Má»©c giÃ¡ chá»‘t:</td><td style="font-weight:bold;color:#2e7d32;">${fmtNum(priceKg)} Ä‘ / Kg</td></tr>
-                                <tr><td style="color:#555;border-bottom:1px solid #e0e0e0;">Tá»•ng tiá»n thanh toÃ¡n:</td><td style="font-weight:bold;color:#d32f2f;font-size:16px;">${fmtNum(totalVnd)} Ä‘</td></tr>
-                                <tr><td style="color:#555;border-bottom:1px solid #e0e0e0;">MÃ£ váº­n Ä‘Æ¡n (AWB):</td><td style="font-family:monospace;font-weight:bold;color:#1565c0;">${awb}</td></tr>
-                                <tr><td style="color:#555;">Háº¡n chÃ³t thanh toÃ¡n:</td><td style="color:#d32f2f;font-weight:bold;">Trong vÃ²ng 24 giá» ká»ƒ tá»« thá»i Ä‘iá»ƒm chá»‘t tháº§u</td></tr>
+                                <tr><td style="color:#555;border-bottom:1px solid #e0e0e0;">Mã đơn thắng thầu:</td><td style="font-weight:bold;color:#1565c0;font-family:monospace;">${wonId}</td></tr>
+                                <tr><td style="color:#555;border-bottom:1px solid #e0e0e0;">Chuyến bay / Tuyến:</td><td style="font-weight:bold;color:#333;">${flightNum} (${route})</td></tr>
+                                <tr><td style="color:#555;border-bottom:1px solid #e0e0e0;">Tải trọng chốt thắng:</td><td style="font-weight:bold;color:#1565c0;">${fmtNum(capacityKg)} Kg</td></tr>
+                                <tr><td style="color:#555;border-bottom:1px solid #e0e0e0;">Mức giá chốt:</td><td style="font-weight:bold;color:#2e7d32;">${fmtNum(priceKg)} đ / Kg</td></tr>
+                                <tr><td style="color:#555;border-bottom:1px solid #e0e0e0;">Tổng tiền thanh toán:</td><td style="font-weight:bold;color:#d32f2f;font-size:16px;">${fmtNum(totalVnd)} đ</td></tr>
+                                <tr><td style="color:#555;border-bottom:1px solid #e0e0e0;">Mã vận đơn (AWB):</td><td style="font-family:monospace;font-weight:bold;color:#1565c0;">${awb}</td></tr>
+                                <tr><td style="color:#555;">Hạn chót thanh toán:</td><td style="color:#d32f2f;font-weight:bold;">Trong vòng 24 giờ kể từ thời điểm chốt thầu</td></tr>
                             </table>
 
-                            <p style="margin-top:16px;"><strong>HÆ°á»›ng dáº«n tiáº¿p theo:</strong></p>
+                            <p style="margin-top:16px;"><strong>Hướng dẫn tiếp theo:</strong></p>
                             <ol style="padding-left:20px;line-height:1.7;">
-                                <li>ÄÄƒng nháº­p há»‡ thá»‘ng SÃ n Äáº¥u giÃ¡ Cargo vÃ  truy cáº­p má»¥c <strong>Tháº¯ng tháº§u (Won Auctions)</strong>.</li>
-                                <li>HoÃ n táº¥t chuyá»ƒn khoáº£n thanh toÃ¡n vÃ  báº¥m <em>BÃ¡o Ä‘Ã£ chuyá»ƒn khoáº£n</em> Ä‘á»ƒ Ban Äiá»u hÃ nh xÃ¡c nháº­n.</li>
-                                <li>Táº£i Phiáº¿u XÃ¡c Nháº­n TrÃºng Tháº§u (PDF) vÃ  bÃ n giao hÃ ng hÃ³a táº¡i kho theo Ä‘Ãºng giá» Cut-off.</li>
+                                <li>Đăng nhập hệ thống Sàn Đấu giá Cargo và truy cập mục <strong>Thắng thầu (Won Auctions)</strong>.</li>
+                                <li>Hoàn tất chuyển khoản thanh toán và bấm <em>Báo đã chuyển khoản</em> để Ban Điều hành xác nhận.</li>
+                                <li>Tải Phiếu Xác Nhận Trúng Thầu (PDF) và bàn giao hàng hóa tại kho theo đúng giờ Cut-off.</li>
                             </ol>
 
                             <p style="text-align:center;margin:24px 0;">
-                                <a href="http://localhost:8085/07-WonAuction.html" style="display:inline-block;background-color:#2e7d32;color:#ffffff;font-weight:bold;padding:12px 28px;border-radius:6px;text-decoration:none;">XEM ÄÆ N TRÃšNG THáº¦U & Váº¬N ÄÆ N</a>
+                                <a href="http://localhost:8085/07-WonAuction.html" style="display:inline-block;background-color:#2e7d32;color:#ffffff;font-weight:bold;padding:12px 28px;border-radius:6px;text-decoration:none;">XEM ĐƠN TRÚNG THẦU & VẬN ĐƠN</a>
                             </p>
                         `
                     });
@@ -1854,26 +1854,26 @@ const server = http.createServer((req, res) => {
                     const awb = wonData.awbNumber || '998-XXXXXXXX';
                     const fmtNum = (n) => new Intl.NumberFormat('vi-VN').format(n);
 
-                    subject = `[Vietravel Airlines Cargo] XÃC NHáº¬N ÄÃƒ NHáº¬N THANH TOÃN - ÄÆ¡n hÃ ng ${wonId}`;
+                    subject = `[Vietravel Airlines Cargo] XÁC NHẬN ĐÃ NHẬN THANH TOÁN - Đơn hàng ${wonId}`;
                     html = buildEmailHtml({
-                        title: 'XÃ¡c nháº­n ÄÃ£ Nháº­n Thanh ToÃ¡n ThÃ nh CÃ´ng',
-                        subtitle: `MÃ£ Ä‘Æ¡n: ${wonId} &middot; Chuyáº¿n bay ${flightNum}`,
+                        title: 'Xác nhận Đã Nhận Thanh Toán Thành Công',
+                        subtitle: `Mã đơn: ${wonId} &middot; Chuyến bay ${flightNum}`,
                         contentHtml: `
-                            <p>KÃ­nh gá»­i QuÃ½ Ä‘áº¡i lÃ½,</p>
-                            <p style="color:#2e7d32;font-weight:bold;">Ban TÃ i chÃ­nh & Äiá»u hÃ nh Vietravel Airlines Cargo xÃ¡c nháº­n Ä‘Ã£ nháº­n Ä‘á»§ sá»‘ tiá»n thanh toÃ¡n cho Ä‘Æ¡n hÃ ng tháº¯ng tháº§u cá»§a QuÃ½ cÃ´ng ty.</p>
+                            <p>Kính gửi Quý đại lý,</p>
+                            <p style="color:#2e7d32;font-weight:bold;">Ban Tài chính & Điều hành Vietravel Airlines Cargo xác nhận đã nhận đủ số tiền thanh toán cho đơn hàng thắng thầu của Quý công ty.</p>
 
                             <table role="presentation" width="100%" cellpadding="8" cellspacing="0" style="background:#f0f7f0;border:1px solid #c8e6c9;border-radius:6px;margin:16px 0;">
-                                <tr><td style="color:#555;border-bottom:1px solid #e0e0e0;">MÃ£ Ä‘Æ¡n tháº¯ng tháº§u:</td><td style="font-weight:bold;color:#1565c0;font-family:monospace;">${wonId}</td></tr>
-                                <tr><td style="color:#555;border-bottom:1px solid #e0e0e0;">Chuyáº¿n bay / Tuyáº¿n:</td><td>${flightNum} (${route})</td></tr>
-                                <tr><td style="color:#555;border-bottom:1px solid #e0e0e0;">Sá»‘ tiá»n Ä‘Ã£ nháº­n:</td><td style="font-weight:bold;color:#2e7d32;font-size:16px;">${fmtNum(totalVnd)} Ä‘</td></tr>
-                                <tr><td style="color:#555;border-bottom:1px solid #e0e0e0;">MÃ£ AWB Ä‘iá»‡n tá»­:</td><td style="font-family:monospace;font-weight:bold;color:#1565c0;">${awb}</td></tr>
-                                <tr><td style="color:#555;">Tráº¡ng thÃ¡i thanh toÃ¡n:</td><td style="font-weight:bold;color:#2e7d32;">ÄÃƒ THANH TOÃN (PAID)</td></tr>
+                                <tr><td style="color:#555;border-bottom:1px solid #e0e0e0;">Mã đơn thắng thầu:</td><td style="font-weight:bold;color:#1565c0;font-family:monospace;">${wonId}</td></tr>
+                                <tr><td style="color:#555;border-bottom:1px solid #e0e0e0;">Chuyến bay / Tuyến:</td><td>${flightNum} (${route})</td></tr>
+                                <tr><td style="color:#555;border-bottom:1px solid #e0e0e0;">Số tiền đã nhận:</td><td style="font-weight:bold;color:#2e7d32;font-size:16px;">${fmtNum(totalVnd)} đ</td></tr>
+                                <tr><td style="color:#555;border-bottom:1px solid #e0e0e0;">Mã AWB điện tử:</td><td style="font-family:monospace;font-weight:bold;color:#1565c0;">${awb}</td></tr>
+                                <tr><td style="color:#555;">Trạng thái thanh toán:</td><td style="font-weight:bold;color:#2e7d32;">ĐÃ THANH TOÁN (PAID)</td></tr>
                             </table>
 
-                            <p style="margin-top:16px;">Slot váº­n chuyá»ƒn cá»§a QuÃ½ Ä‘áº¡i lÃ½ Ä‘Ã£ Ä‘Æ°á»£c giá»¯ chÃ­nh thá»©c. Vui lÃ²ng in/xuáº¥t trÃ¬nh Phiáº¿u xÃ¡c nháº­n khi bÃ n giao hÃ ng táº¡i kho.</p>
+                            <p style="margin-top:16px;">Slot vận chuyển của Quý đại lý đã được giữ chính thức. Vui lòng in/xuất trình Phiếu xác nhận khi bàn giao hàng tại kho.</p>
 
                             <p style="text-align:center;margin:24px 0;">
-                                <a href="http://localhost:8085/07-WonAuction.html" style="display:inline-block;background-color:#1565c0;color:#ffffff;font-weight:bold;padding:12px 28px;border-radius:6px;text-decoration:none;">XEM Táº¢I PHIáº¾U BÃ€N GIAO KHO</a>
+                                <a href="http://localhost:8085/07-WonAuction.html" style="display:inline-block;background-color:#1565c0;color:#ffffff;font-weight:bold;padding:12px 28px;border-radius:6px;text-decoration:none;">XEM TẢI PHIẾU BÀN GIAO KHO</a>
                             </p>
                         `
                     });
@@ -1882,28 +1882,28 @@ const server = http.createServer((req, res) => {
                     const wonId = wonData.wonId || reqData.wonId || 'WON-ORDER';
                     const flightNum = wonData.flightNumber || reqData.flightNumber || '';
                     const route = wonData.route || reqData.route || '';
-                    const rejReason = reqData.reason || wonData.rejectionReason || 'BiÃªn lai hoáº·c mÃ£ giao dá»‹ch khÃ´ng há»£p lá»‡';
+                    const rejReason = reqData.reason || wonData.rejectionReason || 'Biên lai hoặc mã giao dịch không hợp lệ';
                     const fmtNum = (n) => new Intl.NumberFormat('vi-VN').format(n);
 
-                    subject = `[Vietravel Airlines Cargo] âŒ YÃŠU Cáº¦U Ná»˜P Láº I BIÃŠN LAI THANH TOÃN - ÄÆ¡n hÃ ng ${wonId}`;
+                    subject = `[Vietravel Airlines Cargo] ❌ YÊU CẦU NỘP LẠI BIÊN LAI THANH TOÁN - Đơn hàng ${wonId}`;
                     html = buildEmailHtml({
-                        title: 'YÃªu Cáº§u Ná»™p Láº¡i BiÃªn Lai Thanh ToÃ¡n',
-                        subtitle: `MÃ£ Ä‘Æ¡n: ${wonId} &middot; Chuyáº¿n bay ${flightNum}`,
+                        title: 'Yêu Cầu Nộp Lại Biên Lai Thanh Toán',
+                        subtitle: `Mã đơn: ${wonId} &middot; Chuyến bay ${flightNum}`,
                         contentHtml: `
-                            <p>KÃ­nh gá»­i QuÃ½ Ä‘áº¡i lÃ½,</p>
-                            <p style="color:#d32f2f;font-weight:bold;">Ban TÃ i chÃ­nh & Tra soÃ¡t Vietravel Airlines Cargo Ä‘Ã£ kiá»ƒm tra thÃ´ng tin chuyá»ƒn khoáº£n cho Ä‘Æ¡n hÃ ng ${wonId} vÃ  yÃªu cáº§u QuÃ½ Ä‘áº¡i lÃ½ Ná»˜P Láº I BIÃŠN LAI THANH TOÃN.</p>
+                            <p>Kính gửi Quý đại lý,</p>
+                            <p style="color:#d32f2f;font-weight:bold;">Ban Tài chính & Tra soát Vietravel Airlines Cargo đã kiểm tra thông tin chuyển khoản cho đơn hàng ${wonId} và yêu cầu Quý đại lý NỘP LẠI BIÊN LAI THANH TOÁN.</p>
 
                             <table role="presentation" width="100%" cellpadding="8" cellspacing="0" style="background:#ffebee;border:1px solid #ffcdd2;border-radius:6px;margin:16px 0;">
-                                <tr><td style="color:#555;border-bottom:1px solid #e0e0e0;width:35%;">MÃ£ Ä‘Æ¡n tháº¯ng tháº§u:</td><td style="font-weight:bold;color:#1565c0;font-family:monospace;">${wonId}</td></tr>
-                                <tr><td style="color:#555;border-bottom:1px solid #e0e0e0;">Chuyáº¿n bay / Tuyáº¿n:</td><td>${flightNum} (${route})</td></tr>
-                                <tr><td style="color:#555;border-bottom:1px solid #e0e0e0;">LÃ½ do tá»« chá»‘i biÃªn lai:</td><td style="font-weight:bold;color:#d32f2f;font-size:14px;">${rejReason}</td></tr>
-                                <tr><td style="color:#555;">Thá»i gian tra soÃ¡t:</td><td style="font-weight:bold;color:#333;">${new Date().toLocaleString('vi-VN')}</td></tr>
+                                <tr><td style="color:#555;border-bottom:1px solid #e0e0e0;width:35%;">Mã đơn thắng thầu:</td><td style="font-weight:bold;color:#1565c0;font-family:monospace;">${wonId}</td></tr>
+                                <tr><td style="color:#555;border-bottom:1px solid #e0e0e0;">Chuyến bay / Tuyến:</td><td>${flightNum} (${route})</td></tr>
+                                <tr><td style="color:#555;border-bottom:1px solid #e0e0e0;">Lý do từ chối biên lai:</td><td style="font-weight:bold;color:#d32f2f;font-size:14px;">${rejReason}</td></tr>
+                                <tr><td style="color:#555;">Thời gian tra soát:</td><td style="font-weight:bold;color:#333;">${new Date().toLocaleString('vi-VN')}</td></tr>
                             </table>
 
-                            <p style="margin-top:16px;">Vui lÃ²ng kiá»ƒm tra láº¡i sao kÃª chuyá»ƒn khoáº£n ngÃ¢n hÃ ng, chá»¥p rÃµ áº£nh biÃªn lai/mÃ£ FT vÃ  truy cáº­p sÃ n Ä‘áº¥u giÃ¡ Ä‘á»ƒ <strong>Ná»˜P Láº I BIÃŠN LAI Má»šI</strong> trÆ°á»›c thá»i háº¡n Cut-off.</p>
+                            <p style="margin-top:16px;">Vui lòng kiểm tra lại sao kê chuyển khoản ngân hàng, chụp rõ ảnh biên lai/mã FT và truy cập sàn đấu giá để <strong>NỘP LẠI BIÊN LAI MỚI</strong> trước thời hạn Cut-off.</p>
 
                             <p style="text-align:center;margin:24px 0;">
-                                <a href="http://localhost:8085/07-WonAuction.html" style="display:inline-block;background-color:#d32f2f;color:#ffffff;font-weight:bold;padding:12px 28px;border-radius:6px;text-decoration:none;">Ná»˜P Láº I BIÃŠN LAI THANH TOÃN</a>
+                                <a href="http://localhost:8085/07-WonAuction.html" style="display:inline-block;background-color:#d32f2f;color:#ffffff;font-weight:bold;padding:12px 28px;border-radius:6px;text-decoration:none;">NỘP LẠI BIÊN LAI THANH TOÁN</a>
                             </p>
                         `
                     });
@@ -1918,27 +1918,27 @@ const server = http.createServer((req, res) => {
                     const etd = auctionData.etd || reqData.etd || '';
                     const fmtNum = (n) => new Intl.NumberFormat('vi-VN').format(n);
 
-                    subject = `[Vietravel Airlines Cargo] ðŸ”” Má»ž Äáº¤U GIÃ TUYáº¾N QUAN TÃ‚M: Chuyáº¿n ${flightNum} (${route})`;
+                    subject = `[Vietravel Airlines Cargo] 🔔 MỞ ĐẤU GIÁ TUYẾN QUAN TÂM: Chuyến ${flightNum} (${route})`;
                     html = buildEmailHtml({
-                        title: `Má»Ÿ Äáº¥u GiÃ¡ Tuyáº¿n Báº¡n Quan TÃ¢m: ${route}`,
-                        subtitle: `Chuyáº¿n bay ${flightNum} &middot; ${originName} âž” ${destName}`,
+                        title: `Mở Đấu Giá Tuyến Bạn Quan Tâm: ${route}`,
+                        subtitle: `Chuyến bay ${flightNum} &middot; ${originName} ➔ ${destName}`,
                         contentHtml: `
-                            <p>KÃ­nh gá»­i QuÃ½ Ä‘áº¡i lÃ½ <strong>${reqData.agentName || 'QuÃ½ Äáº¡i lÃ½'}</strong> (${reqData.agentCode || ''}),</p>
-                            <p>Há»‡ thá»‘ng Vietravel Airlines Cargo trÃ¢n trá»ng thÃ´ng bÃ¡o: Tuyáº¿n bay <strong>${route} (${originName} âž” ${destName})</strong> mÃ  QuÃ½ Ä‘áº¡i lÃ½ Ä‘Ã£ Ä‘Äƒng kÃ½ theo dÃµi vá»«a chÃ­nh thá»©c má»Ÿ phiÃªn Ä‘áº¥u giÃ¡ má»›i vá»›i thÃ´ng tin chi tiáº¿t nhÆ° sau:</p>
+                            <p>Kính gửi Quý đại lý <strong>${reqData.agentName || 'Quý Đại lý'}</strong> (${reqData.agentCode || ''}),</p>
+                            <p>Hệ thống Vietravel Airlines Cargo trân trọng thông báo: Tuyến bay <strong>${route} (${originName} ➔ ${destName})</strong> mà Quý đại lý đã đăng ký theo dõi vừa chính thức mở phiên đấu giá mới với thông tin chi tiết như sau:</p>
 
                             <table role="presentation" width="100%" cellpadding="8" cellspacing="0" style="background:#f0f4ff;border:1px solid #c7d2fe;border-radius:6px;margin:16px 0;">
-                                <tr><td style="color:#555;border-bottom:1px solid #e0e0e0;width:38%;">Sá»‘ hiá»‡u chuyáº¿n bay:</td><td style="font-weight:bold;color:#1e3a5f;font-family:monospace;font-size:15px;">${flightNum}</td></tr>
-                                <tr><td style="color:#555;border-bottom:1px solid #e0e0e0;">HÃ nh trÃ¬nh / Tuyáº¿n bay:</td><td style="font-weight:bold;color:#333;">${route} (${originName} - ${destName})</td></tr>
-                                <tr><td style="color:#555;border-bottom:1px solid #e0e0e0;">Giá» cáº¥t cÃ¡nh dá»± kiáº¿n (ETD):</td><td style="color:#1e3a5f;font-weight:bold;">${etd}</td></tr>
-                                <tr><td style="color:#555;border-bottom:1px solid #e0e0e0;">Táº£i trá»ng má»Ÿ tháº§u:</td><td style="font-weight:bold;color:#1e3a5f;">${fmtNum(capacityKg)} Kg</td></tr>
-                                <tr><td style="color:#555;border-bottom:1px solid #e0e0e0;">GiÃ¡ khá»Ÿi Ä‘iá»ƒm sÃ n:</td><td style="font-weight:bold;color:#2e7d32;font-size:15px;">${fmtNum(startingPriceKg)} Ä‘ / Kg</td></tr>
-                                <tr><td style="color:#555;">Quy Ä‘á»‹nh Ä‘Ã³ng tháº§u:</td><td style="color:#d32f2f;font-weight:bold;">ÄÃ³ng tháº§u trÆ°á»›c ETD 3 giá»</td></tr>
+                                <tr><td style="color:#555;border-bottom:1px solid #e0e0e0;width:38%;">Số hiệu chuyến bay:</td><td style="font-weight:bold;color:#1e3a5f;font-family:monospace;font-size:15px;">${flightNum}</td></tr>
+                                <tr><td style="color:#555;border-bottom:1px solid #e0e0e0;">Hành trình / Tuyến bay:</td><td style="font-weight:bold;color:#333;">${route} (${originName} - ${destName})</td></tr>
+                                <tr><td style="color:#555;border-bottom:1px solid #e0e0e0;">Giờ cất cánh dự kiến (ETD):</td><td style="color:#1e3a5f;font-weight:bold;">${etd}</td></tr>
+                                <tr><td style="color:#555;border-bottom:1px solid #e0e0e0;">Tải trọng mở thầu:</td><td style="font-weight:bold;color:#1e3a5f;">${fmtNum(capacityKg)} Kg</td></tr>
+                                <tr><td style="color:#555;border-bottom:1px solid #e0e0e0;">Giá khởi điểm sàn:</td><td style="font-weight:bold;color:#2e7d32;font-size:15px;">${fmtNum(startingPriceKg)} đ / Kg</td></tr>
+                                <tr><td style="color:#555;">Quy định đóng thầu:</td><td style="color:#d32f2f;font-weight:bold;">Đóng thầu trước ETD 3 giờ</td></tr>
                             </table>
 
-                            <p style="margin-top:16px;">QuÃ½ Ä‘áº¡i lÃ½ vui lÃ²ng truy cáº­p sÃ n Ä‘áº¥u giÃ¡ sá»›m Ä‘á»ƒ Ä‘áº·t má»©c giÃ¡ chÃ o tá»‘t nháº¥t vÃ  giá»¯ slot váº­n chuyá»ƒn:</p>
+                            <p style="margin-top:16px;">Quý đại lý vui lòng truy cập sàn đấu giá sớm để đặt mức giá chào tốt nhất và giữ slot vận chuyển:</p>
 
                             <p style="text-align:center;margin:24px 0;">
-                                <a href="http://localhost:8085/04-Detail.html?id=${auctionData.id || 1}" style="display:inline-block;background-color:#1e3a5f;color:#ffffff;font-weight:bold;padding:12px 28px;border-radius:6px;text-decoration:none;">XEM CHI TIáº¾T & Äáº¶T GIÃ NGAY</a>
+                                <a href="http://localhost:8085/04-Detail.html?id=${auctionData.id || 1}" style="display:inline-block;background-color:#1e3a5f;color:#ffffff;font-weight:bold;padding:12px 28px;border-radius:6px;text-decoration:none;">XEM CHI TIẾT & ĐẶT GIÁ NGAY</a>
                             </p>
                         `
                     });
@@ -1946,7 +1946,7 @@ const server = http.createServer((req, res) => {
                     const paymentData = reqData.paymentData || {};
                     const wonId = paymentData.wonId || reqData.wonId || 'WON-ORDER';
                     const agentCode = paymentData.agentCode || reqData.agentCode || 'AG-XXXX';
-                    const agentName = paymentData.agentName || reqData.agentName || 'Äáº¡i lÃ½';
+                    const agentName = paymentData.agentName || reqData.agentName || 'Đại lý';
                     const flightNum = paymentData.flightNumber || reqData.flightNumber || '';
                     const route = paymentData.route || reqData.route || '';
                     const totalVnd = paymentData.transferredAmount || paymentData.totalAmountVND || reqData.amount || 0;
@@ -1956,35 +1956,35 @@ const server = http.createServer((req, res) => {
                     const submittedAt = paymentData.submittedAt || new Date().toLocaleString('vi-VN');
                     const fmtNum = (n) => new Intl.NumberFormat('vi-VN').format(n);
 
-                    subject = `[Vietravel Airlines Cargo] ðŸ’³ Äáº I LÃ BÃO CHUYá»‚N KHOáº¢N - ÄÆ¡n ${wonId} (${agentCode})`;
+                    subject = `[Vietravel Airlines Cargo] 💳 ĐẠI LÝ BÁO CHUYỂN KHOẢN - Đơn ${wonId} (${agentCode})`;
                     html = buildEmailHtml({
-                        title: 'ThÃ´ng BÃ¡o: Äáº¡i LÃ½ ÄÃ£ BÃ¡o Chuyá»ƒn Khoáº£n',
-                        subtitle: `MÃ£ Ä‘Æ¡n: ${wonId} &middot; Äáº¡i lÃ½: ${agentCode} - ${agentName}`,
+                        title: 'Thông Báo: Đại Lý Đã Báo Chuyển Khoản',
+                        subtitle: `Mã đơn: ${wonId} &middot; Đại lý: ${agentCode} - ${agentName}`,
                         contentHtml: `
-                            <p>KÃ­nh gá»­i <strong>Ban Quáº£n trá»‹ & Bá»™ pháº­n Káº¿ toÃ¡n / Tra soÃ¡t</strong>,</p>
-                            <p>Äáº¡i lÃ½ <strong>${agentName} (${agentCode})</strong> vá»«a gá»­i thÃ´ng bÃ¡o Ä‘Ã£ hoÃ n táº¥t chuyá»ƒn khoáº£n thanh toÃ¡n cho Ä‘Æ¡n hÃ ng tháº¯ng tháº§u. Vui lÃ²ng Ä‘á»‘i soÃ¡t sao kÃª tÃ i khoáº£n ngÃ¢n hÃ ng vÃ  xÃ¡c nháº­n Ä‘Æ¡n hÃ ng trÃªn há»‡ thá»‘ng Admin:</p>
+                            <p>Kính gửi <strong>Ban Quản trị & Bộ phận Kế toán / Tra soát</strong>,</p>
+                            <p>Đại lý <strong>${agentName} (${agentCode})</strong> vừa gửi thông báo đã hoàn tất chuyển khoản thanh toán cho đơn hàng thắng thầu. Vui lòng đối soát sao kê tài khoản ngân hàng và xác nhận đơn hàng trên hệ thống Admin:</p>
 
                             <table role="presentation" width="100%" cellpadding="8" cellspacing="0" style="background:#fff8e1;border:1px solid #ffe082;border-radius:6px;margin:16px 0;">
-                                <tr><td style="color:#555;border-bottom:1px solid #e0e0e0;width:35%;">MÃ£ Ä‘Æ¡n hÃ ng:</td><td style="font-weight:bold;color:#1e3a5f;font-family:monospace;font-size:15px;">${wonId}</td></tr>
-                                <tr><td style="color:#555;border-bottom:1px solid #e0e0e0;">Äáº¡i lÃ½ thanh toÃ¡n:</td><td style="font-weight:bold;color:#333;">${agentCode} - ${agentName}</td></tr>
-                                <tr><td style="color:#555;border-bottom:1px solid #e0e0e0;">Chuyáº¿n bay & Tuyáº¿n:</td><td style="color:#1e3a5f;font-weight:bold;">${flightNum} (${route})</td></tr>
-                                <tr><td style="color:#555;border-bottom:1px solid #e0e0e0;">Sá»‘ tiá»n bÃ¡o chuyá»ƒn:</td><td style="font-weight:bold;color:#d32f2f;font-size:16px;">${fmtNum(totalVnd)} Ä‘</td></tr>
-                                <tr><td style="color:#555;border-bottom:1px solid #e0e0e0;">CÃº phÃ¡p chuyá»ƒn khoáº£n:</td><td style="font-family:monospace;font-weight:bold;color:#2e7d32;background:#e8f5e9;padding:4px 8px;border-radius:4px;">${memo}</td></tr>
-                                ${transactionRef ? `<tr><td style="color:#555;border-bottom:1px solid #e0e0e0;">MÃ£ GD ngÃ¢n hÃ ng:</td><td style="font-family:monospace;font-weight:bold;color:#1565c0;">${transactionRef}</td></tr>` : ''}
-                                <tr><td style="color:#555;">Thá»i Ä‘iá»ƒm ná»™p:</td><td style="color:#555;">${submittedAt}</td></tr>
+                                <tr><td style="color:#555;border-bottom:1px solid #e0e0e0;width:35%;">Mã đơn hàng:</td><td style="font-weight:bold;color:#1e3a5f;font-family:monospace;font-size:15px;">${wonId}</td></tr>
+                                <tr><td style="color:#555;border-bottom:1px solid #e0e0e0;">Đại lý thanh toán:</td><td style="font-weight:bold;color:#333;">${agentCode} - ${agentName}</td></tr>
+                                <tr><td style="color:#555;border-bottom:1px solid #e0e0e0;">Chuyến bay & Tuyến:</td><td style="color:#1e3a5f;font-weight:bold;">${flightNum} (${route})</td></tr>
+                                <tr><td style="color:#555;border-bottom:1px solid #e0e0e0;">Số tiền báo chuyển:</td><td style="font-weight:bold;color:#d32f2f;font-size:16px;">${fmtNum(totalVnd)} đ</td></tr>
+                                <tr><td style="color:#555;border-bottom:1px solid #e0e0e0;">Cú pháp chuyển khoản:</td><td style="font-family:monospace;font-weight:bold;color:#2e7d32;background:#e8f5e9;padding:4px 8px;border-radius:4px;">${memo}</td></tr>
+                                ${transactionRef ? `<tr><td style="color:#555;border-bottom:1px solid #e0e0e0;">Mã GD ngân hàng:</td><td style="font-family:monospace;font-weight:bold;color:#1565c0;">${transactionRef}</td></tr>` : ''}
+                                <tr><td style="color:#555;">Thời điểm nộp:</td><td style="color:#555;">${submittedAt}</td></tr>
                             </table>
 
                             ${proofImageUrl ? `
                                 <div style="margin:16px 0;padding:12px;background:#f5f5f5;border-radius:6px;text-align:center;">
-                                    <p style="font-size:12px;color:#666;margin-bottom:8px;font-weight:bold;">áº¢nh biÃªn lai Ä‘áº¡i lÃ½ Ä‘Ã­nh kÃ¨m:</p>
-                                    <img src="${proofImageUrl}" alt="BiÃªn lai thanh toÃ¡n" style="max-height:260px;max-width:100%;border-radius:6px;border:1px solid #ddd;" />
+                                    <p style="font-size:12px;color:#666;margin-bottom:8px;font-weight:bold;">Ảnh biên lai đại lý đính kèm:</p>
+                                    <img src="${proofImageUrl}" alt="Biên lai thanh toán" style="max-height:260px;max-width:100%;border-radius:6px;border:1px solid #ddd;" />
                                 </div>
                             ` : ''}
 
-                            <p style="margin-top:16px;">Báº¥m nÃºt bÃªn dÆ°á»›i Ä‘á»ƒ chuyá»ƒn trá»±c tiáº¿p Ä‘áº¿n mÃ n hÃ¬nh Äá»‘i soÃ¡t & XÃ¡c nháº­n thanh toÃ¡n:</p>
+                            <p style="margin-top:16px;">Bấm nút bên dưới để chuyển trực tiếp đến màn hình Đối soát & Xác nhận thanh toán:</p>
 
                             <p style="text-align:center;margin:24px 0;">
-                                <a href="http://localhost:8085/Admin/03-AuctionList.html?tab=won&search=${wonId}&reconcile=${wonId}" style="display:inline-block;background-color:#0284c7;color:#ffffff;font-weight:bold;padding:12px 28px;border-radius:6px;text-decoration:none;">Äá»I SOÃT & DUYá»†T ÄÆ N TRÃŠN ADMIN</a>
+                                <a href="http://localhost:8085/Admin/03-AuctionList.html?tab=won&search=${wonId}&reconcile=${wonId}" style="display:inline-block;background-color:#0284c7;color:#ffffff;font-weight:bold;padding:12px 28px;border-radius:6px;text-decoration:none;">ĐỐI SOÁT & DUYỆT ĐƠN TRÊN ADMIN</a>
                             </p>
                         `
                     });
@@ -1992,17 +1992,17 @@ const server = http.createServer((req, res) => {
 
                 // Fallback HTML builder if html is still empty
                 if (!html || html.trim() === '') {
-                    const fallbackTitle = customSubject || reqData.title || '[Vietravel Airlines Cargo] ThÃ´ng bÃ¡o há»‡ thá»‘ng';
-                    const fallbackMsg = reqData.message || reqData.content || reqData.text || 'Vietravel Airlines Cargo trÃ¢n trá»ng thÃ´ng bÃ¡o: QuÃ½ vá»‹ cÃ³ má»™t thÃ´ng bÃ¡o má»›i tá»« há»‡ thá»‘ng SÃ n Äáº¥u giÃ¡ Cargo.';
-                    subject = customSubject || `[Vietravel Airlines Cargo] ${reqData.title || 'ThÃ´ng bÃ¡o má»›i'}`;
+                    const fallbackTitle = customSubject || reqData.title || '[Vietravel Airlines Cargo] Thông báo hệ thống';
+                    const fallbackMsg = reqData.message || reqData.content || reqData.text || 'Vietravel Airlines Cargo trân trọng thông báo: Quý vị có một thông báo mới từ hệ thống Sàn Đấu giá Cargo.';
+                    subject = customSubject || `[Vietravel Airlines Cargo] ${reqData.title || 'Thông báo mới'}`;
                     html = buildEmailHtml({
                         title: fallbackTitle,
-                        subtitle: 'ThÃ´ng bÃ¡o tá»« Ban Äiá»u hÃ nh SÃ n Äáº¥u giÃ¡ Cargo',
+                        subtitle: 'Thông báo từ Ban Điều hành Sàn Đấu giá Cargo',
                         contentHtml: `
-                            <p>KÃ­nh gá»­i QuÃ½ Ä‘áº¡i lÃ½ / KhÃ¡ch hÃ ng,</p>
+                            <p>Kính gửi Quý đại lý / Khách hàng,</p>
                             <p style="font-size:14px;color:#333;line-height:1.6;margin:16px 0;">${fallbackMsg}</p>
                             <p style="text-align:center;margin:24px 0;">
-                                <a href="http://localhost:8085/02-Dashboard.html" style="display:inline-block;background-color:#1565c0;color:#ffffff;font-weight:bold;padding:12px 28px;border-radius:6px;text-decoration:none;">VÃ€O Há»† THá»NG SÃ€N Äáº¤U GIÃ</a>
+                                <a href="http://localhost:8085/02-Dashboard.html" style="display:inline-block;background-color:#1565c0;color:#ffffff;font-weight:bold;padding:12px 28px;border-radius:6px;text-decoration:none;">VÀO HỆ THỐNG SÀN ĐẤU GIÁ</a>
                             </p>
                         `
                     });
@@ -2028,7 +2028,7 @@ const server = http.createServer((req, res) => {
                     bcc: fromAddress,
                     subject: subject,
                     html: html,
-                    text: htmlToPlainText(html), // Plain text alternative â€” giáº£m spam score
+                    text: htmlToPlainText(html), // Plain text alternative — giảm spam score
                     headers: {
                         'X-Mailer': 'VU-Cargo-Bidding/1.0',
                         'Precedence': 'bulk',
@@ -2449,7 +2449,7 @@ const server = http.createServer((req, res) => {
         if (err) {
             if (err.code === 'ENOENT') {
                 res.writeHead(404, { 'Content-Type': 'text/html; charset=UTF-8' });
-                res.end('<h1>404 Not Found</h1><p>Trang khÃ´ng tá»“n táº¡i trÃªn mÃ¡y chá»§.</p>', 'utf-8');
+                res.end('<h1>404 Not Found</h1><p>Trang không tồn tại trên máy chủ.</p>', 'utf-8');
             } else {
                 res.writeHead(500, { 'Content-Type': 'text/html; charset=UTF-8' });
                 res.end(`Server Error: ${err.code}`);
@@ -2466,9 +2466,9 @@ const server = http.createServer((req, res) => {
 
 server.on('error', (err) => {
     if (err.code === 'EADDRINUSE') {
-        console.error(`\nâš ï¸  [Port In Use] Cá»•ng ${PORT} hiá»‡n Ä‘ang Ä‘Æ°á»£c sá»­ dá»¥ng bá»Ÿi má»™t tiáº¿n trÃ¬nh khÃ¡c.`);
-        console.error(`ðŸ‘‰ MÃ¡y chá»§ cÃ³ thá»ƒ Ä‘Ã£ Ä‘ang cháº¡y sáºµn táº¡i: http://localhost:${PORT}/`);
-        console.error(`ðŸ‘‰ Äá»ƒ khá»Ÿi Ä‘á»™ng má»›i, báº¡n hÃ£y táº¯t tiáº¿n trÃ¬nh Ä‘ang chiáº¿m cá»•ng ${PORT}.\n`);
+        console.error(`\n⚠️  [Port In Use] Cổng ${PORT} hiện đang được sử dụng bởi một tiến trình khác.`);
+        console.error(`👉 Máy chủ có thể đã đang chạy sẵn tại: http://localhost:${PORT}/`);
+        console.error(`👉 Để khởi động mới, bạn hãy tắt tiến trình đang chiếm cổng ${PORT}.\n`);
         process.exit(1);
     } else {
         console.error('Server error:', err);

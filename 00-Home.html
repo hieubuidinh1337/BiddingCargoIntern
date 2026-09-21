@@ -672,9 +672,13 @@
         }
 
         function handleHeroLogout() {
-            const data = CargoStore.getData();
-            delete data.currentUser;
-            CargoStore.saveData(data);
+            if (typeof CargoStore !== 'undefined' && CargoStore.logoutAgent) {
+                CargoStore.logoutAgent();
+            } else {
+                const data = CargoStore.getData();
+                delete data.currentUser;
+                CargoStore.saveData(data);
+            }
             window.location.reload();
         }
 

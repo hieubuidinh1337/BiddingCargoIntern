@@ -2600,6 +2600,19 @@ const CargoStore = (function() {
                 }
             });
 
+            // Filter out soft-deleted and cancelled auctions from normal views
+            return auctions.filter(a => a.status !== 'DELETED' && a.status !== 'CANCELLED');
+        },
+
+        // Admin-only: returns ALL auctions including DELETED and CANCELLED (for audit/management)
+        getAllAuctions: function() {
+            const data = loadData();
+            const auctions = Array.isArray(data.auctions) ? JSON.parse(JSON.stringify(data.auctions)) : [];
+            const bids = data.bids || [];
+            auctions.forEach(a => {
+                const count = bids.filter(b => b.auctionId == a.id).length;
+                if (count > 0) a.bidsCount = count;
+            });
             return auctions;
         },
 
@@ -4180,69 +4193,151 @@ const CargoStore = (function() {
             return { success: true, message: `Cập nhật thông số chuyến bay ${auction.flightNumber} thành công!`, auction: auction };
         },
 
-        deleteAuction: function(id, reason) {
+        deleteAuction: function(id) {
             const data = loadData();
             const idx = data.auctions.findIndex(a => a.id == id);
             if (idx === -1) return { success: false, message: 'Phiên đấu giá không tồn tại.' };
 
             const auction = data.auctions[idx];
+            if (auction.status === 'OPEN') {
+                return { success: false, message: `Không thể xóa chuyến bay ${auction.flightNumber} khi phiên đang MỞ đấu giá.` };
+            }
+
             const allBids = data.bids || [];
             const bidsForThis = allBids.filter(b => b.auctionId == id);
             const bidsCount = (auction.bidsCount !== undefined && auction.bidsCount !== null && auction.bidsCount > 0)
                 ? Math.max(auction.bidsCount, bidsForThis.length)
                 : bidsForThis.length;
-            const hasBids = bidsCount > 0;
 
-            const cleanReason = (reason && typeof reason === 'string') ? reason.trim() : '';
-
-            // If auction already has bids from agents, reason is strictly mandatory!
-            if (hasBids && !cleanReason) {
+            if (bidsCount > 0) {
                 return {
                     success: false,
-                    requiresReason: true,
-                    message: `Phiên đấu giá chuyến bay ${auction.flightNumber} đã có ${bidsCount} lượt thầu từ đại lý. Bắt buộc phải nhập lý do khi xóa phiên!`
+                    shouldCancel: true,
+                    message: `Phiên chuyến bay ${auction.flightNumber} đã có ${bidsCount} lượt đặt giá. Không thể xóa – vui lòng sử dụng chức năng "Hủy chuyến bay" để bảo toàn dữ liệu và hoàn tiền cho đại lý.`
                 };
             }
 
-            const removed = data.auctions.splice(idx, 1)[0];
+            // Soft delete: keep record in DB, only mark as DELETED
+            data.auctions[idx] = {
+                ...auction,
+                status: 'DELETED',
+                deletedAt: new Date().toISOString()
+            };
 
-            data.bids = (data.bids || []).filter(b => b.auctionId != id);
-            data.wonAuctions = (data.wonAuctions || []).filter(w => w.auctionId != id && w.wonId != id);
-            data.watchlist = (data.watchlist || []).filter(w => w.auctionId != id);
-            data.registrations = (data.registrations || []).filter(r => r.auctionId != id);
-
-            const logDetails = hasBids
-                ? `Xóa phiên đấu giá chuyến bay ${removed.flightNumber} (${removed.route}) [Đã có ${bidsCount} lượt thầu]. Lý do xóa/hủy: "${cleanReason}"`
-                : (cleanReason ? `Xóa phiên đấu giá mới chuyến bay ${removed.flightNumber} (${removed.route}). Lý do: "${cleanReason}"` : `Xóa phiên đấu giá mới chuyến bay ${removed.flightNumber} (${removed.route}) [Chưa có lượt thầu].`);
-
+            saveData(data);
             this.logActivity({
                 actionCategory: 'Phiên đấu giá',
                 actionTitle: 'Xóa phiên đấu giá',
-                target: removed.flightNumber,
-                details: logDetails
+                target: auction.flightNumber,
+                details: `Xóa phiên đấu giá chuyến bay ${auction.flightNumber} (${auction.route}) [Chưa có lượt thầu]. Dữ liệu vẫn lưu trong hệ thống.`
             });
+            return { success: true, message: `Đã xóa phiên đấu giá chuyến bay ${auction.flightNumber} thành công.` };
+        },
 
-            // Send notification to agents if auction had bids
-            if (hasBids && cleanReason) {
-                if (!data.notifications) data.notifications = [];
+        cancelAuction: function(id, reason, refundNote) {
+            const data = loadData();
+            const idx = data.auctions.findIndex(a => a.id == id);
+            if (idx === -1) return { success: false, message: 'Phiên đấu giá không tồn tại.' };
+
+            const auction = data.auctions[idx];
+            const cleanReason = (reason && typeof reason === 'string') ? reason.trim() : '';
+            const cleanRefundNote = (refundNote && typeof refundNote === 'string') ? refundNote.trim() : '';
+
+            if (!cleanReason) {
+                return { success: false, message: 'Bắt buộc phải nhập lý do hủy chuyến bay!' };
+            }
+
+            const allBids = data.bids || [];
+            const bidsForThis = allBids.filter(b => b.auctionId == id);
+            const bidsCount = (auction.bidsCount !== undefined && auction.bidsCount !== null && auction.bidsCount > 0)
+                ? Math.max(auction.bidsCount, bidsForThis.length)
+                : bidsForThis.length;
+
+            // Find winning agent (highest bidder or winner)
+            const winner = auction.winnerAgentCode || auction.leadingAgentCode;
+            const winnerName = auction.winnerAgentName || auction.leadingAgentName || winner;
+            const winningPrice = Number(auction.winningPriceKg) || Number(auction.currentPriceKg) || 0;
+            const refundAmount = winningPrice * (Number(auction.capacityKg) || 0);
+
+            // Mark auction as CANCELLED — do NOT delete
+            data.auctions[idx] = {
+                ...auction,
+                status: 'CANCELLED',
+                cancelledAt: new Date().toISOString(),
+                cancellationReason: cleanReason,
+                refundNote: cleanRefundNote || 'Hoàn tiền 100% trong vòng 3-5 ngày làm việc.',
+                refundAmount: refundAmount
+            };
+
+            const now = Date.now();
+
+            // Notify winner specifically (if exists)
+            if (!data.notifications) data.notifications = [];
+
+            if (winner) {
                 data.notifications.unshift({
-                    id: Date.now() + Math.floor(Math.random() * 1000),
-                    title: `HỦY PHIÊN ĐẤU GIÁ CHUYẾN BAY ${removed.flightNumber}`,
-                    message: `Ban quản trị đã hủy/xóa phiên đấu giá chuyến bay ${removed.flightNumber} (${removed.route}). Lý do: ${cleanReason}`,
+                    id: now + 1,
+                    title: `HỦY CHUYẾN BAY ${auction.flightNumber} – HOÀN TIỀN`,
+                    message: `Chuyến bay ${auction.flightNumber} (${auction.route}) mà Quý đại lý đã trúng thầu bị HỦY. Lý do: ${cleanReason}. ${cleanRefundNote || 'Hoàn tiền 100% trong vòng 3-5 ngày làm việc.'}`,
+                    type: 'WARNING',
+                    time: new Date().toLocaleString('vi-VN'),
+                    rawTime: now,
+                    targetAgent: winner,
+                    targetRole: 'AGENT',
+                    auctionId: id,
+                    read: false
+                });
+            }
+
+            // Notify ALL agents who bid on this auction
+            const biddingAgents = [...new Set(bidsForThis.map(b => b.agentCode).filter(Boolean))];
+            biddingAgents.forEach((agentCode, i) => {
+                if (agentCode === winner) return; // already notified above
+                data.notifications.unshift({
+                    id: now + 10 + i,
+                    title: `HỦY PHIÊN ĐẤU GIÁ CHUYẾN BAY ${auction.flightNumber}`,
+                    message: `Phiên đấu giá chuyến bay ${auction.flightNumber} (${auction.route}) mà Quý đại lý đã tham gia đặt thầu bị HỦY. Lý do: ${cleanReason}.`,
                     type: 'SYSTEM',
                     time: new Date().toLocaleString('vi-VN'),
-                    rawTime: Date.now(),
+                    rawTime: now,
+                    targetAgent: agentCode,
+                    targetRole: 'AGENT',
+                    auctionId: id,
+                    read: false
+                });
+            });
+
+            // Also broadcast to all agents if no specific agents found
+            if (biddingAgents.length === 0) {
+                data.notifications.unshift({
+                    id: now + 100,
+                    title: `HỦY PHIÊN ĐẤU GIÁ CHUYẾN BAY ${auction.flightNumber}`,
+                    message: `Phiên đấu giá chuyến bay ${auction.flightNumber} (${auction.route}) đã bị HỦY. Lý do: ${cleanReason}.`,
+                    type: 'SYSTEM',
+                    time: new Date().toLocaleString('vi-VN'),
+                    rawTime: now,
                     targetRole: 'ALL',
+                    auctionId: id,
                     read: false
                 });
             }
 
             saveData(data);
+
+            const logMsg = winner
+                ? `Hủy chuyến bay ${auction.flightNumber} (${auction.route}). Đại lý trúng thầu: ${winnerName}. Số tiền hoàn: ${cleanRefundNote || 'Theo quy chế'}. Lý do: "${cleanReason}"`
+                : `Hủy chuyến bay ${auction.flightNumber} (${auction.route}) [${bidsCount} lượt thầu]. Lý do: "${cleanReason}"`;
+
+            this.logActivity({
+                actionCategory: 'Phiên đấu giá',
+                actionTitle: 'Hủy chuyến bay',
+                target: auction.flightNumber,
+                details: logMsg
+            });
+
             return {
                 success: true,
-                message: hasBids
-                    ? `Đã xóa chuyến bay ${removed.flightNumber}, hủy ${bidsCount} lượt thầu và gửi thông báo lý do tới đại lý.`
-                    : `Đã xóa phiên đấu giá chuyến bay ${removed.flightNumber} thành công.`
+                message: `Đã hủy chuyến bay ${auction.flightNumber}. Thông báo hoàn tiền đã được gửi đến ${winner ? 'đại lý trúng thầu' : 'các đại lý tham gia'}. Dữ liệu phiên đấu giá được lưu lại phục vụ kiểm toán.`
             };
         },
 
@@ -4548,12 +4643,18 @@ const CargoStore = (function() {
             saveData(data);
 
             // Also POST to server so Admin's AuditLogs page can see all roles' activity
-            if (typeof window !== 'undefined' && typeof fetch !== 'undefined') {
-                fetch('/api/logs', {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify(newLog)
-                }).catch(() => {}); // Fire-and-forget, ignore errors
+            if (typeof window !== 'undefined') {
+                const payload = JSON.stringify(newLog);
+                if (typeof navigator !== 'undefined' && typeof navigator.sendBeacon === 'function') {
+                    const blob = new Blob([payload], { type: 'application/json' });
+                    navigator.sendBeacon('/api/logs', blob);
+                } else if (typeof fetch !== 'undefined') {
+                    fetch('/api/logs', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: payload
+                    }).catch(() => {}); // Fire-and-forget, ignore errors
+                }
             }
 
             return newLog;
@@ -4612,8 +4713,9 @@ const CargoStore = (function() {
                     details: `Đại lý ${cur.companyName || cur.agentCode} (Mã: ${cur.agentCode}) đã đăng xuất khỏi hệ thống.`
                 });
             }
-            data.currentUser = null;
-            saveData(data);
+            const freshData = loadData();
+            freshData.currentUser = null;
+            saveData(freshData);
         },
 
         logoutAdmin: function() {
@@ -4630,8 +4732,9 @@ const CargoStore = (function() {
                     details: `Quản trị viên ${data.currentAdmin.fullName} (@${data.currentAdmin.username}) đã đăng xuất khỏi hệ thống.`
                 });
             }
-            data.currentAdmin = null;
-            saveData(data);
+            const freshData = loadData();
+            freshData.currentAdmin = null;
+            saveData(freshData);
         },
 
         syncHeaderUI: function() {

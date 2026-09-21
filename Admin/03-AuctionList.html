@@ -268,6 +268,8 @@
                         <option value="ALL">Tất cả trạng thái</option>
                         <option value="OPEN">Đang mở đấu giá</option>
                         <option value="CLOSED">Đã đóng / Chốt thầu</option>
+                        <option value="CANCELLED">Đã hủy chuyến</option>
+                        <option value="DELETED">Đã xóa</option>
                     </select>
                 </div>
             </div>
@@ -522,7 +524,7 @@
         </div>
     </div>
 
-    <!-- Modal: Xác nhận xóa phiên đấu giá (Bắt buộc lý do nếu đã có đại lý đặt thầu) -->
+    <!-- Modal: Xác nhận xóa phiên đấu giá -->
     <div id="deleteAuctionModal" class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-50 hidden flex items-center justify-center p-4">
         <div class="bg-white rounded-2xl shadow-xl max-w-md w-full overflow-hidden animate-in fade-in zoom-in-95 duration-200">
             <div class="bg-red-600 text-white px-6 py-4 flex items-center justify-between">
@@ -539,31 +541,69 @@
                     <i class="fa-solid fa-xmark"></i>
                 </button>
             </div>
-
             <form id="deleteAuctionForm" onsubmit="submitDeleteAuction(event)" class="p-6 space-y-4 text-xs">
                 <input type="hidden" id="deleteAuctionId">
-
-                <!-- Alert Notice Box -->
-                <div id="deleteModalNotice" class="p-3.5 rounded-xl border text-xs leading-relaxed">
-                    <!-- Dynamic content filled by JS -->
+                <div class="p-3.5 rounded-xl border border-blue-200 bg-blue-50 text-blue-900 text-xs leading-relaxed space-y-1">
+                    <div class="font-bold flex items-center gap-1.5 text-blue-800">
+                        <i class="fa-solid fa-circle-info text-blue-600"></i> Phiên mới tạo – Chưa có lượt đặt giá
+                    </div>
+                    <p class="text-[11px] text-blue-700">Phiên chưa có đại lý nào tham gia đấu giá. Bạn có thể xác nhận xóa phiên này.</p>
                 </div>
-
-                <div>
-                    <label class="block font-bold text-slate-700 mb-1" id="deleteReasonLabel">
-                        Lý do xóa / hủy phiên <span id="deleteReasonRequiredMark" class="text-red-500">*</span>
-                    </label>
-                    <textarea id="deleteReasonInput" rows="3" placeholder="Nhập lý do xóa (Ví dụ: Hủy chuyến bay do lý do kỹ thuật, Thay đổi lịch cất cánh...)" class="w-full text-xs p-3 border border-slate-200 rounded-xl focus:ring-2 focus:ring-red-500/20 focus:border-red-500 outline-none transition"></textarea>
-                    <p id="deleteReasonError" class="text-red-500 text-[11px] font-semibold mt-1 hidden">
-                        <i class="fa-solid fa-circle-exclamation mr-1"></i>Phiên này đã có lượt thầu từ Đại lý. Bắt buộc phải nhập lý do xóa!
-                    </p>
-                </div>
-
                 <div class="flex items-center justify-end gap-2 pt-2 border-t">
-                    <button type="button" onclick="closeDeleteModal()" class="px-4 py-2 text-slate-600 hover:bg-slate-100 rounded-xl font-medium transition">
-                        Hủy bỏ
-                    </button>
+                    <button type="button" onclick="closeDeleteModal()" class="px-4 py-2 text-slate-600 hover:bg-slate-100 rounded-xl font-medium transition">Hủy bỏ</button>
                     <button type="submit" class="px-5 py-2 bg-red-600 hover:bg-red-700 text-white font-bold rounded-xl shadow transition flex items-center gap-1.5">
                         <i class="fa-solid fa-trash"></i> Xác nhận xóa
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Modal: Hủy chuyến bay (khi đã có đại lý đặt giá) -->
+    <div id="cancelAuctionModal" class="fixed inset-0 bg-slate-900/70 backdrop-blur-sm z-50 hidden flex items-center justify-center p-4">
+        <div class="bg-white rounded-2xl shadow-2xl max-w-lg w-full overflow-hidden">
+            <div class="bg-gradient-to-r from-orange-600 to-red-600 text-white px-6 py-4 flex items-center justify-between">
+                <div class="flex items-center gap-2.5">
+                    <div class="w-9 h-9 bg-white/20 rounded-xl flex items-center justify-center shrink-0">
+                        <i class="fa-solid fa-plane-circle-xmark text-lg"></i>
+                    </div>
+                    <div>
+                        <h3 class="font-bold text-sm" id="cancelModalTitle">Hủy chuyến bay</h3>
+                        <p class="text-[11px] text-orange-100" id="cancelModalSub">Mã chuyến bay</p>
+                    </div>
+                </div>
+                <button onclick="closeCancelModal()" class="text-orange-200 hover:text-white text-lg"><i class="fa-solid fa-xmark"></i></button>
+            </div>
+            <form id="cancelAuctionForm" onsubmit="submitCancelAuction(event)" class="p-6 space-y-4 text-xs">
+                <input type="hidden" id="cancelAuctionId">
+                <div class="p-3.5 rounded-xl border border-amber-200 bg-amber-50 text-amber-900 text-xs leading-relaxed space-y-1">
+                    <div class="font-bold flex items-center gap-1.5 text-amber-800">
+                        <i class="fa-solid fa-triangle-exclamation text-amber-500"></i> Phiên này đã có đại lý đặt giá!
+                    </div>
+                    <p class="text-[11px] text-amber-700" id="cancelModalBidsInfo">
+                        Thao tác này sẽ <strong>HỦY</strong> chuyến bay và gửi thông báo hoàn tiền đến đại lý đã tham gia. Dữ liệu phiên được lưu lại để kiểm toán.
+                    </p>
+                </div>
+                <div>
+                    <label class="block font-bold text-slate-700 mb-1">Lý do hủy chuyến bay <span class="text-red-500">*</span></label>
+                    <textarea id="cancelReasonInput" rows="3"
+                        placeholder="Ví dụ: Hủy do thời tiết xấu, Thay đổi lịch khai thác, Sự cố kỹ thuật..."
+                        class="w-full text-xs p-3 border border-slate-200 rounded-xl focus:ring-2 focus:ring-orange-500/20 focus:border-orange-500 outline-none transition resize-none"></textarea>
+                    <p id="cancelReasonError" class="text-red-500 text-[11px] font-semibold mt-1 hidden">
+                        <i class="fa-solid fa-circle-exclamation mr-1"></i>Bắt buộc phải nhập lý do hủy!
+                    </p>
+                </div>
+                <div>
+                    <label class="block font-bold text-slate-700 mb-1">Thông tin hoàn tiền <span class="font-normal text-slate-400">(tùy chọn)</span></label>
+                    <input type="text" id="cancelRefundInput"
+                        placeholder="Mặc định: Hoàn tiền 100% trong vòng 3-5 ngày làm việc."
+                        class="w-full text-xs p-3 border border-slate-200 rounded-xl focus:ring-2 focus:ring-orange-500/20 focus:border-orange-500 outline-none transition">
+                    <p class="text-slate-400 text-[10px] mt-1"><i class="fa-solid fa-circle-info mr-1"></i>Nội dung này sẽ được gửi đến đại lý trúng thầu.</p>
+                </div>
+                <div class="flex items-center justify-end gap-2 pt-2 border-t">
+                    <button type="button" onclick="closeCancelModal()" class="px-4 py-2 text-slate-600 hover:bg-slate-100 rounded-xl font-medium transition">Quay lại</button>
+                    <button type="submit" class="px-5 py-2 bg-gradient-to-r from-orange-600 to-red-600 hover:from-orange-700 hover:to-red-700 text-white font-bold rounded-xl shadow transition flex items-center gap-1.5">
+                        <i class="fa-solid fa-plane-circle-xmark"></i> Xác nhận hủy chuyến
                     </button>
                 </div>
             </form>
@@ -803,7 +843,7 @@
         function updateTabBadges() {
             if (typeof CargoStore === 'undefined') return;
             const data = CargoStore.getData();
-            const auctions = CargoStore.getAuctions ? CargoStore.getAuctions() : (data.auctions || []);
+            const auctions = CargoStore.getAllAuctions ? CargoStore.getAllAuctions() : (data.auctions || []);
             const wonAuctions = data.wonAuctions || [];
 
             const bAll = document.getElementById('allCountBadge');
@@ -829,8 +869,9 @@
                 : bidsForThis.length;
             const hasBids = bidsCount > 0;
 
+            const isCancelled = a.status === 'CANCELLED';
             const canEdit = isOpen && !hasBids;
-            const canDelete = (data.currentAdmin && data.currentAdmin.role !== 'STAFF');
+            const canDelete = !isCancelled && (data.currentAdmin && data.currentAdmin.role !== 'STAFF');
 
             return `
                 <tr class="hover:bg-slate-50 transition">
@@ -854,8 +895,18 @@
                         ${displayPrice}
                     </td>
                     <td class="py-3.5 px-4">
-                        <span class="${isOpen ? 'bg-green-100 text-green-700' : 'bg-gray-100 text-gray-500'} font-bold px-2.5 py-1 rounded-full text-[10px]">
-                            ${isOpen ? 'ĐANG MỞ' : 'ĐÃ ĐÓNG'}
+                        <span class="${
+                            a.status === 'OPEN' ? 'bg-green-100 text-green-700' :
+                            a.status === 'CANCELLED' ? 'bg-orange-100 text-orange-700' :
+                            a.status === 'DELETED' ? 'bg-slate-100 text-slate-400 line-through' :
+                            'bg-gray-100 text-gray-500'
+                        } font-bold px-2.5 py-1 rounded-full text-[10px]">
+                            ${
+                                a.status === 'OPEN' ? 'ĐANG MỞ' :
+                                a.status === 'CANCELLED' ? '✕ ĐÃ HỦY' :
+                                a.status === 'DELETED' ? '🗑 ĐÃ XÓA' :
+                                'ĐÃ ĐÓNG'
+                            }
                         </span>
                     </td>
                     <td class="py-3.5 px-4 text-right space-x-1.5 whitespace-nowrap">
@@ -876,12 +927,20 @@
                                 <i class="fa-solid fa-gavel text-[10px]"></i> Chốt
                             </button>
                         ` : ''}
-                        ${canDelete ? `
-                            <button onclick="handleDeleteAuction(${a.id}, '${a.flightNumber}')" class="inline-flex items-center gap-1 bg-red-50 hover:bg-red-100 text-red-600 font-semibold px-2 py-1 rounded-lg transition" title="Xóa chuyến bay">
-                                <i class="fa-solid fa-trash text-[10px]"></i> Xóa
+                        ${isCancelled ? `
+                            <span class="inline-flex items-center gap-1 bg-red-50 text-red-400 font-semibold px-2 py-1 rounded-lg text-[10px] opacity-70 cursor-default" title="Chuyến bay đã bị hủy">
+                                <i class="fa-solid fa-plane-circle-xmark text-[10px]"></i> Đã Hủy
+                            </span>
+                        ` : canDelete ? (hasBids ? `
+                            <button onclick="handleCancelAuction(${a.id}, '${a.flightNumber}')" class="inline-flex items-center gap-1 bg-orange-50 hover:bg-orange-100 text-orange-600 font-semibold px-2 py-1 rounded-lg transition" title="Hủy chuyến bay – có ${bidsCount} lượt đặt giá">
+                                <i class="fa-solid fa-plane-circle-xmark text-[10px]"></i> Hủy
                             </button>
                         ` : `
-                            <button disabled class="inline-flex items-center gap-1 bg-gray-100 text-gray-400 font-semibold px-2 py-1 rounded-lg cursor-not-allowed opacity-60" title="Không thể xóa khi phiên đang MỞ đấu giá">
+                            <button onclick="handleDeleteAuction(${a.id}, '${a.flightNumber}')" class="inline-flex items-center gap-1 bg-red-50 hover:bg-red-100 text-red-600 font-semibold px-2 py-1 rounded-lg transition" title="Xóa phiên đấu giá">
+                                <i class="fa-solid fa-trash text-[10px]"></i> Xóa
+                            </button>
+                        `) : `
+                            <button disabled class="inline-flex items-center gap-1 bg-gray-100 text-gray-400 font-semibold px-2 py-1 rounded-lg cursor-not-allowed opacity-60" title="Không có quyền xóa/hủy phiên">
                                 <i class="fa-solid fa-lock text-[10px]"></i> Xóa
                             </button>
                         `}
@@ -1020,7 +1079,8 @@
             const search = (searchEl ? searchEl.value : '').toLowerCase();
             const status = statusEl ? statusEl.value : 'ALL';
 
-            let list = CargoStore.getAuctions();
+            // Admin sees ALL auctions including DELETED and CANCELLED for full management
+            let list = CargoStore.getAllAuctions ? CargoStore.getAllAuctions() : CargoStore.getAuctions();
 
             if (status !== 'ALL') {
                 list = list.filter(a => a.status === status);
@@ -1066,7 +1126,7 @@
             // Populate Tab 2: Open auctions table
             const tbodyOpen = document.getElementById('openAuctionsTableBody');
             if (tbodyOpen) {
-                const allAuctions = CargoStore.getAuctions ? CargoStore.getAuctions() : (data.auctions || []);
+                const allAuctions = CargoStore.getAuctions ? CargoStore.getAuctions() : (data.auctions || []); // Open tab: only live auctions
                 const openList = allAuctions.filter(a => a.status === 'OPEN');
                 const totalOpenItems = openList.length;
                 const totalOpenPages = Math.ceil(totalOpenItems / openPageSize) || 1;
@@ -1103,57 +1163,17 @@
         }
 
         let pendingDeleteId = null;
-        let pendingDeleteHasBids = false;
+        let pendingCancelId = null;
 
+        // --- Delete (no bids, simple confirm) ---
         function handleDeleteAuction(id, flightNumber) {
             const data = (typeof CargoStore !== 'undefined' && CargoStore.getData) ? CargoStore.getData() : {};
-            const auctions = data.auctions || [];
-            const auction = auctions.find(a => a.id == id);
+            const auction = (data.auctions || []).find(a => a.id == id);
             if (!auction) return;
-
-            const allBids = data.bids || [];
-            const bidsForThis = allBids.filter(b => b.auctionId == id);
-            const bidsCount = (auction.bidsCount !== undefined && auction.bidsCount !== null && auction.bidsCount > 0)
-                ? Math.max(auction.bidsCount, bidsForThis.length)
-                : bidsForThis.length;
-            const hasBids = bidsCount > 0;
-
             pendingDeleteId = id;
-            pendingDeleteHasBids = hasBids;
-
             document.getElementById('deleteAuctionId').value = id;
             document.getElementById('deleteModalTitle').textContent = `Xóa phiên chuyến bay ${flightNumber}`;
             document.getElementById('deleteModalSub').textContent = `Tuyến ${auction.route} · Tải trọng: ${CargoStore.formatNumber(auction.capacityKg)} Kg`;
-            document.getElementById('deleteReasonInput').value = '';
-            document.getElementById('deleteReasonError').classList.add('hidden');
-
-            const noticeEl = document.getElementById('deleteModalNotice');
-            const reqMark = document.getElementById('deleteReasonRequiredMark');
-
-            if (hasBids) {
-                noticeEl.className = 'p-3.5 rounded-xl border border-amber-200 bg-amber-50 text-amber-900 text-xs leading-relaxed space-y-1';
-                noticeEl.innerHTML = `
-                    <div class="font-bold flex items-center gap-1.5 text-amber-800">
-                        <i class="fa-solid fa-triangle-exclamation text-amber-600"></i> Phiên đấu giá đã có ${bidsCount} lượt đặt giá từ đại lý!
-                    </div>
-                    <p class="text-[11px] text-amber-700">
-                        Đại lý đã đẩy giá/đặt thầu cho chuyến bay này. Bạn <strong>bắt buộc phải nhập lý do xóa</strong> để lưu vết Audit Logs và gửi thông báo giải thích đến các đại lý.
-                    </p>
-                `;
-                if (reqMark) reqMark.classList.remove('hidden');
-            } else {
-                noticeEl.className = 'p-3.5 rounded-xl border border-blue-200 bg-blue-50 text-blue-900 text-xs leading-relaxed space-y-1';
-                noticeEl.innerHTML = `
-                    <div class="font-bold flex items-center gap-1.5 text-blue-800">
-                        <i class="fa-solid fa-circle-info text-blue-600"></i> Phiên mới tạo – Chưa có lượt đặt giá
-                    </div>
-                    <p class="text-[11px] text-blue-700">
-                        Phiên chưa có đại lý nào tham gia đấu giá. Bạn có thể xác nhận xóa phiên này.
-                    </p>
-                `;
-                if (reqMark) reqMark.classList.add('hidden');
-            }
-
             document.getElementById('deleteAuctionModal').classList.remove('hidden');
         }
 
@@ -1164,21 +1184,83 @@
         function submitDeleteAuction(e) {
             e.preventDefault();
             const id = document.getElementById('deleteAuctionId').value;
-            const reason = document.getElementById('deleteReasonInput').value.trim();
-
-            if (pendingDeleteHasBids && !reason) {
-                document.getElementById('deleteReasonError').classList.remove('hidden');
-                return;
-            }
-
-            const res = CargoStore.deleteAuction(id, reason);
+            const res = CargoStore.deleteAuction(id);
             if (res.success) {
                 closeDeleteModal();
-                alert(res.message);
                 renderAuctionsTable();
+                showToast(res.message, 'success');
             } else {
                 alert(res.message);
             }
+        }
+
+        // --- Cancel (has bids, with reason + refund) ---
+        function handleCancelAuction(id, flightNumber) {
+            const data = (typeof CargoStore !== 'undefined' && CargoStore.getData) ? CargoStore.getData() : {};
+            const auction = (data.auctions || []).find(a => a.id == id);
+            if (!auction) return;
+
+            const allBids = data.bids || [];
+            const bidsForThis = allBids.filter(b => b.auctionId == id);
+            const bidsCount = (auction.bidsCount > 0) ? Math.max(auction.bidsCount, bidsForThis.length) : bidsForThis.length;
+            const winner = auction.winnerAgentCode || auction.leadingAgentCode;
+
+            pendingCancelId = id;
+            document.getElementById('cancelAuctionId').value = id;
+            document.getElementById('cancelModalTitle').textContent = `Hủy chuyến bay ${flightNumber}`;
+            document.getElementById('cancelModalSub').textContent = `Tuyến ${auction.route} · ${bidsCount} lượt đặt giá`;
+            document.getElementById('cancelReasonInput').value = '';
+            document.getElementById('cancelRefundInput').value = '';
+            document.getElementById('cancelReasonError').classList.add('hidden');
+
+            const bidsInfo = document.getElementById('cancelModalBidsInfo');
+            bidsInfo.innerHTML = winner
+                ? `Đại lý trúng thầu: <strong>${winner}</strong>. Thao tác này sẽ <strong>HỦY</strong> chuyến bay, gửi thông báo hoàn tiền cho đại lý. Dữ liệu phiên được lưu lại phục vụ kiểm toán.`
+                : `Phiên có <strong>${bidsCount} lượt đặt giá</strong>. Thao tác này sẽ <strong>HỦY</strong> chuyến bay và thông báo cho các đại lý đã tham gia. Dữ liệu được lưu lại để kiểm toán.`;
+
+            document.getElementById('cancelAuctionModal').classList.remove('hidden');
+        }
+
+        function closeCancelModal() {
+            document.getElementById('cancelAuctionModal').classList.add('hidden');
+        }
+
+        function submitCancelAuction(e) {
+            e.preventDefault();
+            const id = document.getElementById('cancelAuctionId').value;
+            const reason = document.getElementById('cancelReasonInput').value.trim();
+            const refundNote = document.getElementById('cancelRefundInput').value.trim();
+
+            if (!reason) {
+                document.getElementById('cancelReasonError').classList.remove('hidden');
+                return;
+            }
+
+            const res = CargoStore.cancelAuction(id, reason, refundNote);
+            if (res.success) {
+                closeCancelModal();
+                renderAuctionsTable();
+                showToast(res.message, 'warning');
+            } else {
+                alert(res.message);
+            }
+        }
+
+        function showToast(message, type = 'success') {
+            const existing = document.getElementById('auctionToast');
+            if (existing) existing.remove();
+            const colors = {
+                success: 'bg-emerald-600',
+                warning: 'bg-orange-500',
+                error: 'bg-red-600'
+            };
+            const icons = { success: 'fa-circle-check', warning: 'fa-triangle-exclamation', error: 'fa-circle-xmark' };
+            const toast = document.createElement('div');
+            toast.id = 'auctionToast';
+            toast.className = `fixed bottom-6 right-6 z-[9999] ${colors[type] || colors.success} text-white text-xs font-semibold px-4 py-3 rounded-xl shadow-xl flex items-start gap-2.5 max-w-sm`;
+            toast.innerHTML = `<i class="fa-solid ${icons[type] || icons.success} mt-0.5 shrink-0"></i><span>${message}</span>`;
+            document.body.appendChild(toast);
+            setTimeout(() => toast.remove(), 5000);
         }
 
         // --- Edit Modal Handlers ---
