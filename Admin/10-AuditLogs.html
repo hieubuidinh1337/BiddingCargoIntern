@@ -519,6 +519,37 @@
             category: 'ALL',
             timeRange: 'ALL'
         };
+        // Server-fetched logs (includes agent activity)
+        let serverLogs = [];
+
+        async function fetchServerLogs() {
+            try {
+                const res = await fetch('/api/logs');
+                if (!res.ok) return;
+                const json = await res.json();
+                if (json.success && Array.isArray(json.logs)) {
+                    // Merge with local logs: server takes priority (dedup by id)
+                    const localLogs = CargoStore.getActivityLogs ? CargoStore.getActivityLogs() : [];
+                    const logMap = new Map();
+                    // Add local logs first
+                    localLogs.forEach(l => { if (l && l.id) logMap.set(String(l.id), l); });
+                    // Server logs overwrite by id
+                    json.logs.forEach(l => { if (l && l.id) logMap.set(String(l.id), l); });
+                    serverLogs = Array.from(logMap.values())
+                        .sort((a, b) => (b.rawTime || 0) - (a.rawTime || 0));
+                    updateKpisAndTabCounters();
+                    renderLogs();
+                }
+            } catch(e) {
+                // On error, fall back to local only
+                serverLogs = CargoStore.getActivityLogs ? CargoStore.getActivityLogs() : [];
+            }
+        }
+
+        function getAllLogs() {
+            if (serverLogs.length > 0) return serverLogs;
+            return CargoStore.getActivityLogs ? CargoStore.getActivityLogs() : [];
+        }
 
         function parseTs(tsStr) {
             if (typeof CargoStore !== 'undefined' && typeof CargoStore.parseTimestamp === 'function') {
@@ -565,10 +596,14 @@
 
             updateKpisAndTabCounters();
             renderLogs();
+
+            // Fetch server-side logs (includes all agent activity) immediately and every 10s
+            fetchServerLogs();
+            setInterval(fetchServerLogs, 10000);
         });
 
         function updateKpisAndTabCounters() {
-            const allLogs = CargoStore.getActivityLogs();
+            const allLogs = getAllLogs();
 
             const loginLogoutCount = allLogs.filter(l => (l.actionCategory || '') === 'Đăng nhập').length;
             const adminStaffCount = allLogs.filter(l => ['ADMIN', 'STAFF'].includes((l.role || '').toUpperCase())).length;
@@ -647,7 +682,7 @@
         }
 
         function getFilteredLogs() {
-            let logs = CargoStore.getActivityLogs();
+            let logs = getAllLogs();
 
             if (currentTab === 'LOGIN_LOGOUT') {
                 logs = logs.filter(l => (l.actionCategory || '') === 'Đăng nhập');
@@ -845,8 +880,8 @@
         }
 
         function openLogModal(logId) {
-            const logs = CargoStore.getActivityLogs();
-            const log = logs.find(l => l.id == logId);
+            const logs = getAllLogs();
+            const log = logs.find(l => String(l.id) === String(logId));
             if (!log) return;
 
             document.getElementById('modalActionTitle').textContent = log.actionTitle || 'Chi tiết nhật ký';

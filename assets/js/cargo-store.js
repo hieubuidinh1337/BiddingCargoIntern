@@ -1624,6 +1624,9 @@ const CargoStore = (function() {
     function autoCloseExpiredAuctions(data) {
         if (!data || !data.auctions) return false;
         let modified = false;
+        const _now = new Date();
+        const _pad = n => String(n).padStart(2, '0');
+        const dateStr = `${_now.getFullYear()}${_pad(_now.getMonth() + 1)}${_pad(_now.getDate())}`;
 
         (data.auctions || []).forEach(auction => {
             const timer = getTimeRemaining(auction.endTime);
@@ -4451,8 +4454,19 @@ const CargoStore = (function() {
                 data.activityLogs = data.activityLogs.slice(0, 1000);
             }
             saveData(data);
+
+            // Also POST to server so Admin's AuditLogs page can see all roles' activity
+            if (typeof window !== 'undefined' && typeof fetch !== 'undefined') {
+                fetch('/api/logs', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(newLog)
+                }).catch(() => {}); // Fire-and-forget, ignore errors
+            }
+
             return newLog;
         },
+
 
         getActivityLogs: function(filters = {}) {
             const data = loadData();

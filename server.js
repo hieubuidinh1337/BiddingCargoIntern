@@ -1154,7 +1154,15 @@ const server = http.createServer((req, res) => {
                     serverData.wonAuctions = Array.from(wonMap.values());
                 }
                 if (incoming.notifications) serverData.notifications = incoming.notifications;
-                if (incoming.activityLogs && Array.isArray(incoming.activityLogs)) serverData.activityLogs = incoming.activityLogs;
+                if (incoming.activityLogs && Array.isArray(incoming.activityLogs)) {
+                    // Merge by id - don't overwrite server-written logs (e.g. from agent bids)
+                    const logMap = new Map();
+                    (serverData.activityLogs || []).forEach(l => { if (l && l.id) logMap.set(String(l.id), l); });
+                    incoming.activityLogs.forEach(l => { if (l && l.id) logMap.set(String(l.id), l); });
+                    serverData.activityLogs = Array.from(logMap.values())
+                        .sort((a, b) => (b.rawTime || b.id || 0) - (a.rawTime || a.id || 0))
+                        .slice(0, 1000);
+                }
                 if (incoming.registrations) serverData.registrations = incoming.registrations;
                 if (incoming.agentsList) serverData.agentsList = incoming.agentsList;
                 if (incoming.adminsList) serverData.adminsList = incoming.adminsList;
