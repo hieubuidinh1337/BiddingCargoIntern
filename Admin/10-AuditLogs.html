@@ -1061,9 +1061,11 @@
                     const detailsEscaped = (log.details || '').replace(/"/g, '&quot;');
                     const targetBadge = log.target ? '<div class="text-[11px] font-mono font-semibold text-blue-600 bg-blue-50/80 px-1.5 py-0.5 rounded inline-block mt-0.5">' + log.target + '</div>' : '';
 
+                    const catDisplay = (cat === 'Đăng nhập' && isLogout) ? 'Đăng xuất' : cat;
+
                     tr.innerHTML = '<td class="py-3 px-4 font-medium text-slate-800 whitespace-nowrap"><div class="font-semibold text-slate-900">' + (log.timestamp || '-') + '</div><div class="text-[11px] text-slate-400 mt-0.5">' + timeAgo + '</div></td>' +
                         '<td class="py-3 px-4 font-medium text-slate-800"><div class="flex items-center gap-2"><div><div class="font-bold text-slate-900">' + (log.actor || 'N/A') + '</div><div class="text-[11px] font-mono text-slate-500">@' + (log.username || '-') + '</div></div><div class="ml-auto">' + roleBadge + '</div></div></td>' +
-                        '<td class="py-3 px-4 whitespace-nowrap"><span class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg border text-[11px] font-bold ' + catBadgeClass + '">' + cat + '</span></td>' +
+                        '<td class="py-3 px-4 whitespace-nowrap"><span class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg border text-[11px] font-bold ' + catBadgeClass + '">' + catDisplay + '</span></td>' +
                         '<td class="py-3 px-4"><div class="flex items-start gap-2.5">' + catIconHtml + '<div><div class="font-bold text-slate-900 text-xs">' + (log.actionTitle || '-') + '</div>' + targetBadge + '</div></div></td>' +
                         '<td class="py-3 px-4 text-slate-600 max-w-xs truncate cursor-pointer hover:text-slate-900" onclick="openLogModal(' + log.id + ')"><span title="' + detailsEscaped + '">' + (log.details || '-') + '</span></td>' +
                         '<td class="py-3 px-4 whitespace-nowrap text-[11px] text-slate-500"><div class="font-mono font-medium text-slate-700"><i class="fa-solid fa-network-wired text-[10px] text-slate-400 mr-1"></i>' + (log.ip || '127.0.0.1') + '</div><div class="text-[10px] text-slate-400 truncate max-w-[130px] mt-0.5" title="' + (log.device || '') + '">' + (log.device || 'Browser') + '</div></td>' +
@@ -1150,7 +1152,8 @@
             const rawTime = log.rawTime || parseTs(log.timestamp);
             document.getElementById('modalTimeAgo').textContent = (typeof CargoStore !== 'undefined' && typeof CargoStore.formatTimeAgo === 'function') ? CargoStore.formatTimeAgo(rawTime, log.timestamp) : (log.timestamp || 'Vừa xong');
 
-            document.getElementById('modalCategory').textContent = log.actionCategory || 'Chưa phân loại';
+            const isLogoutModal = (log.actionCategory === 'Đăng nhập') && ((log.actionTitle || '').toLowerCase().includes('đăng xuất') || (log.actionTitle || '').toLowerCase().includes('logout'));
+            document.getElementById('modalCategory').textContent = isLogoutModal ? 'Đăng xuất' : (log.actionCategory || 'Chưa phân loại');
             document.getElementById('modalTarget').textContent = log.target || 'N/A';
             document.getElementById('modalDetailsText').textContent = log.details || 'Không có chi tiết bổ sung.';
             document.getElementById('modalIp').textContent = log.ip || '127.0.0.1';
