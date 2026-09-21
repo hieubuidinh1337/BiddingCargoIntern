@@ -1776,7 +1776,13 @@
                     ${decl.dgrDocName ? `
                         <div class="bg-orange-50 border border-orange-200 rounded-xl p-3 space-y-1.5">
                             <span class="font-bold flex items-center gap-1.5 text-orange-800 text-[11px]">
-                                <i class="fa-solid fa-shield-halved text-orange-500"></i> Chứng từ an toàn hàng nguy hiểm (DGR / MSDS):
+                                <i class="fa-solid fa-shield-halved text-orange-500"></i> ${
+                                    (decl.cargoType || '').includes('PER') || (decl.cargoType || '').includes('AVI') || (decl.cargoType || '').toLowerCase().includes('thực phẩm') || (decl.cargoType || '').toLowerCase().includes('tươi sống') || (decl.cargoType || '').toLowerCase().includes('hải sản')
+                                    ? 'Giấy chứng nhận kiểm dịch & An toàn thực phẩm (Quarantine Cert):'
+                                    : ((decl.cargoType || '').includes('VAL') || (decl.cargoType || '').toLowerCase().includes('giá trị cao') || (decl.cargoType || '').toLowerCase().includes('linh kiện')
+                                        ? 'Hợp đồng Bảo hiểm hàng hóa & Declared Value (VAL):'
+                                        : 'Chứng từ an toàn hàng nguy hiểm (DGR / MSDS):')
+                                }
                             </span>
                             <div class="flex items-center justify-between bg-white border border-orange-200 rounded-lg px-3 py-2">
                                 <div class="flex items-center gap-2 min-w-0">
@@ -1785,11 +1791,11 @@
                                     </div>
                                     <div class="min-w-0">
                                         <p class="font-bold text-slate-800 text-xs truncate">${decl.dgrDocName}</p>
-                                        <p class="text-[10px] text-emerald-700 font-semibold">✓ ${decl.dgrDocSize || 'PDF/MSDS'} • Đã xác thực & đính kèm</p>
+                                        <p class="text-[10px] text-emerald-700 font-semibold">✓ ${decl.dgrDocSize || 'PDF/Chứng từ'} • Đã xác thực & đính kèm</p>
                                     </div>
                                 </div>
                                 ${decl.dgrDocUrl ? `
-                                    <a href="${decl.dgrDocUrl}" target="_blank" class="flex-shrink-0 flex items-center gap-1 text-[11px] font-semibold text-blue-600 hover:text-white hover:bg-blue-600 border border-blue-300 hover:border-blue-600 px-2.5 py-1 rounded-lg transition-all ml-2" title="Xem chứng từ DGR/MSDS">
+                                    <a href="${decl.dgrDocUrl}" target="_blank" class="flex-shrink-0 flex items-center gap-1 text-[11px] font-semibold text-blue-600 hover:text-white hover:bg-blue-600 border border-blue-300 hover:border-blue-600 px-2.5 py-1 rounded-lg transition-all ml-2" title="Xem chứng từ đính kèm">
                                         <i class="fa-solid fa-eye"></i> Xem chứng từ
                                     </a>
                                 ` : '<span class="text-[10px] text-slate-400 italic ml-2">Không thể xem trực tiếp</span>'}

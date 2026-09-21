@@ -258,16 +258,16 @@
                     </div>
                 </div>
 
-                <!-- DGR Safety Document Upload Section -->
+                <!-- Dynamic Required Document Upload Section (DGR / PER / AVI / VAL) -->
                 <div id="dgrDocsSection" class="hidden bg-amber-50/80 border border-amber-200 p-3.5 rounded-xl space-y-2 transition-all">
                     <div class="flex items-center justify-between">
                         <label class="font-bold text-amber-900 text-xs flex items-center gap-1.5">
-                            <i class="fa-solid fa-triangle-exclamation text-amber-600"></i>
-                            Chứng từ an toàn hàng nguy hiểm / MSDS <span class="text-red-500">* (Bắt buộc)</span>
+                            <i id="docSectionIcon" class="fa-solid fa-shield-halved text-amber-600"></i>
+                            <span id="docSectionTitle">Chứng từ an toàn hàng nguy hiểm / MSDS</span> <span class="text-red-500">* (Bắt buộc)</span>
                         </label>
-                        <span class="text-[10px] text-amber-700 bg-amber-100 px-2 py-0.5 rounded-full font-medium">MSDS / DGR Cert</span>
+                        <span id="docSectionBadge" class="text-[10px] text-amber-700 bg-amber-100 px-2 py-0.5 rounded-full font-medium">MSDS / DGR Cert</span>
                     </div>
-                    <p class="text-[11px] text-slate-600 leading-normal">
+                    <p id="docSectionDesc" class="text-[11px] text-slate-600 leading-normal">
                         Hàng nguy hiểm yêu cầu bắt buộc phải có <strong>Phiếu an toàn hóa chất (MSDS)</strong> & <strong>Chứng chỉ DGR còn hiệu lực</strong> theo quy định an toàn hàng không ICAO/IATA.
                     </p>
 
@@ -279,7 +279,7 @@
                             <div class="w-8 h-8 rounded-full bg-amber-100 text-amber-700 flex items-center justify-center mx-auto mb-1.5">
                                 <i class="fa-solid fa-cloud-arrow-up text-sm"></i>
                             </div>
-                            <p class="text-xs font-semibold text-slate-700">Tải lên chứng từ an toàn DGR / MSDS</p>
+                            <p id="docUploadPromptTitle" class="text-xs font-semibold text-slate-700">Tải lên chứng từ bắt buộc cho loại hàng này</p>
                             <p class="text-[10px] text-slate-400 mt-0.5">Hỗ trợ: PDF, JPG, PNG, WEBP (Tối đa 10MB)</p>
                         </div>
 
@@ -289,12 +289,12 @@
                                     <i class="fa-solid fa-file-pdf"></i>
                                 </div>
                                 <div class="min-w-0">
-                                    <p id="dgrFileName" class="font-bold text-slate-800 text-xs truncate max-w-[220px]">msds_dgr_cert.pdf</p>
+                                    <p id="dgrFileName" class="font-bold text-slate-800 text-xs truncate max-w-[220px]">required_cert.pdf</p>
                                     <p id="dgrFileSize" class="text-[10px] text-emerald-700 font-medium">1.2 MB • Đã sẵn sàng đính kèm</p>
                                 </div>
                             </div>
                             <div class="flex items-center gap-1.5 flex-shrink-0">
-                                <button type="button" id="btnViewDgrDoc" onclick="event.stopPropagation(); viewDgrDocument();" class="hidden text-[11px] font-semibold text-blue-600 hover:text-white hover:bg-blue-600 border border-blue-300 hover:border-blue-600 px-2.5 py-1 rounded-lg transition-all flex items-center gap-1" title="Xem chứng từ DGR/MSDS">
+                                <button type="button" id="btnViewDgrDoc" onclick="event.stopPropagation(); viewDgrDocument();" class="hidden text-[11px] font-semibold text-blue-600 hover:text-white hover:bg-blue-600 border border-blue-300 hover:border-blue-600 px-2.5 py-1 rounded-lg transition-all flex items-center gap-1" title="Xem chứng từ đính kèm">
                                     <i class="fa-solid fa-eye"></i> Xem
                                 </button>
                                 <button type="button" onclick="event.stopPropagation(); removeDgrFile();" class="text-slate-400 hover:text-red-600 p-1 rounded transition-colors text-xs" title="Xóa file">
@@ -304,7 +304,7 @@
                         </div>
                     </div>
                     <div id="dgrErrorMsg" class="hidden text-[11px] text-red-600 font-semibold flex items-center gap-1">
-                        <i class="fa-solid fa-circle-exclamation"></i> Vui lòng chọn và tải lên chứng từ an toàn DGR / MSDS!
+                        <i class="fa-solid fa-circle-exclamation"></i> Vui lòng chọn và tải lên chứng từ bắt buộc trước khi lưu!
                     </div>
                 </div>
 
@@ -1390,8 +1390,40 @@
 
             const val = selectEl.value || '';
             const isDgr = val.includes('DGR') || val.toLowerCase().includes('nguy hiểm');
+            const isPerAvi = val.includes('PER') || val.includes('AVI') || val.toLowerCase().includes('thực phẩm') || val.toLowerCase().includes('tươi sống') || val.toLowerCase().includes('hải sản');
+            const isVal = val.includes('VAL') || val.toLowerCase().includes('giá trị cao') || val.toLowerCase().includes('linh kiện');
+
+            const titleEl = document.getElementById('docSectionTitle');
+            const iconEl = document.getElementById('docSectionIcon');
+            const badgeEl = document.getElementById('docSectionBadge');
+            const descEl = document.getElementById('docSectionDesc');
+            const promptTitleEl = document.getElementById('docUploadPromptTitle');
+            const errorMsgEl = document.getElementById('dgrErrorMsg');
+
             if (isDgr) {
                 dgrSec.classList.remove('hidden');
+                if (titleEl) titleEl.textContent = 'Chứng từ an toàn hàng nguy hiểm / MSDS';
+                if (iconEl) iconEl.className = 'fa-solid fa-triangle-exclamation text-amber-600';
+                if (badgeEl) badgeEl.textContent = 'MSDS / DGR Cert';
+                if (descEl) descEl.innerHTML = 'Hàng nguy hiểm yêu cầu bắt buộc phải có <strong>Phiếu an toàn hóa chất (MSDS)</strong> & <strong>Chứng chỉ DGR còn hiệu lực</strong> theo quy định an toàn hàng không ICAO/IATA.';
+                if (promptTitleEl) promptTitleEl.textContent = 'Tải lên chứng từ an toàn DGR / MSDS';
+                if (errorMsgEl) errorMsgEl.innerHTML = '<i class="fa-solid fa-circle-exclamation"></i> Vui lòng chọn và tải lên chứng từ an toàn DGR / MSDS!';
+            } else if (isPerAvi) {
+                dgrSec.classList.remove('hidden');
+                if (titleEl) titleEl.textContent = 'Giấy chứng nhận kiểm dịch & An toàn thực phẩm';
+                if (iconEl) iconEl.className = 'fa-solid fa-clipboard-check text-emerald-600';
+                if (badgeEl) badgeEl.textContent = 'Giấy kiểm dịch (Quarantine Cert)';
+                if (descEl) descEl.innerHTML = 'Hàng thực phẩm, hải sản tươi sống và nông sản/động vật bắt buộc phải có <strong>Giấy chứng nhận kiểm dịch</strong> (Cục Thú y / Cục Bảo vệ Thực vật) còn hiệu lực theo quy định hàng không.';
+                if (promptTitleEl) promptTitleEl.textContent = 'Tải lên Giấy chứng nhận kiểm dịch Hải sản / Thực phẩm';
+                if (errorMsgEl) errorMsgEl.innerHTML = '<i class="fa-solid fa-circle-exclamation"></i> Vui lòng chọn và tải lên Giấy chứng nhận kiểm dịch cho hàng hải sản tươi sống / thực phẩm!';
+            } else if (isVal) {
+                dgrSec.classList.remove('hidden');
+                if (titleEl) titleEl.textContent = 'Bảo hiểm hàng hóa & Declared Value Certificate';
+                if (iconEl) iconEl.className = 'fa-solid fa-shield-halved text-blue-600';
+                if (badgeEl) badgeEl.textContent = 'Bảo hiểm / Valuation Cert';
+                if (descEl) descEl.innerHTML = 'Hàng linh kiện điện tử và hàng giá trị cao (VAL) yêu cầu bắt buộc phải đính kèm <strong>Hợp đồng/Giấy chứng nhận Bảo hiểm hàng hóa</strong> hoặc <strong>Giấy khai báo giá trị hàng hóa (Declared Value)</strong> theo quy định IATA.';
+                if (promptTitleEl) promptTitleEl.textContent = 'Tải lên Hợp đồng Bảo hiểm hàng hóa / Giấy khai báo giá trị (VAL)';
+                if (errorMsgEl) errorMsgEl.innerHTML = '<i class="fa-solid fa-circle-exclamation"></i> Vui lòng chọn và tải lên Hợp đồng Bảo hiểm hàng hóa hoặc Giấy khai báo giá trị!';
             } else {
                 dgrSec.classList.add('hidden');
                 resetDgrError();
@@ -1758,11 +1790,21 @@
                 return;
             }
 
-            // 10. Kiểm tra Chứng từ an toàn DGR / MSDS (Bắt buộc đối với Hàng nguy hiểm DGR)
+            // 10. Kiểm tra Chứng từ bắt buộc theo Loại hàng hóa (DGR, PER/AVI, VAL)
             const isDgrCargo = cargoType.includes('DGR') || cargoType.toLowerCase().includes('nguy hiểm');
-            if (isDgrCargo && (!currentDgrFile || (!currentDgrFile.url && !currentDgrFile.name))) {
+            const isPerAviCargo = cargoType.includes('PER') || cargoType.includes('AVI') || cargoType.toLowerCase().includes('thực phẩm') || cargoType.toLowerCase().includes('tươi sống') || cargoType.toLowerCase().includes('hải sản');
+            const isValCargo = cargoType.includes('VAL') || cargoType.toLowerCase().includes('giá trị cao') || cargoType.toLowerCase().includes('linh kiện');
+
+            const isDocRequired = isDgrCargo || isPerAviCargo || isValCargo;
+
+            if (isDocRequired && (!currentDgrFile || (!currentDgrFile.url && !currentDgrFile.name))) {
                 highlightDgrError();
-                showCargoModalError('Vui lòng tải lên Chứng từ an toàn DGR / MSDS (Phiếu an toàn hóa chất & Chứng chỉ DGR) cho mặt hàng nguy hiểm trước khi lưu hồ sơ!');
+                let reqMsg = 'Vui lòng tải lên chứng từ bắt buộc cho loại hàng hóa này trước khi lưu hồ sơ!';
+                if (isDgrCargo) reqMsg = 'Vui lòng tải lên Chứng từ an toàn DGR / MSDS (Phiếu an toàn hóa chất & Chứng chỉ DGR) cho mặt hàng nguy hiểm!';
+                else if (isPerAviCargo) reqMsg = 'Vui lòng tải lên Giấy chứng nhận kiểm dịch động/thực vật & Thủy hải sản tươi sống cho mặt hàng thực phẩm / hải sản tươi sống!';
+                else if (isValCargo) reqMsg = 'Vui lòng tải lên Hợp đồng Bảo hiểm hàng hóa hoặc Giấy khai báo giá trị (VAL) cho mặt hàng linh kiện điện tử / giá trị cao!';
+                
+                showCargoModalError(reqMsg);
                 return;
             }
 
@@ -1777,10 +1819,10 @@
                 consigneeName,
                 consigneeAddress,
                 specialNotes,
-                dgrDocName: isDgrCargo && currentDgrFile ? currentDgrFile.name : null,
-                dgrDocUrl: isDgrCargo && currentDgrFile ? currentDgrFile.url : null,
-                dgrDocSize: isDgrCargo && currentDgrFile ? currentDgrFile.size : null,
-                dgrDocUploadedAt: isDgrCargo && currentDgrFile ? (currentDgrFile.uploadedAt || new Date().toLocaleString('vi-VN')) : null
+                dgrDocName: isDocRequired && currentDgrFile ? currentDgrFile.name : null,
+                dgrDocUrl: isDocRequired && currentDgrFile ? currentDgrFile.url : null,
+                dgrDocSize: isDocRequired && currentDgrFile ? currentDgrFile.size : null,
+                dgrDocUploadedAt: isDocRequired && currentDgrFile ? (currentDgrFile.uploadedAt || new Date().toLocaleString('vi-VN')) : null
             };
 
             if (store && store.updateCargoDeclaration) {
