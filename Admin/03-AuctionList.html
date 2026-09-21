@@ -375,6 +375,9 @@
                         <button type="button" onclick="setWonPayFilter('PAID')" id="wonPayFilterPaid" class="px-2.5 py-1 rounded-md font-semibold text-slate-300 hover:text-white transition">Đã thanh toán</button>
                         <button type="button" onclick="setWonPayFilter('UNPAID')" id="wonPayFilterUnpaid" class="px-2.5 py-1 rounded-md font-semibold text-slate-300 hover:text-white transition">Chờ thanh toán</button>
                         <button type="button" onclick="setWonPayFilter('EXPIRED')" id="wonPayFilterExpired" class="px-2.5 py-1 rounded-md font-semibold text-slate-300 hover:text-white transition">Quá hạn / Hủy</button>
+                        <button type="button" onclick="setWonPayFilter('REFUND_PENDING')" id="wonPayFilterRefundPending" class="px-2.5 py-1 rounded-md font-semibold text-indigo-300 hover:text-white transition relative flex items-center gap-1">
+                            💸 Chờ hoàn tiền <span id="refundPendingBadgeCount" class="hidden bg-indigo-500 text-white text-[9px] px-1.5 py-0.2 rounded-full font-bold">0</span>
+                        </button>
                     </div>
 
                     <span class="text-xs font-semibold bg-emerald-500/20 text-emerald-300 border border-emerald-500/30 px-3 py-1 rounded-full flex items-center gap-1.5 whitespace-nowrap">
@@ -1482,6 +1485,18 @@
                 }
             }
 
+            // Update badge for pending refunds
+            const refundPendingCount = (data.wonAuctions || []).filter(w => w.refundStatus === 'PENDING').length;
+            const refundBadge = document.getElementById('refundPendingBadgeCount');
+            if (refundBadge) {
+                if (refundPendingCount > 0) {
+                    refundBadge.textContent = refundPendingCount;
+                    refundBadge.classList.remove('hidden');
+                } else {
+                    refundBadge.classList.add('hidden');
+                }
+            }
+
             // 2. Payment Status Filter
             if (currentWonPayFilter === 'PENDING') {
                 list = list.filter(w => w.paymentStatus === 'PENDING_VERIFICATION');
@@ -1491,6 +1506,8 @@
                 list = list.filter(w => w.paymentStatus !== 'PAID' && w.paymentStatus !== 'PENDING_VERIFICATION' && !((window.CargoStore && CargoStore.isWonAuctionExpired) ? CargoStore.isWonAuctionExpired(w) : false));
             } else if (currentWonPayFilter === 'EXPIRED') {
                 list = list.filter(w => (window.CargoStore && CargoStore.isWonAuctionExpired) ? CargoStore.isWonAuctionExpired(w) : false);
+            } else if (currentWonPayFilter === 'REFUND_PENDING') {
+                list = list.filter(w => w.refundStatus === 'PENDING');
             }
 
             // 2b. Sorting Logic
@@ -1553,7 +1570,14 @@
 
                 let statusBadgeHtml = '';
                 if (isExpired) {
-                    statusBadgeHtml = `<span class="bg-rose-100 text-rose-800 font-bold px-2.5 py-1 rounded-full text-[10px] inline-flex items-center gap-1 border border-rose-200"><i class="fa-solid fa-ban text-rose-600"></i> QUÁ HẠN / ĐÃ HỦY</span>`;
+                    const refundStatus = item.refundStatus || null;
+                    if (refundStatus === 'REFUNDED') {
+                        statusBadgeHtml = `<span class="bg-emerald-100 text-emerald-800 font-bold px-2.5 py-1 rounded-full text-[10px] inline-flex items-center gap-1 border border-emerald-200"><i class="fa-solid fa-money-bill-transfer text-emerald-600"></i> ĐÃ HOÀN TIỀN</span>`;
+                    } else if (refundStatus === 'PENDING') {
+                        statusBadgeHtml = `<span class="bg-indigo-100 text-indigo-800 font-bold px-2.5 py-1 rounded-full text-[10px] inline-flex items-center gap-1 border border-indigo-200 animate-pulse"><i class="fa-solid fa-clock text-indigo-600"></i> CHỜ HOÀN TIỀN</span>`;
+                    } else {
+                        statusBadgeHtml = `<span class="bg-rose-100 text-rose-800 font-bold px-2.5 py-1 rounded-full text-[10px] inline-flex items-center gap-1 border border-rose-200"><i class="fa-solid fa-ban text-rose-600"></i> QUÁ HẠN / ĐÃ HỦY</span>`;
+                    }
                 } else if (isPaid) {
                     statusBadgeHtml = `<span class="bg-emerald-100 text-emerald-800 font-bold px-2.5 py-1 rounded-full text-[10px] inline-flex items-center gap-1"><i class="fa-solid fa-circle-check text-emerald-600"></i> ĐÃ THANH TOÁN</span>`;
                 } else if (isPending) {
@@ -1620,11 +1644,26 @@
                             ${item.paidAt ? `<p class="text-[10px] text-slate-400 mt-0.5">Xác nhận: ${item.paidAt}</p>` : ''}
                         </td>
                         <td class="py-3.5 px-4 text-right whitespace-nowrap">
-                            ${isExpired ? `
-                                <span class="inline-flex items-center gap-1 text-slate-400 font-bold text-xs bg-slate-100 px-3 py-1.5 rounded-xl border border-slate-200 cursor-not-allowed">
-                                    <i class="fa-solid fa-ban"></i> Đã hủy (Quá hạn)
-                                </span>
-                            ` : (isPaid ? `
+                            ${isExpired ? (() => {
+                                const refundStatus = item.refundStatus || null;
+                                const refundInfo = item.refundBankInfo || null;
+                                if (refundStatus === 'REFUNDED') {
+                                    return `<span class="inline-flex items-center gap-1 text-emerald-700 font-bold text-xs bg-emerald-50 px-3 py-1.5 rounded-xl border border-emerald-200">
+                                        <i class="fa-solid fa-check"></i> Đã hoàn tiền
+                                    </span>`;
+                                } else if (refundStatus === 'PENDING' && refundInfo) {
+                                    return `<div class="flex flex-col items-end gap-1">
+                                        <button onclick="openAdminRefundModal('${item.wonId}')" class="inline-flex items-center gap-1 bg-indigo-600 hover:bg-indigo-700 text-white font-bold px-2.5 py-1.5 rounded-xl text-xs transition shadow-sm cursor-pointer">
+                                            <i class="fa-solid fa-money-bill-transfer"></i> Xác nhận hoàn tiền
+                                        </button>
+                                        <span class="text-[10px] text-indigo-600 font-semibold">${refundInfo.accountNumber} (${refundInfo.bankName})</span>
+                                    </div>`;
+                                } else {
+                                    return `<span class="inline-flex items-center gap-1 text-slate-400 font-bold text-xs bg-slate-100 px-3 py-1.5 rounded-xl border border-slate-200 cursor-not-allowed">
+                                        <i class="fa-solid fa-clock text-slate-400"></i> Chờ đại lý gửi TK hoàn
+                                    </span>`;
+                                }
+                            })() : (isPaid ? `
                                 <span class="inline-flex items-center gap-1 text-emerald-700 font-bold text-xs bg-emerald-50 px-3 py-1.5 rounded-xl border border-emerald-200">
                                     <i class="fa-solid fa-check"></i> Đã nhận đủ tiền
                                 </span>
@@ -1979,6 +2018,71 @@
             }
         }
 
+        // ===== ADMIN REFUND MODAL =====
+        let _adminRefundTargetWonId = null;
+
+        function openAdminRefundModal(wonId) {
+            _adminRefundTargetWonId = wonId;
+            const data = CargoStore.getData();
+            const item = (data.wonAuctions || []).find(w => w.wonId === wonId);
+            if (!item) return;
+
+            const info = item.refundBankInfo || {};
+            document.getElementById('adminRefundWonId').textContent = wonId;
+            document.getElementById('adminRefundAgentCode').textContent = item.agentCode || '-';
+            document.getElementById('adminRefundBankName').textContent = info.bankName || '-';
+            document.getElementById('adminRefundAccountNumber').textContent = info.accountNumber || '-';
+            document.getElementById('adminRefundAccountName').textContent = info.accountName || '-';
+            document.getElementById('adminRefundAgentNote').textContent = info.agentNote || '(Không có)';
+            document.getElementById('adminRefundAmountDisplay').textContent = CargoStore.formatCurrency ? CargoStore.formatCurrency(item.totalAmountVND) : (item.totalAmountVND + ' đ');
+            document.getElementById('adminRefundNote').value = '';
+            document.getElementById('adminRefundModal').classList.remove('hidden');
+        }
+
+        function closeAdminRefundModal() {
+            document.getElementById('adminRefundModal').classList.add('hidden');
+            _adminRefundTargetWonId = null;
+        }
+
+        async function handleAdminConfirmRefund() {
+            const wonId = _adminRefundTargetWonId;
+            if (!wonId) return;
+            const refundNote = document.getElementById('adminRefundNote').value.trim();
+
+            if (!confirm(`Xác nhận đã CHUYỂN TIỀN HOÀN cho đơn hàng ${wonId}?\n\nHệ thống sẽ tự động gửi thông báo đến đại lý.`)) return;
+
+            const btn = document.getElementById('adminRefundConfirmBtn');
+            btn.disabled = true;
+            btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Đang xử lý...';
+
+            try {
+                const resp = await fetch('/api/wonauction/confirm-refund', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ wonId, confirmedBy: 'Admin', refundNote })
+                });
+                const data = await resp.json();
+                if (data.success) {
+                    alert('✅ ' + data.message);
+                    closeAdminRefundModal();
+                    // Force re-fetch from server
+                    if (window.CargoStore && CargoStore.fetchAndSync) {
+                        await CargoStore.fetchAndSync();
+                    } else if (window.CargoStore && CargoStore.syncNow) {
+                        await CargoStore.syncNow();
+                    }
+                    renderWonAuctionsAdminTable();
+                } else {
+                    alert('❌ ' + (data.error || 'Xác nhận thất bại.'));
+                }
+            } catch (err) {
+                alert('Lỗi kết nối: ' + err.message);
+            } finally {
+                btn.disabled = false;
+                btn.innerHTML = '<i class="fa-solid fa-check"></i> Xác nhận đã hoàn tiền';
+            }
+        }
+
         document.addEventListener('DOMContentLoaded', function() {
             updateFilterButtonsUI();
             renderAuctionsTable();
@@ -2054,6 +2158,84 @@
   document.addEventListener("DOMContentLoaded",function(){updateChatBadge();setInterval(updateChatBadge,8000);});
 })();
 </script>
+
+<!-- Modal: Admin xác nhận hoàn tiền cho đại lý -->
+<div id="adminRefundModal" class="fixed inset-0 bg-slate-900/70 backdrop-blur-sm z-[60] flex items-center justify-center p-3 sm:p-4 hidden">
+    <div class="bg-white rounded-2xl max-w-md w-full shadow-2xl overflow-hidden">
+        <!-- Header -->
+        <div class="bg-gradient-to-r from-indigo-700 to-blue-800 text-white px-6 py-4 flex items-center justify-between">
+            <div class="flex items-center gap-2.5">
+                <div class="w-9 h-9 rounded-xl bg-indigo-500/30 flex items-center justify-center text-sm font-bold border border-indigo-400/30">
+                    <i class="fa-solid fa-money-bill-transfer text-base"></i>
+                </div>
+                <div>
+                    <h3 class="font-bold text-sm leading-tight">Xác nhận Hoàn Tiền</h3>
+                    <p class="text-[11px] text-indigo-200">Mã đơn: <strong id="adminRefundWonId" class="text-amber-300 font-mono">-</strong></p>
+                </div>
+            </div>
+            <button onclick="closeAdminRefundModal()" class="text-indigo-300 hover:text-white text-lg cursor-pointer"><i class="fa-solid fa-xmark"></i></button>
+        </div>
+
+        <!-- Body -->
+        <div class="p-6 space-y-4 text-xs">
+            <!-- Agent & Amount info -->
+            <div class="bg-slate-50 border rounded-xl p-3 space-y-2">
+                <div class="flex items-center justify-between">
+                    <span class="text-slate-500 font-semibold">Đại lý:</span>
+                    <strong id="adminRefundAgentCode" class="text-blue-600 font-mono">-</strong>
+                </div>
+                <div class="flex items-center justify-between">
+                    <span class="text-slate-500 font-semibold">Số tiền hoàn (tham khảo):</span>
+                    <strong id="adminRefundAmountDisplay" class="text-red-600 font-bold">-</strong>
+                </div>
+            </div>
+
+            <!-- Bank info from agent -->
+            <div class="bg-indigo-50 border border-indigo-200 rounded-xl p-3 space-y-2">
+                <p class="font-bold text-indigo-800 flex items-center gap-1.5">
+                    <i class="fa-solid fa-building-columns text-indigo-500"></i> Tài khoản nhận hoàn tiền của Đại lý:
+                </p>
+                <div class="grid grid-cols-2 gap-2 mt-1">
+                    <div>
+                        <span class="text-slate-500 block">Ngân hàng:</span>
+                        <strong id="adminRefundBankName" class="text-slate-900">-</strong>
+                    </div>
+                    <div>
+                        <span class="text-slate-500 block">Số TK:</span>
+                        <strong id="adminRefundAccountNumber" class="text-blue-700 font-mono">-</strong>
+                    </div>
+                    <div class="col-span-2">
+                        <span class="text-slate-500 block">Chủ tài khoản:</span>
+                        <strong id="adminRefundAccountName" class="text-slate-900">-</strong>
+                    </div>
+                    <div class="col-span-2">
+                        <span class="text-slate-500 block">Ghi chú từ đại lý:</span>
+                        <span id="adminRefundAgentNote" class="text-slate-600 italic">-</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Admin note -->
+            <div>
+                <label class="block font-semibold text-slate-700 mb-1">Ghi chú xác nhận hoàn tiền <span class="text-slate-400">(tuỳ chọn)</span></label>
+                <textarea id="adminRefundNote" rows="2" placeholder="VD: Đã CK số tiền X qua Vietcombank lúc HH:MM DD/MM/YYYY, mã FT: ..." class="w-full border rounded-xl px-3 py-2 outline-none focus:ring-2 focus:ring-indigo-500 text-xs resize-none"></textarea>
+            </div>
+
+            <div class="bg-amber-50 border border-amber-200 rounded-xl p-2.5 text-amber-800 font-semibold text-[11px] flex items-start gap-1.5">
+                <i class="fa-solid fa-triangle-exclamation text-amber-500 mt-0.5"></i>
+                Sau khi xác nhận, hệ thống sẽ gửi thông báo đến đại lý rằng tiền đã được hoàn. Thao tác này không thể hoàn tác.
+            </div>
+        </div>
+
+        <!-- Footer -->
+        <div class="px-6 py-3 border-t bg-slate-50 flex items-center justify-end gap-2">
+            <button onclick="closeAdminRefundModal()" class="px-4 py-2 border rounded-xl text-slate-600 hover:bg-slate-100 font-medium text-xs cursor-pointer">Huỷ</button>
+            <button id="adminRefundConfirmBtn" onclick="handleAdminConfirmRefund()" class="px-5 py-2 bg-indigo-600 hover:bg-indigo-700 text-white font-bold rounded-xl shadow flex items-center gap-1.5 text-xs cursor-pointer">
+                <i class="fa-solid fa-check"></i> Xác nhận đã hoàn tiền
+            </button>
+        </div>
+    </div>
+</div>
 </body>
 </html>
 

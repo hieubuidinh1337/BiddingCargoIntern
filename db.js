@@ -260,6 +260,14 @@ async function initDatabase() {
     try { await exec('ALTER TABLE agents ADD COLUMN pin TEXT;'); } catch (e) {}
     try { await exec('ALTER TABLE notifications ADD COLUMN targetRole TEXT;'); } catch (e) {}
     try { await exec('ALTER TABLE won_auctions ADD COLUMN cargo_declaration_json TEXT;'); } catch (e) {}
+    try { await exec('ALTER TABLE won_auctions ADD COLUMN refundStatus TEXT;'); } catch (e) {}
+    try { await exec('ALTER TABLE won_auctions ADD COLUMN refundBankInfo_json TEXT;'); } catch (e) {}
+    try { await exec('ALTER TABLE won_auctions ADD COLUMN refundConfirmedAt TEXT;'); } catch (e) {}
+    try { await exec('ALTER TABLE won_auctions ADD COLUMN refundConfirmedBy TEXT;'); } catch (e) {}
+    try { await exec('ALTER TABLE won_auctions ADD COLUMN refundNote TEXT;'); } catch (e) {}
+    try { await exec('ALTER TABLE won_auctions ADD COLUMN paymentProof_json TEXT;'); } catch (e) {}
+    try { await exec('ALTER TABLE won_auctions ADD COLUMN rejectionReason TEXT;'); } catch (e) {}
+    try { await exec('ALTER TABLE notifications ADD COLUMN unread INTEGER DEFAULT 1;'); } catch (e) {}
 
     // Indexes for high performance
     await exec(`
@@ -441,10 +449,12 @@ async function seedFullData(data) {
                 const wAgentCode = (w.agentCode && String(w.agentCode).trim()) ? String(w.agentCode).trim() : null;
                 // Serialize cargoDeclaration (IATA form) as JSON blob for persistence
                 const cargoJson = w.cargoDeclaration ? JSON.stringify(w.cargoDeclaration) : null;
+                const refundBankInfoJson = w.refundBankInfo ? JSON.stringify(w.refundBankInfo) : null;
+                const paymentProofJson = w.paymentProof ? JSON.stringify(w.paymentProof) : null;
                 await run(`
                     INSERT OR REPLACE INTO won_auctions
-                    (wonId, auctionId, agentCode, flightNumber, route, capacityKg, priceKg, totalAmountVND, paymentDeadline, paymentStatus, paidAt, awbNumber, cutOffTime, warehouse, cargo_declaration_json, lockWaivedByAdmin, lockPenaltyHandled, momoOrderId, momoRequestId, momoOrderInfo, momoPayUrl, momoQrCodeUrl, momoDeeplink, momoTransId, momoPaidAt, momoCreatedAt, momoExpiresAt)
-                    VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+                    (wonId, auctionId, agentCode, flightNumber, route, capacityKg, priceKg, totalAmountVND, paymentDeadline, paymentStatus, paidAt, awbNumber, cutOffTime, warehouse, cargo_declaration_json, lockWaivedByAdmin, lockPenaltyHandled, momoOrderId, momoRequestId, momoOrderInfo, momoPayUrl, momoQrCodeUrl, momoDeeplink, momoTransId, momoPaidAt, momoCreatedAt, momoExpiresAt, refundStatus, refundBankInfo_json, refundConfirmedAt, refundConfirmedBy, refundNote, paymentProof_json, rejectionReason)
+                    VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
                 `, [
                     w.wonId, wAuctionId, wAgentCode, w.flightNumber, w.route, w.capacityKg || 0, w.priceKg || 0,
                     w.totalAmountVND || 0, w.paymentDeadline || null, w.paymentStatus || 'UNPAID', w.paidAt || null,
@@ -452,7 +462,9 @@ async function seedFullData(data) {
                     w.lockWaivedByAdmin ? 1 : 0, w.lockPenaltyHandled ? 1 : 0,
                     w.momoOrderId || null, w.momoRequestId || null, w.momoOrderInfo || null,
                     w.momoPayUrl || null, w.momoQrCodeUrl || null, w.momoDeeplink || null, w.momoTransId || null,
-                    w.momoPaidAt || null, w.momoCreatedAt || null, w.momoExpiresAt || null
+                    w.momoPaidAt || null, w.momoCreatedAt || null, w.momoExpiresAt || null,
+                    w.refundStatus || null, refundBankInfoJson, w.refundConfirmedAt || null, w.refundConfirmedBy || null, w.refundNote || null,
+                    paymentProofJson, w.rejectionReason || null
                 ]);
             }
         }
@@ -618,7 +630,20 @@ async function getFullServerData() {
             cargoDeclaration: w.cargo_declaration_json
                 ? (() => { try { return JSON.parse(w.cargo_declaration_json); } catch(_) { return null; } })()
                 : null,
-            cargo_declaration_json: undefined // strip raw column from response
+            refundBankInfo: w.refundBankInfo_json
+                ? (() => { try { return JSON.parse(w.refundBankInfo_json); } catch(_) { return null; } })()
+                : null,
+            refundStatus: w.refundStatus || null,
+            refundConfirmedAt: w.refundConfirmedAt || null,
+            refundConfirmedBy: w.refundConfirmedBy || null,
+            refundNote: w.refundNote || null,
+            paymentProof: w.paymentProof_json
+                ? (() => { try { return JSON.parse(w.paymentProof_json); } catch(_) { return null; } })()
+                : null,
+            rejectionReason: w.rejectionReason || null,
+            cargo_declaration_json: undefined, // strip raw column
+            refundBankInfo_json: undefined,     // strip raw column
+            paymentProof_json: undefined         // strip raw column
         })),
         notifications: notifications.map(n => ({
             ...n,

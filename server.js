@@ -1,4 +1,4 @@
-﻿require('dotenv').config();
+require('dotenv').config();
 const http = require('http');
 const https = require('https');
 const crypto = require('crypto');
@@ -1182,10 +1182,19 @@ const server = http.createServer((req, res) => {
                     });
                     serverData.wonAuctions = Array.from(wonMap.values());
                 }
+                if (incoming.deletedNotificationIds && Array.isArray(incoming.deletedNotificationIds)) {
+                    const delSet = new Set(incoming.deletedNotificationIds.map(String));
+                    if (!Array.isArray(serverData.deletedNotificationIds)) serverData.deletedNotificationIds = [];
+                    incoming.deletedNotificationIds.forEach(id => serverData.deletedNotificationIds.push(String(id)));
+                    if (serverData.notifications && Array.isArray(serverData.notifications)) {
+                        serverData.notifications = serverData.notifications.filter(n => !delSet.has(String(n.id)));
+                    }
+                }
                 if (incoming.notifications && Array.isArray(incoming.notifications)) {
+                    const delSet = new Set((serverData.deletedNotificationIds || []).map(String));
                     const notifMap = new Map();
-                    (serverData.notifications || []).forEach(n => { if (n && n.id) notifMap.set(String(n.id), n); });
-                    incoming.notifications.forEach(n => { if (n && n.id) notifMap.set(String(n.id), n); });
+                    (serverData.notifications || []).forEach(n => { if (n && n.id && !delSet.has(String(n.id))) notifMap.set(String(n.id), n); });
+                    incoming.notifications.forEach(n => { if (n && n.id && !delSet.has(String(n.id))) notifMap.set(String(n.id), n); });
                     serverData.notifications = Array.from(notifMap.values())
                         .sort((a, b) => (Number(b.timestamp || b.createdAt || b.id) || 0) - (Number(a.timestamp || a.createdAt || a.id) || 0));
                 }
@@ -2075,6 +2084,68 @@ const server = http.createServer((req, res) => {
                 res.writeHead(500, { 'Content-Type': 'application/json; charset=UTF-8' });
                 res.end(JSON.stringify({ success: false, error: err.message }));
             }
+        });
+        return;
+    }
+
+    // ============================================================
+    // === REFUND WORKFLOW API ENDPOINTS ==========================
+    // ============================================================
+
+    // --- POST /api/wonauction/refund-info ---
+    if (pathname === '/api/wonauction/refund-info' && req.method === 'POST') {
+        let body = '';
+        req.on('data', chunk => { body += chunk; });
+        req.on('error', err => { if (!res.headersSent) { res.writeHead(400, {'Content-Type':'application/json'}); res.end(JSON.stringify({success:false,error:'Stream error'})); } });
+        req.on('end', () => {
+            try {
+                const { wonId, bankName, accountNumber, accountName, agentNote } = JSON.parse(body || '{}');
+                if (!wonId || !bankName || !accountNumber || !accountName) { res.writeHead(400, {'Content-Type':'application/json; charset=UTF-8'}); res.end(JSON.stringify({success:false,error:'Thieu thong tin bat buoc.'})); return; }
+                const wonList = serverData.wonAuctions || [];
+                const wonItem = wonList.find(w => w.wonId === wonId);
+                if (!wonItem) { res.writeHead(404, {'Content-Type':'application/json; charset=UTF-8'}); res.end(JSON.stringify({success:false,error:'Khong tim thay don hang: '+wonId})); return; }
+                const isExpiredItem = isWonAuctionExpired(wonItem, serverData);
+                if (!isExpiredItem) { res.writeHead(400, {'Content-Type':'application/json; charset=UTF-8'}); res.end(JSON.stringify({success:false,error:'Don hang nay chua bi huy.'})); return; }
+                if (wonItem.refundStatus === 'REFUNDED') { res.writeHead(400, {'Content-Type':'application/json; charset=UTF-8'}); res.end(JSON.stringify({success:false,error:'Da hoan tien roi.'})); return; }
+                wonItem.refundBankInfo = { bankName: bankName.trim(), accountNumber: accountNumber.trim(), accountName: accountName.trim(), agentNote: (agentNote||'').trim(), submittedAt: new Date().toLocaleString('vi-VN') };
+                wonItem.refundStatus = 'PENDING';
+                if (!serverData.notifications) serverData.notifications = [];
+                serverData.notifications.unshift({ id: Date.now(), targetRole: 'admin', title: 'Yeu cau hoan tien tu dai ly ' + wonItem.agentCode, message: 'Don hang ' + wonId + ' can xac nhan hoan tien.', time: new Date().toLocaleString('vi-VN'), type: 'REFUND_REQUEST', unread: true });
+                serverData.version = Date.now();
+                saveServerData();
+                res.writeHead(200, {'Content-Type':'application/json; charset=UTF-8'});
+                res.end(JSON.stringify({success:true,message:'Da ghi nhan thong tin tai khoan nhan hoan tien thanh cong.',wonItem}),'utf-8');
+            } catch(err) { if (!res.headersSent) { res.writeHead(500,{'Content-Type':'application/json'}); res.end(JSON.stringify({success:false,error:err.message})); } }
+        });
+        return;
+    }
+
+    // --- POST /api/wonauction/confirm-refund ---
+    if (pathname === '/api/wonauction/confirm-refund' && req.method === 'POST') {
+        let body = '';
+        req.on('data', chunk => { body += chunk; });
+        req.on('error', err => { if (!res.headersSent) { res.writeHead(400,{'Content-Type':'application/json'}); res.end(JSON.stringify({success:false,error:'Stream error'})); } });
+        req.on('end', () => {
+            try {
+                const { wonId, confirmedBy, refundNote } = JSON.parse(body || '{}');
+                if (!wonId) { res.writeHead(400,{'Content-Type':'application/json; charset=UTF-8'}); res.end(JSON.stringify({success:false,error:'wonId la bat buoc.'})); return; }
+                const wonList = serverData.wonAuctions || [];
+                const wonItem = wonList.find(w => w.wonId === wonId);
+                if (!wonItem) { res.writeHead(404,{'Content-Type':'application/json; charset=UTF-8'}); res.end(JSON.stringify({success:false,error:'Khong tim thay don hang: '+wonId})); return; }
+                if (!wonItem.refundBankInfo) { res.writeHead(400,{'Content-Type':'application/json; charset=UTF-8'}); res.end(JSON.stringify({success:false,error:'Dai ly chua cung cap thong tin tai khoan.'})); return; }
+                if (wonItem.refundStatus === 'REFUNDED') { res.writeHead(400,{'Content-Type':'application/json; charset=UTF-8'}); res.end(JSON.stringify({success:false,error:'Da xac nhan hoan tien roi.'})); return; }
+                wonItem.refundStatus = 'REFUNDED';
+                wonItem.refundConfirmedAt = new Date().toLocaleString('vi-VN');
+                wonItem.refundConfirmedBy = confirmedBy || 'Admin';
+                wonItem.refundNote = (refundNote||'').trim();
+                const bankInfo = wonItem.refundBankInfo;
+                if (!serverData.notifications) serverData.notifications = [];
+                serverData.notifications.unshift({ id: Date.now(), targetAgentCode: wonItem.agentCode, title: 'TIEN HOAN DA DUOC CHUYEN - Don ' + wonId, message: 'Ban Dieu hanh da hoan tat chuyen tien hoan vao tai khoan ' + bankInfo.accountName + ' - ' + bankInfo.accountNumber + ' (' + bankInfo.bankName + ') cho don hang ' + wonId + '.' + (wonItem.refundNote ? ' Ghi chu: ' + wonItem.refundNote : ''), time: new Date().toLocaleString('vi-VN'), type: 'REFUND_COMPLETED', unread: true });
+                serverData.version = Date.now();
+                saveServerData();
+                res.writeHead(200,{'Content-Type':'application/json; charset=UTF-8'});
+                res.end(JSON.stringify({success:true,message:'Da xac nhan hoan tien cho don hang '+wonId+'. He thong da gui thong bao den dai ly '+wonItem.agentCode+'.',wonItem}),'utf-8');
+            } catch(err) { if (!res.headersSent) { res.writeHead(500,{'Content-Type':'application/json'}); res.end(JSON.stringify({success:false,error:err.message})); } }
         });
         return;
     }

@@ -1929,10 +1929,12 @@
                 const payModal = document.getElementById('paymentInstructionModal');
                 const cargoModal = document.getElementById('cargoDeclarationModal');
                 const prevModal = document.getElementById('previewModal');
+                const refundModal = document.getElementById('refundBankModal');
                 const isPayOpen = payModal && !payModal.classList.contains('hidden');
                 const isCargoOpen = cargoModal && !cargoModal.classList.contains('hidden');
                 const isPrevOpen = prevModal && !prevModal.classList.contains('hidden');
-                if (isPayOpen || isCargoOpen || isPrevOpen) return;
+                const isRefundOpen = refundModal && !refundModal.classList.contains('hidden');
+                if (isPayOpen || isCargoOpen || isPrevOpen || isRefundOpen) return;
             }
 
             const store = getStore();
@@ -2141,6 +2143,57 @@
                             <!-- Cảnh báo chế tài khóa tài khoản / Thông báo khóa / Cảnh báo từ chối -->
                             ${(() => {
                                 if (isExpired) {
+                                    const refundStatus = item.refundStatus || null;
+                                    const refundInfo = item.refundBankInfo || null;
+                                    let refundBlock = '';
+                                    if (refundStatus === 'REFUNDED') {
+                                        refundBlock = `
+                                            <div class="mt-3 bg-emerald-50 border-2 border-emerald-300 rounded-xl p-3.5 flex items-start gap-3">
+                                                <div class="w-9 h-9 rounded-xl bg-emerald-600 text-white flex items-center justify-center text-base flex-shrink-0 shadow-sm">
+                                                    <i class="fa-solid fa-circle-check"></i>
+                                                </div>
+                                                <div class="flex-1">
+                                                    <strong class="text-emerald-900 text-sm font-extrabold uppercase flex items-center gap-2">
+                                                        <i class="fa-solid fa-money-bill-transfer text-emerald-600"></i> Tiền đã được hoàn thành công
+                                                    </strong>
+                                                    <p class="text-emerald-800 font-medium mt-1">
+                                                        Ban Điều hành Vietravel Airlines Cargo đã xác nhận chuyển tiền hoàn vào tài khoản <strong>${refundInfo ? refundInfo.accountName + ' - ' + refundInfo.accountNumber + ' (' + refundInfo.bankName + ')' : 'tài khoản của bạn'}</strong>.
+                                                        ${item.refundConfirmedAt ? '<br><span class="text-xs text-emerald-700 font-semibold">Xác nhận lúc: ' + item.refundConfirmedAt + '</span>' : ''}
+                                                    </p>
+                                                </div>
+                                            </div>`;
+                                    } else if (refundStatus === 'PENDING' && refundInfo) {
+                                        refundBlock = `
+                                            <div class="mt-3 bg-amber-50 border-2 border-amber-300 rounded-xl p-3.5 flex items-start gap-3 animate-pulse">
+                                                <div class="w-9 h-9 rounded-xl bg-amber-500 text-white flex items-center justify-center text-base flex-shrink-0 shadow-sm">
+                                                    <i class="fa-solid fa-clock-rotate-left"></i>
+                                                </div>
+                                                <div class="flex-1">
+                                                    <strong class="text-amber-900 text-sm font-extrabold uppercase flex items-center gap-2">
+                                                        <i class="fa-solid fa-hourglass-half text-amber-600"></i> Yêu cầu hoàn tiền đang chờ xử lý
+                                                    </strong>
+                                                    <p class="text-amber-800 font-medium mt-1">
+                                                        Thông tin tài khoản của bạn đã được ghi nhận. Ban Điều hành sẽ chuyển tiền hoàn trong vòng <strong>3-5 ngày làm việc</strong> vào tài khoản <strong>${refundInfo.accountName} - ${refundInfo.accountNumber} (${refundInfo.bankName})</strong>.
+                                                    </p>
+                                                </div>
+                                            </div>`;
+                                    } else {
+                                        refundBlock = `
+                                            <div class="mt-3 bg-indigo-50 border-2 border-indigo-300 rounded-xl p-3.5">
+                                                <div class="flex items-center gap-2 mb-2">
+                                                    <div class="w-8 h-8 rounded-xl bg-indigo-600 text-white flex items-center justify-center text-sm flex-shrink-0 shadow-sm">
+                                                        <i class="fa-solid fa-money-bill-transfer"></i>
+                                                    </div>
+                                                    <strong class="text-indigo-900 text-sm font-extrabold uppercase">Điền thông tin nhận tiền hoàn</strong>
+                                                </div>
+                                                <p class="text-indigo-800 font-medium mb-3 text-xs">
+                                                    Do đơn hàng bị hủy, nếu quý đại lý đã đặt cọc hoặc thanh toán, vui lòng điền thông tin tài khoản ngân hàng để nhận tiền hoàn lại từ Vietravel Airlines Cargo.
+                                                </p>
+                                                <button onclick="openRefundBankModal('${item.wonId}')" class="bg-indigo-600 hover:bg-indigo-700 text-white font-bold px-4 py-2 rounded-xl text-xs transition shadow flex items-center gap-1.5 cursor-pointer">
+                                                    <i class="fa-solid fa-pen-to-square"></i> Điền thông tin nhận tiền hoàn
+                                                </button>
+                                            </div>`;
+                                    }
                                     return `
                                         <div class="bg-rose-50 border-2 border-rose-300 rounded-2xl p-4 flex items-start gap-3.5 text-xs text-rose-950 shadow-sm">
                                             <div class="w-10 h-10 rounded-xl bg-rose-600 text-white flex items-center justify-center font-bold text-lg flex-shrink-0 shadow-sm">
@@ -2153,6 +2206,7 @@
                                                 <p class="text-rose-800 leading-relaxed font-medium">
                                                     Đơn hàng đã quá thời hạn quy định (Hạn chót Cut-off: <strong class="text-rose-950 underline">${formatEffectiveDeadline(item)}</strong>) mà chưa hoàn tất thanh toán. Theo quy chế sàn đấu giá Vietravel Airlines, hệ thống đã <span class="font-extrabold underline">TỰ ĐỘNG KHÓA TÀI KHOẢN ĐẠI LÝ</span> và thu hồi quyền tham gia đấu giá cũng như toàn bộ slot tải trọng của đơn hàng này.
                                                 </p>
+                                                ${refundBlock}
                                             </div>
                                         </div>
                                     `;
@@ -3160,8 +3214,195 @@
             if (e.key === 'CARGO_BIDDING_DATA_V3') renderWonAuctions();
         });
         window.addEventListener('cargostore_updated', renderWonAuctions);
+
+        // ===== REFUND BANK INFO MODAL =====
+        let _refundTargetWonId = null;
+
+        function openRefundBankModal(wonId) {
+            _refundTargetWonId = wonId;
+            const store = getStore();
+            const item = store ? (store.getWonAuctions ? store.getWonAuctions() : []).find(w => w.wonId === wonId) : null;
+            document.getElementById('refundModalWonId').textContent = wonId || '-';
+
+            // If already submitted, show status instead of form
+            const formArea = document.getElementById('refundFormArea');
+            const pendingArea = document.getElementById('refundPendingArea');
+            const refundedArea = document.getElementById('refundedArea');
+            formArea.classList.add('hidden');
+            pendingArea.classList.add('hidden');
+            refundedArea.classList.add('hidden');
+
+            if (item && item.refundStatus === 'REFUNDED') {
+                const info = item.refundBankInfo || {};
+                document.getElementById('refundedBankName').textContent = info.bankName || '-';
+                document.getElementById('refundedAccountNumber').textContent = info.accountNumber || '-';
+                document.getElementById('refundedAccountName').textContent = info.accountName || '-';
+                document.getElementById('refundedConfirmedAt').textContent = item.refundConfirmedAt || '-';
+                refundedArea.classList.remove('hidden');
+            } else if (item && item.refundStatus === 'PENDING' && item.refundBankInfo) {
+                const info = item.refundBankInfo;
+                document.getElementById('pendingBankName').textContent = info.bankName || '-';
+                document.getElementById('pendingAccountNumber').textContent = info.accountNumber || '-';
+                document.getElementById('pendingAccountName').textContent = info.accountName || '-';
+                document.getElementById('pendingSubmittedAt').textContent = info.submittedAt || '-';
+                pendingArea.classList.remove('hidden');
+            } else {
+                // Clear form
+                document.getElementById('refundBankName').value = '';
+                document.getElementById('refundAccountNumber').value = '';
+                document.getElementById('refundAccountName').value = '';
+                document.getElementById('refundAgentNote').value = '';
+                document.getElementById('refundSubmitError').textContent = '';
+                formArea.classList.remove('hidden');
+            }
+
+            document.getElementById('refundBankModal').classList.remove('hidden');
+        }
+
+        function closeRefundBankModal() {
+            document.getElementById('refundBankModal').classList.add('hidden');
+            _refundTargetWonId = null;
+        }
+
+        async function handleSubmitRefundBankInfo(event) {
+            event.preventDefault();
+            const wonId = _refundTargetWonId;
+            const bankName = document.getElementById('refundBankName').value.trim();
+            const accountNumber = document.getElementById('refundAccountNumber').value.trim();
+            const accountName = document.getElementById('refundAccountName').value.trim();
+            const agentNote = document.getElementById('refundAgentNote').value.trim();
+            const errEl = document.getElementById('refundSubmitError');
+            errEl.textContent = '';
+
+            if (!bankName || !accountNumber || !accountName) {
+                errEl.textContent = 'Vui lòng điền đầy đủ thông tin: Tên ngân hàng, Số tài khoản, Chủ tài khoản.';
+                return;
+            }
+
+            const btn = document.getElementById('refundSubmitBtn');
+            btn.disabled = true;
+            btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Đang gửi...';
+
+            try {
+                const resp = await fetch('/api/wonauction/refund-info', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ wonId, bankName, accountNumber, accountName, agentNote })
+                });
+                const data = await resp.json();
+                if (data.success) {
+                    // Force sync from server: bump server version trigger in store's auto-poll
+                    // The auto-poll will detect the new version and reload wonAuctions
+                    closeRefundBankModal();
+                    // Wait briefly for auto-poll to fire
+                    setTimeout(() => renderWonAuctions(true), 500);
+                    alert('✅ ' + data.message);
+                } else {
+                    errEl.textContent = data.error || 'Gửi thất bại. Vui lòng thử lại.';
+                }
+            } catch (err) {
+                errEl.textContent = 'Lỗi kết nối máy chủ: ' + err.message;
+            } finally {
+                btn.disabled = false;
+                btn.innerHTML = '<i class="fa-solid fa-paper-plane"></i> Gửi thông tin nhận hoàn tiền';
+            }
+        }
     </script>
 <script src="assets/js/chat-bubble.js"></script>
+
+    <!-- Modal: Điền thông tin tài khoản nhận tiền hoàn -->
+    <div id="refundBankModal" class="fixed inset-0 bg-slate-900/70 backdrop-blur-sm z-50 flex items-center justify-center p-3 sm:p-4 hidden">
+        <div class="bg-white rounded-2xl max-w-lg w-full shadow-2xl overflow-hidden animate-in fade-in zoom-in duration-200">
+            <!-- Header -->
+            <div class="bg-gradient-to-r from-indigo-700 to-blue-800 text-white px-6 py-4 flex items-center justify-between flex-shrink-0">
+                <div class="flex items-center gap-2.5">
+                    <div class="w-9 h-9 rounded-xl bg-indigo-500/30 text-white flex items-center justify-center text-sm font-bold border border-indigo-400/30">
+                        <i class="fa-solid fa-money-bill-transfer text-base"></i>
+                    </div>
+                    <div>
+                        <h3 class="font-bold text-sm leading-tight">Thông tin nhận tiền hoàn</h3>
+                        <p class="text-[11px] text-indigo-200">Mã đơn: <strong id="refundModalWonId" class="text-amber-300 font-mono">-</strong></p>
+                    </div>
+                </div>
+                <button onclick="closeRefundBankModal()" class="text-indigo-300 hover:text-white text-lg cursor-pointer"><i class="fa-solid fa-xmark"></i></button>
+            </div>
+
+            <!-- Form area (when not yet submitted) -->
+            <div id="refundFormArea" class="p-6 space-y-4 text-xs">
+                <div class="bg-indigo-50 border border-indigo-200 rounded-xl p-3 text-indigo-800">
+                    <p class="font-semibold flex items-center gap-1.5"><i class="fa-solid fa-circle-info text-indigo-500"></i> Hướng dẫn nhận tiền hoàn</p>
+                    <p class="mt-1 leading-relaxed">Vui lòng điền chính xác thông tin tài khoản ngân hàng để Ban Điều hành Vietravel Airlines Cargo chuyển tiền hoàn cho đơn hàng bị hủy. Tiền sẽ được hoàn trong vòng <strong>3–5 ngày làm việc</strong> sau khi xác nhận.</p>
+                </div>
+                <form onsubmit="handleSubmitRefundBankInfo(event)" class="space-y-3">
+                    <div>
+                        <label class="block font-semibold text-slate-700 mb-1">Tên Ngân hàng <span class="text-red-500">*</span></label>
+                        <input type="text" id="refundBankName" required placeholder="VD: Vietcombank, Techcombank, MB Bank..." class="w-full border rounded-xl px-3 py-2 outline-none focus:ring-2 focus:ring-indigo-500 text-xs font-medium" />
+                    </div>
+                    <div>
+                        <label class="block font-semibold text-slate-700 mb-1">Số Tài Khoản <span class="text-red-500">*</span></label>
+                        <input type="text" id="refundAccountNumber" required placeholder="VD: 1029384756001" class="w-full border rounded-xl px-3 py-2 outline-none focus:ring-2 focus:ring-indigo-500 text-xs font-mono font-bold" />
+                    </div>
+                    <div>
+                        <label class="block font-semibold text-slate-700 mb-1">Chủ Tài Khoản <span class="text-red-500">*</span></label>
+                        <input type="text" id="refundAccountName" required placeholder="VD: NGUYEN VAN AN (chữ in hoa không dấu)" class="w-full border rounded-xl px-3 py-2 outline-none focus:ring-2 focus:ring-indigo-500 text-xs font-medium" />
+                    </div>
+                    <div>
+                        <label class="block font-semibold text-slate-700 mb-1">Ghi chú thêm <span class="text-slate-400">(tuỳ chọn)</span></label>
+                        <textarea id="refundAgentNote" rows="2" placeholder="VD: Chi nhánh, lý do hoặc thông tin bổ sung..." class="w-full border rounded-xl px-3 py-2 outline-none focus:ring-2 focus:ring-indigo-500 text-xs resize-none"></textarea>
+                    </div>
+                    <p id="refundSubmitError" class="text-red-600 font-semibold text-xs"></p>
+                    <div class="flex items-center justify-end gap-2 pt-1">
+                        <button type="button" onclick="closeRefundBankModal()" class="px-4 py-2 border rounded-xl text-slate-600 hover:bg-slate-50 font-medium text-xs cursor-pointer">Huỷ bỏ</button>
+                        <button type="submit" id="refundSubmitBtn" class="px-5 py-2 bg-indigo-600 hover:bg-indigo-700 text-white font-bold rounded-xl shadow flex items-center gap-1.5 text-xs cursor-pointer">
+                            <i class="fa-solid fa-paper-plane"></i> Gửi thông tin nhận hoàn tiền
+                        </button>
+                    </div>
+                </form>
+            </div>
+
+            <!-- Pending area (already submitted, waiting admin) -->
+            <div id="refundPendingArea" class="hidden p-6 space-y-4 text-xs">
+                <div class="bg-amber-50 border-2 border-amber-300 rounded-xl p-4 text-center">
+                    <i class="fa-solid fa-hourglass-half text-3xl text-amber-500 mb-2 block"></i>
+                    <p class="font-bold text-amber-900 text-sm">Yêu cầu hoàn tiền đang được xử lý</p>
+                    <p class="text-amber-700 mt-1">Ban Điều hành sẽ chuyển tiền hoàn trong vòng 3–5 ngày làm việc.</p>
+                </div>
+                <div class="bg-slate-50 border rounded-xl p-3 space-y-2">
+                    <p class="font-semibold text-slate-700">Thông tin tài khoản đã đăng ký:</p>
+                    <div class="grid grid-cols-2 gap-2">
+                        <div><span class="text-slate-500 block">Ngân hàng:</span><strong id="pendingBankName" class="text-slate-900">-</strong></div>
+                        <div><span class="text-slate-500 block">Số TK:</span><strong id="pendingAccountNumber" class="text-blue-600 font-mono">-</strong></div>
+                        <div class="col-span-2"><span class="text-slate-500 block">Chủ TK:</span><strong id="pendingAccountName" class="text-slate-900">-</strong></div>
+                        <div class="col-span-2"><span class="text-slate-500 block">Nộp lúc:</span><span id="pendingSubmittedAt" class="text-slate-600">-</span></div>
+                    </div>
+                </div>
+                <div class="flex justify-end">
+                    <button onclick="closeRefundBankModal()" class="px-4 py-2 border rounded-xl text-slate-600 hover:bg-slate-50 font-medium text-xs cursor-pointer">Đóng</button>
+                </div>
+            </div>
+
+            <!-- Refunded area (admin confirmed) -->
+            <div id="refundedArea" class="hidden p-6 space-y-4 text-xs">
+                <div class="bg-emerald-50 border-2 border-emerald-300 rounded-xl p-4 text-center">
+                    <i class="fa-solid fa-circle-check text-3xl text-emerald-500 mb-2 block"></i>
+                    <p class="font-bold text-emerald-900 text-sm">Tiền hoàn đã được chuyển thành công!</p>
+                    <p class="text-emerald-700 mt-1">Ban Điều hành đã xác nhận hoàn tiền vào tài khoản của bạn.</p>
+                    <p class="text-emerald-600 text-[11px] mt-1">Xác nhận lúc: <strong id="refundedConfirmedAt">-</strong></p>
+                </div>
+                <div class="bg-slate-50 border rounded-xl p-3 space-y-2">
+                    <p class="font-semibold text-slate-700">Tài khoản đã nhận hoàn tiền:</p>
+                    <div class="grid grid-cols-2 gap-2">
+                        <div><span class="text-slate-500 block">Ngân hàng:</span><strong id="refundedBankName" class="text-slate-900">-</strong></div>
+                        <div><span class="text-slate-500 block">Số TK:</span><strong id="refundedAccountNumber" class="text-blue-600 font-mono">-</strong></div>
+                        <div class="col-span-2"><span class="text-slate-500 block">Chủ TK:</span><strong id="refundedAccountName" class="text-slate-900">-</strong></div>
+                    </div>
+                </div>
+                <div class="flex justify-end">
+                    <button onclick="closeRefundBankModal()" class="px-4 py-2 border rounded-xl text-slate-600 hover:bg-slate-50 font-medium text-xs cursor-pointer">Đóng</button>
+                </div>
+            </div>
+        </div>
+    </div>
 </body>
 </html>
 

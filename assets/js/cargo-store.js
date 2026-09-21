@@ -4835,6 +4835,8 @@ const CargoStore = (function() {
         },
 
         adminNotifFilter: 'ALL',
+        adminNotifSelectMode: false,
+        selectedAdminNotifIds: new Set(),
 
         setAdminNotifFilter: function(filter) {
             this.adminNotifFilter = filter;
@@ -4849,6 +4851,79 @@ const CargoStore = (function() {
                 btnAlert.className = filter === 'ALERT' ? active : inactive;
             }
             this.renderAdminNotificationList();
+        },
+
+        toggleAdminNotifSelectMode: function(forceState) {
+            this.adminNotifSelectMode = typeof forceState === 'boolean' ? forceState : !this.adminNotifSelectMode;
+            if (!this.adminNotifSelectMode) {
+                this.selectedAdminNotifIds.clear();
+            }
+            this.renderAdminNotificationList();
+        },
+
+        toggleAdminNotifSelection: function(id) {
+            const sId = String(id);
+            if (this.selectedAdminNotifIds.has(sId)) {
+                this.selectedAdminNotifIds.delete(sId);
+            } else {
+                this.selectedAdminNotifIds.add(sId);
+            }
+            this.renderAdminNotificationList();
+        },
+
+        selectAllAdminNotifs: function(selectAll) {
+            const allAdminNotifs = this.getAdminNotifications();
+            let filtered = allAdminNotifs;
+            if (this.adminNotifFilter === 'PAYMENT') {
+                filtered = allAdminNotifs.filter(n => n.type === 'PAYMENT' || (n.title || '').includes('ĐẠI LÝ BÁO CHUYỂN KHOẢN') || (n.message || '').includes('đối soát sao kê'));
+            } else if (this.adminNotifFilter === 'ALERT') {
+                filtered = allAdminNotifs.filter(n => n.type === 'ALERT' || (n.title || '').includes('CẢNH BÁO') || (n.title || '').includes('KHÓA'));
+            }
+
+            if (selectAll) {
+                filtered.forEach(n => this.selectedAdminNotifIds.add(String(n.id)));
+            } else {
+                filtered.forEach(n => this.selectedAdminNotifIds.delete(String(n.id)));
+            }
+            this.renderAdminNotificationList();
+        },
+
+        handleAdminNotifClick: function(event, id) {
+            if (event.target.closest('a, button, input')) return;
+            if (this.adminNotifSelectMode) {
+                this.toggleAdminNotifSelection(id);
+            } else {
+                this.markAdminNotificationAsRead(id);
+            }
+        },
+
+        deleteAdminNotification: function(id) {
+            this.deleteNotification(id);
+            this.selectedAdminNotifIds.delete(String(id));
+            this.renderAdminNotificationList();
+        },
+
+        deleteSelectedAdminNotifications: function() {
+            const ids = Array.from(this.selectedAdminNotifIds);
+            if (ids.length === 0) return;
+            if (confirm(`Bạn có chắc chắn muốn xóa ${ids.length} thông báo đã chọn?`)) {
+                this.deleteNotifications(ids);
+                this.selectedAdminNotifIds.clear();
+                this.adminNotifSelectMode = false;
+                this.renderAdminNotificationList();
+            }
+        },
+
+        deleteAllAdminNotifications: function() {
+            const allAdminNotifs = this.getAdminNotifications();
+            if (allAdminNotifs.length === 0) return;
+            if (confirm(`Bạn có chắc chắn muốn xóa tất cả ${allAdminNotifs.length} thông báo admin?`)) {
+                const ids = allAdminNotifs.map(n => n.id);
+                this.deleteNotifications(ids);
+                this.selectedAdminNotifIds.clear();
+                this.adminNotifSelectMode = false;
+                this.renderAdminNotificationList();
+            }
         },
 
         getAdminNotifications: function() {
@@ -4933,7 +5008,7 @@ const CargoStore = (function() {
                     </button>
 
                     <!-- Dropdown Modal / Popover (Opens from right to left) -->
-                    <div id="adminNotifDropdown" class="hidden absolute right-0 top-full mt-2 w-80 sm:w-[380px] max-w-[calc(100vw-2rem)] bg-white rounded-2xl shadow-2xl border border-slate-200 text-slate-800 z-[9999] overflow-hidden">
+                    <div id="adminNotifDropdown" class="hidden absolute right-0 top-full mt-2 w-80 sm:w-[400px] max-w-[calc(100vw-2rem)] bg-white rounded-2xl shadow-2xl border border-slate-200 text-slate-800 z-[9999] overflow-hidden">
                         <div class="px-4 py-3 bg-slate-900 text-white flex items-center justify-between border-b border-slate-800">
                             <div class="flex items-center gap-2">
                                 <div class="w-7 h-7 bg-blue-600 rounded-lg flex items-center justify-center text-xs text-white shadow-xs">
@@ -4944,18 +5019,40 @@ const CargoStore = (function() {
                                     <p class="text-[10px] text-slate-400" id="adminNotifSummaryText">0 thông báo mới</p>
                                 </div>
                             </div>
-                            <button type="button" onclick="CargoStore.markAllAdminNotificationsAsRead()" class="text-[11px] text-blue-400 hover:text-blue-300 font-medium hover:underline cursor-pointer">
-                                <i class="fa-solid fa-check-double"></i> Đã đọc tất cả
+                            <div class="flex items-center gap-2">
+                                <button type="button" onclick="CargoStore.markAllAdminNotificationsAsRead()" class="text-[11px] text-blue-400 hover:text-blue-300 font-medium hover:underline cursor-pointer flex items-center gap-1" title="Đánh dấu tất cả là đã đọc">
+                                    <i class="fa-solid fa-check-double"></i> Đã đọc
+                                </button>
+                                <button type="button" onclick="CargoStore.deleteAllAdminNotifications()" class="text-[11px] text-rose-400 hover:text-rose-300 font-medium hover:underline cursor-pointer flex items-center gap-1" title="Xóa tất cả thông báo admin">
+                                    <i class="fa-regular fa-trash-can"></i> Xóa tất cả
+                                </button>
+                            </div>
+                        </div>
+
+                        <!-- Filter Tabs & Selection Toggle in Notification Center -->
+                        <div class="flex items-center justify-between p-2 bg-slate-50 border-b border-slate-100 text-[11px] font-semibold">
+                            <div class="flex items-center gap-1">
+                                <button type="button" onclick="CargoStore.setAdminNotifFilter('ALL')" id="adminNotifTabAll" class="px-2.5 py-1 rounded-lg bg-blue-600 text-white font-bold transition">Tất cả</button>
+                                <button type="button" onclick="CargoStore.setAdminNotifFilter('PAYMENT')" id="adminNotifTabPayment" class="px-2.5 py-1 rounded-lg text-slate-600 hover:bg-slate-200 transition flex items-center gap-1">
+                                    💳 Chờ duyệt CK <span id="adminNotifPayCount" class="hidden bg-amber-500 text-white text-[9px] px-1.5 py-0.2 rounded-full font-bold">0</span>
+                                </button>
+                                <button type="button" onclick="CargoStore.setAdminNotifFilter('ALERT')" id="adminNotifTabAlert" class="px-2.5 py-1 rounded-lg text-slate-600 hover:bg-slate-200 transition">Cảnh báo</button>
+                            </div>
+                            <button type="button" id="adminNotifSelectBtn" onclick="CargoStore.toggleAdminNotifSelectMode()" class="px-2.5 py-1 rounded-lg bg-slate-200 hover:bg-slate-300 text-slate-700 transition flex items-center gap-1 text-[11px] cursor-pointer font-medium" title="Bật/tắt chọn xóa nhiều thông báo">
+                                <i class="fa-regular fa-square-check text-blue-600"></i> <span id="adminNotifSelectBtnText">Chọn xóa</span>
                             </button>
                         </div>
 
-                        <!-- Filter Tabs in Notification Center -->
-                        <div class="flex items-center gap-1 p-2 bg-slate-50 border-b border-slate-100 text-[11px] font-semibold">
-                            <button type="button" onclick="CargoStore.setAdminNotifFilter('ALL')" id="adminNotifTabAll" class="px-2.5 py-1 rounded-lg bg-blue-600 text-white font-bold transition">Tất cả</button>
-                            <button type="button" onclick="CargoStore.setAdminNotifFilter('PAYMENT')" id="adminNotifTabPayment" class="px-2.5 py-1 rounded-lg text-slate-600 hover:bg-slate-200 transition flex items-center gap-1">
-                                💳 Chờ duyệt CK <span id="adminNotifPayCount" class="hidden bg-amber-500 text-white text-[9px] px-1.5 py-0.2 rounded-full font-bold">0</span>
+                        <!-- Selection Toolbar (visible when select mode is active) -->
+                        <div id="adminNotifSelectionBar" class="hidden px-3 py-1.5 bg-slate-800 text-white flex items-center justify-between text-xs border-b border-slate-700">
+                            <div class="flex items-center gap-2">
+                                <input type="checkbox" id="adminNotifSelectAllCb" onchange="CargoStore.selectAllAdminNotifs(this.checked)" class="rounded border-slate-600 text-blue-500 focus:ring-blue-400 cursor-pointer w-4 h-4">
+                                <label for="adminNotifSelectAllCb" class="text-[11px] font-medium cursor-pointer text-slate-200">Chọn tất cả</label>
+                                <span class="text-[11px] text-slate-400 ml-1">(<span id="adminNotifSelectedCount" class="font-bold text-amber-400">0</span>/<span id="adminNotifTotalCount">0</span>)</span>
+                            </div>
+                            <button type="button" id="adminNotifDeleteSelectedBtn" onclick="CargoStore.deleteSelectedAdminNotifications()" disabled class="px-2.5 py-1 bg-rose-600 hover:bg-rose-700 disabled:opacity-50 disabled:cursor-not-allowed text-white font-bold rounded-lg text-[11px] transition flex items-center gap-1 cursor-pointer">
+                                <i class="fa-regular fa-trash-can"></i> Xóa mục chọn
                             </button>
-                            <button type="button" onclick="CargoStore.setAdminNotifFilter('ALERT')" id="adminNotifTabAlert" class="px-2.5 py-1 rounded-lg text-slate-600 hover:bg-slate-200 transition">Cảnh báo</button>
                         </div>
 
                         <!-- Notification List Items -->
@@ -5014,6 +5111,13 @@ const CargoStore = (function() {
             const summaryEl = document.getElementById('adminNotifSummaryText');
             const payCountEl = document.getElementById('adminNotifPayCount');
 
+            const selectionBarEl = document.getElementById('adminNotifSelectionBar');
+            const selectBtnTextEl = document.getElementById('adminNotifSelectBtnText');
+            const selectAllCbEl = document.getElementById('adminNotifSelectAllCb');
+            const selectedCountEl = document.getElementById('adminNotifSelectedCount');
+            const totalCountEl = document.getElementById('adminNotifTotalCount');
+            const deleteSelectedBtnEl = document.getElementById('adminNotifDeleteSelectedBtn');
+
             const allAdminNotifs = this.getAdminNotifications();
             const unreadCount = allAdminNotifs.filter(n => !n.read).length;
             const pendingPayCount = allAdminNotifs.filter(n => !n.read && (n.type === 'PAYMENT' || (n.title || '').includes('ĐẠI LÝ BÁO CHUYỂN KHOẢN'))).length;
@@ -5049,6 +5153,28 @@ const CargoStore = (function() {
                 filtered = allAdminNotifs.filter(n => n.type === 'ALERT' || (n.title || '').includes('CẢNH BÁO') || (n.title || '').includes('KHÓA'));
             }
 
+            // Update Selection Mode Toolbar
+            if (selectionBarEl) {
+                if (this.adminNotifSelectMode) {
+                    selectionBarEl.classList.remove('hidden');
+                } else {
+                    selectionBarEl.classList.add('hidden');
+                }
+            }
+            if (selectBtnTextEl) {
+                selectBtnTextEl.textContent = this.adminNotifSelectMode ? 'Hủy chọn' : 'Chọn xóa';
+            }
+
+            const totalFilteredCount = filtered.length;
+            const currentSelectedCount = Array.from(this.selectedAdminNotifIds).filter(id => filtered.some(n => String(n.id) === String(id))).length;
+
+            if (selectedCountEl) selectedCountEl.textContent = currentSelectedCount;
+            if (totalCountEl) totalCountEl.textContent = totalFilteredCount;
+            if (deleteSelectedBtnEl) deleteSelectedBtnEl.disabled = currentSelectedCount === 0;
+            if (selectAllCbEl) {
+                selectAllCbEl.checked = totalFilteredCount > 0 && currentSelectedCount === totalFilteredCount;
+            }
+
             if (filtered.length === 0) {
                 notifListEl.innerHTML = `
                     <div class="py-8 text-center text-slate-400">
@@ -5060,7 +5186,9 @@ const CargoStore = (function() {
             }
 
             notifListEl.innerHTML = filtered.slice(0, 30).map(n => {
+                const sId = String(n.id);
                 const isUnread = !n.read;
+                const isSelected = this.selectedAdminNotifIds.has(sId);
                 const isPayment = n.type === 'PAYMENT' || (n.title || '').includes('ĐẠI LÝ BÁO CHUYỂN KHOẢN');
                 const isAlert = n.type === 'ALERT' || (n.title || '').includes('KHÓA');
                 
@@ -5073,6 +5201,10 @@ const CargoStore = (function() {
                 } else if (isAlert) {
                     iconClass = 'fa-triangle-exclamation text-rose-600 bg-rose-50';
                     if (isUnread) cardBg = 'bg-rose-50/40 border-l-4 border-rose-500';
+                }
+
+                if (isSelected) {
+                    cardBg = 'bg-blue-50/80 border-2 border-blue-500 font-semibold';
                 }
 
                 // Resolve link for admin
@@ -5092,11 +5224,16 @@ const CargoStore = (function() {
                 }
 
                 return `
-                    <div class="p-3 hover:bg-slate-50 transition rounded-xl flex items-start gap-2.5 ${cardBg}" onclick="CargoStore.markAdminNotificationAsRead(${n.id})">
+                    <div class="group relative p-3 hover:bg-slate-50 transition rounded-xl flex items-start gap-2.5 cursor-pointer ${cardBg}" onclick="CargoStore.handleAdminNotifClick(event, ${n.id})">
+                        ${this.adminNotifSelectMode ? `
+                            <div class="flex items-center h-full pt-1">
+                                <input type="checkbox" ${isSelected ? 'checked' : ''} onchange="event.stopPropagation(); CargoStore.toggleAdminNotifSelection(${n.id})" class="admin-notif-checkbox rounded border-slate-300 text-blue-600 focus:ring-blue-500 cursor-pointer w-4 h-4">
+                            </div>
+                        ` : ''}
                         <div class="w-8 h-8 rounded-lg flex items-center justify-center flex-shrink-0 text-sm ${iconClass}">
                             <i class="fa-solid ${isPayment ? 'fa-credit-card' : (isAlert ? 'fa-triangle-exclamation' : 'fa-bell')}"></i>
                         </div>
-                        <div class="flex-1 min-w-0 space-y-1">
+                        <div class="flex-1 min-w-0 space-y-1 pr-6">
                             <div class="flex items-center justify-between gap-1">
                                 <p class="text-xs font-bold text-slate-900 truncate">${n.title || 'Thông báo'}</p>
                                 <span class="text-[10px] text-slate-400 whitespace-nowrap">${n.time || 'Vừa xong'}</span>
@@ -5107,6 +5244,11 @@ const CargoStore = (function() {
                                 ${isUnread ? '<span class="w-2 h-2 rounded-full bg-blue-600"></span>' : ''}
                             </div>
                         </div>
+                        ${!this.adminNotifSelectMode ? `
+                            <button type="button" onclick="event.stopPropagation(); CargoStore.deleteAdminNotification(${n.id})" class="absolute top-2 right-2 opacity-0 group-hover:opacity-100 bg-white shadow-xs hover:bg-rose-100 hover:text-rose-600 text-slate-400 p-1.5 rounded-lg border border-slate-200 transition cursor-pointer" title="Xóa thông báo này">
+                                <i class="fa-regular fa-trash-can text-xs"></i>
+                            </button>
+                        ` : ''}
                     </div>
                 `;
             }).join('');

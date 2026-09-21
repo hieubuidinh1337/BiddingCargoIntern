@@ -1,5 +1,6 @@
 ﻿<!DOCTYPE html>
 <html lang="vi">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -16,26 +17,31 @@
             scrollbar-width: thin;
             scrollbar-color: #3b82f6 #e2e8f0;
         }
+
         .custom-scrollbar::-webkit-scrollbar {
             width: 8px;
             height: 8px;
             display: block;
         }
+
         .custom-scrollbar::-webkit-scrollbar-track {
             background: #f1f5f9;
             border-radius: 6px;
         }
+
         .custom-scrollbar::-webkit-scrollbar-thumb {
             background: #94a3b8;
             border-radius: 6px;
             border: 2px solid #f1f5f9;
         }
+
         .custom-scrollbar::-webkit-scrollbar-thumb:hover {
             background: #3b82f6;
         }
     </style>
 </head>
-<body class="bg-slate-100 text-slate-800 antialiased min-h-screen flex flex-col">    <!-- ═══════════════════════════════════════════
+
+<body class="bg-slate-100 text-slate-800 antialiased min-h-screen flex flex-col"> <!-- ═══════════════════════════════════════════
          ADMIN HEADER — VU Cargo Admin Portal
          Premium dark navigation — DO NOT EDIT MANUALLY
          ═══════════════════════════════════════════ -->
@@ -43,130 +49,317 @@
         /* ── Admin Header ── */
         #adminHeader {
             background: linear-gradient(135deg, #0f172a 0%, #1e293b 60%, #0f172a 100%);
-            border-bottom: 1px solid rgba(59,130,246,0.18);
-            position: sticky; top: 0; z-index: 50;
-            box-shadow: 0 2px 20px rgba(0,0,0,0.35);
+            border-bottom: 1px solid rgba(59, 130, 246, 0.18);
+            position: sticky;
+            top: 0;
+            z-index: 50;
+            box-shadow: 0 2px 20px rgba(0, 0, 0, 0.35);
         }
+
         #adminHeader::after {
             content: '';
             display: block;
             height: 2px;
             background: linear-gradient(90deg, transparent 0%, #3b82f6 30%, #6366f1 65%, transparent 100%);
         }
+
         .admin-inner {
-            max-width: 1400px; margin: 0 auto;
+            max-width: 1400px;
+            margin: 0 auto;
             padding: 0 1rem;
-            display: flex; align-items: center; justify-content: space-between;
-            height: 58px; gap: 0.75rem;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            height: 58px;
+            gap: 0.75rem;
         }
-        .admin-brand { display:flex; align-items:center; gap:0.75rem; text-decoration:none; flex-shrink:0; }
-        .admin-brand img { height: 32px; object-fit:contain; filter: brightness(0) invert(1); }
-        .admin-brand-sep { width:1px; height:28px; background:rgba(255,255,255,0.15); }
-        .admin-brand-text { font-size:0.8125rem; font-weight:700; color:#e2e8f0; letter-spacing:0.04em; white-space:nowrap; }
-        .admin-brand-sub { font-size:0.6rem; font-weight:600; color:#94a3b8; text-transform:uppercase; letter-spacing:0.1em; display:block; }
+
+        .admin-brand {
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+            text-decoration: none;
+            flex-shrink: 0;
+        }
+
+        .admin-brand img {
+            height: 32px;
+            object-fit: contain;
+            filter: brightness(0) invert(1);
+        }
+
+        .admin-brand-sep {
+            width: 1px;
+            height: 28px;
+            background: rgba(255, 255, 255, 0.15);
+        }
+
+        .admin-brand-text {
+            font-size: 0.8125rem;
+            font-weight: 700;
+            color: #e2e8f0;
+            letter-spacing: 0.04em;
+            white-space: nowrap;
+        }
+
+        .admin-brand-sub {
+            font-size: 0.6rem;
+            font-weight: 600;
+            color: #94a3b8;
+            text-transform: uppercase;
+            letter-spacing: 0.1em;
+            display: block;
+        }
 
         /* Desktop Nav */
-        .admin-nav { display:none; align-items:center; gap:2px; }
-        @media (min-width:768px) { .admin-nav { display:flex; } }
+        .admin-nav {
+            display: none;
+            align-items: center;
+            gap: 2px;
+        }
+
+        @media (min-width:768px) {
+            .admin-nav {
+                display: flex;
+            }
+        }
+
         .nav-item-admin {
-            display:flex; align-items:center; gap:5px;
-            padding: 5px 10px; border-radius: 8px;
-            font-size:0.72rem; font-weight:600; color:rgba(203,213,225,0.85);
-            text-decoration:none; white-space:nowrap;
+            display: flex;
+            align-items: center;
+            gap: 5px;
+            padding: 5px 10px;
+            border-radius: 8px;
+            font-size: 0.72rem;
+            font-weight: 600;
+            color: rgba(203, 213, 225, 0.85);
+            text-decoration: none;
+            white-space: nowrap;
             transition: all 0.15s ease;
             border: 1px solid transparent;
         }
+
         .nav-item-admin:hover {
-            color:#fff; background:rgba(255,255,255,0.08);
-            border-color:rgba(255,255,255,0.1);
+            color: #fff;
+            background: rgba(255, 255, 255, 0.08);
+            border-color: rgba(255, 255, 255, 0.1);
         }
+
         .nav-item-admin.active {
-            color:#fff; background:rgba(59,130,246,0.85);
-            border-color:rgba(59,130,246,0.5);
-            box-shadow: 0 0 12px rgba(59,130,246,0.35);
+            color: #fff;
+            background: rgba(59, 130, 246, 0.85);
+            border-color: rgba(59, 130, 246, 0.5);
+            box-shadow: 0 0 12px rgba(59, 130, 246, 0.35);
         }
+
         .nav-item-admin.chat-item {
-            color:#c4b5fd; background:rgba(139,92,246,0.12);
-            border-color:rgba(139,92,246,0.25);
+            color: #c4b5fd;
+            background: rgba(139, 92, 246, 0.12);
+            border-color: rgba(139, 92, 246, 0.25);
         }
+
         .nav-item-admin.chat-item:hover {
-            color:#e9d5ff; background:rgba(139,92,246,0.22);
+            color: #e9d5ff;
+            background: rgba(139, 92, 246, 0.22);
         }
+
         .nav-item-admin.active-chat {
-            color:#fff; background:rgba(139,92,246,0.75);
-            border-color:rgba(139,92,246,0.5);
-            box-shadow:0 0 12px rgba(139,92,246,0.35);
+            color: #fff;
+            background: rgba(139, 92, 246, 0.75);
+            border-color: rgba(139, 92, 246, 0.5);
+            box-shadow: 0 0 12px rgba(139, 92, 246, 0.35);
         }
+
         .chat-badge {
-            background:#ef4444; color:#fff; font-size:0.6rem;
-            font-weight:700; padding:0 5px; border-radius:999px; min-width:16px;
-            text-align:center; line-height:16px; height:16px;
+            background: #ef4444;
+            color: #fff;
+            font-size: 0.6rem;
+            font-weight: 700;
+            padding: 0 5px;
+            border-radius: 999px;
+            min-width: 16px;
+            text-align: center;
+            line-height: 16px;
+            height: 16px;
         }
 
         /* Right Bar */
-        .admin-right { display:flex; align-items:center; gap:0.5rem; flex-shrink:0; }
+        .admin-right {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            flex-shrink: 0;
+        }
+
         .admin-public-link {
-            display:none; align-items:center; gap:5px;
-            font-size:0.68rem; font-weight:600; color:rgba(148,163,184,0.9);
-            background:rgba(255,255,255,0.06); border:1px solid rgba(255,255,255,0.1);
-            padding:4px 10px; border-radius:8px; text-decoration:none;
-            transition:all 0.15s;
+            display: none;
+            align-items: center;
+            gap: 5px;
+            font-size: 0.68rem;
+            font-weight: 600;
+            color: rgba(148, 163, 184, 0.9);
+            background: rgba(255, 255, 255, 0.06);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            padding: 4px 10px;
+            border-radius: 8px;
+            text-decoration: none;
+            transition: all 0.15s;
         }
-        @media (min-width:1024px) { .admin-public-link { display:flex; } }
-        .admin-public-link:hover { color:#fff; background:rgba(255,255,255,0.1); }
-        .admin-sep { width:1px; height:24px; background:rgba(255,255,255,0.12); }
+
+        @media (min-width:1024px) {
+            .admin-public-link {
+                display: flex;
+            }
+        }
+
+        .admin-public-link:hover {
+            color: #fff;
+            background: rgba(255, 255, 255, 0.1);
+        }
+
+        .admin-sep {
+            width: 1px;
+            height: 24px;
+            background: rgba(255, 255, 255, 0.12);
+        }
+
         .admin-avatar {
-            width:32px; height:32px; border-radius:50%;
-            background:linear-gradient(135deg,#3b82f6,#6366f1);
-            color:#fff; font-weight:800; font-size:0.7rem;
-            display:flex; align-items:center; justify-content:center;
-            border:2px solid rgba(255,255,255,0.15);
-            flex-shrink:0;
+            width: 32px;
+            height: 32px;
+            border-radius: 50%;
+            background: linear-gradient(135deg, #3b82f6, #6366f1);
+            color: #fff;
+            font-weight: 800;
+            font-size: 0.7rem;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border: 2px solid rgba(255, 255, 255, 0.15);
+            flex-shrink: 0;
         }
-        .admin-user-info { display:none; flex-direction:column; text-align:left; }
-        @media (min-width:640px) { .admin-user-info { display:flex; } }
-        .admin-user-name { font-size:0.72rem; font-weight:700; color:#e2e8f0; line-height:1.2; }
-        .admin-user-role { font-size:0.6rem; font-weight:700; color:#60a5fa; text-transform:uppercase; letter-spacing:0.08em; }
+
+        .admin-user-info {
+            display: none;
+            flex-direction: column;
+            text-align: left;
+        }
+
+        @media (min-width:640px) {
+            .admin-user-info {
+                display: flex;
+            }
+        }
+
+        .admin-user-name {
+            font-size: 0.72rem;
+            font-weight: 700;
+            color: #e2e8f0;
+            line-height: 1.2;
+        }
+
+        .admin-user-role {
+            font-size: 0.6rem;
+            font-weight: 700;
+            color: #60a5fa;
+            text-transform: uppercase;
+            letter-spacing: 0.08em;
+        }
+
         .admin-logout {
-            color:rgba(148,163,184,0.7); padding:6px; border-radius:8px;
-            text-decoration:none; transition:all 0.15s; font-size:0.8rem;
-            border:1px solid transparent;
+            color: rgba(148, 163, 184, 0.7);
+            padding: 6px;
+            border-radius: 8px;
+            text-decoration: none;
+            transition: all 0.15s;
+            font-size: 0.8rem;
+            border: 1px solid transparent;
         }
-        .admin-logout:hover { color:#f87171; background:rgba(239,68,68,0.1); border-color:rgba(239,68,68,0.2); }
+
+        .admin-logout:hover {
+            color: #f87171;
+            background: rgba(239, 68, 68, 0.1);
+            border-color: rgba(239, 68, 68, 0.2);
+        }
 
         /* Mobile hamburger */
         .admin-hamburger {
-            display:flex; align-items:center; justify-content:center;
-            width:34px; height:34px; border-radius:8px;
-            background:rgba(255,255,255,0.07); border:1px solid rgba(255,255,255,0.12);
-            color:#cbd5e1; cursor:pointer; font-size:0.85rem;
-            transition:all 0.15s;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            width: 34px;
+            height: 34px;
+            border-radius: 8px;
+            background: rgba(255, 255, 255, 0.07);
+            border: 1px solid rgba(255, 255, 255, 0.12);
+            color: #cbd5e1;
+            cursor: pointer;
+            font-size: 0.85rem;
+            transition: all 0.15s;
         }
-        .admin-hamburger:hover { background:rgba(255,255,255,0.12); color:#fff; }
-        @media (min-width:768px) { .admin-hamburger { display:none; } }
+
+        .admin-hamburger:hover {
+            background: rgba(255, 255, 255, 0.12);
+            color: #fff;
+        }
+
+        @media (min-width:768px) {
+            .admin-hamburger {
+                display: none;
+            }
+        }
 
         /* Mobile dropdown */
         #adminMobileNav {
-            display:none; padding: 0.75rem 1rem;
-            background:#1e293b; border-top:1px solid rgba(255,255,255,0.08);
-            max-width:1400px; margin:0 auto;
+            display: none;
+            padding: 0.75rem 1rem;
+            background: #1e293b;
+            border-top: 1px solid rgba(255, 255, 255, 0.08);
+            max-width: 1400px;
+            margin: 0 auto;
         }
-        #adminMobileNav.open { display:block; }
+
+        #adminMobileNav.open {
+            display: block;
+        }
+
         .mobile-nav-item {
-            display:flex; align-items:center; gap:0.6rem;
-            padding:8px 12px; border-radius:8px; margin-bottom:2px;
-            font-size:0.76rem; font-weight:600; color:#cbd5e1;
-            text-decoration:none; transition:all 0.15s;
+            display: flex;
+            align-items: center;
+            gap: 0.6rem;
+            padding: 8px 12px;
+            border-radius: 8px;
+            margin-bottom: 2px;
+            font-size: 0.76rem;
+            font-weight: 600;
+            color: #cbd5e1;
+            text-decoration: none;
+            transition: all 0.15s;
         }
-        .mobile-nav-item:hover { color:#fff; background:rgba(255,255,255,0.08); }
-        .mobile-nav-item.active { color:#fff; background:rgba(59,130,246,0.75); }
-        .mobile-nav-item.chat-item { color:#c4b5fd; }
-        .mobile-nav-item.active-chat { color:#fff; background:rgba(139,92,246,0.75); }
+
+        .mobile-nav-item:hover {
+            color: #fff;
+            background: rgba(255, 255, 255, 0.08);
+        }
+
+        .mobile-nav-item.active {
+            color: #fff;
+            background: rgba(59, 130, 246, 0.75);
+        }
+
+        .mobile-nav-item.chat-item {
+            color: #c4b5fd;
+        }
+
+        .mobile-nav-item.active-chat {
+            color: #fff;
+            background: rgba(139, 92, 246, 0.75);
+        }
     </style>
     <header id="adminHeader">
         <div class="admin-inner">
             <!-- Brand -->
-            <button type="button" class="admin-hamburger" onclick="document.getElementById('adminMobileNav').classList.toggle('open')" aria-label="Menu">
+            <button type="button" class="admin-hamburger"
+                onclick="document.getElementById('adminMobileNav').classList.toggle('open')" aria-label="Menu">
                 <i class="fa-solid fa-bars"></i>
             </button>
             <a href="02-AdminDashboard.html" class="admin-brand">
@@ -180,14 +373,21 @@
 
             <!-- Desktop Nav -->
             <nav class="admin-nav">
-                    <a href="02-AdminDashboard.html" class="nav-item-admin"><i class="fa-solid fa-gauge-high"></i>Dashboard</a>
-                    <a href="03-AuctionList.html" class="nav-item-admin"><i class="fa-solid fa-list-check"></i>Quản lý phiên</a>
-                    <a href="04-CreateAuction.html" class="nav-item-admin"><i class="fa-solid fa-circle-plus"></i>Tạo phiên</a>
-                    <a href="06-AgentList.html" class="nav-item-admin active"><i class="fa-solid fa-building-user"></i>Đại lý</a>
-                    <a href="07-Reports.html" class="nav-item-admin"><i class="fa-solid fa-chart-line"></i>Báo cáo</a>
-                    <a href="08-Settings.html" class="nav-item-admin"><i class="fa-solid fa-sliders"></i>Cài đặt</a>
-                    <a href="10-AuditLogs.html" class="nav-item-admin"><i class="fa-solid fa-clock-rotate-left"></i>Nhật ký</a>
-                    <a href="09-AdminChat.html" class="nav-item-admin chat-item"><i class="fa-solid fa-headset"></i>Chat<span id="admin-chat-badge" class="hidden chat-badge">0</span></a>
+                <a href="02-AdminDashboard.html" class="nav-item-admin"><i
+                        class="fa-solid fa-gauge-high"></i>Dashboard</a>
+                <a href="03-AuctionList.html" class="nav-item-admin"><i class="fa-solid fa-list-check"></i>Quản lý
+                    phiên</a>
+                <a href="04-CreateAuction.html" class="nav-item-admin"><i class="fa-solid fa-circle-plus"></i>Tạo
+                    phiên</a>
+                <a href="06-AgentList.html" class="nav-item-admin active"><i class="fa-solid fa-building-user"></i>Đại
+                    lý</a>
+                <a href="07-Reports.html" class="nav-item-admin"><i class="fa-solid fa-chart-line"></i>Báo cáo</a>
+                <a href="08-Settings.html" class="nav-item-admin"><i class="fa-solid fa-sliders"></i>Cài đặt</a>
+                <a href="10-AuditLogs.html" class="nav-item-admin"><i class="fa-solid fa-clock-rotate-left"></i>Nhật
+                    ký</a>
+                <a href="09-AdminChat.html" class="nav-item-admin chat-item"><i
+                        class="fa-solid fa-headset"></i>Chat<span id="admin-chat-badge"
+                        class="hidden chat-badge">0</span></a>
             </nav>
 
             <!-- Right Bar -->
@@ -201,7 +401,8 @@
                     <span class="admin-user-name admin-header-name">Quản trị viên</span>
                     <span class="admin-user-role admin-header-role">QUẢN TRỊ VIÊN</span>
                 </div>
-                <a href="01-AdminLogin.html" onclick="if(window.CargoStore) CargoStore.logoutAdmin()" class="admin-logout" title="Đăng xuất">
+                <a href="01-AdminLogin.html" onclick="if(window.CargoStore) CargoStore.logoutAdmin()"
+                    class="admin-logout" title="Đăng xuất">
                     <i class="fa-solid fa-power-off"></i>
                 </a>
             </div>
@@ -209,15 +410,23 @@
 
         <!-- Mobile Dropdown -->
         <div id="adminMobileNav">
-            <a href="02-AdminDashboard.html" class="mobile-nav-item"><i class="fa-solid fa-gauge-high w-4"></i>Dashboard</a>
-            <a href="03-AuctionList.html" class="mobile-nav-item"><i class="fa-solid fa-list-check w-4"></i>Quản lý phiên</a>
-            <a href="04-CreateAuction.html" class="mobile-nav-item"><i class="fa-solid fa-circle-plus w-4"></i>Tạo phiên</a>
-            <a href="06-AgentList.html" class="mobile-nav-item active"><i class="fa-solid fa-building-user w-4"></i>Đại lý</a>
+            <a href="02-AdminDashboard.html" class="mobile-nav-item"><i
+                    class="fa-solid fa-gauge-high w-4"></i>Dashboard</a>
+            <a href="03-AuctionList.html" class="mobile-nav-item"><i class="fa-solid fa-list-check w-4"></i>Quản lý
+                phiên</a>
+            <a href="04-CreateAuction.html" class="mobile-nav-item"><i class="fa-solid fa-circle-plus w-4"></i>Tạo
+                phiên</a>
+            <a href="06-AgentList.html" class="mobile-nav-item active"><i class="fa-solid fa-building-user w-4"></i>Đại
+                lý</a>
             <a href="07-Reports.html" class="mobile-nav-item"><i class="fa-solid fa-chart-line w-4"></i>Báo cáo</a>
             <a href="08-Settings.html" class="mobile-nav-item"><i class="fa-solid fa-sliders w-4"></i>Cài đặt</a>
-            <a href="10-AuditLogs.html" class="mobile-nav-item"><i class="fa-solid fa-clock-rotate-left w-4"></i>Nhật ký</a>
-            <a href="09-AdminChat.html" class="mobile-nav-item chat-item"><i class="fa-solid fa-headset w-4"></i>Chat<span id="admin-chat-badge-m" class="hidden chat-badge ml-auto">0</span></a>
-            <a href="../00-Home.html" target="_blank" class="mobile-nav-item" style="border-top:1px solid rgba(255,255,255,0.08);margin-top:6px;padding-top:10px">
+            <a href="10-AuditLogs.html" class="mobile-nav-item"><i class="fa-solid fa-clock-rotate-left w-4"></i>Nhật
+                ký</a>
+            <a href="09-AdminChat.html" class="mobile-nav-item chat-item"><i
+                    class="fa-solid fa-headset w-4"></i>Chat<span id="admin-chat-badge-m"
+                    class="hidden chat-badge ml-auto">0</span></a>
+            <a href="../00-Home.html" target="_blank" class="mobile-nav-item"
+                style="border-top:1px solid rgba(255,255,255,0.08);margin-top:6px;padding-top:10px">
                 <i class="fa-solid fa-arrow-up-right-from-square w-4"></i> Xem Sàn công khai
             </a>
         </div>
@@ -232,7 +441,8 @@
                 <h1 class="text-2xl font-bold text-slate-900 flex items-center gap-2">
                     <i class="fa-solid fa-users-gear text-blue-600"></i> Quản lý Người dùng, Phân quyền & Kích hoạt
                 </h1>
-                <p class="text-xs text-slate-500 mt-1">Nghiệp vụ Quản trị viên: Quản lý đại lý, tài khoản nhân viên điều hành, khóa / mở khóa và phân cấp</p>
+                <p class="text-xs text-slate-500 mt-1">Nghiệp vụ Quản trị viên: Quản lý đại lý, tài khoản nhân viên điều
+                    hành, khóa / mở khóa và phân cấp</p>
             </div>
             <div id="topActionArea">
                 <!-- Dynamically rendered -->
@@ -241,34 +451,45 @@
 
         <!-- Navigation Tabs -->
         <div class="flex flex-wrap items-center gap-2 border-b pb-2">
-            <button onclick="switchTab('REGISTRATIONS')" id="tabRegBtn" class="px-4 py-2 rounded-xl text-xs font-bold bg-blue-600 text-white shadow-sm flex items-center gap-2 transition">
+            <button onclick="switchTab('REGISTRATIONS')" id="tabRegBtn"
+                class="px-4 py-2 rounded-xl text-xs font-bold bg-blue-600 text-white shadow-sm flex items-center gap-2 transition">
                 <i class="fa-solid fa-inbox"></i> Hồ sơ đăng ký mới (<span id="regCountBadge">0</span>)
             </button>
-            <button onclick="switchTab('ACTIVE_AGENTS')" id="tabAgentBtn" class="px-4 py-2 rounded-xl text-xs font-bold bg-white text-slate-600 hover:bg-slate-50 border flex items-center gap-2 transition">
+            <button onclick="switchTab('ACTIVE_AGENTS')" id="tabAgentBtn"
+                class="px-4 py-2 rounded-xl text-xs font-bold bg-white text-slate-600 hover:bg-slate-50 border flex items-center gap-2 transition">
                 <i class="fa-solid fa-building-shield"></i> Đại lý ủy quyền (<span id="agentCountBadge">0</span>)
             </button>
-            <button onclick="switchTab('STAFF_MEMBERS')" id="tabStaffBtn" class="px-4 py-2 rounded-xl text-xs font-bold bg-white text-slate-600 hover:bg-slate-50 border flex items-center gap-2 transition">
+            <button onclick="switchTab('STAFF_MEMBERS')" id="tabStaffBtn"
+                class="px-4 py-2 rounded-xl text-xs font-bold bg-white text-slate-600 hover:bg-slate-50 border flex items-center gap-2 transition">
                 <i class="fa-solid fa-user-shield"></i> Nhân sự nội bộ & Quản trị (<span id="staffCountBadge">0</span>)
             </button>
         </div>
 
         <!-- Tab 1: Pending Registrations -->
         <div id="sectionRegistrations" class="space-y-4">
-            <div class="bg-blue-50 border border-blue-200 text-blue-800 rounded-xl p-3.5 text-xs flex items-center gap-2">
+            <div
+                class="bg-blue-50 border border-blue-200 text-blue-800 rounded-xl p-3.5 text-xs flex items-center gap-2">
                 <i class="fa-solid fa-circle-info text-blue-600 text-sm"></i>
-                <span>Các hồ sơ gửi lên từ trang <strong>Register.html</strong> sẽ xuất hiện tại đây. Nhấn <strong>"Phê duyệt & Cấp mã"</strong> để kích hoạt tài khoản đại lý.</span>
+                <span>Các hồ sơ gửi lên từ trang <strong>Register.html</strong> sẽ xuất hiện tại đây. Nhấn <strong>"Phê
+                        duyệt & Cấp mã"</strong> để kích hoạt tài khoản đại lý.</span>
             </div>
 
             <!-- Filter & Search Controls -->
-            <div class="bg-white p-3 sm:p-4 rounded-2xl border shadow-xs flex flex-col md:flex-row gap-3 items-stretch md:items-center justify-between">
+            <div
+                class="bg-white p-3 sm:p-4 rounded-2xl border shadow-xs flex flex-col md:flex-row gap-3 items-stretch md:items-center justify-between">
                 <div class="relative flex-1">
-                    <i class="fa-solid fa-magnifying-glass absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400 text-xs"></i>
-                    <input type="text" id="regSearchInput" oninput="renderAgentsList()" placeholder="Tìm kiếm theo mã hồ sơ, tên công ty, MST, email, người đại diện..." class="w-full pl-9 pr-4 py-2 bg-slate-50 border border-slate-200 rounded-xl text-xs focus:bg-white focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition">
+                    <i
+                        class="fa-solid fa-magnifying-glass absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400 text-xs"></i>
+                    <input type="text" id="regSearchInput" oninput="renderAgentsList()"
+                        placeholder="Tìm kiếm theo mã hồ sơ, tên công ty, MST, email, người đại diện..."
+                        class="w-full pl-9 pr-4 py-2 bg-slate-50 border border-slate-200 rounded-xl text-xs focus:bg-white focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition">
                 </div>
                 <div class="flex flex-wrap sm:flex-nowrap items-center gap-2 text-xs">
                     <div class="flex items-center gap-1.5 min-w-[180px]">
-                        <span class="text-slate-500 font-medium whitespace-nowrap"><i class="fa-solid fa-filter text-slate-400"></i> Trạng thái:</span>
-                        <select id="regStatusFilter" onchange="renderAgentsList()" class="w-full bg-slate-50 border border-slate-200 rounded-xl px-2.5 py-2 font-medium text-slate-700 focus:outline-none focus:border-blue-500 transition">
+                        <span class="text-slate-500 font-medium whitespace-nowrap"><i
+                                class="fa-solid fa-filter text-slate-400"></i> Trạng thái:</span>
+                        <select id="regStatusFilter" onchange="renderAgentsList()"
+                            class="w-full bg-slate-50 border border-slate-200 rounded-xl px-2.5 py-2 font-medium text-slate-700 focus:outline-none focus:border-blue-500 transition">
                             <option value="ALL">Tất cả trạng thái</option>
                             <option value="PENDING">Chờ duyệt / Chưa phê duyệt</option>
                             <option value="APPROVED">Đã phê duyệt</option>
@@ -276,8 +497,10 @@
                         </select>
                     </div>
                     <div class="flex items-center gap-1.5 min-w-[150px]">
-                        <span class="text-slate-500 font-medium whitespace-nowrap"><i class="fa-solid fa-arrow-down-short-wide text-slate-400"></i> Sắp xếp:</span>
-                        <select id="regSortSelect" onchange="renderAgentsList()" class="w-full bg-slate-50 border border-slate-200 rounded-xl px-2.5 py-2 font-medium text-slate-700 focus:outline-none focus:border-blue-500 transition">
+                        <span class="text-slate-500 font-medium whitespace-nowrap"><i
+                                class="fa-solid fa-arrow-down-short-wide text-slate-400"></i> Sắp xếp:</span>
+                        <select id="regSortSelect" onchange="renderAgentsList()"
+                            class="w-full bg-slate-50 border border-slate-200 rounded-xl px-2.5 py-2 font-medium text-slate-700 focus:outline-none focus:border-blue-500 transition">
                             <option value="NEWEST">Mới nhất</option>
                             <option value="OLDEST">Cũ nhất</option>
                         </select>
@@ -293,21 +516,23 @@
         <!-- Tab 2: Active Agents -->
         <div id="sectionAgents" class="hidden space-y-4">
             <!-- Filter & Search Controls for Active Agents -->
-            <div class="bg-white p-3 sm:p-4 rounded-2xl border shadow-xs flex flex-col md:flex-row gap-3 items-stretch md:items-center justify-between">
+            <div
+                class="bg-white p-3 sm:p-4 rounded-2xl border shadow-xs flex flex-col md:flex-row gap-3 items-stretch md:items-center justify-between">
                 <div class="relative flex-1">
-                    <i class="fa-solid fa-magnifying-glass absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400 text-xs"></i>
-                    <input type="text" id="agentSearchInput" oninput="currentAgentsPage=1; renderAgentsList()" placeholder="Tìm kiếm đại lý theo Mã đại lý, Tên công ty, Người đại diện, Email, MST, SĐT..." class="w-full pl-9 pr-4 py-2 bg-slate-50 border border-slate-200 rounded-xl text-xs focus:bg-white focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition">
+                    <i
+                        class="fa-solid fa-magnifying-glass absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400 text-xs"></i>
+                    <input type="text" id="agentSearchInput" oninput="currentAgentsPage=1; renderAgentsList()"
+                        placeholder="Tìm kiếm đại lý theo Mã đại lý, Tên công ty, Người đại diện, Email, MST, SĐT..."
+                        class="w-full pl-9 pr-4 py-2 bg-slate-50 border border-slate-200 rounded-xl text-xs focus:bg-white focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition">
                 </div>
                 <div class="flex flex-wrap sm:flex-nowrap items-center gap-2 text-xs">
                     <!-- Test Agent Filter Checkbox -->
-                    <label class="flex items-center gap-2 bg-slate-50 border border-slate-200 rounded-xl px-3 py-2 cursor-pointer font-medium text-slate-700 hover:bg-slate-100 transition whitespace-nowrap">
-                        <input type="checkbox" id="hideTestAgentsCheckbox" onchange="currentAgentsPage=1; renderAgentsList()" checked class="w-4 h-4 rounded text-blue-600 focus:ring-blue-500 border-slate-300">
-                        <span class="flex items-center gap-1.5"><i class="fa-solid fa-filter-circle-xmark text-blue-600"></i> Lọc / Ẩn đại lý Test (AG-TEST)</span>
-                    </label>
 
                     <div class="flex items-center gap-1.5 min-w-[140px]">
-                        <span class="text-slate-500 font-medium whitespace-nowrap"><i class="fa-solid fa-filter text-slate-400"></i> Trạng thái:</span>
-                        <select id="agentStatusFilter" onchange="currentAgentsPage=1; renderAgentsList()" class="w-full bg-slate-50 border border-slate-200 rounded-xl px-2.5 py-2 font-medium text-slate-700 focus:outline-none focus:border-blue-500 transition">
+                        <span class="text-slate-500 font-medium whitespace-nowrap"><i
+                                class="fa-solid fa-filter text-slate-400"></i> Trạng thái:</span>
+                        <select id="agentStatusFilter" onchange="currentAgentsPage=1; renderAgentsList()"
+                            class="w-full bg-slate-50 border border-slate-200 rounded-xl px-2.5 py-2 font-medium text-slate-700 focus:outline-none focus:border-blue-500 transition">
                             <option value="ALL">Tất cả trạng thái</option>
                             <option value="ACTIVE">Đang hoạt động</option>
                             <option value="LOCKED">Đã khóa</option>
@@ -315,8 +540,10 @@
                     </div>
 
                     <div class="flex items-center gap-1.5 min-w-[140px]">
-                        <span class="text-slate-500 font-medium whitespace-nowrap"><i class="fa-solid fa-arrow-down-short-wide text-slate-400"></i> Sắp xếp:</span>
-                        <select id="agentSortSelect" onchange="currentAgentsPage=1; renderAgentsList()" class="w-full bg-slate-50 border border-slate-200 rounded-xl px-2.5 py-2 font-medium text-slate-700 focus:outline-none focus:border-blue-500 transition">
+                        <span class="text-slate-500 font-medium whitespace-nowrap"><i
+                                class="fa-solid fa-arrow-down-short-wide text-slate-400"></i> Sắp xếp:</span>
+                        <select id="agentSortSelect" onchange="currentAgentsPage=1; renderAgentsList()"
+                            class="w-full bg-slate-50 border border-slate-200 rounded-xl px-2.5 py-2 font-medium text-slate-700 focus:outline-none focus:border-blue-500 transition">
                             <option value="CODE_ASC">Mã đại lý (A-Z)</option>
                             <option value="CODE_DESC">Mã đại lý (Z-A)</option>
                             <option value="NAME_ASC">Tên công ty (A-Z)</option>
@@ -327,11 +554,13 @@
 
             <div class="bg-white rounded-2xl border shadow-sm overflow-hidden">
                 <div class="p-4 bg-slate-50/70 border-b flex items-center justify-between">
-                    <span class="text-xs text-slate-600 font-semibold">Danh sách đại lý đang tham gia sàn đấu giá tải trọng</span>
+                    <span class="text-xs text-slate-600 font-semibold">Danh sách đại lý đang tham gia sàn đấu giá tải
+                        trọng</span>
                     <span class="text-[11px] text-slate-500">Thao tác: Khóa / Mở khóa kích hoạt tài khoản đại lý</span>
                 </div>
                 <div class="sm:hidden px-3 pt-2">
-                    <div class="flex items-center gap-1.5 text-[11px] text-slate-500 bg-slate-50 px-3 py-1.5 rounded-lg border border-slate-200">
+                    <div
+                        class="flex items-center gap-1.5 text-[11px] text-slate-500 bg-slate-50 px-3 py-1.5 rounded-lg border border-slate-200">
                         <i class="fa-solid fa-arrows-left-right text-blue-500"></i>
                         <span>Bảng nhiều cột: Vuốt sang ngang để xem đầy đủ</span>
                     </div>
@@ -356,10 +585,12 @@
                 </div>
 
                 <!-- Pagination Bar for Agents -->
-                <div id="agentsPaginationBar" class="bg-white border-t p-4 flex flex-col sm:flex-row items-center justify-between gap-3 text-xs text-slate-600">
+                <div id="agentsPaginationBar"
+                    class="bg-white border-t p-4 flex flex-col sm:flex-row items-center justify-between gap-3 text-xs text-slate-600">
                     <div class="flex items-center gap-2">
                         <span>Hiển thị</span>
-                        <select id="agentsItemsPerPage" onchange="changeAgentsItemsPerPage(this.value)" class="border rounded-lg px-2.5 py-1 text-xs bg-white font-medium focus:ring-2 focus:ring-blue-500 outline-none">
+                        <select id="agentsItemsPerPage" onchange="changeAgentsItemsPerPage(this.value)"
+                            class="border rounded-lg px-2.5 py-1 text-xs bg-white font-medium focus:ring-2 focus:ring-blue-500 outline-none">
                             <option value="5">5 đại lý / trang</option>
                             <option value="10" selected>10 đại lý / trang</option>
                             <option value="20">20 đại lý / trang</option>
@@ -377,13 +608,16 @@
         <!-- Tab 3: Staff & Internal Users -->
         <div id="sectionStaff" class="hidden bg-white rounded-2xl border shadow-sm overflow-hidden">
             <div class="p-4 bg-slate-50/70 border-b flex items-center justify-between">
-                <span class="text-xs text-slate-600 font-semibold">Danh sách tài khoản Nhân viên Điều hành & Quản trị viên sàn</span>
-                <button id="addStaffBtn" onclick="openAddStaffModal()" class="bg-blue-600 hover:bg-blue-700 text-white text-xs font-bold px-3 py-1.5 rounded-xl transition shadow flex items-center gap-1.5">
+                <span class="text-xs text-slate-600 font-semibold">Danh sách tài khoản Nhân viên Điều hành & Quản trị
+                    viên sàn</span>
+                <button id="addStaffBtn" onclick="openAddStaffModal()"
+                    class="bg-blue-600 hover:bg-blue-700 text-white text-xs font-bold px-3 py-1.5 rounded-xl transition shadow flex items-center gap-1.5">
                     <i class="fa-solid fa-user-plus"></i> Thêm tài khoản nhân viên mới
                 </button>
             </div>
             <div class="sm:hidden px-3 pt-2">
-                <div class="flex items-center gap-1.5 text-[11px] text-slate-500 bg-slate-50 px-3 py-1.5 rounded-lg border border-slate-200">
+                <div
+                    class="flex items-center gap-1.5 text-[11px] text-slate-500 bg-slate-50 px-3 py-1.5 rounded-lg border border-slate-200">
                     <i class="fa-solid fa-arrows-left-right text-blue-500"></i>
                     <span>Bảng nhiều cột: Vuốt sang ngang để xem đầy đủ</span>
                 </div>
@@ -411,26 +645,33 @@
     </main>
 
     <!-- Modal: Thêm tài khoản nhân viên mới -->
-    <div id="addStaffModal" class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-50 hidden flex items-center justify-center p-4">
+    <div id="addStaffModal"
+        class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-50 hidden flex items-center justify-center p-4">
         <div class="bg-white rounded-2xl shadow-xl max-w-md w-full overflow-hidden">
             <div class="bg-slate-900 text-white px-6 py-4 flex items-center justify-between">
                 <h3 class="font-bold text-sm flex items-center gap-2">
                     <i class="fa-solid fa-user-plus text-blue-400"></i> Cấp tài khoản Nhân viên mới
                 </h3>
-                <button onclick="closeAddStaffModal()" class="text-slate-400 hover:text-white text-lg"><i class="fa-solid fa-xmark"></i></button>
+                <button onclick="closeAddStaffModal()" class="text-slate-400 hover:text-white text-lg"><i
+                        class="fa-solid fa-xmark"></i></button>
             </div>
             <form onsubmit="handleCreateStaff(event)" class="p-6 space-y-3.5 text-xs">
                 <div>
-                    <label class="block font-semibold text-slate-700 mb-1">Tên đăng nhập (Username) <span class="text-red-500">*</span></label>
-                    <input type="text" id="newStaffUsername" required placeholder="VD: staff03" class="w-full border rounded-xl px-3 py-2 outline-none focus:ring-2 focus:ring-blue-500 font-mono">
+                    <label class="block font-semibold text-slate-700 mb-1">Tên đăng nhập (Username) <span
+                            class="text-red-500">*</span></label>
+                    <input type="text" id="newStaffUsername" required placeholder="VD: staff03"
+                        class="w-full border rounded-xl px-3 py-2 outline-none focus:ring-2 focus:ring-blue-500 font-mono">
                 </div>
                 <div>
-                    <label class="block font-semibold text-slate-700 mb-1">Họ và tên nhân viên <span class="text-red-500">*</span></label>
-                    <input type="text" id="newStaffFullName" required placeholder="VD: Trần Văn Khai Thác" class="w-full border rounded-xl px-3 py-2 outline-none focus:ring-2 focus:ring-blue-500">
+                    <label class="block font-semibold text-slate-700 mb-1">Họ và tên nhân viên <span
+                            class="text-red-500">*</span></label>
+                    <input type="text" id="newStaffFullName" required placeholder="VD: Trần Văn Khai Thác"
+                        class="w-full border rounded-xl px-3 py-2 outline-none focus:ring-2 focus:ring-blue-500">
                 </div>
                 <div>
                     <label class="block font-semibold text-slate-700 mb-1">Phòng ban chuyên trách</label>
-                    <select id="newStaffDept" class="w-full border rounded-xl px-3 py-2 bg-white outline-none focus:ring-2 focus:ring-blue-500">
+                    <select id="newStaffDept"
+                        class="w-full border rounded-xl px-3 py-2 bg-white outline-none focus:ring-2 focus:ring-blue-500">
                         <option value="Air Cargo Flight Operations">Air Cargo Flight Operations (Điều hành bay)</option>
                         <option value="Agent Audit & Approval">Agent Audit & Approval (Thẩm định đại lý)</option>
                         <option value="Cargo Revenue & Pricing">Cargo Revenue & Pricing (Doanh thu & Giá cước)</option>
@@ -438,41 +679,54 @@
                 </div>
                 <div>
                     <label class="block font-semibold text-slate-700 mb-1">Phân quyền vai trò</label>
-                    <select id="newStaffRole" class="w-full border rounded-xl px-3 py-2 bg-white outline-none focus:ring-2 focus:ring-blue-500">
+                    <select id="newStaffRole"
+                        class="w-full border rounded-xl px-3 py-2 bg-white outline-none focus:ring-2 focus:ring-blue-500">
                         <option value="STAFF">NHÂN VIÊN ĐIỀU HÀNH (STAFF)</option>
                         <option value="ADMIN">QUẢN TRỊ VIÊN HỆ THỐNG (ADMIN)</option>
                     </select>
                 </div>
                 <div>
-                    <label class="block font-semibold text-slate-700 mb-1">Mật khẩu khởi tạo <span class="text-red-500">*</span></label>
+                    <label class="block font-semibold text-slate-700 mb-1">Mật khẩu khởi tạo <span
+                            class="text-red-500">*</span></label>
                     <div class="relative">
-                        <input type="password" id="newStaffPassword" required value="staff2026" class="w-full border rounded-xl px-3 py-2 pr-10 outline-none focus:ring-2 focus:ring-blue-500">
-                        <button type="button" onclick="const input = document.getElementById('newStaffPassword'); const icon = this.querySelector('i'); if (input.type === 'password') { input.type = 'text'; icon.classList.replace('fa-eye', 'fa-eye-slash'); } else { input.type = 'password'; icon.classList.replace('fa-eye-slash', 'fa-eye'); }" class="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600 transition">
+                        <input type="password" id="newStaffPassword" required value="staff2026"
+                            class="w-full border rounded-xl px-3 py-2 pr-10 outline-none focus:ring-2 focus:ring-blue-500">
+                        <button type="button"
+                            onclick="const input = document.getElementById('newStaffPassword'); const icon = this.querySelector('i'); if (input.type === 'password') { input.type = 'text'; icon.classList.replace('fa-eye', 'fa-eye-slash'); } else { input.type = 'password'; icon.classList.replace('fa-eye-slash', 'fa-eye'); }"
+                            class="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600 transition">
                             <i class="fa-solid fa-eye text-sm"></i>
                         </button>
                     </div>
                 </div>
                 <div class="flex items-center justify-end gap-2.5 pt-2 border-t">
-                    <button type="button" onclick="closeAddStaffModal()" class="px-4 py-2 border rounded-xl text-slate-600 hover:bg-slate-50 font-medium">Hủy bỏ</button>
-                    <button type="submit" class="px-5 py-2 bg-blue-600 hover:bg-blue-700 text-white font-bold rounded-xl shadow">Tạo tài khoản</button>
+                    <button type="button" onclick="closeAddStaffModal()"
+                        class="px-4 py-2 border rounded-xl text-slate-600 hover:bg-slate-50 font-medium">Hủy bỏ</button>
+                    <button type="submit"
+                        class="px-5 py-2 bg-blue-600 hover:bg-blue-700 text-white font-bold rounded-xl shadow">Tạo tài
+                        khoản</button>
                 </div>
             </form>
         </div>
     </div>
 
     <!-- Modal Xem Hồ sơ Minh Chứng Trực Tiếp Trên Trình Duyệt -->
-    <div id="docModal" class="fixed inset-0 bg-slate-900/80 backdrop-blur-xs z-50 hidden items-center justify-center p-0 sm:p-4">
-        <div class="bg-white rounded-none sm:rounded-2xl max-w-5xl w-full h-full sm:h-[94vh] flex flex-col p-3 sm:p-5 shadow-2xl space-y-2 sm:space-y-3 border-0 sm:border border-slate-200 overflow-hidden animate-in fade-in zoom-in-95 duration-200">
+    <div id="docModal"
+        class="fixed inset-0 bg-slate-900/80 backdrop-blur-xs z-50 hidden items-center justify-center p-0 sm:p-4">
+        <div
+            class="bg-white rounded-none sm:rounded-2xl max-w-5xl w-full h-full sm:h-[94vh] flex flex-col p-3 sm:p-5 shadow-2xl space-y-2 sm:space-y-3 border-0 sm:border border-slate-200 overflow-hidden animate-in fade-in zoom-in-95 duration-200">
             <!-- Header -->
             <div class="flex items-center justify-between border-b border-slate-200 pb-2 sm:pb-3 shrink-0 gap-2">
                 <div class="flex items-center gap-2 sm:gap-3 min-w-0 flex-1">
-                    <div class="w-8 h-8 sm:w-10 sm:h-10 rounded-xl bg-blue-50 text-blue-600 flex items-center justify-center font-bold text-sm sm:text-lg border border-blue-100 shadow-2xs shrink-0">
+                    <div
+                        class="w-8 h-8 sm:w-10 sm:h-10 rounded-xl bg-blue-50 text-blue-600 flex items-center justify-center font-bold text-sm sm:text-lg border border-blue-100 shadow-2xs shrink-0">
                         <i class="fa-solid fa-file-lines" id="docModalIconHeader"></i>
                     </div>
                     <div class="min-w-0 flex-1">
                         <div class="flex items-center gap-1.5 sm:gap-2">
-                            <h3 class="font-bold text-xs sm:text-base text-slate-900 leading-tight truncate" id="docModalTitle">Chi tiết tệp hồ sơ</h3>
-                            <span id="docModalBadge" class="bg-blue-100 text-blue-700 text-[9px] sm:text-[10px] font-bold px-1.5 sm:px-2 py-0.5 rounded-full border border-blue-200 shrink-0 whitespace-nowrap">
+                            <h3 class="font-bold text-xs sm:text-base text-slate-900 leading-tight truncate"
+                                id="docModalTitle">Chi tiết tệp hồ sơ</h3>
+                            <span id="docModalBadge"
+                                class="bg-blue-100 text-blue-700 text-[9px] sm:text-[10px] font-bold px-1.5 sm:px-2 py-0.5 rounded-full border border-blue-200 shrink-0 whitespace-nowrap">
                                 Xem trực tiếp
                             </span>
                         </div>
@@ -482,31 +736,40 @@
                     </div>
                 </div>
                 <div class="flex items-center gap-1.5 sm:gap-2 shrink-0">
-                    <button onclick="openInNewBrowserTab()" class="bg-blue-50 hover:bg-blue-100 text-blue-700 font-semibold px-2 sm:px-3 py-1.5 rounded-lg text-xs transition flex items-center gap-1.5 cursor-pointer shadow-2xs border border-blue-200 whitespace-nowrap" title="Mở trực tiếp trên tab mới của trình duyệt">
-                        <i class="fa-solid fa-arrow-up-right-from-square text-xs"></i> <span class="hidden sm:inline">Mở tab mới</span>
+                    <button onclick="openInNewBrowserTab()"
+                        class="bg-blue-50 hover:bg-blue-100 text-blue-700 font-semibold px-2 sm:px-3 py-1.5 rounded-lg text-xs transition flex items-center gap-1.5 cursor-pointer shadow-2xs border border-blue-200 whitespace-nowrap"
+                        title="Mở trực tiếp trên tab mới của trình duyệt">
+                        <i class="fa-solid fa-arrow-up-right-from-square text-xs"></i> <span class="hidden sm:inline">Mở
+                            tab mới</span>
                     </button>
-                    <button onclick="closeDocModal()" class="w-7 h-7 sm:w-8 sm:h-8 rounded-lg hover:bg-gray-100 flex items-center justify-center text-gray-400 hover:text-gray-700 transition cursor-pointer" title="Đóng cửa sổ xem hồ sơ">
+                    <button onclick="closeDocModal()"
+                        class="w-7 h-7 sm:w-8 sm:h-8 rounded-lg hover:bg-gray-100 flex items-center justify-center text-gray-400 hover:text-gray-700 transition cursor-pointer"
+                        title="Đóng cửa sổ xem hồ sơ">
                         <i class="fa-solid fa-xmark text-base sm:text-lg"></i>
                     </button>
                 </div>
             </div>
 
             <!-- Dynamic File Visual Viewer Container (Displays content directly on browser) -->
-            <div id="docVisualContainer" class="flex-1 min-h-0 custom-scrollbar bg-slate-100/80 rounded-lg sm:rounded-xl p-2 sm:p-4 border border-slate-200/80">
+            <div id="docVisualContainer"
+                class="flex-1 min-h-0 custom-scrollbar bg-slate-100/80 rounded-lg sm:rounded-xl p-2 sm:p-4 border border-slate-200/80">
                 <!-- Injected via JavaScript: Iframe PDF, Image, or Mock Document Paper -->
             </div>
 
             <!-- Footer: Explanatory notice and download button -->
-            <div class="flex flex-col sm:flex-row items-stretch sm:items-center justify-between pt-2 sm:pt-2.5 border-t border-slate-200 text-xs shrink-0 gap-2">
+            <div
+                class="flex flex-col sm:flex-row items-stretch sm:items-center justify-between pt-2 sm:pt-2.5 border-t border-slate-200 text-xs shrink-0 gap-2">
                 <span class="text-slate-500 font-medium flex items-center gap-1 text-[10px] sm:text-xs">
                     <i class="fa-solid fa-circle-check text-emerald-600"></i>
                     <span>Tệp hiển thị trực tiếp. Bấm <strong>"Tải về máy"</strong> để lưu về thiết bị.</span>
                 </span>
                 <div class="flex items-center justify-end gap-2 shrink-0">
-                    <button onclick="closeDocModal()" class="flex-1 sm:flex-initial bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold px-3 sm:px-4 py-1.5 sm:py-2 rounded-xl text-xs transition cursor-pointer text-center">
+                    <button onclick="closeDocModal()"
+                        class="flex-1 sm:flex-initial bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold px-3 sm:px-4 py-1.5 sm:py-2 rounded-xl text-xs transition cursor-pointer text-center">
                         Đóng
                     </button>
-                    <button onclick="downloadCurrentDocument()" class="flex-1 sm:flex-initial bg-blue-600 hover:bg-blue-700 text-white font-bold px-3 sm:px-4 py-1.5 sm:py-2 rounded-xl text-xs transition flex items-center justify-center gap-1.5 shadow-sm cursor-pointer whitespace-nowrap">
+                    <button onclick="downloadCurrentDocument()"
+                        class="flex-1 sm:flex-initial bg-blue-600 hover:bg-blue-700 text-white font-bold px-3 sm:px-4 py-1.5 sm:py-2 rounded-xl text-xs transition flex items-center justify-center gap-1.5 shadow-sm cursor-pointer whitespace-nowrap">
                         <i class="fa-solid fa-download"></i> Tải về máy
                     </button>
                 </div>
@@ -515,27 +778,35 @@
     </div>
 
     <!-- Modal Từ chối / Yêu cầu bổ sung Hồ sơ Đăng ký Đại lý -->
-    <div id="rejectRegModal" class="fixed inset-0 bg-slate-900/60 backdrop-blur-xs z-50 hidden items-center justify-center p-4">
-        <div class="bg-white rounded-2xl max-w-lg w-full p-6 shadow-2xl border border-slate-200 animate-in fade-in zoom-in-95 duration-200">
+    <div id="rejectRegModal"
+        class="fixed inset-0 bg-slate-900/60 backdrop-blur-xs z-50 hidden items-center justify-center p-4">
+        <div
+            class="bg-white rounded-2xl max-w-lg w-full p-6 shadow-2xl border border-slate-200 animate-in fade-in zoom-in-95 duration-200">
             <div class="flex items-center justify-between border-b pb-3 mb-4">
                 <div class="flex items-center gap-2.5">
-                    <div class="w-9 h-9 bg-red-100 text-red-600 rounded-xl flex items-center justify-center font-bold text-base">
+                    <div
+                        class="w-9 h-9 bg-red-100 text-red-600 rounded-xl flex items-center justify-center font-bold text-base">
                         <i class="fa-solid fa-ban"></i>
                     </div>
                     <div>
                         <h3 class="font-bold text-base text-slate-900">Từ chối / Yêu cầu bổ sung Hồ sơ</h3>
-                        <p class="text-xs text-slate-500">Mã hồ sơ: <span id="rejectModalRegId" class="font-bold font-mono text-red-600">-</span></p>
+                        <p class="text-xs text-slate-500">Mã hồ sơ: <span id="rejectModalRegId"
+                                class="font-bold font-mono text-red-600">-</span></p>
                     </div>
                 </div>
-                <button type="button" onclick="closeRejectRegModal()" class="text-slate-400 hover:text-slate-600 text-lg cursor-pointer">
+                <button type="button" onclick="closeRejectRegModal()"
+                    class="text-slate-400 hover:text-slate-600 text-lg cursor-pointer">
                     <i class="fa-solid fa-xmark"></i>
                 </button>
             </div>
 
             <div class="bg-slate-50 p-3.5 rounded-xl border border-slate-200 mb-4 text-xs space-y-1">
-                <p>• <strong>Doanh nghiệp:</strong> <span id="rejectModalCompanyName" class="font-semibold text-slate-800">-</span></p>
-                <p>• <strong>Người đại diện:</strong> <span id="rejectModalRepName" class="font-semibold text-slate-800">-</span></p>
-                <p>• <strong>Email nhận thông báo:</strong> <span id="rejectModalEmail" class="font-semibold text-blue-700 font-mono">-</span></p>
+                <p>• <strong>Doanh nghiệp:</strong> <span id="rejectModalCompanyName"
+                        class="font-semibold text-slate-800">-</span></p>
+                <p>• <strong>Người đại diện:</strong> <span id="rejectModalRepName"
+                        class="font-semibold text-slate-800">-</span></p>
+                <p>• <strong>Email nhận thông báo:</strong> <span id="rejectModalEmail"
+                        class="font-semibold text-blue-700 font-mono">-</span></p>
             </div>
 
             <form id="rejectRegForm" onsubmit="submitRejectRegistration(event)" class="space-y-4">
@@ -545,8 +816,9 @@
                     <label class="block text-xs font-bold text-slate-700 mb-1">
                         Lý do từ chối & Hướng dẫn bổ sung <span class="text-red-500">*</span>
                     </label>
-                    <textarea id="rejectModalReasonInput" required rows="3" placeholder="Nhập chi tiết lý do từ chối để gửi thông báo hướng dẫn doanh nghiệp bổ sung giấy tờ..."
-                              class="w-full border border-slate-300 rounded-xl p-3 text-xs focus:ring-2 focus:ring-red-500 outline-none leading-relaxed bg-white"></textarea>
+                    <textarea id="rejectModalReasonInput" required rows="3"
+                        placeholder="Nhập chi tiết lý do từ chối để gửi thông báo hướng dẫn doanh nghiệp bổ sung giấy tờ..."
+                        class="w-full border border-slate-300 rounded-xl p-3 text-xs focus:ring-2 focus:ring-red-500 outline-none leading-relaxed bg-white"></textarea>
                 </div>
 
                 <!-- Multi-select Quick Pick Suggestions -->
@@ -555,54 +827,65 @@
                         <label class="block text-[11px] font-bold text-slate-700">
                             Gợi ý lý do nhanh (Chọn nhiều mục cùng lúc):
                         </label>
-                        <button type="button" onclick="clearAllRejectPresets()" class="text-[10px] text-red-600 hover:underline font-semibold flex items-center gap-1 cursor-pointer">
+                        <button type="button" onclick="clearAllRejectPresets()"
+                            class="text-[10px] text-red-600 hover:underline font-semibold flex items-center gap-1 cursor-pointer">
                             <i class="fa-solid fa-rotate-left text-[9px]"></i> Bỏ chọn tất cả
                         </button>
                     </div>
                     <div class="grid grid-cols-1 sm:grid-cols-2 gap-1.5" id="rejectPresetsContainer">
-                        <button type="button" onclick="toggleRejectPreset(this, 'Giấy phép ĐKKD bị mờ, không rõ con dấu hoặc đã hết hiệu lực, vui lòng scan lại bản rõ nét.')" 
-                                class="reject-preset-chip text-left text-[11px] bg-slate-50 hover:bg-slate-100 text-slate-700 border border-slate-200 rounded-xl px-2.5 py-1.5 transition cursor-pointer font-medium flex items-center justify-between gap-1.5">
+                        <button type="button"
+                            onclick="toggleRejectPreset(this, 'Giấy phép ĐKKD bị mờ, không rõ con dấu hoặc đã hết hiệu lực, vui lòng scan lại bản rõ nét.')"
+                            class="reject-preset-chip text-left text-[11px] bg-slate-50 hover:bg-slate-100 text-slate-700 border border-slate-200 rounded-xl px-2.5 py-1.5 transition cursor-pointer font-medium flex items-center justify-between gap-1.5">
                             <span class="truncate">📄 GPKD mờ / hết hạn</span>
                             <i class="fa-regular fa-square text-slate-400 check-icon text-xs"></i>
                         </button>
-                        <button type="button" onclick="toggleRejectPreset(this, 'Mã số thuế không trùng khớp với tên doanh nghiệp theo cổng ĐKKD Quốc gia.')" 
-                                class="reject-preset-chip text-left text-[11px] bg-slate-50 hover:bg-slate-100 text-slate-700 border border-slate-200 rounded-xl px-2.5 py-1.5 transition cursor-pointer font-medium flex items-center justify-between gap-1.5">
+                        <button type="button"
+                            onclick="toggleRejectPreset(this, 'Mã số thuế không trùng khớp với tên doanh nghiệp theo cổng ĐKKD Quốc gia.')"
+                            class="reject-preset-chip text-left text-[11px] bg-slate-50 hover:bg-slate-100 text-slate-700 border border-slate-200 rounded-xl px-2.5 py-1.5 transition cursor-pointer font-medium flex items-center justify-between gap-1.5">
                             <span class="truncate">🏢 MST không khớp</span>
                             <i class="fa-regular fa-square text-slate-400 check-icon text-xs"></i>
                         </button>
-                        <button type="button" onclick="toggleRejectPreset(this, 'Người nộp đơn thiếu Giấy ủy quyền hợp lệ từ Người đại diện pháp luật doanh nghiệp.')" 
-                                class="reject-preset-chip text-left text-[11px] bg-slate-50 hover:bg-slate-100 text-slate-700 border border-slate-200 rounded-xl px-2.5 py-1.5 transition cursor-pointer font-medium flex items-center justify-between gap-1.5">
+                        <button type="button"
+                            onclick="toggleRejectPreset(this, 'Người nộp đơn thiếu Giấy ủy quyền hợp lệ từ Người đại diện pháp luật doanh nghiệp.')"
+                            class="reject-preset-chip text-left text-[11px] bg-slate-50 hover:bg-slate-100 text-slate-700 border border-slate-200 rounded-xl px-2.5 py-1.5 transition cursor-pointer font-medium flex items-center justify-between gap-1.5">
                             <span class="truncate">✍️ Thiếu giấy ủy quyền</span>
                             <i class="fa-regular fa-square text-slate-400 check-icon text-xs"></i>
                         </button>
-                        <button type="button" onclick="toggleRejectPreset(this, 'Chứng chỉ đại lý IATA / Hiệp hội Logistics (VLA) chưa đạt chuẩn hoặc thiếu chứng nhận.')" 
-                                class="reject-preset-chip text-left text-[11px] bg-slate-50 hover:bg-slate-100 text-slate-700 border border-slate-200 rounded-xl px-2.5 py-1.5 transition cursor-pointer font-medium flex items-center justify-between gap-1.5">
+                        <button type="button"
+                            onclick="toggleRejectPreset(this, 'Chứng chỉ đại lý IATA / Hiệp hội Logistics (VLA) chưa đạt chuẩn hoặc thiếu chứng nhận.')"
+                            class="reject-preset-chip text-left text-[11px] bg-slate-50 hover:bg-slate-100 text-slate-700 border border-slate-200 rounded-xl px-2.5 py-1.5 transition cursor-pointer font-medium flex items-center justify-between gap-1.5">
                             <span class="truncate">✈️ Chứng chỉ IATA/VLA</span>
                             <i class="fa-regular fa-square text-slate-400 check-icon text-xs"></i>
                         </button>
-                        <button type="button" onclick="toggleRejectPreset(this, 'Bản chụp CCCD/Hộ chiếu của người đại diện bị thiếu 2 mặt hoặc không rõ thông tin.')" 
-                                class="reject-preset-chip text-left text-[11px] bg-slate-50 hover:bg-slate-100 text-slate-700 border border-slate-200 rounded-xl px-2.5 py-1.5 transition cursor-pointer font-medium flex items-center justify-between gap-1.5">
+                        <button type="button"
+                            onclick="toggleRejectPreset(this, 'Bản chụp CCCD/Hộ chiếu của người đại diện bị thiếu 2 mặt hoặc không rõ thông tin.')"
+                            class="reject-preset-chip text-left text-[11px] bg-slate-50 hover:bg-slate-100 text-slate-700 border border-slate-200 rounded-xl px-2.5 py-1.5 transition cursor-pointer font-medium flex items-center justify-between gap-1.5">
                             <span class="truncate">📑 CCCD/Hộ chiếu thiếu 2 mặt</span>
                             <i class="fa-regular fa-square text-slate-400 check-icon text-xs"></i>
                         </button>
-                        <button type="button" onclick="toggleRejectPreset(this, 'Không liên hệ được với người phụ trách qua số điện thoại/email đã cung cấp để xác thực.')" 
-                                class="reject-preset-chip text-left text-[11px] bg-slate-50 hover:bg-slate-100 text-slate-700 border border-slate-200 rounded-xl px-2.5 py-1.5 transition cursor-pointer font-medium flex items-center justify-between gap-1.5">
+                        <button type="button"
+                            onclick="toggleRejectPreset(this, 'Không liên hệ được với người phụ trách qua số điện thoại/email đã cung cấp để xác thực.')"
+                            class="reject-preset-chip text-left text-[11px] bg-slate-50 hover:bg-slate-100 text-slate-700 border border-slate-200 rounded-xl px-2.5 py-1.5 transition cursor-pointer font-medium flex items-center justify-between gap-1.5">
                             <span class="truncate">📞 Không liên hệ được</span>
                             <i class="fa-regular fa-square text-slate-400 check-icon text-xs"></i>
                         </button>
                     </div>
                 </div>
 
-                <div class="p-3 bg-amber-50 border border-amber-200 rounded-xl text-[11px] text-amber-800 flex items-start gap-2">
+                <div
+                    class="p-3 bg-amber-50 border border-amber-200 rounded-xl text-[11px] text-amber-800 flex items-start gap-2">
                     <i class="fa-solid fa-circle-info text-amber-600 mt-0.5"></i>
-                    <span>Hệ thống sẽ <strong>tự động gửi email thông báo kèm lý do chi tiết</strong> này đến hòm thư của đại lý và cung cấp link để đại lý cập nhật & nộp lại hồ sơ nhanh chóng.</span>
+                    <span>Hệ thống sẽ <strong>tự động gửi email thông báo kèm lý do chi tiết</strong> này đến hòm thư
+                        của đại lý và cung cấp link để đại lý cập nhật & nộp lại hồ sơ nhanh chóng.</span>
                 </div>
 
                 <div class="flex items-center justify-end gap-2.5 pt-3 border-t">
-                    <button type="button" onclick="closeRejectRegModal()" class="px-4 py-2 border rounded-xl text-slate-600 hover:bg-slate-50 font-semibold text-xs cursor-pointer">
+                    <button type="button" onclick="closeRejectRegModal()"
+                        class="px-4 py-2 border rounded-xl text-slate-600 hover:bg-slate-50 font-semibold text-xs cursor-pointer">
                         Hủy bỏ
                     </button>
-                    <button type="submit" class="px-5 py-2 bg-red-600 hover:bg-red-700 text-white font-bold rounded-xl text-xs shadow-sm transition flex items-center gap-1.5 cursor-pointer">
+                    <button type="submit"
+                        class="px-5 py-2 bg-red-600 hover:bg-red-700 text-white font-bold rounded-xl text-xs shadow-sm transition flex items-center gap-1.5 cursor-pointer">
                         <i class="fa-solid fa-paper-plane"></i> Xác nhận từ chối & Gửi thông báo
                     </button>
                 </div>
@@ -915,10 +1198,10 @@
                                 </div>
                                 <div class="flex flex-wrap gap-2.5">
                                     ${((r.documents && r.documents.length > 0) ? r.documents : []).map((doc, docIdx) => {
-                                        const docName = typeof doc === 'string' ? doc : (doc.name || 'document');
-                                        const isPdf = docName.toLowerCase().endsWith('.pdf');
-                                        const regIdx = regs.indexOf(r);
-                                        return `
+                        const docName = typeof doc === 'string' ? doc : (doc.name || 'document');
+                        const isPdf = docName.toLowerCase().endsWith('.pdf');
+                        const regIdx = regs.indexOf(r);
+                        return `
                                         <div class="inline-flex items-center gap-1.5 bg-white border border-slate-200/90 rounded-xl p-1 shadow-2xs hover:border-blue-400 transition">
                                             <button onclick="previewDocByIndex(${regIdx}, ${docIdx})" class="inline-flex items-center gap-1.5 px-2.5 py-1 text-slate-800 hover:text-blue-700 font-medium text-xs rounded-lg hover:bg-blue-50 transition cursor-pointer" title="Bấm để xem chi tiết tệp">
                                                 <i class="fa-solid ${isPdf ? 'fa-file-pdf text-red-500' : 'fa-file-image text-blue-500'} text-sm"></i>
@@ -931,7 +1214,8 @@
                                                 <i class="fa-solid fa-download text-[10px]"></i> Tải về
                                             </button>
                                         </div>
-                                    `;}).join('')}
+                                    `;
+                    }).join('')}
                                     ${(!r.documents || r.documents.length === 0) ? '<p class="text-xs text-gray-400 italic">Không có tệp đính kèm</p>' : ''}
                                 </div>
                             </div>
@@ -970,7 +1254,7 @@
 
             // 2. Render Active Agents
             const agents = data.agentsList || [];
-            
+
             // Read filter & search parameters for active agents
             const agentSearch = (document.getElementById('agentSearchInput')?.value || '').trim().toLowerCase();
             const agentStatus = document.getElementById('agentStatusFilter')?.value || 'ALL';
@@ -989,7 +1273,7 @@
                 if (!ag.repName && !ag.email && !ag.taxCode && !ag.phone) {
                     return false;
                 }
-                
+
                 const isTestAgent = codeUpper.includes('AG-TEST') || nameUpper.includes('AG-TEST') || nameUpper.includes('TEST AGENT');
                 if (hideTestAgents && isTestAgent) {
                     return false;
@@ -1094,9 +1378,9 @@
                             </span>
                         </td>
                         <td class="py-3.5 px-4">
-                            ${isLocked ? 
-                                '<span class="bg-red-100 text-red-700 font-bold px-2.5 py-1 rounded-full text-[10px] inline-flex items-center gap-1"><i class="fa-solid fa-ban"></i> ĐÃ KHÓA</span>' : 
-                                '<span class="bg-emerald-100 text-emerald-700 font-bold px-2.5 py-1 rounded-full text-[10px] inline-flex items-center gap-1"><i class="fa-solid fa-circle-check"></i> HOẠT ĐỘNG</span>'}
+                            ${isLocked ?
+                        '<span class="bg-red-100 text-red-700 font-bold px-2.5 py-1 rounded-full text-[10px] inline-flex items-center gap-1"><i class="fa-solid fa-ban"></i> ĐÃ KHÓA</span>' :
+                        '<span class="bg-emerald-100 text-emerald-700 font-bold px-2.5 py-1 rounded-full text-[10px] inline-flex items-center gap-1"><i class="fa-solid fa-circle-check"></i> HOẠT ĐỘNG</span>'}
                         </td>
                         <td class="py-3.5 px-4 text-right space-x-1.5 whitespace-nowrap">
                             ${st.username !== 'admin' ? (isStaff ? `
@@ -1195,7 +1479,7 @@
             document.getElementById('rejectModalCompanyName').textContent = reg.companyName || '-';
             document.getElementById('rejectModalRepName').textContent = `${reg.repName || '-'} (${reg.repPosition || 'Đại diện'})`;
             document.getElementById('rejectModalEmail').textContent = `${reg.email} ${reg.notifEmail && reg.notifEmail !== reg.email ? `(Thông báo: ${reg.notifEmail})` : ''}`;
-            
+
             clearAllRejectPresets();
 
             const modal = document.getElementById('rejectRegModal');
@@ -1399,7 +1683,7 @@
 
             // Revoke any previous blob object URL to release memory
             if (activeBlobUrl) {
-                try { URL.revokeObjectURL(activeBlobUrl); } catch(e){}
+                try { URL.revokeObjectURL(activeBlobUrl); } catch (e) { }
                 activeBlobUrl = null;
             }
 
@@ -1413,7 +1697,7 @@
             if (compEl) compEl.textContent = activeCompName;
 
             const docNameLower = (activeDocObj.name || '').toLowerCase();
-            const isImg = (activeDocObj.type || '').startsWith('image/') || ['png','jpg','jpeg','webp','svg'].some(e => docNameLower.endsWith(e));
+            const isImg = (activeDocObj.type || '').startsWith('image/') || ['png', 'jpg', 'jpeg', 'webp', 'svg'].some(e => docNameLower.endsWith(e));
             const isPdf = (activeDocObj.type || '').includes('pdf') || docNameLower.endsWith('.pdf');
 
             if (iconHeader) {
@@ -1565,7 +1849,7 @@
                 modal.classList.remove('flex');
             }
             if (activeBlobUrl) {
-                try { URL.revokeObjectURL(activeBlobUrl); } catch(e){}
+                try { URL.revokeObjectURL(activeBlobUrl); } catch (e) { }
                 activeBlobUrl = null;
             }
         }
@@ -1702,30 +1986,30 @@
             }
         }
 
-        document.addEventListener('DOMContentLoaded', function() {
+        document.addEventListener('DOMContentLoaded', function () {
             renderAgentsList();
             if (window.CargoStore && CargoStore.syncAdminHeaderUI) CargoStore.syncAdminHeaderUI();
         });
 
         // Cross-tab sync
-        window.addEventListener('storage', function(e) {
+        window.addEventListener('storage', function (e) {
             if (e.key === 'CARGO_BIDDING_DATA_V3') renderAgentsList();
         });
         window.addEventListener('cargostore_updated', renderAgentsList);
     </script>
-<script>
-(function(){
-  function updateChatBadge(){
-    fetch("/api/chat").then(r=>r.json()).then(d=>{
-      if(!d.success) return;
-      var w=(d.chats||[]).filter(function(c){return c.status==="WAITING";}).length;
-      var b=document.getElementById("admin-chat-badge");
-      if(b){b.textContent=w;b.classList.toggle("hidden",w===0);}
-    }).catch(function(){});
-  }
-  document.addEventListener("DOMContentLoaded",function(){updateChatBadge();setInterval(updateChatBadge,8000);});
-})();
-</script>
+    <script>
+        (function () {
+            function updateChatBadge() {
+                fetch("/api/chat").then(r => r.json()).then(d => {
+                    if (!d.success) return;
+                    var w = (d.chats || []).filter(function (c) { return c.status === "WAITING"; }).length;
+                    var b = document.getElementById("admin-chat-badge");
+                    if (b) { b.textContent = w; b.classList.toggle("hidden", w === 0); }
+                }).catch(function () { });
+            }
+            document.addEventListener("DOMContentLoaded", function () { updateChatBadge(); setInterval(updateChatBadge, 8000); });
+        })();
+    </script>
 </body>
-</html>
 
+</html>
