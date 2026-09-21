@@ -1,5 +1,6 @@
 <!DOCTYPE html>
 <html lang="vi">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -8,10 +9,13 @@
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <style>
-        body { font-family: 'Inter', sans-serif; }
+        body {
+            font-family: 'Inter', sans-serif;
+        }
     </style>
 </head>
-<body class="bg-slate-50 text-slate-800 min-h-screen flex flex-col">    <!-- ═══════════════════════════════════════════
+
+<body class="bg-slate-50 text-slate-800 min-h-screen flex flex-col"> <!-- ═══════════════════════════════════════════
          ADMIN HEADER — VU Cargo Admin Portal
          Premium dark navigation — DO NOT EDIT MANUALLY
          ═══════════════════════════════════════════ -->
@@ -19,130 +23,317 @@
         /* ── Admin Header ── */
         #adminHeader {
             background: linear-gradient(135deg, #0f172a 0%, #1e293b 60%, #0f172a 100%);
-            border-bottom: 1px solid rgba(59,130,246,0.18);
-            position: sticky; top: 0; z-index: 50;
-            box-shadow: 0 2px 20px rgba(0,0,0,0.35);
+            border-bottom: 1px solid rgba(59, 130, 246, 0.18);
+            position: sticky;
+            top: 0;
+            z-index: 50;
+            box-shadow: 0 2px 20px rgba(0, 0, 0, 0.35);
         }
+
         #adminHeader::after {
             content: '';
             display: block;
             height: 2px;
             background: linear-gradient(90deg, transparent 0%, #3b82f6 30%, #6366f1 65%, transparent 100%);
         }
+
         .admin-inner {
-            max-width: 1400px; margin: 0 auto;
+            max-width: 1400px;
+            margin: 0 auto;
             padding: 0 1rem;
-            display: flex; align-items: center; justify-content: space-between;
-            height: 58px; gap: 0.75rem;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            height: 58px;
+            gap: 0.75rem;
         }
-        .admin-brand { display:flex; align-items:center; gap:0.75rem; text-decoration:none; flex-shrink:0; }
-        .admin-brand img { height: 32px; object-fit:contain; filter: brightness(0) invert(1); }
-        .admin-brand-sep { width:1px; height:28px; background:rgba(255,255,255,0.15); }
-        .admin-brand-text { font-size:0.8125rem; font-weight:700; color:#e2e8f0; letter-spacing:0.04em; white-space:nowrap; }
-        .admin-brand-sub { font-size:0.6rem; font-weight:600; color:#94a3b8; text-transform:uppercase; letter-spacing:0.1em; display:block; }
+
+        .admin-brand {
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+            text-decoration: none;
+            flex-shrink: 0;
+        }
+
+        .admin-brand img {
+            height: 32px;
+            object-fit: contain;
+            filter: brightness(0) invert(1);
+        }
+
+        .admin-brand-sep {
+            width: 1px;
+            height: 28px;
+            background: rgba(255, 255, 255, 0.15);
+        }
+
+        .admin-brand-text {
+            font-size: 0.8125rem;
+            font-weight: 700;
+            color: #e2e8f0;
+            letter-spacing: 0.04em;
+            white-space: nowrap;
+        }
+
+        .admin-brand-sub {
+            font-size: 0.6rem;
+            font-weight: 600;
+            color: #94a3b8;
+            text-transform: uppercase;
+            letter-spacing: 0.1em;
+            display: block;
+        }
 
         /* Desktop Nav */
-        .admin-nav { display:none; align-items:center; gap:2px; }
-        @media (min-width:768px) { .admin-nav { display:flex; } }
+        .admin-nav {
+            display: none;
+            align-items: center;
+            gap: 2px;
+        }
+
+        @media (min-width:768px) {
+            .admin-nav {
+                display: flex;
+            }
+        }
+
         .nav-item-admin {
-            display:flex; align-items:center; gap:5px;
-            padding: 5px 10px; border-radius: 8px;
-            font-size:0.72rem; font-weight:600; color:rgba(203,213,225,0.85);
-            text-decoration:none; white-space:nowrap;
+            display: flex;
+            align-items: center;
+            gap: 5px;
+            padding: 5px 10px;
+            border-radius: 8px;
+            font-size: 0.72rem;
+            font-weight: 600;
+            color: rgba(203, 213, 225, 0.85);
+            text-decoration: none;
+            white-space: nowrap;
             transition: all 0.15s ease;
             border: 1px solid transparent;
         }
+
         .nav-item-admin:hover {
-            color:#fff; background:rgba(255,255,255,0.08);
-            border-color:rgba(255,255,255,0.1);
+            color: #fff;
+            background: rgba(255, 255, 255, 0.08);
+            border-color: rgba(255, 255, 255, 0.1);
         }
+
         .nav-item-admin.active {
-            color:#fff; background:rgba(59,130,246,0.85);
-            border-color:rgba(59,130,246,0.5);
-            box-shadow: 0 0 12px rgba(59,130,246,0.35);
+            color: #fff;
+            background: rgba(59, 130, 246, 0.85);
+            border-color: rgba(59, 130, 246, 0.5);
+            box-shadow: 0 0 12px rgba(59, 130, 246, 0.35);
         }
+
         .nav-item-admin.chat-item {
-            color:#c4b5fd; background:rgba(139,92,246,0.12);
-            border-color:rgba(139,92,246,0.25);
+            color: #c4b5fd;
+            background: rgba(139, 92, 246, 0.12);
+            border-color: rgba(139, 92, 246, 0.25);
         }
+
         .nav-item-admin.chat-item:hover {
-            color:#e9d5ff; background:rgba(139,92,246,0.22);
+            color: #e9d5ff;
+            background: rgba(139, 92, 246, 0.22);
         }
+
         .nav-item-admin.active-chat {
-            color:#fff; background:rgba(139,92,246,0.75);
-            border-color:rgba(139,92,246,0.5);
-            box-shadow:0 0 12px rgba(139,92,246,0.35);
+            color: #fff;
+            background: rgba(139, 92, 246, 0.75);
+            border-color: rgba(139, 92, 246, 0.5);
+            box-shadow: 0 0 12px rgba(139, 92, 246, 0.35);
         }
+
         .chat-badge {
-            background:#ef4444; color:#fff; font-size:0.6rem;
-            font-weight:700; padding:0 5px; border-radius:999px; min-width:16px;
-            text-align:center; line-height:16px; height:16px;
+            background: #ef4444;
+            color: #fff;
+            font-size: 0.6rem;
+            font-weight: 700;
+            padding: 0 5px;
+            border-radius: 999px;
+            min-width: 16px;
+            text-align: center;
+            line-height: 16px;
+            height: 16px;
         }
 
         /* Right Bar */
-        .admin-right { display:flex; align-items:center; gap:0.5rem; flex-shrink:0; }
+        .admin-right {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            flex-shrink: 0;
+        }
+
         .admin-public-link {
-            display:none; align-items:center; gap:5px;
-            font-size:0.68rem; font-weight:600; color:rgba(148,163,184,0.9);
-            background:rgba(255,255,255,0.06); border:1px solid rgba(255,255,255,0.1);
-            padding:4px 10px; border-radius:8px; text-decoration:none;
-            transition:all 0.15s;
+            display: none;
+            align-items: center;
+            gap: 5px;
+            font-size: 0.68rem;
+            font-weight: 600;
+            color: rgba(148, 163, 184, 0.9);
+            background: rgba(255, 255, 255, 0.06);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            padding: 4px 10px;
+            border-radius: 8px;
+            text-decoration: none;
+            transition: all 0.15s;
         }
-        @media (min-width:1024px) { .admin-public-link { display:flex; } }
-        .admin-public-link:hover { color:#fff; background:rgba(255,255,255,0.1); }
-        .admin-sep { width:1px; height:24px; background:rgba(255,255,255,0.12); }
+
+        @media (min-width:1024px) {
+            .admin-public-link {
+                display: flex;
+            }
+        }
+
+        .admin-public-link:hover {
+            color: #fff;
+            background: rgba(255, 255, 255, 0.1);
+        }
+
+        .admin-sep {
+            width: 1px;
+            height: 24px;
+            background: rgba(255, 255, 255, 0.12);
+        }
+
         .admin-avatar {
-            width:32px; height:32px; border-radius:50%;
-            background:linear-gradient(135deg,#3b82f6,#6366f1);
-            color:#fff; font-weight:800; font-size:0.7rem;
-            display:flex; align-items:center; justify-content:center;
-            border:2px solid rgba(255,255,255,0.15);
-            flex-shrink:0;
+            width: 32px;
+            height: 32px;
+            border-radius: 50%;
+            background: linear-gradient(135deg, #3b82f6, #6366f1);
+            color: #fff;
+            font-weight: 800;
+            font-size: 0.7rem;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border: 2px solid rgba(255, 255, 255, 0.15);
+            flex-shrink: 0;
         }
-        .admin-user-info { display:none; flex-direction:column; text-align:left; }
-        @media (min-width:640px) { .admin-user-info { display:flex; } }
-        .admin-user-name { font-size:0.72rem; font-weight:700; color:#e2e8f0; line-height:1.2; }
-        .admin-user-role { font-size:0.6rem; font-weight:700; color:#60a5fa; text-transform:uppercase; letter-spacing:0.08em; }
+
+        .admin-user-info {
+            display: none;
+            flex-direction: column;
+            text-align: left;
+        }
+
+        @media (min-width:640px) {
+            .admin-user-info {
+                display: flex;
+            }
+        }
+
+        .admin-user-name {
+            font-size: 0.72rem;
+            font-weight: 700;
+            color: #e2e8f0;
+            line-height: 1.2;
+        }
+
+        .admin-user-role {
+            font-size: 0.6rem;
+            font-weight: 700;
+            color: #60a5fa;
+            text-transform: uppercase;
+            letter-spacing: 0.08em;
+        }
+
         .admin-logout {
-            color:rgba(148,163,184,0.7); padding:6px; border-radius:8px;
-            text-decoration:none; transition:all 0.15s; font-size:0.8rem;
-            border:1px solid transparent;
+            color: rgba(148, 163, 184, 0.7);
+            padding: 6px;
+            border-radius: 8px;
+            text-decoration: none;
+            transition: all 0.15s;
+            font-size: 0.8rem;
+            border: 1px solid transparent;
         }
-        .admin-logout:hover { color:#f87171; background:rgba(239,68,68,0.1); border-color:rgba(239,68,68,0.2); }
+
+        .admin-logout:hover {
+            color: #f87171;
+            background: rgba(239, 68, 68, 0.1);
+            border-color: rgba(239, 68, 68, 0.2);
+        }
 
         /* Mobile hamburger */
         .admin-hamburger {
-            display:flex; align-items:center; justify-content:center;
-            width:34px; height:34px; border-radius:8px;
-            background:rgba(255,255,255,0.07); border:1px solid rgba(255,255,255,0.12);
-            color:#cbd5e1; cursor:pointer; font-size:0.85rem;
-            transition:all 0.15s;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            width: 34px;
+            height: 34px;
+            border-radius: 8px;
+            background: rgba(255, 255, 255, 0.07);
+            border: 1px solid rgba(255, 255, 255, 0.12);
+            color: #cbd5e1;
+            cursor: pointer;
+            font-size: 0.85rem;
+            transition: all 0.15s;
         }
-        .admin-hamburger:hover { background:rgba(255,255,255,0.12); color:#fff; }
-        @media (min-width:768px) { .admin-hamburger { display:none; } }
+
+        .admin-hamburger:hover {
+            background: rgba(255, 255, 255, 0.12);
+            color: #fff;
+        }
+
+        @media (min-width:768px) {
+            .admin-hamburger {
+                display: none;
+            }
+        }
 
         /* Mobile dropdown */
         #adminMobileNav {
-            display:none; padding: 0.75rem 1rem;
-            background:#1e293b; border-top:1px solid rgba(255,255,255,0.08);
-            max-width:1400px; margin:0 auto;
+            display: none;
+            padding: 0.75rem 1rem;
+            background: #1e293b;
+            border-top: 1px solid rgba(255, 255, 255, 0.08);
+            max-width: 1400px;
+            margin: 0 auto;
         }
-        #adminMobileNav.open { display:block; }
+
+        #adminMobileNav.open {
+            display: block;
+        }
+
         .mobile-nav-item {
-            display:flex; align-items:center; gap:0.6rem;
-            padding:8px 12px; border-radius:8px; margin-bottom:2px;
-            font-size:0.76rem; font-weight:600; color:#cbd5e1;
-            text-decoration:none; transition:all 0.15s;
+            display: flex;
+            align-items: center;
+            gap: 0.6rem;
+            padding: 8px 12px;
+            border-radius: 8px;
+            margin-bottom: 2px;
+            font-size: 0.76rem;
+            font-weight: 600;
+            color: #cbd5e1;
+            text-decoration: none;
+            transition: all 0.15s;
         }
-        .mobile-nav-item:hover { color:#fff; background:rgba(255,255,255,0.08); }
-        .mobile-nav-item.active { color:#fff; background:rgba(59,130,246,0.75); }
-        .mobile-nav-item.chat-item { color:#c4b5fd; }
-        .mobile-nav-item.active-chat { color:#fff; background:rgba(139,92,246,0.75); }
+
+        .mobile-nav-item:hover {
+            color: #fff;
+            background: rgba(255, 255, 255, 0.08);
+        }
+
+        .mobile-nav-item.active {
+            color: #fff;
+            background: rgba(59, 130, 246, 0.75);
+        }
+
+        .mobile-nav-item.chat-item {
+            color: #c4b5fd;
+        }
+
+        .mobile-nav-item.active-chat {
+            color: #fff;
+            background: rgba(139, 92, 246, 0.75);
+        }
     </style>
     <header id="adminHeader">
         <div class="admin-inner">
             <!-- Brand -->
-            <button type="button" class="admin-hamburger" onclick="document.getElementById('adminMobileNav').classList.toggle('open')" aria-label="Menu">
+            <button type="button" class="admin-hamburger"
+                onclick="document.getElementById('adminMobileNav').classList.toggle('open')" aria-label="Menu">
                 <i class="fa-solid fa-bars"></i>
             </button>
             <a href="02-AdminDashboard.html" class="admin-brand">
@@ -156,14 +347,20 @@
 
             <!-- Desktop Nav -->
             <nav class="admin-nav">
-                    <a href="02-AdminDashboard.html" class="nav-item-admin"><i class="fa-solid fa-gauge-high"></i>Dashboard</a>
-                    <a href="03-AuctionList.html" class="nav-item-admin"><i class="fa-solid fa-list-check"></i>Quản lý phiên</a>
-                    <a href="04-CreateAuction.html" class="nav-item-admin"><i class="fa-solid fa-circle-plus"></i>Tạo phiên</a>
-                    <a href="06-AgentList.html" class="nav-item-admin"><i class="fa-solid fa-building-user"></i>Đại lý</a>
-                    <a href="07-Reports.html" class="nav-item-admin"><i class="fa-solid fa-chart-line"></i>Báo cáo</a>
-                    <a href="08-Settings.html" class="nav-item-admin"><i class="fa-solid fa-sliders"></i>Cài đặt</a>
-                    <a href="10-AuditLogs.html" class="nav-item-admin active"><i class="fa-solid fa-clock-rotate-left"></i>Nhật ký</a>
-                    <a href="09-AdminChat.html" class="nav-item-admin chat-item"><i class="fa-solid fa-headset"></i>Chat<span id="admin-chat-badge" class="hidden chat-badge">0</span></a>
+                <a href="02-AdminDashboard.html" class="nav-item-admin"><i
+                        class="fa-solid fa-gauge-high"></i>Dashboard</a>
+                <a href="03-AuctionList.html" class="nav-item-admin"><i class="fa-solid fa-list-check"></i>Quản lý
+                    phiên</a>
+                <a href="04-CreateAuction.html" class="nav-item-admin"><i class="fa-solid fa-circle-plus"></i>Tạo
+                    phiên</a>
+                <a href="06-AgentList.html" class="nav-item-admin"><i class="fa-solid fa-building-user"></i>Đại lý</a>
+                <a href="07-Reports.html" class="nav-item-admin"><i class="fa-solid fa-chart-line"></i>Báo cáo</a>
+                <a href="08-Settings.html" class="nav-item-admin"><i class="fa-solid fa-sliders"></i>Cài đặt</a>
+                <a href="10-AuditLogs.html" class="nav-item-admin active"><i
+                        class="fa-solid fa-clock-rotate-left"></i>Nhật ký</a>
+                <a href="09-AdminChat.html" class="nav-item-admin chat-item"><i
+                        class="fa-solid fa-headset"></i>Chat<span id="admin-chat-badge"
+                        class="hidden chat-badge">0</span></a>
             </nav>
 
             <!-- Right Bar -->
@@ -177,7 +374,8 @@
                     <span class="admin-user-name admin-header-name">Quản trị viên</span>
                     <span class="admin-user-role admin-header-role">QUẢN TRỊ VIÊN</span>
                 </div>
-                <a href="01-AdminLogin.html" onclick="if(window.CargoStore) CargoStore.logoutAdmin()" class="admin-logout" title="Đăng xuất">
+                <a href="01-AdminLogin.html" onclick="if(window.CargoStore) CargoStore.logoutAdmin()"
+                    class="admin-logout" title="Đăng xuất">
                     <i class="fa-solid fa-power-off"></i>
                 </a>
             </div>
@@ -185,15 +383,22 @@
 
         <!-- Mobile Dropdown -->
         <div id="adminMobileNav">
-            <a href="02-AdminDashboard.html" class="mobile-nav-item"><i class="fa-solid fa-gauge-high w-4"></i>Dashboard</a>
-            <a href="03-AuctionList.html" class="mobile-nav-item"><i class="fa-solid fa-list-check w-4"></i>Quản lý phiên</a>
-            <a href="04-CreateAuction.html" class="mobile-nav-item"><i class="fa-solid fa-circle-plus w-4"></i>Tạo phiên</a>
+            <a href="02-AdminDashboard.html" class="mobile-nav-item"><i
+                    class="fa-solid fa-gauge-high w-4"></i>Dashboard</a>
+            <a href="03-AuctionList.html" class="mobile-nav-item"><i class="fa-solid fa-list-check w-4"></i>Quản lý
+                phiên</a>
+            <a href="04-CreateAuction.html" class="mobile-nav-item"><i class="fa-solid fa-circle-plus w-4"></i>Tạo
+                phiên</a>
             <a href="06-AgentList.html" class="mobile-nav-item"><i class="fa-solid fa-building-user w-4"></i>Đại lý</a>
             <a href="07-Reports.html" class="mobile-nav-item"><i class="fa-solid fa-chart-line w-4"></i>Báo cáo</a>
             <a href="08-Settings.html" class="mobile-nav-item"><i class="fa-solid fa-sliders w-4"></i>Cài đặt</a>
-            <a href="10-AuditLogs.html" class="mobile-nav-item active"><i class="fa-solid fa-clock-rotate-left w-4"></i>Nhật ký</a>
-            <a href="09-AdminChat.html" class="mobile-nav-item chat-item"><i class="fa-solid fa-headset w-4"></i>Chat<span id="admin-chat-badge-m" class="hidden chat-badge ml-auto">0</span></a>
-            <a href="../00-Home.html" target="_blank" class="mobile-nav-item" style="border-top:1px solid rgba(255,255,255,0.08);margin-top:6px;padding-top:10px">
+            <a href="10-AuditLogs.html" class="mobile-nav-item active"><i
+                    class="fa-solid fa-clock-rotate-left w-4"></i>Nhật ký</a>
+            <a href="09-AdminChat.html" class="mobile-nav-item chat-item"><i
+                    class="fa-solid fa-headset w-4"></i>Chat<span id="admin-chat-badge-m"
+                    class="hidden chat-badge ml-auto">0</span></a>
+            <a href="../00-Home.html" target="_blank" class="mobile-nav-item"
+                style="border-top:1px solid rgba(255,255,255,0.08);margin-top:6px;padding-top:10px">
                 <i class="fa-solid fa-arrow-up-right-from-square w-4"></i> Xem Sàn công khai
             </a>
         </div>
@@ -203,7 +408,8 @@
     <main class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6 flex-1 w-full space-y-6">
 
         <!-- PAGE TITLE & BREADCRUMB & ACTIONS -->
-        <div class="flex flex-col md:flex-row md:items-center justify-between gap-4 bg-white p-5 rounded-2xl shadow-sm border border-slate-200/80">
+        <div
+            class="flex flex-col md:flex-row md:items-center justify-between gap-4 bg-white p-5 rounded-2xl shadow-sm border border-slate-200/80">
             <div>
                 <nav class="flex text-xs text-slate-500 space-x-2 mb-1">
                     <a href="01-Dashboard.html" class="hover:text-blue-600 transition-colors">Trang chủ</a>
@@ -217,17 +423,20 @@
                     Nhật Ký Hoạt Động & Bảo Mật
                 </h1>
                 <p class="text-xs sm:text-sm text-slate-500 mt-0.5">
-                    Ghi nhận đầy đủ thông tin đăng nhập/đăng xuất của Admin, Staff, Đại lý. Hệ thống tự động lưu trữ nhật ký trong 90 ngày (3 tháng).
+                    Ghi nhận đầy đủ thông tin đăng nhập/đăng xuất của Admin, Staff, Đại lý. Hệ thống tự động lưu trữ
+                    nhật ký trong 90 ngày (3 tháng).
                 </p>
             </div>
 
             <!-- ACTION BUTTONS & SECURITY POLICY BADGES -->
             <div class="flex flex-wrap items-center gap-2 self-start md:self-auto">
-                <div class="inline-flex items-center gap-1.5 px-3 py-2 text-xs font-semibold text-blue-700 bg-blue-50 border border-blue-200/80 rounded-xl" title="Hệ thống tự động dọn dẹp nhật ký cũ sau 90 ngày lưu trữ">
+                <div class="inline-flex items-center gap-1.5 px-3 py-2 text-xs font-semibold text-blue-700 bg-blue-50 border border-blue-200/80 rounded-xl"
+                    title="Hệ thống tự động dọn dẹp nhật ký cũ sau 90 ngày lưu trữ">
                     <i class="fa-solid fa-clock-rotate-left text-blue-600"></i>
                     Tự động xóa sau 90 ngày (3 tháng)
                 </div>
-                <button onclick="exportLogsCSV()" class="inline-flex items-center gap-2 px-3.5 py-2 text-xs font-semibold text-slate-700 bg-white border border-slate-300 rounded-xl hover:bg-slate-50 hover:border-slate-400 transition-all shadow-sm">
+                <button onclick="exportLogsCSV()"
+                    class="inline-flex items-center gap-2 px-3.5 py-2 text-xs font-semibold text-slate-700 bg-white border border-slate-300 rounded-xl hover:bg-slate-50 hover:border-slate-400 transition-all shadow-sm">
                     <i class="fa-solid fa-file-csv text-emerald-600 text-sm"></i>
                     Xuất CSV
                 </button>
@@ -237,49 +446,57 @@
         <!-- KPI SUMMARY CARDS -->
         <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
             <!-- Card 1 -->
-            <div class="bg-white p-4 rounded-2xl border border-slate-200/80 shadow-sm flex items-center justify-between">
+            <div
+                class="bg-white p-4 rounded-2xl border border-slate-200/80 shadow-sm flex items-center justify-between">
                 <div>
                     <p class="text-xs font-medium text-slate-500 uppercase tracking-wider">Tổng nhật ký</p>
                     <p class="text-2xl font-extrabold text-slate-900 mt-1" id="kpiTotalLogs">0</p>
                     <p class="text-xs text-slate-400 mt-0.5">Lưu trữ 90 ngày (3 tháng)</p>
                 </div>
-                <div class="w-12 h-12 rounded-xl bg-purple-50 text-purple-600 flex items-center justify-center text-xl font-bold shadow-inner">
+                <div
+                    class="w-12 h-12 rounded-xl bg-purple-50 text-purple-600 flex items-center justify-center text-xl font-bold shadow-inner">
                     <i class="fa-solid fa-list-check"></i>
                 </div>
             </div>
 
             <!-- Card 2 -->
-            <div class="bg-white p-4 rounded-2xl border border-slate-200/80 shadow-sm flex items-center justify-between">
+            <div
+                class="bg-white p-4 rounded-2xl border border-slate-200/80 shadow-sm flex items-center justify-between">
                 <div>
                     <p class="text-xs font-medium text-slate-500 uppercase tracking-wider">Lượt Đăng nhập / Xuất</p>
                     <p class="text-2xl font-extrabold text-emerald-600 mt-1" id="kpiLoginLogoutLogs">0</p>
                     <p class="text-xs text-slate-400 mt-0.5">Admin, Staff & Đại lý</p>
                 </div>
-                <div class="w-12 h-12 rounded-xl bg-emerald-50 text-emerald-600 flex items-center justify-center text-xl font-bold shadow-inner">
+                <div
+                    class="w-12 h-12 rounded-xl bg-emerald-50 text-emerald-600 flex items-center justify-center text-xl font-bold shadow-inner">
                     <i class="fa-solid fa-right-to-bracket"></i>
                 </div>
             </div>
 
             <!-- Card 3 -->
-            <div class="bg-white p-4 rounded-2xl border border-slate-200/80 shadow-sm flex items-center justify-between">
+            <div
+                class="bg-white p-4 rounded-2xl border border-slate-200/80 shadow-sm flex items-center justify-between">
                 <div>
                     <p class="text-xs font-medium text-slate-500 uppercase tracking-wider">Thao tác Quản trị</p>
                     <p class="text-2xl font-extrabold text-blue-600 mt-1" id="kpiAdminStaffLogs">0</p>
                     <p class="text-xs text-slate-400 mt-0.5">Admin & Staff điều hành</p>
                 </div>
-                <div class="w-12 h-12 rounded-xl bg-blue-50 text-blue-600 flex items-center justify-center text-xl font-bold shadow-inner">
+                <div
+                    class="w-12 h-12 rounded-xl bg-blue-50 text-blue-600 flex items-center justify-center text-xl font-bold shadow-inner">
                     <i class="fa-solid fa-user-shield"></i>
                 </div>
             </div>
 
             <!-- Card 4 -->
-            <div class="bg-white p-4 rounded-2xl border border-slate-200/80 shadow-sm flex items-center justify-between">
+            <div
+                class="bg-white p-4 rounded-2xl border border-slate-200/80 shadow-sm flex items-center justify-between">
                 <div>
                     <p class="text-xs font-medium text-slate-500 uppercase tracking-wider">Hoạt động Đại lý</p>
                     <p class="text-2xl font-extrabold text-amber-600 mt-1" id="kpiAgentLogs">0</p>
                     <p class="text-xs text-slate-400 mt-0.5">Đấu giá & Khai báo</p>
                 </div>
-                <div class="w-12 h-12 rounded-xl bg-amber-50 text-amber-600 flex items-center justify-center text-xl font-bold shadow-inner">
+                <div
+                    class="w-12 h-12 rounded-xl bg-amber-50 text-amber-600 flex items-center justify-center text-xl font-bold shadow-inner">
                     <i class="fa-solid fa-building-user"></i>
                 </div>
             </div>
@@ -287,43 +504,56 @@
 
         <!-- MAIN CONTENT CARD WITH TABS & FILTERS -->
         <div class="bg-white rounded-2xl border border-slate-200/80 shadow-sm overflow-hidden flex flex-col">
-            
+
             <!-- TABS BAR -->
             <div class="border-b border-slate-200 bg-slate-50/50 px-4 pt-3 flex flex-wrap gap-2 text-xs font-semibold">
-                <button onclick="switchTab('ALL')" id="tab-ALL" class="px-4 py-2.5 rounded-t-xl transition-all border-b-2 flex items-center gap-2 border-blue-600 text-blue-600 bg-white font-bold shadow-sm">
+                <button onclick="switchTab('ALL')" id="tab-ALL"
+                    class="px-4 py-2.5 rounded-t-xl transition-all border-b-2 flex items-center gap-2 border-blue-600 text-blue-600 bg-white font-bold shadow-sm">
                     <i class="fa-solid fa-border-all"></i>
                     Tất cả nhật ký
-                    <span class="ml-1 px-1.5 py-0.5 rounded-full bg-blue-100 text-blue-700 text-[10px] font-bold" id="cntTabAll">0</span>
+                    <span class="ml-1 px-1.5 py-0.5 rounded-full bg-blue-100 text-blue-700 text-[10px] font-bold"
+                        id="cntTabAll">0</span>
                 </button>
-                <button onclick="switchTab('LOGIN_LOGOUT')" id="tab-LOGIN_LOGOUT" class="px-4 py-2.5 rounded-t-xl transition-all border-b-2 border-transparent text-slate-600 hover:text-slate-900 hover:bg-slate-100 flex items-center gap-2 font-medium">
+                <button onclick="switchTab('LOGIN_LOGOUT')" id="tab-LOGIN_LOGOUT"
+                    class="px-4 py-2.5 rounded-t-xl transition-all border-b-2 border-transparent text-slate-600 hover:text-slate-900 hover:bg-slate-100 flex items-center gap-2 font-medium">
                     <i class="fa-solid fa-key text-emerald-600"></i>
                     Đăng nhập / Đăng xuất
-                    <span class="ml-1 px-1.5 py-0.5 rounded-full bg-slate-200 text-slate-700 text-[10px] font-bold" id="cntTabLoginLogout">0</span>
+                    <span class="ml-1 px-1.5 py-0.5 rounded-full bg-slate-200 text-slate-700 text-[10px] font-bold"
+                        id="cntTabLoginLogout">0</span>
                 </button>
-                <button onclick="switchTab('AUCTION_BID')" id="tab-AUCTION_BID" class="px-4 py-2.5 rounded-t-xl transition-all border-b-2 border-transparent text-slate-600 hover:text-slate-900 hover:bg-slate-100 flex items-center gap-2 font-medium">
+                <button onclick="switchTab('AUCTION_BID')" id="tab-AUCTION_BID"
+                    class="px-4 py-2.5 rounded-t-xl transition-all border-b-2 border-transparent text-slate-600 hover:text-slate-900 hover:bg-slate-100 flex items-center gap-2 font-medium">
                     <i class="fa-solid fa-gavel text-amber-600"></i>
                     Đấu giá & Đơn thầu
-                    <span class="ml-1 px-1.5 py-0.5 rounded-full bg-slate-200 text-slate-700 text-[10px] font-bold" id="cntTabAuctionBid">0</span>
+                    <span class="ml-1 px-1.5 py-0.5 rounded-full bg-slate-200 text-slate-700 text-[10px] font-bold"
+                        id="cntTabAuctionBid">0</span>
                 </button>
-                <button onclick="switchTab('SYSTEM_UPDATE')" id="tab-SYSTEM_UPDATE" class="px-4 py-2.5 rounded-t-xl transition-all border-b-2 border-transparent text-slate-600 hover:text-slate-900 hover:bg-slate-100 flex items-center gap-2 font-medium">
+                <button onclick="switchTab('SYSTEM_UPDATE')" id="tab-SYSTEM_UPDATE"
+                    class="px-4 py-2.5 rounded-t-xl transition-all border-b-2 border-transparent text-slate-600 hover:text-slate-900 hover:bg-slate-100 flex items-center gap-2 font-medium">
                     <i class="fa-solid fa-sliders text-purple-600"></i>
                     Cập nhật & Hệ thống
-                    <span class="ml-1 px-1.5 py-0.5 rounded-full bg-slate-200 text-slate-700 text-[10px] font-bold" id="cntTabSystemUpdate">0</span>
+                    <span class="ml-1 px-1.5 py-0.5 rounded-full bg-slate-200 text-slate-700 text-[10px] font-bold"
+                        id="cntTabSystemUpdate">0</span>
                 </button>
             </div>
 
             <!-- ADVANCED FILTER BAR -->
-            <div class="p-4 bg-white border-b border-slate-200 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-12 gap-3 items-center">
-                
+            <div
+                class="p-4 bg-white border-b border-slate-200 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-12 gap-3 items-center">
+
                 <!-- Search Input -->
                 <div class="lg:col-span-4 relative">
-                    <i class="fa-solid fa-magnifying-glass absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 text-xs"></i>
-                    <input type="text" id="searchInput" oninput="handleFilterChange()" placeholder="Tìm người dùng, hành động, target, IP..." class="w-full pl-9 pr-3 py-2 text-xs bg-slate-50 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-all">
+                    <i
+                        class="fa-solid fa-magnifying-glass absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 text-xs"></i>
+                    <input type="text" id="searchInput" oninput="handleFilterChange()"
+                        placeholder="Tìm người dùng, hành động, target, IP..."
+                        class="w-full pl-9 pr-3 py-2 text-xs bg-slate-50 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-all">
                 </div>
 
                 <!-- Role Filter -->
                 <div class="lg:col-span-2">
-                    <select id="roleFilter" onchange="handleFilterChange()" class="w-full px-3 py-2 text-xs bg-slate-50 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 font-medium text-slate-700">
+                    <select id="roleFilter" onchange="handleFilterChange()"
+                        class="w-full px-3 py-2 text-xs bg-slate-50 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 font-medium text-slate-700">
                         <option value="ALL">-- Vai trò: Tất cả --</option>
                         <option value="ADMIN">ADMIN (Quản trị)</option>
                         <option value="STAFF">STAFF (Nhân viên)</option>
@@ -333,7 +563,8 @@
 
                 <!-- Category Filter -->
                 <div class="lg:col-span-3">
-                    <select id="categoryFilter" onchange="handleFilterChange()" class="w-full px-3 py-2 text-xs bg-slate-50 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 font-medium text-slate-700">
+                    <select id="categoryFilter" onchange="handleFilterChange()"
+                        class="w-full px-3 py-2 text-xs bg-slate-50 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 font-medium text-slate-700">
                         <option value="ALL">-- Danh mục: Tất cả --</option>
                         <option value="Đăng nhập">Đăng nhập / Đăng xuất</option>
                         <option value="Phiên đấu giá">Phiên đấu giá</option>
@@ -348,7 +579,8 @@
 
                 <!-- Time Filter -->
                 <div class="lg:col-span-2">
-                    <select id="timeFilter" onchange="handleFilterChange()" class="w-full px-3 py-2 text-xs bg-slate-50 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 font-medium text-slate-700">
+                    <select id="timeFilter" onchange="handleFilterChange()"
+                        class="w-full px-3 py-2 text-xs bg-slate-50 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 font-medium text-slate-700">
                         <option value="ALL">Thời gian: Tất cả (90 ngày)</option>
                         <option value="TODAY">Hôm nay</option>
                         <option value="7DAYS">7 ngày qua</option>
@@ -360,26 +592,31 @@
 
                 <!-- Reset Button -->
                 <div class="lg:col-span-1 flex justify-end">
-                    <button onclick="resetFilters()" title="Đặt lại bộ lọc" class="w-full py-2 text-xs font-semibold text-slate-600 bg-slate-100 hover:bg-slate-200 rounded-xl transition-all flex items-center justify-center gap-1">
+                    <button onclick="resetFilters()" title="Đặt lại bộ lọc"
+                        class="w-full py-2 text-xs font-semibold text-slate-600 bg-slate-100 hover:bg-slate-200 rounded-xl transition-all flex items-center justify-center gap-1">
                         <i class="fa-solid fa-rotate-left"></i>
                         <span class="lg:hidden xl:inline">Đặt lại</span>
                     </button>
                 </div>
 
                 <!-- Custom Date Range Picker Container -->
-                <div id="customDateContainer" class="hidden col-span-full pt-2 pb-1 border-t border-slate-100 flex flex-wrap items-center gap-3 text-xs bg-blue-50/50 p-2.5 rounded-xl border border-blue-100 mt-1">
+                <div id="customDateContainer"
+                    class="hidden col-span-full pt-2 pb-1 border-t border-slate-100 flex flex-wrap items-center gap-3 text-xs bg-blue-50/50 p-2.5 rounded-xl border border-blue-100 mt-1">
                     <span class="font-bold text-slate-700 flex items-center gap-1">
                         <i class="fa-solid fa-calendar-days text-blue-600"></i> Chọn khoảng ngày:
                     </span>
                     <div class="flex items-center gap-1.5">
                         <label for="fromDate" class="text-slate-600 font-medium text-xs">Từ ngày:</label>
-                        <input type="date" id="fromDate" onchange="handleFilterChange()" class="px-2.5 py-1.5 text-xs bg-white border border-slate-200 rounded-lg text-slate-700 focus:outline-none focus:ring-2 focus:ring-blue-500/20 font-medium cursor-pointer shadow-xs">
+                        <input type="date" id="fromDate" onchange="handleFilterChange()"
+                            class="px-2.5 py-1.5 text-xs bg-white border border-slate-200 rounded-lg text-slate-700 focus:outline-none focus:ring-2 focus:ring-blue-500/20 font-medium cursor-pointer shadow-xs">
                     </div>
                     <div class="flex items-center gap-1.5">
                         <label for="toDate" class="text-slate-600 font-medium text-xs">Đến ngày:</label>
-                        <input type="date" id="toDate" onchange="handleFilterChange()" class="px-2.5 py-1.5 text-xs bg-white border border-slate-200 rounded-lg text-slate-700 focus:outline-none focus:ring-2 focus:ring-blue-500/20 font-medium cursor-pointer shadow-xs">
+                        <input type="date" id="toDate" onchange="handleFilterChange()"
+                            class="px-2.5 py-1.5 text-xs bg-white border border-slate-200 rounded-lg text-slate-700 focus:outline-none focus:ring-2 focus:ring-blue-500/20 font-medium cursor-pointer shadow-xs">
                     </div>
-                    <button type="button" onclick="handleFilterChange()" class="px-3 py-1.5 bg-blue-600 hover:bg-blue-700 text-white rounded-lg text-xs font-bold transition shadow-xs flex items-center gap-1">
+                    <button type="button" onclick="handleFilterChange()"
+                        class="px-3 py-1.5 bg-blue-600 hover:bg-blue-700 text-white rounded-lg text-xs font-bold transition shadow-xs flex items-center gap-1">
                         <i class="fa-solid fa-filter"></i> Lọc ngày
                     </button>
                 </div>
@@ -388,7 +625,8 @@
             <!-- TABLE CONTAINER -->
             <div class="overflow-x-auto min-h-[380px]">
                 <table class="w-full text-left text-xs text-slate-700 border-collapse">
-                    <thead class="bg-slate-100/70 text-slate-600 font-bold border-b border-slate-200 uppercase tracking-wider text-[11px]">
+                    <thead
+                        class="bg-slate-100/70 text-slate-600 font-bold border-b border-slate-200 uppercase tracking-wider text-[11px]">
                         <tr>
                             <th class="py-3.5 px-4 w-44">Thời gian</th>
                             <th class="py-3.5 px-4 w-52">Người thực hiện</th>
@@ -406,14 +644,16 @@
             </div>
 
             <!-- PAGINATION BAR -->
-            <div class="p-4 bg-slate-50 border-t border-slate-200 flex flex-col sm:flex-row items-center justify-between gap-4 text-xs text-slate-600">
-                
+            <div
+                class="p-4 bg-slate-50 border-t border-slate-200 flex flex-col sm:flex-row items-center justify-between gap-4 text-xs text-slate-600">
+
                 <!-- Summary info -->
                 <div class="flex items-center gap-3">
                     <span id="paginationSummary">Hiển thị 0 - 0 trong tổng 0 nhật ký</span>
                     <div class="flex items-center gap-1.5 border-l border-slate-300 pl-3">
                         <label for="pageSizeSelect" class="text-slate-500 font-medium">Hiển thị:</label>
-                        <select id="pageSizeSelect" onchange="changePageSize(this.value)" class="bg-white border border-slate-200 rounded-lg px-2 py-1 font-semibold text-slate-700 focus:outline-none focus:ring-1 focus:ring-blue-500">
+                        <select id="pageSizeSelect" onchange="changePageSize(this.value)"
+                            class="bg-white border border-slate-200 rounded-lg px-2 py-1 font-semibold text-slate-700 focus:outline-none focus:ring-1 focus:ring-blue-500">
                             <option value="10">10 dòng</option>
                             <option value="15" selected>15 dòng</option>
                             <option value="25">25 dòng</option>
@@ -434,24 +674,30 @@
 
     <!-- FOOTER -->
     <footer class="bg-white border-t border-slate-200 py-4 mt-8 text-center text-xs text-slate-500">
-        <p>© 2026 Vietravel Airlines - Cargo Bidding Management Portal. Hệ thống Nhật ký & Audit Trail Bảo mật Bất biến.</p>
+        <p>© 2026 Vietravel Airlines - Cargo Bidding Management Portal. Hệ thống Nhật ký & Audit Trail Bảo mật Bất biến.
+        </p>
     </footer>
 
     <!-- MODAL: LOG DETAILS -->
-    <div id="logDetailModal" class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-50 flex items-center justify-center p-4 hidden">
-        <div class="bg-white rounded-2xl max-w-2xl w-full shadow-2xl border border-slate-200 overflow-hidden transform transition-all duration-200">
+    <div id="logDetailModal"
+        class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-50 flex items-center justify-center p-4 hidden">
+        <div
+            class="bg-white rounded-2xl max-w-2xl w-full shadow-2xl border border-slate-200 overflow-hidden transform transition-all duration-200">
             <!-- Modal Header -->
             <div class="p-5 bg-slate-50 border-b border-slate-200 flex items-center justify-between">
                 <div class="flex items-center gap-3">
-                    <div id="modalIconWrapper" class="w-10 h-10 rounded-xl bg-blue-100 text-blue-600 flex items-center justify-center text-lg font-bold">
+                    <div id="modalIconWrapper"
+                        class="w-10 h-10 rounded-xl bg-blue-100 text-blue-600 flex items-center justify-center text-lg font-bold">
                         <i class="fa-solid fa-info"></i>
                     </div>
                     <div>
-                        <h3 class="text-base font-bold text-slate-900" id="modalActionTitle">Chi tiết nhật ký hoạt động</h3>
+                        <h3 class="text-base font-bold text-slate-900" id="modalActionTitle">Chi tiết nhật ký hoạt động
+                        </h3>
                         <p class="text-xs text-slate-500" id="modalLogId">Mã bản ghi: #101</p>
                     </div>
                 </div>
-                <button onclick="closeLogModal()" class="w-8 h-8 rounded-full text-slate-400 hover:text-slate-700 hover:bg-slate-200 flex items-center justify-center transition-colors">
+                <button onclick="closeLogModal()"
+                    class="w-8 h-8 rounded-full text-slate-400 hover:text-slate-700 hover:bg-slate-200 flex items-center justify-center transition-colors">
                     <i class="fa-solid fa-xmark text-lg"></i>
                 </button>
             </div>
@@ -462,7 +708,8 @@
                     <div>
                         <span class="text-slate-400 font-medium block uppercase text-[10px]">Người thực hiện</span>
                         <span class="font-bold text-slate-900 text-sm block mt-0.5" id="modalActor">-</span>
-                        <span class="inline-block px-2 py-0.5 rounded text-[10px] font-bold mt-1" id="modalRoleBadge">-</span>
+                        <span class="inline-block px-2 py-0.5 rounded text-[10px] font-bold mt-1"
+                            id="modalRoleBadge">-</span>
                     </div>
                     <div>
                         <span class="text-slate-400 font-medium block uppercase text-[10px]">Thời gian</span>
@@ -480,8 +727,10 @@
                 </div>
 
                 <div>
-                    <label class="text-slate-500 font-semibold block uppercase text-[10px] mb-1.5">Chi tiết nội dung đã ghi nhận</label>
-                    <div class="bg-slate-900 text-slate-100 p-4 rounded-xl font-mono text-xs leading-relaxed whitespace-pre-wrap border border-slate-800 shadow-inner" id="modalDetailsText">
+                    <label class="text-slate-500 font-semibold block uppercase text-[10px] mb-1.5">Chi tiết nội dung đã
+                        ghi nhận</label>
+                    <div class="bg-slate-900 text-slate-100 p-4 rounded-xl font-mono text-xs leading-relaxed whitespace-pre-wrap border border-slate-800 shadow-inner"
+                        id="modalDetailsText">
                         -
                     </div>
                 </div>
@@ -500,7 +749,8 @@
 
             <!-- Modal Footer -->
             <div class="p-4 bg-slate-50 border-t border-slate-200 flex justify-end">
-                <button onclick="closeLogModal()" class="px-5 py-2 text-xs font-semibold text-slate-700 bg-white border border-slate-300 rounded-xl hover:bg-slate-100 transition-all">
+                <button onclick="closeLogModal()"
+                    class="px-5 py-2 text-xs font-semibold text-slate-700 bg-white border border-slate-300 rounded-xl hover:bg-slate-100 transition-all">
                     Đóng cửa sổ
                 </button>
             </div>
@@ -540,7 +790,7 @@
                     updateKpisAndTabCounters();
                     renderLogs();
                 }
-            } catch(e) {
+            } catch (e) {
                 // On error, fall back to local only
                 serverLogs = CargoStore.getActivityLogs ? CargoStore.getActivityLogs() : [];
             }
@@ -566,7 +816,7 @@
             return isNaN(d.getTime()) ? Date.now() : d.getTime();
         }
 
-        document.addEventListener('DOMContentLoaded', function() {
+        document.addEventListener('DOMContentLoaded', function () {
             const adminUser = CargoStore.getCurrentAdmin();
             if (adminUser && adminUser.role === 'STAFF') {
                 const main = document.querySelector('main');
@@ -887,7 +1137,7 @@
             document.getElementById('modalActionTitle').textContent = log.actionTitle || 'Chi tiết nhật ký';
             document.getElementById('modalLogId').textContent = 'Mã bản ghi: #' + log.id;
             document.getElementById('modalActor').textContent = (log.actor || 'N/A') + ' (@' + (log.username || '') + ')';
-            
+
             const roleUpper = (log.role || '').toUpperCase();
             const roleEl = document.getElementById('modalRoleBadge');
             roleEl.textContent = roleUpper;
@@ -959,4 +1209,5 @@
         }
     </script>
 </body>
+
 </html>

@@ -3083,6 +3083,61 @@ const CargoStore = (function() {
 
             const myCode = (user.agentCode || user.code || '').trim().toUpperCase();
 
+            // Dynamically synthesize missing HIGHEST / OUTBID notifications from bids history for current agent
+            const userBids = (data.bids || []).filter(b => String(b.agentCode || '').trim().toUpperCase() === myCode);
+            const deletedIds = Array.isArray(data.deletedNotificationIds) ? data.deletedNotificationIds : [];
+            userBids.forEach(b => {
+                const auc = (data.auctions || []).find(a => a.id == b.auctionId);
+                const flightLabel = auc ? auc.flightNumber : `AUC-${b.auctionId}`;
+                const routeLabel = auc ? auc.route : '';
+                const bTime = Number(b.timestamp || b.id) || Date.now();
+
+                if (b.status === 'HIGHEST') {
+                    const hasHighestNotif = allNotifs.some(n => 
+                        n.type === 'HIGHEST' && 
+                        String(n.targetAgentCode || '').trim().toUpperCase() === myCode && 
+                        (n.link && n.link.includes(`id=${b.auctionId}`))
+                    );
+                    const isDeleted = deletedIds.includes(String(bTime));
+                    if (!hasHighestNotif && !isDeleted) {
+                        allNotifs.push({
+                            id: bTime,
+                            timestamp: bTime,
+                            targetAgentCode: myCode,
+                            title: `Đặt giá thành công chuyến ${flightLabel}`,
+                            message: `Bạn (${myCode}) đang dẫn đầu mức giá ${formatCurrency(b.priceKg)}/Kg cho chặng ${routeLabel}.`,
+                            time: formatTimeAgo(bTime),
+                            type: 'HIGHEST',
+                            read: false,
+                            link: `04-Detail.html?id=${b.auctionId}`
+                        });
+                    }
+                } else if (b.status === 'OUTBID') {
+                    const hasOutbidNotif = allNotifs.some(n => 
+                        n.type === 'OUTBID' && 
+                        String(n.targetAgentCode || '').trim().toUpperCase() === myCode && 
+                        (n.link && n.link.includes(`id=${b.auctionId}`))
+                    );
+                    const isDeleted = deletedIds.includes(String(bTime + 1));
+                    if (!hasOutbidNotif && !isDeleted) {
+                        const higherBid = (data.bids || []).find(hb => hb.auctionId == b.auctionId && Number(hb.priceKg) > Number(b.priceKg));
+                        const competitorNameDisplay = higherBid ? (higherBid.isAnonymous ? 'Một đại lý đối thủ (Ẩn danh)' : `Đại lý ${higherBid.agentName} (${higherBid.agentCode})`) : 'Một đại lý đối thủ';
+                        const higherPrice = higherBid ? higherBid.priceKg : (auc ? auc.currentPriceKg : b.priceKg);
+                        allNotifs.push({
+                            id: bTime + 1,
+                            timestamp: bTime + 1,
+                            targetAgentCode: myCode,
+                            title: `Cảnh báo bị vượt giá chuyến ${flightLabel}!`,
+                            message: `${competitorNameDisplay} vừa đặt mức giá mới ${formatCurrency(higherPrice)}/Kg cho chặng ${routeLabel}.`,
+                            time: formatTimeAgo(bTime + 1),
+                            type: 'OUTBID',
+                            read: false,
+                            link: `04-Detail.html?id=${b.auctionId}`
+                        });
+                    }
+                }
+            });
+
             // Find agent's approval / creation timestamp
             let approvalTimestamp = 0;
             const approvalNotif = allNotifs.find(n => {

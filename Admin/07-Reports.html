@@ -641,7 +641,6 @@
 
             const customRow = document.getElementById('reportCustomDateRow');
             if (customRow) customRow.classList.add('hidden');
-
             renderReportUI();
             showToast('Đã đặt lại bộ lọc báo cáo!', true);
         }
@@ -668,6 +667,64 @@
             setTimeout(() => {
                 toast.classList.add('translate-y-20', 'opacity-0', 'pointer-events-none');
             }, 3500);
+        }
+
+        function parseVietnameseDate(str) {
+            if (!str || typeof str !== 'string') return 0;
+            const vnMatch = str.match(/(\d{1,2})\/(\d{1,2})\/(\d{4})/);
+            if (vnMatch) {
+                const day = vnMatch[1].padStart(2, '0');
+                const month = vnMatch[2].padStart(2, '0');
+                const year = vnMatch[3];
+                const timeMatch = str.match(/(\d{2}):(\d{2})/);
+                const timeStr = timeMatch ? `${timeMatch[1]}:${timeMatch[2]}:00` : '12:00:00';
+                return new Date(`${year}-${month}-${day}T${timeStr}`).getTime();
+            }
+            const isoMatch = str.match(/(\d{4})-(\d{2})-(\d{2})/);
+            if (isoMatch) {
+                const ts = new Date(str).getTime();
+                if (!isNaN(ts)) return ts;
+            }
+            return 0;
+        }
+
+        function getItemTimestamp(item) {
+            if (!item) return 0;
+            if (item.rawTime) return item.rawTime;
+
+            if (item.paymentDeadline) {
+                const ts = new Date(item.paymentDeadline).getTime();
+                if (!isNaN(ts) && ts > 0) return ts;
+            }
+            if (item.etdIso) {
+                const ts = new Date(item.etdIso).getTime();
+                if (!isNaN(ts) && ts > 0) return ts;
+            }
+
+            const vnDateFields = [item.paidAt, item.createdDate, item.etd, item.wonDate, item.paymentProof?.submittedAt, item.paymentProof?.rejectedAt];
+            for (const f of vnDateFields) {
+                const ts = parseVietnameseDate(f);
+                if (ts > 0) return ts;
+            }
+
+            if (item.wonId) {
+                const m1 = String(item.wonId).match(/WON-(\d{4})(\d{2})(\d{2})/);
+                if (m1) return new Date(`${m1[1]}-${m1[2]}-${m1[3]}T12:00:00`).getTime();
+                const m2 = String(item.wonId).match(/WON-(\d{4})-(\d{2})(\d{2})/);
+                if (m2) return new Date(`${m2[1]}-${m2[2]}-${m2[3]}T12:00:00`).getTime();
+            }
+
+            if (item.flightCode) {
+                const m = String(item.flightCode).match(/-(\d{2})(\d{2})(\d{2})$/);
+                if (m) return new Date(`20${m[1]}-${m[2]}-${m[3]}T12:00:00`).getTime();
+            }
+
+            if (item.wonDate) {
+                const ts = new Date(item.wonDate).getTime();
+                if (!isNaN(ts) && ts > 0) return ts;
+            }
+
+            return 0;
         }
 
         // Compute dynamic metrics from live store data
@@ -702,24 +759,26 @@
                     if (filters.cargoType === 'OTHER' && /GEN|PER|DG|VAL/i.test(declType)) return false;
                 }
 
+                const aTs = getItemTimestamp(a);
                 if (filters.timeRange === '30DAYS') {
-                    const aTs = a.rawTime || (a.createdDate ? new Date(a.createdDate).getTime() : nowTime);
-                    if (nowTime - aTs > 30 * oneDay) return false;
+                    if (aTs > 0 && (nowTime - aTs > 30 * oneDay)) return false;
                 } else if (filters.timeRange === '90DAYS') {
-                    const aTs = a.rawTime || (a.createdDate ? new Date(a.createdDate).getTime() : nowTime);
-                    if (nowTime - aTs > 90 * oneDay) return false;
+                    if (aTs > 0 && (nowTime - aTs > 90 * oneDay)) return false;
                 } else if (filters.timeRange === 'THIS_MONTH') {
-                    const monthStr = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}`;
-                    if (a.createdDate && !a.createdDate.includes(monthStr)) return false;
+                    if (aTs > 0) {
+                        const d = new Date(aTs);
+                        if (d.getFullYear() !== now.getFullYear() || d.getMonth() !== now.getMonth()) return false;
+                    }
                 } else if (filters.timeRange === 'LAST_MONTH') {
-                    const lmDate = new Date(now.getFullYear(), now.getMonth() - 1, 1);
-                    const lmStr = `${lmDate.getFullYear()}-${String(lmDate.getMonth() + 1).padStart(2, '0')}`;
-                    if (a.createdDate && !a.createdDate.includes(lmStr)) return false;
+                    if (aTs > 0) {
+                        const lmDate = new Date(now.getFullYear(), now.getMonth() - 1, 1);
+                        const d = new Date(aTs);
+                        if (d.getFullYear() !== lmDate.getFullYear() || d.getMonth() !== lmDate.getMonth()) return false;
+                    }
                 } else if (filters.timeRange === 'CUSTOM') {
                     const fromTs = filters.fromDate ? new Date(filters.fromDate + 'T00:00:00').getTime() : 0;
                     const toTs = filters.toDate ? new Date(filters.toDate + 'T23:59:59.999').getTime() : Infinity;
-                    const aTs = a.rawTime || (a.createdDate ? new Date(a.createdDate).getTime() : nowTime);
-                    if (aTs < fromTs || aTs > toTs) return false;
+                    if (aTs > 0 && (aTs < fromTs || aTs > toTs)) return false;
                 }
 
                 return true;
@@ -742,24 +801,26 @@
                     if (filters.cargoType === 'OTHER' && /GEN|PER|DG|VAL/i.test(declType)) return false;
                 }
 
+                const wTs = getItemTimestamp(w);
                 if (filters.timeRange === '30DAYS') {
-                    const wTs = w.rawTime || (w.wonDate ? new Date(w.wonDate).getTime() : nowTime);
-                    if (nowTime - wTs > 30 * oneDay) return false;
+                    if (wTs > 0 && (nowTime - wTs > 30 * oneDay)) return false;
                 } else if (filters.timeRange === '90DAYS') {
-                    const wTs = w.rawTime || (w.wonDate ? new Date(w.wonDate).getTime() : nowTime);
-                    if (nowTime - wTs > 90 * oneDay) return false;
+                    if (wTs > 0 && (nowTime - wTs > 90 * oneDay)) return false;
                 } else if (filters.timeRange === 'THIS_MONTH') {
-                    const monthStr = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}`;
-                    if (w.wonDate && !w.wonDate.includes(monthStr)) return false;
+                    if (wTs > 0) {
+                        const d = new Date(wTs);
+                        if (d.getFullYear() !== now.getFullYear() || d.getMonth() !== now.getMonth()) return false;
+                    }
                 } else if (filters.timeRange === 'LAST_MONTH') {
-                    const lmDate = new Date(now.getFullYear(), now.getMonth() - 1, 1);
-                    const lmStr = `${lmDate.getFullYear()}-${String(lmDate.getMonth() + 1).padStart(2, '0')}`;
-                    if (w.wonDate && !w.wonDate.includes(lmStr)) return false;
+                    if (wTs > 0) {
+                        const lmDate = new Date(now.getFullYear(), now.getMonth() - 1, 1);
+                        const d = new Date(wTs);
+                        if (d.getFullYear() !== lmDate.getFullYear() || d.getMonth() !== lmDate.getMonth()) return false;
+                    }
                 } else if (filters.timeRange === 'CUSTOM') {
                     const fromTs = filters.fromDate ? new Date(filters.fromDate + 'T00:00:00').getTime() : 0;
                     const toTs = filters.toDate ? new Date(filters.toDate + 'T23:59:59.999').getTime() : Infinity;
-                    const wTs = w.rawTime || (w.wonDate ? new Date(w.wonDate).getTime() : nowTime);
-                    if (wTs < fromTs || wTs > toTs) return false;
+                    if (wTs > 0 && (wTs < fromTs || wTs > toTs)) return false;
                 }
 
                 return true;
