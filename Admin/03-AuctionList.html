@@ -522,6 +522,54 @@
         </div>
     </div>
 
+    <!-- Modal: Xác nhận xóa phiên đấu giá (Bắt buộc lý do nếu đã có đại lý đặt thầu) -->
+    <div id="deleteAuctionModal" class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-50 hidden flex items-center justify-center p-4">
+        <div class="bg-white rounded-2xl shadow-xl max-w-md w-full overflow-hidden animate-in fade-in zoom-in-95 duration-200">
+            <div class="bg-red-600 text-white px-6 py-4 flex items-center justify-between">
+                <div class="flex items-center gap-2.5">
+                    <div class="w-8 h-8 bg-red-700/80 rounded-lg flex items-center justify-center text-white text-sm shrink-0">
+                        <i class="fa-solid fa-trash-can"></i>
+                    </div>
+                    <div>
+                        <h3 class="font-bold text-sm" id="deleteModalTitle">Xác nhận xóa phiên đấu giá</h3>
+                        <p class="text-[11px] text-red-100" id="deleteModalSub">Mã chuyến bay</p>
+                    </div>
+                </div>
+                <button onclick="closeDeleteModal()" class="text-red-200 hover:text-white text-lg">
+                    <i class="fa-solid fa-xmark"></i>
+                </button>
+            </div>
+
+            <form id="deleteAuctionForm" onsubmit="submitDeleteAuction(event)" class="p-6 space-y-4 text-xs">
+                <input type="hidden" id="deleteAuctionId">
+
+                <!-- Alert Notice Box -->
+                <div id="deleteModalNotice" class="p-3.5 rounded-xl border text-xs leading-relaxed">
+                    <!-- Dynamic content filled by JS -->
+                </div>
+
+                <div>
+                    <label class="block font-bold text-slate-700 mb-1" id="deleteReasonLabel">
+                        Lý do xóa / hủy phiên <span id="deleteReasonRequiredMark" class="text-red-500">*</span>
+                    </label>
+                    <textarea id="deleteReasonInput" rows="3" placeholder="Nhập lý do xóa (Ví dụ: Hủy chuyến bay do lý do kỹ thuật, Thay đổi lịch cất cánh...)" class="w-full text-xs p-3 border border-slate-200 rounded-xl focus:ring-2 focus:ring-red-500/20 focus:border-red-500 outline-none transition"></textarea>
+                    <p id="deleteReasonError" class="text-red-500 text-[11px] font-semibold mt-1 hidden">
+                        <i class="fa-solid fa-circle-exclamation mr-1"></i>Phiên này đã có lượt thầu từ Đại lý. Bắt buộc phải nhập lý do xóa!
+                    </p>
+                </div>
+
+                <div class="flex items-center justify-end gap-2 pt-2 border-t">
+                    <button type="button" onclick="closeDeleteModal()" class="px-4 py-2 text-slate-600 hover:bg-slate-100 rounded-xl font-medium transition">
+                        Hủy bỏ
+                    </button>
+                    <button type="submit" class="px-5 py-2 bg-red-600 hover:bg-red-700 text-white font-bold rounded-xl shadow transition flex items-center gap-1.5">
+                        <i class="fa-solid fa-trash"></i> Xác nhận xóa
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+
     <!-- Modal 2: Gửi thông báo đấu giá (Broadcast Notification) -->
     <div id="broadcastModal" class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-50 hidden flex items-center justify-center p-4">
         <div class="bg-white rounded-2xl shadow-xl max-w-lg w-full overflow-hidden animate-in fade-in zoom-in-95 duration-200">
@@ -782,7 +830,7 @@
             const hasBids = bidsCount > 0;
 
             const canEdit = isOpen && !hasBids;
-            const canDelete = !isOpen;
+            const canDelete = (data.currentAdmin && data.currentAdmin.role !== 'STAFF');
 
             return `
                 <tr class="hover:bg-slate-50 transition">
@@ -1054,15 +1102,82 @@
             }
         }
 
+        let pendingDeleteId = null;
+        let pendingDeleteHasBids = false;
+
         function handleDeleteAuction(id, flightNumber) {
-            if (confirm(`CẢNH BÁO: Bạn có chắc chắn muốn xóa vĩnh viễn chuyến bay ${flightNumber}? Mọi lượt đặt giá liên quan sẽ bị xóa khỏi hệ thống!`)) {
-                const res = CargoStore.deleteAuction(id);
-                if (res.success) {
-                    alert(res.message);
-                    renderAuctionsTable();
-                } else {
-                    alert(res.message);
-                }
+            const data = (typeof CargoStore !== 'undefined' && CargoStore.getData) ? CargoStore.getData() : {};
+            const auctions = data.auctions || [];
+            const auction = auctions.find(a => a.id == id);
+            if (!auction) return;
+
+            const allBids = data.bids || [];
+            const bidsForThis = allBids.filter(b => b.auctionId == id);
+            const bidsCount = (auction.bidsCount !== undefined && auction.bidsCount !== null && auction.bidsCount > 0)
+                ? Math.max(auction.bidsCount, bidsForThis.length)
+                : bidsForThis.length;
+            const hasBids = bidsCount > 0;
+
+            pendingDeleteId = id;
+            pendingDeleteHasBids = hasBids;
+
+            document.getElementById('deleteAuctionId').value = id;
+            document.getElementById('deleteModalTitle').textContent = `Xóa phiên chuyến bay ${flightNumber}`;
+            document.getElementById('deleteModalSub').textContent = `Tuyến ${auction.route} · Tải trọng: ${CargoStore.formatNumber(auction.capacityKg)} Kg`;
+            document.getElementById('deleteReasonInput').value = '';
+            document.getElementById('deleteReasonError').classList.add('hidden');
+
+            const noticeEl = document.getElementById('deleteModalNotice');
+            const reqMark = document.getElementById('deleteReasonRequiredMark');
+
+            if (hasBids) {
+                noticeEl.className = 'p-3.5 rounded-xl border border-amber-200 bg-amber-50 text-amber-900 text-xs leading-relaxed space-y-1';
+                noticeEl.innerHTML = `
+                    <div class="font-bold flex items-center gap-1.5 text-amber-800">
+                        <i class="fa-solid fa-triangle-exclamation text-amber-600"></i> Phiên đấu giá đã có ${bidsCount} lượt đặt giá từ đại lý!
+                    </div>
+                    <p class="text-[11px] text-amber-700">
+                        Đại lý đã đẩy giá/đặt thầu cho chuyến bay này. Bạn <strong>bắt buộc phải nhập lý do xóa</strong> để lưu vết Audit Logs và gửi thông báo giải thích đến các đại lý.
+                    </p>
+                `;
+                if (reqMark) reqMark.classList.remove('hidden');
+            } else {
+                noticeEl.className = 'p-3.5 rounded-xl border border-blue-200 bg-blue-50 text-blue-900 text-xs leading-relaxed space-y-1';
+                noticeEl.innerHTML = `
+                    <div class="font-bold flex items-center gap-1.5 text-blue-800">
+                        <i class="fa-solid fa-circle-info text-blue-600"></i> Phiên mới tạo – Chưa có lượt đặt giá
+                    </div>
+                    <p class="text-[11px] text-blue-700">
+                        Phiên chưa có đại lý nào tham gia đấu giá. Bạn có thể xác nhận xóa phiên này.
+                    </p>
+                `;
+                if (reqMark) reqMark.classList.add('hidden');
+            }
+
+            document.getElementById('deleteAuctionModal').classList.remove('hidden');
+        }
+
+        function closeDeleteModal() {
+            document.getElementById('deleteAuctionModal').classList.add('hidden');
+        }
+
+        function submitDeleteAuction(e) {
+            e.preventDefault();
+            const id = document.getElementById('deleteAuctionId').value;
+            const reason = document.getElementById('deleteReasonInput').value.trim();
+
+            if (pendingDeleteHasBids && !reason) {
+                document.getElementById('deleteReasonError').classList.remove('hidden');
+                return;
+            }
+
+            const res = CargoStore.deleteAuction(id, reason);
+            if (res.success) {
+                closeDeleteModal();
+                alert(res.message);
+                renderAuctionsTable();
+            } else {
+                alert(res.message);
             }
         }
 
