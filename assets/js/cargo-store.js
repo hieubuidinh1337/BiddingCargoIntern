@@ -831,7 +831,7 @@ const CargoStore = (function() {
             const code = String(b.agentCode || '').trim().toUpperCase();
             if (!code || code === 'AG-***' || code === 'ANONYMOUS') return;
 
-            const key = `${Number(b.auctionId)}_${code}_${Number(b.priceKg)}`;
+            const key = `${b.auctionId || b.flightCode}_${code}_${Number(b.priceKg)}`;
             if (!bidMap.has(key)) {
                 bidMap.set(key, b);
             } else {
@@ -1026,9 +1026,7 @@ const CargoStore = (function() {
             if (data.auctions && Array.isArray(data.auctions)) {
                 const allBids = Array.isArray(data.bids) ? data.bids : [];
                 data.auctions.forEach(a => {
-                    const auctionBids = allBids
-                        .filter(b => Number(b.auctionId) === Number(a.id))
-                        .sort((x, y) => Number(y.priceKg) - Number(x.priceKg));
+                    const auctionBids = this.getBidsForAuction(a.id);
 
                     if (auctionBids.length > 0) {
                         const highestBid = auctionBids[0];
@@ -1232,9 +1230,7 @@ const CargoStore = (function() {
         const allBids = Array.isArray(data.bids) ? data.bids : [];
 
         data.auctions.forEach(a => {
-            const auctionBids = allBids
-                .filter(b => Number(b.auctionId) === Number(a.id))
-                .sort((x, y) => Number(y.priceKg) - Number(x.priceKg));
+            const auctionBids = this.getBidsForAuction(a.id);
 
             if (auctionBids.length > 0) {
                 const highestBid = auctionBids[0];
@@ -2650,11 +2646,29 @@ const CargoStore = (function() {
 
         getBidsForAuction: function(auctionId) {
             const data = loadData();
-            let auction = (data.auctions || []).find(a => Number(a.id) === Number(auctionId));
-            const wonItem = (data.wonAuctions || []).find(w => Number(w.auctionId) === Number(auctionId) || String(w.wonId) === String(auctionId));
+            let auction = (data.auctions || []).find(a => 
+                String(a.id) === String(auctionId) || 
+                (a.flightCode && a.flightCode.toUpperCase() === String(auctionId).toUpperCase())
+            );
+            const wonItem = (data.wonAuctions || []).find(w => 
+                String(w.auctionId) === String(auctionId) || 
+                String(w.wonId) === String(auctionId) ||
+                (w.flightCode && w.flightCode.toUpperCase() === String(auctionId).toUpperCase())
+            );
+
+            const targetAuctionId = auction ? auction.id : (wonItem ? wonItem.auctionId : auctionId);
+            const targetFlightCode = auction ? auction.flightCode : (wonItem ? wonItem.flightCode : null);
+
             if (!data.bids) data.bids = [];
             data.bids = deduplicateBids(data.bids);
-            let bids = data.bids.filter(b => Number(b.auctionId) === Number(auctionId));
+
+            let bids = data.bids.filter(b => {
+                if (!b) return false;
+                if (String(b.auctionId) === String(auctionId)) return true;
+                if (targetAuctionId && String(b.auctionId) === String(targetAuctionId)) return true;
+                if (targetFlightCode && b.flightCode && String(b.flightCode).toUpperCase() === String(targetFlightCode).toUpperCase()) return true;
+                return false;
+            }).sort((a, b) => (Number(b.priceKg) || 0) - (Number(a.priceKg) || 0) || (Number(b.timestamp || b.id) || 0) - (Number(a.timestamp || a.id) || 0));
 
             if (!auction && wonItem) {
                 auction = {
@@ -2698,7 +2712,8 @@ const CargoStore = (function() {
                     bids.push({
                         id: now - (count - i) * 20 * 60 * 1000,
                         timestamp: now - (count - i) * 20 * 60 * 1000,
-                        auctionId: Number(auctionId),
+                        auctionId: auction ? auction.id : auctionId,
+                        flightCode: targetFlightCode,
                         agentCode: ag.code,
                         agentName: ag.name,
                         isAnonymous: true,
@@ -2713,7 +2728,8 @@ const CargoStore = (function() {
                 bids.push({
                     id: now - 5 * 60 * 1000,
                     timestamp: now - 5 * 60 * 1000,
-                    auctionId: Number(auctionId),
+                    auctionId: auction ? auction.id : auctionId,
+                    flightCode: targetFlightCode,
                     agentCode: winnerCode,
                     agentName: winnerName,
                     isAnonymous: true,
@@ -2767,7 +2783,10 @@ const CargoStore = (function() {
             if (checkAndAutoLockExpiredWonAuctions(data)) {
                 saveData(data, true);
             }
-            const auction = data.auctions.find(a => a.id == auctionId);
+            const auction = data.auctions.find(a => 
+                String(a.id) === String(auctionId) || 
+                (a.flightCode && a.flightCode.toUpperCase() === String(auctionId).toUpperCase())
+            );
             if (!auction) return { success: false, message: 'Phiên đấu giá không tồn tại' };
 
             // Check if auction is CLOSED or timer has expired
@@ -2812,7 +2831,7 @@ const CargoStore = (function() {
 
             // Mark previous bids as OUTBID
             data.bids.forEach(b => {
-                if (b.auctionId == auctionId && b.status === 'HIGHEST') {
+                if ((String(b.auctionId) === String(auction.id) || (auction.flightCode && b.flightCode === auction.flightCode)) && b.status === 'HIGHEST') {
                     b.status = 'OUTBID';
                 }
             });
@@ -2824,7 +2843,8 @@ const CargoStore = (function() {
             const newBid = {
                 id: now,
                 timestamp: now,
-                auctionId: Number(auctionId),
+                auctionId: auction.id,
+                flightCode: auction.flightCode,
                 agentCode: user.agentCode,
                 agentName: user.companyName,
                 isAnonymous: anonFlag,

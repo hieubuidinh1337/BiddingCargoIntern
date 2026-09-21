@@ -980,6 +980,13 @@ const server = http.createServer((req, res) => {
                 // Refresh in-memory state from database
                 serverData = await db.getFullServerData();
 
+                // Reconcile auction summaries (currentPriceKg, bidsCount, leadingAgent)
+                reconcileAuctionSummaries(serverData);
+
+                // *** CRITICAL FIX: Bump version so admin/agent tabs detect the new bid ***
+                serverData.version = Date.now();
+                saveServerData();
+
                 // Log bidding activity into activity_logs DB & in-memory serverData
                 try {
                     const pad = n => String(n).padStart(2, '0');

@@ -1,5 +1,6 @@
 <!DOCTYPE html>
 <html lang="vi">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -15,26 +16,31 @@
             scrollbar-width: thin;
             scrollbar-color: #3b82f6 #e2e8f0;
         }
+
         .custom-scrollbar::-webkit-scrollbar {
             width: 8px;
             height: 8px;
             display: block;
         }
+
         .custom-scrollbar::-webkit-scrollbar-track {
             background: #f1f5f9;
             border-radius: 6px;
         }
+
         .custom-scrollbar::-webkit-scrollbar-thumb {
             background: #94a3b8;
             border-radius: 6px;
             border: 2px solid #f1f5f9;
         }
+
         .custom-scrollbar::-webkit-scrollbar-thumb:hover {
             background: #3b82f6;
         }
     </style>
 </head>
-<body class="bg-slate-100 text-slate-800">    <!-- ═══════════════════════════════════════════
+
+<body class="bg-slate-100 text-slate-800"> <!-- ═══════════════════════════════════════════
          ADMIN HEADER — VU Cargo Admin Portal
          Premium dark navigation — DO NOT EDIT MANUALLY
          ═══════════════════════════════════════════ -->
@@ -42,130 +48,317 @@
         /* ── Admin Header ── */
         #adminHeader {
             background: linear-gradient(135deg, #0f172a 0%, #1e293b 60%, #0f172a 100%);
-            border-bottom: 1px solid rgba(59,130,246,0.18);
-            position: sticky; top: 0; z-index: 50;
-            box-shadow: 0 2px 20px rgba(0,0,0,0.35);
+            border-bottom: 1px solid rgba(59, 130, 246, 0.18);
+            position: sticky;
+            top: 0;
+            z-index: 50;
+            box-shadow: 0 2px 20px rgba(0, 0, 0, 0.35);
         }
+
         #adminHeader::after {
             content: '';
             display: block;
             height: 2px;
             background: linear-gradient(90deg, transparent 0%, #3b82f6 30%, #6366f1 65%, transparent 100%);
         }
+
         .admin-inner {
-            max-width: 1400px; margin: 0 auto;
+            max-width: 1400px;
+            margin: 0 auto;
             padding: 0 1rem;
-            display: flex; align-items: center; justify-content: space-between;
-            height: 58px; gap: 0.75rem;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            height: 58px;
+            gap: 0.75rem;
         }
-        .admin-brand { display:flex; align-items:center; gap:0.75rem; text-decoration:none; flex-shrink:0; }
-        .admin-brand img { height: 32px; object-fit:contain; filter: brightness(0) invert(1); }
-        .admin-brand-sep { width:1px; height:28px; background:rgba(255,255,255,0.15); }
-        .admin-brand-text { font-size:0.8125rem; font-weight:700; color:#e2e8f0; letter-spacing:0.04em; white-space:nowrap; }
-        .admin-brand-sub { font-size:0.6rem; font-weight:600; color:#94a3b8; text-transform:uppercase; letter-spacing:0.1em; display:block; }
+
+        .admin-brand {
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+            text-decoration: none;
+            flex-shrink: 0;
+        }
+
+        .admin-brand img {
+            height: 32px;
+            object-fit: contain;
+            filter: brightness(0) invert(1);
+        }
+
+        .admin-brand-sep {
+            width: 1px;
+            height: 28px;
+            background: rgba(255, 255, 255, 0.15);
+        }
+
+        .admin-brand-text {
+            font-size: 0.8125rem;
+            font-weight: 700;
+            color: #e2e8f0;
+            letter-spacing: 0.04em;
+            white-space: nowrap;
+        }
+
+        .admin-brand-sub {
+            font-size: 0.6rem;
+            font-weight: 600;
+            color: #94a3b8;
+            text-transform: uppercase;
+            letter-spacing: 0.1em;
+            display: block;
+        }
 
         /* Desktop Nav */
-        .admin-nav { display:none; align-items:center; gap:2px; }
-        @media (min-width:768px) { .admin-nav { display:flex; } }
+        .admin-nav {
+            display: none;
+            align-items: center;
+            gap: 2px;
+        }
+
+        @media (min-width:768px) {
+            .admin-nav {
+                display: flex;
+            }
+        }
+
         .nav-item-admin {
-            display:flex; align-items:center; gap:5px;
-            padding: 5px 10px; border-radius: 8px;
-            font-size:0.72rem; font-weight:600; color:rgba(203,213,225,0.85);
-            text-decoration:none; white-space:nowrap;
+            display: flex;
+            align-items: center;
+            gap: 5px;
+            padding: 5px 10px;
+            border-radius: 8px;
+            font-size: 0.72rem;
+            font-weight: 600;
+            color: rgba(203, 213, 225, 0.85);
+            text-decoration: none;
+            white-space: nowrap;
             transition: all 0.15s ease;
             border: 1px solid transparent;
         }
+
         .nav-item-admin:hover {
-            color:#fff; background:rgba(255,255,255,0.08);
-            border-color:rgba(255,255,255,0.1);
+            color: #fff;
+            background: rgba(255, 255, 255, 0.08);
+            border-color: rgba(255, 255, 255, 0.1);
         }
+
         .nav-item-admin.active {
-            color:#fff; background:rgba(59,130,246,0.85);
-            border-color:rgba(59,130,246,0.5);
-            box-shadow: 0 0 12px rgba(59,130,246,0.35);
+            color: #fff;
+            background: rgba(59, 130, 246, 0.85);
+            border-color: rgba(59, 130, 246, 0.5);
+            box-shadow: 0 0 12px rgba(59, 130, 246, 0.35);
         }
+
         .nav-item-admin.chat-item {
-            color:#c4b5fd; background:rgba(139,92,246,0.12);
-            border-color:rgba(139,92,246,0.25);
+            color: #c4b5fd;
+            background: rgba(139, 92, 246, 0.12);
+            border-color: rgba(139, 92, 246, 0.25);
         }
+
         .nav-item-admin.chat-item:hover {
-            color:#e9d5ff; background:rgba(139,92,246,0.22);
+            color: #e9d5ff;
+            background: rgba(139, 92, 246, 0.22);
         }
+
         .nav-item-admin.active-chat {
-            color:#fff; background:rgba(139,92,246,0.75);
-            border-color:rgba(139,92,246,0.5);
-            box-shadow:0 0 12px rgba(139,92,246,0.35);
+            color: #fff;
+            background: rgba(139, 92, 246, 0.75);
+            border-color: rgba(139, 92, 246, 0.5);
+            box-shadow: 0 0 12px rgba(139, 92, 246, 0.35);
         }
+
         .chat-badge {
-            background:#ef4444; color:#fff; font-size:0.6rem;
-            font-weight:700; padding:0 5px; border-radius:999px; min-width:16px;
-            text-align:center; line-height:16px; height:16px;
+            background: #ef4444;
+            color: #fff;
+            font-size: 0.6rem;
+            font-weight: 700;
+            padding: 0 5px;
+            border-radius: 999px;
+            min-width: 16px;
+            text-align: center;
+            line-height: 16px;
+            height: 16px;
         }
 
         /* Right Bar */
-        .admin-right { display:flex; align-items:center; gap:0.5rem; flex-shrink:0; }
+        .admin-right {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            flex-shrink: 0;
+        }
+
         .admin-public-link {
-            display:none; align-items:center; gap:5px;
-            font-size:0.68rem; font-weight:600; color:rgba(148,163,184,0.9);
-            background:rgba(255,255,255,0.06); border:1px solid rgba(255,255,255,0.1);
-            padding:4px 10px; border-radius:8px; text-decoration:none;
-            transition:all 0.15s;
+            display: none;
+            align-items: center;
+            gap: 5px;
+            font-size: 0.68rem;
+            font-weight: 600;
+            color: rgba(148, 163, 184, 0.9);
+            background: rgba(255, 255, 255, 0.06);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            padding: 4px 10px;
+            border-radius: 8px;
+            text-decoration: none;
+            transition: all 0.15s;
         }
-        @media (min-width:1024px) { .admin-public-link { display:flex; } }
-        .admin-public-link:hover { color:#fff; background:rgba(255,255,255,0.1); }
-        .admin-sep { width:1px; height:24px; background:rgba(255,255,255,0.12); }
+
+        @media (min-width:1024px) {
+            .admin-public-link {
+                display: flex;
+            }
+        }
+
+        .admin-public-link:hover {
+            color: #fff;
+            background: rgba(255, 255, 255, 0.1);
+        }
+
+        .admin-sep {
+            width: 1px;
+            height: 24px;
+            background: rgba(255, 255, 255, 0.12);
+        }
+
         .admin-avatar {
-            width:32px; height:32px; border-radius:50%;
-            background:linear-gradient(135deg,#3b82f6,#6366f1);
-            color:#fff; font-weight:800; font-size:0.7rem;
-            display:flex; align-items:center; justify-content:center;
-            border:2px solid rgba(255,255,255,0.15);
-            flex-shrink:0;
+            width: 32px;
+            height: 32px;
+            border-radius: 50%;
+            background: linear-gradient(135deg, #3b82f6, #6366f1);
+            color: #fff;
+            font-weight: 800;
+            font-size: 0.7rem;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border: 2px solid rgba(255, 255, 255, 0.15);
+            flex-shrink: 0;
         }
-        .admin-user-info { display:none; flex-direction:column; text-align:left; }
-        @media (min-width:640px) { .admin-user-info { display:flex; } }
-        .admin-user-name { font-size:0.72rem; font-weight:700; color:#e2e8f0; line-height:1.2; }
-        .admin-user-role { font-size:0.6rem; font-weight:700; color:#60a5fa; text-transform:uppercase; letter-spacing:0.08em; }
+
+        .admin-user-info {
+            display: none;
+            flex-direction: column;
+            text-align: left;
+        }
+
+        @media (min-width:640px) {
+            .admin-user-info {
+                display: flex;
+            }
+        }
+
+        .admin-user-name {
+            font-size: 0.72rem;
+            font-weight: 700;
+            color: #e2e8f0;
+            line-height: 1.2;
+        }
+
+        .admin-user-role {
+            font-size: 0.6rem;
+            font-weight: 700;
+            color: #60a5fa;
+            text-transform: uppercase;
+            letter-spacing: 0.08em;
+        }
+
         .admin-logout {
-            color:rgba(148,163,184,0.7); padding:6px; border-radius:8px;
-            text-decoration:none; transition:all 0.15s; font-size:0.8rem;
-            border:1px solid transparent;
+            color: rgba(148, 163, 184, 0.7);
+            padding: 6px;
+            border-radius: 8px;
+            text-decoration: none;
+            transition: all 0.15s;
+            font-size: 0.8rem;
+            border: 1px solid transparent;
         }
-        .admin-logout:hover { color:#f87171; background:rgba(239,68,68,0.1); border-color:rgba(239,68,68,0.2); }
+
+        .admin-logout:hover {
+            color: #f87171;
+            background: rgba(239, 68, 68, 0.1);
+            border-color: rgba(239, 68, 68, 0.2);
+        }
 
         /* Mobile hamburger */
         .admin-hamburger {
-            display:flex; align-items:center; justify-content:center;
-            width:34px; height:34px; border-radius:8px;
-            background:rgba(255,255,255,0.07); border:1px solid rgba(255,255,255,0.12);
-            color:#cbd5e1; cursor:pointer; font-size:0.85rem;
-            transition:all 0.15s;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            width: 34px;
+            height: 34px;
+            border-radius: 8px;
+            background: rgba(255, 255, 255, 0.07);
+            border: 1px solid rgba(255, 255, 255, 0.12);
+            color: #cbd5e1;
+            cursor: pointer;
+            font-size: 0.85rem;
+            transition: all 0.15s;
         }
-        .admin-hamburger:hover { background:rgba(255,255,255,0.12); color:#fff; }
-        @media (min-width:768px) { .admin-hamburger { display:none; } }
+
+        .admin-hamburger:hover {
+            background: rgba(255, 255, 255, 0.12);
+            color: #fff;
+        }
+
+        @media (min-width:768px) {
+            .admin-hamburger {
+                display: none;
+            }
+        }
 
         /* Mobile dropdown */
         #adminMobileNav {
-            display:none; padding: 0.75rem 1rem;
-            background:#1e293b; border-top:1px solid rgba(255,255,255,0.08);
-            max-width:1400px; margin:0 auto;
+            display: none;
+            padding: 0.75rem 1rem;
+            background: #1e293b;
+            border-top: 1px solid rgba(255, 255, 255, 0.08);
+            max-width: 1400px;
+            margin: 0 auto;
         }
-        #adminMobileNav.open { display:block; }
+
+        #adminMobileNav.open {
+            display: block;
+        }
+
         .mobile-nav-item {
-            display:flex; align-items:center; gap:0.6rem;
-            padding:8px 12px; border-radius:8px; margin-bottom:2px;
-            font-size:0.76rem; font-weight:600; color:#cbd5e1;
-            text-decoration:none; transition:all 0.15s;
+            display: flex;
+            align-items: center;
+            gap: 0.6rem;
+            padding: 8px 12px;
+            border-radius: 8px;
+            margin-bottom: 2px;
+            font-size: 0.76rem;
+            font-weight: 600;
+            color: #cbd5e1;
+            text-decoration: none;
+            transition: all 0.15s;
         }
-        .mobile-nav-item:hover { color:#fff; background:rgba(255,255,255,0.08); }
-        .mobile-nav-item.active { color:#fff; background:rgba(59,130,246,0.75); }
-        .mobile-nav-item.chat-item { color:#c4b5fd; }
-        .mobile-nav-item.active-chat { color:#fff; background:rgba(139,92,246,0.75); }
+
+        .mobile-nav-item:hover {
+            color: #fff;
+            background: rgba(255, 255, 255, 0.08);
+        }
+
+        .mobile-nav-item.active {
+            color: #fff;
+            background: rgba(59, 130, 246, 0.75);
+        }
+
+        .mobile-nav-item.chat-item {
+            color: #c4b5fd;
+        }
+
+        .mobile-nav-item.active-chat {
+            color: #fff;
+            background: rgba(139, 92, 246, 0.75);
+        }
     </style>
     <header id="adminHeader">
         <div class="admin-inner">
             <!-- Brand -->
-            <button type="button" class="admin-hamburger" onclick="document.getElementById('adminMobileNav').classList.toggle('open')" aria-label="Menu">
+            <button type="button" class="admin-hamburger"
+                onclick="document.getElementById('adminMobileNav').classList.toggle('open')" aria-label="Menu">
                 <i class="fa-solid fa-bars"></i>
             </button>
             <a href="02-AdminDashboard.html" class="admin-brand">
@@ -179,14 +372,20 @@
 
             <!-- Desktop Nav -->
             <nav class="admin-nav">
-                    <a href="02-AdminDashboard.html" class="nav-item-admin"><i class="fa-solid fa-gauge-high"></i>Dashboard</a>
-                    <a href="03-AuctionList.html" class="nav-item-admin active"><i class="fa-solid fa-list-check"></i>Quản lý phiên</a>
-                    <a href="04-CreateAuction.html" class="nav-item-admin"><i class="fa-solid fa-circle-plus"></i>Tạo phiên</a>
-                    <a href="06-AgentList.html" class="nav-item-admin"><i class="fa-solid fa-building-user"></i>Đại lý</a>
-                    <a href="07-Reports.html" class="nav-item-admin"><i class="fa-solid fa-chart-line"></i>Báo cáo</a>
-                    <a href="08-Settings.html" class="nav-item-admin"><i class="fa-solid fa-sliders"></i>Cài đặt</a>
-                    <a href="10-AuditLogs.html" class="nav-item-admin"><i class="fa-solid fa-clock-rotate-left"></i>Nhật ký</a>
-                    <a href="09-AdminChat.html" class="nav-item-admin chat-item"><i class="fa-solid fa-headset"></i>Chat<span id="admin-chat-badge" class="hidden chat-badge">0</span></a>
+                <a href="02-AdminDashboard.html" class="nav-item-admin"><i
+                        class="fa-solid fa-gauge-high"></i>Dashboard</a>
+                <a href="03-AuctionList.html" class="nav-item-admin active"><i class="fa-solid fa-list-check"></i>Quản
+                    lý phiên</a>
+                <a href="04-CreateAuction.html" class="nav-item-admin"><i class="fa-solid fa-circle-plus"></i>Tạo
+                    phiên</a>
+                <a href="06-AgentList.html" class="nav-item-admin"><i class="fa-solid fa-building-user"></i>Đại lý</a>
+                <a href="07-Reports.html" class="nav-item-admin"><i class="fa-solid fa-chart-line"></i>Báo cáo</a>
+                <a href="08-Settings.html" class="nav-item-admin"><i class="fa-solid fa-sliders"></i>Cài đặt</a>
+                <a href="10-AuditLogs.html" class="nav-item-admin"><i class="fa-solid fa-clock-rotate-left"></i>Nhật
+                    ký</a>
+                <a href="09-AdminChat.html" class="nav-item-admin chat-item"><i
+                        class="fa-solid fa-headset"></i>Chat<span id="admin-chat-badge"
+                        class="hidden chat-badge">0</span></a>
             </nav>
 
             <!-- Right Bar -->
@@ -200,7 +399,8 @@
                     <span class="admin-user-name admin-header-name">Quản trị viên</span>
                     <span class="admin-user-role admin-header-role">QUẢN TRỊ VIÊN</span>
                 </div>
-                <a href="01-AdminLogin.html" onclick="if(window.CargoStore) CargoStore.logoutAdmin()" class="admin-logout" title="Đăng xuất">
+                <a href="01-AdminLogin.html" onclick="if(window.CargoStore) CargoStore.logoutAdmin()"
+                    class="admin-logout" title="Đăng xuất">
                     <i class="fa-solid fa-power-off"></i>
                 </a>
             </div>
@@ -208,15 +408,22 @@
 
         <!-- Mobile Dropdown -->
         <div id="adminMobileNav">
-            <a href="02-AdminDashboard.html" class="mobile-nav-item"><i class="fa-solid fa-gauge-high w-4"></i>Dashboard</a>
-            <a href="03-AuctionList.html" class="mobile-nav-item active"><i class="fa-solid fa-list-check w-4"></i>Quản lý phiên</a>
-            <a href="04-CreateAuction.html" class="mobile-nav-item"><i class="fa-solid fa-circle-plus w-4"></i>Tạo phiên</a>
+            <a href="02-AdminDashboard.html" class="mobile-nav-item"><i
+                    class="fa-solid fa-gauge-high w-4"></i>Dashboard</a>
+            <a href="03-AuctionList.html" class="mobile-nav-item active"><i class="fa-solid fa-list-check w-4"></i>Quản
+                lý phiên</a>
+            <a href="04-CreateAuction.html" class="mobile-nav-item"><i class="fa-solid fa-circle-plus w-4"></i>Tạo
+                phiên</a>
             <a href="06-AgentList.html" class="mobile-nav-item"><i class="fa-solid fa-building-user w-4"></i>Đại lý</a>
             <a href="07-Reports.html" class="mobile-nav-item"><i class="fa-solid fa-chart-line w-4"></i>Báo cáo</a>
             <a href="08-Settings.html" class="mobile-nav-item"><i class="fa-solid fa-sliders w-4"></i>Cài đặt</a>
-            <a href="10-AuditLogs.html" class="mobile-nav-item"><i class="fa-solid fa-clock-rotate-left w-4"></i>Nhật ký</a>
-            <a href="09-AdminChat.html" class="mobile-nav-item chat-item"><i class="fa-solid fa-headset w-4"></i>Chat<span id="admin-chat-badge-m" class="hidden chat-badge ml-auto">0</span></a>
-            <a href="../00-Home.html" target="_blank" class="mobile-nav-item" style="border-top:1px solid rgba(255,255,255,0.08);margin-top:6px;padding-top:10px">
+            <a href="10-AuditLogs.html" class="mobile-nav-item"><i class="fa-solid fa-clock-rotate-left w-4"></i>Nhật
+                ký</a>
+            <a href="09-AdminChat.html" class="mobile-nav-item chat-item"><i
+                    class="fa-solid fa-headset w-4"></i>Chat<span id="admin-chat-badge-m"
+                    class="hidden chat-badge ml-auto">0</span></a>
+            <a href="../00-Home.html" target="_blank" class="mobile-nav-item"
+                style="border-top:1px solid rgba(255,255,255,0.08);margin-top:6px;padding-top:10px">
                 <i class="fa-solid fa-arrow-up-right-from-square w-4"></i> Xem Sàn công khai
             </a>
         </div>
@@ -229,13 +436,16 @@
                 <h1 class="text-lg sm:text-2xl font-bold text-slate-900 flex items-center gap-2">
                     <i class="fa-solid fa-list-check text-blue-600 text-base sm:text-xl"></i> Quản lý phiên đấu giá
                 </h1>
-                <p class="text-[11px] sm:text-xs text-slate-500 mt-0.5 sm:mt-1">Chức năng Điều hành: Thêm, Xóa, Sửa thông số, Chốt thầu và Phát thông báo</p>
+                <p class="text-[11px] sm:text-xs text-slate-500 mt-0.5 sm:mt-1">Chức năng Điều hành: Thêm, Xóa, Sửa
+                    thông số, Chốt thầu và Phát thông báo</p>
             </div>
             <div class="grid grid-cols-2 sm:flex items-center gap-2 w-full sm:w-auto">
-                <button onclick="openBroadcastModal()" class="bg-amber-500 hover:bg-amber-600 text-white text-xs font-semibold px-3 sm:px-4 py-2.5 rounded-xl transition shadow flex items-center justify-center gap-1.5 whitespace-nowrap text-center">
+                <button onclick="openBroadcastModal()"
+                    class="bg-amber-500 hover:bg-amber-600 text-white text-xs font-semibold px-3 sm:px-4 py-2.5 rounded-xl transition shadow flex items-center justify-center gap-1.5 whitespace-nowrap text-center">
                     <i class="fa-solid fa-bullhorn text-[11px]"></i> Phát thông báo
                 </button>
-                <a href="04-CreateAuction.html" class="bg-blue-600 hover:bg-blue-700 text-white text-xs font-semibold px-3 sm:px-4 py-2.5 rounded-xl transition shadow flex items-center justify-center gap-1.5 whitespace-nowrap text-center">
+                <a href="04-CreateAuction.html"
+                    class="bg-blue-600 hover:bg-blue-700 text-white text-xs font-semibold px-3 sm:px-4 py-2.5 rounded-xl transition shadow flex items-center justify-center gap-1.5 whitespace-nowrap text-center">
                     <i class="fa-solid fa-plus text-[11px]"></i> Tạo phiên mới
                 </a>
             </div>
@@ -243,14 +453,18 @@
 
         <!-- Navigation Tabs (Phân cách bảng giống AgentList) -->
         <div class="flex flex-wrap items-center gap-2 border-b pb-2">
-            <button onclick="switchAuctionTab('ALL_AUCTIONS')" id="tabAllAuctionsBtn" class="px-4 py-2 rounded-xl text-xs font-bold bg-blue-600 text-white shadow-sm flex items-center gap-2 transition">
+            <button onclick="switchAuctionTab('ALL_AUCTIONS')" id="tabAllAuctionsBtn"
+                class="px-4 py-2 rounded-xl text-xs font-bold bg-blue-600 text-white shadow-sm flex items-center gap-2 transition">
                 <i class="fa-solid fa-layer-group"></i> Tất cả phiên đấu giá (<span id="allCountBadge">0</span>)
             </button>
-            <button onclick="switchAuctionTab('OPEN_AUCTIONS')" id="tabOpenAuctionsBtn" class="px-4 py-2 rounded-xl text-xs font-bold bg-white text-slate-600 hover:bg-slate-50 border flex items-center gap-2 transition">
+            <button onclick="switchAuctionTab('OPEN_AUCTIONS')" id="tabOpenAuctionsBtn"
+                class="px-4 py-2 rounded-xl text-xs font-bold bg-white text-slate-600 hover:bg-slate-50 border flex items-center gap-2 transition">
                 <i class="fa-solid fa-tower-broadcast"></i> Đang mở đấu giá (<span id="openCountBadge">0</span>)
             </button>
-            <button onclick="switchAuctionTab('WON_AUCTIONS')" id="tabWonAuctionsBtn" class="px-4 py-2 rounded-xl text-xs font-bold bg-white text-slate-600 hover:bg-slate-50 border flex items-center gap-2 transition">
-                <i class="fa-solid fa-boxes-packing"></i> Đơn thắng thầu & Khai báo Hàng hóa (<span id="wonCountBadge">0</span>)
+            <button onclick="switchAuctionTab('WON_AUCTIONS')" id="tabWonAuctionsBtn"
+                class="px-4 py-2 rounded-xl text-xs font-bold bg-white text-slate-600 hover:bg-slate-50 border flex items-center gap-2 transition">
+                <i class="fa-solid fa-boxes-packing"></i> Đơn thắng thầu & Khai báo Hàng hóa (<span
+                    id="wonCountBadge">0</span>)
             </button>
         </div>
 
@@ -259,14 +473,17 @@
             <!-- Filter bar -->
             <div class="bg-white rounded-2xl border shadow-sm p-4 flex flex-col sm:flex-row items-center gap-3">
                 <div class="relative flex-1 w-full">
-                    <i class="fa-solid fa-magnifying-glass absolute left-3.5 top-1/2 -translate-y-1/2 text-gray-400 text-xs"></i>
-                    <input type="text" id="auctionSearch" placeholder="Tìm theo số hiệu chuyến bay (VU130...), chặng bay..."
-                           class="w-full border rounded-xl pl-9 pr-4 py-2 text-xs focus:ring-2 focus:ring-blue-500 outline-none">
+                    <i
+                        class="fa-solid fa-magnifying-glass absolute left-3.5 top-1/2 -translate-y-1/2 text-gray-400 text-xs"></i>
+                    <input type="text" id="auctionSearch" oninput="allCurrentPage=1; renderAuctionsTable()"
+                        placeholder="Tìm theo số hiệu chuyến bay (VU130...), chặng bay..."
+                        class="w-full border rounded-xl pl-9 pr-4 py-2 text-xs focus:ring-2 focus:ring-blue-500 outline-none">
                 </div>
                 <div class="w-full sm:w-48">
-                    <select id="statusSelect" class="w-full border rounded-xl px-3 py-2 text-xs focus:ring-2 focus:ring-blue-500 outline-none bg-white">
+                    <select id="statusSelect" onchange="handleStatusFilterChange(this.value)"
+                        class="w-full border rounded-xl px-3 py-2 text-xs focus:ring-2 focus:ring-blue-500 outline-none bg-white">
                         <option value="ALL">Tất cả trạng thái</option>
-                        <option value="OPEN">Đang mở đấu giá</option>
+                        <option value="OPEN">↗ Đang mở (→ xem Tab riêng)</option>
                         <option value="CLOSED">Đã đóng / Chốt thầu</option>
                         <option value="CANCELLED">Đã hủy chuyến</option>
                         <option value="DELETED">Đã xóa</option>
@@ -278,9 +495,11 @@
             <div class="bg-white rounded-2xl border shadow-sm overflow-hidden">
                 <div class="p-4 bg-slate-50/70 border-b flex items-center justify-between">
                     <span class="text-xs text-slate-600 font-semibold flex items-center gap-1.5">
-                        <i class="fa-solid fa-list-check text-blue-600"></i> Danh sách tất cả các phiên đấu giá tải trọng trên hệ thống
+                        <i class="fa-solid fa-list-check text-blue-600"></i> Danh sách tất cả các phiên đấu giá tải
+                        trọng trên hệ thống
                     </span>
-                    <span class="text-[11px] text-slate-500">Thao tác: Xem chi tiết, Chỉnh sửa thông số, Chốt thầu hoặc Xóa</span>
+                    <span class="text-[11px] text-slate-500">Thao tác: Xem chi tiết, Chỉnh sửa thông số, Chốt thầu hoặc
+                        Xóa</span>
                 </div>
                 <div class="overflow-x-auto">
                     <table class="w-full text-xs text-left min-w-[780px] whitespace-nowrap">
@@ -301,16 +520,19 @@
                     </table>
                 </div>
                 <!-- Pagination Container for Tab 1 -->
-                <div id="allPaginationContainer" class="px-6 py-3 bg-slate-50 border-t flex flex-col sm:flex-row items-center justify-between gap-3 text-xs">
+                <div id="allPaginationContainer"
+                    class="px-6 py-3 bg-slate-50 border-t flex flex-col sm:flex-row items-center justify-between gap-3 text-xs">
                 </div>
             </div>
         </div>
 
         <!-- Tab 2: Các phiên đang MỞ đấu giá (Live Open Auctions) -->
         <div id="sectionOpenAuctions" class="hidden space-y-4">
-            <div class="bg-blue-50 border border-blue-200 text-blue-800 rounded-xl p-3.5 text-xs flex items-center gap-2">
+            <div
+                class="bg-blue-50 border border-blue-200 text-blue-800 rounded-xl p-3.5 text-xs flex items-center gap-2">
                 <i class="fa-solid fa-tower-broadcast text-blue-600 text-sm"></i>
-                <span>Danh sách các chuyến bay <strong>đang mở đấu giá thời gian thực</strong>. Quản trị viên có thể theo dõi biến động giá thầu hoặc chủ động <strong>Chốt thầu</strong> sớm.</span>
+                <span>Danh sách các chuyến bay <strong>đang mở đấu giá thời gian thực</strong>. Quản trị viên có thể
+                    theo dõi biến động giá thầu hoặc chủ động <strong>Chốt thầu</strong> sớm.</span>
             </div>
 
             <div class="bg-white rounded-2xl border shadow-sm overflow-hidden">
@@ -339,48 +561,75 @@
                     </table>
                 </div>
                 <!-- Pagination Container for Tab 2 -->
-                <div id="openPaginationContainer" class="px-6 py-3 bg-slate-50 border-t flex flex-col sm:flex-row items-center justify-between gap-3 text-xs">
+                <div id="openPaginationContainer"
+                    class="px-6 py-3 bg-slate-50 border-t flex flex-col sm:flex-row items-center justify-between gap-3 text-xs">
                 </div>
             </div>
         </div>
 
         <!-- Tab 3: Đơn thắng thầu & Khai báo Hàng hóa -->
         <div id="sectionWonAuctions" class="hidden bg-white rounded-2xl border shadow-sm overflow-hidden">
-            <div class="px-6 py-4 border-b bg-slate-900 text-white flex flex-col xl:flex-row xl:items-center justify-between gap-3">
+            <div
+                class="px-6 py-4 border-b bg-slate-900 text-white flex flex-col xl:flex-row xl:items-center justify-between gap-3">
                 <div class="flex items-center gap-2.5">
-                    <div class="w-8 h-8 bg-emerald-500 rounded-lg flex items-center justify-center font-bold text-white text-sm">
+                    <div
+                        class="w-8 h-8 bg-emerald-500 rounded-lg flex items-center justify-center font-bold text-white text-sm">
                         <i class="fa-solid fa-boxes-packing"></i>
                     </div>
                     <div>
                         <h2 class="font-bold text-sm">Quản lý Đơn thắng thầu & Hồ sơ Khai báo Hàng hóa</h2>
-                        <p class="text-[11px] text-slate-300">Xem hồ sơ quy cách lô hàng, xác nhận thanh toán chuyển khoản & kích hoạt phiếu bàn giao slot</p>
+                        <p class="text-[11px] text-slate-300">Xem hồ sơ quy cách lô hàng, xác nhận thanh toán chuyển
+                            khoản & kích hoạt phiếu bàn giao slot</p>
                     </div>
                 </div>
                 <div class="flex flex-wrap items-center gap-2">
                     <!-- Filter 1: Khai báo hàng -->
-                    <div class="inline-flex items-center rounded-lg bg-slate-800 p-1 border border-slate-700 text-[11px]" id="wonFilterGroup">
-                        <span class="text-slate-400 font-semibold px-2 py-0.5 flex items-center gap-1"><i class="fa-solid fa-boxes-stacked text-[10px]"></i> Khai báo:</span>
-                        <button type="button" onclick="setWonCargoFilter('ALL')" id="wonFilterAll" class="px-2.5 py-1 rounded-md font-semibold text-white bg-blue-600 transition">Tất cả</button>
-                        <button type="button" onclick="setWonCargoFilter('DECLARED')" id="wonFilterDeclared" class="px-2.5 py-1 rounded-md font-semibold text-slate-300 hover:text-white transition">Đã khai báo</button>
-                        <button type="button" onclick="setWonCargoFilter('UNDECLARED')" id="wonFilterUndeclared" class="px-2.5 py-1 rounded-md font-semibold text-slate-300 hover:text-white transition">Chưa khai báo</button>
+                    <div class="inline-flex items-center rounded-lg bg-slate-800 p-1 border border-slate-700 text-[11px]"
+                        id="wonFilterGroup">
+                        <span class="text-slate-400 font-semibold px-2 py-0.5 flex items-center gap-1"><i
+                                class="fa-solid fa-boxes-stacked text-[10px]"></i> Khai báo:</span>
+                        <button type="button" onclick="setWonCargoFilter('ALL')" id="wonFilterAll"
+                            class="px-2.5 py-1 rounded-md font-semibold text-white bg-blue-600 transition">Tất
+                            cả</button>
+                        <button type="button" onclick="setWonCargoFilter('DECLARED')" id="wonFilterDeclared"
+                            class="px-2.5 py-1 rounded-md font-semibold text-slate-300 hover:text-white transition">Đã
+                            khai báo</button>
+                        <button type="button" onclick="setWonCargoFilter('UNDECLARED')" id="wonFilterUndeclared"
+                            class="px-2.5 py-1 rounded-md font-semibold text-slate-300 hover:text-white transition">Chưa
+                            khai báo</button>
                     </div>
 
                     <!-- Filter 2: Thanh toán -->
-                    <div class="inline-flex items-center rounded-lg bg-slate-800 p-1 border border-slate-700 text-[11px]" id="wonPayFilterGroup">
-                        <span class="text-slate-400 font-semibold px-2 py-0.5 flex items-center gap-1"><i class="fa-solid fa-credit-card text-[10px]"></i> Thanh toán:</span>
-                        <button type="button" onclick="setWonPayFilter('ALL')" id="wonPayFilterAll" class="px-2.5 py-1 rounded-md font-semibold text-white bg-blue-600 transition">Tất cả</button>
-                        <button type="button" onclick="setWonPayFilter('PENDING')" id="wonPayFilterPending" class="px-2.5 py-1 rounded-md font-semibold text-amber-300 hover:text-white transition relative flex items-center gap-1">
-                            💳 Chờ duyệt CK <span id="pendingPayBadgeCount" class="hidden bg-rose-500 text-white text-[9px] px-1.5 py-0.2 rounded-full font-bold">0</span>
+                    <div class="inline-flex items-center rounded-lg bg-slate-800 p-1 border border-slate-700 text-[11px]"
+                        id="wonPayFilterGroup">
+                        <span class="text-slate-400 font-semibold px-2 py-0.5 flex items-center gap-1"><i
+                                class="fa-solid fa-credit-card text-[10px]"></i> Thanh toán:</span>
+                        <button type="button" onclick="setWonPayFilter('ALL')" id="wonPayFilterAll"
+                            class="px-2.5 py-1 rounded-md font-semibold text-white bg-blue-600 transition">Tất
+                            cả</button>
+                        <button type="button" onclick="setWonPayFilter('PENDING')" id="wonPayFilterPending"
+                            class="px-2.5 py-1 rounded-md font-semibold text-amber-300 hover:text-white transition relative flex items-center gap-1">
+                            💳 Chờ duyệt CK <span id="pendingPayBadgeCount"
+                                class="hidden bg-rose-500 text-white text-[9px] px-1.5 py-0.2 rounded-full font-bold">0</span>
                         </button>
-                        <button type="button" onclick="setWonPayFilter('PAID')" id="wonPayFilterPaid" class="px-2.5 py-1 rounded-md font-semibold text-slate-300 hover:text-white transition">Đã thanh toán</button>
-                        <button type="button" onclick="setWonPayFilter('UNPAID')" id="wonPayFilterUnpaid" class="px-2.5 py-1 rounded-md font-semibold text-slate-300 hover:text-white transition">Chờ thanh toán</button>
-                        <button type="button" onclick="setWonPayFilter('EXPIRED')" id="wonPayFilterExpired" class="px-2.5 py-1 rounded-md font-semibold text-slate-300 hover:text-white transition">Quá hạn / Hủy</button>
-                        <button type="button" onclick="setWonPayFilter('REFUND_PENDING')" id="wonPayFilterRefundPending" class="px-2.5 py-1 rounded-md font-semibold text-indigo-300 hover:text-white transition relative flex items-center gap-1">
-                            💸 Chờ hoàn tiền <span id="refundPendingBadgeCount" class="hidden bg-indigo-500 text-white text-[9px] px-1.5 py-0.2 rounded-full font-bold">0</span>
+                        <button type="button" onclick="setWonPayFilter('PAID')" id="wonPayFilterPaid"
+                            class="px-2.5 py-1 rounded-md font-semibold text-slate-300 hover:text-white transition">Đã
+                            thanh toán</button>
+                        <button type="button" onclick="setWonPayFilter('UNPAID')" id="wonPayFilterUnpaid"
+                            class="px-2.5 py-1 rounded-md font-semibold text-slate-300 hover:text-white transition">Chờ
+                            thanh toán</button>
+                        <button type="button" onclick="setWonPayFilter('EXPIRED')" id="wonPayFilterExpired"
+                            class="px-2.5 py-1 rounded-md font-semibold text-slate-300 hover:text-white transition">Quá
+                            hạn / Hủy</button>
+                        <button type="button" onclick="setWonPayFilter('REFUND_PENDING')" id="wonPayFilterRefundPending"
+                            class="px-2.5 py-1 rounded-md font-semibold text-indigo-300 hover:text-white transition relative flex items-center gap-1">
+                            💸 Chờ hoàn tiền <span id="refundPendingBadgeCount"
+                                class="hidden bg-indigo-500 text-white text-[9px] px-1.5 py-0.2 rounded-full font-bold">0</span>
                         </button>
                     </div>
 
-                    <span class="text-xs font-semibold bg-emerald-500/20 text-emerald-300 border border-emerald-500/30 px-3 py-1 rounded-full flex items-center gap-1.5 whitespace-nowrap">
+                    <span
+                        class="text-xs font-semibold bg-emerald-500/20 text-emerald-300 border border-emerald-500/30 px-3 py-1 rounded-full flex items-center gap-1.5 whitespace-nowrap">
                         <i class="fa-solid fa-circle-info"></i> <span id="wonCountText">0 đơn thắng thầu</span>
                     </span>
                 </div>
@@ -389,12 +638,15 @@
             <!-- Won Auctions Search & Sort Bar -->
             <div class="bg-slate-50 border-b p-3 flex flex-col sm:flex-row items-center gap-3">
                 <div class="relative flex-1 w-full">
-                    <i class="fa-solid fa-magnifying-glass absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 text-xs"></i>
-                    <input type="text" id="adminWonSearch" oninput="wonCurrentPage=1; renderWonAuctionsAdminTable()" placeholder="Tìm theo Mã đơn (WON-...), Mã đại lý (AG-...), Tên đại lý, Chuyến bay, AWB..."
-                           class="w-full border rounded-xl pl-8 pr-3 py-1.5 text-xs focus:ring-2 focus:ring-blue-500 outline-none bg-white">
+                    <i
+                        class="fa-solid fa-magnifying-glass absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 text-xs"></i>
+                    <input type="text" id="adminWonSearch" oninput="wonCurrentPage=1; renderWonAuctionsAdminTable()"
+                        placeholder="Tìm theo Mã đơn (WON-...), Mã đại lý (AG-...), Tên đại lý, Chuyến bay, AWB..."
+                        class="w-full border rounded-xl pl-8 pr-3 py-1.5 text-xs focus:ring-2 focus:ring-blue-500 outline-none bg-white">
                 </div>
                 <div class="w-full sm:w-52">
-                    <select id="adminWonSort" onchange="wonCurrentPage=1; renderWonAuctionsAdminTable()" class="w-full border rounded-xl px-3 py-1.5 text-xs focus:ring-2 focus:ring-blue-500 outline-none bg-white font-medium">
+                    <select id="adminWonSort" onchange="wonCurrentPage=1; renderWonAuctionsAdminTable()"
+                        class="w-full border rounded-xl px-3 py-1.5 text-xs focus:ring-2 focus:ring-blue-500 outline-none bg-white font-medium">
                         <option value="NEWEST">Sắp xếp: Mới nhất</option>
                         <option value="OLDEST">Sắp xếp: Cũ nhất</option>
                         <option value="AMOUNT_DESC">Tổng tiền: Cao đến thấp</option>
@@ -406,7 +658,8 @@
             </div>
 
             <div class="sm:hidden px-3 pt-2">
-                <div class="flex items-center gap-1.5 text-[11px] text-slate-500 bg-slate-50 px-3 py-1.5 rounded-lg border border-slate-200">
+                <div
+                    class="flex items-center gap-1.5 text-[11px] text-slate-500 bg-slate-50 px-3 py-1.5 rounded-lg border border-slate-200">
                     <i class="fa-solid fa-arrows-left-right text-blue-500"></i>
                     <span>Bảng nhiều cột: Vuốt sang ngang để xem đầy đủ chi tiết & thao tác</span>
                 </div>
@@ -432,7 +685,8 @@
             </div>
 
             <!-- Won Auctions Pagination Controls -->
-            <div id="wonPaginationContainer" class="px-6 py-3 bg-slate-50 border-t flex flex-col sm:flex-row items-center justify-between gap-3 text-xs">
+            <div id="wonPaginationContainer"
+                class="px-6 py-3 bg-slate-50 border-t flex flex-col sm:flex-row items-center justify-between gap-3 text-xs">
                 <!-- Javascript populated -->
             </div>
         </div>
@@ -440,8 +694,10 @@
     </main>
 
     <!-- Modal 1: Chỉnh sửa thông số chuyến bay đấu giá (Edit Auction) -->
-    <div id="editAuctionModal" class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-50 hidden flex items-center justify-center p-4">
-        <div class="bg-white rounded-2xl shadow-xl max-w-lg w-full overflow-hidden animate-in fade-in zoom-in-95 duration-200">
+    <div id="editAuctionModal"
+        class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-50 hidden flex items-center justify-center p-4">
+        <div
+            class="bg-white rounded-2xl shadow-xl max-w-lg w-full overflow-hidden animate-in fade-in zoom-in-95 duration-200">
             <div class="bg-slate-900 text-white px-6 py-4 flex items-center justify-between">
                 <div class="flex items-center gap-2">
                     <div class="w-7 h-7 bg-amber-500 rounded-lg flex items-center justify-center text-white text-xs">
@@ -449,7 +705,8 @@
                     </div>
                     <div>
                         <h3 class="font-bold text-sm" id="editModalTitle">Chỉnh sửa thông số phiên đấu giá</h3>
-                        <p class="text-[11px] text-slate-400" id="editModalSub">Điều chỉnh giá sàn, tải trọng và thời gian</p>
+                        <p class="text-[11px] text-slate-400" id="editModalSub">Điều chỉnh giá sàn, tải trọng và thời
+                            gian</p>
                     </div>
                 </div>
                 <button onclick="closeEditModal()" class="text-slate-400 hover:text-white text-lg">
@@ -463,34 +720,40 @@
                 <div class="grid grid-cols-2 gap-3">
                     <div>
                         <label class="block font-semibold text-slate-700 mb-1">Tải trọng thầu (Kg)</label>
-                        <input type="number" id="editCapacity" required min="100" max="50000" step="100" class="w-full border rounded-xl px-3 py-2 font-bold outline-none focus:ring-2 focus:ring-blue-500">
+                        <input type="number" id="editCapacity" required min="100" max="50000" step="100"
+                            class="w-full border rounded-xl px-3 py-2 font-bold outline-none focus:ring-2 focus:ring-blue-500">
                         <p class="text-[10px] text-slate-400 mt-0.5">Giới hạn: 100 đến 50.000 Kg (Tối đa 50 tấn)</p>
                     </div>
                     <div>
                         <label class="block font-semibold text-slate-700 mb-1">Giá khởi điểm sàn (đ/Kg)</label>
-                        <input type="number" id="editStartingPrice" required step="500" class="w-full border rounded-xl px-3 py-2 font-bold text-blue-600 outline-none focus:ring-2 focus:ring-blue-500">
+                        <input type="number" id="editStartingPrice" required step="500"
+                            class="w-full border rounded-xl px-3 py-2 font-bold text-blue-600 outline-none focus:ring-2 focus:ring-blue-500">
                     </div>
                 </div>
 
                 <div class="grid grid-cols-2 gap-3">
                     <div>
                         <label class="block font-semibold text-slate-700 mb-1">Bước giá tối thiểu (đ/Kg)</label>
-                        <input type="number" id="editMinStep" required step="100" class="w-full border rounded-xl px-3 py-2 outline-none focus:ring-2 focus:ring-blue-500">
+                        <input type="number" id="editMinStep" required step="100"
+                            class="w-full border rounded-xl px-3 py-2 outline-none focus:ring-2 focus:ring-blue-500">
                     </div>
                     <div>
                         <label class="block font-semibold text-slate-700 mb-1">Loại tàu bay</label>
-                        <input type="text" id="editAircraft" required class="w-full border rounded-xl px-3 py-2 outline-none focus:ring-2 focus:ring-blue-500">
+                        <input type="text" id="editAircraft" required
+                            class="w-full border rounded-xl px-3 py-2 outline-none focus:ring-2 focus:ring-blue-500">
                     </div>
                 </div>
 
                 <div class="grid grid-cols-2 gap-3">
                     <div>
                         <label class="block font-semibold text-slate-700 mb-1">Giờ cất cánh (ETD)</label>
-                        <input type="text" id="editEtd" required class="w-full border rounded-xl px-3 py-2 outline-none focus:ring-2 focus:ring-blue-500">
+                        <input type="text" id="editEtd" required
+                            class="w-full border rounded-xl px-3 py-2 outline-none focus:ring-2 focus:ring-blue-500">
                     </div>
                     <div>
                         <label class="block font-semibold text-slate-700 mb-1">Giờ hạ cánh (ETA)</label>
-                        <input type="text" id="editEta" required class="w-full border rounded-xl px-3 py-2 outline-none focus:ring-2 focus:ring-blue-500">
+                        <input type="text" id="editEta" required
+                            class="w-full border rounded-xl px-3 py-2 outline-none focus:ring-2 focus:ring-blue-500">
                     </div>
                 </div>
 
@@ -499,7 +762,8 @@
                         <i class="fa-regular fa-clock text-blue-600"></i> Điều chỉnh thời gian mở thầu:
                     </p>
                     <div class="flex items-center gap-2">
-                        <select id="editExtendTime" class="flex-1 border rounded-lg px-2.5 py-1.5 bg-white text-xs outline-none">
+                        <select id="editExtendTime"
+                            class="flex-1 border rounded-lg px-2.5 py-1.5 bg-white text-xs outline-none">
                             <option value="0">Giữ nguyên thời gian hiện tại</option>
                             <option value="30">Gia hạn thêm 30 phút</option>
                             <option value="60">Gia hạn thêm 60 phút</option>
@@ -514,12 +778,16 @@
 
                 <div>
                     <label class="block font-semibold text-slate-700 mb-1">Ghi chú & Yêu cầu loại hàng</label>
-                    <textarea id="editNotes" rows="2" class="w-full border rounded-xl px-3 py-2 outline-none focus:ring-2 focus:ring-blue-500"></textarea>
+                    <textarea id="editNotes" rows="2"
+                        class="w-full border rounded-xl px-3 py-2 outline-none focus:ring-2 focus:ring-blue-500"></textarea>
                 </div>
 
                 <div class="flex items-center justify-end gap-2.5 pt-2 border-t">
-                    <button type="button" onclick="closeEditModal()" class="px-4 py-2 border rounded-xl text-slate-600 hover:bg-slate-50 font-medium transition">Hủy bỏ</button>
-                    <button type="submit" class="px-5 py-2 bg-blue-600 hover:bg-blue-700 text-white font-bold rounded-xl transition shadow flex items-center gap-1.5">
+                    <button type="button" onclick="closeEditModal()"
+                        class="px-4 py-2 border rounded-xl text-slate-600 hover:bg-slate-50 font-medium transition">Hủy
+                        bỏ</button>
+                    <button type="submit"
+                        class="px-5 py-2 bg-blue-600 hover:bg-blue-700 text-white font-bold rounded-xl transition shadow flex items-center gap-1.5">
                         <i class="fa-solid fa-check"></i> Lưu cập nhật thông số
                     </button>
                 </div>
@@ -528,11 +796,14 @@
     </div>
 
     <!-- Modal: Xác nhận xóa phiên đấu giá -->
-    <div id="deleteAuctionModal" class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-50 hidden flex items-center justify-center p-4">
-        <div class="bg-white rounded-2xl shadow-xl max-w-md w-full overflow-hidden animate-in fade-in zoom-in-95 duration-200">
+    <div id="deleteAuctionModal"
+        class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-50 hidden flex items-center justify-center p-4">
+        <div
+            class="bg-white rounded-2xl shadow-xl max-w-md w-full overflow-hidden animate-in fade-in zoom-in-95 duration-200">
             <div class="bg-red-600 text-white px-6 py-4 flex items-center justify-between">
                 <div class="flex items-center gap-2.5">
-                    <div class="w-8 h-8 bg-red-700/80 rounded-lg flex items-center justify-center text-white text-sm shrink-0">
+                    <div
+                        class="w-8 h-8 bg-red-700/80 rounded-lg flex items-center justify-center text-white text-sm shrink-0">
                         <i class="fa-solid fa-trash-can"></i>
                     </div>
                     <div>
@@ -546,15 +817,20 @@
             </div>
             <form id="deleteAuctionForm" onsubmit="submitDeleteAuction(event)" class="p-6 space-y-4 text-xs">
                 <input type="hidden" id="deleteAuctionId">
-                <div class="p-3.5 rounded-xl border border-blue-200 bg-blue-50 text-blue-900 text-xs leading-relaxed space-y-1">
+                <div
+                    class="p-3.5 rounded-xl border border-blue-200 bg-blue-50 text-blue-900 text-xs leading-relaxed space-y-1">
                     <div class="font-bold flex items-center gap-1.5 text-blue-800">
                         <i class="fa-solid fa-circle-info text-blue-600"></i> Phiên mới tạo – Chưa có lượt đặt giá
                     </div>
-                    <p class="text-[11px] text-blue-700">Phiên chưa có đại lý nào tham gia đấu giá. Bạn có thể xác nhận xóa phiên này.</p>
+                    <p class="text-[11px] text-blue-700">Phiên chưa có đại lý nào tham gia đấu giá. Bạn có thể xác nhận
+                        xóa phiên này.</p>
                 </div>
                 <div class="flex items-center justify-end gap-2 pt-2 border-t">
-                    <button type="button" onclick="closeDeleteModal()" class="px-4 py-2 text-slate-600 hover:bg-slate-100 rounded-xl font-medium transition">Hủy bỏ</button>
-                    <button type="submit" class="px-5 py-2 bg-red-600 hover:bg-red-700 text-white font-bold rounded-xl shadow transition flex items-center gap-1.5">
+                    <button type="button" onclick="closeDeleteModal()"
+                        class="px-4 py-2 text-slate-600 hover:bg-slate-100 rounded-xl font-medium transition">Hủy
+                        bỏ</button>
+                    <button type="submit"
+                        class="px-5 py-2 bg-red-600 hover:bg-red-700 text-white font-bold rounded-xl shadow transition flex items-center gap-1.5">
                         <i class="fa-solid fa-trash"></i> Xác nhận xóa
                     </button>
                 </div>
@@ -563,9 +839,11 @@
     </div>
 
     <!-- Modal: Hủy chuyến bay (khi đã có đại lý đặt giá) -->
-    <div id="cancelAuctionModal" class="fixed inset-0 bg-slate-900/70 backdrop-blur-sm z-50 hidden flex items-center justify-center p-4">
+    <div id="cancelAuctionModal"
+        class="fixed inset-0 bg-slate-900/70 backdrop-blur-sm z-50 hidden flex items-center justify-center p-4">
         <div class="bg-white rounded-2xl shadow-2xl max-w-lg w-full overflow-hidden">
-            <div class="bg-gradient-to-r from-orange-600 to-red-600 text-white px-6 py-4 flex items-center justify-between">
+            <div
+                class="bg-gradient-to-r from-orange-600 to-red-600 text-white px-6 py-4 flex items-center justify-between">
                 <div class="flex items-center gap-2.5">
                     <div class="w-9 h-9 bg-white/20 rounded-xl flex items-center justify-center shrink-0">
                         <i class="fa-solid fa-plane-circle-xmark text-lg"></i>
@@ -575,20 +853,24 @@
                         <p class="text-[11px] text-orange-100" id="cancelModalSub">Mã chuyến bay</p>
                     </div>
                 </div>
-                <button onclick="closeCancelModal()" class="text-orange-200 hover:text-white text-lg"><i class="fa-solid fa-xmark"></i></button>
+                <button onclick="closeCancelModal()" class="text-orange-200 hover:text-white text-lg"><i
+                        class="fa-solid fa-xmark"></i></button>
             </div>
             <form id="cancelAuctionForm" onsubmit="submitCancelAuction(event)" class="p-6 space-y-4 text-xs">
                 <input type="hidden" id="cancelAuctionId">
-                <div class="p-3.5 rounded-xl border border-amber-200 bg-amber-50 text-amber-900 text-xs leading-relaxed space-y-1">
+                <div
+                    class="p-3.5 rounded-xl border border-amber-200 bg-amber-50 text-amber-900 text-xs leading-relaxed space-y-1">
                     <div class="font-bold flex items-center gap-1.5 text-amber-800">
                         <i class="fa-solid fa-triangle-exclamation text-amber-500"></i> Phiên này đã có đại lý đặt giá!
                     </div>
                     <p class="text-[11px] text-amber-700" id="cancelModalBidsInfo">
-                        Thao tác này sẽ <strong>HỦY</strong> chuyến bay và gửi thông báo hoàn tiền đến đại lý đã tham gia. Dữ liệu phiên được lưu lại để kiểm toán.
+                        Thao tác này sẽ <strong>HỦY</strong> chuyến bay và gửi thông báo hoàn tiền đến đại lý đã tham
+                        gia. Dữ liệu phiên được lưu lại để kiểm toán.
                     </p>
                 </div>
                 <div>
-                    <label class="block font-bold text-slate-700 mb-1">Lý do hủy chuyến bay <span class="text-red-500">*</span></label>
+                    <label class="block font-bold text-slate-700 mb-1">Lý do hủy chuyến bay <span
+                            class="text-red-500">*</span></label>
                     <textarea id="cancelReasonInput" rows="3"
                         placeholder="Ví dụ: Hủy do thời tiết xấu, Thay đổi lịch khai thác, Sự cố kỹ thuật..."
                         class="w-full text-xs p-3 border border-slate-200 rounded-xl focus:ring-2 focus:ring-orange-500/20 focus:border-orange-500 outline-none transition resize-none"></textarea>
@@ -597,15 +879,20 @@
                     </p>
                 </div>
                 <div>
-                    <label class="block font-bold text-slate-700 mb-1">Thông tin hoàn tiền <span class="font-normal text-slate-400">(tùy chọn)</span></label>
+                    <label class="block font-bold text-slate-700 mb-1">Thông tin hoàn tiền <span
+                            class="font-normal text-slate-400">(tùy chọn)</span></label>
                     <input type="text" id="cancelRefundInput"
                         placeholder="Mặc định: Hoàn tiền 100% trong vòng 3-5 ngày làm việc."
                         class="w-full text-xs p-3 border border-slate-200 rounded-xl focus:ring-2 focus:ring-orange-500/20 focus:border-orange-500 outline-none transition">
-                    <p class="text-slate-400 text-[10px] mt-1"><i class="fa-solid fa-circle-info mr-1"></i>Nội dung này sẽ được gửi đến đại lý trúng thầu.</p>
+                    <p class="text-slate-400 text-[10px] mt-1"><i class="fa-solid fa-circle-info mr-1"></i>Nội dung này
+                        sẽ được gửi đến đại lý trúng thầu.</p>
                 </div>
                 <div class="flex items-center justify-end gap-2 pt-2 border-t">
-                    <button type="button" onclick="closeCancelModal()" class="px-4 py-2 text-slate-600 hover:bg-slate-100 rounded-xl font-medium transition">Quay lại</button>
-                    <button type="submit" class="px-5 py-2 bg-gradient-to-r from-orange-600 to-red-600 hover:from-orange-700 hover:to-red-700 text-white font-bold rounded-xl shadow transition flex items-center gap-1.5">
+                    <button type="button" onclick="closeCancelModal()"
+                        class="px-4 py-2 text-slate-600 hover:bg-slate-100 rounded-xl font-medium transition">Quay
+                        lại</button>
+                    <button type="submit"
+                        class="px-5 py-2 bg-gradient-to-r from-orange-600 to-red-600 hover:from-orange-700 hover:to-red-700 text-white font-bold rounded-xl shadow transition flex items-center gap-1.5">
                         <i class="fa-solid fa-plane-circle-xmark"></i> Xác nhận hủy chuyến
                     </button>
                 </div>
@@ -614,8 +901,10 @@
     </div>
 
     <!-- Modal 2: Gửi thông báo đấu giá (Broadcast Notification) -->
-    <div id="broadcastModal" class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-50 hidden flex items-center justify-center p-4">
-        <div class="bg-white rounded-2xl shadow-xl max-w-lg w-full overflow-hidden animate-in fade-in zoom-in-95 duration-200">
+    <div id="broadcastModal"
+        class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-50 hidden flex items-center justify-center p-4">
+        <div
+            class="bg-white rounded-2xl shadow-xl max-w-lg w-full overflow-hidden animate-in fade-in zoom-in-95 duration-200">
             <div class="bg-amber-600 text-white px-6 py-4 flex items-center justify-between">
                 <div class="flex items-center gap-2">
                     <div class="w-7 h-7 bg-white/20 rounded-lg flex items-center justify-center text-white text-xs">
@@ -623,7 +912,8 @@
                     </div>
                     <div>
                         <h3 class="font-bold text-sm">Gửi thông báo đấu giá tới Đại lý</h3>
-                        <p class="text-[11px] text-amber-100">Phát thông báo đẩy theo thời gian thực tới chuông thông báo của đại lý</p>
+                        <p class="text-[11px] text-amber-100">Phát thông báo đẩy theo thời gian thực tới chuông thông
+                            báo của đại lý</p>
                     </div>
                 </div>
                 <button onclick="closeBroadcastModal()" class="text-white/80 hover:text-white text-lg">
@@ -634,33 +924,39 @@
             <form id="broadcastForm" onsubmit="handleSendBroadcast(event)" class="p-6 space-y-4 text-xs">
                 <div>
                     <label class="block font-semibold text-slate-700 mb-1">Chuyến bay liên quan</label>
-                    <select id="bcAuctionSelect" class="w-full border rounded-xl px-3 py-2 outline-none focus:ring-2 focus:ring-amber-500 bg-white">
+                    <select id="bcAuctionSelect"
+                        class="w-full border rounded-xl px-3 py-2 outline-none focus:ring-2 focus:ring-amber-500 bg-white">
                         <option value="">-- Áp dụng cho toàn sàn (Không gán chuyến cụ thể) --</option>
                     </select>
                 </div>
 
                 <div>
                     <label class="block font-semibold text-slate-700 mb-1">Đối tượng nhận thông báo</label>
-                    <select id="bcTargetAgent" class="w-full border rounded-xl px-3 py-2 outline-none focus:ring-2 focus:ring-amber-500 bg-white">
+                    <select id="bcTargetAgent"
+                        class="w-full border rounded-xl px-3 py-2 outline-none focus:ring-2 focus:ring-amber-500 bg-white">
                         <option value="">Gửi tới TẤT CẢ Đại lý tham gia sàn</option>
                     </select>
                 </div>
 
                 <div>
-                    <label class="block font-semibold text-slate-700 mb-1">Tiêu đề thông báo <span class="text-red-500">*</span></label>
-                    <input type="text" id="bcTitle" required placeholder="VD: Khẩn cấp: Mở thêm 1 tấn tải trọng chuyến VU130"
-                           class="w-full border rounded-xl px-3.5 py-2 font-bold outline-none focus:ring-2 focus:ring-amber-500">
+                    <label class="block font-semibold text-slate-700 mb-1">Tiêu đề thông báo <span
+                            class="text-red-500">*</span></label>
+                    <input type="text" id="bcTitle" required
+                        placeholder="VD: Khẩn cấp: Mở thêm 1 tấn tải trọng chuyến VU130"
+                        class="w-full border rounded-xl px-3.5 py-2 font-bold outline-none focus:ring-2 focus:ring-amber-500">
                 </div>
 
                 <div>
-                    <label class="block font-semibold text-slate-700 mb-1">Nội dung chi tiết thông báo <span class="text-red-500">*</span></label>
+                    <label class="block font-semibold text-slate-700 mb-1">Nội dung chi tiết thông báo <span
+                            class="text-red-500">*</span></label>
                     <textarea id="bcMessage" rows="3" required placeholder="Nhập nội dung gửi tới các đại lý vận tải..."
-                              class="w-full border rounded-xl px-3.5 py-2 outline-none focus:ring-2 focus:ring-amber-500"></textarea>
+                        class="w-full border rounded-xl px-3.5 py-2 outline-none focus:ring-2 focus:ring-amber-500"></textarea>
                 </div>
 
                 <div>
                     <label class="block font-semibold text-slate-700 mb-1">Loại thông báo</label>
-                    <select id="bcType" class="w-full border rounded-xl px-3 py-2 outline-none focus:ring-2 focus:ring-amber-500 bg-white">
+                    <select id="bcType"
+                        class="w-full border rounded-xl px-3 py-2 outline-none focus:ring-2 focus:ring-amber-500 bg-white">
                         <option value="CLOSING_SOON">Cảnh báo sắp đóng thầu</option>
                         <option value="SYSTEM">Thông báo điều hành hệ thống</option>
                         <option value="HIGHEST">Cập nhật mức giá mới</option>
@@ -668,8 +964,11 @@
                 </div>
 
                 <div class="flex items-center justify-end gap-2.5 pt-2 border-t">
-                    <button type="button" onclick="closeBroadcastModal()" class="px-4 py-2 border rounded-xl text-slate-600 hover:bg-slate-50 font-medium transition">Hủy bỏ</button>
-                    <button type="submit" class="px-5 py-2 bg-amber-600 hover:bg-amber-700 text-white font-bold rounded-xl transition shadow flex items-center gap-1.5">
+                    <button type="button" onclick="closeBroadcastModal()"
+                        class="px-4 py-2 border rounded-xl text-slate-600 hover:bg-slate-50 font-medium transition">Hủy
+                        bỏ</button>
+                    <button type="submit"
+                        class="px-5 py-2 bg-amber-600 hover:bg-amber-700 text-white font-bold rounded-xl transition shadow flex items-center gap-1.5">
                         <i class="fa-solid fa-paper-plane"></i> Phát thông báo ngay
                     </button>
                 </div>
@@ -678,64 +977,84 @@
     </div>
 
     <!-- Modal 3: Xem chi tiết Khai báo hàng hóa dành cho Admin -->
-    <div id="adminCargoViewModal" class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-50 hidden flex items-center justify-center p-4">
-        <div class="bg-white rounded-2xl shadow-xl max-w-xl w-full max-h-[90vh] flex flex-col overflow-hidden animate-in fade-in zoom-in-95 duration-200">
+    <div id="adminCargoViewModal"
+        class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-50 hidden flex items-center justify-center p-4">
+        <div
+            class="bg-white rounded-2xl shadow-xl max-w-xl w-full max-h-[90vh] flex flex-col overflow-hidden animate-in fade-in zoom-in-95 duration-200">
             <div class="bg-slate-900 text-white px-6 py-4 flex items-center justify-between flex-shrink-0">
                 <div class="flex items-center gap-2.5">
-                    <div class="w-8 h-8 bg-blue-500/20 text-blue-400 rounded-xl flex items-center justify-center font-bold text-sm border border-blue-500/30">
+                    <div
+                        class="w-8 h-8 bg-blue-500/20 text-blue-400 rounded-xl flex items-center justify-center font-bold text-sm border border-blue-500/30">
                         <i class="fa-solid fa-boxes-packing"></i>
                     </div>
                     <div>
                         <h3 class="font-bold text-sm">Chi tiết Hồ sơ Hàng hóa Khai báo</h3>
-                        <p class="text-[11px] text-slate-400">Đơn thắng thầu: <strong id="adminCargoWonId" class="text-blue-300 font-mono">-</strong></p>
+                        <p class="text-[11px] text-slate-400">Đơn thắng thầu: <strong id="adminCargoWonId"
+                                class="text-blue-300 font-mono">-</strong></p>
                     </div>
                 </div>
-                <button onclick="closeAdminCargoModal()" class="text-slate-400 hover:text-white text-lg cursor-pointer"><i class="fa-solid fa-xmark"></i></button>
+                <button onclick="closeAdminCargoModal()"
+                    class="text-slate-400 hover:text-white text-lg cursor-pointer"><i
+                        class="fa-solid fa-xmark"></i></button>
             </div>
-            <div class="p-6 space-y-4 text-xs custom-scrollbar min-h-0 flex-1 max-h-[calc(90vh-130px)]" id="adminCargoModalContent">
+            <div class="p-6 space-y-4 text-xs custom-scrollbar min-h-0 flex-1 max-h-[calc(90vh-130px)]"
+                id="adminCargoModalContent">
                 <!-- Rendered by JS -->
             </div>
             <div class="bg-slate-50 px-6 py-3 border-t flex items-center justify-end gap-2 flex-shrink-0">
-                <button onclick="closeAdminCargoModal()" class="px-4 py-2 border rounded-xl text-slate-600 hover:bg-slate-100 font-medium cursor-pointer">Đóng</button>
+                <button onclick="closeAdminCargoModal()"
+                    class="px-4 py-2 border rounded-xl text-slate-600 hover:bg-slate-100 font-medium cursor-pointer">Đóng</button>
             </div>
         </div>
     </div>
 
     <!-- Modal 4: Đối soát Chuyển khoản & Biên lai Đại lý Nộp dành cho Admin -->
-    <div id="adminPaymentProofModal" class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-50 hidden flex items-center justify-center p-4">
-        <div class="bg-white rounded-2xl shadow-2xl max-w-2xl w-full max-h-[90vh] flex flex-col overflow-hidden animate-in fade-in zoom-in-95 duration-200 border border-slate-200">
-            <div class="bg-slate-900 text-white px-6 py-4 flex items-center justify-between flex-shrink-0 border-b border-slate-800">
+    <div id="adminPaymentProofModal"
+        class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-50 hidden flex items-center justify-center p-4">
+        <div
+            class="bg-white rounded-2xl shadow-2xl max-w-2xl w-full max-h-[90vh] flex flex-col overflow-hidden animate-in fade-in zoom-in-95 duration-200 border border-slate-200">
+            <div
+                class="bg-slate-900 text-white px-6 py-4 flex items-center justify-between flex-shrink-0 border-b border-slate-800">
                 <div class="flex items-center gap-3">
-                    <div class="w-9 h-9 bg-emerald-500/20 text-emerald-400 rounded-xl flex items-center justify-center font-bold text-base border border-emerald-500/30 shadow-sm">
+                    <div
+                        class="w-9 h-9 bg-emerald-500/20 text-emerald-400 rounded-xl flex items-center justify-center font-bold text-base border border-emerald-500/30 shadow-sm">
                         <i class="fa-solid fa-file-invoice-dollar"></i>
                     </div>
                     <div>
                         <h3 class="font-bold text-sm text-white">Đối soát Chuyển khoản & Biên lai Thanh toán</h3>
-                        <p class="text-[11px] text-slate-300">Đơn trúng thầu: <strong id="adminPayProofWonId" class="text-emerald-400 font-mono">-</strong></p>
+                        <p class="text-[11px] text-slate-300">Đơn trúng thầu: <strong id="adminPayProofWonId"
+                                class="text-emerald-400 font-mono">-</strong></p>
                     </div>
                 </div>
-                <button onclick="closeAdminPaymentProofModal()" class="text-slate-400 hover:text-white text-xl cursor-pointer transition">
+                <button onclick="closeAdminPaymentProofModal()"
+                    class="text-slate-400 hover:text-white text-xl cursor-pointer transition">
                     <i class="fa-solid fa-xmark"></i>
                 </button>
             </div>
-            <div class="p-6 space-y-4 text-xs custom-scrollbar min-h-0 flex-1 max-h-[calc(90vh-130px)]" id="adminPayProofModalContent">
+            <div class="p-6 space-y-4 text-xs custom-scrollbar min-h-0 flex-1 max-h-[calc(90vh-130px)]"
+                id="adminPayProofModalContent">
                 <!-- Rendered by JS -->
             </div>
-            <div class="bg-slate-50 px-6 py-3 border-t flex items-center justify-between gap-3 flex-shrink-0" id="adminPayProofModalFooter">
+            <div class="bg-slate-50 px-6 py-3 border-t flex items-center justify-between gap-3 flex-shrink-0"
+                id="adminPayProofModalFooter">
                 <!-- Action Buttons Rendered by JS -->
             </div>
         </div>
     </div>
 
     <!-- Modal 5: Từ chối biên lai thanh toán & Yêu cầu nộp lại dành cho Admin -->
-    <div id="adminRejectPaymentModal" class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-50 flex items-center justify-center p-4 hidden">
-        <div class="bg-white rounded-3xl max-w-lg w-full p-6 shadow-2xl space-y-4 border border-slate-200 animate-in fade-in zoom-in-95 duration-200">
+    <div id="adminRejectPaymentModal"
+        class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-50 flex items-center justify-center p-4 hidden">
+        <div
+            class="bg-white rounded-3xl max-w-lg w-full p-6 shadow-2xl space-y-4 border border-slate-200 animate-in fade-in zoom-in-95 duration-200">
             <div class="flex items-center justify-between border-b pb-3">
                 <h3 class="font-bold text-slate-900 text-sm flex items-center gap-2">
                     <i class="fa-solid fa-triangle-exclamation text-rose-600 text-base"></i>
-                    Từ chối Biên lai Thanh toán (Đơn <span id="rejectModalWonId" class="font-mono text-blue-600 font-bold">-</span>)
+                    Từ chối Biên lai Thanh toán (Đơn <span id="rejectModalWonId"
+                        class="font-mono text-blue-600 font-bold">-</span>)
                 </h3>
-                <button onclick="closeAdminRejectPaymentModal()" class="text-slate-400 hover:text-slate-600 text-lg cursor-pointer transition">
+                <button onclick="closeAdminRejectPaymentModal()"
+                    class="text-slate-400 hover:text-slate-600 text-lg cursor-pointer transition">
                     <i class="fa-solid fa-xmark"></i>
                 </button>
             </div>
@@ -743,38 +1062,54 @@
             <input type="hidden" id="rejectModalTargetWonId">
 
             <p class="text-xs text-slate-600 leading-normal">
-                Vui lòng chọn hoặc nhập <strong>Lý do từ chối biên lai chuyển khoản / mã giao dịch</strong>. Lý do này sẽ được hệ thống gửi tự động qua <strong>Email</strong> và <strong>Thông báo</strong> tới Quý đại lý để họ làm thủ tục nộp lại biên lai mới.
+                Vui lòng chọn hoặc nhập <strong>Lý do từ chối biên lai chuyển khoản / mã giao dịch</strong>. Lý do này
+                sẽ được hệ thống gửi tự động qua <strong>Email</strong> và <strong>Thông báo</strong> tới Quý đại lý để
+                họ làm thủ tục nộp lại biên lai mới.
             </p>
 
             <!-- Quick Reason Selection Buttons -->
             <div>
-                <label class="block font-bold text-slate-700 text-xs mb-1.5">Gợi ý lý do phổ biến (Bấm để chọn nhanh):</label>
+                <label class="block font-bold text-slate-700 text-xs mb-1.5">Gợi ý lý do phổ biến (Bấm để chọn
+                    nhanh):</label>
                 <div class="flex flex-wrap gap-1.5 text-[11px]">
-                    <button type="button" onclick="selectQuickRejectReason('Mã giao dịch / Mã FT ngân hàng không tồn tại trên hệ thống sao kê')" class="px-2.5 py-1 bg-slate-100 hover:bg-rose-50 hover:text-rose-700 border hover:border-rose-300 rounded-lg text-slate-700 font-medium transition cursor-pointer">
+                    <button type="button"
+                        onclick="selectQuickRejectReason('Mã giao dịch / Mã FT ngân hàng không tồn tại trên hệ thống sao kê')"
+                        class="px-2.5 py-1 bg-slate-100 hover:bg-rose-50 hover:text-rose-700 border hover:border-rose-300 rounded-lg text-slate-700 font-medium transition cursor-pointer">
                         ❌ Mã FT không tồn tại
                     </button>
-                    <button type="button" onclick="selectQuickRejectReason('Ảnh biên lai mờ / bị cắt góc, không thấy rõ thông tin giao dịch')" class="px-2.5 py-1 bg-slate-100 hover:bg-rose-50 hover:text-rose-700 border hover:border-rose-300 rounded-lg text-slate-700 font-medium transition cursor-pointer">
+                    <button type="button"
+                        onclick="selectQuickRejectReason('Ảnh biên lai mờ / bị cắt góc, không thấy rõ thông tin giao dịch')"
+                        class="px-2.5 py-1 bg-slate-100 hover:bg-rose-50 hover:text-rose-700 border hover:border-rose-300 rounded-lg text-slate-700 font-medium transition cursor-pointer">
                         ❌ Ảnh mờ / thiếu thông tin
                     </button>
-                    <button type="button" onclick="selectQuickRejectReason('Số tiền chuyển khoản thiếu so với tổng tiền đơn hàng thắng thầu')" class="px-2.5 py-1 bg-slate-100 hover:bg-rose-50 hover:text-rose-700 border hover:border-rose-300 rounded-lg text-slate-700 font-medium transition cursor-pointer">
+                    <button type="button"
+                        onclick="selectQuickRejectReason('Số tiền chuyển khoản thiếu so với tổng tiền đơn hàng thắng thầu')"
+                        class="px-2.5 py-1 bg-slate-100 hover:bg-rose-50 hover:text-rose-700 border hover:border-rose-300 rounded-lg text-slate-700 font-medium transition cursor-pointer">
                         ❌ Chuyển thiếu số tiền
                     </button>
-                    <button type="button" onclick="selectQuickRejectReason('Nội dung chuyển khoản không đúng cú pháp quy định')" class="px-2.5 py-1 bg-slate-100 hover:bg-rose-50 hover:text-rose-700 border hover:border-rose-300 rounded-lg text-slate-700 font-medium transition cursor-pointer">
+                    <button type="button"
+                        onclick="selectQuickRejectReason('Nội dung chuyển khoản không đúng cú pháp quy định')"
+                        class="px-2.5 py-1 bg-slate-100 hover:bg-rose-50 hover:text-rose-700 border hover:border-rose-300 rounded-lg text-slate-700 font-medium transition cursor-pointer">
                         ❌ Cú pháp CK sai
                     </button>
                 </div>
             </div>
 
             <div>
-                <label class="block font-bold text-slate-700 text-xs mb-1">Chi tiết lý do từ chối <span class="text-red-500">*</span></label>
-                <textarea id="rejectReasonInput" rows="3" placeholder="Nhập chi tiết lý do từ chối biên lai thanh toán gửi cho đại lý..." class="w-full border rounded-xl p-3 outline-none focus:ring-2 focus:ring-rose-500 text-xs text-slate-800 leading-relaxed"></textarea>
+                <label class="block font-bold text-slate-700 text-xs mb-1">Chi tiết lý do từ chối <span
+                        class="text-red-500">*</span></label>
+                <textarea id="rejectReasonInput" rows="3"
+                    placeholder="Nhập chi tiết lý do từ chối biên lai thanh toán gửi cho đại lý..."
+                    class="w-full border rounded-xl p-3 outline-none focus:ring-2 focus:ring-rose-500 text-xs text-slate-800 leading-relaxed"></textarea>
             </div>
 
             <div class="flex items-center justify-end gap-2 pt-2 border-t">
-                <button type="button" onclick="closeAdminRejectPaymentModal()" class="px-4 py-2 border rounded-xl text-slate-600 hover:bg-slate-100 font-medium text-xs cursor-pointer transition">
+                <button type="button" onclick="closeAdminRejectPaymentModal()"
+                    class="px-4 py-2 border rounded-xl text-slate-600 hover:bg-slate-100 font-medium text-xs cursor-pointer transition">
                     Hủy bỏ
                 </button>
-                <button type="button" onclick="handleConfirmRejectPayment()" class="px-5 py-2 bg-rose-600 hover:bg-rose-700 text-white font-bold rounded-xl text-xs shadow transition flex items-center gap-1.5 cursor-pointer">
+                <button type="button" onclick="handleConfirmRejectPayment()"
+                    class="px-5 py-2 bg-rose-600 hover:bg-rose-700 text-white font-bold rounded-xl text-xs shadow transition flex items-center gap-1.5 cursor-pointer">
                     <i class="fa-solid fa-paper-plane"></i> Từ chối & Gửi Email cho Đại lý
                 </button>
             </div>
@@ -861,8 +1196,8 @@
         function renderAuctionRow(a, data) {
             const isOpen = a.status === 'OPEN';
             const isAdmin = data.currentAdmin && data.currentAdmin.role === 'ADMIN';
-            const displayPrice = (isOpen && !isAdmin) ? 
-                '<span class="text-gray-500 font-normal">??? <span class="text-[10px] font-normal">(Bảo mật)</span></span>' : 
+            const displayPrice = (isOpen && !isAdmin) ?
+                '<span class="text-gray-500 font-normal">??? <span class="text-[10px] font-normal">(Bảo mật)</span></span>' :
                 CargoStore.formatCurrency(a.currentPriceKg);
 
             const allBids = data.bids || [];
@@ -898,18 +1233,16 @@
                         ${displayPrice}
                     </td>
                     <td class="py-3.5 px-4">
-                        <span class="${
-                            a.status === 'OPEN' ? 'bg-green-100 text-green-700' :
-                            a.status === 'CANCELLED' ? 'bg-orange-100 text-orange-700' :
-                            a.status === 'DELETED' ? 'bg-slate-100 text-slate-400 line-through' :
+                        <span class="${a.status === 'OPEN' ? 'bg-green-100 text-green-700' :
+                    a.status === 'CANCELLED' ? 'bg-orange-100 text-orange-700' :
+                        a.status === 'DELETED' ? 'bg-slate-100 text-slate-400 line-through' :
                             'bg-gray-100 text-gray-500'
-                        } font-bold px-2.5 py-1 rounded-full text-[10px]">
-                            ${
-                                a.status === 'OPEN' ? 'ĐANG MỞ' :
-                                a.status === 'CANCELLED' ? '✕ ĐÃ HỦY' :
-                                a.status === 'DELETED' ? '🗑 ĐÃ XÓA' :
-                                'ĐÃ ĐÓNG'
-                            }
+                } font-bold px-2.5 py-1 rounded-full text-[10px]">
+                            ${a.status === 'OPEN' ? 'ĐANG MỞ' :
+                    a.status === 'CANCELLED' ? '✕ ĐÃ HỦY' :
+                        a.status === 'DELETED' ? '🗑 ĐÃ XÓA' :
+                            'ĐÃ ĐÓNG'
+                }
                         </span>
                     </td>
                     <td class="py-3.5 px-4 text-right space-x-1.5 whitespace-nowrap">
@@ -1070,6 +1403,17 @@
                     ${nextBtn}
                 </div>
             `;
+        }
+
+        function handleStatusFilterChange(value) {
+            if (value === 'OPEN') {
+                // Redirect to the dedicated Open Auctions tab instead of filtering here
+                const statusEl = document.getElementById('statusSelect');
+                if (statusEl) statusEl.value = 'ALL'; // reset dropdown
+                switchAuctionTab('OPEN_AUCTIONS');
+                return;
+            }
+            renderAuctionsTable();
         }
 
         function renderAuctionsTable() {
@@ -1520,7 +1864,7 @@
             list.sort((a, b) => {
                 const getAmount = x => Number(x.totalAmountVND) || ((Number(x.priceKg) || 0) * (Number(x.capacityKg) || 0));
                 const getCap = x => Number(x.capacityKg) || 0;
-                
+
                 if (adminSort === 'OLDEST') {
                     return getWonSortValue(a) - getWonSortValue(b);
                 } else if (adminSort === 'AMOUNT_DESC') {
@@ -1645,25 +1989,25 @@
                         </td>
                         <td class="py-3.5 px-4 text-right whitespace-nowrap">
                             ${isExpired ? (() => {
-                                const refundStatus = item.refundStatus || null;
-                                const refundInfo = item.refundBankInfo || null;
-                                if (refundStatus === 'REFUNDED') {
-                                    return `<span class="inline-flex items-center gap-1 text-emerald-700 font-bold text-xs bg-emerald-50 px-3 py-1.5 rounded-xl border border-emerald-200">
+                        const refundStatus = item.refundStatus || null;
+                        const refundInfo = item.refundBankInfo || null;
+                        if (refundStatus === 'REFUNDED') {
+                            return `<span class="inline-flex items-center gap-1 text-emerald-700 font-bold text-xs bg-emerald-50 px-3 py-1.5 rounded-xl border border-emerald-200">
                                         <i class="fa-solid fa-check"></i> Đã hoàn tiền
                                     </span>`;
-                                } else if (refundStatus === 'PENDING' && refundInfo) {
-                                    return `<div class="flex flex-col items-end gap-1">
+                        } else if (refundStatus === 'PENDING' && refundInfo) {
+                            return `<div class="flex flex-col items-end gap-1">
                                         <button onclick="openAdminRefundModal('${item.wonId}')" class="inline-flex items-center gap-1 bg-indigo-600 hover:bg-indigo-700 text-white font-bold px-2.5 py-1.5 rounded-xl text-xs transition shadow-sm cursor-pointer">
                                             <i class="fa-solid fa-money-bill-transfer"></i> Xác nhận hoàn tiền
                                         </button>
                                         <span class="text-[10px] text-indigo-600 font-semibold">${refundInfo.accountNumber} (${refundInfo.bankName})</span>
                                     </div>`;
-                                } else {
-                                    return `<span class="inline-flex items-center gap-1 text-slate-400 font-bold text-xs bg-slate-100 px-3 py-1.5 rounded-xl border border-slate-200 cursor-not-allowed">
+                        } else {
+                            return `<span class="inline-flex items-center gap-1 text-slate-400 font-bold text-xs bg-slate-100 px-3 py-1.5 rounded-xl border border-slate-200 cursor-not-allowed">
                                         <i class="fa-solid fa-clock text-slate-400"></i> Chờ đại lý gửi TK hoàn
                                     </span>`;
-                                }
-                            })() : (isPaid ? `
+                        }
+                    })() : (isPaid ? `
                                 <span class="inline-flex items-center gap-1 text-emerald-700 font-bold text-xs bg-emerald-50 px-3 py-1.5 rounded-xl border border-emerald-200">
                                     <i class="fa-solid fa-check"></i> Đã nhận đủ tiền
                                 </span>
@@ -1776,13 +2120,12 @@
                     ${decl.dgrDocName ? `
                         <div class="bg-orange-50 border border-orange-200 rounded-xl p-3 space-y-1.5">
                             <span class="font-bold flex items-center gap-1.5 text-orange-800 text-[11px]">
-                                <i class="fa-solid fa-shield-halved text-orange-500"></i> ${
-                                    (decl.cargoType || '').includes('PER') || (decl.cargoType || '').includes('AVI') || (decl.cargoType || '').toLowerCase().includes('thực phẩm') || (decl.cargoType || '').toLowerCase().includes('tươi sống') || (decl.cargoType || '').toLowerCase().includes('hải sản')
-                                    ? 'Giấy chứng nhận kiểm dịch & An toàn thực phẩm (Quarantine Cert):'
-                                    : ((decl.cargoType || '').includes('VAL') || (decl.cargoType || '').toLowerCase().includes('giá trị cao') || (decl.cargoType || '').toLowerCase().includes('linh kiện')
-                                        ? 'Hợp đồng Bảo hiểm hàng hóa & Declared Value (VAL):'
-                                        : 'Chứng từ an toàn hàng nguy hiểm (DGR / MSDS):')
-                                }
+                                <i class="fa-solid fa-shield-halved text-orange-500"></i> ${(decl.cargoType || '').includes('PER') || (decl.cargoType || '').includes('AVI') || (decl.cargoType || '').toLowerCase().includes('thực phẩm') || (decl.cargoType || '').toLowerCase().includes('tươi sống') || (decl.cargoType || '').toLowerCase().includes('hải sản')
+                            ? 'Giấy chứng nhận kiểm dịch & An toàn thực phẩm (Quarantine Cert):'
+                            : ((decl.cargoType || '').includes('VAL') || (decl.cargoType || '').toLowerCase().includes('giá trị cao') || (decl.cargoType || '').toLowerCase().includes('linh kiện')
+                                ? 'Hợp đồng Bảo hiểm hàng hóa & Declared Value (VAL):'
+                                : 'Chứng từ an toàn hàng nguy hiểm (DGR / MSDS):')
+                        }
                             </span>
                             <div class="flex items-center justify-between bg-white border border-orange-200 rounded-lg px-3 py-2">
                                 <div class="flex items-center gap-2 min-w-0">
@@ -2089,7 +2432,7 @@
             }
         }
 
-        document.addEventListener('DOMContentLoaded', function() {
+        document.addEventListener('DOMContentLoaded', function () {
             updateFilterButtonsUI();
             renderAuctionsTable();
             renderWonAuctionsAdminTable();
@@ -2122,7 +2465,7 @@
 
             document.getElementById('auctionSearch').addEventListener('input', renderAuctionsTable);
             document.getElementById('statusSelect').addEventListener('change', renderAuctionsTable);
-            setInterval(function() {
+            setInterval(function () {
                 if (typeof document !== 'undefined' && document.hidden) return;
                 if (document.activeElement && (document.activeElement.tagName === 'SELECT' || document.activeElement.tagName === 'INPUT')) {
                     return;
@@ -2146,102 +2489,116 @@
             }, 100);
         }
 
-        window.addEventListener('storage', function(e) {
+        window.addEventListener('storage', function (e) {
             if (e.key === 'CARGO_BIDDING_DATA_V3') onAdminListStoreUpdate();
         });
         window.addEventListener('cargostore_updated', onAdminListStoreUpdate);
     </script>
-<script>
-(function(){
-  function updateChatBadge(){
-    fetch("/api/chat").then(r=>r.json()).then(d=>{
-      if(!d.success) return;
-      var w=(d.chats||[]).filter(function(c){return c.status==="WAITING";}).length;
-      var b=document.getElementById("admin-chat-badge");
-      if(b){b.textContent=w;b.classList.toggle("hidden",w===0);}
-    }).catch(function(){});
-  }
-  document.addEventListener("DOMContentLoaded",function(){updateChatBadge();setInterval(updateChatBadge,8000);});
-})();
-</script>
+    <script>
+        (function () {
+            function updateChatBadge() {
+                fetch("/api/chat").then(r => r.json()).then(d => {
+                    if (!d.success) return;
+                    var w = (d.chats || []).filter(function (c) { return c.status === "WAITING"; }).length;
+                    var b = document.getElementById("admin-chat-badge");
+                    if (b) { b.textContent = w; b.classList.toggle("hidden", w === 0); }
+                }).catch(function () { });
+            }
+            document.addEventListener("DOMContentLoaded", function () { updateChatBadge(); setInterval(updateChatBadge, 8000); });
+        })();
+    </script>
 
-<!-- Modal: Admin xác nhận hoàn tiền cho đại lý -->
-<div id="adminRefundModal" class="fixed inset-0 bg-slate-900/70 backdrop-blur-sm z-[60] flex items-center justify-center p-3 sm:p-4 hidden">
-    <div class="bg-white rounded-2xl max-w-md w-full shadow-2xl overflow-hidden">
-        <!-- Header -->
-        <div class="bg-gradient-to-r from-indigo-700 to-blue-800 text-white px-6 py-4 flex items-center justify-between">
-            <div class="flex items-center gap-2.5">
-                <div class="w-9 h-9 rounded-xl bg-indigo-500/30 flex items-center justify-center text-sm font-bold border border-indigo-400/30">
-                    <i class="fa-solid fa-money-bill-transfer text-base"></i>
+    <!-- Modal: Admin xác nhận hoàn tiền cho đại lý -->
+    <div id="adminRefundModal"
+        class="fixed inset-0 bg-slate-900/70 backdrop-blur-sm z-[60] flex items-center justify-center p-3 sm:p-4 hidden">
+        <div class="bg-white rounded-2xl max-w-md w-full shadow-2xl overflow-hidden">
+            <!-- Header -->
+            <div
+                class="bg-gradient-to-r from-indigo-700 to-blue-800 text-white px-6 py-4 flex items-center justify-between">
+                <div class="flex items-center gap-2.5">
+                    <div
+                        class="w-9 h-9 rounded-xl bg-indigo-500/30 flex items-center justify-center text-sm font-bold border border-indigo-400/30">
+                        <i class="fa-solid fa-money-bill-transfer text-base"></i>
+                    </div>
+                    <div>
+                        <h3 class="font-bold text-sm leading-tight">Xác nhận Hoàn Tiền</h3>
+                        <p class="text-[11px] text-indigo-200">Mã đơn: <strong id="adminRefundWonId"
+                                class="text-amber-300 font-mono">-</strong></p>
+                    </div>
                 </div>
+                <button onclick="closeAdminRefundModal()"
+                    class="text-indigo-300 hover:text-white text-lg cursor-pointer"><i
+                        class="fa-solid fa-xmark"></i></button>
+            </div>
+
+            <!-- Body -->
+            <div class="p-6 space-y-4 text-xs">
+                <!-- Agent & Amount info -->
+                <div class="bg-slate-50 border rounded-xl p-3 space-y-2">
+                    <div class="flex items-center justify-between">
+                        <span class="text-slate-500 font-semibold">Đại lý:</span>
+                        <strong id="adminRefundAgentCode" class="text-blue-600 font-mono">-</strong>
+                    </div>
+                    <div class="flex items-center justify-between">
+                        <span class="text-slate-500 font-semibold">Số tiền hoàn (tham khảo):</span>
+                        <strong id="adminRefundAmountDisplay" class="text-red-600 font-bold">-</strong>
+                    </div>
+                </div>
+
+                <!-- Bank info from agent -->
+                <div class="bg-indigo-50 border border-indigo-200 rounded-xl p-3 space-y-2">
+                    <p class="font-bold text-indigo-800 flex items-center gap-1.5">
+                        <i class="fa-solid fa-building-columns text-indigo-500"></i> Tài khoản nhận hoàn tiền của Đại
+                        lý:
+                    </p>
+                    <div class="grid grid-cols-2 gap-2 mt-1">
+                        <div>
+                            <span class="text-slate-500 block">Ngân hàng:</span>
+                            <strong id="adminRefundBankName" class="text-slate-900">-</strong>
+                        </div>
+                        <div>
+                            <span class="text-slate-500 block">Số TK:</span>
+                            <strong id="adminRefundAccountNumber" class="text-blue-700 font-mono">-</strong>
+                        </div>
+                        <div class="col-span-2">
+                            <span class="text-slate-500 block">Chủ tài khoản:</span>
+                            <strong id="adminRefundAccountName" class="text-slate-900">-</strong>
+                        </div>
+                        <div class="col-span-2">
+                            <span class="text-slate-500 block">Ghi chú từ đại lý:</span>
+                            <span id="adminRefundAgentNote" class="text-slate-600 italic">-</span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Admin note -->
                 <div>
-                    <h3 class="font-bold text-sm leading-tight">Xác nhận Hoàn Tiền</h3>
-                    <p class="text-[11px] text-indigo-200">Mã đơn: <strong id="adminRefundWonId" class="text-amber-300 font-mono">-</strong></p>
+                    <label class="block font-semibold text-slate-700 mb-1">Ghi chú xác nhận hoàn tiền <span
+                            class="text-slate-400">(tuỳ chọn)</span></label>
+                    <textarea id="adminRefundNote" rows="2"
+                        placeholder="VD: Đã CK số tiền X qua Vietcombank lúc HH:MM DD/MM/YYYY, mã FT: ..."
+                        class="w-full border rounded-xl px-3 py-2 outline-none focus:ring-2 focus:ring-indigo-500 text-xs resize-none"></textarea>
                 </div>
-            </div>
-            <button onclick="closeAdminRefundModal()" class="text-indigo-300 hover:text-white text-lg cursor-pointer"><i class="fa-solid fa-xmark"></i></button>
-        </div>
 
-        <!-- Body -->
-        <div class="p-6 space-y-4 text-xs">
-            <!-- Agent & Amount info -->
-            <div class="bg-slate-50 border rounded-xl p-3 space-y-2">
-                <div class="flex items-center justify-between">
-                    <span class="text-slate-500 font-semibold">Đại lý:</span>
-                    <strong id="adminRefundAgentCode" class="text-blue-600 font-mono">-</strong>
-                </div>
-                <div class="flex items-center justify-between">
-                    <span class="text-slate-500 font-semibold">Số tiền hoàn (tham khảo):</span>
-                    <strong id="adminRefundAmountDisplay" class="text-red-600 font-bold">-</strong>
+                <div
+                    class="bg-amber-50 border border-amber-200 rounded-xl p-2.5 text-amber-800 font-semibold text-[11px] flex items-start gap-1.5">
+                    <i class="fa-solid fa-triangle-exclamation text-amber-500 mt-0.5"></i>
+                    Sau khi xác nhận, hệ thống sẽ gửi thông báo đến đại lý rằng tiền đã được hoàn. Thao tác này không
+                    thể hoàn tác.
                 </div>
             </div>
 
-            <!-- Bank info from agent -->
-            <div class="bg-indigo-50 border border-indigo-200 rounded-xl p-3 space-y-2">
-                <p class="font-bold text-indigo-800 flex items-center gap-1.5">
-                    <i class="fa-solid fa-building-columns text-indigo-500"></i> Tài khoản nhận hoàn tiền của Đại lý:
-                </p>
-                <div class="grid grid-cols-2 gap-2 mt-1">
-                    <div>
-                        <span class="text-slate-500 block">Ngân hàng:</span>
-                        <strong id="adminRefundBankName" class="text-slate-900">-</strong>
-                    </div>
-                    <div>
-                        <span class="text-slate-500 block">Số TK:</span>
-                        <strong id="adminRefundAccountNumber" class="text-blue-700 font-mono">-</strong>
-                    </div>
-                    <div class="col-span-2">
-                        <span class="text-slate-500 block">Chủ tài khoản:</span>
-                        <strong id="adminRefundAccountName" class="text-slate-900">-</strong>
-                    </div>
-                    <div class="col-span-2">
-                        <span class="text-slate-500 block">Ghi chú từ đại lý:</span>
-                        <span id="adminRefundAgentNote" class="text-slate-600 italic">-</span>
-                    </div>
-                </div>
+            <!-- Footer -->
+            <div class="px-6 py-3 border-t bg-slate-50 flex items-center justify-end gap-2">
+                <button onclick="closeAdminRefundModal()"
+                    class="px-4 py-2 border rounded-xl text-slate-600 hover:bg-slate-100 font-medium text-xs cursor-pointer">Huỷ</button>
+                <button id="adminRefundConfirmBtn" onclick="handleAdminConfirmRefund()"
+                    class="px-5 py-2 bg-indigo-600 hover:bg-indigo-700 text-white font-bold rounded-xl shadow flex items-center gap-1.5 text-xs cursor-pointer">
+                    <i class="fa-solid fa-check"></i> Xác nhận đã hoàn tiền
+                </button>
             </div>
-
-            <!-- Admin note -->
-            <div>
-                <label class="block font-semibold text-slate-700 mb-1">Ghi chú xác nhận hoàn tiền <span class="text-slate-400">(tuỳ chọn)</span></label>
-                <textarea id="adminRefundNote" rows="2" placeholder="VD: Đã CK số tiền X qua Vietcombank lúc HH:MM DD/MM/YYYY, mã FT: ..." class="w-full border rounded-xl px-3 py-2 outline-none focus:ring-2 focus:ring-indigo-500 text-xs resize-none"></textarea>
-            </div>
-
-            <div class="bg-amber-50 border border-amber-200 rounded-xl p-2.5 text-amber-800 font-semibold text-[11px] flex items-start gap-1.5">
-                <i class="fa-solid fa-triangle-exclamation text-amber-500 mt-0.5"></i>
-                Sau khi xác nhận, hệ thống sẽ gửi thông báo đến đại lý rằng tiền đã được hoàn. Thao tác này không thể hoàn tác.
-            </div>
-        </div>
-
-        <!-- Footer -->
-        <div class="px-6 py-3 border-t bg-slate-50 flex items-center justify-end gap-2">
-            <button onclick="closeAdminRefundModal()" class="px-4 py-2 border rounded-xl text-slate-600 hover:bg-slate-100 font-medium text-xs cursor-pointer">Huỷ</button>
-            <button id="adminRefundConfirmBtn" onclick="handleAdminConfirmRefund()" class="px-5 py-2 bg-indigo-600 hover:bg-indigo-700 text-white font-bold rounded-xl shadow flex items-center gap-1.5 text-xs cursor-pointer">
-                <i class="fa-solid fa-check"></i> Xác nhận đã hoàn tiền
-            </button>
         </div>
     </div>
-</div>
 </body>
-</html>
 
+</html>
