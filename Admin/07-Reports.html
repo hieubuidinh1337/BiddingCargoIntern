@@ -1,4 +1,4 @@
-﻿<!DOCTYPE html>
+<!DOCTYPE html>
 <html lang="vi">
 <head>
     <meta charset="UTF-8">
@@ -216,6 +216,104 @@
                 <button onclick="exportToPDF(this)" id="btnExportPdf" class="bg-white border hover:bg-slate-50 text-slate-700 text-xs font-semibold px-4 py-2.5 rounded-xl transition shadow-sm flex items-center gap-1.5 cursor-pointer">
                     <i class="fa-solid fa-file-pdf text-red-500 text-sm"></i> <span>Xuất PDF</span>
                 </button>
+            </div>
+        </div>
+
+        <!-- BỘ LỌC BÁO CÁO & XUẤT DỮ LIỆU -->
+        <div class="bg-white rounded-2xl border shadow-sm p-4 space-y-3">
+            <div class="flex flex-col md:flex-row md:items-center justify-between gap-3 pb-3 border-b border-slate-100">
+                <div class="flex items-center gap-2">
+                    <div class="w-8 h-8 rounded-xl bg-blue-50 text-blue-600 flex items-center justify-center font-bold text-sm shadow-inner">
+                        <i class="fa-solid fa-filter"></i>
+                    </div>
+                    <div>
+                        <h3 class="text-sm font-bold text-slate-900">Bộ Lọc Báo Cáo & Tùy Chọn Xuất File</h3>
+                        <p class="text-[11px] text-slate-500">Lọc dữ liệu theo thời gian, loại hàng hóa, tuyến bay trước khi xem & xuất file Excel / PDF</p>
+                    </div>
+                </div>
+                <div class="flex items-center gap-2 self-end md:self-auto">
+                    <button onclick="applyReportFilters()" class="bg-blue-600 hover:bg-blue-700 text-white text-xs font-bold px-4 py-2 rounded-xl transition shadow flex items-center gap-1.5 cursor-pointer">
+                        <i class="fa-solid fa-check"></i> Áp dụng bộ lọc
+                    </button>
+                    <button onclick="resetReportFilters()" class="bg-slate-100 hover:bg-slate-200 text-slate-600 text-xs font-semibold px-3 py-2 rounded-xl transition flex items-center gap-1 cursor-pointer">
+                        <i class="fa-solid fa-rotate-left"></i> Đặt lại
+                    </button>
+                </div>
+            </div>
+
+            <!-- Controls Grid -->
+            <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 text-xs">
+                <!-- 1. Thời gian -->
+                <div>
+                    <label class="block font-bold text-slate-700 mb-1 text-[11px]">
+                        <i class="fa-solid fa-calendar text-blue-500 mr-1"></i>Khoảng thời gian:
+                    </label>
+                    <select id="reportTimeRangeFilter" onchange="toggleCustomDateReport(this.value)" class="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl font-medium text-slate-800 outline-none focus:ring-2 focus:ring-blue-500/20 cursor-pointer">
+                        <option value="ALL">Tất cả thời gian</option>
+                        <option value="THIS_MONTH">Tháng này (Tháng 09/2026)</option>
+                        <option value="LAST_MONTH">Tháng trước (Tháng 08/2026)</option>
+                        <option value="30DAYS">30 ngày qua</option>
+                        <option value="90DAYS">90 ngày qua</option>
+                        <option value="CUSTOM">📅 Tùy chọn khoảng ngày...</option>
+                    </select>
+                </div>
+
+                <!-- 2. Loại hàng hóa -->
+                <div>
+                    <label class="block font-bold text-slate-700 mb-1 text-[11px]">
+                        <i class="fa-solid fa-box text-emerald-500 mr-1"></i>Loại hàng hóa:
+                    </label>
+                    <select id="reportCargoTypeFilter" onchange="applyReportFilters()" class="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl font-medium text-slate-800 outline-none focus:ring-2 focus:ring-blue-500/20 cursor-pointer">
+                        <option value="ALL">Tất cả loại hàng</option>
+                        <option value="GEN">Hàng thông thường (General Cargo - GEN)</option>
+                        <option value="PER">Hàng đông lạnh / Tươi sống (PER/COLD)</option>
+                        <option value="DG">Hàng nguy hiểm (Dangerous Goods - DG)</option>
+                        <option value="VAL">Hàng giá trị cao (High Value - VAL)</option>
+                        <option value="OTHER">May mặc & Hàng khác</option>
+                    </select>
+                </div>
+
+                <!-- 3. Tuyến đường bay -->
+                <div>
+                    <label class="block font-bold text-slate-700 mb-1 text-[11px]">
+                        <i class="fa-solid fa-plane-departure text-purple-500 mr-1"></i>Tuyến đường bay:
+                    </label>
+                    <select id="reportRouteFilter" onchange="applyReportFilters()" class="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl font-medium text-slate-800 outline-none focus:ring-2 focus:ring-blue-500/20 cursor-pointer">
+                        <option value="ALL">Tất cả đường bay</option>
+                        <option value="SGN - HAN">SGN - HAN (Sài Gòn - Hà Nội)</option>
+                        <option value="SGN - DAD">SGN - DAD (Sài Gòn - Đà Nẵng)</option>
+                        <option value="HAN - PQC">HAN - PQC (Hà Nội - Phú Quốc)</option>
+                        <option value="SGN - PQC">SGN - PQC (Sài Gòn - Phú Quốc)</option>
+                    </select>
+                </div>
+
+                <!-- 4. Trạng thái -->
+                <div>
+                    <label class="block font-bold text-slate-700 mb-1 text-[11px]">
+                        <i class="fa-solid fa-list-check text-amber-500 mr-1"></i>Trạng thái phiên & đơn:
+                    </label>
+                    <select id="reportStatusFilter" onchange="applyReportFilters()" class="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl font-medium text-slate-800 outline-none focus:ring-2 focus:ring-blue-500/20 cursor-pointer">
+                        <option value="ALL">Tất cả trạng thái</option>
+                        <option value="CLOSED">Phiên đã đóng / Thắng thầu</option>
+                        <option value="OPEN">Phiên đang mở đấu giá</option>
+                        <option value="DECLARED">Đã hoàn tất khai báo hàng hóa</option>
+                    </select>
+                </div>
+            </div>
+
+            <!-- Custom Date Range inputs -->
+            <div id="reportCustomDateRow" class="hidden pt-2 border-t border-slate-100 flex flex-wrap items-center gap-3 text-xs bg-blue-50/50 p-2.5 rounded-xl border border-blue-100 mt-1">
+                <span class="font-bold text-slate-700 flex items-center gap-1">
+                    <i class="fa-solid fa-calendar-days text-blue-600"></i> Khoảng ngày tùy chọn:
+                </span>
+                <div class="flex items-center gap-1.5">
+                    <label for="reportFromDate" class="text-slate-600 font-medium">Từ ngày:</label>
+                    <input type="date" id="reportFromDate" onchange="applyReportFilters()" class="px-2.5 py-1.5 bg-white border border-slate-200 rounded-lg text-slate-800 font-medium outline-none shadow-xs">
+                </div>
+                <div class="flex items-center gap-1.5">
+                    <label for="reportToDate" class="text-slate-600 font-medium">Đến ngày:</label>
+                    <input type="date" id="reportToDate" onchange="applyReportFilters()" class="px-2.5 py-1.5 bg-white border border-slate-200 rounded-lg text-slate-800 font-medium outline-none shadow-xs">
+                </div>
             </div>
         </div>
 
@@ -513,6 +611,48 @@
     </div>
 
     <script>
+        function getReportFilters() {
+            const timeRange = document.getElementById('reportTimeRangeFilter')?.value || 'ALL';
+            const cargoType = document.getElementById('reportCargoTypeFilter')?.value || 'ALL';
+            const route = document.getElementById('reportRouteFilter')?.value || 'ALL';
+            const status = document.getElementById('reportStatusFilter')?.value || 'ALL';
+            const fromDate = document.getElementById('reportFromDate')?.value || '';
+            const toDate = document.getElementById('reportToDate')?.value || '';
+
+            return { timeRange, cargoType, route, status, fromDate, toDate };
+        }
+
+        function toggleCustomDateReport(val) {
+            const customRow = document.getElementById('reportCustomDateRow');
+            if (customRow) {
+                if (val === 'CUSTOM') {
+                    customRow.classList.remove('hidden');
+                } else {
+                    customRow.classList.add('hidden');
+                }
+            }
+            applyReportFilters();
+        }
+
+        function resetReportFilters() {
+            if (document.getElementById('reportTimeRangeFilter')) document.getElementById('reportTimeRangeFilter').value = 'ALL';
+            if (document.getElementById('reportCargoTypeFilter')) document.getElementById('reportCargoTypeFilter').value = 'ALL';
+            if (document.getElementById('reportRouteFilter')) document.getElementById('reportRouteFilter').value = 'ALL';
+            if (document.getElementById('reportStatusFilter')) document.getElementById('reportStatusFilter').value = 'ALL';
+            if (document.getElementById('reportFromDate')) document.getElementById('reportFromDate').value = '';
+            if (document.getElementById('reportToDate')) document.getElementById('reportToDate').value = '';
+
+            const customRow = document.getElementById('reportCustomDateRow');
+            if (customRow) customRow.classList.add('hidden');
+
+            renderReportUI();
+            showToast('Đã đặt lại bộ lọc báo cáo!', true);
+        }
+
+        function applyReportFilters() {
+            renderReportUI();
+        }
+
         function toggleAdminMobileNav() {
             const nav = document.getElementById('adminMobileNav');
             if (nav) nav.classList.toggle('hidden');
@@ -537,10 +677,96 @@
         function computeReportMetrics(customData) {
             const store = getStore();
             const data = customData || (store ? store.getData() : {});
-            const auctions = data.auctions || [];
-            const bids = data.bids || [];
-            const wonList = data.wonAuctions || [];
-            const agentsList = data.agentsList || [];
+            let auctions = data.auctions || [];
+            let bids = data.bids || [];
+            let wonList = data.wonAuctions || [];
+            let agentsList = data.agentsList || [];
+
+            const filters = getReportFilters();
+            const now = new Date();
+            const oneDay = 24 * 60 * 60 * 1000;
+            const nowTime = now.getTime();
+
+            // Filter auctions by selected filter parameters
+            const filteredAuctions = auctions.filter(a => {
+                const rName = a.route || `${a.origin || 'SGN'} - ${a.destination || 'HAN'}`;
+                if (filters.route !== 'ALL' && rName !== filters.route) return false;
+
+                if (filters.status === 'CLOSED' && a.status !== 'CLOSED') return false;
+                if (filters.status === 'OPEN' && a.status !== 'OPEN') return false;
+                if (filters.status === 'DECLARED' && (!a.cargoDeclaration || !a.cargoDeclaration.cargoName)) return false;
+
+                if (filters.cargoType !== 'ALL') {
+                    const declType = (a.cargoDeclaration ? a.cargoDeclaration.cargoType : '') || a.cargoType || '';
+                    if (filters.cargoType === 'GEN' && !/GEN|thường|thông thường/i.test(declType)) return false;
+                    if (filters.cargoType === 'PER' && !/PER|đông lạnh|tươi sống|COLD/i.test(declType)) return false;
+                    if (filters.cargoType === 'DG' && !/DG|nguy hiểm/i.test(declType)) return false;
+                    if (filters.cargoType === 'VAL' && !/VAL|giá trị high/i.test(declType)) return false;
+                    if (filters.cargoType === 'OTHER' && /GEN|PER|DG|VAL/i.test(declType)) return false;
+                }
+
+                if (filters.timeRange === '30DAYS') {
+                    const aTs = a.rawTime || (a.createdDate ? new Date(a.createdDate).getTime() : nowTime);
+                    if (nowTime - aTs > 30 * oneDay) return false;
+                } else if (filters.timeRange === '90DAYS') {
+                    const aTs = a.rawTime || (a.createdDate ? new Date(a.createdDate).getTime() : nowTime);
+                    if (nowTime - aTs > 90 * oneDay) return false;
+                } else if (filters.timeRange === 'THIS_MONTH') {
+                    const monthStr = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}`;
+                    if (a.createdDate && !a.createdDate.includes(monthStr)) return false;
+                } else if (filters.timeRange === 'LAST_MONTH') {
+                    const lmDate = new Date(now.getFullYear(), now.getMonth() - 1, 1);
+                    const lmStr = `${lmDate.getFullYear()}-${String(lmDate.getMonth() + 1).padStart(2, '0')}`;
+                    if (a.createdDate && !a.createdDate.includes(lmStr)) return false;
+                } else if (filters.timeRange === 'CUSTOM') {
+                    const fromTs = filters.fromDate ? new Date(filters.fromDate + 'T00:00:00').getTime() : 0;
+                    const toTs = filters.toDate ? new Date(filters.toDate + 'T23:59:59.999').getTime() : Infinity;
+                    const aTs = a.rawTime || (a.createdDate ? new Date(a.createdDate).getTime() : nowTime);
+                    if (aTs < fromTs || aTs > toTs) return false;
+                }
+
+                return true;
+            });
+
+            // Filter wonList by selected filter parameters
+            const filteredWonList = wonList.filter(w => {
+                const rName = w.route || (w.flightNumber ? w.flightNumber : '');
+                if (filters.route !== 'ALL' && !rName.includes(filters.route)) return false;
+
+                if (filters.status === 'DECLARED' && (!w.cargoDeclaration || !w.cargoDeclaration.cargoName)) return false;
+
+                if (filters.cargoType !== 'ALL') {
+                    const decl = w.cargoDeclaration || {};
+                    const declType = decl.cargoType || w.cargoType || '';
+                    if (filters.cargoType === 'GEN' && !/GEN|thường|thông thường/i.test(declType)) return false;
+                    if (filters.cargoType === 'PER' && !/PER|đông lạnh|tươi sống|COLD/i.test(declType)) return false;
+                    if (filters.cargoType === 'DG' && !/DG|nguy hiểm/i.test(declType)) return false;
+                    if (filters.cargoType === 'VAL' && !/VAL|giá trị high/i.test(declType)) return false;
+                    if (filters.cargoType === 'OTHER' && /GEN|PER|DG|VAL/i.test(declType)) return false;
+                }
+
+                if (filters.timeRange === '30DAYS') {
+                    const wTs = w.rawTime || (w.wonDate ? new Date(w.wonDate).getTime() : nowTime);
+                    if (nowTime - wTs > 30 * oneDay) return false;
+                } else if (filters.timeRange === '90DAYS') {
+                    const wTs = w.rawTime || (w.wonDate ? new Date(w.wonDate).getTime() : nowTime);
+                    if (nowTime - wTs > 90 * oneDay) return false;
+                } else if (filters.timeRange === 'THIS_MONTH') {
+                    const monthStr = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}`;
+                    if (w.wonDate && !w.wonDate.includes(monthStr)) return false;
+                } else if (filters.timeRange === 'LAST_MONTH') {
+                    const lmDate = new Date(now.getFullYear(), now.getMonth() - 1, 1);
+                    const lmStr = `${lmDate.getFullYear()}-${String(lmDate.getMonth() + 1).padStart(2, '0')}`;
+                    if (w.wonDate && !w.wonDate.includes(lmStr)) return false;
+                } else if (filters.timeRange === 'CUSTOM') {
+                    const fromTs = filters.fromDate ? new Date(filters.fromDate + 'T00:00:00').getTime() : 0;
+                    const toTs = filters.toDate ? new Date(filters.toDate + 'T23:59:59.999').getTime() : Infinity;
+                    const wTs = w.rawTime || (w.wonDate ? new Date(w.wonDate).getTime() : nowTime);
+                    if (wTs < fromTs || wTs > toTs) return false;
+                }
+
+                return true;
+            });
 
             const routeMap = {};
             let grandTotalRevenue = 0;
@@ -548,8 +774,8 @@
             let grandTotalWonKg = 0;
             let closedCount = 0;
 
-            // 1. Group auctions by route
-            auctions.forEach(a => {
+            // 1. Group filtered auctions by route
+            filteredAuctions.forEach(a => {
                 const routeName = a.route || `${a.origin || 'SGN'} - ${a.destination || 'HAN'}`;
                 if (!routeMap[routeName]) {
                     routeMap[routeName] = {
@@ -583,10 +809,10 @@
                 }
             });
 
-            // Factor in wonList if any auctions aren't in auctions array
-            wonList.forEach(w => {
+            // Factor in filteredWonList if any won auctions aren't in auctions array
+            filteredWonList.forEach(w => {
                 const routeName = w.route || (w.flightNumber ? w.flightNumber : 'Khác');
-                if (!auctions.some(a => a.id == w.auctionId || (a.flightCode && a.flightCode === w.flightCode))) {
+                if (!filteredAuctions.some(a => a.id == w.auctionId || (a.flightCode && a.flightCode === w.flightCode))) {
                     if (!routeMap[routeName]) {
                         routeMap[routeName] = {
                             route: routeName,
@@ -697,7 +923,10 @@
                 grandAvgPrice,
                 closedCount,
                 routes: Object.values(routeMap),
-                topAgents: finalTopAgents
+                topAgents: finalTopAgents,
+                filteredAuctions,
+                filteredWonList,
+                filters
             };
         }
 
@@ -735,8 +964,20 @@
 
             const periodBadge = document.getElementById('reportPeriodBadge');
             if (periodBadge) {
-                const now = new Date();
-                periodBadge.textContent = `Kỳ báo cáo: Tháng ${String(now.getMonth() + 1).padStart(2, '0')}/${now.getFullYear()}`;
+                const flt = metrics.filters || {};
+                const parts = [];
+                if (flt.timeRange === 'THIS_MONTH') parts.push('Tháng 09/2026');
+                else if (flt.timeRange === 'LAST_MONTH') parts.push('Tháng 08/2026');
+                else if (flt.timeRange === '30DAYS') parts.push('30 ngày qua');
+                else if (flt.timeRange === '90DAYS') parts.push('90 ngày qua');
+                else if (flt.timeRange === 'CUSTOM' && (flt.fromDate || flt.toDate)) parts.push(`${flt.fromDate || '...'} đến ${flt.toDate || '...'}`);
+                else parts.push('Tất cả thời gian');
+
+                if (flt.cargoType && flt.cargoType !== 'ALL') parts.push(`Loại hàng: ${flt.cargoType}`);
+                if (flt.route && flt.route !== 'ALL') parts.push(`Tuyến: ${flt.route}`);
+                if (flt.status && flt.status !== 'ALL') parts.push(`Trạng thái: ${flt.status}`);
+
+                periodBadge.textContent = `Kỳ báo cáo: ${parts.join(' · ')}`;
             }
 
             // 2. Render Route Revenue Table
