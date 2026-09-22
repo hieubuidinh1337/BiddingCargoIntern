@@ -1331,8 +1331,41 @@ const server = http.createServer((req, res) => {
                 // NOTE: activityLogs are managed exclusively by the server.
                 // Client no longer writes logs when online, so we ignore incoming.activityLogs
                 // to prevent stale client data from duplicating server logs.
-                if (incoming.registrations) serverData.registrations = incoming.registrations;
-                if (incoming.agentsList) serverData.agentsList = incoming.agentsList;
+                if (incoming.registrations && Array.isArray(incoming.registrations)) {
+                    if (!serverData.registrations) serverData.registrations = [];
+                    const regMap = new Map();
+                    serverData.registrations.forEach(r => regMap.set(String(r.regId), r));
+                    incoming.registrations.forEach(r => {
+                        const existing = regMap.get(String(r.regId));
+                        if (!existing) {
+                            regMap.set(String(r.regId), r);
+                        } else {
+                            const merged = { ...existing, ...r };
+                            if (existing.status && existing.status !== 'PENDING') {
+                                merged.status = existing.status;
+                                if (existing.agentCode) merged.agentCode = existing.agentCode;
+                                if (existing.rejectionReason) merged.rejectionReason = existing.rejectionReason;
+                            }
+                            regMap.set(String(r.regId), merged);
+                        }
+                    });
+                    serverData.registrations = Array.from(regMap.values());
+                }
+                
+                if (incoming.agentsList && Array.isArray(incoming.agentsList)) {
+                    if (!serverData.agentsList) serverData.agentsList = [];
+                    const agentMap = new Map();
+                    serverData.agentsList.forEach(a => agentMap.set(String(a.code), a));
+                    incoming.agentsList.forEach(a => {
+                        const existing = agentMap.get(String(a.code));
+                        if (!existing) {
+                            agentMap.set(String(a.code), a);
+                        } else {
+                            agentMap.set(String(a.code), { ...existing, ...a });
+                        }
+                    });
+                    serverData.agentsList = Array.from(agentMap.values());
+                }
                 if (incoming.adminsList) serverData.adminsList = incoming.adminsList;
                 if (incoming.settings) {
                     serverData.settings = incoming.settings;

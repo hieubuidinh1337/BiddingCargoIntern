@@ -1500,7 +1500,13 @@ const CargoStore = (function() {
                         if (!existing) {
                             regMap.set(key, r);
                         } else {
-                            regMap.set(key, { ...existing, ...r });
+                            const merged = { ...existing, ...r };
+                            if (existing.status && existing.status !== 'PENDING') {
+                                merged.status = existing.status;
+                                if (existing.agentCode) merged.agentCode = existing.agentCode;
+                                if (existing.rejectionReason) merged.rejectionReason = existing.rejectionReason;
+                            }
+                            regMap.set(key, merged);
                         }
                     });
                     local.registrations = Array.from(regMap.values());
