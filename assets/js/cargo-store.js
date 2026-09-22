@@ -1390,7 +1390,20 @@ const CargoStore = (function() {
                         if (!serverItem) {
                             auctionMap.set(a.id, a);
                         } else {
-                            if (a.status === 'CLOSED' && serverItem.status === 'OPEN') {
+                            // Final states (CANCELLED, DELETED) must NEVER be overwritten by server's older status
+                            const FINAL_STATES = ['CANCELLED', 'DELETED'];
+                            if (FINAL_STATES.includes(a.status)) {
+                                // Preserve local final state, keep cancellation metadata
+                                auctionMap.set(a.id, {
+                                    ...serverItem,
+                                    status: a.status,
+                                    cancelledAt: a.cancelledAt,
+                                    cancellationReason: a.cancellationReason,
+                                    refundNote: a.refundNote,
+                                    refundAmount: a.refundAmount,
+                                    deletedAt: a.deletedAt
+                                });
+                            } else if (a.status === 'CLOSED' && serverItem.status === 'OPEN') {
                                 auctionMap.set(a.id, { ...serverItem, status: 'CLOSED', winnerAgentCode: a.winnerAgentCode || serverItem.winnerAgentCode, winnerAgentName: a.winnerAgentName || serverItem.winnerAgentName });
                             }
                         }
