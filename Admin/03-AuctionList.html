@@ -451,15 +451,11 @@
             </div>
         </div>
 
-        <!-- Navigation Tabs (Phân cách bảng giống AgentList) -->
+        <!-- Navigation Tabs -->
         <div class="flex flex-wrap items-center gap-2 border-b pb-2">
             <button onclick="switchAuctionTab('ALL_AUCTIONS')" id="tabAllAuctionsBtn"
                 class="px-4 py-2 rounded-xl text-xs font-bold bg-blue-600 text-white shadow-sm flex items-center gap-2 transition">
                 <i class="fa-solid fa-layer-group"></i> Tất cả phiên đấu giá (<span id="allCountBadge">0</span>)
-            </button>
-            <button onclick="switchAuctionTab('OPEN_AUCTIONS')" id="tabOpenAuctionsBtn"
-                class="px-4 py-2 rounded-xl text-xs font-bold bg-white text-slate-600 hover:bg-slate-50 border flex items-center gap-2 transition">
-                <i class="fa-solid fa-tower-broadcast"></i> Đang mở đấu giá (<span id="openCountBadge">0</span>)
             </button>
             <button onclick="switchAuctionTab('WON_AUCTIONS')" id="tabWonAuctionsBtn"
                 class="px-4 py-2 rounded-xl text-xs font-bold bg-white text-slate-600 hover:bg-slate-50 border flex items-center gap-2 transition">
@@ -525,46 +521,7 @@
             </div>
         </div>
 
-        <!-- Tab 2: Các phiên đang MỞ đấu giá (Live Open Auctions) -->
-        <div id="sectionOpenAuctions" class="hidden space-y-4">
-            <div
-                class="bg-blue-50 border border-blue-200 text-blue-800 rounded-xl p-3.5 text-xs flex items-center gap-2">
-                <i class="fa-solid fa-tower-broadcast text-blue-600 text-sm"></i>
-                <span>Danh sách các chuyến bay <strong>đang mở đấu giá thời gian thực</strong>. Quản trị viên có thể
-                    theo dõi biến động giá thầu hoặc chủ động <strong>Chốt thầu</strong> sớm.</span>
-            </div>
 
-            <div class="bg-white rounded-2xl border shadow-sm overflow-hidden">
-                <div class="p-4 bg-slate-50/70 border-b flex items-center justify-between">
-                    <span class="text-xs text-slate-600 font-semibold flex items-center gap-1.5">
-                        <i class="fa-solid fa-signal text-emerald-600"></i> Các phiên thầu đang đếm ngược trực tuyến
-                    </span>
-                    <span class="text-[11px] text-slate-500">Cập nhật tự động realtime từng giây</span>
-                </div>
-                <div class="overflow-x-auto">
-                    <table class="w-full text-xs text-left min-w-[780px] whitespace-nowrap">
-                        <thead class="bg-slate-50 text-slate-600 font-semibold border-b">
-                            <tr>
-                                <th class="py-3.5 px-4 whitespace-nowrap">Mã phiên & Số hiệu</th>
-                                <th class="py-3.5 px-4 whitespace-nowrap">Tuyến bay</th>
-                                <th class="py-3.5 px-4 whitespace-nowrap">Tàu bay & Giờ ETD</th>
-                                <th class="py-3.5 px-4 whitespace-nowrap">Tải trọng chào thầu</th>
-                                <th class="py-3.5 px-4 whitespace-nowrap">Giá hiện tại (đ/Kg)</th>
-                                <th class="py-3.5 px-4 whitespace-nowrap">Trạng thái</th>
-                                <th class="py-3.5 px-4 text-right whitespace-nowrap">Thao tác</th>
-                            </tr>
-                        </thead>
-                        <tbody class="divide-y divide-gray-100" id="openAuctionsTableBody">
-                            <!-- Populated by JS -->
-                        </tbody>
-                    </table>
-                </div>
-                <!-- Pagination Container for Tab 2 -->
-                <div id="openPaginationContainer"
-                    class="px-6 py-3 bg-slate-50 border-t flex flex-col sm:flex-row items-center justify-between gap-3 text-xs">
-                </div>
-            </div>
-        </div>
 
         <!-- Tab 3: Đơn thắng thầu & Khai báo Hàng hóa -->
         <div id="sectionWonAuctions" class="hidden bg-white rounded-2xl border shadow-sm overflow-hidden">
@@ -1156,24 +1113,20 @@
         function switchAuctionTab(tab) {
             activeAuctionTab = tab;
             const btnAll = document.getElementById('tabAllAuctionsBtn');
-            const btnOpen = document.getElementById('tabOpenAuctionsBtn');
             const btnWon = document.getElementById('tabWonAuctionsBtn');
 
             const secAll = document.getElementById('sectionAllAuctions');
-            const secOpen = document.getElementById('sectionOpenAuctions');
             const secWon = document.getElementById('sectionWonAuctions');
 
-            if (!btnAll || !btnOpen || !btnWon) return;
+            if (!btnAll || !btnWon) return;
 
             const activeClasses = 'px-4 py-2 rounded-xl text-xs font-bold bg-blue-600 text-white shadow-sm flex items-center gap-2 transition';
             const inactiveClasses = 'px-4 py-2 rounded-xl text-xs font-bold bg-white text-slate-600 hover:bg-slate-50 border flex items-center gap-2 transition';
 
             btnAll.className = tab === 'ALL_AUCTIONS' ? activeClasses : inactiveClasses;
-            btnOpen.className = tab === 'OPEN_AUCTIONS' ? activeClasses : inactiveClasses;
             btnWon.className = tab === 'WON_AUCTIONS' ? activeClasses : inactiveClasses;
 
             if (secAll) secAll.classList.toggle('hidden', tab !== 'ALL_AUCTIONS');
-            if (secOpen) secOpen.classList.toggle('hidden', tab !== 'OPEN_AUCTIONS');
             if (secWon) secWon.classList.toggle('hidden', tab !== 'WON_AUCTIONS');
         }
 
@@ -1405,13 +1358,7 @@
         }
 
         function handleStatusFilterChange(value) {
-            if (value === 'OPEN') {
-                // Redirect to the dedicated Open Auctions tab instead of filtering here
-                const statusEl = document.getElementById('statusSelect');
-                if (statusEl) statusEl.value = 'ALL'; // reset dropdown
-                switchAuctionTab('OPEN_AUCTIONS');
-                return;
-            }
+            allCurrentPage = 1;
             renderAuctionsTable();
         }
 
