@@ -1377,6 +1377,7 @@ const CargoStore = (function() {
                         wonAuctions: data.wonAuctions,
                         notifications: data.notifications,
                         deletedNotificationIds: data.deletedNotificationIds || [],
+                        readNotificationIds: data.readNotificationIds || [],
                         registrations: data.registrations,
                         agentsList: data.agentsList,
                         adminsList: data.adminsList,
@@ -1471,6 +1472,20 @@ const CargoStore = (function() {
 
                 if (serverData.notifications && Array.isArray(serverData.notifications)) {
                     local.notifications = serverData.notifications.sort((a, b) => (b.id || 0) - (a.id || 0));
+                }
+
+                if (serverData.deletedNotificationIds && Array.isArray(serverData.deletedNotificationIds)) {
+                    if (!Array.isArray(local.deletedNotificationIds)) local.deletedNotificationIds = [];
+                    const delSet = new Set(local.deletedNotificationIds.map(String));
+                    serverData.deletedNotificationIds.forEach(id => delSet.add(String(id)));
+                    local.deletedNotificationIds = Array.from(delSet);
+                }
+
+                if (serverData.readNotificationIds && Array.isArray(serverData.readNotificationIds)) {
+                    if (!Array.isArray(local.readNotificationIds)) local.readNotificationIds = [];
+                    const readSet = new Set(local.readNotificationIds.map(String));
+                    serverData.readNotificationIds.forEach(id => readSet.add(String(id)));
+                    local.readNotificationIds = Array.from(readSet);
                 }
 
                 if (serverData.registrations && Array.isArray(serverData.registrations)) {
@@ -3152,7 +3167,12 @@ const CargoStore = (function() {
                 return trimmed;
             };
 
-            let allNotifs = data.notifications || [];
+            const deletedIds = Array.isArray(data.deletedNotificationIds) ? data.deletedNotificationIds.map(String) : [];
+            const readIds = Array.isArray(data.readNotificationIds) ? data.readNotificationIds.map(String) : [];
+
+            // Filter out deleted notifications upfront
+            let allNotifs = (data.notifications || []).filter(n => n && !deletedIds.includes(String(n.id)));
+
             allNotifs = allNotifs.map(n => {
                 const ts = n.timestamp || n.createdAt || (typeof n.id === 'number' && n.id > 1577836800000 ? n.id : (typeof n.id === 'string' && !isNaN(Number(n.id)) && Number(n.id) > 1577836800000 ? Number(n.id) : null));
                 let displayTime = n.time;
@@ -3170,11 +3190,16 @@ const CargoStore = (function() {
                     cleanedMessage = cleanedMessage.replace(/\s+/g, ' ').trim();
                 }
 
+                const nIdStr = String(n.id);
+                const isRead = n.read === true || readIds.includes(nIdStr);
+
                 return { 
                     ...n, 
                     title: title,
                     message: cleanedMessage,
                     time: displayTime,
+                    read: isRead,
+                    unread: !isRead,
                     targetAgentCode: normalizeTargetAgentCode(n.targetAgentCode)
                 };
             });
@@ -3208,53 +3233,79 @@ const CargoStore = (function() {
 
             // Dynamically synthesize missing HIGHEST / OUTBID notifications from bids history for current agent
             const userBids = (data.bids || []).filter(b => String(b.agentCode || '').trim().toUpperCase() === myCode);
-            const deletedIds = Array.isArray(data.deletedNotificationIds) ? data.deletedNotificationIds : [];
+
             userBids.forEach(b => {
                 const auc = (data.auctions || []).find(a => a.id == b.auctionId);
                 const flightLabel = auc ? auc.flightNumber : `AUC-${b.auctionId}`;
                 const routeLabel = auc ? auc.route : '';
                 const bTime = Number(b.timestamp || b.id) || Date.now();
+                const outbidNotifId = `outbid_${b.auctionId}_${b.id || bTime}`;
+                const highestNotifId = `highest_${b.auctionId}_${b.id || bTime}`;
 
                 if (b.status === 'HIGHEST') {
                     const hasHighestNotif = allNotifs.some(n => 
-                        n.type === 'HIGHEST' && 
-                        String(n.targetAgentCode || '').trim().toUpperCase() === myCode && 
-                        (n.link && n.link.includes(`id=${b.auctionId}`))
+                        (String(n.id) === highestNotifId) ||
+                        (n.type === 'HIGHEST' && 
+                         String(n.targetAgentCode || '').trim().toUpperCase() === myCode && 
+                         (n.link && n.link.includes(`id=${b.auctionId}`)))
                     );
-                    const isDeleted = deletedIds.includes(String(bTime));
+                    const isDeleted = deletedIds.includes(highestNotifId) || 
+                                      deletedIds.includes(String(bTime)) || 
+                                      deletedIds.includes(String(b.id)) ||
+                                      deletedIds.includes(`highest_${b.auctionId}_${b.id}`) ||
+                                      deletedIds.includes(`highest_${b.auctionId}_${bTime}`);
                     if (!hasHighestNotif && !isDeleted) {
+                        const isRead = readIds.includes(highestNotifId) || 
+                                       readIds.includes(String(bTime)) || 
+                                       readIds.includes(String(b.id)) ||
+                                       readIds.includes(`highest_${b.auctionId}_${b.id}`) ||
+                                       readIds.includes(`highest_${b.auctionId}_${bTime}`);
                         allNotifs.push({
-                            id: bTime,
+                            id: highestNotifId,
                             timestamp: bTime,
                             targetAgentCode: myCode,
                             title: `Đặt giá thành công chuyến ${flightLabel}`,
                             message: `Bạn (${myCode}) đang dẫn đầu mức giá ${formatCurrency(b.priceKg)}/Kg cho chặng ${routeLabel}.`,
                             time: formatTimeAgo(bTime),
                             type: 'HIGHEST',
-                            read: false,
+                            read: isRead,
+                            unread: !isRead,
                             link: `04-Detail.html?id=${b.auctionId}`
                         });
                     }
                 } else if (b.status === 'OUTBID') {
                     const hasOutbidNotif = allNotifs.some(n => 
-                        n.type === 'OUTBID' && 
-                        String(n.targetAgentCode || '').trim().toUpperCase() === myCode && 
-                        (n.link && n.link.includes(`id=${b.auctionId}`))
+                        (String(n.id) === outbidNotifId) ||
+                        (n.type === 'OUTBID' && 
+                         String(n.targetAgentCode || '').trim().toUpperCase() === myCode && 
+                         (n.link && n.link.includes(`id=${b.auctionId}`)))
                     );
-                    const isDeleted = deletedIds.includes(String(bTime + 1));
+                    const isDeleted = deletedIds.includes(outbidNotifId) || 
+                                      deletedIds.includes(String(bTime + 1)) || 
+                                      deletedIds.includes(String(bTime)) || 
+                                      deletedIds.includes(String(b.id)) ||
+                                      deletedIds.includes(`outbid_${b.auctionId}_${b.id}`) ||
+                                      deletedIds.includes(`outbid_${b.auctionId}_${bTime}`);
                     if (!hasOutbidNotif && !isDeleted) {
+                        const isRead = readIds.includes(outbidNotifId) || 
+                                       readIds.includes(String(bTime + 1)) || 
+                                       readIds.includes(String(bTime)) || 
+                                       readIds.includes(String(b.id)) ||
+                                       readIds.includes(`outbid_${b.auctionId}_${b.id}`) ||
+                                       readIds.includes(`outbid_${b.auctionId}_${bTime}`);
                         const higherBid = (data.bids || []).find(hb => hb.auctionId == b.auctionId && Number(hb.priceKg) > Number(b.priceKg));
                         const competitorNameDisplay = higherBid ? (higherBid.isAnonymous ? 'Một đại lý đối thủ (Ẩn danh)' : `Đại lý ${higherBid.agentName} (${higherBid.agentCode})`) : 'Một đại lý đối thủ';
                         const higherPrice = higherBid ? higherBid.priceKg : (auc ? auc.currentPriceKg : b.priceKg);
                         allNotifs.push({
-                            id: bTime + 1,
+                            id: outbidNotifId,
                             timestamp: bTime + 1,
                             targetAgentCode: myCode,
                             title: `Cảnh báo bị vượt giá chuyến ${flightLabel}!`,
                             message: `${competitorNameDisplay} vừa đặt mức giá mới ${formatCurrency(higherPrice)}/Kg cho chặng ${routeLabel}.`,
                             time: formatTimeAgo(bTime + 1),
                             type: 'OUTBID',
-                            read: false,
+                            read: isRead,
+                            unread: !isRead,
                             link: `04-Detail.html?id=${b.auctionId}`
                         });
                     }
@@ -3337,58 +3388,138 @@ const CargoStore = (function() {
 
         markNotificationRead: function(id) {
             const data = loadData();
-            if (!data.notifications) return;
+            if (!data.notifications) data.notifications = [];
+            if (!Array.isArray(data.readNotificationIds)) data.readNotificationIds = [];
+
             const targetIdStr = String(id);
-            const notif = data.notifications.find(n => String(n.id) === targetIdStr || n.id == id);
-            if (notif) {
-                notif.read = true;
-                saveData(data);
+            if (!data.readNotificationIds.includes(targetIdStr)) {
+                data.readNotificationIds.push(targetIdStr);
+            }
+
+            if (targetIdStr.startsWith('outbid_') || targetIdStr.startsWith('highest_')) {
+                const parts = targetIdStr.split('_');
+                if (parts.length >= 3) {
+                    const aucId = parts[1];
+                    const bidId = parts[2];
+                    const alias1 = `outbid_${aucId}_${bidId}`;
+                    const alias2 = `highest_${aucId}_${bidId}`;
+                    if (!data.readNotificationIds.includes(bidId)) data.readNotificationIds.push(bidId);
+                    if (!data.readNotificationIds.includes(alias1)) data.readNotificationIds.push(alias1);
+                    if (!data.readNotificationIds.includes(alias2)) data.readNotificationIds.push(alias2);
+                }
+            }
+
+            let found = false;
+            data.notifications.forEach(n => {
+                if (String(n.id) === targetIdStr || n.id == id) {
+                    n.read = true;
+                    n.unread = false;
+                    found = true;
+                }
+            });
+
+            saveData(data);
+
+            if (typeof window !== 'undefined' && window.location && window.location.protocol.startsWith('http')) {
+                fetch('/api/notifications/read', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ ids: [targetIdStr] })
+                }).catch(() => {});
             }
         },
 
         markAllNotificationsRead: function(agentCode) {
             const data = loadData();
-            if (!data.notifications) return;
-            const user = data.currentUser;
-            const myCode = (agentCode || (user ? (user.agentCode || user.code) : '') || '').trim().toUpperCase();
-            data.notifications.forEach(n => {
-                if (n.targetRole === 'ADMIN' || n.targetRole === 'STAFF') return;
-                const nTarget = String(n.targetAgentCode || '').trim().toUpperCase();
-                if (!user || !nTarget || nTarget === myCode) {
-                    n.read = true;
+            const notifs = this.getNotifications();
+            if (!Array.isArray(data.readNotificationIds)) data.readNotificationIds = [];
+
+            const readIds = [];
+            notifs.forEach(n => {
+                const idStr = String(n.id);
+                if (!data.readNotificationIds.includes(idStr)) {
+                    data.readNotificationIds.push(idStr);
+                }
+                readIds.push(idStr);
+                if (idStr.startsWith('outbid_') || idStr.startsWith('highest_')) {
+                    const parts = idStr.split('_');
+                    if (parts.length >= 3) {
+                        const aucId = parts[1];
+                        const bidId = parts[2];
+                        const alias1 = `outbid_${aucId}_${bidId}`;
+                        const alias2 = `highest_${aucId}_${bidId}`;
+                        if (!data.readNotificationIds.includes(bidId)) data.readNotificationIds.push(bidId);
+                        if (!data.readNotificationIds.includes(alias1)) data.readNotificationIds.push(alias1);
+                        if (!data.readNotificationIds.includes(alias2)) data.readNotificationIds.push(alias2);
+                    }
                 }
             });
+
+            if (data.notifications) {
+                const user = data.currentUser;
+                const myCode = (agentCode || (user ? (user.agentCode || user.code) : '') || '').trim().toUpperCase();
+                data.notifications.forEach(n => {
+                    if (n.targetRole === 'ADMIN' || n.targetRole === 'STAFF') return;
+                    const nTarget = String(n.targetAgentCode || '').trim().toUpperCase();
+                    if (!user || !nTarget || nTarget === myCode) {
+                        n.read = true;
+                        n.unread = false;
+                    }
+                });
+            }
+
             saveData(data);
+
+            if (readIds.length > 0 && typeof window !== 'undefined' && window.location && window.location.protocol.startsWith('http')) {
+                fetch('/api/notifications/read', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ ids: readIds })
+                }).catch(() => {});
+            }
         },
 
         deleteNotification: function(id) {
-            const data = loadData();
-            if (!data.notifications) return { success: false, count: 0 };
-            if (!Array.isArray(data.deletedNotificationIds)) data.deletedNotificationIds = [];
-            data.deletedNotificationIds.push(String(id));
-            const initialLen = data.notifications.length;
-            data.notifications = data.notifications.filter(n => String(n.id) !== String(id));
-            const deleted = initialLen - data.notifications.length;
-            if (deleted > 0) {
-                saveData(data);
-            }
-            return { success: deleted > 0, count: deleted };
+            this.deleteNotifications([id]);
         },
 
         deleteNotifications: function(ids) {
-            if (!Array.isArray(ids) || ids.length === 0) return { success: false, count: 0 };
+            if (!Array.isArray(ids) || ids.length === 0) return;
             const data = loadData();
-            if (!data.notifications) return { success: false, count: 0 };
+            if (!data.notifications) data.notifications = [];
             if (!Array.isArray(data.deletedNotificationIds)) data.deletedNotificationIds = [];
-            ids.forEach(id => data.deletedNotificationIds.push(String(id)));
-            const idSet = new Set(ids.map(id => String(id)));
-            const initialLen = data.notifications.length;
-            data.notifications = data.notifications.filter(n => !idSet.has(String(n.id)));
-            const deleted = initialLen - data.notifications.length;
-            if (deleted > 0) {
-                saveData(data);
+
+            const idStrings = ids.map(id => String(id));
+
+            idStrings.forEach(idStr => {
+                if (!data.deletedNotificationIds.includes(idStr)) {
+                    data.deletedNotificationIds.push(idStr);
+                }
+                if (idStr.startsWith('outbid_') || idStr.startsWith('highest_')) {
+                    const parts = idStr.split('_');
+                    if (parts.length >= 3) {
+                        const aucId = parts[1];
+                        const bidId = parts[2];
+                        const alias1 = `outbid_${aucId}_${bidId}`;
+                        const alias2 = `highest_${aucId}_${bidId}`;
+                        if (!data.deletedNotificationIds.includes(bidId)) data.deletedNotificationIds.push(bidId);
+                        if (!data.deletedNotificationIds.includes(alias1)) data.deletedNotificationIds.push(alias1);
+                        if (!data.deletedNotificationIds.includes(alias2)) data.deletedNotificationIds.push(alias2);
+                    }
+                }
+            });
+
+            const deletedSet = new Set(data.deletedNotificationIds);
+            data.notifications = data.notifications.filter(n => !deletedSet.has(String(n.id)));
+            saveData(data);
+
+            if (typeof window !== 'undefined' && window.location && window.location.protocol.startsWith('http')) {
+                fetch('/api/notifications/delete', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ ids: idStrings })
+                }).catch(() => {});
             }
-            return { success: deleted > 0, count: deleted };
         },
 
         registerAgent: function(regData) {
@@ -4837,89 +4968,6 @@ const CargoStore = (function() {
 
         getSystemSettings: function() {
             return loadData().settings || defaultData.settings;
-        },
-
-        markNotificationRead: function(id) {
-            const data = loadData();
-            if (!data.notifications) return;
-            const targetId = String(id);
-            let updated = false;
-            data.notifications.forEach(n => {
-                if (String(n.id) === targetId) {
-                    n.read = true;
-                    n.unread = false;
-                    updated = true;
-                }
-            });
-            if (updated) {
-                saveData(data);
-                if (typeof window !== 'undefined' && window.location && window.location.protocol.startsWith('http')) {
-                    fetch('/api/notifications/read', {
-                        method: 'POST',
-                        headers: { 'Content-Type': 'application/json' },
-                        body: JSON.stringify({ ids: [targetId] })
-                    }).catch(() => {});
-                }
-            }
-        },
-
-        markAllNotificationsRead: function() {
-            const data = loadData();
-            if (!data.notifications) return;
-            const currentUser = this.getCurrentUser();
-            const myCode = currentUser ? String(currentUser.agentCode || currentUser.code || '').trim().toUpperCase() : null;
-
-            const readIds = [];
-            data.notifications.forEach(n => {
-                const targetCode = String(n.targetAgentCode || '').trim().toUpperCase();
-                if (!n.targetRole || n.targetRole === 'AGENT') {
-                    if (!targetCode || targetCode === myCode) {
-                        n.read = true;
-                        n.unread = false;
-                        readIds.push(String(n.id));
-                    }
-                }
-            });
-            saveData(data);
-
-            if (readIds.length > 0 && typeof window !== 'undefined' && window.location && window.location.protocol.startsWith('http')) {
-                fetch('/api/notifications/read', {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ ids: readIds })
-                }).catch(() => {});
-            }
-        },
-
-        deleteNotification: function(id) {
-            this.deleteNotifications([id]);
-        },
-
-        deleteNotifications: function(ids) {
-            if (!Array.isArray(ids) || ids.length === 0) return;
-            const data = loadData();
-            if (!data.notifications) data.notifications = [];
-            if (!Array.isArray(data.deletedNotificationIds)) data.deletedNotificationIds = [];
-
-            const idStrings = ids.map(id => String(id));
-            const idSet = new Set(idStrings);
-
-            idStrings.forEach(idStr => {
-                if (!data.deletedNotificationIds.includes(idStr)) {
-                    data.deletedNotificationIds.push(idStr);
-                }
-            });
-
-            data.notifications = data.notifications.filter(n => !idSet.has(String(n.id)));
-            saveData(data);
-
-            if (typeof window !== 'undefined' && window.location && window.location.protocol.startsWith('http')) {
-                fetch('/api/notifications/delete', {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ ids: idStrings })
-                }).catch(() => {});
-            }
         },
 
         logActivity: function(logInfo) {

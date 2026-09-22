@@ -566,15 +566,8 @@
         const idsToMark = visibleNotifs.map(n => String(n.id)).filter(id => selectedNotifIds.has(id));
         if (idsToMark.length === 0) return;
 
-        const data = CargoStore.getData ? CargoStore.getData() : null;
-        if (data && data.notifications) {
-            const idSet = new Set(idsToMark);
-            data.notifications.forEach(n => {
-                if (idSet.has(String(n.id))) {
-                    n.read = true;
-                }
-            });
-            if (CargoStore.saveData) CargoStore.saveData(data);
+        if (typeof CargoStore !== 'undefined' && CargoStore.markNotificationRead) {
+            idsToMark.forEach(id => CargoStore.markNotificationRead(id));
         }
 
         showToast(`Đã đánh dấu ${idsToMark.length} thông báo là đã đọc`);
@@ -696,25 +689,17 @@
     }
 
     function clearAllRead() {
-        const data = CargoStore.getData ? CargoStore.getData() : null;
-        if (!data) return;
-        const user = CargoStore.getCurrentUser ? CargoStore.getCurrentUser() : null;
-        const myCode = user ? String(user.agentCode || user.code || '').trim().toUpperCase() : null;
-        if (!Array.isArray(data.deletedNotificationIds)) data.deletedNotificationIds = [];
-        data.notifications = (data.notifications || []).filter(n => {
-            if (n.targetRole === 'ADMIN' || n.targetRole === 'STAFF') return true;
-            const targetCode = String(n.targetAgentCode || '').trim().toUpperCase();
-            if (!user || !targetCode || targetCode === myCode) {
-                if (n.read) {
-                    data.deletedNotificationIds.push(String(n.id));
-                    return false;
-                }
-                return true;
-            }
-            return true;
-        });
-        if (CargoStore.saveData) CargoStore.saveData(data);
-        showToast('Đã xóa các thông báo đã đọc');
+        const notifs = CargoStore.getNotifications ? CargoStore.getNotifications() : [];
+        const readNotifs = notifs.filter(n => n.read);
+        if (readNotifs.length === 0) {
+            showToast('Không có thông báo đã đọc nào để xóa');
+            return;
+        }
+        const idsToDelete = readNotifs.map(n => String(n.id));
+        if (typeof CargoStore !== 'undefined' && CargoStore.deleteNotifications) {
+            CargoStore.deleteNotifications(idsToDelete);
+        }
+        showToast(`Đã xóa ${idsToDelete.length} thông báo đã đọc`);
         renderNotifications();
     }
 

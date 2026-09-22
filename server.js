@@ -990,7 +990,16 @@ const server = http.createServer((req, res) => {
             try {
                 const { ids } = JSON.parse(body || '{}');
                 if (Array.isArray(ids) && ids.length > 0) {
-                    const idSet = new Set(ids.map(String));
+                    const idStrings = ids.map(String);
+                    const idSet = new Set(idStrings);
+
+                    if (!Array.isArray(serverData.readNotificationIds)) serverData.readNotificationIds = [];
+                    idStrings.forEach(idStr => {
+                        if (!serverData.readNotificationIds.includes(idStr)) {
+                            serverData.readNotificationIds.push(idStr);
+                        }
+                    });
+
                     if (Array.isArray(serverData.notifications)) {
                         serverData.notifications.forEach(n => {
                             if (idSet.has(String(n.id))) {
@@ -1301,6 +1310,15 @@ const server = http.createServer((req, res) => {
                     if (serverData.notifications && Array.isArray(serverData.notifications)) {
                         serverData.notifications = serverData.notifications.filter(n => !delSet.has(String(n.id)));
                     }
+                }
+                if (incoming.readNotificationIds && Array.isArray(incoming.readNotificationIds)) {
+                    if (!Array.isArray(serverData.readNotificationIds)) serverData.readNotificationIds = [];
+                    incoming.readNotificationIds.forEach(id => {
+                        const idStr = String(id);
+                        if (!serverData.readNotificationIds.includes(idStr)) {
+                            serverData.readNotificationIds.push(idStr);
+                        }
+                    });
                 }
                 if (incoming.notifications && Array.isArray(incoming.notifications)) {
                     const delSet = new Set((serverData.deletedNotificationIds || []).map(String));
