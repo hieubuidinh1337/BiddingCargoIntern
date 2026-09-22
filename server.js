@@ -984,6 +984,74 @@ const server = http.createServer((req, res) => {
         return;
     }
 
+    // --- REST API: POST /api/notifications/read ---
+    if (pathname === '/api/notifications/read' && req.method === 'POST') {
+        readBody(req).then(async (body) => {
+            try {
+                const { ids } = JSON.parse(body || '{}');
+                if (Array.isArray(ids) && ids.length > 0) {
+                    const idSet = new Set(ids.map(String));
+                    if (Array.isArray(serverData.notifications)) {
+                        serverData.notifications.forEach(n => {
+                            if (idSet.has(String(n.id))) {
+                                n.read = true;
+                                n.unread = false;
+                            }
+                        });
+                    }
+                    saveServerData();
+                    try {
+                        const placeholders = ids.map(() => '?').join(',');
+                        await db.run(`UPDATE notifications SET read = 1, unread = 0 WHERE id IN (${placeholders})`, ids);
+                    } catch(e) {}
+                }
+                res.writeHead(200, { 'Content-Type': 'application/json; charset=UTF-8' });
+                res.end(JSON.stringify({ success: true }), 'utf-8');
+            } catch(err) {
+                res.writeHead(400, { 'Content-Type': 'application/json; charset=UTF-8' });
+                res.end(JSON.stringify({ success: false, error: err.message }), 'utf-8');
+            }
+        });
+        return;
+    }
+
+    // --- REST API: POST /api/notifications/delete ---
+    if (pathname === '/api/notifications/delete' && req.method === 'POST') {
+        readBody(req).then(async (body) => {
+            try {
+                const { ids } = JSON.parse(body || '{}');
+                if (Array.isArray(ids) && ids.length > 0) {
+                    const idStrings = ids.map(String);
+                    const idSet = new Set(idStrings);
+
+                    if (!Array.isArray(serverData.deletedNotificationIds)) serverData.deletedNotificationIds = [];
+                    idStrings.forEach(idStr => {
+                        if (!serverData.deletedNotificationIds.includes(idStr)) {
+                            serverData.deletedNotificationIds.push(idStr);
+                        }
+                    });
+
+                    if (Array.isArray(serverData.notifications)) {
+                        serverData.notifications = serverData.notifications.filter(n => !idSet.has(String(n.id)));
+                    }
+
+                    saveServerData();
+
+                    try {
+                        const placeholders = ids.map(() => '?').join(',');
+                        await db.run(`DELETE FROM notifications WHERE id IN (${placeholders})`, ids);
+                    } catch(e) {}
+                }
+                res.writeHead(200, { 'Content-Type': 'application/json; charset=UTF-8' });
+                res.end(JSON.stringify({ success: true }), 'utf-8');
+            } catch(err) {
+                res.writeHead(400, { 'Content-Type': 'application/json; charset=UTF-8' });
+                res.end(JSON.stringify({ success: false, error: err.message }), 'utf-8');
+            }
+        });
+        return;
+    }
+
     // --- REST API: DELETE /api/logs (Clear Audit Logs) ---
     if (pathname === '/api/logs' && req.method === 'DELETE') {
         serverData.activityLogs = [];

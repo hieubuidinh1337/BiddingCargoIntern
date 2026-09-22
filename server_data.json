@@ -690,5 +690,8 @@
     "branch": "Chi nhánh Tân Bình - TP. Hồ Chí Minh",
     "memoPrefix": "CARGO"
   },
-  "routeSubscriptions": {}
+  "routeSubscriptions": {},
+  "deletedNotificationIds": [
+    "1790044144906"
+  ]
 }

@@ -1376,6 +1376,7 @@ const CargoStore = (function() {
                         bids: data.bids,
                         wonAuctions: data.wonAuctions,
                         notifications: data.notifications,
+                        deletedNotificationIds: data.deletedNotificationIds || [],
                         registrations: data.registrations,
                         agentsList: data.agentsList,
                         adminsList: data.adminsList,
@@ -4836,6 +4837,89 @@ const CargoStore = (function() {
 
         getSystemSettings: function() {
             return loadData().settings || defaultData.settings;
+        },
+
+        markNotificationRead: function(id) {
+            const data = loadData();
+            if (!data.notifications) return;
+            const targetId = String(id);
+            let updated = false;
+            data.notifications.forEach(n => {
+                if (String(n.id) === targetId) {
+                    n.read = true;
+                    n.unread = false;
+                    updated = true;
+                }
+            });
+            if (updated) {
+                saveData(data);
+                if (typeof window !== 'undefined' && window.location && window.location.protocol.startsWith('http')) {
+                    fetch('/api/notifications/read', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({ ids: [targetId] })
+                    }).catch(() => {});
+                }
+            }
+        },
+
+        markAllNotificationsRead: function() {
+            const data = loadData();
+            if (!data.notifications) return;
+            const currentUser = this.getCurrentUser();
+            const myCode = currentUser ? String(currentUser.agentCode || currentUser.code || '').trim().toUpperCase() : null;
+
+            const readIds = [];
+            data.notifications.forEach(n => {
+                const targetCode = String(n.targetAgentCode || '').trim().toUpperCase();
+                if (!n.targetRole || n.targetRole === 'AGENT') {
+                    if (!targetCode || targetCode === myCode) {
+                        n.read = true;
+                        n.unread = false;
+                        readIds.push(String(n.id));
+                    }
+                }
+            });
+            saveData(data);
+
+            if (readIds.length > 0 && typeof window !== 'undefined' && window.location && window.location.protocol.startsWith('http')) {
+                fetch('/api/notifications/read', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ ids: readIds })
+                }).catch(() => {});
+            }
+        },
+
+        deleteNotification: function(id) {
+            this.deleteNotifications([id]);
+        },
+
+        deleteNotifications: function(ids) {
+            if (!Array.isArray(ids) || ids.length === 0) return;
+            const data = loadData();
+            if (!data.notifications) data.notifications = [];
+            if (!Array.isArray(data.deletedNotificationIds)) data.deletedNotificationIds = [];
+
+            const idStrings = ids.map(id => String(id));
+            const idSet = new Set(idStrings);
+
+            idStrings.forEach(idStr => {
+                if (!data.deletedNotificationIds.includes(idStr)) {
+                    data.deletedNotificationIds.push(idStr);
+                }
+            });
+
+            data.notifications = data.notifications.filter(n => !idSet.has(String(n.id)));
+            saveData(data);
+
+            if (typeof window !== 'undefined' && window.location && window.location.protocol.startsWith('http')) {
+                fetch('/api/notifications/delete', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ ids: idStrings })
+                }).catch(() => {});
+            }
         },
 
         logActivity: function(logInfo) {
