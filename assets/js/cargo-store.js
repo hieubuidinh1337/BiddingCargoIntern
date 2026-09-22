@@ -1026,7 +1026,16 @@ const CargoStore = (function() {
             if (data.auctions && Array.isArray(data.auctions)) {
                 const allBids = Array.isArray(data.bids) ? data.bids : [];
                 data.auctions.forEach(a => {
-                    const auctionBids = this.getBidsForAuction(a.id);
+                    const auctionBids = allBids
+                        .filter(b => b && (
+                            String(b.auctionId) === String(a.id) ||
+                            (a.flightCode && b.flightCode && String(b.flightCode).toUpperCase() === String(a.flightCode).toUpperCase())
+                        ))
+                        .filter(b => {
+                            const code = String(b.agentCode || '').trim().toUpperCase();
+                            return code && code !== 'AG-***' && code !== 'ANONYMOUS';
+                        })
+                        .sort((x, y) => (Number(y.priceKg) || 0) - (Number(x.priceKg) || 0));
 
                     if (auctionBids.length > 0) {
                         const highestBid = auctionBids[0];
@@ -2920,6 +2929,25 @@ const CargoStore = (function() {
                     link: `04-Detail.html?id=${auction.id}`
                 });
             }
+
+            if (!data.activityLogs) data.activityLogs = [];
+            const padLog = n => String(n).padStart(2, '0');
+            const dLog = new Date(now);
+            const tsLogStr = `${padLog(dLog.getDate())}/${padLog(dLog.getMonth() + 1)}/${dLog.getFullYear()} ${padLog(dLog.getHours())}:${padLog(dLog.getMinutes())}:${padLog(dLog.getSeconds())}`;
+            data.activityLogs.unshift({
+                id: now,
+                timestamp: tsLogStr,
+                rawTime: now,
+                actor: user.companyName || user.agentCode,
+                username: user.agentCode,
+                role: 'AGENT',
+                actionCategory: 'Đấu giá',
+                actionTitle: 'Đặt giá thầu',
+                target: auction.flightNumber || `AUC-${auction.id}`,
+                details: `Đại lý ${user.companyName || user.agentCode} đặt thầu thành công mức giá ${formatCurrency(bidPriceKg)}/Kg cho chuyến bay ${auction.flightNumber} (${auction.route}).`,
+                ip: '113.161.42.12',
+                device: 'Web Client'
+            });
 
             data.bids = deduplicateBids(data.bids);
 

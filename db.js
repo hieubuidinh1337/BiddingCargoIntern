@@ -527,6 +527,29 @@ async function seedFullData(data) {
             }
         }
 
+        if (Array.isArray(data.activityLogs)) {
+            for (const l of data.activityLogs) {
+                if (!l) continue;
+                await run(`
+                    INSERT OR REPLACE INTO activity_logs (id, timestamp, rawTime, actor, username, role, actionCategory, actionTitle, target, details, ip, device)
+                    VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+                `, [
+                    l.id || (Date.now() + Math.floor(Math.random() * 1000)),
+                    l.timestamp || '',
+                    l.rawTime || Date.now(),
+                    l.actor || '',
+                    l.username || '',
+                    l.role || '',
+                    l.actionCategory || '',
+                    l.actionTitle || '',
+                    l.target || '',
+                    l.details || '',
+                    l.ip || '',
+                    l.device || ''
+                ]);
+            }
+        }
+
         if (data.settings) {
             await run('INSERT OR REPLACE INTO settings (key, value) VALUES (?, ?)', ['settings', JSON.stringify(data.settings)]);
         }
@@ -560,6 +583,7 @@ async function getFullServerData() {
     const dbMessages = await all('SELECT * FROM chat_messages ORDER BY timestamp ASC');
     const dbSettingsRows = await all('SELECT * FROM settings');
     const emailLogsRows = await all('SELECT * FROM email_logs ORDER BY id DESC LIMIT 50');
+    const dbActivityLogs = await all('SELECT * FROM activity_logs ORDER BY rawTime DESC LIMIT 1000');
 
     const defaultPwdMap = {
         'AG-0892': 'abc123456',
@@ -674,7 +698,8 @@ async function getFullServerData() {
         emailLogs: emailLogsRows.map(el => ({
             ...el,
             isRealSmtp: Boolean(el.isRealSmtp)
-        }))
+        })),
+        activityLogs: dbActivityLogs || []
     };
 }
 
