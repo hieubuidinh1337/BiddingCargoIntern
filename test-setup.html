@@ -1,0 +1,46 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Test Setup</title>
+    <script src="assets/js/cargo-store.js"></script>
+</head>
+<body>
+    <h1>Setting up test data...</h1>
+    <script>
+        setTimeout(() => {
+            const wonId = 'WA-TEST-' + Date.now();
+            const wonAuction = {
+                wonId: wonId,
+                auctionId: Date.now(),
+                flightCode: 'FL-TEST-CANCEL',
+                route: 'SGN - HAN',
+                etd: new Date(Date.now() + 86400000).toISOString(),
+                capacityKg: 1000,
+                wonPriceKg: 20000,
+                totalValue: 20000000,
+                agentCode: 'AG-0892',
+                agentName: 'ABC Logistics',
+                wonAt: new Date().toISOString(),
+                paymentStatus: 'PAID',
+                status: 'WON'
+            };
+            
+            if (!CargoStore.data.wonAuctions) {
+                CargoStore.data.wonAuctions = [];
+            }
+            CargoStore.data.wonAuctions.unshift(wonAuction);
+            CargoStore.saveToStorage();
+            
+            CargoStore.cancelAuction(wonAuction.auctionId, 'Admin decided to cancel due to weather');
+            
+            CargoStore.loginAgent('AG-0892', 'abc123456');
+            
+            document.body.innerHTML += '<p>Setup complete. Redirecting...</p>';
+            
+            setTimeout(() => {
+                window.location.href = '07-WonAuction.html';
+            }, 1000);
+        }, 1000);
+    </script>
+</body>
+</html>

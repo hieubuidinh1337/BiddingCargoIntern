@@ -1853,20 +1853,21 @@
 
             tbody.innerHTML = paginatedList.map(item => {
                 const isExpired = (window.CargoStore && CargoStore.isWonAuctionExpired) ? CargoStore.isWonAuctionExpired(item) : false;
+                const isCancelledAfterPayment = item.paymentStatus === 'CANCELLED_AFTER_PAYMENT';
                 const isPaid = item.paymentStatus === 'PAID';
                 const isPending = item.paymentStatus === 'PENDING_VERIFICATION';
                 const decl = item.cargoDeclaration;
                 const proof = item.paymentProof;
 
                 let statusBadgeHtml = '';
-                if (isExpired) {
+                if (isExpired || isCancelledAfterPayment) {
                     const refundStatus = item.refundStatus || null;
                     if (refundStatus === 'REFUNDED') {
                         statusBadgeHtml = `<span class="bg-emerald-100 text-emerald-800 font-bold px-2.5 py-1 rounded-full text-[10px] inline-flex items-center gap-1 border border-emerald-200"><i class="fa-solid fa-money-bill-transfer text-emerald-600"></i> ĐÃ HOÀN TIỀN</span>`;
                     } else if (refundStatus === 'PENDING') {
                         statusBadgeHtml = `<span class="bg-indigo-100 text-indigo-800 font-bold px-2.5 py-1 rounded-full text-[10px] inline-flex items-center gap-1 border border-indigo-200 animate-pulse"><i class="fa-solid fa-clock text-indigo-600"></i> CHỜ HOÀN TIỀN</span>`;
                     } else {
-                        statusBadgeHtml = `<span class="bg-rose-100 text-rose-800 font-bold px-2.5 py-1 rounded-full text-[10px] inline-flex items-center gap-1 border border-rose-200"><i class="fa-solid fa-ban text-rose-600"></i> QUÁ HẠN / ĐÃ HỦY</span>`;
+                        statusBadgeHtml = `<span class="bg-rose-100 text-rose-800 font-bold px-2.5 py-1 rounded-full text-[10px] inline-flex items-center gap-1 border border-rose-200"><i class="fa-solid fa-ban text-rose-600"></i> ${isCancelledAfterPayment ? 'ĐÃ HỦY - CHỜ HOÀN TIỀN' : 'QUÁ HẠN / ĐÃ HỦY'}</span>`;
                     }
                 } else if (isPaid) {
                     statusBadgeHtml = `<span class="bg-emerald-100 text-emerald-800 font-bold px-2.5 py-1 rounded-full text-[10px] inline-flex items-center gap-1"><i class="fa-solid fa-circle-check text-emerald-600"></i> ĐÃ THANH TOÁN</span>`;
@@ -1904,9 +1905,9 @@
                 const memoStr = proof?.memo || (CargoStore.generatePaymentMemo ? CargoStore.generatePaymentMemo(item.wonId, item.agentCode) : `CARGO ${item.wonId} ${item.agentCode}`);
 
                 return `
-                    <tr class="hover:bg-slate-50/80 transition ${isExpired ? 'opacity-80 bg-rose-50/20' : ''}">
+                    <tr class="hover:bg-slate-50/80 transition ${(isExpired || isCancelledAfterPayment) ? 'opacity-80 bg-rose-50/20' : ''}">
                         <td class="py-3.5 px-4 font-mono font-bold text-slate-900 whitespace-nowrap">
-                            <span class="${isExpired ? 'text-rose-600 line-through' : 'text-blue-600'} font-bold block">${item.wonId}</span>
+                            <span class="${(isExpired || isCancelledAfterPayment) ? 'text-rose-600 line-through' : 'text-blue-600'} font-bold block">${item.wonId}</span>
                             <span class="text-slate-500 font-normal text-[11px]">Chuyến ${item.flightNumber} (${item.route})</span>
                         </td>
                         <td class="py-3.5 px-4 font-medium text-slate-800 whitespace-nowrap">
@@ -1921,7 +1922,7 @@
                             ${cargoHtml}
                         </td>
                         <td class="py-3.5 px-4 whitespace-nowrap">
-                            <p class="font-bold ${isExpired ? 'text-slate-400 line-through' : 'text-red-600'} text-xs">${CargoStore.formatCurrency(item.totalAmountVND)}</p>
+                            <p class="font-bold ${(isExpired || isCancelledAfterPayment) ? 'text-slate-400 line-through' : 'text-red-600'} text-xs">${CargoStore.formatCurrency(item.totalAmountVND)}</p>
                             <p class="font-mono font-bold text-blue-600 text-[11px] mt-0.5">AWB: ${item.awbNumber || '-'}</p>
                         </td>
                         <td class="py-3.5 px-4 whitespace-nowrap">
@@ -1934,7 +1935,7 @@
                             ${item.paidAt ? `<p class="text-[10px] text-slate-400 mt-0.5">Xác nhận: ${item.paidAt}</p>` : ''}
                         </td>
                         <td class="py-3.5 px-4 text-right whitespace-nowrap">
-                            ${isExpired ? (() => {
+                            ${(isExpired || isCancelledAfterPayment) ? (() => {
                         const refundStatus = item.refundStatus || null;
                         const refundInfo = item.refundBankInfo || null;
                         if (refundStatus === 'REFUNDED') {

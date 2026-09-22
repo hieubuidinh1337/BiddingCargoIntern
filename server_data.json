@@ -157,6 +157,17 @@
   ],
   "auctions": [
     {
+      "id": 1000,
+      "flightCode": "FL-TEST-9999",
+      "route": "TEST - TEST",
+      "origin": "TEST",
+      "destination": "TEST",
+      "etd": "14:30 · 15/08/2026",
+      "status": "ENDED",
+      "leadingAgentCode": "AG-0892",
+      "leadingAgentName": "ABC Logistics"
+    },
+    {
       "id": 1,
       "flightCode": "FL-VU130-260915",
       "flightNumber": "VU130",
@@ -462,6 +473,22 @@
     }
   ],
   "wonAuctions": [
+    {
+      "wonId": "WA-TEST-9999",
+      "auctionId": 1000,
+      "flightCode": "FL-TEST-9999",
+      "route": "TEST - TEST",
+      "etd": "14:30 · 15/08/2026",
+      "capacityKg": 1000,
+      "wonPriceKg": 20000,
+      "totalValue": 20000000,
+      "agentCode": "AG-0892",
+      "agentName": "ABC Logistics",
+      "wonAt": "2026-09-22T03:32:48.532Z",
+      "paymentStatus": "PAID",
+      "paymentDeadline": "2026-09-23T03:32:48.533Z",
+      "status": "WON"
+    },
     {
       "wonId": "WON-2026-0814-01",
       "auctionId": 4,

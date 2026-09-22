@@ -947,9 +947,9 @@ const server = http.createServer((req, res) => {
                     id: logData.id || (Date.now() + Math.floor(Math.random() * 1000)),
                     timestamp: timestampStr,
                     rawTime: now.getTime(),
-                    actor: logData.actor || 'Quản trị viên',
-                    username: logData.username || 'admin',
-                    role: logData.role || 'ADMIN',
+                    actor: logData.actor || 'Hệ thống',
+                    username: logData.username || 'system',
+                    role: logData.role || 'SYSTEM',
                     actionCategory: logData.actionCategory || 'Khác',
                     actionTitle: logData.actionTitle || 'Thao tác hệ thống',
                     target: logData.target || 'N/A',
@@ -963,6 +963,16 @@ const server = http.createServer((req, res) => {
                     serverData.activityLogs = serverData.activityLogs.slice(0, 1000);
                 }
                 saveServerData();
+
+                try {
+                    await db.run(
+                        `INSERT OR REPLACE INTO activity_logs (id, timestamp, rawTime, actor, username, role, actionCategory, actionTitle, target, details, ip, device)
+                         VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+                        [newLog.id, newLog.timestamp, newLog.rawTime, newLog.actor, newLog.username, newLog.role, newLog.actionCategory, newLog.actionTitle, newLog.target, newLog.details, newLog.ip, newLog.device]
+                    );
+                } catch(dbErr) {
+                    console.warn('[Server] DB log insert warning:', dbErr.message);
+                }
 
                 res.writeHead(200, { 'Content-Type': 'application/json; charset=UTF-8' });
                 res.end(JSON.stringify({ success: true, log: newLog }), 'utf-8');
@@ -2125,7 +2135,7 @@ const server = http.createServer((req, res) => {
         let body = '';
         req.on('data', chunk => { body += chunk; });
         req.on('error', err => { if (!res.headersSent) { res.writeHead(400, {'Content-Type':'application/json'}); res.end(JSON.stringify({success:false,error:'Stream error'})); } });
-        req.on('end', () => {
+        req.on('end', async () => {
             try {
                 const { wonId, bankName, accountNumber, accountName, agentNote } = JSON.parse(body || '{}');
                 if (!wonId || !bankName || !accountNumber || !accountName) { res.writeHead(400, {'Content-Type':'application/json; charset=UTF-8'}); res.end(JSON.stringify({success:false,error:'Thieu thong tin bat buoc.'})); return; }
@@ -2136,14 +2146,57 @@ const server = http.createServer((req, res) => {
                 const isCancelledAfterPayment = wonItem.paymentStatus === 'CANCELLED_AFTER_PAYMENT';
                 if (!isExpiredItem && !isCancelledAfterPayment) { res.writeHead(400, {'Content-Type':'application/json; charset=UTF-8'}); res.end(JSON.stringify({success:false,error:'Don hang nay chua bi huy.'})); return; }
                 if (wonItem.refundStatus === 'REFUNDED') { res.writeHead(400, {'Content-Type':'application/json; charset=UTF-8'}); res.end(JSON.stringify({success:false,error:'Da hoan tien roi.'})); return; }
+                
                 wonItem.refundBankInfo = { bankName: bankName.trim(), accountNumber: accountNumber.trim(), accountName: accountName.trim(), agentNote: (agentNote||'').trim(), submittedAt: new Date().toLocaleString('vi-VN') };
                 wonItem.refundStatus = 'PENDING';
+                
                 if (!serverData.notifications) serverData.notifications = [];
                 serverData.notifications.unshift({ id: Date.now(), targetRole: 'admin', title: 'Yeu cau hoan tien tu dai ly ' + wonItem.agentCode, message: 'Don hang ' + wonId + ' can xac nhan hoan tien.', time: new Date().toLocaleString('vi-VN'), type: 'REFUND_REQUEST', unread: true });
+                
+                // --- Add Audit Log for Agent Refund Info Submission ---
+                const payingAgent = (serverData.agentsList || []).find(a => (a.code || '').toUpperCase() === (wonItem.agentCode || '').toUpperCase());
+                const agentName = (payingAgent && payingAgent.companyName) || wonItem.agentName || 'Đại lý';
+                const agentCode = wonItem.agentCode || 'AGENT';
+
+                const now = new Date();
+                const pad = n => String(n).padStart(2, '0');
+                const timestampStr = `${pad(now.getDate())}/${pad(now.getMonth() + 1)}/${now.getFullYear()} ${pad(now.getHours())}:${pad(now.getMinutes())}:${pad(now.getSeconds())}`;
+
+                const refundLog = {
+                    id: Date.now() + Math.floor(Math.random() * 1000),
+                    timestamp: timestampStr,
+                    rawTime: now.getTime(),
+                    actor: agentName,
+                    username: agentCode,
+                    role: 'AGENT',
+                    actionCategory: 'Thanh toán',
+                    actionTitle: 'Điền thông tin hoàn tiền',
+                    target: wonItem.wonId || wonId,
+                    details: `Đại lý ${agentName} (${agentCode}) đã đăng ký tài khoản nhận tiền hoàn cho đơn ${wonItem.wonId}: ${bankName.trim()} - STK: ${accountNumber.trim()} (Chủ TK: ${accountName.trim()}).`,
+                    ip: req.socket.remoteAddress || '113.161.42.12',
+                    device: 'Web App'
+                };
+
+                if (!serverData.activityLogs) serverData.activityLogs = [];
+                serverData.activityLogs.unshift(refundLog);
+                if (serverData.activityLogs.length > 1000) {
+                    serverData.activityLogs = serverData.activityLogs.slice(0, 1000);
+                }
+
+                try {
+                    await db.run(
+                        `INSERT OR REPLACE INTO activity_logs (id, timestamp, rawTime, actor, username, role, actionCategory, actionTitle, target, details, ip, device)
+                         VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+                        [refundLog.id, refundLog.timestamp, refundLog.rawTime, refundLog.actor, refundLog.username, refundLog.role, refundLog.actionCategory, refundLog.actionTitle, refundLog.target, refundLog.details, refundLog.ip, refundLog.device]
+                    );
+                } catch(dbErr) {
+                    console.warn('[Server] DB refund log insert warning:', dbErr.message);
+                }
+
                 serverData.version = Date.now();
                 saveServerData();
                 res.writeHead(200, {'Content-Type':'application/json; charset=UTF-8'});
-                res.end(JSON.stringify({success:true,message:'Da ghi nhan thong tin tai khoan nhan hoan tien thanh cong.',wonItem}),'utf-8');
+                res.end(JSON.stringify({success:true,message:'Đã ghi nhận thông tin tài khoản nhận tiền hoàn thành công.',wonItem}),'utf-8');
             } catch(err) { if (!res.headersSent) { res.writeHead(500,{'Content-Type':'application/json'}); res.end(JSON.stringify({success:false,error:err.message})); } }
         });
         return;
@@ -2154,7 +2207,7 @@ const server = http.createServer((req, res) => {
         let body = '';
         req.on('data', chunk => { body += chunk; });
         req.on('error', err => { if (!res.headersSent) { res.writeHead(400,{'Content-Type':'application/json'}); res.end(JSON.stringify({success:false,error:'Stream error'})); } });
-        req.on('end', () => {
+        req.on('end', async () => {
             try {
                 const { wonId, confirmedBy, refundNote } = JSON.parse(body || '{}');
                 if (!wonId) { res.writeHead(400,{'Content-Type':'application/json; charset=UTF-8'}); res.end(JSON.stringify({success:false,error:'wonId la bat buoc.'})); return; }
@@ -2163,17 +2216,56 @@ const server = http.createServer((req, res) => {
                 if (!wonItem) { res.writeHead(404,{'Content-Type':'application/json; charset=UTF-8'}); res.end(JSON.stringify({success:false,error:'Khong tim thay don hang: '+wonId})); return; }
                 if (!wonItem.refundBankInfo) { res.writeHead(400,{'Content-Type':'application/json; charset=UTF-8'}); res.end(JSON.stringify({success:false,error:'Dai ly chua cung cap thong tin tai khoan.'})); return; }
                 if (wonItem.refundStatus === 'REFUNDED') { res.writeHead(400,{'Content-Type':'application/json; charset=UTF-8'}); res.end(JSON.stringify({success:false,error:'Da xac nhan hoan tien roi.'})); return; }
+                
                 wonItem.refundStatus = 'REFUNDED';
                 wonItem.refundConfirmedAt = new Date().toLocaleString('vi-VN');
-                wonItem.refundConfirmedBy = confirmedBy || 'Admin';
+                wonItem.refundConfirmedBy = confirmedBy || 'Trần Quản Trị';
                 wonItem.refundNote = (refundNote||'').trim();
                 const bankInfo = wonItem.refundBankInfo;
+
                 if (!serverData.notifications) serverData.notifications = [];
                 serverData.notifications.unshift({ id: Date.now(), targetAgentCode: wonItem.agentCode, title: 'TIEN HOAN DA DUOC CHUYEN - Don ' + wonId, message: 'Ban Dieu hanh da hoan tat chuyen tien hoan vao tai khoan ' + bankInfo.accountName + ' - ' + bankInfo.accountNumber + ' (' + bankInfo.bankName + ') cho don hang ' + wonId + '.' + (wonItem.refundNote ? ' Ghi chu: ' + wonItem.refundNote : ''), time: new Date().toLocaleString('vi-VN'), type: 'REFUND_COMPLETED', unread: true });
+
+                // --- Add Audit Log for Admin Refund Confirmation ---
+                const now = new Date();
+                const pad = n => String(n).padStart(2, '0');
+                const timestampStr = `${pad(now.getDate())}/${pad(now.getMonth() + 1)}/${now.getFullYear()} ${pad(now.getHours())}:${pad(now.getMinutes())}:${pad(now.getSeconds())}`;
+
+                const confirmLog = {
+                    id: Date.now() + Math.floor(Math.random() * 1000),
+                    timestamp: timestampStr,
+                    rawTime: now.getTime(),
+                    actor: confirmedBy || 'Trần Quản Trị',
+                    username: 'admin',
+                    role: 'ADMIN',
+                    actionCategory: 'Thanh toán',
+                    actionTitle: 'Xác nhận hoàn tiền đơn thầu',
+                    target: wonItem.wonId || wonId,
+                    details: `Xác nhận đã hoàn tiền cho đơn thắng thầu ${wonItem.wonId} của Đại lý ${wonItem.agentName || wonItem.agentCode} vào tài khoản ${bankInfo.bankName} - STK: ${bankInfo.accountNumber} (${bankInfo.accountName}).${wonItem.refundNote ? ` Ghi chú: ${wonItem.refundNote}` : ''}`,
+                    ip: req.socket.remoteAddress || '113.161.42.12',
+                    device: 'Web App'
+                };
+
+                if (!serverData.activityLogs) serverData.activityLogs = [];
+                serverData.activityLogs.unshift(confirmLog);
+                if (serverData.activityLogs.length > 1000) {
+                    serverData.activityLogs = serverData.activityLogs.slice(0, 1000);
+                }
+
+                try {
+                    await db.run(
+                        `INSERT OR REPLACE INTO activity_logs (id, timestamp, rawTime, actor, username, role, actionCategory, actionTitle, target, details, ip, device)
+                         VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+                        [confirmLog.id, confirmLog.timestamp, confirmLog.rawTime, confirmLog.actor, confirmLog.username, confirmLog.role, confirmLog.actionCategory, confirmLog.actionTitle, confirmLog.target, confirmLog.details, confirmLog.ip, confirmLog.device]
+                    );
+                } catch(dbErr) {
+                    console.warn('[Server] DB confirm refund log insert warning:', dbErr.message);
+                }
+
                 serverData.version = Date.now();
                 saveServerData();
                 res.writeHead(200,{'Content-Type':'application/json; charset=UTF-8'});
-                res.end(JSON.stringify({success:true,message:'Da xac nhan hoan tien cho don hang '+wonId+'. He thong da gui thong bao den dai ly '+wonItem.agentCode+'.',wonItem}),'utf-8');
+                res.end(JSON.stringify({success:true,message:'Đã xác nhận hoàn tiền cho đơn hàng '+wonId+'. Hệ thống đã gửi thông báo đến đại lý '+wonItem.agentCode+'.',wonItem}),'utf-8');
             } catch(err) { if (!res.headersSent) { res.writeHead(500,{'Content-Type':'application/json'}); res.end(JSON.stringify({success:false,error:err.message})); } }
         });
         return;

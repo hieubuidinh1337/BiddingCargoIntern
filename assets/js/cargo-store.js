@@ -4045,10 +4045,26 @@ const CargoStore = (function() {
 
             saveData(data);
 
-            // 3. Trigger background email dispatch to Admin/Finance
+            // 3. Log payment activity to Audit Trail
+            const curUser = data.currentUser;
+            const payingAgent = (data.agentsList || []).find(a => (a.code || '').toUpperCase() === (item.agentCode || '').toUpperCase());
+            const actorName = (curUser && (curUser.companyName || curUser.fullName || curUser.agentName || curUser.username)) || (payingAgent && payingAgent.companyName) || item.agentName || 'Đại lý';
+            const actorCode = (curUser && (curUser.agentCode || curUser.code || curUser.username)) || item.agentCode || 'AGENT';
+            const actorRole = (curUser && curUser.role) || 'AGENT';
+
+            this.logActivity({
+                actor: actorName,
+                username: actorCode,
+                role: actorRole,
+                actionCategory: 'Thanh toán',
+                actionTitle: 'Đại lý báo chuyển khoản',
+                target: item.wonId || wonId,
+                details: `Đại lý ${actorName} (${actorCode}) đã gửi thông báo chuyển khoản ${this.formatCurrency(transferredAmount)} cho đơn thắng thầu ${item.wonId} (Chuyến ${item.flightNumber}). Cú pháp: [${memo}]${transactionRef ? ` | Mã GD: ${transactionRef}` : ''}.`
+            });
+
+            // 4. Trigger background email dispatch to Admin/Finance
             try {
                 const adminEmail = (data.systemConfig && data.systemConfig.supportEmail) || (data.emailConfig && data.emailConfig.auth && data.emailConfig.auth.user) || 'cargo-agent@airline.vn';
-                const payingAgent = (data.agentsList || []).find(a => (a.code || '').toUpperCase() === (item.agentCode || '').toUpperCase());
                 this.sendEmailNotification({
                     type: 'PAYMENT_SUBMITTED_ADMIN',
                     to: adminEmail,
@@ -4072,6 +4088,70 @@ const CargoStore = (function() {
             return {
                 success: true,
                 message: `Đã gửi thông báo chuyển khoản đơn ${wonId} thành công! Ban Điều hành sẽ kiểm tra sao kê ngân hàng và xác nhận trong ít phút.`,
+                item: item
+            };
+        },
+
+        submitRefundBankInfo: function(wonId, refundData = {}) {
+            const data = loadData();
+            if (!data.wonAuctions) data.wonAuctions = [];
+            const item = data.wonAuctions.find(w => w.wonId === wonId);
+            if (!item) {
+                return { success: false, message: `Không tìm thấy đơn thắng thầu "${wonId}".` };
+            }
+
+            const bankName = (refundData.bankName || '').trim();
+            const accountNumber = (refundData.accountNumber || '').trim();
+            const accountName = (refundData.accountName || '').trim();
+            const agentNote = (refundData.agentNote || '').trim();
+
+            if (!bankName || !accountNumber || !accountName) {
+                return { success: false, message: 'Vui lòng điền đầy đủ thông tin: Tên ngân hàng, Số tài khoản, Chủ tài khoản.' };
+            }
+
+            item.refundBankInfo = {
+                bankName: bankName,
+                accountNumber: accountNumber,
+                accountName: accountName,
+                agentNote: agentNote,
+                submittedAt: new Date().toLocaleString('vi-VN')
+            };
+            item.refundStatus = 'PENDING';
+
+            if (!data.notifications) data.notifications = [];
+            data.notifications.unshift({
+                id: Date.now(),
+                targetRole: 'ADMIN',
+                title: `💸 ĐẠI LÝ GỬI THÔNG TIN HOÀN TIỀN: Đơn ${item.wonId}`,
+                message: `Đại lý ${item.agentCode} (${item.agentName || 'Đại lý'}) đã cung cấp tài khoản nhận tiền hoàn: ${bankName} - STK: ${accountNumber} (${accountName}) cho đơn ${item.wonId}.`,
+                time: 'Vừa xong',
+                type: 'REFUND_REQUEST',
+                read: false,
+                wonId: item.wonId,
+                link: `03-AuctionList.html?tab=won&search=${item.wonId}`
+            });
+
+            saveData(data);
+
+            const curUser = data.currentUser;
+            const payingAgent = (data.agentsList || []).find(a => (a.code || '').toUpperCase() === (item.agentCode || '').toUpperCase());
+            const actorName = (curUser && (curUser.companyName || curUser.fullName || curUser.agentName || curUser.username)) || (payingAgent && payingAgent.companyName) || item.agentName || 'Đại lý';
+            const actorCode = (curUser && (curUser.agentCode || curUser.code || curUser.username)) || item.agentCode || 'AGENT';
+            const actorRole = (curUser && curUser.role) || 'AGENT';
+
+            this.logActivity({
+                actor: actorName,
+                username: actorCode,
+                role: actorRole,
+                actionCategory: 'Thanh toán',
+                actionTitle: 'Điền thông tin hoàn tiền',
+                target: item.wonId || wonId,
+                details: `Đại lý ${actorName} (${actorCode}) đã đăng ký tài khoản nhận tiền hoàn cho đơn ${item.wonId}: ${bankName} - STK: ${accountNumber} (Chủ TK: ${accountName}).`
+            });
+
+            return {
+                success: true,
+                message: `Đã ghi nhận thông tin tài khoản nhận tiền hoàn cho đơn ${wonId} thành công!`,
                 item: item
             };
         },
@@ -4107,11 +4187,21 @@ const CargoStore = (function() {
             };
 
             saveData(data);
+
+            const curUser = data.currentUser;
+            const payingAgent = (data.agentsList || []).find(a => (a.code || '').toUpperCase() === (item.agentCode || '').toUpperCase());
+            const actorName = (curUser && (curUser.companyName || curUser.fullName || curUser.agentName || curUser.username)) || (payingAgent && payingAgent.companyName) || item.agentName || 'Đại lý';
+            const actorCode = (curUser && (curUser.agentCode || curUser.code || curUser.username)) || item.agentCode || 'AGENT';
+            const actorRole = (curUser && curUser.role) || 'AGENT';
+
             this.logActivity({
+                actor: actorName,
+                username: actorCode,
+                role: actorRole,
                 actionCategory: 'Khai báo hàng hóa',
                 actionTitle: 'Cập nhật Khai báo Vận đơn',
                 target: item.wonId || wonId,
-                details: `Cập nhật thông tin vận đơn AWB / hàng hóa cho đơn thắng thầu ${item.wonId} (${item.agentName}). Loại hàng: ${item.cargoDeclaration.cargoType}, Trọng lượng: ${item.cargoDeclaration.grossWeightKg} kg.`
+                details: `Cập nhật thông tin vận đơn AWB / hàng hóa cho đơn thắng thầu ${item.wonId} (${actorName}). Loại hàng: ${item.cargoDeclaration.cargoType}, Trọng lượng: ${item.cargoDeclaration.grossWeightKg} kg.`
             });
             return {
                 success: true,
@@ -4753,6 +4843,18 @@ const CargoStore = (function() {
             if (!data.activityLogs) data.activityLogs = defaultData.activityLogs || [];
 
             const currentAdmin = data.currentAdmin || { username: 'admin', fullName: 'Trần Quản Trị', role: 'ADMIN' };
+            const currentUser = data.currentUser || null;
+
+            let defaultActor = currentAdmin.fullName || currentAdmin.username || 'Quản trị viên';
+            let defaultUsername = currentAdmin.username || 'admin';
+            let defaultRole = currentAdmin.role || 'ADMIN';
+
+            if (currentUser && (currentUser.role === 'AGENT' || currentUser.agentCode || currentUser.code)) {
+                defaultActor = currentUser.companyName || currentUser.fullName || currentUser.agentName || currentUser.username || 'Đại lý';
+                defaultUsername = currentUser.agentCode || currentUser.code || currentUser.username || 'agent';
+                defaultRole = currentUser.role || 'AGENT';
+            }
+
             const now = new Date();
             const pad = n => String(n).padStart(2, '0');
             const timestampStr = `${pad(now.getDate())}/${pad(now.getMonth() + 1)}/${now.getFullYear()} ${pad(now.getHours())}:${pad(now.getMinutes())}:${pad(now.getSeconds())}`;
@@ -4761,9 +4863,9 @@ const CargoStore = (function() {
                 id: Date.now() + Math.floor(Math.random() * 1000),
                 timestamp: timestampStr,
                 rawTime: now.getTime(),
-                actor: logInfo.actor || currentAdmin.fullName || currentAdmin.username || 'Quản trị viên',
-                username: logInfo.username || currentAdmin.username || 'admin',
-                role: logInfo.role || currentAdmin.role || 'ADMIN',
+                actor: logInfo.actor || defaultActor,
+                username: logInfo.username || defaultUsername,
+                role: logInfo.role || defaultRole,
                 actionCategory: logInfo.actionCategory || 'Khác',
                 actionTitle: logInfo.actionTitle || 'Thao tác hệ thống',
                 target: logInfo.target || 'N/A',
