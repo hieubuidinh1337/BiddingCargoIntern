@@ -1230,7 +1230,18 @@ const CargoStore = (function() {
         const allBids = Array.isArray(data.bids) ? data.bids : [];
 
         data.auctions.forEach(a => {
-            const auctionBids = this.getBidsForAuction(a.id);
+            // Filter bids directly from allBids — do NOT use this.getBidsForAuction()
+            // because this function is a standalone (not a CargoStore method), so "this" is undefined/window.
+            const auctionBids = allBids
+                .filter(b => b && (
+                    String(b.auctionId) === String(a.id) ||
+                    (a.flightCode && b.flightCode && String(b.flightCode).toUpperCase() === String(a.flightCode).toUpperCase())
+                ))
+                .filter(b => {
+                    const code = String(b.agentCode || '').trim().toUpperCase();
+                    return code && code !== 'AG-***' && code !== 'ANONYMOUS';
+                })
+                .sort((x, y) => (Number(y.priceKg) || 0) - (Number(x.priceKg) || 0));
 
             if (auctionBids.length > 0) {
                 const highestBid = auctionBids[0];
@@ -2914,6 +2925,9 @@ const CargoStore = (function() {
 
             const isHttp = typeof window !== 'undefined' && window.location && window.location.protocol && window.location.protocol.startsWith('http');
 
+            // Set guard BEFORE saving so the periodic syncWithServer() won't
+            // overwrite the new bid in the 2-second window before server confirms it.
+            lastLocalSaveTimestamp = Date.now();
             saveData(data, true);
 
             // Dispatch atomic bid placement to central server if running over HTTP
@@ -2932,6 +2946,8 @@ const CargoStore = (function() {
                     })
                 }).then(r => r.json()).then(res => {
                     if (res && res.success && res.bid) {
+                        // Server confirmed — safe to sync now
+                        lastLocalSaveTimestamp = 0;
                         if (typeof syncWithServer === 'function') {
                             syncWithServer();
                         }
