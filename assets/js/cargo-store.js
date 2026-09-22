@@ -4530,8 +4530,11 @@ const CargoStore = (function() {
             if (idx === -1) return { success: false, message: 'Phiên đấu giá không tồn tại.' };
 
             const auction = data.auctions[idx];
-            if (auction.status === 'OPEN') {
-                return { success: false, message: `Không thể xóa chuyến bay ${auction.flightNumber} khi phiên đang MỞ đấu giá.` };
+            if (auction.status === 'DELETED') {
+                return { success: false, message: `Phiên chuyến bay ${auction.flightNumber} đã bị xóa trước đó.` };
+            }
+            if (auction.status === 'CANCELLED') {
+                return { success: false, message: `Phiên chuyến bay ${auction.flightNumber} đã bị hủy. Không thể xóa.` };
             }
 
             const allBids = data.bids || [];

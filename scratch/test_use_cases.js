@@ -196,7 +196,7 @@ const freshAuctionRes = CargoStore.createAuction({
     flightNumber: 'VU998',
     origin: 'SGN',
     destination: 'HAN',
-    etd: '2026-09-17T18:00',
+    etd: '2026-09-25T18:00',
     capacityKg: 5000,
     startingPriceKg: 20000,
     minStep: 1000

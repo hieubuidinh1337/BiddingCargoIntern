@@ -1160,8 +1160,8 @@
             const hasBids = bidsCount > 0;
 
             const isCancelled = a.status === 'CANCELLED';
+            const isDeleted = a.status === 'DELETED';
             const canEdit = isOpen && !hasBids;
-            const canDelete = !isCancelled && (data.currentAdmin && data.currentAdmin.role !== 'STAFF');
 
             return `
                 <tr class="hover:bg-slate-50 transition">
@@ -1219,17 +1219,21 @@
                             <span class="inline-flex items-center gap-1 bg-red-50 text-red-400 font-semibold px-2 py-1 rounded-lg text-[10px] opacity-70 cursor-default" title="Chuyến bay đã bị hủy">
                                 <i class="fa-solid fa-plane-circle-xmark text-[10px]"></i> Đã Hủy
                             </span>
-                        ` : canDelete ? (hasBids ? `
+                        ` : isDeleted ? `
+                            <span class="inline-flex items-center gap-1 bg-slate-100 text-slate-400 font-semibold px-2 py-1 rounded-lg text-[10px] opacity-70 cursor-default" title="Phiên đấu giá đã bị xóa">
+                                <i class="fa-solid fa-trash text-[10px]"></i> Đã Xóa
+                            </span>
+                        ` : hasBids ? (isAdmin ? `
                             <button onclick="handleCancelAuction(${a.id}, '${a.flightNumber}')" class="inline-flex items-center gap-1 bg-orange-50 hover:bg-orange-100 text-orange-600 font-semibold px-2 py-1 rounded-lg transition" title="Hủy chuyến bay – có ${bidsCount} lượt đặt giá">
                                 <i class="fa-solid fa-plane-circle-xmark text-[10px]"></i> Hủy
                             </button>
                         ` : `
-                            <button onclick="handleDeleteAuction(${a.id}, '${a.flightNumber}')" class="inline-flex items-center gap-1 bg-red-50 hover:bg-red-100 text-red-600 font-semibold px-2 py-1 rounded-lg transition" title="Xóa phiên đấu giá">
-                                <i class="fa-solid fa-trash text-[10px]"></i> Xóa
+                            <button disabled class="inline-flex items-center gap-1 bg-gray-100 text-gray-400 font-semibold px-2 py-1 rounded-lg cursor-not-allowed opacity-60" title="Không thể hủy – chỉ Quản trị viên (Admin) mới có quyền hủy phiên đã có lượt đấu giá">
+                                <i class="fa-solid fa-lock text-[10px]"></i> Hủy
                             </button>
                         `) : `
-                            <button disabled class="inline-flex items-center gap-1 bg-gray-100 text-gray-400 font-semibold px-2 py-1 rounded-lg cursor-not-allowed opacity-60" title="Không có quyền xóa/hủy phiên">
-                                <i class="fa-solid fa-lock text-[10px]"></i> Xóa
+                            <button onclick="handleDeleteAuction(${a.id}, '${a.flightNumber}')" class="inline-flex items-center gap-1 bg-red-50 hover:bg-red-100 text-red-600 font-semibold px-2 py-1 rounded-lg transition" title="Xóa phiên đấu giá">
+                                <i class="fa-solid fa-trash text-[10px]"></i> Xóa
                             </button>
                         `}
                     </td>
