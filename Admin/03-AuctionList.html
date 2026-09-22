@@ -2390,10 +2390,17 @@
             const searchParam = urlParams.get('search');
             const reconcileParam = urlParams.get('reconcile');
             const payFilterParam = urlParams.get('payFilter');
+            const refundParam = urlParams.get('refund');
 
-            if (tabParam === 'won' || tabParam === 'WON_AUCTIONS' || reconcileParam) {
+            if (tabParam === 'won' || tabParam === 'WON_AUCTIONS' || tabParam === 'refund' || reconcileParam || refundParam || payFilterParam === 'REFUND_PENDING') {
                 switchAuctionTab('WON_AUCTIONS');
             }
+            if (tabParam === 'refund' || payFilterParam === 'REFUND_PENDING' || (refundParam && !payFilterParam)) {
+                setWonPayFilter('REFUND_PENDING');
+            } else if (payFilterParam === 'PENDING') {
+                setWonPayFilter('PENDING');
+            }
+
             if (searchParam) {
                 const sInput = document.getElementById('adminWonSearch');
                 if (sInput) {
@@ -2401,12 +2408,16 @@
                     renderWonAuctionsAdminTable();
                 }
             }
-            if (payFilterParam === 'PENDING') {
-                setWonPayFilter('PENDING');
-            }
             if (reconcileParam) {
                 setTimeout(() => {
                     openAdminPaymentProofModal(reconcileParam);
+                }, 300);
+            }
+            if (refundParam) {
+                setTimeout(() => {
+                    if (typeof openAdminRefundModal === 'function') {
+                        openAdminRefundModal(refundParam);
+                    }
                 }, 300);
             }
 

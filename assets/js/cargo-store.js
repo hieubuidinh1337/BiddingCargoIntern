@@ -4260,7 +4260,7 @@ const CargoStore = (function() {
                 type: 'REFUND_REQUEST',
                 read: false,
                 wonId: item.wonId,
-                link: `03-AuctionList.html?tab=won&search=${item.wonId}`
+                link: `03-AuctionList.html?tab=refund&refund=${item.wonId}`
             });
 
             saveData(data);
@@ -5271,6 +5271,30 @@ const CargoStore = (function() {
                 this.toggleAdminNotifSelection(id);
             } else {
                 this.markAdminNotificationAsRead(id);
+                const data = loadData();
+                const notif = (data.notifications || []).find(n => String(n.id) === String(id));
+                if (notif) {
+                    const titleUpper = String(notif.title || '').toUpperCase();
+                    const msgUpper = String(notif.message || '').toUpperCase();
+                    const combined = titleUpper + ' ' + msgUpper;
+                    const targetWonId = notif.wonId || combined.match(/WON-[\w-]+/)?.[0];
+                    const isRefund = notif.type === 'REFUND_REQUEST' || titleUpper.includes('HOÀN TIỀN') || msgUpper.includes('HOAN TIEN') || msgUpper.includes('HOÀN TIỀN');
+                    const isPayment = notif.type === 'PAYMENT' || titleUpper.includes('CHUYỂN KHOẢN');
+
+                    let targetUrl = '';
+                    if (isRefund && targetWonId) {
+                        targetUrl = `03-AuctionList.html?tab=refund&refund=${targetWonId}`;
+                    } else if (isPayment && targetWonId) {
+                        targetUrl = `03-AuctionList.html?tab=won&search=${targetWonId}&reconcile=${targetWonId}`;
+                    } else if (notif.link) {
+                        targetUrl = notif.link;
+                        if (targetUrl.startsWith('/Admin/')) targetUrl = targetUrl.replace('/Admin/', '');
+                    }
+
+                    if (targetUrl) {
+                        window.location.href = targetUrl;
+                    }
+                }
             }
         },
 
@@ -5566,17 +5590,29 @@ const CargoStore = (function() {
                 const sId = String(n.id);
                 const isUnread = !n.read;
                 const isSelected = this.selectedAdminNotifIds.has(sId);
-                const isPayment = n.type === 'PAYMENT' || (n.title || '').includes('ĐẠI LÝ BÁO CHUYỂN KHOẢN');
-                const isAlert = n.type === 'ALERT' || (n.title || '').includes('KHÓA');
+                const titleUpper = String(n.title || '').toUpperCase();
+                const msgUpper = String(n.message || '').toUpperCase();
+                const combined = titleUpper + ' ' + msgUpper;
+
+                const isPayment = n.type === 'PAYMENT' || titleUpper.includes('CHUYỂN KHOẢN');
+                const isRefund = n.type === 'REFUND_REQUEST' || titleUpper.includes('HOÀN TIỀN') || msgUpper.includes('HOAN TIEN') || msgUpper.includes('HOÀN TIỀN');
+                const isAlert = n.type === 'ALERT' || titleUpper.includes('KHÓA');
                 
                 let iconClass = 'fa-info-circle text-blue-600 bg-blue-50';
+                let iconFa = 'fa-bell';
                 let cardBg = isUnread ? 'bg-blue-50/40 font-semibold' : 'bg-white';
                 
                 if (isPayment) {
                     iconClass = 'fa-credit-card text-emerald-600 bg-emerald-50';
+                    iconFa = 'fa-credit-card';
                     if (isUnread) cardBg = 'bg-emerald-50/50 border-l-4 border-emerald-500';
+                } else if (isRefund) {
+                    iconClass = 'fa-hand-holding-dollar text-indigo-600 bg-indigo-50';
+                    iconFa = 'fa-hand-holding-dollar';
+                    if (isUnread) cardBg = 'bg-indigo-50/50 border-l-4 border-indigo-500';
                 } else if (isAlert) {
                     iconClass = 'fa-triangle-exclamation text-rose-600 bg-rose-50';
+                    iconFa = 'fa-triangle-exclamation';
                     if (isUnread) cardBg = 'bg-rose-50/40 border-l-4 border-rose-500';
                 }
 
@@ -5586,13 +5622,21 @@ const CargoStore = (function() {
 
                 // Resolve link for admin
                 let actionBtn = '';
-                if (isPayment && n.wonId) {
+                const targetWonId = n.wonId || combined.match(/WON-[\w-]+/)?.[0];
+
+                if (isRefund && targetWonId) {
                     actionBtn = `
-                        <a href="03-AuctionList.html?tab=won&search=${n.wonId}&reconcile=${n.wonId}" onclick="CargoStore.markAdminNotificationAsRead(${n.id})" class="inline-flex items-center gap-1 px-2.5 py-1 bg-emerald-600 hover:bg-emerald-700 text-white rounded-md text-[10px] font-bold shadow-xs transition">
+                        <a href="03-AuctionList.html?tab=refund&refund=${targetWonId}" onclick="CargoStore.markAdminNotificationAsRead(${n.id})" class="inline-flex items-center gap-1 px-2.5 py-1 bg-indigo-600 hover:bg-indigo-700 text-white rounded-md text-[10px] font-bold shadow-xs transition">
+                            <i class="fa-solid fa-hand-holding-dollar"></i> Xem & Xử lý hoàn tiền
+                        </a>
+                    `;
+                } else if (isPayment && targetWonId) {
+                    actionBtn = `
+                        <a href="03-AuctionList.html?tab=won&search=${targetWonId}&reconcile=${targetWonId}" onclick="CargoStore.markAdminNotificationAsRead(${n.id})" class="inline-flex items-center gap-1 px-2.5 py-1 bg-emerald-600 hover:bg-emerald-700 text-white rounded-md text-[10px] font-bold shadow-xs transition">
                             <i class="fa-solid fa-magnifying-glass-dollar"></i> Đối soát ngay
                         </a>
                     `;
-                } else if ((n.title || '').includes('ĐĂNG KÝ') || (n.link || '').includes('06-AgentList.html')) {
+                } else if (titleUpper.includes('ĐĂNG KÝ') || (n.link || '').includes('06-AgentList.html')) {
                     actionBtn = `
                         <a href="06-AgentList.html" onclick="CargoStore.markAdminNotificationAsRead(${n.id})" class="inline-flex items-center gap-1 px-2.5 py-1 bg-blue-600 hover:bg-blue-700 text-white rounded-md text-[10px] font-bold shadow-xs transition">
                             <i class="fa-solid fa-user-check"></i> Duyệt hồ sơ
@@ -5608,7 +5652,7 @@ const CargoStore = (function() {
                             </div>
                         ` : ''}
                         <div class="w-8 h-8 rounded-lg flex items-center justify-center flex-shrink-0 text-sm ${iconClass}">
-                            <i class="fa-solid ${isPayment ? 'fa-credit-card' : (isAlert ? 'fa-triangle-exclamation' : 'fa-bell')}"></i>
+                            <i class="fa-solid ${iconFa}"></i>
                         </div>
                         <div class="flex-1 min-w-0 space-y-1 pr-6">
                             <div class="flex items-center justify-between gap-1">
