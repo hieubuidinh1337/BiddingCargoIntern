@@ -2377,23 +2377,77 @@
                                     `;
                                 }
                                 if (isPending) {
+                                    const proof = item.paymentProof || {};
                                     return `
-                                        <div class="bg-gradient-to-r from-emerald-500/10 via-blue-500/10 to-teal-500/10 border-2 border-emerald-400 rounded-2xl p-4 flex items-start gap-3.5 text-xs text-emerald-950 shadow-sm">
-                                            <div class="w-10 h-10 rounded-xl bg-emerald-600 text-white flex items-center justify-center font-bold text-lg flex-shrink-0 shadow-sm">
-                                                <i class="fa-solid fa-shield-check"></i>
+                                        <div class="bg-gradient-to-r from-blue-500/10 via-indigo-500/10 to-teal-500/10 border-2 border-blue-400 rounded-2xl p-4 flex flex-col md:flex-row items-start gap-4 text-xs text-slate-800 shadow-sm">
+                                            <div class="w-10 h-10 rounded-xl bg-blue-600 text-white flex items-center justify-center font-bold text-lg flex-shrink-0 shadow-sm mt-0.5">
+                                                <i class="fa-solid fa-spinner fa-spin"></i>
                                             </div>
-                                            <div class="flex-1 space-y-1">
-                                                <div class="flex flex-wrap items-center justify-between gap-2">
-                                                    <strong class="text-emerald-900 text-sm flex items-center gap-2 font-extrabold uppercase">
-                                                        <i class="fa-solid fa-clock-rotate-left text-emerald-700"></i> Đã ghi nhận báo chuyển khoản · Bảo lưu slot & tài khoản an toàn
+                                            <div class="flex-1 space-y-2 w-full">
+                                                <div class="flex flex-wrap items-center justify-between gap-2 border-b border-blue-200/80 pb-2">
+                                                    <strong class="text-blue-900 text-sm flex items-center gap-2 font-extrabold uppercase">
+                                                        <i class="fa-solid fa-receipt text-blue-700"></i> Thông tin chuyển khoản đã gửi · Đang chờ Admin xác nhận đối soát
                                                     </strong>
-                                                    <span class="bg-emerald-700 text-white font-mono font-bold px-2.5 py-1 rounded-full text-[11px] shadow-sm">
-                                                        Đã nộp lúc: ${item.notifiedAt || 'Vừa xong'}
+                                                    <span class="bg-blue-700 text-white font-mono font-bold px-2.5 py-1 rounded-full text-[11px] shadow-sm">
+                                                        Đã gửi: ${proof.submittedAt || item.notifiedAt || 'Vừa xong'}
                                                     </span>
                                                 </div>
-                                                <p class="text-slate-700 leading-relaxed font-medium">
-                                                    Quý đại lý đã nộp thông tin chuyển khoản thành công. <strong>Hệ thống tự động bảo lưu slot bay và tài khoản của Quý đại lý ở trạng thái an toàn tuyệt đối (Không bị hủy đơn, không bị khóa tài khoản)</strong> trong suốt thời gian Ban Điều hành đối soát sao kê ngân hàng.
+                                                <div class="grid grid-cols-1 sm:grid-cols-3 gap-3 bg-white/80 border border-blue-100 p-3 rounded-xl">
+                                                    <div>
+                                                        <span class="text-slate-500 text-[11px] block">Mã giao dịch (FT / Ref):</span>
+                                                        <strong class="text-blue-700 font-mono text-sm block">${proof.transactionRef || 'Đã gửi biên lai'}</strong>
+                                                    </div>
+                                                    <div>
+                                                        <span class="text-slate-500 text-[11px] block">Số tiền & Ngân hàng:</span>
+                                                        <strong class="text-emerald-700 text-sm block">${store ? store.formatCurrency(proof.transferredAmount || item.totalAmountVND) : (proof.transferredAmount || item.totalAmountVND) + ' đ'}</strong>
+                                                    </div>
+                                                    <div>
+                                                        <span class="text-slate-500 text-[11px] block">Thao tác biên lai:</span>
+                                                        <button onclick="openPaymentModal('${item.wonId}')" class="text-blue-600 font-bold hover:underline inline-flex items-center gap-1 text-xs mt-0.5">
+                                                            <i class="fa-solid fa-eye text-blue-600"></i> Xem / Cập nhật biên lai
+                                                        </button>
+                                                    </div>
+                                                </div>
+                                                <p class="text-slate-600 leading-relaxed text-[11px] flex items-center gap-1.5">
+                                                    <i class="fa-solid fa-shield-check text-emerald-600 text-sm"></i>
+                                                    <span><strong>Slot bay & tài khoản của Quý đại lý ở trạng thái an toàn tuyệt đối.</strong> Ban Điều hành Vietravel Airlines đang kiểm tra sao kê và sẽ phê duyệt trong ít phút.</span>
                                                 </p>
+                                            </div>
+                                        </div>
+                                    `;
+                                }
+                                if (isPaid) {
+                                    const proof = item.paymentProof || {};
+                                    return `
+                                        <div class="bg-gradient-to-r from-emerald-500/10 via-teal-500/10 to-blue-500/10 border border-emerald-300 rounded-2xl p-4 flex flex-col md:flex-row items-start gap-3.5 text-xs text-emerald-950 shadow-xs">
+                                            <div class="w-9 h-9 rounded-xl bg-emerald-600 text-white flex items-center justify-center font-bold text-base flex-shrink-0 shadow-sm mt-0.5">
+                                                <i class="fa-solid fa-circle-check"></i>
+                                            </div>
+                                            <div class="flex-1 space-y-1.5 w-full">
+                                                <div class="flex flex-wrap items-center justify-between gap-2 border-b border-emerald-200/80 pb-1.5">
+                                                    <strong class="text-emerald-900 text-sm flex items-center gap-2 font-extrabold uppercase">
+                                                        <i class="fa-solid fa-file-invoice-dollar text-emerald-700"></i> Xác nhận thanh toán thành công · Đã phát hành AWB
+                                                    </strong>
+                                                    <span class="bg-emerald-700 text-white font-mono font-bold px-2.5 py-0.5 rounded-full text-[11px]">
+                                                        Xác nhận: ${item.paidAt || 'Vừa xong'}
+                                                    </span>
+                                                </div>
+                                                <div class="grid grid-cols-1 sm:grid-cols-3 gap-2.5 pt-0.5">
+                                                    <div>
+                                                        <span class="text-slate-500 text-[11px] block">Mã AWB điện tử:</span>
+                                                        <strong class="text-emerald-700 font-mono text-sm block">${item.awbNumber || '998-12345678'}</strong>
+                                                    </div>
+                                                    <div>
+                                                        <span class="text-slate-500 text-[11px] block">Mã GD / FT Ngân hàng:</span>
+                                                        <strong class="text-slate-800 font-mono text-xs block">${proof.transactionRef || 'Đã đối soát'}</strong>
+                                                    </div>
+                                                    <div>
+                                                        <span class="text-slate-500 text-[11px] block">Chứng từ thanh toán:</span>
+                                                        <button onclick="openPaymentModal('${item.wonId}')" class="text-emerald-700 font-bold hover:underline inline-flex items-center gap-1 text-xs">
+                                                            <i class="fa-solid fa-receipt text-emerald-600"></i> Xem thông tin biên lai
+                                                        </button>
+                                                    </div>
+                                                </div>
                                             </div>
                                         </div>
                                     `;
@@ -2516,7 +2570,7 @@
                                             <div class="flex flex-wrap items-center justify-between gap-2">
                                                 <h3 class="font-bold flex items-center gap-2 text-sm text-emerald-900">
                                                     <i class="fa-solid fa-boxes-packing text-emerald-600"></i>
-                                                    Thông tin hàng hóa khai báo vận chuyển
+                                                    Thông tin hàng hóa khai báo vận chuyển (Đại lý đã điền)
                                                 </h3>
                                                 <button onclick="openCargoModal('${item.wonId}')" class="px-3.5 py-1.5 rounded-xl text-xs font-bold bg-emerald-600 hover:bg-emerald-700 text-white transition shadow flex items-center gap-1.5 cursor-pointer">
                                                     <i class="fa-solid fa-pen-to-square"></i> Chỉnh sửa khai báo
@@ -2549,7 +2603,7 @@
                                             <div class="flex flex-wrap items-center justify-between gap-2">
                                                 <h3 class="font-bold flex items-center gap-2 text-sm text-amber-900">
                                                     <i class="fa-solid fa-triangle-exclamation text-amber-600"></i>
-                                                    Khai báo thông tin hàng hóa vận chuyển
+                                                    Khai báo thông tin hàng hóa vận chuyển (Đại lý thực hiện)
                                                 </h3>
                                                 <button onclick="openCargoModal('${item.wonId}')" class="px-3.5 py-1.5 rounded-xl text-xs font-bold bg-amber-600 hover:bg-amber-700 text-white transition shadow flex items-center gap-1.5 cursor-pointer">
                                                     <i class="fa-solid fa-plus"></i> Điền thông tin hàng hóa

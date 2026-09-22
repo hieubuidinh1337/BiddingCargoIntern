@@ -338,6 +338,18 @@
                             : `<a href="07-WonAuction.html?action=declare&flight=${encodeURIComponent(flightNo)}" class="inline-flex items-center gap-1 bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white font-bold px-2.5 py-1.5 rounded-lg text-xs transition shadow-xs" title="Khai báo hàng hóa">
                                 <i class="fa-solid fa-boxes-packing text-[10px]"></i> Khai báo
                             </a>`;
+                    } else if (paymentStatus === 'PENDING_VERIFICATION') {
+                        wonActionHtml = `
+                            <a href="07-WonAuction.html?action=pay&flight=${encodeURIComponent(flightNo)}" class="inline-flex items-center gap-1 bg-amber-50 hover:bg-amber-100 text-amber-800 border border-amber-300 font-bold px-2.5 py-1.5 rounded-lg text-xs transition shadow-xs" title="Xem biên lai đã gửi">
+                                <i class="fa-solid fa-receipt text-[10px] text-amber-600"></i> Xem biên lai
+                            </a>
+                            ${cargoDeclared
+                                ? '<span class="inline-flex items-center gap-1 bg-emerald-100 text-emerald-700 font-bold px-2.5 py-1.5 rounded-lg text-xs">Đã khai báo</span>'
+                                : `<a href="07-WonAuction.html?action=declare&flight=${encodeURIComponent(flightNo)}" class="inline-flex items-center gap-1 bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white font-bold px-2.5 py-1.5 rounded-lg text-xs transition shadow-xs" title="Khai báo hàng hóa">
+                                    <i class="fa-solid fa-boxes-packing text-[10px]"></i> Khai báo
+                                </a>`
+                            }
+                        `;
                     } else {
                         wonActionHtml = `
                             <a href="07-WonAuction.html?action=pay&flight=${encodeURIComponent(flightNo)}" class="inline-flex items-center gap-1 bg-gradient-to-r from-amber-500 to-orange-500 hover:from-amber-600 hover:to-orange-600 text-white font-bold px-2.5 py-1.5 rounded-lg text-xs transition shadow-xs" title="Chuyển qua thanh toán">
