@@ -867,6 +867,35 @@ const server = http.createServer((req, res) => {
         return;
     }
 
+    function deduplicateActivityLogs(logs) {
+        if (!Array.isArray(logs)) return [];
+        const seenKeys = new Set();
+        const seenIds = new Set();
+        const result = [];
+
+        logs.forEach(l => {
+            if (!l) return;
+            const idStr = l.id ? String(l.id) : null;
+            if (idStr && seenIds.has(idStr)) return;
+
+            const timeMs = Number(l.rawTime) || (l.timestamp ? new Date(l.timestamp).getTime() : 0);
+            const timeBucket = Math.floor(timeMs / 5000); // 5-second window
+            const userStr = String(l.username || l.actor || '').trim().toUpperCase();
+            const titleStr = String(l.actionTitle || '').trim();
+            const targetStr = String(l.target || '').trim();
+            const detailsStr = String(l.details || '').trim();
+            const fingerprint = `${userStr}|${titleStr}|${targetStr}|${detailsStr}|${timeBucket}`;
+
+            if (seenKeys.has(fingerprint)) return;
+
+            if (idStr) seenIds.add(idStr);
+            seenKeys.add(fingerprint);
+            result.push(l);
+        });
+
+        return result;
+    }
+
     // --- REST API: GET /api/logs ---
     if (pathname === '/api/logs' && req.method === 'GET') {
         const _role = parsedUrl.searchParams.get('role');
@@ -876,13 +905,11 @@ const server = http.createServer((req, res) => {
             let logs;
             try {
                 const sqliteLogs = await db.all('SELECT * FROM activity_logs ORDER BY rawTime DESC LIMIT 1000');
-                const logMap = new Map();
-                (sqliteLogs || []).forEach(l => { if (l && l.id) logMap.set(String(l.id), l); });
-                (serverData.activityLogs || []).forEach(l => { if (l && l.id) logMap.set(String(l.id), l); });
-                logs = Array.from(logMap.values()).sort((a, b) => (b.rawTime || 0) - (a.rawTime || 0));
+                const combined = [...(sqliteLogs || []), ...(serverData.activityLogs || [])];
+                logs = deduplicateActivityLogs(combined).sort((a, b) => (b.rawTime || 0) - (a.rawTime || 0));
                 serverData.activityLogs = logs.slice(0, 1000);
             } catch(e) {
-                logs = serverData.activityLogs || [];
+                logs = deduplicateActivityLogs(serverData.activityLogs || []);
             }
             if (_role && _role !== 'ALL') logs = logs.filter(l => (l.role || '').toUpperCase() === _role.toUpperCase());
             if (_category && _category !== 'ALL') logs = logs.filter(l => (l.actionCategory || '') === _category);
@@ -1205,15 +1232,9 @@ const server = http.createServer((req, res) => {
                     serverData.notifications = Array.from(notifMap.values())
                         .sort((a, b) => (Number(b.timestamp || b.createdAt || b.id) || 0) - (Number(a.timestamp || a.createdAt || a.id) || 0));
                 }
-                if (incoming.activityLogs && Array.isArray(incoming.activityLogs)) {
-                    // Merge by id - don't overwrite server-written logs (e.g. from agent bids)
-                    const logMap = new Map();
-                    (serverData.activityLogs || []).forEach(l => { if (l && l.id) logMap.set(String(l.id), l); });
-                    incoming.activityLogs.forEach(l => { if (l && l.id) logMap.set(String(l.id), l); });
-                    serverData.activityLogs = Array.from(logMap.values())
-                        .sort((a, b) => (b.rawTime || b.id || 0) - (a.rawTime || a.id || 0))
-                        .slice(0, 1000);
-                }
+                // NOTE: activityLogs are managed exclusively by the server.
+                // Client no longer writes logs when online, so we ignore incoming.activityLogs
+                // to prevent stale client data from duplicating server logs.
                 if (incoming.registrations) serverData.registrations = incoming.registrations;
                 if (incoming.agentsList) serverData.agentsList = incoming.agentsList;
                 if (incoming.adminsList) serverData.adminsList = incoming.adminsList;
@@ -2112,7 +2133,8 @@ const server = http.createServer((req, res) => {
                 const wonItem = wonList.find(w => w.wonId === wonId);
                 if (!wonItem) { res.writeHead(404, {'Content-Type':'application/json; charset=UTF-8'}); res.end(JSON.stringify({success:false,error:'Khong tim thay don hang: '+wonId})); return; }
                 const isExpiredItem = isWonAuctionExpired(wonItem, serverData);
-                if (!isExpiredItem) { res.writeHead(400, {'Content-Type':'application/json; charset=UTF-8'}); res.end(JSON.stringify({success:false,error:'Don hang nay chua bi huy.'})); return; }
+                const isCancelledAfterPayment = wonItem.paymentStatus === 'CANCELLED_AFTER_PAYMENT';
+                if (!isExpiredItem && !isCancelledAfterPayment) { res.writeHead(400, {'Content-Type':'application/json; charset=UTF-8'}); res.end(JSON.stringify({success:false,error:'Don hang nay chua bi huy.'})); return; }
                 if (wonItem.refundStatus === 'REFUNDED') { res.writeHead(400, {'Content-Type':'application/json; charset=UTF-8'}); res.end(JSON.stringify({success:false,error:'Da hoan tien roi.'})); return; }
                 wonItem.refundBankInfo = { bankName: bankName.trim(), accountNumber: accountNumber.trim(), accountName: accountName.trim(), agentNote: (agentNote||'').trim(), submittedAt: new Date().toLocaleString('vi-VN') };
                 wonItem.refundStatus = 'PENDING';

@@ -146,6 +146,7 @@
                     <option value="ALL">Tất cả trạng thái</option>
                     <option value="UNPAID">Chờ thanh toán (Trong hạn)</option>
                     <option value="EXPIRED">Đã hủy do quá hạn</option>
+                    <option value="CANCELLED_AFTER_PAYMENT">Đã hủy – Chờ hoàn tiền</option>
                     <option value="UNDECLARED">Chưa khai báo hàng hóa</option>
                     <option value="DECLARED">Đã khai báo hàng hóa</option>
                     <option value="PENDING">Chờ Admin xác nhận thanh toán</option>
@@ -2038,10 +2039,12 @@
                 list = list.filter(item => isPendingWonItem(item));
             } else if (statusFilter === 'EXPIRED') {
                 list = list.filter(item => isExpiredWonItem(item));
+            } else if (statusFilter === 'CANCELLED_AFTER_PAYMENT') {
+                list = list.filter(item => item.paymentStatus === 'CANCELLED_AFTER_PAYMENT');
             } else if (statusFilter === 'UNPAID') {
-                list = list.filter(item => (store && store.isWonAuctionUnpaid) ? store.isWonAuctionUnpaid(item) : (!isPaidWonItem(item) && !isPendingWonItem(item) && !isExpiredWonItem(item)));
+                list = list.filter(item => (store && store.isWonAuctionUnpaid) ? store.isWonAuctionUnpaid(item) : (!isPaidWonItem(item) && !isPendingWonItem(item) && !isExpiredWonItem(item) && item.paymentStatus !== 'CANCELLED_AFTER_PAYMENT'));
             } else if (statusFilter === 'UNDECLARED') {
-                list = list.filter(item => (store && store.isCargoUndeclared) ? store.isCargoUndeclared(item) : (!isExpiredWonItem(item) && (!item.cargoDeclaration || !item.cargoDeclaration.cargoName)));
+                list = list.filter(item => (store && store.isCargoUndeclared) ? store.isCargoUndeclared(item) : (!isExpiredWonItem(item) && item.paymentStatus !== 'CANCELLED_AFTER_PAYMENT' && (!item.cargoDeclaration || !item.cargoDeclaration.cargoName)));
             } else if (statusFilter === 'DECLARED') {
                 list = list.filter(item => (store && store.isCargoDeclared) ? store.isCargoDeclared(item) : (item.cargoDeclaration && !!item.cargoDeclaration.cargoName));
             }
@@ -2118,6 +2121,7 @@
                 const isPaidLate = item.paymentStatus === 'PAID_LATE' || item.lockWaivedByAdmin === true; // Supplementary payment after account unlock
                 const isWaivedByAdmin = item.lockWaivedByAdmin === true && item.paymentStatus !== 'PAID';
                 const isPending = item.paymentStatus === 'PENDING_VERIFICATION';
+                const isCancelledAfterPayment = item.paymentStatus === 'CANCELLED_AFTER_PAYMENT';
                 // isWonAuctionExpired already returns false for PAID_LATE and lockWaivedByAdmin
                 const isExpired = (store && store.isWonAuctionExpired) ? store.isWonAuctionExpired(item) : false;
                 const decl = item.cargoDeclaration;
@@ -2129,7 +2133,25 @@
 
                 const isRejected = item.paymentProof && item.paymentProof.status === 'REJECTED';
 
-                if (isPaid) {
+                if (isCancelledAfterPayment) {
+                    const refS = item.refundStatus;
+                    if (refS === 'REFUNDED') {
+                        statusBadgeText = 'ĐÃ HOÀN TIỀN';
+                        statusBadgeClass = 'bg-emerald-500 text-white font-bold';
+                        headerGradient = 'from-emerald-700 to-teal-800';
+                        headerIcon = 'fa-circle-check';
+                    } else if (refS === 'PENDING') {
+                        statusBadgeText = 'CHỜ XỬ LÝ HOÀN TIỀN';
+                        statusBadgeClass = 'bg-amber-400 text-amber-950 animate-pulse font-bold';
+                        headerGradient = 'from-amber-700 to-orange-800';
+                        headerIcon = 'fa-clock-rotate-left';
+                    } else {
+                        statusBadgeText = 'ĐÃ HỦY – CHỜ HOÀN TIỀN';
+                        statusBadgeClass = 'bg-indigo-500 text-white font-bold animate-pulse';
+                        headerGradient = 'from-indigo-800 to-purple-900';
+                        headerIcon = 'fa-money-bill-transfer';
+                    }
+                } else if (isPaid) {
                     statusBadgeText = 'ĐÃ HOÀN TẤT THANH TOÁN';
                     statusBadgeClass = 'bg-emerald-400 text-emerald-950';
                     headerGradient = 'from-emerald-700 to-teal-800';
@@ -2176,7 +2198,8 @@
                                 </span>
                                 ${isPaid ? `<p class="text-xs text-white/80 mt-1">Thanh toán lúc: ${item.paidAt || 'Hợp lệ'}</p>` : ''}
                                 ${isExpired ? `<p class="text-xs text-rose-300 font-semibold mt-1">Hạn chót: ${formatEffectiveDeadline(item)}</p>` : ''}
-                                ${!isPaid && !isExpired ? `<p class="text-xs text-amber-200 font-semibold mt-1">Hạn thanh toán: ${formatEffectiveDeadline(item)}</p>` : ''}
+                                ${isCancelledAfterPayment ? `<p class="text-xs text-indigo-200 font-semibold mt-1">Hủy lúc: ${item.cancelledAt ? new Date(item.cancelledAt).toLocaleDateString('vi-VN') : 'N/A'}</p>` : ''}
+                                ${!isPaid && !isExpired && !isCancelledAfterPayment ? `<p class="text-xs text-amber-200 font-semibold mt-1">Hạn thanh toán: ${formatEffectiveDeadline(item)}</p>` : ''}
                                 ${isPending ? `<p class="text-xs text-white/80 mt-1">Đã báo lúc: ${item.notifiedAt || 'Vừa xong'}</p>` : ''}
                             </div>
                         </div>
@@ -2184,6 +2207,78 @@
                         <div class="p-6 space-y-6">
                             <!-- Cảnh báo chế tài khóa tài khoản / Thông báo khóa / Cảnh báo từ chối -->
                             ${(() => {
+                                // --- CANCELLED AFTER PAYMENT: needs refund ---
+                                if (isCancelledAfterPayment) {
+                                    const refundStatus = item.refundStatus || null;
+                                    const refundInfo = item.refundBankInfo || null;
+                                    let refundBlock = '';
+                                    if (refundStatus === 'REFUNDED') {
+                                        refundBlock = `
+                                            <div class="mt-3 bg-emerald-50 border-2 border-emerald-300 rounded-xl p-3.5 flex items-start gap-3">
+                                                <div class="w-9 h-9 rounded-xl bg-emerald-600 text-white flex items-center justify-center text-base flex-shrink-0 shadow-sm">
+                                                    <i class="fa-solid fa-circle-check"></i>
+                                                </div>
+                                                <div class="flex-1">
+                                                    <strong class="text-emerald-900 text-sm font-extrabold uppercase flex items-center gap-2">
+                                                        <i class="fa-solid fa-money-bill-transfer text-emerald-600"></i> Tiền đã được hoàn thành công
+                                                    </strong>
+                                                    <p class="text-emerald-800 font-medium mt-1">
+                                                        Ban Điều hành Vietravel Airlines Cargo đã xác nhận chuyển tiền hoàn vào tài khoản <strong>${refundInfo ? refundInfo.accountName + ' - ' + refundInfo.accountNumber + ' (' + refundInfo.bankName + ')' : 'tài khoản của bạn'}</strong>.
+                                                        ${item.refundConfirmedAt ? '<br><span class="text-xs text-emerald-700 font-semibold">Xác nhận lúc: ' + item.refundConfirmedAt + '</span>' : ''}
+                                                    </p>
+                                                </div>
+                                            </div>`;
+                                    } else if (refundStatus === 'PENDING' && refundInfo) {
+                                        refundBlock = `
+                                            <div class="mt-3 bg-amber-50 border-2 border-amber-300 rounded-xl p-3.5 flex items-start gap-3 animate-pulse">
+                                                <div class="w-9 h-9 rounded-xl bg-amber-500 text-white flex items-center justify-center text-base flex-shrink-0 shadow-sm">
+                                                    <i class="fa-solid fa-clock-rotate-left"></i>
+                                                </div>
+                                                <div class="flex-1">
+                                                    <strong class="text-amber-900 text-sm font-extrabold uppercase flex items-center gap-2">
+                                                        <i class="fa-solid fa-hourglass-half text-amber-600"></i> Yêu cầu hoàn tiền đang chờ xử lý
+                                                    </strong>
+                                                    <p class="text-amber-800 font-medium mt-1">
+                                                        Thông tin tài khoản của bạn đã được ghi nhận. Ban Điều hành sẽ chuyển tiền hoàn trong vòng <strong>3-5 ngày làm việc</strong> vào tài khoản <strong>${refundInfo.accountName} - ${refundInfo.accountNumber} (${refundInfo.bankName})</strong>.
+                                                    </p>
+                                                    <button onclick="openRefundBankModal('${item.wonId}')" class="mt-2 text-amber-700 underline text-xs font-semibold cursor-pointer">Chỉnh sửa thông tin ngân hàng</button>
+                                                </div>
+                                            </div>`;
+                                    } else {
+                                        refundBlock = `
+                                            <div class="mt-3 bg-indigo-50 border-2 border-indigo-400 rounded-xl p-4">
+                                                <div class="flex items-center gap-2 mb-2">
+                                                    <div class="w-9 h-9 rounded-xl bg-indigo-600 text-white flex items-center justify-center text-base flex-shrink-0 shadow-sm">
+                                                        <i class="fa-solid fa-money-bill-transfer"></i>
+                                                    </div>
+                                                    <strong class="text-indigo-900 text-sm font-extrabold uppercase">Vui lòng nhập thông tin nhận hoàn tiền</strong>
+                                                </div>
+                                                <p class="text-indigo-800 font-medium mb-3 text-xs leading-relaxed">
+                                                    Đơn hàng của bạn đã bị hủy sau khi đã thanh toán. Vui lòng điền thông tin tài khoản ngân hàng để nhận tiền hoàn lại từ Vietravel Airlines Cargo trong vòng 3–5 ngày làm việc.
+                                                </p>
+                                                <button onclick="openRefundBankModal('${item.wonId}')" class="bg-indigo-600 hover:bg-indigo-700 text-white font-bold px-4 py-2 rounded-xl text-xs transition shadow flex items-center gap-1.5 cursor-pointer">
+                                                    <i class="fa-solid fa-pen-to-square"></i> Điền thông tin nhận tiền hoàn
+                                                </button>
+                                            </div>`;
+                                    }
+                                    return `
+                                        <div class="bg-indigo-50 border-2 border-indigo-300 rounded-2xl p-4 flex items-start gap-3.5 text-xs text-indigo-950 shadow-sm">
+                                            <div class="w-10 h-10 rounded-xl bg-indigo-600 text-white flex items-center justify-center font-bold text-lg flex-shrink-0 shadow-sm">
+                                                <i class="fa-solid fa-rotate-left"></i>
+                                            </div>
+                                            <div class="flex-1 space-y-1">
+                                                <strong class="text-indigo-900 text-sm flex items-center gap-2 font-extrabold uppercase">
+                                                    <i class="fa-solid fa-ban text-indigo-600"></i> Đơn hàng đã bị hủy · Đang chờ hoàn tiền
+                                                </strong>
+                                                <p class="text-indigo-800 leading-relaxed font-medium">
+                                                    Chuyến bay bị hủy bởi Ban Điều hành. Lý do: <strong class="text-indigo-950">${item.cancellationReason || 'Theo quyết định của Ban Điều hành'}</strong>.
+                                                    ${item.adminCancelRefundNote ? '<br><span class="text-indigo-700">' + item.adminCancelRefundNote + '</span>' : ''}
+                                                </p>
+                                                ${refundBlock}
+                                            </div>
+                                        </div>
+                                    `;
+                                }
                                 if (isExpired) {
                                     const refundStatus = item.refundStatus || null;
                                     const refundInfo = item.refundBankInfo || null;

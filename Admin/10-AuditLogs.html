@@ -772,27 +772,49 @@
         // Server-fetched logs (includes agent activity)
         let serverLogs = [];
 
+        function deduplicateLogs(logs) {
+            if (!Array.isArray(logs)) return [];
+            const seenKeys = new Set();
+            const seenIds = new Set();
+            const result = [];
+            logs.forEach(l => {
+                if (!l) return;
+                const idStr = l.id ? String(l.id) : null;
+                if (idStr && seenIds.has(idStr)) return;
+
+                const timeMs = Number(l.rawTime) || parseTs(l.timestamp);
+                const timeBucket = Math.floor(timeMs / 5000);
+                const userStr = String(l.username || l.actor || '').trim().toUpperCase();
+                const titleStr = String(l.actionTitle || '').trim();
+                const targetStr = String(l.target || '').trim();
+                const detailsStr = String(l.details || '').trim();
+                const fingerprint = `${userStr}|${titleStr}|${targetStr}|${detailsStr}|${timeBucket}`;
+
+                if (seenKeys.has(fingerprint)) return;
+
+                if (idStr) seenIds.add(idStr);
+                seenKeys.add(fingerprint);
+                result.push(l);
+            });
+            return result;
+        }
+
         async function fetchServerLogs() {
             try {
                 const res = await fetch('/api/logs');
                 if (!res.ok) return;
                 const json = await res.json();
                 if (json.success && Array.isArray(json.logs)) {
-                    // Merge with local logs: server takes priority (dedup by id)
                     const localLogs = CargoStore.getActivityLogs ? CargoStore.getActivityLogs() : [];
-                    const logMap = new Map();
-                    // Add local logs first
-                    localLogs.forEach(l => { if (l && l.id) logMap.set(String(l.id), l); });
-                    // Server logs overwrite by id
-                    json.logs.forEach(l => { if (l && l.id) logMap.set(String(l.id), l); });
-                    serverLogs = Array.from(logMap.values())
-                        .sort((a, b) => (b.rawTime || 0) - (a.rawTime || 0));
+                    const combined = [...json.logs, ...localLogs];
+                    serverLogs = deduplicateLogs(combined)
+                        .sort((a, b) => (b.rawTime || parseTs(b.timestamp) || 0) - (a.rawTime || parseTs(a.timestamp) || 0));
                     updateKpisAndTabCounters();
                     renderLogs();
                 }
             } catch (e) {
                 // On error, fall back to local only
-                serverLogs = CargoStore.getActivityLogs ? CargoStore.getActivityLogs() : [];
+                serverLogs = CargoStore.getActivityLogs ? deduplicateLogs(CargoStore.getActivityLogs()) : [];
             }
         }
 

@@ -845,6 +845,35 @@ const CargoStore = (function() {
         return Array.from(bidMap.values()).sort((a, b) => Number(b.priceKg) - Number(a.priceKg));
     }
 
+    function deduplicateActivityLogs(logs) {
+        if (!Array.isArray(logs)) return [];
+        const seenKeys = new Set();
+        const seenIds = new Set();
+        const result = [];
+
+        logs.forEach(l => {
+            if (!l) return;
+            const idStr = l.id ? String(l.id) : null;
+            if (idStr && seenIds.has(idStr)) return;
+
+            const timeMs = Number(l.rawTime) || (typeof parseTimestamp === 'function' ? parseTimestamp(l.timestamp) : 0);
+            const timeBucket = Math.floor(timeMs / 5000); // 5-second window
+            const userStr = String(l.username || l.actor || '').trim().toUpperCase();
+            const titleStr = String(l.actionTitle || '').trim();
+            const targetStr = String(l.target || '').trim();
+            const detailsStr = String(l.details || '').trim();
+            const fingerprint = `${userStr}|${titleStr}|${targetStr}|${detailsStr}|${timeBucket}`;
+
+            if (seenKeys.has(fingerprint)) return;
+
+            if (idStr) seenIds.add(idStr);
+            seenKeys.add(fingerprint);
+            result.push(l);
+        });
+
+        return result;
+    }
+
     function loadData() {
         try {
             const raw = localStorage.getItem(STORAGE_KEY);
@@ -857,12 +886,11 @@ const CargoStore = (function() {
 
             let updated = false;
 
-            
             if (data.activityLogs && Array.isArray(data.activityLogs)) {
                 const now = Date.now();
                 const NINETY_DAYS_MS = 90 * 24 * 60 * 60 * 1000;
                 const origLen = data.activityLogs.length;
-                data.activityLogs = data.activityLogs.filter(l => {
+                data.activityLogs = deduplicateActivityLogs(data.activityLogs).filter(l => {
                     if (!l) return false;
                     const timeMs = l.rawTime || parseTimestamp(l.timestamp);
                     if (!timeMs || isNaN(timeMs)) return true;
@@ -1472,10 +1500,9 @@ const CargoStore = (function() {
                     });
                 }
                 if (serverData.activityLogs && Array.isArray(serverData.activityLogs)) {
-                    const logMap = new Map();
-                    serverData.activityLogs.forEach(l => { if (l && l.id) logMap.set(l.id, l); });
-                    (local.activityLogs || []).forEach(l => { if (l && l.id) logMap.set(l.id, l); });
-                    local.activityLogs = Array.from(logMap.values())
+                    // Server is the single source of truth for logs when online.
+                    // Do not merge local logs to avoid duplicates.
+                    local.activityLogs = deduplicateActivityLogs(serverData.activityLogs)
                         .sort((a, b) => (b.rawTime || parseTimestamp(b.timestamp) || b.id || 0) - (a.rawTime || parseTimestamp(a.timestamp) || a.id || 0))
                         .slice(0, 1000);
                 }
@@ -2930,26 +2957,31 @@ const CargoStore = (function() {
                 });
             }
 
-            if (!data.activityLogs) data.activityLogs = [];
-            const padLog = n => String(n).padStart(2, '0');
-            const dLog = new Date(now);
-            const tsLogStr = `${padLog(dLog.getDate())}/${padLog(dLog.getMonth() + 1)}/${dLog.getFullYear()} ${padLog(dLog.getHours())}:${padLog(dLog.getMinutes())}:${padLog(dLog.getSeconds())}`;
-            data.activityLogs.unshift({
-                id: now,
-                timestamp: tsLogStr,
-                rawTime: now,
-                actor: user.companyName || user.agentCode,
-                username: user.agentCode,
-                role: 'AGENT',
-                actionCategory: 'Đấu giá',
-                actionTitle: 'Đặt giá thầu',
-                target: auction.flightNumber || `AUC-${auction.id}`,
-                details: `Đại lý ${user.companyName || user.agentCode} đặt thầu thành công mức giá ${formatCurrency(bidPriceKg)}/Kg cho chuyến bay ${auction.flightNumber} (${auction.route}).`,
-                ip: '113.161.42.12',
-                device: 'Web Client'
-            });
-
             data.bids = deduplicateBids(data.bids);
+
+            // NOTE: Activity log for bid placement is written by the server when processing /api/bids/place.
+            // We only write a local log here if running offline (no HTTP) to avoid duplicate entries.
+            const isHttpForLog = typeof window !== 'undefined' && window.location && window.location.protocol && window.location.protocol.startsWith('http');
+            if (!isHttpForLog) {
+                if (!data.activityLogs) data.activityLogs = [];
+                const padLog = n => String(n).padStart(2, '0');
+                const dLog = new Date(now);
+                const tsLogStr = `${padLog(dLog.getDate())}/${padLog(dLog.getMonth() + 1)}/${dLog.getFullYear()} ${padLog(dLog.getHours())}:${padLog(dLog.getMinutes())}:${padLog(dLog.getSeconds())}`;
+                data.activityLogs.unshift({
+                    id: now,
+                    timestamp: tsLogStr,
+                    rawTime: now,
+                    actor: user.companyName || user.agentCode,
+                    username: user.agentCode,
+                    role: 'AGENT',
+                    actionCategory: 'Đấu giá',
+                    actionTitle: 'Đặt giá thầu',
+                    target: auction.flightNumber || `AUC-${auction.id}`,
+                    details: `Đại lý ${user.companyName || user.agentCode} đặt thầu thành công mức giá ${formatCurrency(bidPriceKg)}/Kg cho chuyến bay ${auction.flightNumber} (${auction.route}).`,
+                    ip: '113.161.42.12',
+                    device: 'Web Client'
+                });
+            }
 
             const isHttp = typeof window !== 'undefined' && window.location && window.location.protocol && window.location.protocol.startsWith('http');
 
@@ -4348,21 +4380,50 @@ const CargoStore = (function() {
 
             const now = Date.now();
 
+            // Update winner's wonAuction record with cancellation info
+            if (winner && data.wonAuctions) {
+                const wonItem = data.wonAuctions.find(w =>
+                    w.auctionId == id || w.flightNumber === auction.flightNumber
+                );
+                if (wonItem) {
+                    const wasPaid = wonItem.paymentStatus === 'PAID' || wonItem.paymentStatus === 'PAID_LATE' || wonItem.lockWaivedByAdmin === true;
+                    wonItem.cancelledAt = new Date().toISOString();
+                    wonItem.cancellationReason = cleanReason;
+                    wonItem.adminCancelRefundNote = cleanRefundNote || 'Hoàn tiền 100% trong vòng 3-5 ngày làm việc.';
+                    if (wasPaid) {
+                        // Paid → needs refund process
+                        wonItem.paymentStatus = 'CANCELLED_AFTER_PAYMENT';
+                        wonItem.refundStatus = wonItem.refundStatus || null; // preserve if already set
+                    } else {
+                        // Not yet paid → simply cancelled
+                        wonItem.paymentStatus = 'CANCELLED';
+                    }
+                }
+            }
+
             // Notify winner specifically (if exists)
             if (!data.notifications) data.notifications = [];
 
             if (winner) {
+                const wasPaid = (() => {
+                    if (!data.wonAuctions) return false;
+                    const w = data.wonAuctions.find(w => w.auctionId == id || w.flightNumber === auction.flightNumber);
+                    return w && (w.paymentStatus === 'CANCELLED_AFTER_PAYMENT');
+                })();
                 data.notifications.unshift({
                     id: now + 1,
-                    title: `HỦY CHUYẾN BAY ${auction.flightNumber} – HOÀN TIỀN`,
-                    message: `Chuyến bay ${auction.flightNumber} (${auction.route}) mà Quý đại lý đã trúng thầu bị HỦY. Lý do: ${cleanReason}. ${cleanRefundNote || 'Hoàn tiền 100% trong vòng 3-5 ngày làm việc.'}`,
+                    title: `HỦY CHUYẾN BAY ${auction.flightNumber} – ${wasPaid ? 'CHỜ HOÀN TIỀN' : 'THÔNG BÁO HỦY'}`,
+                    message: wasPaid
+                        ? `Chuyến bay ${auction.flightNumber} (${auction.route}) mà Quý đại lý đã trúng thầu bị HỦY sau khi đã thanh toán. Lý do: ${cleanReason}. Đơn hàng đã chuyển sang trạng thái "Chờ hoàn tiền". Vui lòng truy cập mục Đơn trúng thầu để điền thông tin tài khoản nhận hoàn tiền.`
+                        : `Chuyến bay ${auction.flightNumber} (${auction.route}) mà Quý đại lý đã trúng thầu bị HỦY. Lý do: ${cleanReason}. ${cleanRefundNote || 'Hoàn tiền 100% trong vòng 3-5 ngày làm việc.'}`,
                     type: 'WARNING',
                     time: new Date().toLocaleString('vi-VN'),
                     rawTime: now,
                     targetAgent: winner,
                     targetRole: 'AGENT',
                     auctionId: id,
-                    read: false
+                    read: false,
+                    link: '07-WonAuction.html'
                 });
             }
 
@@ -4713,14 +4774,12 @@ const CargoStore = (function() {
                     : 'Server Node.js'
             };
 
-            data.activityLogs.unshift(newLog);
-            if (data.activityLogs.length > 1000) {
-                data.activityLogs = data.activityLogs.slice(0, 1000);
-            }
-            saveData(data);
+            const isOnline = typeof window !== 'undefined' && window.location &&
+                             window.location.protocol && window.location.protocol.startsWith('http');
 
-            // Also POST to server so Admin's AuditLogs page can see all roles' activity
-            if (typeof window !== 'undefined') {
+            if (isOnline) {
+                // Online: only POST to server. Server is the single source of truth.
+                // Do NOT write to local storage to avoid duplicate entries when syncing.
                 const payload = JSON.stringify(newLog);
                 if (typeof navigator !== 'undefined' && typeof navigator.sendBeacon === 'function') {
                     const blob = new Blob([payload], { type: 'application/json' });
@@ -4732,6 +4791,13 @@ const CargoStore = (function() {
                         body: payload
                     }).catch(() => {}); // Fire-and-forget, ignore errors
                 }
+            } else {
+                // Offline: write to local storage only
+                data.activityLogs.unshift(newLog);
+                if (data.activityLogs.length > 1000) {
+                    data.activityLogs = data.activityLogs.slice(0, 1000);
+                }
+                saveData(data);
             }
 
             return newLog;
