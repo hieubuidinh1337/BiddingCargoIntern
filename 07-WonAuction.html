@@ -2122,6 +2122,7 @@
                 const isWaivedByAdmin = item.lockWaivedByAdmin === true && item.paymentStatus !== 'PAID';
                 const isCancelled = item.paymentStatus === 'CANCELLED';
                 const isCancelledAfterPayment = item.paymentStatus === 'CANCELLED_AFTER_PAYMENT';
+                const isPending = (store && store.isWonAuctionPending) ? store.isWonAuctionPending(item) : (item.paymentStatus === 'PENDING_VERIFICATION');
                 // isWonAuctionExpired already returns false for PAID_LATE, CANCELLED, and lockWaivedByAdmin
                 const isExpired = (store && store.isWonAuctionExpired) ? store.isWonAuctionExpired(item) : false;
                 const decl = item.cargoDeclaration;
