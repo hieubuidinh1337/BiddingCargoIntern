@@ -108,20 +108,17 @@
 
         <!-- Filter Tabs -->
         <div class="flex items-center gap-2 overflow-x-auto pb-1" id="filterTabs">
-            <button onclick="setTab('ALL')" class="tab-btn active px-4 py-2 rounded-xl text-xs font-semibold bg-blue-600 text-white shadow-sm" data-tab="ALL">
+            <button onclick="setTab('ALL')" class="tab-btn active px-4 py-2 rounded-xl text-xs font-semibold bg-blue-600 text-white shadow-sm whitespace-nowrap shrink-0 cursor-pointer" data-tab="ALL">
                 Tất cả lượt thầu
             </button>
-            <button onclick="setTab('HIGHEST')" class="tab-btn px-4 py-2 rounded-xl text-xs font-semibold bg-white text-gray-600 hover:bg-gray-50 border" data-tab="HIGHEST">
+            <button onclick="setTab('HIGHEST')" class="tab-btn px-4 py-2 rounded-xl text-xs font-semibold bg-white text-gray-600 hover:bg-gray-50 border whitespace-nowrap shrink-0 cursor-pointer" data-tab="HIGHEST">
                 Đang dẫn đầu (Highest)
             </button>
-            <button onclick="setTab('OUTBID')" class="tab-btn px-4 py-2 rounded-xl text-xs font-semibold bg-white text-gray-600 hover:bg-gray-50 border" data-tab="OUTBID">
+            <button onclick="setTab('OUTBID')" class="tab-btn px-4 py-2 rounded-xl text-xs font-semibold bg-white text-gray-600 hover:bg-gray-50 border whitespace-nowrap shrink-0 cursor-pointer" data-tab="OUTBID">
                 Bị vượt giá (Outbid)
             </button>
-            <button onclick="setTab('WON')" class="tab-btn px-4 py-2 rounded-xl text-xs font-semibold bg-white text-gray-600 hover:bg-gray-50 border" data-tab="WON">
+            <button onclick="setTab('WON')" class="tab-btn px-4 py-2 rounded-xl text-xs font-semibold bg-white text-gray-600 hover:bg-gray-50 border whitespace-nowrap shrink-0 cursor-pointer" data-tab="WON">
                 Đã thắng thầu (Won)
-            </button>
-            <button onclick="setTab('LOG_HISTORY')" class="tab-btn px-4 py-2 rounded-xl text-xs font-semibold bg-white text-gray-600 hover:bg-gray-50 border flex items-center gap-1.5" data-tab="LOG_HISTORY">
-                <i class="fa-solid fa-clock-rotate-left text-blue-600"></i> Tất cả lần đặt giá
             </button>
         </div>
 
@@ -137,7 +134,7 @@
                             <th class="py-3.5 px-5">Tổng tiền thầu (VND)</th>
                             <th class="py-3.5 px-5">Thời gian đặt</th>
                             <th class="py-3.5 px-5">Trạng thái</th>
-                            <th class="py-3.5 px-5 text-right">Thao tác</th>
+                            <th class="py-3.5 px-5 text-right whitespace-nowrap">Thao tác</th>
                         </tr>
                     </thead>
                     <tbody class="divide-y divide-gray-100" id="myBidsTableBody">
@@ -352,10 +349,7 @@
             });
 
             let filtered = allBids;
-            if (currentTab === 'LOG_HISTORY') {
-                // Return all bid submissions log entries
-                filtered = [...myBids].sort((a, b) => (Number(b.timestamp || b.id) || 0) - (Number(a.timestamp || a.id) || 0));
-            } else if (currentTab !== 'ALL') {
+            if (currentTab !== 'ALL') {
                 filtered = allBids.filter(b => b.status === currentTab);
             }
 
@@ -415,29 +409,29 @@
                 if (b.status === 'WON' || isActualWinner) {
                     if (paymentStatus === 'PAID') {
                         wonActionHtml = cargoDeclared
-                            ? '<span class="inline-flex items-center gap-1 bg-emerald-100 text-emerald-700 font-bold px-2.5 py-1.5 rounded-lg text-xs">Đã khai báo</span>'
-                            : `<a href="07-WonAuction.html?action=declare&flight=${encodeURIComponent(flightNo)}" class="inline-flex items-center gap-1 bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white font-bold px-2.5 py-1.5 rounded-lg text-xs transition shadow-xs" title="Khai báo hàng hóa">
-                                <i class="fa-solid fa-boxes-packing text-[10px]"></i> Khai báo
+                            ? '<span class="inline-flex items-center gap-1.5 bg-emerald-100 text-emerald-700 font-bold px-3 py-1.5 rounded-xl text-xs whitespace-nowrap shrink-0"><i class="fa-solid fa-circle-check text-[10px]"></i> Đã khai báo</span>'
+                            : `<a href="07-WonAuction.html?action=declare&flight=${encodeURIComponent(flightNo)}" class="inline-flex items-center gap-1.5 bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white font-bold px-3 py-1.5 rounded-xl text-xs transition shadow-xs whitespace-nowrap shrink-0 cursor-pointer" title="Khai báo hàng hóa">
+                                <i class="fa-solid fa-boxes-packing text-[11px]"></i> Khai báo
                             </a>`;
                     } else if (paymentStatus === 'PENDING_VERIFICATION') {
                         wonActionHtml = `
-                            <a href="07-WonAuction.html?action=pay&flight=${encodeURIComponent(flightNo)}" class="inline-flex items-center gap-1 bg-amber-50 hover:bg-amber-100 text-amber-800 border border-amber-300 font-bold px-2.5 py-1.5 rounded-lg text-xs transition shadow-xs" title="Xem biên lai đã gửi">
-                                <i class="fa-solid fa-receipt text-[10px] text-amber-600"></i> Xem biên lai
+                            <a href="07-WonAuction.html?action=pay&flight=${encodeURIComponent(flightNo)}" class="inline-flex items-center gap-1.5 bg-amber-50 hover:bg-amber-100 text-amber-800 border border-amber-300 font-bold px-3 py-1.5 rounded-xl text-xs transition shadow-xs whitespace-nowrap shrink-0 cursor-pointer" title="Xem biên lai đã gửi">
+                                <i class="fa-solid fa-receipt text-[11px] text-amber-600"></i> Xem biên lai
                             </a>
                             ${cargoDeclared
-                                ? '<span class="inline-flex items-center gap-1 bg-emerald-100 text-emerald-700 font-bold px-2.5 py-1.5 rounded-lg text-xs">Đã khai báo</span>'
-                                : `<a href="07-WonAuction.html?action=declare&flight=${encodeURIComponent(flightNo)}" class="inline-flex items-center gap-1 bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white font-bold px-2.5 py-1.5 rounded-lg text-xs transition shadow-xs" title="Khai báo hàng hóa">
-                                    <i class="fa-solid fa-boxes-packing text-[10px]"></i> Khai báo
+                                ? '<span class="inline-flex items-center gap-1.5 bg-emerald-100 text-emerald-700 font-bold px-3 py-1.5 rounded-xl text-xs whitespace-nowrap shrink-0"><i class="fa-solid fa-circle-check text-[10px]"></i> Đã khai báo</span>'
+                                : `<a href="07-WonAuction.html?action=declare&flight=${encodeURIComponent(flightNo)}" class="inline-flex items-center gap-1.5 bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white font-bold px-3 py-1.5 rounded-xl text-xs transition shadow-xs whitespace-nowrap shrink-0 cursor-pointer" title="Khai báo hàng hóa">
+                                    <i class="fa-solid fa-boxes-packing text-[11px]"></i> Khai báo
                                 </a>`
                             }
                         `;
                     } else {
                         wonActionHtml = `
-                            <a href="07-WonAuction.html?action=pay&flight=${encodeURIComponent(flightNo)}" class="inline-flex items-center gap-1 bg-gradient-to-r from-amber-500 to-orange-500 hover:from-amber-600 hover:to-orange-600 text-white font-bold px-2.5 py-1.5 rounded-lg text-xs transition shadow-xs" title="Chuyển qua thanh toán">
-                                <i class="fa-solid fa-qrcode text-[10px]"></i> Thanh toán
+                            <a href="07-WonAuction.html?action=pay&flight=${encodeURIComponent(flightNo)}" class="inline-flex items-center gap-1.5 bg-gradient-to-r from-amber-500 to-orange-500 hover:from-amber-600 hover:to-orange-600 text-white font-bold px-3 py-1.5 rounded-xl text-xs transition shadow-xs whitespace-nowrap shrink-0 cursor-pointer" title="Chuyển qua thanh toán">
+                                <i class="fa-solid fa-qrcode text-[11px]"></i> Thanh toán
                             </a>
-                            <a href="07-WonAuction.html?action=declare&flight=${encodeURIComponent(flightNo)}" class="inline-flex items-center gap-1 bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white font-bold px-2.5 py-1.5 rounded-lg text-xs transition shadow-xs" title="Khai báo hàng hóa">
-                                <i class="fa-solid fa-boxes-packing text-[10px]"></i> Khai báo
+                            <a href="07-WonAuction.html?action=declare&flight=${encodeURIComponent(flightNo)}" class="inline-flex items-center gap-1.5 bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white font-bold px-3 py-1.5 rounded-xl text-xs transition shadow-xs whitespace-nowrap shrink-0 cursor-pointer" title="Khai báo hàng hóa">
+                                <i class="fa-solid fa-boxes-packing text-[11px]"></i> Khai báo
                             </a>
                         `;
                     }
@@ -446,22 +440,22 @@
                 let actionBtnHtml = '';
                 if (b.status === 'OUTBID') {
                     if (isAuctionClosed) {
-                        actionBtnHtml = `<a href="04-Detail.html?id=${b.auctionId}" class="inline-flex items-center gap-1.5 bg-slate-100 hover:bg-slate-200 text-slate-500 font-medium px-3 py-1.5 rounded-lg text-xs transition" title="Phiên đấu giá đã đóng">
-                            <i class="fa-solid fa-lock text-[10px]"></i> Đã đóng
+                        actionBtnHtml = `<a href="04-Detail.html?id=${b.auctionId}" class="inline-flex items-center gap-1.5 bg-slate-100 hover:bg-slate-200 text-slate-500 font-semibold px-3 py-1.5 rounded-xl text-xs transition whitespace-nowrap shrink-0 cursor-pointer" title="Phiên đấu giá đã đóng">
+                            <i class="fa-solid fa-lock text-[11px]"></i> Đã đóng
                         </a>`;
                     } else {
-                        actionBtnHtml = `<a href="04-Detail.html?id=${b.auctionId}" class="inline-flex items-center gap-1.5 bg-blue-50 hover:bg-blue-100 text-blue-700 font-semibold px-3 py-1.5 rounded-lg text-xs transition">
-                            <i class="fa-solid fa-rotate text-[10px]"></i> Đặt lại
+                        actionBtnHtml = `<a href="04-Detail.html?id=${b.auctionId}" class="inline-flex items-center gap-1.5 bg-blue-50 hover:bg-blue-100 text-blue-700 font-semibold px-3 py-1.5 rounded-xl text-xs transition border border-blue-200/60 whitespace-nowrap shrink-0 cursor-pointer">
+                            <i class="fa-solid fa-rotate text-[11px]"></i> Đặt lại
                         </a>`;
                     }
                 } else {
-                    actionBtnHtml = `<a href="04-Detail.html?id=${b.auctionId}" class="inline-flex items-center gap-1.5 bg-blue-50 hover:bg-blue-100 text-blue-700 font-semibold px-3 py-1.5 rounded-lg text-xs transition">
+                    actionBtnHtml = `<a href="04-Detail.html?id=${b.auctionId}" class="inline-flex items-center gap-1.5 bg-blue-50 hover:bg-blue-100 text-blue-700 font-semibold px-3 py-1.5 rounded-xl text-xs transition border border-blue-200/60 whitespace-nowrap shrink-0 cursor-pointer">
                         Chi tiết
                     </a>`;
                 }
 
-                const historyBtnHtml = `<button onclick="openBidHistoryModal('${b.auctionId}')" class="inline-flex items-center gap-1 bg-slate-100 hover:bg-slate-200 text-slate-700 font-semibold px-2.5 py-1.5 rounded-lg text-xs transition border border-slate-300" title="Xem lịch sử các lần đặt giá">
-                    <i class="fa-solid fa-clock-rotate-left text-[10px] text-blue-600"></i> Lịch sử giá
+                const historyBtnHtml = `<button onclick="openBidHistoryModal('${b.auctionId}')" class="inline-flex items-center gap-1.5 bg-slate-100 hover:bg-slate-200 text-slate-700 font-semibold px-3 py-1.5 rounded-xl text-xs transition border border-slate-200 whitespace-nowrap shrink-0 cursor-pointer" title="Xem lịch sử các lần đặt giá">
+                    <i class="fa-solid fa-clock-rotate-left text-[11px] text-blue-600"></i> Lịch sử giá
                 </button>`;
 
                 return `
@@ -488,8 +482,8 @@
                         <td class="py-3.5 px-5">
                             ${statusBadge}
                         </td>
-                        <td class="py-3.5 px-5 text-right">
-                            <div class="flex items-center justify-end gap-1.5">
+                        <td class="py-3.5 px-5 text-right whitespace-nowrap">
+                            <div class="flex items-center justify-end gap-2 flex-nowrap">
                                 ${historyBtnHtml}
                                 ${wonActionHtml}
                                 ${actionBtnHtml}
