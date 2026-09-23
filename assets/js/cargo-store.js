@@ -1662,7 +1662,8 @@ const CargoStore = (function() {
         // CRITICAL PROTECTION: If agent already reported bank transfer (PENDING_VERIFICATION),
         // order is protected from auto-cancellation & account lock while Admin reconciles!
         if (item.paymentStatus === 'PENDING_VERIFICATION') return false;
-        if (item.paymentStatus === 'CANCELLED' || item.paymentStatus === 'EXPIRED') return true;
+        if (item.paymentStatus === 'CANCELLED' || item.paymentStatus === 'CANCELLED_AFTER_PAYMENT') return false;
+        if (item.paymentStatus === 'EXPIRED') return true;
 
         const now = Date.now();
         const allAuctions = (passedData && passedData.auctions) ? passedData.auctions : ((typeof loadData === 'function') ? (loadData().auctions || []) : []);
@@ -1792,8 +1793,8 @@ const CargoStore = (function() {
         if (!data.notifications) data.notifications = [];
 
         wonAuctions.forEach(item => {
-            // NEVER lock or cancel if already paid or pending verification by Admin
-            if (item.paymentStatus === 'PAID' || item.paymentStatus === 'PENDING_VERIFICATION') {
+            // NEVER lock or cancel if already paid, pending verification, or cancelled by Admin
+            if (item.paymentStatus === 'PAID' || item.paymentStatus === 'PENDING_VERIFICATION' || item.paymentStatus === 'CANCELLED' || item.paymentStatus === 'CANCELLED_AFTER_PAYMENT') {
                 return;
             }
 

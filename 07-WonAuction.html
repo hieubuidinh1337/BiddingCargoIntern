@@ -2120,9 +2120,9 @@
                 const isPaid = item.paymentStatus === 'PAID' || item.paymentStatus === 'PAID_LATE' || item.lockWaivedByAdmin === true;
                 const isPaidLate = item.paymentStatus === 'PAID_LATE' || item.lockWaivedByAdmin === true; // Supplementary payment after account unlock
                 const isWaivedByAdmin = item.lockWaivedByAdmin === true && item.paymentStatus !== 'PAID';
-                const isPending = item.paymentStatus === 'PENDING_VERIFICATION';
+                const isCancelled = item.paymentStatus === 'CANCELLED';
                 const isCancelledAfterPayment = item.paymentStatus === 'CANCELLED_AFTER_PAYMENT';
-                // isWonAuctionExpired already returns false for PAID_LATE and lockWaivedByAdmin
+                // isWonAuctionExpired already returns false for PAID_LATE, CANCELLED, and lockWaivedByAdmin
                 const isExpired = (store && store.isWonAuctionExpired) ? store.isWonAuctionExpired(item) : false;
                 const decl = item.cargoDeclaration;
 
@@ -2151,6 +2151,11 @@
                         headerGradient = 'from-indigo-800 to-purple-900';
                         headerIcon = 'fa-money-bill-transfer';
                     }
+                } else if (isCancelled) {
+                    statusBadgeText = 'ĐÃ HỦY CHUYẾN BAY';
+                    statusBadgeClass = 'bg-slate-700 text-white font-bold';
+                    headerGradient = 'from-slate-800 to-slate-950';
+                    headerIcon = 'fa-ban';
                 } else if (isPaid) {
                     statusBadgeText = 'ĐÃ HOÀN TẤT THANH TOÁN';
                     statusBadgeClass = 'bg-emerald-400 text-emerald-950';
@@ -2275,6 +2280,24 @@
                                                     ${item.adminCancelRefundNote ? '<br><span class="text-indigo-700">' + item.adminCancelRefundNote + '</span>' : ''}
                                                 </p>
                                                 ${refundBlock}
+                                            </div>
+                                        </div>
+                                    `;
+                                }
+                                if (isCancelled) {
+                                    return `
+                                        <div class="bg-amber-50 border-2 border-amber-300 rounded-2xl p-4 flex items-start gap-3.5 text-xs text-amber-950 shadow-sm">
+                                            <div class="w-10 h-10 rounded-xl bg-amber-600 text-white flex items-center justify-center font-bold text-lg flex-shrink-0 shadow-sm">
+                                                <i class="fa-solid fa-plane-slash"></i>
+                                            </div>
+                                            <div class="flex-1 space-y-1">
+                                                <strong class="text-amber-900 text-sm flex items-center gap-2 font-extrabold uppercase">
+                                                    <i class="fa-solid fa-ban text-amber-600"></i> Chuyến bay đã bị hủy bởi Ban Điều hành
+                                                </strong>
+                                                <p class="text-amber-800 leading-relaxed font-medium">
+                                                    Chuyến bay bị hủy bởi Ban Điều hành. Lý do: <strong class="text-amber-950">${item.cancellationReason || 'Theo quyết định của Ban Điều hành'}</strong>.
+                                                    Đơn hàng thắng thầu đã tự động hủy và tài khoản đại lý của bạn không bị ảnh hưởng.
+                                                </p>
                                             </div>
                                         </div>
                                     `;

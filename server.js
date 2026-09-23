@@ -499,7 +499,7 @@ function isWonAuctionExpired(item, passedData) {
     if (!item) return false;
     if (item.paymentStatus === 'PAID') return false;
     if (item.paymentStatus === 'PENDING_VERIFICATION') return false;
-    if (item.paymentStatus === 'CANCELLED') return true;
+    if (item.paymentStatus === 'CANCELLED' || item.paymentStatus === 'CANCELLED_AFTER_PAYMENT') return false;
 
     const now = Date.now();
     const allAuctions = (passedData && passedData.auctions) ? passedData.auctions : [];
@@ -537,7 +537,7 @@ function checkAndAutoLockExpiredWonAuctions(data) {
     if (!data.notifications) data.notifications = [];
 
     wonAuctions.forEach(item => {
-        if (item.paymentStatus === 'PAID' || item.paymentStatus === 'PENDING_VERIFICATION') {
+        if (item.paymentStatus === 'PAID' || item.paymentStatus === 'PENDING_VERIFICATION' || item.paymentStatus === 'CANCELLED' || item.paymentStatus === 'CANCELLED_AFTER_PAYMENT') {
             return;
         }
 
