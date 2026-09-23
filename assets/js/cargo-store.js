@@ -3978,7 +3978,16 @@ const CargoStore = (function() {
             }
 
             saveData(data);
+            const adminActor = (data.currentAdmin && (data.currentAdmin.fullName || data.currentAdmin.username))
+                ? (data.currentAdmin.fullName || data.currentAdmin.username)
+                : 'Ban Điều Hành';
+            const adminUsername = (data.currentAdmin && data.currentAdmin.username) ? data.currentAdmin.username : 'admin';
+            const adminRole = (data.currentAdmin && data.currentAdmin.role) ? data.currentAdmin.role : 'ADMIN';
+
             this.logActivity({
+                actor: adminActor,
+                username: adminUsername,
+                role: adminRole,
                 actionCategory: 'Phiên đấu giá',
                 actionTitle: 'Chốt thầu / Đóng phiên đấu giá',
                 target: auction.flightNumber,
@@ -4984,11 +4993,26 @@ const CargoStore = (function() {
             const currentAdmin = data.currentAdmin || { username: 'admin', fullName: 'Trần Quản Trị', role: 'ADMIN' };
             const currentUser = data.currentUser || null;
 
-            let defaultActor = currentAdmin.fullName || currentAdmin.username || 'Quản trị viên';
+            const pathname = (typeof window !== 'undefined' && window.location && window.location.pathname) ? window.location.pathname : '';
+            const isAdminPage = pathname.includes('/Admin/') || pathname.includes('/admin/');
+            const isAdminAction = logInfo && (
+                logInfo.actionCategory === 'Quản lý Đại lý' ||
+                logInfo.actionCategory === 'Cấu hình' ||
+                (logInfo.actionTitle && (
+                    logInfo.actionTitle.includes('Chốt thầu') ||
+                    logInfo.actionTitle.includes('Đóng phiên') ||
+                    logInfo.actionTitle.includes('Hủy phiên') ||
+                    logInfo.actionTitle.includes('Tạo phiên') ||
+                    logInfo.actionTitle.includes('Duyệt') ||
+                    logInfo.actionTitle.includes('Khóa tài khoản')
+                ))
+            );
+
+            let defaultActor = currentAdmin.fullName || currentAdmin.username || 'Ban Điều Hành';
             let defaultUsername = currentAdmin.username || 'admin';
             let defaultRole = currentAdmin.role || 'ADMIN';
 
-            if (currentUser && (currentUser.role === 'AGENT' || currentUser.agentCode || currentUser.code)) {
+            if (!isAdminPage && !isAdminAction && currentUser && (currentUser.role === 'AGENT' || currentUser.agentCode || currentUser.code)) {
                 defaultActor = currentUser.companyName || currentUser.fullName || currentUser.agentName || currentUser.username || 'Đại lý';
                 defaultUsername = currentUser.agentCode || currentUser.code || currentUser.username || 'agent';
                 defaultRole = currentUser.role || 'AGENT';
