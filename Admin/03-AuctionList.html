@@ -1110,6 +1110,33 @@
             }
         }
 
+        async function openDocumentInNewTab(docUrl, docName) {
+            if (!docUrl) return;
+            let finalUrl = String(docUrl).trim();
+            if (!finalUrl) return;
+            const name = docName || 'chung_tu';
+            try {
+                if (finalUrl.startsWith('data:')) {
+                    const response = await fetch(finalUrl);
+                    const blob = await response.blob();
+                    finalUrl = URL.createObjectURL(blob);
+                }
+                const w = window.open();
+                if (w) {
+                    const ext = (name.split('.').pop() || '').toLowerCase();
+                    if (['jpg','jpeg','png','webp','gif'].includes(ext)) {
+                        w.document.write(`<html><head><title>${name}</title><style>body{margin:0;background:#111;display:flex;justify-content:center;align-items:flex-start;min-height:100vh;}img{max-width:100%;height:auto;margin:auto;display:block;}</style></head><body><img src="${finalUrl}" alt="${name}"/></body></html>`);
+                    } else {
+                        w.document.write(`<html><head><title>${name}</title><style>body,html{margin:0;padding:0;height:100%;}embed{width:100%;height:100%;}</style></head><body><embed src="${finalUrl}" type="application/pdf" width="100%" height="100%"/></body></html>`);
+                    }
+                    w.document.close();
+                    if (finalUrl.startsWith('blob:')) setTimeout(() => URL.revokeObjectURL(finalUrl), 30000);
+                }
+            } catch (err) {
+                console.error('openDocumentInNewTab error:', err);
+            }
+        }
+
         function switchAuctionTab(tab) {
             activeAuctionTab = tab;
             const btnAll = document.getElementById('tabAllAuctionsBtn');
@@ -2084,9 +2111,9 @@
                                     </div>
                                 </div>
                                 ${decl.dgrDocUrl ? `
-                                    <a href="${decl.dgrDocUrl}" target="_blank" class="flex-shrink-0 flex items-center gap-1 text-[11px] font-semibold text-blue-600 hover:text-white hover:bg-blue-600 border border-blue-300 hover:border-blue-600 px-2.5 py-1 rounded-lg transition-all ml-2" title="Xem chứng từ đính kèm">
+                                    <button type="button" onclick="openDocumentInNewTab('${decl.dgrDocUrl.replace(/'/g, "\\'")}','${decl.dgrDocName || 'chung_tu.pdf'}')" class="flex-shrink-0 flex items-center gap-1 text-[11px] font-semibold text-blue-600 hover:text-white hover:bg-blue-600 border border-blue-300 hover:border-blue-600 px-2.5 py-1 rounded-lg transition-all ml-2" title="Xem chứng từ đính kèm">
                                         <i class="fa-solid fa-eye"></i> Xem chứng từ
-                                    </a>
+                                    </button>
                                 ` : '<span class="text-[10px] text-slate-400 italic ml-2">Không thể xem trực tiếp</span>'}
                             </div>
                         </div>
