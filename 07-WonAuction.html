@@ -245,11 +245,12 @@
                         <label class="block font-semibold text-slate-700 mb-1">Loại hàng hóa vận chuyển <span class="text-red-500">*</span></label>
                         <select id="declCargoType" onchange="toggleDgrDocsSection()" required class="w-full border rounded-xl px-3 py-2 bg-white outline-none focus:ring-2 focus:ring-blue-500 text-xs">
                             <option value="Hàng bưu kiện / E-commerce">Hàng bưu kiện / Thương mại điện tử (General Cargo)</option>
-                            <option value="Hàng dễ hỏng / Kho lạnh (PER)">Hàng thực phẩm / Thực vật / Kho lạnh (PER)</option>
-                            <option value="Hàng linh kiện điện tử (VAL/AVI)">Hàng linh kiện điện tử / Giá trị cao (VAL)</option>
-                            <option value="Hàng nguy hiểm (DGR)">Hàng nguy hiểm có chứng chỉ DGR (DGR)</option>
-                            <option value="Hàng may mặc / Tiêu dùng (GOH)">Hàng may mặc / Dệt may (GOH)</option>
+                            <option value="Hàng linh kiện điện tử (VAL)">Hàng linh kiện điện tử / Giá trị cao (VAL)</option>
+                            <option value="Hàng thực phẩm / Kho lạnh (PER)">Hàng thực phẩm / Nông sản / Kho lạnh (PER)</option>
                             <option value="Hàng tươi sống / Động vật (AVI)">Hàng thủy hải sản tươi sống (AVI)</option>
+                            <option value="Hàng nguy hiểm (DGR)">Hàng nguy hiểm có chứng chỉ DGR (DGR)</option>
+                            <option value="Hàng thiết bị y tế / Dược phẩm (PIL/MED)">Hàng thiết bị y tế / Dược phẩm (PIL/MED)</option>
+                            <option value="Hàng may mặc / Tiêu dùng (GOH)">Hàng may mặc / Dệt may (GOH)</option>
                             <option value="Khác">Khác</option>
                         </select>
                     </div>
@@ -1390,9 +1391,12 @@
             if (!selectEl || !dgrSec) return;
 
             const val = selectEl.value || '';
-            const isDgr = val.includes('DGR') || val.toLowerCase().includes('nguy hiểm');
-            const isPerAvi = val.includes('PER') || val.includes('AVI') || val.toLowerCase().includes('thực phẩm') || val.toLowerCase().includes('tươi sống') || val.toLowerCase().includes('hải sản');
-            const isVal = val.includes('VAL') || val.toLowerCase().includes('giá trị cao') || val.toLowerCase().includes('linh kiện');
+            const store = (typeof getStore === 'function') ? getStore() : CargoStore;
+            const docInfo = (store && store.getCargoDocumentInfo)
+                ? store.getCargoDocumentInfo(val)
+                : (CargoStore && CargoStore.getCargoDocumentInfo ? CargoStore.getCargoDocumentInfo(val) : null);
+
+            if (!docInfo) return;
 
             const titleEl = document.getElementById('docSectionTitle');
             const iconEl = document.getElementById('docSectionIcon');
@@ -1401,30 +1405,14 @@
             const promptTitleEl = document.getElementById('docUploadPromptTitle');
             const errorMsgEl = document.getElementById('dgrErrorMsg');
 
-            if (isDgr) {
+            if (docInfo.isRequired) {
                 dgrSec.classList.remove('hidden');
-                if (titleEl) titleEl.textContent = 'Chứng từ an toàn hàng nguy hiểm / MSDS';
-                if (iconEl) iconEl.className = 'fa-solid fa-triangle-exclamation text-amber-600';
-                if (badgeEl) badgeEl.textContent = 'MSDS / DGR Cert';
-                if (descEl) descEl.innerHTML = 'Hàng nguy hiểm yêu cầu bắt buộc phải có <strong>Phiếu an toàn hóa chất (MSDS)</strong> & <strong>Chứng chỉ DGR còn hiệu lực</strong> theo quy định an toàn hàng không ICAO/IATA.';
-                if (promptTitleEl) promptTitleEl.textContent = 'Tải lên chứng từ an toàn DGR / MSDS';
-                if (errorMsgEl) errorMsgEl.innerHTML = '<i class="fa-solid fa-circle-exclamation"></i> Vui lòng chọn và tải lên chứng từ an toàn DGR / MSDS!';
-            } else if (isPerAvi) {
-                dgrSec.classList.remove('hidden');
-                if (titleEl) titleEl.textContent = 'Giấy chứng nhận kiểm dịch & An toàn thực phẩm';
-                if (iconEl) iconEl.className = 'fa-solid fa-clipboard-check text-emerald-600';
-                if (badgeEl) badgeEl.textContent = 'Giấy kiểm dịch (Quarantine Cert)';
-                if (descEl) descEl.innerHTML = 'Hàng thực phẩm, hải sản tươi sống và nông sản/động vật bắt buộc phải có <strong>Giấy chứng nhận kiểm dịch</strong> (Cục Thú y / Cục Bảo vệ Thực vật) còn hiệu lực theo quy định hàng không.';
-                if (promptTitleEl) promptTitleEl.textContent = 'Tải lên Giấy chứng nhận kiểm dịch Hải sản / Thực phẩm';
-                if (errorMsgEl) errorMsgEl.innerHTML = '<i class="fa-solid fa-circle-exclamation"></i> Vui lòng chọn và tải lên Giấy chứng nhận kiểm dịch cho hàng hải sản tươi sống / thực phẩm!';
-            } else if (isVal) {
-                dgrSec.classList.remove('hidden');
-                if (titleEl) titleEl.textContent = 'Bảo hiểm hàng hóa & Declared Value Certificate';
-                if (iconEl) iconEl.className = 'fa-solid fa-shield-halved text-blue-600';
-                if (badgeEl) badgeEl.textContent = 'Bảo hiểm / Valuation Cert';
-                if (descEl) descEl.innerHTML = 'Hàng linh kiện điện tử và hàng giá trị cao (VAL) yêu cầu bắt buộc phải đính kèm <strong>Hợp đồng/Giấy chứng nhận Bảo hiểm hàng hóa</strong> hoặc <strong>Giấy khai báo giá trị hàng hóa (Declared Value)</strong> theo quy định IATA.';
-                if (promptTitleEl) promptTitleEl.textContent = 'Tải lên Hợp đồng Bảo hiểm hàng hóa / Giấy khai báo giá trị (VAL)';
-                if (errorMsgEl) errorMsgEl.innerHTML = '<i class="fa-solid fa-circle-exclamation"></i> Vui lòng chọn và tải lên Hợp đồng Bảo hiểm hàng hóa hoặc Giấy khai báo giá trị!';
+                if (titleEl) titleEl.textContent = docInfo.title;
+                if (iconEl) iconEl.className = docInfo.iconClass;
+                if (badgeEl) badgeEl.textContent = docInfo.badge;
+                if (descEl) descEl.innerHTML = docInfo.desc;
+                if (promptTitleEl) promptTitleEl.textContent = docInfo.promptTitle;
+                if (errorMsgEl) errorMsgEl.innerHTML = docInfo.errorMsg;
             } else {
                 dgrSec.classList.add('hidden');
                 resetDgrError();
@@ -1791,21 +1779,16 @@
                 return;
             }
 
-            // 10. Kiểm tra Chứng từ bắt buộc theo Loại hàng hóa (DGR, PER/AVI, VAL)
-            const isDgrCargo = cargoType.includes('DGR') || cargoType.toLowerCase().includes('nguy hiểm');
-            const isPerAviCargo = cargoType.includes('PER') || cargoType.includes('AVI') || cargoType.toLowerCase().includes('thực phẩm') || cargoType.toLowerCase().includes('tươi sống') || cargoType.toLowerCase().includes('hải sản');
-            const isValCargo = cargoType.includes('VAL') || cargoType.toLowerCase().includes('giá trị cao') || cargoType.toLowerCase().includes('linh kiện');
+            // 10. Kiểm tra Chứng từ bắt buộc theo Loại hàng hóa (DGR, PER/AVI, VAL, PIL/MED, GOH)
+            const storeInst = (typeof getStore === 'function') ? getStore() : CargoStore;
+            const docInfo = (storeInst && storeInst.getCargoDocumentInfo)
+                ? storeInst.getCargoDocumentInfo(cargoType)
+                : (CargoStore && CargoStore.getCargoDocumentInfo ? CargoStore.getCargoDocumentInfo(cargoType) : { isRequired: false });
 
-            const isDocRequired = isDgrCargo || isPerAviCargo || isValCargo;
-
-            if (isDocRequired && (!currentDgrFile || (!currentDgrFile.url && !currentDgrFile.name))) {
+            if (docInfo.isRequired && (!currentDgrFile || (!currentDgrFile.url && !currentDgrFile.name))) {
                 highlightDgrError();
-                let reqMsg = 'Vui lòng tải lên chứng từ bắt buộc cho loại hàng hóa này trước khi lưu hồ sơ!';
-                if (isDgrCargo) reqMsg = 'Vui lòng tải lên Chứng từ an toàn DGR / MSDS (Phiếu an toàn hóa chất & Chứng chỉ DGR) cho mặt hàng nguy hiểm!';
-                else if (isPerAviCargo) reqMsg = 'Vui lòng tải lên Giấy chứng nhận kiểm dịch động/thực vật & Thủy hải sản tươi sống cho mặt hàng thực phẩm / hải sản tươi sống!';
-                else if (isValCargo) reqMsg = 'Vui lòng tải lên Hợp đồng Bảo hiểm hàng hóa hoặc Giấy khai báo giá trị (VAL) cho mặt hàng linh kiện điện tử / giá trị cao!';
-                
-                showCargoModalError(reqMsg);
+                const cleanMsg = (docInfo.errorMsg || 'Vui lòng tải lên chứng từ bắt buộc cho loại hàng hóa này!').replace(/<[^>]*>/g, '');
+                showCargoModalError(cleanMsg);
                 return;
             }
 

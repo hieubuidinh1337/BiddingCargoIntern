@@ -2071,12 +2071,7 @@
                     ${decl.dgrDocName ? `
                         <div class="bg-orange-50 border border-orange-200 rounded-xl p-3 space-y-1.5">
                             <span class="font-bold flex items-center gap-1.5 text-orange-800 text-[11px]">
-                                <i class="fa-solid fa-shield-halved text-orange-500"></i> ${(decl.cargoType || '').includes('PER') || (decl.cargoType || '').includes('AVI') || (decl.cargoType || '').toLowerCase().includes('thực phẩm') || (decl.cargoType || '').toLowerCase().includes('tươi sống') || (decl.cargoType || '').toLowerCase().includes('hải sản')
-                            ? 'Giấy chứng nhận kiểm dịch & An toàn thực phẩm (Quarantine Cert):'
-                            : ((decl.cargoType || '').includes('VAL') || (decl.cargoType || '').toLowerCase().includes('giá trị cao') || (decl.cargoType || '').toLowerCase().includes('linh kiện')
-                                ? 'Hợp đồng Bảo hiểm hàng hóa & Declared Value (VAL):'
-                                : 'Chứng từ an toàn hàng nguy hiểm (DGR / MSDS):')
-                        }
+                                <i class="fa-solid fa-shield-halved text-orange-500"></i> ${(typeof CargoStore !== 'undefined' && CargoStore.getCargoDocumentInfo ? CargoStore.getCargoDocumentInfo(decl.cargoType).adminLabel : 'Chứng từ đính kèm (File / Doc):')}
                             </span>
                             <div class="flex items-center justify-between bg-white border border-orange-200 rounded-lg px-3 py-2">
                                 <div class="flex items-center gap-2 min-w-0">

@@ -5106,6 +5106,91 @@ const CargoStore = (function() {
             return { success: true, message: 'Đã xóa toàn bộ nhật ký hoạt động hệ thống.' };
         },
 
+        getCargoDocumentInfo: function(cargoType = '') {
+            const val = String(cargoType || '').trim();
+            const lower = val.toLowerCase();
+
+            const isDgr = val.includes('DGR') || lower.includes('nguy hiểm');
+            const isVal = val.includes('VAL') || lower.includes('giá trị cao') || lower.includes('linh kiện') || lower.includes('điện tử');
+            const isPilMed = val.includes('PIL') || val.includes('MED') || lower.includes('dược phẩm') || lower.includes('y tế');
+            const isPerAvi = val.includes('PER') || val.includes('AVI') || lower.includes('thực phẩm') || lower.includes('tươi sống') || lower.includes('hải sản') || lower.includes('nông sản');
+            const isGoh = val.includes('GOH') || lower.includes('may mặc') || lower.includes('dệt may');
+
+            if (isDgr) {
+                return {
+                    isRequired: true,
+                    type: 'DGR',
+                    title: 'Chứng từ an toàn hàng nguy hiểm / MSDS',
+                    badge: 'MSDS / DGR Cert',
+                    iconClass: 'fa-solid fa-triangle-exclamation text-amber-600',
+                    desc: 'Hàng nguy hiểm yêu cầu bắt buộc phải có <strong>Phiếu an toàn hóa chất (MSDS)</strong> & <strong>Chứng chỉ DGR còn hiệu lực</strong> theo quy định an toàn hàng không ICAO/IATA.',
+                    promptTitle: 'Tải lên chứng từ an toàn DGR / MSDS',
+                    errorMsg: '<i class="fa-solid fa-circle-exclamation"></i> Vui lòng chọn và tải lên chứng từ an toàn DGR / MSDS!',
+                    adminLabel: 'Chứng từ an toàn hàng nguy hiểm (DGR / MSDS):'
+                };
+            } else if (isVal) {
+                return {
+                    isRequired: true,
+                    type: 'VAL',
+                    title: 'Bảo hiểm hàng hóa & Declared Value Certificate',
+                    badge: 'Bảo hiểm / Valuation Cert',
+                    iconClass: 'fa-solid fa-shield-halved text-blue-600',
+                    desc: 'Hàng linh kiện điện tử và hàng giá trị cao (VAL) yêu cầu bắt buộc phải đính kèm <strong>Hợp đồng/Giấy chứng nhận Bảo hiểm hàng hóa</strong> hoặc <strong>Giấy khai báo giá trị hàng hóa (Declared Value)</strong> theo quy định IATA.',
+                    promptTitle: 'Tải lên Hợp đồng Bảo hiểm hàng hóa / Giấy khai báo giá trị (VAL)',
+                    errorMsg: '<i class="fa-solid fa-circle-exclamation"></i> Vui lòng chọn và tải lên Hợp đồng Bảo hiểm hàng hóa hoặc Giấy khai báo giá trị (VAL)!',
+                    adminLabel: 'Hợp đồng Bảo hiểm hàng hóa & Declared Value (VAL):'
+                };
+            } else if (isPilMed) {
+                return {
+                    isRequired: true,
+                    type: 'PIL_MED',
+                    title: 'Giấy phép nhập khẩu & Chứng nhận GDP/GSP Dược phẩm',
+                    badge: 'Giấy phép Y tế / GDP Cert',
+                    iconClass: 'fa-solid fa-briefcase-medical text-indigo-600',
+                    desc: 'Hàng dược phẩm, vắc xin và thiết bị y tế yêu cầu bắt buộc phải có <strong>Giấy phép nhập khẩu y tế</strong> hoặc <strong>Giấy chứng nhận thực hành tốt phân phối (GDP/GSP)</strong> theo quy định Bộ Y tế.',
+                    promptTitle: 'Tải lên Giấy phép nhập khẩu Y tế / Chứng nhận GDP/GSP',
+                    errorMsg: '<i class="fa-solid fa-circle-exclamation"></i> Vui lòng chọn và tải lên Giấy phép nhập khẩu y tế hoặc chứng nhận GDP/GSP!',
+                    adminLabel: 'Giấy phép Nhập khẩu Y tế & GDP/GSP (Medical Cert):'
+                };
+            } else if (isPerAvi) {
+                return {
+                    isRequired: true,
+                    type: 'PER_AVI',
+                    title: 'Giấy chứng nhận kiểm dịch & An toàn thực phẩm',
+                    badge: 'Giấy kiểm dịch (Quarantine Cert)',
+                    iconClass: 'fa-solid fa-clipboard-check text-emerald-600',
+                    desc: 'Hàng thực phẩm, hải sản tươi sống và nông sản/động vật bắt buộc phải có <strong>Giấy chứng nhận kiểm dịch</strong> (Cục Thú y / Cục Bảo vệ Thực vật) còn hiệu lực theo quy định hàng không.',
+                    promptTitle: 'Tải lên Giấy chứng nhận kiểm dịch Hải sản / Thực phẩm',
+                    errorMsg: '<i class="fa-solid fa-circle-exclamation"></i> Vui lòng chọn và tải lên Giấy chứng nhận kiểm dịch cho hàng hải sản tươi sống / thực phẩm!',
+                    adminLabel: 'Giấy chứng nhận kiểm dịch & An toàn thực phẩm (Quarantine Cert):'
+                };
+            } else if (isGoh) {
+                return {
+                    isRequired: true,
+                    type: 'GOH',
+                    title: 'Chứng nhận xuất xứ & Hóa đơn thương mại (CO / Invoice)',
+                    badge: 'Chứng nhận CO / Invoice',
+                    iconClass: 'fa-solid fa-file-contract text-purple-600',
+                    desc: 'Hàng may mặc / dệt may yêu cầu đính kèm <strong>Chứng nhận xuất xứ (Certificate of Origin - CO)</strong> hoặc <strong>Hóa đơn thương mại / Packing List</strong> đi kèm lô hàng.',
+                    promptTitle: 'Tải lên Chứng nhận xuất xứ (CO) / Hóa đơn thương mại',
+                    errorMsg: '<i class="fa-solid fa-circle-exclamation"></i> Vui lòng chọn và tải lên Chứng nhận xuất xứ (CO) hoặc Hóa đơn thương mại!',
+                    adminLabel: 'Chứng nhận xuất xứ & Hóa đơn thương mại (CO / Invoice):'
+                };
+            }
+
+            return {
+                isRequired: false,
+                type: 'GEN',
+                title: 'Hồ sơ chứng từ bổ sung (Nếu có)',
+                badge: 'Chứng từ bổ sung',
+                iconClass: 'fa-solid fa-file text-slate-500',
+                desc: 'Hàng hóa thông thường không bắt buộc đính kèm chứng từ đặc thù. Quý đại lý có thể tải thêm Packing List / Commercial Invoice nếu cần.',
+                promptTitle: 'Tải lên chứng từ bổ sung (Không bắt buộc)',
+                errorMsg: '',
+                adminLabel: 'Chứng từ đính kèm (Doc / File):'
+            };
+        },
+
         logoutAgent: function() {
             if (typeof window !== 'undefined') window._isManualLogout = true;
             const data = loadData();
