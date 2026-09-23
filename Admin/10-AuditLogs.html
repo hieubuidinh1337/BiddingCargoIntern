@@ -542,7 +542,7 @@
                 class="p-4 bg-white border-b border-slate-200 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-12 gap-3 items-center">
 
                 <!-- Search Input -->
-                <div class="lg:col-span-4 relative">
+                <div class="lg:col-span-3 relative">
                     <i
                         class="fa-solid fa-magnifying-glass absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 text-xs"></i>
                     <input type="text" id="searchInput" oninput="handleFilterChange()"
@@ -591,16 +591,16 @@
                 </div>
 
                 <!-- Action Buttons: Reset & Quick Refresh -->
-                <div class="lg:col-span-1 flex items-center gap-1.5 justify-end">
+                <div class="lg:col-span-2 flex items-center gap-2 justify-end shrink-0">
                     <button onclick="fetchServerLogs(true)" title="Làm mới dữ liệu tức thì"
-                        class="px-2.5 py-2 text-xs font-bold text-emerald-700 bg-emerald-50 hover:bg-emerald-100 border border-emerald-200 rounded-xl transition-all flex items-center justify-center gap-1 shadow-xs">
+                        class="px-3 py-2 text-xs font-bold text-emerald-700 bg-emerald-50 hover:bg-emerald-100 border border-emerald-200 rounded-xl transition-all flex items-center justify-center gap-1.5 shadow-xs whitespace-nowrap cursor-pointer">
                         <i class="fa-solid fa-arrows-rotate text-emerald-600" id="btnRefreshIcon"></i>
-                        <span class="hidden sm:inline">Cập nhật</span>
+                        <span>Cập nhật</span>
                     </button>
                     <button onclick="resetFilters()" title="Đặt lại bộ lọc"
-                        class="px-2.5 py-2 text-xs font-semibold text-slate-600 bg-slate-100 hover:bg-slate-200 rounded-xl transition-all flex items-center justify-center gap-1">
-                        <i class="fa-solid fa-rotate-left"></i>
-                        <span class="hidden sm:inline">Đặt lại</span>
+                        class="px-3 py-2 text-xs font-semibold text-slate-600 bg-slate-100 hover:bg-slate-200 border border-slate-200 rounded-xl transition-all flex items-center justify-center gap-1.5 whitespace-nowrap cursor-pointer">
+                        <i class="fa-solid fa-rotate-left text-slate-500"></i>
+                        <span>Đặt lại</span>
                     </button>
                 </div>
 
