@@ -1792,6 +1792,8 @@
                 return;
             }
 
+            const isDocRequired = !!(docInfo && docInfo.isRequired);
+
             const cargoData = {
                 cargoType,
                 hawbNumber,
