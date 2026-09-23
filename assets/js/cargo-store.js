@@ -2982,29 +2982,26 @@ const CargoStore = (function() {
 
             data.bids = deduplicateBids(data.bids);
 
-            // NOTE: Activity log for bid placement is written by the server when processing /api/bids/place.
-            // We only write a local log here if running offline (no HTTP) to avoid duplicate entries.
-            const isHttpForLog = typeof window !== 'undefined' && window.location && window.location.protocol && window.location.protocol.startsWith('http');
-            if (!isHttpForLog) {
-                if (!data.activityLogs) data.activityLogs = [];
-                const padLog = n => String(n).padStart(2, '0');
-                const dLog = new Date(now);
-                const tsLogStr = `${padLog(dLog.getDate())}/${padLog(dLog.getMonth() + 1)}/${dLog.getFullYear()} ${padLog(dLog.getHours())}:${padLog(dLog.getMinutes())}:${padLog(dLog.getSeconds())}`;
-                data.activityLogs.unshift({
-                    id: now,
-                    timestamp: tsLogStr,
-                    rawTime: now,
-                    actor: user.companyName || user.agentCode,
-                    username: user.agentCode,
-                    role: 'AGENT',
-                    actionCategory: 'Đấu giá',
-                    actionTitle: 'Đặt giá thầu',
-                    target: auction.flightNumber || `AUC-${auction.id}`,
-                    details: `Đại lý ${user.companyName || user.agentCode} đặt thầu thành công mức giá ${formatCurrency(bidPriceKg)}/Kg cho chuyến bay ${auction.flightNumber} (${auction.route}).`,
-                    ip: '113.161.42.12',
-                    device: 'Web Client'
-                });
-            }
+            // Always write activity log locally for immediate UI responsiveness, deduplicated on server sync
+            if (!data.activityLogs) data.activityLogs = [];
+            const padLog = n => String(n).padStart(2, '0');
+            const dLog = new Date(now);
+            const tsLogStr = `${padLog(dLog.getDate())}/${padLog(dLog.getMonth() + 1)}/${dLog.getFullYear()} ${padLog(dLog.getHours())}:${padLog(dLog.getMinutes())}:${padLog(dLog.getSeconds())}`;
+            data.activityLogs.unshift({
+                id: now,
+                timestamp: tsLogStr,
+                rawTime: now,
+                actor: user.companyName || user.agentCode,
+                username: user.agentCode,
+                role: 'AGENT',
+                actionCategory: 'Đấu giá',
+                actionTitle: 'Đặt giá thầu',
+                target: auction.flightNumber || `AUC-${auction.id}`,
+                details: `Đại lý ${user.companyName || user.agentCode} đặt thầu thành công mức giá ${formatCurrency(bidPriceKg)}/Kg cho chuyến bay ${auction.flightNumber} (${auction.route}).`,
+                ip: '113.161.42.12',
+                device: 'Web Client'
+            });
+            data.activityLogs = deduplicateActivityLogs(data.activityLogs);
 
             const isHttp = typeof window !== 'undefined' && window.location && window.location.protocol && window.location.protocol.startsWith('http');
 

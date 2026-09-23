@@ -1097,10 +1097,6 @@ const server = http.createServer((req, res) => {
                 // Reconcile auction summaries (currentPriceKg, bidsCount, leadingAgent)
                 reconcileAuctionSummaries(serverData);
 
-                // *** CRITICAL FIX: Bump version so admin/agent tabs detect the new bid ***
-                serverData.version = Date.now();
-                saveServerData();
-
                 // Log bidding activity into activity_logs DB & in-memory serverData
                 try {
                     const pad = n => String(n).padStart(2, '0');
@@ -1137,6 +1133,10 @@ const server = http.createServer((req, res) => {
                 } catch (logErr) {
                     console.error('[Server] Error logging bid activity:', logErr);
                 }
+
+                // *** CRITICAL FIX: Bump version so admin/agent tabs detect the new bid & new log ***
+                serverData.version = Date.now();
+                saveServerData();
 
                 res.writeHead(200, { 'Content-Type': 'application/json; charset=UTF-8' });
                 res.end(JSON.stringify({
