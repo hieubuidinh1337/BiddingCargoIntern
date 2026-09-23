@@ -391,11 +391,80 @@ function reconcileAuctionSummaries(data) {
     return changed;
 }
 
+async function reconcileBidActivityLogs(data) {
+    if (!data || !Array.isArray(data.bids)) return false;
+    if (!data.activityLogs) data.activityLogs = [];
+
+    let addedCount = 0;
+    const existingLogKeys = new Set(
+        data.activityLogs
+            .filter(l => l && (l.actionTitle === 'Đặt giá thầu' || l.actionCategory === 'Đấu giá'))
+            .map(l => `${String(l.username || l.actor || '').toUpperCase()}_${l.target}_${Math.floor((l.rawTime || 0) / 10000)}`)
+    );
+
+    const pad = n => String(n).padStart(2, '0');
+
+    for (const b of data.bids) {
+        if (!b) continue;
+        const code = String(b.agentCode || '').trim().toUpperCase();
+        if (!code || code === 'AG-***' || code === 'ANONYMOUS') continue;
+
+        const aucObj = (data.auctions || []).find(a => Number(a.id) === Number(b.auctionId) || (a.flightCode && a.flightCode === b.flightCode));
+        const flightStr = aucObj ? (aucObj.flightNumber || aucObj.flightCode) : (b.flightCode || `AUC-${b.auctionId}`);
+        const rawTime = Number(b.timestamp || b.id) || Date.now();
+        const timeKey = `${code}_${flightStr}_${Math.floor(rawTime / 10000)}`;
+
+        if (!existingLogKeys.has(timeKey)) {
+            existingLogKeys.add(timeKey);
+            const d = new Date(rawTime);
+            const timestampStr = `${pad(d.getDate())}/${pad(d.getMonth() + 1)}/${d.getFullYear()} ${pad(d.getHours())}:${pad(d.getMinutes())}:${pad(d.getSeconds())}`;
+            const agentObj = (data.agentsList || []).find(a => (a.code || '').toUpperCase() === code);
+            const actorName = agentObj ? (agentObj.companyName || agentObj.repName) : (b.agentName || code);
+            const priceFormatted = new Intl.NumberFormat('vi-VN').format(b.priceKg);
+            const detailsStr = `Đại lý ${actorName} đặt thầu thành công mức giá ${priceFormatted}đ/Kg cho chuyến bay ${flightStr}${aucObj && aucObj.route ? ' (' + aucObj.route + ')' : ''}.`;
+
+            const newLog = {
+                id: rawTime + Math.floor(Math.random() * 1000),
+                timestamp: timestampStr,
+                rawTime: rawTime,
+                actor: actorName,
+                username: code,
+                role: 'AGENT',
+                actionCategory: 'Đấu giá',
+                actionTitle: 'Đặt giá thầu',
+                target: flightStr,
+                details: detailsStr,
+                ip: '113.161.42.12',
+                device: 'Web Client'
+            };
+
+            data.activityLogs.unshift(newLog);
+            addedCount++;
+
+            try {
+                await db.run(
+                    `INSERT OR IGNORE INTO activity_logs (id, timestamp, rawTime, actor, username, role, actionCategory, actionTitle, target, details, ip, device)
+                     VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+                    [newLog.id, newLog.timestamp, newLog.rawTime, newLog.actor, newLog.username, newLog.role, newLog.actionCategory, newLog.actionTitle, newLog.target, newLog.details, newLog.ip, newLog.device]
+                );
+            } catch(e) {}
+        }
+    }
+
+    if (addedCount > 0) {
+        data.activityLogs.sort((a, b) => (Number(b.rawTime || b.id) || 0) - (Number(a.rawTime || a.id) || 0));
+        console.log(`[Database] Reconciled ${addedCount} bid activity log entries.`);
+        return true;
+    }
+    return false;
+}
+
 async function loadServerDataAsync() {
     try {
         await db.initDatabase();
         const purgedCount = await db.purgeUnregisteredBids();
         serverData = await db.getFullServerData();
+        await reconcileBidActivityLogs(serverData);
         if (purgedCount > 0) {
             console.log(`[Database] Reconciling ${purgedCount} purged bids across all auctions...`);
             reconcileAuctionSummaries(serverData);
@@ -1245,7 +1314,7 @@ const server = http.createServer((req, res) => {
             console.error('[api/data] Stream error:', err.message);
             if (!res.headersSent) { res.writeHead(400, { 'Content-Type': 'application/json' }); res.end(JSON.stringify({ success: false, error: 'Stream error' })); }
         });
-        req.on('end', () => {
+        req.on('end', async () => {
             try {
                 const incoming = JSON.parse(body);
                 if (incoming.auctions && Array.isArray(incoming.auctions)) {
@@ -1328,9 +1397,31 @@ const server = http.createServer((req, res) => {
                     serverData.notifications = Array.from(notifMap.values())
                         .sort((a, b) => (Number(b.timestamp || b.createdAt || b.id) || 0) - (Number(a.timestamp || a.createdAt || a.id) || 0));
                 }
-                // NOTE: activityLogs are managed exclusively by the server.
-                // Client no longer writes logs when online, so we ignore incoming.activityLogs
-                // to prevent stale client data from duplicating server logs.
+                // Merge client activity logs if provided
+                if (incoming.activityLogs && Array.isArray(incoming.activityLogs)) {
+                    if (!serverData.activityLogs) serverData.activityLogs = [];
+                    const logKey = l => `${l.username || l.actor}_${l.actionTitle}_${Math.floor((l.rawTime || 0) / 5000)}`;
+                    const existingLogKeys = new Set(serverData.activityLogs.map(logKey));
+
+                    incoming.activityLogs.forEach(l => {
+                        if (!l || !l.actionTitle) return;
+                        const key = logKey(l);
+                        if (!existingLogKeys.has(key)) {
+                            existingLogKeys.add(key);
+                            serverData.activityLogs.unshift(l);
+                            db.run(
+                                `INSERT OR IGNORE INTO activity_logs (id, timestamp, rawTime, actor, username, role, actionCategory, actionTitle, target, details, ip, device)
+                                 VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+                                [l.id || Date.now(), l.timestamp || '', l.rawTime || Date.now(), l.actor || '', l.username || '', l.role || 'AGENT', l.actionCategory || 'Khác', l.actionTitle || 'Thao tác', l.target || 'N/A', l.details || '', l.ip || '113.161.42.12', l.device || 'Web Client']
+                            ).catch(() => {});
+                        }
+                    });
+
+                    serverData.activityLogs.sort((a, b) => (Number(b.rawTime || b.id) || 0) - (Number(a.rawTime || a.id) || 0));
+                    if (serverData.activityLogs.length > 1000) {
+                        serverData.activityLogs = serverData.activityLogs.slice(0, 1000);
+                    }
+                }
                 if (incoming.registrations && Array.isArray(incoming.registrations)) {
                     if (!serverData.registrations) serverData.registrations = [];
                     const regMap = new Map();
@@ -1377,6 +1468,7 @@ const server = http.createServer((req, res) => {
 
                 reconcileAuctionSummaries(serverData);
                 checkAndAutoLockExpiredWonAuctions(serverData);
+                await reconcileBidActivityLogs(serverData);
                 serverData.version = Date.now();
                 saveServerData();
 

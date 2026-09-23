@@ -2980,14 +2980,12 @@ const CargoStore = (function() {
                 });
             }
 
-            data.bids = deduplicateBids(data.bids);
-
-            // Always write activity log locally for immediate UI responsiveness, deduplicated on server sync
             if (!data.activityLogs) data.activityLogs = [];
             const padLog = n => String(n).padStart(2, '0');
             const dLog = new Date(now);
             const tsLogStr = `${padLog(dLog.getDate())}/${padLog(dLog.getMonth() + 1)}/${dLog.getFullYear()} ${padLog(dLog.getHours())}:${padLog(dLog.getMinutes())}:${padLog(dLog.getSeconds())}`;
-            data.activityLogs.unshift({
+
+            const bidActivityLog = {
                 id: now,
                 timestamp: tsLogStr,
                 rawTime: now,
@@ -3000,10 +2998,19 @@ const CargoStore = (function() {
                 details: `Đại lý ${user.companyName || user.agentCode} đặt thầu thành công mức giá ${formatCurrency(bidPriceKg)}/Kg cho chuyến bay ${auction.flightNumber} (${auction.route}).`,
                 ip: '113.161.42.12',
                 device: 'Web Client'
-            });
+            };
+            data.activityLogs.unshift(bidActivityLog);
             data.activityLogs = deduplicateActivityLogs(data.activityLogs);
 
             const isHttp = typeof window !== 'undefined' && window.location && window.location.protocol && window.location.protocol.startsWith('http');
+
+            if (isHttp) {
+                fetch('/api/logs', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(bidActivityLog)
+                }).catch(() => {});
+            }
 
             // Set guard BEFORE saving so the periodic syncWithServer() won't
             // overwrite the new bid in the 2-second window before server confirms it.
