@@ -217,8 +217,24 @@ SMTP_PASS=fcjuktvwjqhgilzb
 
 ---
 
-## 🧪 9. Kiểm Thử Tự Động & An Ninh Hệ Thống (QA Automation Testing & Security)
+## 🧪 9. Kiểm Thử (Testing & QA)
 
+Dự án bao gồm cả kế hoạch kiểm thử thủ công dựa trên tài liệu giải pháp và bộ kiểm thử tự động toàn diện.
+
+### 9.1 Kế Hoạch Kiểm Thử Thủ Công (Manual Test Plan) & Kiểm thử chức năng
+Vui lòng xem chi tiết tại: [KE_HOACH_KIEM_THU.md](./KE_HOACH_KIEM_THU.md)
+Kế hoạch này bao quát các luồng nghiệp vụ theo tài liệu yêu cầu:
+- Quản lý phân quyền (Admin, Staff, Agent, Guest).
+- Quản lý phiên đấu giá & Đặt giá thầu ẩn danh.
+- Kiểm thử phi chức năng (Giao diện UI, Bảo mật, Đảm bảo ẩn danh).
+
+**🚀 Chạy kịch bản tự động hóa kiểm thử kế hoạch (Mock Test):**
+Bạn có thể chạy trực tiếp bộ test tự động mô phỏng các nghiệp vụ (UM, AM, BF) trong kế hoạch kiểm thử bằng lệnh:
+```bash
+node scratch/test_ke_hoach_kiem_thu.js
+```
+
+### 9.2 Kiểm Thử Tự Động & An Ninh Hệ Thống (Automation Testing)
 Dự án được trang bị bộ kiểm thử tự động toàn diện **Jest & Supertest** phục vụ kiểm tra tự động tất cả các luồng nghiệp vụ API (Integration Test) và phòng ngừa lỗ hổng an ninh mạng.
 
 > **Trạng thái hiện tại (v1.2):** ✅ **12/12 Test Cases PASS** — Bộ test tự khởi/tắt HTTP Server tại cổng `8086` (không cần server đang chạy riêng).

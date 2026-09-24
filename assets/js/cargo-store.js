@@ -2891,7 +2891,7 @@ const CargoStore = (function() {
                 return {
                     success: false,
                     message: hasBids
-                        ? `Giá đặt phải tối thiểu bằng ${formatCurrency(minAcceptable)}/Kg (Giá hiện tại + bước giá tối thiểu ${formatCurrency(auction.minStep)})`
+                        ? `Mức giá của bạn chưa đủ cạnh tranh để vươn lên dẫn đầu. Vui lòng đặt giá cao hơn!`
                         : `Lượt đặt giá đầu tiên phải tối thiểu bằng giá khởi điểm ${formatCurrency(minAcceptable)}/Kg`
                 };
             }

@@ -589,10 +589,10 @@
                                     </span>
                                 </td>
                                 <td class="py-2.5 px-3.5 text-right font-bold text-blue-600">
-                                    ${CargoStore.formatCurrency ? CargoStore.formatCurrency(price) : price + ' đ'}
+                                    ${isMe ? (CargoStore.formatCurrency ? CargoStore.formatCurrency(price) : price + ' đ') : '??? (Ẩn)'}
                                 </td>
                                 <td class="py-2.5 px-3.5 text-right font-semibold text-slate-800">
-                                    ${CargoStore.formatCurrency ? CargoStore.formatCurrency(total) : total + ' đ'}
+                                    ${isMe ? (CargoStore.formatCurrency ? CargoStore.formatCurrency(total) : total + ' đ') : '??? (Ẩn)'}
                                 </td>
                                 <td class="py-2.5 px-3.5 text-center">
                                     ${statusTag}

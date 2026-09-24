@@ -301,8 +301,8 @@
                 <div id="standardBiddingBox" class="bg-white rounded-2xl border shadow-sm p-6 sticky top-20">
                     <div class="text-center pb-4 border-b">
                         <p class="text-xs text-gray-500">Mức giá đặt thầu tối thiểu</p>
-                        <p class="text-2xl font-bold text-blue-600 mt-1" id="minAcceptablePrice">22.000 đ<span class="text-xs font-normal text-gray-500">/Kg</span></p>
-                        <p class="text-[11px] text-gray-400 mt-0.5" id="minAcceptableHint">(Giá hiện tại + bước giá tối thiểu)</p>
+                        <p class="text-[12px] font-bold text-blue-600 mt-1" id="minAcceptablePrice">Tự quyết định mức giá</p>
+                        <p class="text-[11px] text-gray-400 mt-0.5" id="minAcceptableHint">(Vui lòng nhập mức giá cạnh tranh nhất)</p>
                     </div>
 
                     <form id="bidForm" class="space-y-4 pt-4">
@@ -496,7 +496,7 @@
                 if (standardBiddingBox) standardBiddingBox.classList.remove('hidden');
             }
 
-            document.getElementById('specCurrentPrice').textContent = CargoStore.formatCurrency(currentAuction.currentPriceKg) + '/Kg';
+            document.getElementById('specCurrentPrice').textContent = '??? (Ẩn)';
             
             document.getElementById('specNotes').textContent = currentAuction.specialNotes;
             const hasBids = (currentAuction.bidsCount && currentAuction.bidsCount > 0);
@@ -504,10 +504,10 @@
                 ? (currentAuction.currentPriceKg + currentAuction.minStep)
                 : (currentAuction.startingPriceKg || currentAuction.currentPriceKg);
 
-            document.getElementById('minAcceptablePrice').textContent = CargoStore.formatCurrency(minAcceptable) + '/Kg';
+            // document.getElementById('minAcceptablePrice').textContent
             const hintEl = document.getElementById('minAcceptableHint');
             if (hintEl) {
-                hintEl.textContent = hasBids ? '(Giá hiện tại + bước giá tối thiểu)' : '(Bằng giá khởi điểm cho lượt đặt đầu tiên)';
+            //     hintEl.textContent = hasBids ? '(Giá hiện tại + bước giá tối thiểu)' : '(Bằng giá khởi điểm cho lượt đặt đầu tiên)';
             }
 
             // Top Status Badge
@@ -563,7 +563,7 @@
                 if (input) {
                     input.disabled = false;
                     if (!input.value || Number(input.value) === 0) {
-                        input.value = minAcceptable;
+                        input.value = currentAuction.startingPriceKg;
                     }
                 }
                 if (submitBtn) {
@@ -622,10 +622,10 @@
                             </div>
                         </td>
                         <td class="py-3 px-4 font-bold ${isFirst ? 'text-blue-600 text-sm' : 'text-slate-700'}">
-                            ${CargoStore.formatCurrency(b.priceKg)}
+                            ${isMine ? CargoStore.formatCurrency(b.priceKg) : '??? (Ẩn)'}
                         </td>
                         <td class="py-3 px-4 text-gray-600">
-                            ${CargoStore.formatCurrency(b.priceKg * b.weightKg)}
+                            ${isMine ? CargoStore.formatCurrency(b.priceKg * b.weightKg) : '??? (Ẩn)'}
                         </td>
                         <td class="py-3 px-4 text-gray-400 text-[11px]">
                             ${CargoStore.formatTimeAgo(b.timestamp, b.time)}
