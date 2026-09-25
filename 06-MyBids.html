@@ -573,10 +573,10 @@
                         let statusTag = '';
                         if (b.status === 'WON' || (wonItem && idx === 0)) {
                             statusTag = '<span class="bg-purple-100 text-purple-700 font-bold px-2 py-0.5 rounded text-[10px]">Thắng thầu</span>';
-                        } else if (idx === 0 && (b.status === 'HIGHEST' || auction.leadingAgentCode === bCode)) {
+                        } else if (auction.status === 'CLOSED' && idx === 0 && (b.status === 'HIGHEST' || auction.leadingAgentCode === bCode)) {
                             statusTag = '<span class="bg-green-100 text-green-700 font-bold px-2 py-0.5 rounded text-[10px]">Dẫn đầu</span>';
                         } else {
-                            statusTag = '<span class="bg-slate-100 text-slate-600 font-medium px-2 py-0.5 rounded text-[10px]">Đã đặt</span>';
+                            statusTag = '<span class="bg-blue-50 text-blue-600 font-medium px-2 py-0.5 rounded text-[10px]">Đã ghi nhận</span>';
                         }
 
                         return `
@@ -589,10 +589,10 @@
                                     </span>
                                 </td>
                                 <td class="py-2.5 px-3.5 text-right font-bold text-blue-600">
-                                    ${isMe ? (CargoStore.formatCurrency ? CargoStore.formatCurrency(price) : price + ' đ') : '??? (Ẩn)'}
+                                    ${(isMe || auction.status === 'CLOSED') ? (CargoStore.formatCurrency ? CargoStore.formatCurrency(price) : price + ' đ') : '??? (Ẩn)'}
                                 </td>
                                 <td class="py-2.5 px-3.5 text-right font-semibold text-slate-800">
-                                    ${isMe ? (CargoStore.formatCurrency ? CargoStore.formatCurrency(total) : total + ' đ') : '??? (Ẩn)'}
+                                    ${(isMe || auction.status === 'CLOSED') ? (CargoStore.formatCurrency ? CargoStore.formatCurrency(total) : total + ' đ') : '??? (Ẩn)'}
                                 </td>
                                 <td class="py-2.5 px-3.5 text-center">
                                     ${statusTag}

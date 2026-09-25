@@ -110,15 +110,7 @@
                     <p class="text-xs text-gray-500">Chưa đọc</p>
                 </div>
             </div>
-            <div class="bg-white rounded-xl border p-4 flex items-center gap-3 shadow-sm">
-                <div class="w-10 h-10 rounded-xl bg-amber-100 flex items-center justify-center">
-                    <i class="fa-solid fa-arrow-trend-up text-amber-600"></i>
-                </div>
-                <div>
-                    <p class="text-xl font-bold text-amber-600" id="statOutbid">0</p>
-                    <p class="text-xs text-gray-500">Bị vượt giá</p>
-                </div>
-            </div>
+            
             <div class="bg-white rounded-xl border p-4 flex items-center gap-3 shadow-sm">
                 <div class="w-10 h-10 rounded-xl bg-emerald-100 flex items-center justify-center">
                     <i class="fa-solid fa-trophy text-emerald-600"></i>
@@ -139,12 +131,11 @@
             <button onclick="setFilter('unread')" class="filter-btn text-gray-600 text-xs font-semibold px-3 py-1.5 rounded-lg whitespace-nowrap" id="f-unread">
                 <i class="fa-solid fa-circle-dot mr-1 text-red-500"></i>Chưa đọc
             </button>
-            <button onclick="setFilter('OUTBID')" class="filter-btn text-gray-600 text-xs font-semibold px-3 py-1.5 rounded-lg whitespace-nowrap" id="f-OUTBID">
-                <i class="fa-solid fa-arrow-trend-up mr-1 text-amber-500"></i>Bị vượt giá
+            <button onclick="setFilter('BID_RECEIVED')" class="filter-btn text-gray-600 text-xs font-semibold px-3 py-1.5 rounded-lg whitespace-nowrap" id="f-BID_RECEIVED">
+                <i class="fa-solid fa-check-circle mr-1 text-blue-500"></i>Đã đặt giá
             </button>
-            <button onclick="setFilter('HIGHEST')" class="filter-btn text-gray-600 text-xs font-semibold px-3 py-1.5 rounded-lg whitespace-nowrap" id="f-HIGHEST">
-                <i class="fa-solid fa-crown mr-1 text-blue-500"></i>Dẫn đầu
-            </button>
+            
+            
             <button onclick="setFilter('WON')" class="filter-btn text-gray-600 text-xs font-semibold px-3 py-1.5 rounded-lg whitespace-nowrap" id="f-WON">
                 <i class="fa-solid fa-trophy mr-1 text-emerald-500"></i>Trúng thầu
             </button>
@@ -224,14 +215,9 @@
     let pendingDeleteIds = [];
 
     const typeConfig = {
-        'OUTBID': {
-            icon: 'fa-arrow-trend-up', iconColor: 'text-amber-600', iconBg: 'bg-amber-100',
-            borderClass: 'warn', dotColor: 'bg-amber-400', label: 'Bị vượt giá',
-            labelBg: 'bg-amber-100 text-amber-700'
-        },
-        'HIGHEST': {
-            icon: 'fa-crown', iconColor: 'text-blue-600', iconBg: 'bg-blue-100',
-            borderClass: 'unread', dotColor: 'bg-blue-400', label: 'Đang dẫn đầu',
+        'BID_RECEIVED': {
+            icon: 'fa-check-circle', iconColor: 'text-blue-600', iconBg: 'bg-blue-100',
+            borderClass: 'unread', dotColor: 'bg-blue-400', label: 'Đã đặt giá',
             labelBg: 'bg-blue-100 text-blue-700'
         },
         'WON': {
@@ -294,11 +280,11 @@
 
         const total = notifs.length;
         const unread = notifs.filter(n => !n.read).length;
-        const outbid = notifs.filter(n => n.type === 'OUTBID').length;
+        
         const won = notifs.filter(n => n.type === 'WON').length;
         document.getElementById('statTotal').textContent = total;
         document.getElementById('statUnread').textContent = unread;
-        document.getElementById('statOutbid').textContent = outbid;
+        
         document.getElementById('statWon').textContent = won;
 
         if (currentFilter === 'unread') notifs = notifs.filter(n => !n.read);
@@ -317,8 +303,8 @@
             const msgs = {
                 'all': 'Hộp thư thông báo trống',
                 'unread': 'Không có thông báo chưa đọc',
-                'OUTBID': 'Không có thông báo bị vượt giá',
-                'HIGHEST': 'Không có thông báo dẫn đầu',
+                
+                'BID_RECEIVED': 'Không có thông báo đặt giá',
                 'WON': 'Bạn chưa trúng thầu nào',
                 'CLOSING_SOON': 'Không có cảnh báo sắp đóng thầu',
                 'SYSTEM': 'Không có thông báo hệ thống'
@@ -340,7 +326,7 @@
             const cfg = getConfig(n.type);
             const isSelected = selectedNotifIds.has(String(n.id));
             const readClass = n.read ? '' : cfg.borderClass;
-            const bgClass = isSelected ? 'bg-indigo-50/50 ring-2 ring-indigo-500/40' : (n.read ? 'bg-white' : (n.type === 'OUTBID' ? 'bg-amber-50/30' : (n.type === 'WON' ? 'bg-emerald-50/30' : (n.type === 'CLOSING_SOON' ? 'bg-red-50/20' : 'bg-blue-50/20'))));
+            const bgClass = isSelected ? 'bg-indigo-50/50 ring-2 ring-indigo-500/40' : (n.read ? 'bg-white' : ((n.type === 'WON' ? 'bg-emerald-50/30' : (n.type === 'CLOSING_SOON' ? 'bg-red-50/20' : 'bg-blue-50/20'))));
 
             return `
             <div id="notif-card-${n.id}" class="notif-card ${readClass} ${bgClass} rounded-xl border shadow-sm fade-in transition" style="animation-delay:${idx * 0.03}s">

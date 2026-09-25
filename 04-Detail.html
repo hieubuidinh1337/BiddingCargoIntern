@@ -496,13 +496,11 @@
                 if (standardBiddingBox) standardBiddingBox.classList.remove('hidden');
             }
 
-            document.getElementById('specCurrentPrice').textContent = '??? (Ẩn)';
+            document.getElementById('specCurrentPrice').textContent = (currentAuction.status === 'CLOSED' || CargoStore.getTimeRemaining(currentAuction.endTime).isEnded) ? (CargoStore.formatCurrency(currentAuction.currentPriceKg) + ' đ/Kg') : '??? (Ẩn)';
             
             document.getElementById('specNotes').textContent = currentAuction.specialNotes;
             const hasBids = (currentAuction.bidsCount && currentAuction.bidsCount > 0);
-            const minAcceptable = hasBids
-                ? (currentAuction.currentPriceKg + currentAuction.minStep)
-                : (currentAuction.startingPriceKg || currentAuction.currentPriceKg);
+            const minAcceptable = currentAuction.startingPriceKg || currentAuction.currentPriceKg || 0;
 
             // document.getElementById('minAcceptablePrice').textContent
             const hintEl = document.getElementById('minAcceptableHint');
@@ -602,6 +600,12 @@
             const timer = CargoStore.getTimeRemaining(currentAuction.endTime);
             const isClosed = currentAuction.status === 'CLOSED' || timer.isEnded;
 
+            if (!isClosed) {
+                bids = bids.sort((a, b) => (Number(b.timestamp || b.id) || 0) - (Number(a.timestamp || a.id) || 0));
+            }
+            if (!isClosed) {
+                bids = bids.sort((a, b) => (Number(b.timestamp || b.id) || 0) - (Number(a.timestamp || a.id) || 0));
+            }
             const tbody = document.getElementById('bidsTableBody');
             if (bids.length === 0) {
                 tbody.innerHTML = `<tr><td colspan="5" class="py-6 text-center text-gray-400">Chưa có lượt đặt giá nào cho chuyến bay này</td></tr>`;
@@ -609,7 +613,7 @@
             }
 
             tbody.innerHTML = bids.map((b, index) => {
-                const isFirst = index === 0;
+                const isFirst = isClosed ? index === 0 : false;
                 const isMine = b.agentCode === myCode;
                 const displayName = CargoStore.getPublicAgentName(b.agentCode, b.agentName, b.isAnonymous);
                 return `
@@ -622,22 +626,26 @@
                             </div>
                         </td>
                         <td class="py-3 px-4 font-bold ${isFirst ? 'text-blue-600 text-sm' : 'text-slate-700'}">
-                            ${isMine ? CargoStore.formatCurrency(b.priceKg) : '??? (Ẩn)'}
+                            ${(isMine || isClosed) ? CargoStore.formatCurrency(b.priceKg) : '??? (Ẩn)'}
                         </td>
                         <td class="py-3 px-4 text-gray-600">
-                            ${isMine ? CargoStore.formatCurrency(b.priceKg * b.weightKg) : '??? (Ẩn)'}
+                            ${(isMine || isClosed) ? CargoStore.formatCurrency(b.priceKg * b.weightKg) : '??? (Ẩn)'}
                         </td>
                         <td class="py-3 px-4 text-gray-400 text-[11px]">
                             ${CargoStore.formatTimeAgo(b.timestamp, b.time)}
                         </td>
-                        <td class="py-3 px-4 text-right">
-                            ${isFirst ? `
-                                <span class="${isClosed ? 'bg-amber-100 text-amber-900 border border-amber-300 font-bold' : 'bg-green-100 text-green-700 font-bold'} px-2.5 py-1 rounded-full text-[10px] inline-flex items-center gap-1 shadow-xs">
-                                    <i class="fa-solid ${isClosed ? 'fa-trophy text-amber-600' : 'fa-crown text-emerald-600'} text-[9px]"></i> ${isClosed ? 'Thắng thầu' : 'Dẫn đầu'}
+                                                <td class="py-3 px-4 text-right">
+                            ${isClosed ? (isFirst ? `
+                                <span class="bg-amber-100 text-amber-900 border border-amber-300 font-bold px-2.5 py-1 rounded-full text-[10px] inline-flex items-center gap-1 shadow-xs">
+                                    <i class="fa-solid fa-trophy text-amber-600 text-[9px]"></i> Thắng thầu
                                 </span>
                             ` : `
                                 <span class="bg-gray-100 text-gray-500 font-medium px-2 py-0.5 rounded-full text-[10px]">
                                     Bị vượt
+                                </span>
+                            `) : `
+                                <span class="bg-blue-50 text-blue-600 font-medium px-2 py-0.5 rounded-full text-[10px]">
+                                    Đã ghi nhận
                                 </span>
                             `}
                         </td>
@@ -681,16 +689,12 @@
 
             // Validate price against minimum BEFORE showing confirm modal
             const hasBids = (currentAuction.bidsCount && currentAuction.bidsCount > 0);
-            const minAcceptable = hasBids
-                ? (currentAuction.currentPriceKg + currentAuction.minStep)
-                : (currentAuction.startingPriceKg || currentAuction.currentPriceKg);
+            const minAcceptable = currentAuction.startingPriceKg || currentAuction.currentPriceKg || 0;
 
             if (!price || price < minAcceptable) {
                 const minFmt = CargoStore.formatCurrency(minAcceptable);
                 alertBox.className = 'mt-3 p-3 rounded-xl text-xs bg-red-50 text-red-700 border border-red-200 block font-medium';
-                alertBox.innerHTML = hasBids
-                    ? `⚠️ Mức giá <strong>${CargoStore.formatCurrency(price)}/Kg</strong> thấp hơn mức tối thiểu. Vui lòng nhập tối thiểu <strong>${minFmt}/Kg</strong> (Giá hiện tại + bước giá ${CargoStore.formatCurrency(currentAuction.minStep)}).`
-                    : `⚠️ Lượt đặt đầu tiên phải tối thiểu bằng giá khởi điểm <strong>${minFmt}/Kg</strong>.`;
+                alertBox.innerHTML = `⚠️ Mức giá <strong>${CargoStore.formatCurrency(price)}/Kg</strong> thấp hơn mức tối thiểu. Vui lòng nhập tối thiểu bằng giá khởi điểm <strong>${minFmt}/Kg</strong>.`;
                 const input = document.getElementById('bidPriceInput');
                 if (input) input.focus();
                 return;

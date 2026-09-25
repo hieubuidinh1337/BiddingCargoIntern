@@ -1009,9 +1009,9 @@
                     <td class="py-3 px-4 text-slate-700">${CargoStore.formatCurrency(b.priceKg * b.weightKg)}</td>
                     <td class="py-3 px-4 text-gray-400 text-[11px]">${CargoStore.formatTimeAgo(b.timestamp, b.time)}</td>
                     <td class="py-3 px-4">
-                        ${b.status === 'HIGHEST' || b.status === 'WON' ?
-                    '<span class="bg-green-100 text-green-700 font-bold px-2 py-0.5 rounded text-[10px]">DẪN ĐẦU</span>' :
-                    '<span class="bg-gray-100 text-gray-500 px-2 py-0.5 rounded text-[10px]">BỊ VƯỢT</span>'}
+                        ${(b.status === 'WON' || (auction.status === 'CLOSED' && i === 0)) ?
+                    '<span class="bg-green-100 text-green-700 font-bold px-2 py-0.5 rounded text-[10px]">THẮNG THẦU</span>' :
+                    '<span class="bg-blue-50 text-blue-600 font-medium px-2 py-0.5 rounded text-[10px]">ĐÃ GHI NHẬN</span>'}
                     </td>
                 </tr>
             `).join('');

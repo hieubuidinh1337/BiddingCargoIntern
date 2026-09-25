@@ -139,7 +139,7 @@ const defaultSharedData = {
             isAnonymous: true,
             priceKg: 56500,
             time: '3 phút trước',
-            status: 'HIGHEST',
+            status: 'RECEIVED',
             weightKg: 3500
         },
         {
@@ -151,7 +151,7 @@ const defaultSharedData = {
             isAnonymous: true,
             priceKg: 56000,
             time: '6 phút trước',
-            status: 'OUTBID',
+            status: 'RECEIVED',
             weightKg: 3500
         },
         {
@@ -163,7 +163,7 @@ const defaultSharedData = {
             isAnonymous: true,
             priceKg: 41500,
             time: '15 phút trước',
-            status: 'OUTBID',
+            status: 'RECEIVED',
             weightKg: 3500
         },
         {
@@ -175,7 +175,7 @@ const defaultSharedData = {
             isAnonymous: true,
             priceKg: 39000,
             time: '25 phút trước',
-            status: 'OUTBID',
+            status: 'RECEIVED',
             weightKg: 3500
         },
         {
@@ -187,7 +187,7 @@ const defaultSharedData = {
             isAnonymous: true,
             priceKg: 25000,
             time: '35 phút trước',
-            status: 'OUTBID',
+            status: 'RECEIVED',
             weightKg: 3500
         },
         {
@@ -199,7 +199,7 @@ const defaultSharedData = {
             isAnonymous: true,
             priceKg: 24500,
             time: '42 phút trước',
-            status: 'OUTBID',
+            status: 'RECEIVED',
             weightKg: 3500
         },
         {
@@ -211,7 +211,7 @@ const defaultSharedData = {
             isAnonymous: true,
             priceKg: 23000,
             time: '48 phút trước',
-            status: 'OUTBID',
+            status: 'RECEIVED',
             weightKg: 3500
         },
         {
@@ -223,7 +223,7 @@ const defaultSharedData = {
             isAnonymous: true,
             priceKg: 21500,
             time: '52 phút trước',
-            status: 'OUTBID',
+            status: 'RECEIVED',
             weightKg: 3500
         },
         {
@@ -235,7 +235,7 @@ const defaultSharedData = {
             isAnonymous: true,
             priceKg: 20000,
             time: '56 phút trước',
-            status: 'OUTBID',
+            status: 'RECEIVED',
             weightKg: 3500
         },
         {
@@ -247,7 +247,7 @@ const defaultSharedData = {
             isAnonymous: true,
             priceKg: 19000,
             time: '1 giờ trước',
-            status: 'OUTBID',
+            status: 'RECEIVED',
             weightKg: 3500
         }
     ],
@@ -275,7 +275,7 @@ const defaultSharedData = {
             title: 'Bạn đang dẫn đầu thầu VU130',
             message: 'Mức giá 21,500 đ/Kg của bạn đang là cao nhất cho chuyến SGN-HAN.',
             time: '12 phút trước',
-            type: 'HIGHEST',
+            type: 'BID_RECEIVED',
             read: false,
             link: '04-Detail.html?id=1'
         }

@@ -761,7 +761,7 @@ async function placeBidAtomic({ auctionId, agentCode, agentName, priceKg, isAnon
 
     const minStep = Number(auction.minStep) || 500;
     const currentPrice = Number(auction.currentPriceKg) || Number(auction.startingPriceKg) || 0;
-    const minPriceRequired = currentPrice + ((Number(auction.bidsCount) || 0) > 0 ? minStep : 0);
+    const minPriceRequired = Number(auction.startingPriceKg) || 0;
 
     if (Number(priceKg) < minPriceRequired) {
         throw new Error(`Giá đặt (${new Intl.NumberFormat('vi-VN').format(priceKg)}đ) phải lớn hơn hoặc bằng giá tối thiểu (${new Intl.NumberFormat('vi-VN').format(minPriceRequired)}đ)`);
@@ -785,14 +785,18 @@ async function placeBidAtomic({ auctionId, agentCode, agentName, priceKg, isAnon
         `, [auctionId, bidId]);
 
         const newBidCount = (Number(auction.bidsCount) || 0) + 1;
-        await run(`
-            UPDATE auctions SET 
-                currentPriceKg = ?,
-                leadingAgentCode = ?,
-                leadingAgentName = ?,
-                bidsCount = ?
-            WHERE id = ?
-        `, [Number(priceKg), agentCode, agentName, newBidCount, auctionId]);
+        if (Number(priceKg) > Number(auction.currentPriceKg || 0)) {
+            await run(`
+                UPDATE auctions SET 
+                    currentPriceKg = ?,
+                    leadingAgentCode = ?,
+                    leadingAgentName = ?,
+                    bidsCount = ?
+                WHERE id = ?
+            `, [Number(priceKg), agentCode, agentName, newBidCount, auctionId]);
+        } else {
+            await run(`UPDATE auctions SET bidsCount = ? WHERE id = ?`, [newBidCount, auctionId]);
+        }
 
         // Insert notifications into notifications table
         const flightLabel = auction.flightNumber || (`FL-${auctionId}`);
@@ -800,22 +804,11 @@ async function placeBidAtomic({ auctionId, agentCode, agentName, priceKg, isAnon
         const formattedPrice = new Intl.NumberFormat('vi-VN').format(priceKg);
         const anonText = isAnonymous ? ' (Tên công ty được che ẩn danh đối với các đối thủ)' : '';
         const title1 = `Đặt giá thành công chuyến ${flightLabel}`;
-        const msg1 = `Bạn (${agentCode}) đang dẫn đầu mức giá ${formattedPrice}đ/Kg cho chặng ${routeLabel}.${anonText}`;
+        const msg1 = `Hệ thống đã ghi nhận mức giá ${formattedPrice}đ/Kg của bạn cho chặng ${routeLabel}.${anonText}`;
         await run(`
             INSERT INTO notifications (id, targetAgentCode, title, message, time, type, read, link)
-            VALUES (?, ?, ?, ?, 'Vừa xong', 'HIGHEST', 0, ?)
+            VALUES (?, ?, ?, ?, 'Vừa xong', 'BID_RECEIVED', 0, ?)
         `, [now, agentCode, title1, msg1, `04-Detail.html?id=${auctionId}`]).catch(() => {});
-
-        const prevLeaderCode = auction.leadingAgentCode;
-        if (prevLeaderCode && String(prevLeaderCode).trim().toUpperCase() !== String(agentCode).trim().toUpperCase()) {
-            const competitorDisplay = isAnonymous ? 'Một đại lý đối thủ (Ẩn danh)' : `Đại lý ${agentName} (${agentCode})`;
-            const title2 = `Cảnh báo bị vượt giá chuyến ${flightLabel}!`;
-            const msg2 = `${competitorDisplay} vừa đặt mức giá mới ${formattedPrice}đ/Kg cho chặng ${routeLabel}.`;
-            await run(`
-                INSERT INTO notifications (id, targetAgentCode, title, message, time, type, read, link)
-                VALUES (?, ?, ?, ?, 'Vừa xong', 'OUTBID', 0, ?)
-            `, [now + 1, prevLeaderCode, title2, msg2, `04-Detail.html?id=${auctionId}`]).catch(() => {});
-        }
 
         await run('COMMIT;').catch(() => {});
         await checkpointWal();

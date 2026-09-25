@@ -390,7 +390,7 @@ const CargoStore = (function() {
                 isAnonymous: true,
                 priceKg: 56500,
                 time: '3 phút trước',
-                status: 'HIGHEST',
+                status: 'RECEIVED',
                 weightKg: 3500
             },
             {
@@ -402,7 +402,7 @@ const CargoStore = (function() {
                 isAnonymous: true,
                 priceKg: 56000,
                 time: '6 phút trước',
-                status: 'OUTBID',
+                status: 'RECEIVED',
                 weightKg: 3500
             },
             {
@@ -414,7 +414,7 @@ const CargoStore = (function() {
                 isAnonymous: true,
                 priceKg: 41500,
                 time: '15 phút trước',
-                status: 'OUTBID',
+                status: 'RECEIVED',
                 weightKg: 3500
             },
             {
@@ -426,7 +426,7 @@ const CargoStore = (function() {
                 isAnonymous: true,
                 priceKg: 39000,
                 time: '25 phút trước',
-                status: 'OUTBID',
+                status: 'RECEIVED',
                 weightKg: 3500
             },
             {
@@ -438,7 +438,7 @@ const CargoStore = (function() {
                 isAnonymous: true,
                 priceKg: 25000,
                 time: '35 phút trước',
-                status: 'OUTBID',
+                status: 'RECEIVED',
                 weightKg: 3500
             },
             {
@@ -450,7 +450,7 @@ const CargoStore = (function() {
                 isAnonymous: true,
                 priceKg: 24500,
                 time: '42 phút trước',
-                status: 'OUTBID',
+                status: 'RECEIVED',
                 weightKg: 3500
             },
             {
@@ -462,7 +462,7 @@ const CargoStore = (function() {
                 isAnonymous: true,
                 priceKg: 23000,
                 time: '48 phút trước',
-                status: 'OUTBID',
+                status: 'RECEIVED',
                 weightKg: 3500
             },
             {
@@ -474,7 +474,7 @@ const CargoStore = (function() {
                 isAnonymous: true,
                 priceKg: 21500,
                 time: '52 phút trước',
-                status: 'OUTBID',
+                status: 'RECEIVED',
                 weightKg: 3500
             },
             {
@@ -486,7 +486,7 @@ const CargoStore = (function() {
                 isAnonymous: true,
                 priceKg: 20000,
                 time: '56 phút trước',
-                status: 'OUTBID',
+                status: 'RECEIVED',
                 weightKg: 3500
             },
             {
@@ -498,7 +498,7 @@ const CargoStore = (function() {
                 isAnonymous: true,
                 priceKg: 19000,
                 time: '1 giờ trước',
-                status: 'OUTBID',
+                status: 'RECEIVED',
                 weightKg: 3500
             }
         ],
@@ -652,7 +652,7 @@ const CargoStore = (function() {
                 title: '🚀 Bạn đang dẫn đầu thầu VU130 (SGN-HAN)',
                 message: 'Mức giá 21.500 đ/Kg của bạn (AG-0892) đang là cao nhất cho chặng SGN - HAN. Giữ vững ưu thế!',
                 time: '12 phút trước',
-                type: 'HIGHEST',
+                type: 'BID_RECEIVED',
                 read: false,
                 link: '04-Detail.html?id=1'
             },
@@ -663,7 +663,7 @@ const CargoStore = (function() {
                 title: '⚠️ Cảnh báo bị vượt giá chuyến VU224 (SGN-DAD)!',
                 message: 'Đại lý ẩn danh (AG-***) vừa đặt mức giá mới 19.500 đ/Kg cho chặng SGN - DAD. Bạn không còn dẫn đầu.',
                 time: '30 phút trước',
-                type: 'OUTBID',
+                type: 'BID_RECEIVED',
                 read: false,
                 link: '04-Detail.html?id=2'
             },
@@ -2802,7 +2802,7 @@ const CargoStore = (function() {
                         isAnonymous: true,
                         priceKg: Number(price),
                         time: `${(count - i) * 20} phút trước`,
-                        status: 'OUTBID',
+                        status: 'RECEIVED',
                         weightKg: auction.capacityKg || 3000
                     });
                 }
@@ -2883,16 +2883,13 @@ const CargoStore = (function() {
             }
 
             const hasBids = (auction.bidsCount && auction.bidsCount > 0);
-            const minAcceptable = hasBids
-                ? (auction.currentPriceKg + auction.minStep)
-                : (auction.startingPriceKg || auction.currentPriceKg);
+            const minAcceptable = auction.startingPriceKg || auction.currentPriceKg || 0;
 
             if (bidPriceKg < minAcceptable) {
                 return {
                     success: false,
-                    message: hasBids
-                        ? `Mức giá của bạn chưa đủ cạnh tranh để vươn lên dẫn đầu. Vui lòng đặt giá cao hơn!`
-                        : `Lượt đặt giá đầu tiên phải tối thiểu bằng giá khởi điểm ${formatCurrency(minAcceptable)}/Kg`
+                    message:
+                        `Mức giá tối thiểu để đặt thầu là giá khởi điểm ${formatCurrency(minAcceptable)}/Kg`
                 };
             }
 
@@ -2911,15 +2908,8 @@ const CargoStore = (function() {
             // Track previous leader before updating
             const previousLeaderCode = auction.leadingAgentCode;
             const previousLeaderName = auction.leadingAgentName;
-
-            // Mark previous bids as OUTBID
-            data.bids.forEach(b => {
-                if ((String(b.auctionId) === String(auction.id) || (auction.flightCode && b.flightCode === auction.flightCode)) && b.status === 'HIGHEST') {
-                    b.status = 'OUTBID';
-                }
-            });
-
-            const anonFlag = isAnonymous !== false;
+            // Outbid logic removed for blind auction
+const anonFlag = isAnonymous !== false;
 
             const now = Date.now();
             // Insert new bid with logged in agent's identity and isAnonymous flag
@@ -2933,7 +2923,7 @@ const CargoStore = (function() {
                 isAnonymous: anonFlag,
                 priceKg: Number(bidPriceKg),
                 time: formatTimeAgo(now),
-                status: 'HIGHEST',
+                status: 'RECEIVED',
                 weightKg: auction.capacityKg
             };
             data.bids.unshift(newBid);
@@ -2959,7 +2949,7 @@ const CargoStore = (function() {
                 title: `Đặt giá thành công chuyến ${auction.flightNumber}`,
                 message: `Bạn (${user.agentCode}) đang dẫn đầu mức giá ${formatCurrency(bidPriceKg)}/Kg cho chặng ${auction.route}.${anonFlag ? ' (Tên công ty được che ẩn danh đối với các đối thủ)' : ''}`,
                 time: formatTimeAgo(now),
-                type: 'HIGHEST',
+                type: 'BID_RECEIVED',
                 read: false,
                 link: `04-Detail.html?id=${auction.id}`
             });
@@ -2974,7 +2964,7 @@ const CargoStore = (function() {
                     title: `Cảnh báo bị vượt giá chuyến ${auction.flightNumber}!`,
                     message: `${competitorNameDisplay} vừa đặt mức giá mới ${formatCurrency(bidPriceKg)}/Kg cho chặng ${auction.route}.`,
                     time: formatTimeAgo(now + 1),
-                    type: 'OUTBID',
+                    type: 'BID_RECEIVED',
                     read: false,
                     link: `04-Detail.html?id=${auction.id}`
                 });
@@ -3256,7 +3246,7 @@ const CargoStore = (function() {
                 if (b.status === 'HIGHEST') {
                     const hasHighestNotif = allNotifs.some(n => 
                         (String(n.id) === highestNotifId) ||
-                        (n.type === 'HIGHEST' && 
+                        (n.type === 'BID_RECEIVED' && 
                          String(n.targetAgentCode || '').trim().toUpperCase() === myCode && 
                          (n.link && n.link.includes(`id=${b.auctionId}`)))
                     );
@@ -3278,16 +3268,16 @@ const CargoStore = (function() {
                             title: `Đặt giá thành công chuyến ${flightLabel}`,
                             message: `Bạn (${myCode}) đang dẫn đầu mức giá ${formatCurrency(b.priceKg)}/Kg cho chặng ${routeLabel}.`,
                             time: formatTimeAgo(bTime),
-                            type: 'HIGHEST',
+                            type: 'BID_RECEIVED',
                             read: isRead,
                             unread: !isRead,
                             link: `04-Detail.html?id=${b.auctionId}`
                         });
                     }
-                } else if (b.status === 'OUTBID') {
+                } else if (false /* removed */) {
                     const hasOutbidNotif = allNotifs.some(n => 
                         (String(n.id) === outbidNotifId) ||
-                        (n.type === 'OUTBID' && 
+                        (false /* removed */ && 
                          String(n.targetAgentCode || '').trim().toUpperCase() === myCode && 
                          (n.link && n.link.includes(`id=${b.auctionId}`)))
                     );
@@ -3314,7 +3304,7 @@ const CargoStore = (function() {
                             title: `Cảnh báo bị vượt giá chuyến ${flightLabel}!`,
                             message: `${competitorNameDisplay} vừa đặt mức giá mới ${formatCurrency(higherPrice)}/Kg cho chặng ${routeLabel}.`,
                             time: formatTimeAgo(bTime + 1),
-                            type: 'OUTBID',
+                            type: 'BID_RECEIVED',
                             read: isRead,
                             unread: !isRead,
                             link: `04-Detail.html?id=${b.auctionId}`
@@ -3354,7 +3344,7 @@ const CargoStore = (function() {
 
                 // WON, OUTBID, HIGHEST, PAYMENT_REMINDER, and REGISTRATION_APPROVED/REJECTED are strictly agent-specific
                 const isAgentSpecific = (
-                    n.type === 'WON' || n.type === 'OUTBID' || n.type === 'HIGHEST' || n.type === 'PAYMENT_REMINDER' ||
+                    n.type === 'WON' || false /* removed */ || n.type === 'BID_RECEIVED' || n.type === 'PAYMENT_REMINDER' ||
                     n.type === 'REGISTRATION_APPROVED' || n.type === 'REGISTRATION_REJECTED' || n.type === 'AGENT' ||
                     titleUpper.includes('PHÊ DUYỆT HỒ SƠ') || titleUpper.includes('CẤP MÃ ĐẠI LÝ') || titleUpper.includes('TỪ CHỐI HỒ SƠ') ||
                     titleUpper.includes('KHÓA TÀI KHOẢN') || msgUpper.includes('CẤP MÃ ĐẠI LÝ') || msgUpper.includes('MÃ ĐẠI LÝ CHÍNH THỨC')

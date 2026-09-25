@@ -427,7 +427,7 @@
                             <div class="flex flex-wrap items-center gap-2 mb-1">
                                 <span class="bg-blue-600 text-white font-bold text-xs px-2.5 py-0.5 rounded-lg">${a.flightNumber}</span>
                                 <span class="bg-slate-100 text-slate-600 font-mono font-semibold text-[10px] px-2 py-0.5 rounded-md border border-slate-200" title="Mã định danh phiên">${a.flightCode || '#' + a.id}</span>
-                                ${isLeading ? '<span class="bg-emerald-100 text-emerald-700 text-xs font-semibold px-2 py-0.5 rounded-full flex items-center gap-1"><i class="fa-solid fa-crown text-[10px]"></i> Dẫn đầu</span>' : ''}
+                                ${(isLeading && a.status === 'CLOSED') ? '<span class="bg-emerald-100 text-emerald-700 text-xs font-semibold px-2 py-0.5 rounded-full flex items-center gap-1"><i class="fa-solid fa-crown text-[10px]"></i> Thắng thầu</span>' : ''}
                                 ${isUrgent ? '<span class="bg-red-100 text-red-700 text-xs font-semibold px-2 py-0.5 rounded-full flex items-center gap-1 animate-pulse"><i class="fa-solid fa-fire text-[10px]"></i> Sắp đóng!</span>' : ''}
                                 ${isClosed ? '<span class="bg-gray-100 text-gray-500 text-xs px-2 py-0.5 rounded-full">Đã đóng</span>' : ''}
                                 <span class="text-xs text-gray-400">${a.aircraft}</span>
@@ -456,7 +456,7 @@
                         <!-- Current Price -->
                         <div>
                             <p class="text-[11px] text-gray-400 mb-0.5">Giá cao nhất hiện tại</p>
-                            <p class="text-xl font-bold text-gray-500">??? (Ẩn)</p>
+                            <p class="text-xl font-bold ${a.status === 'CLOSED' ? 'text-blue-600' : 'text-gray-500'}">${a.status === 'CLOSED' ? (CargoStore.formatCurrency(a.currentPriceKg) + ' đ/Kg') : '??? (Ẩn)'}</p>
                             <p class="text-[11px] ${incPct > 0 ? 'text-rose-500' : 'text-gray-400'} font-medium">
                                 ${incPct > 0 ? `<i class="fa-solid fa-arrow-trend-up mr-0.5"></i>+${incPct}% vs khởi điểm` : 'Chưa có lượt thầu'}
                             </p>
@@ -468,15 +468,15 @@
                         <!-- Total Value -->
                         <div class="hidden sm:block">
                             <p class="text-[11px] text-gray-400 mb-0.5">Tổng giá trị ước tính</p>
-                            <p class="text-base font-bold text-slate-700">??? (Ẩn)</p>
+                            <p class="text-base font-bold text-slate-700">${a.status === 'CLOSED' ? (CargoStore.formatCurrency(a.currentPriceKg * (a.capacityKg || a.chargeableWeightKg || 0)) + ' đ') : '??? (Ẩn)'}</p>
                             <p class="text-[11px] text-gray-400">(Tạm ẩn)</p>
                         </div>
 
                         <!-- Leader -->
                         <div class="hidden lg:block">
-                            <p class="text-[11px] text-gray-400 mb-0.5">Đại lý dẫn đầu</p>
-                            <p class="text-sm font-semibold text-slate-700">${isLeading ? `<span class="text-emerald-600">🏆 Bạn (${currentAgentCode})</span>` : (a.leadingAgentCode ? CargoStore.getPublicAgentName(a.leadingAgentCode, a.leadingAgentName, a.isAnonymous) : '—')}</p>
-                            <p class="text-[11px] text-gray-400">${isLeading ? (data.currentUser ? data.currentUser.companyName + ' (Công ty của bạn)' : 'Công ty của bạn') : (a.leadingAgentName ? (a.isAnonymous ? 'Thông tin đã được ẩn danh' : a.leadingAgentName) : 'Chưa có lượt thầu')}</p>
+                                                        <p class="text-[11px] text-gray-400 mb-0.5">Đại lý ${a.status === 'CLOSED' ? 'thắng thầu' : 'dẫn đầu'}</p>
+                            <p class="text-sm font-semibold text-slate-700">${a.status === 'CLOSED' ? (isLeading ? `<span class="text-emerald-600">🏆 Bạn (${currentAgentCode})</span>` : (a.leadingAgentCode ? CargoStore.getPublicAgentName(a.leadingAgentCode, a.leadingAgentName, a.isAnonymous) : '—')) : '??? (Ẩn)'}</p>
+                            <p class="text-[11px] text-gray-400">${a.status === 'CLOSED' ? (isLeading ? (data.currentUser ? data.currentUser.companyName + ' (Công ty của bạn)' : 'Công ty của bạn') : (a.leadingAgentName ? (a.isAnonymous ? 'Thông tin đã được ẩn danh' : a.leadingAgentName) : 'Chưa có lượt thầu')) : 'Đang trong phiên (Ẩn danh)'}</p>
                         </div>
                     </div>
 
@@ -538,9 +538,9 @@
         if (!a) return;
         currentBidAuction = a;
         const hasBids = (a.bidsCount && a.bidsCount > 0);
-        modalMinPrice = hasBids ? (a.currentPriceKg + (a.minStep || 500)) : (a.startingPriceKg || a.currentPriceKg);
+        modalMinPrice = a.startingPriceKg || a.currentPriceKg || 0;
         document.getElementById('modalFlightLabel').textContent = a.flightNumber + ' · ' + a.route;
-        document.getElementById('modalCurrentPrice').textContent = '??? (Ẩn)';
+        document.getElementById('modalCurrentPrice').textContent = (a.status === 'CLOSED') ? (CargoStore.formatCurrency(a.currentPriceKg) + ' đ/Kg') : '??? (Ẩn)';
         document.getElementById('modalMinPrice').textContent = 'Tự do chào giá';
         document.getElementById('quickBidInput').value = a.startingPriceKg || 0;
         document.getElementById('quickBidModal').classList.remove('hidden');
