@@ -109,9 +109,22 @@ describe('Vietravel Airlines Cargo Bidding System - API Automation Test Suite', 
         });
 
         test('HP-06: Atomic Sealed-Bid Placement - POST /api/bids/place should place bid atomically', async () => {
-            const dataRes = await api().get('/api/data');
-            const targetAuction = dataRes.body.auctions.find(a => a.status === 'OPEN');
+            const db = require('../db.js');
+            const newEndTime = new Date(Date.now() + 3600000).toISOString();
+            await db.run(`UPDATE auctions SET status = 'OPEN', endTime = '${newEndTime}' WHERE id = 1`);
+
+            let dataRes = await api().get('/api/data');
+            let newAuctions = [...dataRes.body.auctions];
+            let target = newAuctions.find(a => a.id === 1);
+            if (target && target.status !== 'OPEN') {
+                target.status = 'OPEN';
+                await api().post('/api/data').send({ auctions: newAuctions });
+                dataRes = await api().get('/api/data');
+            }
+            
+            const targetAuction = dataRes.body.auctions.find(a => a.id === 1);
             expect(targetAuction).toBeDefined();
+            expect(targetAuction.status).toBe('OPEN');
 
             const basePrice = Number(targetAuction.currentPriceKg || targetAuction.startingPriceKg || 20000);
             const minBid = basePrice + 50000;
@@ -126,6 +139,9 @@ describe('Vietravel Airlines Cargo Bidding System - API Automation Test Suite', 
                     weightKg: 1000
                 });
 
+            if (res.statusCode !== 200) {
+                console.error("HP-06 FAILED WITH ERROR:", res.body.error);
+            }
             expect(res.statusCode).toBe(200);
             expect(res.body.success).toBe(true);
             expect(res.body).toHaveProperty('bid');
