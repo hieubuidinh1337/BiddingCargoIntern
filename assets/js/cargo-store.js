@@ -2850,7 +2850,6 @@ const CargoStore = (function() {
             const currentUser = viewerContext || data.currentUser;
             const pathname = (typeof window !== 'undefined' && window.location && window.location.pathname) ? window.location.pathname : '';
             const isAdminPage = pathname.includes('/Admin/') || pathname.includes('/admin/');
-            const anon = isAnonymous !== false;
 
             // 1. Admin viewing on Admin Portal -> Full visibility + tag if anonymous
             // Staff viewing on Admin Portal -> Mask bidder identity (STAFF cannot view bidder identities)
@@ -2859,6 +2858,7 @@ const CargoStore = (function() {
                 if (isStaff) {
                     return `Đại lý ẩn danh (AG-***)`;
                 }
+                const anon = isAnonymous !== false;
                 if (anon) {
                     return `${agentName || 'Đại lý'} (${agentCode || '-'}) [ẨN DANH]`;
                 }
@@ -2866,18 +2866,15 @@ const CargoStore = (function() {
             }
 
             // 2. The bidding agent themselves viewing -> Real name with (Bạn)
-            if (currentUser && (currentUser.agentCode === agentCode || currentUser.code === agentCode)) {
+            const myAgentCode = currentUser ? String(currentUser.agentCode || currentUser.code || '').trim().toUpperCase() : '';
+            const targetCode = String(agentCode || '').trim().toUpperCase();
+            if (myAgentCode && targetCode && myAgentCode === targetCode) {
                 return `${agentName || currentUser.companyName} (Bạn)`;
             }
 
-            // 3. Competitor agent viewing an anonymous bid -> Mask identity completely!
-            if (anon) {
-                const maskedCode = agentCode ? (agentCode.slice(0, 3) + '***') : 'AG-***';
-                return `Đại lý ẩn danh (${maskedCode})`;
-            }
-
-            // 4. Competitor viewing non-anonymous bid -> Real name
-            return agentName || 'Đại lý đấu thầu';
+            // 3. Competitor agent viewing on Agent Portal -> ALWAYS mask identity completely!
+            const maskedCode = (targetCode && targetCode !== 'AG-***') ? (targetCode.slice(0, 3) + '***') : 'AG-***';
+            return `Đại lý ẩn danh (${maskedCode})`;
         },
 
         placeBid: function(auctionId, bidPriceKg, isAnonymous = true) {

@@ -614,14 +614,14 @@
 
             tbody.innerHTML = bids.map((b, index) => {
                 const isFirst = isClosed ? index === 0 : false;
-                const isMine = b.agentCode === myCode;
+                const isMine = myCode && String(b.agentCode || '').trim().toUpperCase() === String(myCode).trim().toUpperCase();
                 const displayName = CargoStore.getPublicAgentName(b.agentCode, b.agentName, b.isAnonymous);
                 return `
                     <tr class="${isFirst ? 'bg-blue-50/40 font-medium' : 'hover:bg-gray-50'} transition">
                         <td class="py-3 px-4">
                             <div class="flex items-center gap-2">
                                 <span class="font-bold text-slate-800">${displayName}</span>
-                                ${b.isAnonymous && !isMine ? '<span class="bg-indigo-100 text-indigo-700 text-[10px] px-1.5 py-0.5 rounded font-bold inline-flex items-center gap-1"><i class="fa-solid fa-user-ninja"></i> Ẩn danh</span>' : ''}
+                                ${!isMine ? '<span class="bg-indigo-100 text-indigo-700 text-[10px] px-1.5 py-0.5 rounded font-bold inline-flex items-center gap-1"><i class="fa-solid fa-user-ninja"></i> Ẩn danh</span>' : ''}
                                 ${isMine ? '<span class="bg-blue-100 text-blue-700 text-[10px] px-1.5 py-0.5 rounded font-bold">Bạn</span>' : ''}
                             </div>
                         </td>
@@ -641,7 +641,7 @@
                                 </span>
                             ` : `
                                 <span class="bg-gray-100 text-gray-500 font-medium px-2 py-0.5 rounded-full text-[10px]">
-                                    Bị vượt
+                                    Không trúng thầu
                                 </span>
                             `) : `
                                 <span class="bg-blue-50 text-blue-600 font-medium px-2 py-0.5 rounded-full text-[10px]">

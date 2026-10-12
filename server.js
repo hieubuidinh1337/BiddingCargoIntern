@@ -945,11 +945,9 @@ const server = http.createServer((req, res) => {
                     .map(a => Number(a.id))
             );
 
-            // While OPEN, anonymize competitor identities (agentCode & agentName) for competitors
-            // so all agents see the realtime bid log with price & time, but competitors are shown as "Đại lý ẩn danh (AG-***)"
+            // Anonymize competitor identities (agentCode & agentName) for competitors
+            // so each agent only sees their own identity, while all competitors are shown as "Đại lý ẩn danh (AG-***)"
             clientPayload.bids = (clientPayload.bids || []).map(b => {
-                const isAuctionOpen = openAuctionIds.has(Number(b.auctionId));
-                if (!isAuctionOpen) return b;
                 const isMine = agentCode && String(b.agentCode || '').trim().toUpperCase() === String(agentCode).trim().toUpperCase();
                 if (isMine) return b;
                 return {
