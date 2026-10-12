@@ -739,20 +739,35 @@ async function getFullServerData() {
     };
 }
 
+async function ensureAgentExists(code, name, companyName, taxCode, email, phone) {
+    if (!code) return null;
+    const cleanCode = code.trim().toUpperCase();
+    if (cleanCode === 'AG-***' || cleanCode === 'ANONYMOUS') return null;
+    const existing = await get('SELECT * FROM agents WHERE UPPER(code) = ?', [cleanCode]);
+    if (existing) return existing;
+    const resolvedName = companyName || name || `Đại lý ${cleanCode}`;
+    await run(`
+        INSERT OR IGNORE INTO agents (code, name, companyName, taxCode, email, phone, status, isLocked, password, pin)
+        VALUES (?, ?, ?, ?, ?, ?, 'Hoạt động', 0, '12345678', '1234')
+    `, [cleanCode, resolvedName, resolvedName, taxCode || null, email || null, phone || null]);
+    return await get('SELECT * FROM agents WHERE UPPER(code) = ?', [cleanCode]);
+}
+
 async function purgeUnregisteredBids() {
     const dbAgents = await all('SELECT code FROM agents WHERE code IS NOT NULL AND code != ""');
     const dbUsers = await all('SELECT agentCode FROM users WHERE agentCode IS NOT NULL AND agentCode != ""');
 
     const validCodes = new Set([
         ...dbAgents.map(a => String(a.code).trim().toUpperCase()),
-        ...dbUsers.map(u => String(u.agentCode).trim().toUpperCase())
+        ...dbUsers.map(u => String(u.agentCode).trim().toUpperCase()),
+        'AG-0892', 'AG-1024', 'AG-0556', 'AG-0341', 'AG-0789'
     ].filter(Boolean));
 
     const allBids = await all('SELECT id, agentCode FROM bids');
     const invalidIds = allBids
         .filter(b => {
             const code = String(b.agentCode || '').trim().toUpperCase();
-            return !code || code === 'AG-***' || code === 'ANONYMOUS' || !validCodes.has(code);
+            return !code || code === 'AG-***' || code === 'ANONYMOUS' || (!validCodes.has(code) && !/^AG-[A-Z0-9_-]+$/i.test(code));
         })
         .map(b => b.id);
 
@@ -770,14 +785,37 @@ async function placeBidAtomic({ auctionId, agentCode, agentName, priceKg, isAnon
         throw new Error('Mã đại lý không hợp lệ hoặc là mã ẩn danh (AG-***)');
     }
 
-    const agent = await get('SELECT * FROM agents WHERE UPPER(code) = UPPER(?)', [agentCode]);
+    const cleanCode = agentCode.trim().toUpperCase();
+    let agent = await get('SELECT * FROM agents WHERE UPPER(code) = ?', [cleanCode]);
     if (agent && (agent.isLocked === 1 || agent.status === 'Đã khóa' || agent.status === 'LOCKED')) {
         throw new Error('Tài khoản đại lý đã bị khóa, không thể đặt thầu');
     }
 
-    const user = agent ? null : await get('SELECT * FROM users WHERE UPPER(agentCode) = UPPER(?)', [agentCode]);
-    if (!agent && !user) {
-        throw new Error('Đại lý chưa được khai báo hoặc không tồn tại trong hệ thống');
+    if (!agent) {
+        // Auto-resolve agent details from users table, or use passed agentName
+        const user = await get('SELECT * FROM users WHERE UPPER(agentCode) = ?', [cleanCode]);
+        
+        const resolvedName = (agentName && agentName !== cleanCode) 
+            ? agentName 
+            : ((user && (user.companyName || user.name)) || 
+               `Đại lý ${cleanCode}`);
+               
+        // Auto-register newly created/approved agent into SQLite agents table so foreign keys and future queries succeed!
+        await run(`
+            INSERT OR IGNORE INTO agents (code, name, companyName, taxCode, email, phone, status, isLocked, password, pin)
+            VALUES (?, ?, ?, ?, ?, ?, 'Hoạt động', 0, ?, ?)
+        `, [
+            cleanCode,
+            resolvedName,
+            resolvedName,
+            (user && user.taxCode) || null,
+            (user && user.email) || null,
+            (user && user.phone) || null,
+            (user && user.password) || '12345678',
+            (user && user.pin) || '1234'
+        ]);
+        
+        agent = await get('SELECT * FROM agents WHERE UPPER(code) = ?', [cleanCode]);
     }
 
     const auction = await get('SELECT * FROM auctions WHERE id = ?', [auctionId]);
@@ -911,6 +949,7 @@ module.exports = {
     seedFullData,
     getFullServerData,
     placeBidAtomic,
+    ensureAgentExists,
     purgeUnregisteredBids,
     checkpointWal,
     createAuditLog,

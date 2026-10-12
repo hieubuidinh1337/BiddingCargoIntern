@@ -391,6 +391,30 @@ function reconcileAuctionSummaries(data) {
     return changed;
 }
 
+function getEffectiveLogTime(log) {
+    if (!log) return 0;
+    if (log.rawTime) {
+        const t = Number(log.rawTime);
+        if (!isNaN(t) && t > 0) return t;
+    }
+    if (log.timestamp) {
+        const parts = String(log.timestamp).trim().split(' ');
+        if (parts.length === 2) {
+            const [dateOrTime, timeOrDate] = parts;
+            let datePart = dateOrTime.includes('/') ? dateOrTime : timeOrDate;
+            let timePart = dateOrTime.includes(':') ? dateOrTime : timeOrDate;
+            if (datePart && timePart) {
+                const [d, m, y] = datePart.split('/');
+                const parsed = new Date(`${y}-${m}-${d}T${timePart}`).getTime();
+                if (!isNaN(parsed)) return parsed;
+            }
+        }
+        const parsed = new Date(log.timestamp).getTime();
+        if (!isNaN(parsed)) return parsed;
+    }
+    return Number(log.id) || 0;
+}
+
 async function reconcileBidActivityLogs(data) {
     if (!data || !Array.isArray(data.bids)) return false;
     if (!data.activityLogs) data.activityLogs = [];
@@ -1169,11 +1193,16 @@ const server = http.createServer((req, res) => {
     if (pathname === '/api/bids/place' && req.method === 'POST') {
         readBody(req).then(async (body) => {
             try {
-                const { auctionId, agentCode, agentName, priceKg, isAnonymous, weightKg } = JSON.parse(body || '{}');
+                let { auctionId, agentCode, agentName, priceKg, isAnonymous, weightKg } = JSON.parse(body || '{}');
                 if (!auctionId || !agentCode || !priceKg) {
                     res.writeHead(400, { 'Content-Type': 'application/json; charset=UTF-8' });
                     res.end(JSON.stringify({ success: false, error: 'Thiếu auctionId, agentCode hoặc priceKg' }));
                     return;
+                }
+
+                const agentObj = (serverData.agentsList || []).find(a => (a.code || '').toUpperCase() === (agentCode || '').toUpperCase());
+                if (agentObj && (!agentName || agentName === agentCode)) {
+                    agentName = agentObj.companyName || agentObj.name || agentObj.repName || agentName;
                 }
 
                 // Call SQLite atomic transaction
@@ -1301,6 +1330,11 @@ const server = http.createServer((req, res) => {
                     agent.code = randomCode;
                 }
 
+                await db.ensureAgentExists(randomCode, reg.companyName, reg.companyName, reg.taxCode, reg.email, reg.phone).catch(() => {});
+                await db.run(`
+                    UPDATE registrations SET status = 'APPROVED', agentCode = ?, approvedAt = ? WHERE regId = ?
+                `, [randomCode, new Date().toLocaleString('vi-VN'), regId]).catch(() => {});
+
                 // Write audit log to serverData.activityLogs so AuditLogs page can show it
                 const _now = new Date();
                 const _pad = n => String(n).padStart(2, '0');
@@ -1364,9 +1398,53 @@ const server = http.createServer((req, res) => {
                     });
                     serverData.auctions = Array.from(map.values()).sort((a, b) => (b.id || 0) - (a.id || 0));
                 }
+                if (incoming.agentsList && Array.isArray(incoming.agentsList)) {
+                    if (!serverData.agentsList) serverData.agentsList = [];
+                    const agentMap = new Map();
+                    serverData.agentsList.forEach(a => agentMap.set(String(a.code).toUpperCase(), a));
+                    for (const a of incoming.agentsList) {
+                        if (!a || !a.code) continue;
+                        const codeKey = String(a.code).toUpperCase();
+                        const existing = agentMap.get(codeKey);
+                        if (!existing) {
+                            agentMap.set(codeKey, a);
+                        } else {
+                            agentMap.set(codeKey, { ...existing, ...a });
+                        }
+                        await db.ensureAgentExists(a.code, a.name, a.companyName, a.taxCode, a.email, a.phone).catch(() => {});
+                    }
+                    serverData.agentsList = Array.from(agentMap.values());
+                }
+
+                if (incoming.registrations && Array.isArray(incoming.registrations)) {
+                    if (!serverData.registrations) serverData.registrations = [];
+                    const regMap = new Map();
+                    serverData.registrations.forEach(r => regMap.set(String(r.regId), r));
+                    for (const r of incoming.registrations) {
+                        if (!r || !r.regId) continue;
+                        const existing = regMap.get(String(r.regId));
+                        if (!existing) {
+                            regMap.set(String(r.regId), r);
+                        } else {
+                            const merged = { ...existing, ...r };
+                            if (existing.status && existing.status !== 'PENDING') {
+                                merged.status = existing.status;
+                                if (existing.agentCode) merged.agentCode = existing.agentCode;
+                                if (existing.rejectionReason) merged.rejectionReason = existing.rejectionReason;
+                            }
+                            regMap.set(String(r.regId), merged);
+                        }
+                        if (r.agentCode) {
+                            await db.ensureAgentExists(r.agentCode, r.repName, r.companyName, r.taxCode, r.email, r.phone).catch(() => {});
+                        }
+                    }
+                    serverData.registrations = Array.from(regMap.values());
+                }
+
                 if (incoming.bids && Array.isArray(incoming.bids)) {
                     const validAgentCodes = new Set([
                         ...(serverData.agentsList || []).map(a => String(a.code || '').trim().toUpperCase()),
+                        ...(incoming.agentsList || []).map(a => String(a.code || '').trim().toUpperCase()),
                         ...(serverData.usersList || []).map(u => String(u.agentCode || '').trim().toUpperCase()),
                         'AG-0892', 'AG-1024', 'AG-0556', 'AG-0341', 'AG-0789'
                     ].filter(Boolean));
@@ -1374,7 +1452,7 @@ const server = http.createServer((req, res) => {
                     const allBidsList = [...(serverData.bids || []), ...incoming.bids].filter(b => {
                         if (!b) return false;
                         const code = String(b.agentCode || '').trim().toUpperCase();
-                        return code && code !== 'AG-***' && code !== 'ANONYMOUS' && validAgentCodes.has(code);
+                        return code && code !== 'AG-***' && code !== 'ANONYMOUS' && (validAgentCodes.has(code) || /^AG-[A-Z0-9_-]+$/i.test(code));
                     });
 
                     // Sort descending by timestamp / ID so official BID- IDs take precedence
@@ -1394,6 +1472,20 @@ const server = http.createServer((req, res) => {
                         }
                     });
                     serverData.bids = Array.from(bidMap.values()).sort((a, b) => Number(b.priceKg) - Number(a.priceKg));
+
+                    // Synchronize newly incoming bids into SQLite bids table!
+                    for (const b of incoming.bids) {
+                        if (!b || !b.auctionId || !b.agentCode || !b.priceKg) continue;
+                        const bCode = String(b.agentCode).trim().toUpperCase();
+                        if (bCode === 'AG-***' || bCode === 'ANONYMOUS') continue;
+                        await db.ensureAgentExists(bCode, b.agentName, b.agentName).catch(() => {});
+                        const nowMs = Number(b.timestamp || b.id || Date.now());
+                        const bidId = String(b.id || `BID-${nowMs}-${Math.floor(Math.random()*1000)}`);
+                        await db.run(`
+                            INSERT OR IGNORE INTO bids (id, timestamp, auctionId, agentCode, agentName, isAnonymous, priceKg, time, status, weightKg)
+                            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+                        `, [bidId, nowMs, Number(b.auctionId), bCode, b.agentName || bCode, b.isAnonymous ? 1 : 0, Number(b.priceKg), b.time || 'Vừa xong', b.status || 'RECEIVED', Number(b.weightKg) || 0]).catch(() => {});
+                    }
                 }
                 if (incoming.wonAuctions && Array.isArray(incoming.wonAuctions)) {
                     const wonMap = new Map();
@@ -1455,41 +1547,6 @@ const server = http.createServer((req, res) => {
                     if (serverData.activityLogs.length > 1000) {
                         serverData.activityLogs = serverData.activityLogs.slice(0, 1000);
                     }
-                }
-                if (incoming.registrations && Array.isArray(incoming.registrations)) {
-                    if (!serverData.registrations) serverData.registrations = [];
-                    const regMap = new Map();
-                    serverData.registrations.forEach(r => regMap.set(String(r.regId), r));
-                    incoming.registrations.forEach(r => {
-                        const existing = regMap.get(String(r.regId));
-                        if (!existing) {
-                            regMap.set(String(r.regId), r);
-                        } else {
-                            const merged = { ...existing, ...r };
-                            if (existing.status && existing.status !== 'PENDING') {
-                                merged.status = existing.status;
-                                if (existing.agentCode) merged.agentCode = existing.agentCode;
-                                if (existing.rejectionReason) merged.rejectionReason = existing.rejectionReason;
-                            }
-                            regMap.set(String(r.regId), merged);
-                        }
-                    });
-                    serverData.registrations = Array.from(regMap.values());
-                }
-                
-                if (incoming.agentsList && Array.isArray(incoming.agentsList)) {
-                    if (!serverData.agentsList) serverData.agentsList = [];
-                    const agentMap = new Map();
-                    serverData.agentsList.forEach(a => agentMap.set(String(a.code), a));
-                    incoming.agentsList.forEach(a => {
-                        const existing = agentMap.get(String(a.code));
-                        if (!existing) {
-                            agentMap.set(String(a.code), a);
-                        } else {
-                            agentMap.set(String(a.code), { ...existing, ...a });
-                        }
-                    });
-                    serverData.agentsList = Array.from(agentMap.values());
                 }
                 if (incoming.adminsList) serverData.adminsList = incoming.adminsList;
                 if (incoming.settings) {
