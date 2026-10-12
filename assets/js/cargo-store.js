@@ -739,6 +739,7 @@ const CargoStore = (function() {
             {
                 id: 101,
                 timestamp: '17/09/2026 14:45:10',
+                rawTime: 1789631110000,
                 actor: 'Trần Quản Trị',
                 username: 'admin',
                 role: 'ADMIN',
@@ -752,6 +753,7 @@ const CargoStore = (function() {
             {
                 id: 102,
                 timestamp: '17/09/2026 14:10:22',
+                rawTime: 1789629022000,
                 actor: 'Nguyễn Văn Đạt',
                 username: 'dat.nguyen',
                 role: 'STAFF',
@@ -765,6 +767,7 @@ const CargoStore = (function() {
             {
                 id: 103,
                 timestamp: '17/09/2026 11:30:05',
+                rawTime: 1789619405000,
                 actor: 'Trần Quản Trị',
                 username: 'admin',
                 role: 'ADMIN',
@@ -778,6 +781,7 @@ const CargoStore = (function() {
             {
                 id: 104,
                 timestamp: '17/09/2026 09:15:40',
+                rawTime: 1789611340000,
                 actor: 'Lê Minh Thuận',
                 username: 'thuan.le',
                 role: 'STAFF',
@@ -791,6 +795,7 @@ const CargoStore = (function() {
             {
                 id: 105,
                 timestamp: '16/09/2026 16:50:12',
+                rawTime: 1789552212000,
                 actor: 'Trần Quản Trị',
                 username: 'admin',
                 role: 'ADMIN',
@@ -804,6 +809,7 @@ const CargoStore = (function() {
             {
                 id: 106,
                 timestamp: '16/09/2026 08:00:01',
+                rawTime: 1789520401000,
                 actor: 'Trần Quản Trị',
                 username: 'admin',
                 role: 'ADMIN',
@@ -845,6 +851,14 @@ const CargoStore = (function() {
         return Array.from(bidMap.values()).sort((a, b) => Number(b.priceKg) - Number(a.priceKg));
     }
 
+    function getEffectiveLogTime(l) {
+        if (!l) return 0;
+        const parsed = (l.timestamp && typeof parseTimestamp === 'function') ? parseTimestamp(l.timestamp) : 0;
+        const raw = Number(l.rawTime) || 0;
+        if (parsed && (!raw || Math.abs(raw - parsed) > 86400000)) return parsed;
+        return raw || parsed || 0;
+    }
+
     function deduplicateActivityLogs(logs) {
         if (!Array.isArray(logs)) return [];
         const seenKeys = new Set();
@@ -856,7 +870,7 @@ const CargoStore = (function() {
             const idStr = l.id ? String(l.id) : null;
             if (idStr && seenIds.has(idStr)) return;
 
-            const timeMs = Number(l.rawTime) || (typeof parseTimestamp === 'function' ? parseTimestamp(l.timestamp) : 0);
+            const timeMs = getEffectiveLogTime(l);
             const timeBucket = Math.floor(timeMs / 5000); // 5-second window
             const userStr = String(l.username || l.actor || '').trim().toUpperCase();
             const titleStr = String(l.actionTitle || '').trim();
@@ -1525,7 +1539,7 @@ const CargoStore = (function() {
                     // Server is the single source of truth for logs when online.
                     // Do not merge local logs to avoid duplicates.
                     local.activityLogs = deduplicateActivityLogs(serverData.activityLogs)
-                        .sort((a, b) => (b.rawTime || parseTimestamp(b.timestamp) || b.id || 0) - (a.rawTime || parseTimestamp(a.timestamp) || a.id || 0))
+                        .sort((a, b) => getEffectiveLogTime(b) - getEffectiveLogTime(a))
                         .slice(0, 1000);
                 }
 

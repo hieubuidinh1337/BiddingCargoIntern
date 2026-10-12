@@ -452,7 +452,7 @@ async function reconcileBidActivityLogs(data) {
     }
 
     if (addedCount > 0) {
-        data.activityLogs.sort((a, b) => (Number(b.rawTime || b.id) || 0) - (Number(a.rawTime || a.id) || 0));
+        data.activityLogs.sort((a, b) => getEffectiveLogTime(b) - getEffectiveLogTime(a));
         console.log(`[Database] Reconciled ${addedCount} bid activity log entries.`);
         return true;
     }
@@ -936,6 +936,32 @@ const server = http.createServer((req, res) => {
         return;
     }
 
+    function parseTimestamp(tsStr) {
+        if (!tsStr) return 0;
+        if (typeof tsStr === 'number') return tsStr;
+        const clean = String(tsStr).trim();
+        const parts = clean.match(/^(\d{1,2})\/(\d{1,2})\/(\d{4})(?:\s+(\d{1,2}):(\d{2})(?::(\d{2}))?)?$/);
+        if (parts) {
+            const day = parseInt(parts[1], 10);
+            const month = parseInt(parts[2], 10) - 1;
+            const year = parseInt(parts[3], 10);
+            const hour = parts[4] ? parseInt(parts[4], 10) : 0;
+            const min = parts[5] ? parseInt(parts[5], 10) : 0;
+            const sec = parts[6] ? parseInt(parts[6], 10) : 0;
+            return new Date(year, month, day, hour, min, sec).getTime();
+        }
+        const d = new Date(tsStr);
+        return isNaN(d.getTime()) ? 0 : d.getTime();
+    }
+
+    function getEffectiveLogTime(l) {
+        if (!l) return 0;
+        const parsed = l.timestamp ? parseTimestamp(l.timestamp) : 0;
+        const raw = Number(l.rawTime) || 0;
+        if (parsed && (!raw || Math.abs(raw - parsed) > 86400000)) return parsed;
+        return raw || parsed || 0;
+    }
+
     function deduplicateActivityLogs(logs) {
         if (!Array.isArray(logs)) return [];
         const seenKeys = new Set();
@@ -947,7 +973,7 @@ const server = http.createServer((req, res) => {
             const idStr = l.id ? String(l.id) : null;
             if (idStr && seenIds.has(idStr)) return;
 
-            const timeMs = Number(l.rawTime) || (l.timestamp ? new Date(l.timestamp).getTime() : 0);
+            const timeMs = getEffectiveLogTime(l);
             const timeBucket = Math.floor(timeMs / 5000); // 5-second window
             const userStr = String(l.username || l.actor || '').trim().toUpperCase();
             const titleStr = String(l.actionTitle || '').trim();
@@ -975,10 +1001,10 @@ const server = http.createServer((req, res) => {
             try {
                 const sqliteLogs = await db.all('SELECT * FROM activity_logs ORDER BY rawTime DESC LIMIT 1000');
                 const combined = [...(sqliteLogs || []), ...(serverData.activityLogs || [])];
-                logs = deduplicateActivityLogs(combined).sort((a, b) => (b.rawTime || 0) - (a.rawTime || 0));
+                logs = deduplicateActivityLogs(combined).sort((a, b) => getEffectiveLogTime(b) - getEffectiveLogTime(a));
                 serverData.activityLogs = logs.slice(0, 1000);
             } catch(e) {
-                logs = deduplicateActivityLogs(serverData.activityLogs || []);
+                logs = deduplicateActivityLogs(serverData.activityLogs || []).sort((a, b) => getEffectiveLogTime(b) - getEffectiveLogTime(a));
             }
             if (_role && _role !== 'ALL') logs = logs.filter(l => (l.role || '').toUpperCase() === _role.toUpperCase());
             if (_category && _category !== 'ALL') logs = logs.filter(l => (l.actionCategory || '') === _category);
@@ -1173,20 +1199,22 @@ const server = http.createServer((req, res) => {
                     const timestampStr = `${pad(now.getDate())}/${pad(now.getMonth() + 1)}/${now.getFullYear()} ${pad(now.getHours())}:${pad(now.getMinutes())}:${pad(now.getSeconds())}`;
                     const agentObj = (serverData.agentsList || []).find(a => (a.code || '').toUpperCase() === (agentCode || '').toUpperCase());
                     const aucObj = (serverData.auctions || []).find(a => a.id == auctionId);
-                    const actorName = (agentObj ? (agentObj.repName || agentObj.companyName) : agentName || agentCode);
-                    const flightStr = aucObj ? aucObj.flightNumber : `AUC-${auctionId}`;
+                    const actorName = (agentObj ? (agentObj.companyName || agentObj.repName) : (agentName || agentCode));
+                    const flightStr = aucObj ? (aucObj.flightNumber || aucObj.flightCode) : `AUC-${auctionId}`;
                     const priceFormatted = new Intl.NumberFormat('vi-VN').format(priceKg);
-                    const detailsStr = `Đại lý ${(agentObj ? agentObj.companyName : agentCode)} đặt thầu thành công mức giá ${priceFormatted}đ/Kg cho chuyến bay ${flightStr} (${aucObj ? aucObj.route : ''}).`;
+                    const detailsStr = `Đại lý ${actorName} đặt thầu thành công mức giá ${priceFormatted} đ/Kg cho chuyến bay ${flightStr}${aucObj && aucObj.route ? ' (' + aucObj.route + ')' : ''}.`;
+                    const logId = (placedBid && placedBid.timestamp) ? Number(placedBid.timestamp) : now.getTime();
 
                     await db.run(
-                        `INSERT INTO activity_logs (timestamp, rawTime, actor, username, role, actionCategory, actionTitle, target, details, ip, device)
-                         VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
-                        [timestampStr, now.getTime(), actorName, agentCode, 'AGENT', 'Đấu giá', 'Đặt giá thầu', flightStr, detailsStr, '113.161.42.12', 'Web Client']
+                        `INSERT OR REPLACE INTO activity_logs (id, timestamp, rawTime, actor, username, role, actionCategory, actionTitle, target, details, ip, device)
+                         VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+                        [logId, timestampStr, now.getTime(), actorName, agentCode, 'AGENT', 'Đấu giá', 'Đặt giá thầu', flightStr, detailsStr, '113.161.42.12', 'Web Client']
                     ).catch(e => console.error('Failed to log bid activity to db:', e));
 
                     if (!serverData.activityLogs) serverData.activityLogs = [];
-                    serverData.activityLogs.unshift({
-                        id: Date.now() + Math.floor(Math.random() * 1000),
+                    const existingIdx = serverData.activityLogs.findIndex(l => l && l.id === logId);
+                    const newLog = {
+                        id: logId,
                         timestamp: timestampStr,
                         rawTime: now.getTime(),
                         actor: actorName,
@@ -1198,7 +1226,12 @@ const server = http.createServer((req, res) => {
                         details: detailsStr,
                         ip: '113.161.42.12',
                         device: 'Web Client'
-                    });
+                    };
+                    if (existingIdx >= 0) {
+                        serverData.activityLogs[existingIdx] = newLog;
+                    } else {
+                        serverData.activityLogs.unshift(newLog);
+                    }
                 } catch (logErr) {
                     console.error('[Server] Error logging bid activity:', logErr);
                 }
@@ -1408,16 +1441,17 @@ const server = http.createServer((req, res) => {
                         const key = logKey(l);
                         if (!existingLogKeys.has(key)) {
                             existingLogKeys.add(key);
-                            serverData.activityLogs.unshift(l);
+                            const effTime = getEffectiveLogTime(l);
+                            serverData.activityLogs.unshift({ ...l, rawTime: effTime });
                             db.run(
                                 `INSERT OR IGNORE INTO activity_logs (id, timestamp, rawTime, actor, username, role, actionCategory, actionTitle, target, details, ip, device)
                                  VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
-                                [l.id || Date.now(), l.timestamp || '', l.rawTime || Date.now(), l.actor || '', l.username || '', l.role || 'AGENT', l.actionCategory || 'Khác', l.actionTitle || 'Thao tác', l.target || 'N/A', l.details || '', l.ip || '113.161.42.12', l.device || 'Web Client']
+                                [l.id || effTime, l.timestamp || '', effTime, l.actor || '', l.username || '', l.role || 'AGENT', l.actionCategory || 'Khác', l.actionTitle || 'Thao tác', l.target || 'N/A', l.details || '', l.ip || '113.161.42.12', l.device || 'Web Client']
                             ).catch(() => {});
                         }
                     });
 
-                    serverData.activityLogs.sort((a, b) => (Number(b.rawTime || b.id) || 0) - (Number(a.rawTime || a.id) || 0));
+                    serverData.activityLogs.sort((a, b) => getEffectiveLogTime(b) - getEffectiveLogTime(a));
                     if (serverData.activityLogs.length > 1000) {
                         serverData.activityLogs = serverData.activityLogs.slice(0, 1000);
                     }

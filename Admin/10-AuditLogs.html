@@ -777,6 +777,14 @@
         // Server-fetched logs (includes agent activity)
         let serverLogs = [];
 
+        function getEffectiveTime(l) {
+            if (!l) return 0;
+            const parsed = l.timestamp ? parseTs(l.timestamp) : 0;
+            const raw = Number(l.rawTime) || 0;
+            if (parsed && (!raw || Math.abs(raw - parsed) > 86400000)) return parsed;
+            return raw || parsed || 0;
+        }
+
         function deduplicateLogs(logs) {
             if (!Array.isArray(logs)) return [];
             const seenKeys = new Set();
@@ -787,7 +795,7 @@
                 const idStr = l.id ? String(l.id) : null;
                 if (idStr && seenIds.has(idStr)) return;
 
-                const timeMs = Number(l.rawTime) || parseTs(l.timestamp);
+                const timeMs = getEffectiveTime(l);
                 const timeBucket = Math.floor(timeMs / 5000);
                 const userStr = String(l.username || l.actor || '').trim().toUpperCase();
                 const titleStr = String(l.actionTitle || '').trim();
@@ -815,7 +823,7 @@
                     const localLogs = CargoStore.getActivityLogs ? CargoStore.getActivityLogs() : [];
                     const combined = [...json.logs, ...localLogs];
                     serverLogs = deduplicateLogs(combined)
-                        .sort((a, b) => (b.rawTime || parseTs(b.timestamp) || 0) - (a.rawTime || parseTs(a.timestamp) || 0));
+                        .sort((a, b) => getEffectiveTime(b) - getEffectiveTime(a));
                     updateKpisAndTabCounters();
                     renderLogs();
                 }
@@ -994,7 +1002,7 @@
                 const now = Date.now();
                 const oneDay = 24 * 60 * 60 * 1000;
                 logs = logs.filter(l => {
-                    const raw = l.rawTime || parseTs(l.timestamp);
+                    const raw = getEffectiveTime(l);
                     if (!raw) return true;
                     if (currentFilters.timeRange === 'TODAY') return (now - raw) < oneDay;
                     if (currentFilters.timeRange === '3DAYS') return (now - raw) < 3 * oneDay;
@@ -1095,7 +1103,7 @@
                         catBadgeClass = 'bg-slate-100 text-slate-700 border-slate-200';
                     }
 
-                    const rawTime = log.rawTime || parseTs(log.timestamp);
+                    const rawTime = getEffectiveTime(log);
                     const timeAgo = (typeof CargoStore !== 'undefined' && typeof CargoStore.formatTimeAgo === 'function') ? CargoStore.formatTimeAgo(rawTime, log.timestamp) : (log.timestamp || 'Vừa xong');
 
                     const detailsEscaped = (log.details || '').replace(/"/g, '&quot;');
@@ -1189,7 +1197,7 @@
             else roleEl.className = 'inline-block px-2 py-0.5 rounded text-[10px] font-bold bg-slate-100 text-slate-700';
 
             document.getElementById('modalTimestamp').textContent = log.timestamp || '-';
-            const rawTime = log.rawTime || parseTs(log.timestamp);
+            const rawTime = getEffectiveTime(log);
             document.getElementById('modalTimeAgo').textContent = (typeof CargoStore !== 'undefined' && typeof CargoStore.formatTimeAgo === 'function') ? CargoStore.formatTimeAgo(rawTime, log.timestamp) : (log.timestamp || 'Vừa xong');
 
             const isLogoutModal = (log.actionCategory === 'Đăng nhập') && ((log.actionTitle || '').toLowerCase().includes('đăng xuất') || (log.actionTitle || '').toLowerCase().includes('logout'));

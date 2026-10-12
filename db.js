@@ -319,6 +319,35 @@ async function initDatabase() {
             console.error('[Database] Failed to seed data from server_data.json:', e);
         }
     }
+
+    // Auto-repair any mismatched rawTime timestamps in activity_logs
+    try {
+        const malformedLogs = await all("SELECT id, timestamp, rawTime FROM activity_logs WHERE timestamp IS NOT NULL AND timestamp != ''");
+        for (const row of malformedLogs) {
+            const parsed = parseTimestamp(row.timestamp);
+            if (parsed && Math.abs((Number(row.rawTime) || 0) - parsed) > 86400000) {
+                await run('UPDATE activity_logs SET rawTime = ? WHERE id = ?', [parsed, row.id]);
+            }
+        }
+    } catch (e) {}
+}
+
+function parseTimestamp(tsStr) {
+    if (!tsStr) return 0;
+    if (typeof tsStr === 'number') return tsStr;
+    const clean = String(tsStr).trim();
+    const parts = clean.match(/^(\d{1,2})\/(\d{1,2})\/(\d{4})(?:\s+(\d{1,2}):(\d{2})(?::(\d{2}))?)?$/);
+    if (parts) {
+        const day = parseInt(parts[1], 10);
+        const month = parseInt(parts[2], 10) - 1;
+        const year = parseInt(parts[3], 10);
+        const hour = parts[4] ? parseInt(parts[4], 10) : 0;
+        const min = parts[5] ? parseInt(parts[5], 10) : 0;
+        const sec = parts[6] ? parseInt(parts[6], 10) : 0;
+        return new Date(year, month, day, hour, min, sec).getTime();
+    }
+    const d = new Date(tsStr);
+    return isNaN(d.getTime()) ? 0 : d.getTime();
 }
 
 let isSeeding = false;
@@ -530,13 +559,20 @@ async function seedFullData(data) {
         if (Array.isArray(data.activityLogs)) {
             for (const l of data.activityLogs) {
                 if (!l) continue;
+                const parsedTime = parseTimestamp(l.timestamp);
+                let effectiveRawTime = Number(l.rawTime) || 0;
+                if (parsedTime && (!effectiveRawTime || Math.abs(effectiveRawTime - parsedTime) > 86400000)) {
+                    effectiveRawTime = parsedTime;
+                }
+                if (!effectiveRawTime) effectiveRawTime = Date.now();
+
                 await run(`
                     INSERT OR REPLACE INTO activity_logs (id, timestamp, rawTime, actor, username, role, actionCategory, actionTitle, target, details, ip, device)
                     VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
                 `, [
-                    l.id || (Date.now() + Math.floor(Math.random() * 1000)),
+                    l.id || (effectiveRawTime + Math.floor(Math.random() * 1000)),
                     l.timestamp || '',
-                    l.rawTime || Date.now(),
+                    effectiveRawTime,
                     l.actor || '',
                     l.username || '',
                     l.role || '',
@@ -809,6 +845,17 @@ async function placeBidAtomic({ auctionId, agentCode, agentName, priceKg, isAnon
             INSERT INTO notifications (id, targetAgentCode, title, message, time, type, read, link)
             VALUES (?, ?, ?, ?, 'Vừa xong', 'BID_RECEIVED', 0, ?)
         `, [now, agentCode, title1, msg1, `04-Detail.html?id=${auctionId}`]).catch(() => {});
+
+        // Insert bidding activity log directly into activity_logs
+        const pad = n => String(n).padStart(2, '0');
+        const dNow = new Date(now);
+        const timestampStr = `${pad(dNow.getDate())}/${pad(dNow.getMonth() + 1)}/${dNow.getFullYear()} ${pad(dNow.getHours())}:${pad(dNow.getMinutes())}:${pad(dNow.getSeconds())}`;
+        const actorName = (agent ? (agent.companyName || agent.repName) : (agentName || agentCode));
+        const detailsStr = `Đại lý ${actorName} đặt thầu thành công mức giá ${formattedPrice} đ/Kg cho chuyến bay ${flightLabel}${routeLabel ? ' (' + routeLabel + ')' : ''}.`;
+        await run(`
+            INSERT OR REPLACE INTO activity_logs (id, timestamp, rawTime, actor, username, role, actionCategory, actionTitle, target, details, ip, device)
+            VALUES (?, ?, ?, ?, ?, 'AGENT', 'Đấu giá', 'Đặt giá thầu', ?, ?, '113.161.42.12', 'Web Client')
+        `, [now, timestampStr, now, actorName, agentCode, flightLabel, detailsStr]).catch(() => {});
 
         await run('COMMIT;').catch(() => {});
         await checkpointWal();
