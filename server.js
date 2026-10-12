@@ -1478,7 +1478,7 @@ const server = http.createServer((req, res) => {
                     const bidMap = new Map();
                     allBidsList.forEach(b => {
                         const code = String(b.agentCode || '').trim().toUpperCase();
-                        const key = `${Number(b.auctionId)}_${code}_${Number(b.priceKg)}`;
+                        const key = b.id ? `${Number(b.auctionId)}_${b.id}` : `${Number(b.auctionId)}_${code}_${Number(b.priceKg)}`;
                         if (!bidMap.has(key)) {
                             bidMap.set(key, b);
                         } else {

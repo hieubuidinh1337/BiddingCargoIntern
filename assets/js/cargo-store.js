@@ -835,9 +835,13 @@ const CargoStore = (function() {
         sorted.forEach(b => {
             if (!b) return;
             const code = String(b.agentCode || '').trim().toUpperCase();
-            if (!code || code === 'AG-***' || code === 'ANONYMOUS') return;
+            if (!code) return;
 
-            const key = `${b.auctionId || b.flightCode}_${code}_${Number(b.priceKg)}`;
+            const bidId = b.id ? String(b.id) : null;
+            const key = bidId
+                ? `${b.auctionId || b.flightCode}_${bidId}`
+                : `${b.auctionId || b.flightCode}_${code}_${Number(b.priceKg)}_${Number(b.timestamp || 0)}`;
+
             if (!bidMap.has(key)) {
                 bidMap.set(key, b);
             } else {
@@ -848,7 +852,7 @@ const CargoStore = (function() {
             }
         });
 
-        return Array.from(bidMap.values()).sort((a, b) => Number(b.priceKg) - Number(a.priceKg));
+        return Array.from(bidMap.values()).sort((a, b) => (Number(b.timestamp || b.id || 0)) - (Number(a.timestamp || a.id || 0)));
     }
 
     function getEffectiveLogTime(l) {
@@ -1073,10 +1077,7 @@ const CargoStore = (function() {
                             String(b.auctionId) === String(a.id) ||
                             (a.flightCode && b.flightCode && String(b.flightCode).toUpperCase() === String(a.flightCode).toUpperCase())
                         ))
-                        .filter(b => {
-                            const code = String(b.agentCode || '').trim().toUpperCase();
-                            return code && code !== 'AG-***' && code !== 'ANONYMOUS';
-                        })
+                        .filter(b => b && Number.isFinite(Number(b.priceKg)) && Number(b.priceKg) > 0)
                         .sort((x, y) => (Number(y.priceKg) || 0) - (Number(x.priceKg) || 0));
 
                     if (auctionBids.length > 0) {
@@ -1091,12 +1092,14 @@ const CargoStore = (function() {
                         const normalizedLeaderCode = (highestBid.agentCode || '').trim();
                         const normalizedLeaderName = (highestBid.agentName || '').trim();
 
-                        if ((a.leadingAgentCode || '').trim() !== normalizedLeaderCode ||
-                            (a.leadingAgentName || '').trim() !== normalizedLeaderName) {
-                            a.leadingAgentCode = normalizedLeaderCode;
-                            a.leadingAgentName = normalizedLeaderName;
-                            a.isAnonymous = highestBid.isAnonymous !== false;
-                            updated = true;
+                        if (normalizedLeaderCode && normalizedLeaderCode !== 'AG-***') {
+                            if ((a.leadingAgentCode || '').trim() !== normalizedLeaderCode ||
+                                (a.leadingAgentName || '').trim() !== normalizedLeaderName) {
+                                a.leadingAgentCode = normalizedLeaderCode;
+                                a.leadingAgentName = normalizedLeaderName;
+                                a.isAnonymous = highestBid.isAnonymous !== false;
+                                updated = true;
+                            }
                         }
 
                         const bidCount = auctionBids.length;
@@ -1288,10 +1291,7 @@ const CargoStore = (function() {
                     String(b.auctionId) === String(a.id) ||
                     (a.flightCode && b.flightCode && String(b.flightCode).toUpperCase() === String(a.flightCode).toUpperCase())
                 ))
-                .filter(b => {
-                    const code = String(b.agentCode || '').trim().toUpperCase();
-                    return code && code !== 'AG-***' && code !== 'ANONYMOUS';
-                })
+                .filter(b => b && Number.isFinite(Number(b.priceKg)) && Number(b.priceKg) > 0)
                 .sort((x, y) => (Number(y.priceKg) || 0) - (Number(x.priceKg) || 0));
 
             if (auctionBids.length > 0) {
@@ -1306,12 +1306,14 @@ const CargoStore = (function() {
                 const normalizedLeaderCode = (highestBid.agentCode || '').trim();
                 const normalizedLeaderName = (highestBid.agentName || '').trim();
 
-                if ((a.leadingAgentCode || '').trim() !== normalizedLeaderCode ||
-                    (a.leadingAgentName || '').trim() !== normalizedLeaderName) {
-                    a.leadingAgentCode = normalizedLeaderCode;
-                    a.leadingAgentName = normalizedLeaderName;
-                    a.isAnonymous = highestBid.isAnonymous !== false;
-                    changed = true;
+                if (normalizedLeaderCode && normalizedLeaderCode !== 'AG-***') {
+                    if ((a.leadingAgentCode || '').trim() !== normalizedLeaderCode ||
+                        (a.leadingAgentName || '').trim() !== normalizedLeaderName) {
+                        a.leadingAgentCode = normalizedLeaderCode;
+                        a.leadingAgentName = normalizedLeaderName;
+                        a.isAnonymous = highestBid.isAnonymous !== false;
+                        changed = true;
+                    }
                 }
 
                 const bidCount = auctionBids.length;
@@ -1412,20 +1414,23 @@ const CargoStore = (function() {
         }
     }
 
-    async function syncWithServer() {
+    async function syncWithServer(force = false) {
         if (isSyncing || typeof window === 'undefined') return;
-        if (typeof document !== 'undefined' && document.hidden) return; // Save CPU when tab is in background
+        if (!force && typeof document !== 'undefined' && document.hidden) return; // Save CPU when tab is in background
         // Prevent sync race condition if local save occurred in the last 2000ms
-        if (Date.now() - lastLocalSaveTimestamp < 2000) return;
+        if (!force && Date.now() - lastLocalSaveTimestamp < 2000) return;
 
         try {
             isSyncing = true;
             const local = loadData();
-            const isAdminSession = !!(local.currentAdmin || (typeof window !== 'undefined' && window.location && window.location.pathname.includes('/Admin/')));
+            const isAdminSession = !!(local.currentAdmin || (typeof window !== 'undefined' && window.location && window.location.pathname.toLowerCase().includes('/admin/')));
+            const isStaffSession = !!(local.currentAdmin && String(local.currentAdmin.role).toUpperCase() === 'STAFF');
             const currentAgentCode = (local.currentUser && local.currentUser.agentCode) ? local.currentUser.agentCode : null;
 
             let queryParams = [];
-            if (isAdminSession) {
+            if (isStaffSession) {
+                queryParams.push('role=staff');
+            } else if (isAdminSession) {
                 queryParams.push('role=admin');
             } else if (currentAgentCode) {
                 queryParams.push(`agentCode=${encodeURIComponent(currentAgentCode)}`);
@@ -1438,9 +1443,10 @@ const CargoStore = (function() {
             const res = await fetch(apiUrl);
             if (!res.ok) return;
             const serverData = await res.json();
-            if (serverData && serverData.version && serverData.version !== lastServerVersion) {
-                lastServerVersion = serverData.version;
-                try { localStorage.setItem('CARGO_BIDDING_SERVER_VERSION', String(serverData.version)); } catch(e) {}
+            const shouldSync = force || !lastServerVersion || (serverData && serverData.version && serverData.version !== lastServerVersion) || (serverData.bids && serverData.bids.length !== (local.bids || []).length);
+            if (serverData && shouldSync) {
+                lastServerVersion = serverData.version || Date.now();
+                try { localStorage.setItem('CARGO_BIDDING_SERVER_VERSION', String(lastServerVersion)); } catch(e) {}
                 const oldStr = JSON.stringify(local);
 
                 // Merge shared collections from server by ID to preserve local created/updated items
@@ -1480,8 +1486,14 @@ const CargoStore = (function() {
                 }
 
                 if (serverData.bids && Array.isArray(serverData.bids)) {
-                    const combined = [...(local.bids || []), ...serverData.bids];
-                    local.bids = deduplicateBids(combined);
+                    const serverBidIds = new Set(serverData.bids.map(b => String(b.id)));
+                    const pendingLocalBids = (local.bids || []).filter(b => {
+                        if (!b || !b.id) return false;
+                        if (serverBidIds.has(String(b.id))) return false;
+                        const age = Date.now() - (Number(b.timestamp || b.id) || 0);
+                        return age >= 0 && age < 15000;
+                    });
+                    local.bids = deduplicateBids([...serverData.bids, ...pendingLocalBids]);
                 }
 
                 if (serverData.notifications && Array.isArray(serverData.notifications)) {
@@ -2766,81 +2778,6 @@ const CargoStore = (function() {
                 if (targetFlightCode && b.flightCode && String(b.flightCode).toUpperCase() === String(targetFlightCode).toUpperCase()) return true;
                 return false;
             }).sort((a, b) => (Number(b.priceKg) || 0) - (Number(a.priceKg) || 0) || (Number(b.timestamp || b.id) || 0) - (Number(a.timestamp || a.id) || 0));
-
-            if (!auction && wonItem) {
-                auction = {
-                    id: wonItem.auctionId,
-                    capacityKg: wonItem.capacityKg,
-                    startingPriceKg: wonItem.startingPriceKg || Math.max(10000, wonItem.priceKg - 2500),
-                    currentPriceKg: wonItem.priceKg,
-                    minStep: 500,
-                    status: 'CLOSED',
-                    bidsCount: wonItem.bidsCount || 4,
-                    winnerAgentCode: wonItem.agentCode,
-                    winnerAgentName: wonItem.agentName
-                };
-            }
-
-            if (auction && bids.length === 0) {
-                // If auction is OPEN or explicitly has 0 bids, return empty array (do NOT generate sample bids for new auctions!)
-                if (auction.status === 'OPEN' || auction.bidsCount === 0 || !auction.bidsCount) {
-                    return [];
-                }
-                const count = (typeof auction.bidsCount === 'number' && auction.bidsCount > 0) ? auction.bidsCount : 4;
-                const winnerCode = auction.winnerAgentCode || (wonItem ? wonItem.agentCode : 'AG-0556');
-                const winnerName = auction.winnerAgentName || (wonItem ? wonItem.agentName : 'Công ty TNHH Tiếp vận Toàn Cầu Golden Star');
-                const winPrice = Number(auction.winningPriceKg || auction.currentPriceKg || 22500);
-                const startPrice = Math.max(10000, winPrice - 3000);
-                const step = (winPrice - startPrice) / Math.max(1, count - 1);
-                
-                const sampleAgents = [
-                    { code: 'AG-1024', name: 'Công ty CP Giao nhận Kho vận Vinatrans' },
-                    { code: 'AG-0892', name: 'Công ty TNHH Vận tải ABC Logistics' },
-                    { code: 'AG-0341', name: 'Công ty TNHH SkyFreight Logistics Việt Nam' },
-                    { code: 'AG-0789', name: 'Công ty CP Vận chuyển Hàng không Việt Freight' }
-                ];
-                const competingAgents = sampleAgents.filter(a => a.code !== winnerCode);
-                const now = Date.now();
-
-                bids = [];
-                for (let i = 0; i < count - 1; i++) {
-                    const price = Math.round((startPrice + step * i) / 100) * 100;
-                    const ag = competingAgents[i % competingAgents.length];
-                    bids.push({
-                        id: now - (count - i) * 20 * 60 * 1000,
-                        timestamp: now - (count - i) * 20 * 60 * 1000,
-                        auctionId: auction ? auction.id : auctionId,
-                        flightCode: targetFlightCode,
-                        agentCode: ag.code,
-                        agentName: ag.name,
-                        isAnonymous: true,
-                        priceKg: Number(price),
-                        time: `${(count - i) * 20} phút trước`,
-                        status: 'RECEIVED',
-                        weightKg: auction.capacityKg || 3000
-                    });
-                }
-
-                // Add winner bid
-                bids.push({
-                    id: now - 5 * 60 * 1000,
-                    timestamp: now - 5 * 60 * 1000,
-                    auctionId: auction ? auction.id : auctionId,
-                    flightCode: targetFlightCode,
-                    agentCode: winnerCode,
-                    agentName: winnerName,
-                    isAnonymous: true,
-                    priceKg: Number(winPrice),
-                    time: '5 phút trước',
-                    status: (auction.status === 'CLOSED' || wonItem) ? 'WON' : 'HIGHEST',
-                    weightKg: auction.capacityKg || 3000
-                });
-
-                if (!data.bids) data.bids = [];
-                data.bids.push(...bids);
-                data.bids = deduplicateBids(data.bids);
-                saveData(data);
-            }
 
             return deduplicateBids(bids);
         },
@@ -5932,6 +5869,10 @@ const anonFlag = isAnonymous !== false;
 
         getCurrentTime: function() {
             return new Date().toLocaleTimeString('vi-VN', { hour: '2-digit', minute: '2-digit' });
+        },
+
+        syncWithServer: function(force = false) {
+            return syncWithServer(force);
         },
 
         resetAllData: async function() {

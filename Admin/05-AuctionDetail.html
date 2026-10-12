@@ -1002,6 +1002,14 @@
                 return;
             }
 
+            // Sort: Realtime log shows newest bids first when OPEN; highest price first when CLOSED
+            if (isOpen) {
+                bids.sort((a, b) => (Number(b.timestamp || b.id || 0)) - (Number(a.timestamp || a.id || 0)));
+            } else {
+                bids.sort((a, b) => (Number(b.priceKg) || 0) - (Number(a.priceKg) || 0) || (Number(b.timestamp || b.id || 0)) - (Number(a.timestamp || a.id || 0)));
+            }
+
+            const highestPrice = bids.length > 0 ? Math.max(...bids.map(b => Number(b.priceKg) || 0)) : 0;
             const totalItems = bids.length;
             renderBidsPaginationControls(totalItems);
 
@@ -1021,17 +1029,28 @@
                     ? '<span class="text-slate-500 italic flex items-center gap-1.5"><i class="fa-solid fa-user-shield text-slate-400 text-[10px]"></i>Đại lý tham gia (Bảo mật)</span>'
                     : `<span class="font-bold text-slate-800">${b.agentName}</span>`;
 
+                const isHighest = Number(b.priceKg) === highestPrice && highestPrice > 0;
+                let statusBadge = '';
+                if (!isOpen || b.status === 'WON') {
+                    statusBadge = (isHighest || b.status === 'WON') ?
+                        '<span class="bg-green-100 text-green-700 font-bold px-2 py-0.5 rounded text-[10px]">THẮNG THẦU</span>' :
+                        '<span class="bg-slate-100 text-slate-500 font-medium px-2 py-0.5 rounded text-[10px]">KHÔNG TRÚNG THẦU</span>';
+                } else if (isHighest) {
+                    statusBadge = '<span class="bg-emerald-100 text-emerald-800 font-bold px-2 py-0.5 rounded text-[10px] inline-flex items-center gap-1 shadow-xs"><i class="fa-solid fa-crown text-amber-500"></i> GIÁ CAO NHẤT</span>';
+                } else {
+                    statusBadge = '<span class="bg-blue-50 text-blue-600 font-medium px-2 py-0.5 rounded text-[10px]">ĐÃ GHI NHẬN</span>';
+                }
+
+                const isNewestItem = isOpen && (startIdx + i) === 0;
                 return `
-                <tr class="${(startIdx + i) === 0 ? 'bg-blue-50/50 font-medium' : 'hover:bg-slate-50'} transition">
+                <tr class="${isNewestItem ? 'bg-blue-50/70 font-medium border-l-4 border-l-blue-600' : (isHighest ? 'bg-emerald-50/30' : 'hover:bg-slate-50')} transition">
                     <td class="py-3 px-4">${displayCode}</td>
                     <td class="py-3 px-4">${displayName}</td>
                     <td class="py-3 px-4 font-bold text-slate-900">${CargoStore.formatCurrency(b.priceKg)}</td>
                     <td class="py-3 px-4 text-slate-700">${CargoStore.formatCurrency(b.priceKg * b.weightKg)}</td>
-                    <td class="py-3 px-4 text-gray-400 text-[11px]">${CargoStore.formatTimeAgo(b.timestamp, b.time)}</td>
+                    <td class="py-3 px-4 text-gray-500 text-[11px] font-medium">${CargoStore.formatTimeAgo(b.timestamp, b.time)}</td>
                     <td class="py-3 px-4">
-                        ${(b.status === 'WON' || (auction.status === 'CLOSED' && i === 0)) ?
-                    '<span class="bg-green-100 text-green-700 font-bold px-2 py-0.5 rounded text-[10px]">THẮNG THẦU</span>' :
-                    '<span class="bg-blue-50 text-blue-600 font-medium px-2 py-0.5 rounded text-[10px]">ĐÃ GHI NHẬN</span>'}
+                        ${statusBadge}
                     </td>
                 </tr>
             `;}).join('');
@@ -1125,13 +1144,26 @@
             }
         }
 
-        document.addEventListener('DOMContentLoaded', function () {
+        async function syncAdminDetailFromServer() {
+            if (window.CargoStore && typeof CargoStore.syncWithServer === 'function') {
+                await CargoStore.syncWithServer(true);
+            }
             loadAdminDetail();
+        }
+
+        document.addEventListener('DOMContentLoaded', async function () {
+            await syncAdminDetailFromServer();
             setInterval(function () {
                 if (typeof document !== 'undefined' && document.hidden) return;
-                loadAdminDetail();
-            }, 1000);
+                syncAdminDetailFromServer();
+            }, 2000);
             if (window.CargoStore && CargoStore.syncAdminHeaderUI) CargoStore.syncAdminHeaderUI();
+        });
+
+        document.addEventListener('visibilitychange', function() {
+            if (!document.hidden) {
+                syncAdminDetailFromServer();
+            }
         });
 
         // Cross-tab sync
