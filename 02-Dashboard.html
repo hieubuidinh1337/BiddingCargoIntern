@@ -142,13 +142,13 @@
             </div>
 
             <div class="bg-white rounded-xl sm:rounded-2xl p-3.5 sm:p-5 border shadow-sm flex flex-col sm:flex-row items-start sm:items-center gap-2.5 sm:gap-4">
-                <div class="w-9 h-9 sm:w-12 sm:h-12 rounded-xl bg-emerald-50 text-emerald-600 flex items-center justify-center text-lg sm:text-xl flex-shrink-0">
-                    <i class="fa-solid fa-crown"></i>
+                <div class="w-9 h-9 sm:w-12 sm:h-12 rounded-xl bg-blue-50 text-blue-600 flex items-center justify-center text-lg sm:text-xl flex-shrink-0">
+                    <i class="fa-solid fa-gavel"></i>
                 </div>
                 <div class="min-w-0 flex-1">
-                    <p class="text-[10px] sm:text-xs text-gray-500 font-medium truncate">Đang dẫn đầu</p>
-                    <p id="kpiLeading" class="text-base sm:text-2xl font-bold text-emerald-600 mt-0.5 truncate">0 <span class="text-[10px] sm:text-xs text-gray-400 font-normal">chuyến</span></p>
-                    <span class="text-[10px] sm:text-xs text-emerald-600 font-medium block truncate">Giá cao nhất</span>
+                    <p class="text-[10px] sm:text-xs text-gray-500 font-medium truncate">Đã đặt thầu</p>
+                    <p id="kpiLeading" class="text-base sm:text-2xl font-bold text-blue-600 mt-0.5 truncate">0 <span class="text-[10px] sm:text-xs text-gray-400 font-normal">chuyến</span></p>
+                    <span class="text-[10px] sm:text-xs text-blue-600 font-medium block truncate">Đang tham gia</span>
                 </div>
             </div>
 
@@ -290,10 +290,15 @@
             const kpiOpen = document.getElementById('kpiOpenSessions');
             if (kpiOpen) kpiOpen.textContent = openAuctions.length;
 
-            // === KPI 2: Đang dẫn đầu ===
-            const leadingCount = openAuctions.filter(a => a.leadingAgentCode === myCode).length;
+            // === KPI 2: Đã đặt thầu (Đang tham gia) ===
+            const myBids = CargoStore.getMyBids ? CargoStore.getMyBids() : [];
+            const openAuctionIds = new Set(openAuctions.map(a => String(a.id)));
+            const myParticipatingAuctionIds = new Set(
+                myBids.filter(b => openAuctionIds.has(String(b.auctionId))).map(b => String(b.auctionId))
+            );
+            const participatingCount = myParticipatingAuctionIds.size;
             const kpiLeading = document.getElementById('kpiLeading');
-            if (kpiLeading) kpiLeading.innerHTML = `${leadingCount} <span class="text-xs text-gray-400 font-normal">chuyến</span>`;
+            if (kpiLeading) kpiLeading.innerHTML = `${participatingCount} <span class="text-xs text-gray-400 font-normal">chuyến</span>`;
 
             // === KPI 3: Đang theo dõi ===
             const watchlistAuctions = CargoStore.getWatchlistAuctions ? CargoStore.getWatchlistAuctions() : [];
@@ -345,7 +350,7 @@
                                         <span class="bg-slate-100 text-slate-600 font-mono font-semibold text-[10px] px-2 py-0.5 rounded-md border border-slate-200" title="Mã định danh phiên">${a.flightCode || '#' + a.id}</span>
                                         <span class="font-bold text-slate-900 text-sm">${a.route}</span>
                                         <span class="text-xs text-gray-400">· ${a.aircraft}</span>
-                                        ${isLeading ? '<span class="bg-green-100 text-green-700 text-[10px] font-bold px-2 py-0.5 rounded-full flex items-center gap-1"><i class="fa-solid fa-crown"></i> Bạn đang dẫn đầu</span>' : ''}
+                                        ${(a.status === 'CLOSED' && isLeading) ? '<span class="bg-green-100 text-green-700 text-[10px] font-bold px-2 py-0.5 rounded-full flex items-center gap-1"><i class="fa-solid fa-crown"></i> Bạn đang dẫn đầu</span>' : ''}
                                     </div>
                                     <div class="flex flex-wrap items-center gap-x-4 gap-y-1 text-xs text-gray-500">
                                         <span><i class="fa-solid fa-plane-departure text-gray-400 mr-1"></i> ETD: ${a.etd}</span>

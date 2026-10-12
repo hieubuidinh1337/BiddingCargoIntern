@@ -674,7 +674,7 @@
                 alertBox.textContent = res.message;
             } else {
                 alertBox.className = 'mt-3 p-3 rounded-xl text-xs bg-green-50 text-green-700 border border-green-200 block';
-                alertBox.textContent = `✅ Đặt giá ${CargoStore.formatCurrency(price)}/Kg thành công! Bạn đang dẫn đầu phiên đấu giá.${isAnon ? ' (Đã che tên công ty đối với các đối thủ)' : ''}`;
+                alertBox.textContent = `✅ Đặt giá ${CargoStore.formatCurrency(price)}/Kg thành công! Đã ghi nhận mức giá vào hệ thống.${isAnon ? ' (Đã che tên công ty đối với các đối thủ)' : ''}`;
                 loadAuctionDetail();
             }
         }
@@ -813,7 +813,7 @@
 
                 <div class="p-3 bg-amber-50 rounded-xl border border-amber-200 text-amber-800 text-[11px] leading-relaxed flex items-start gap-2">
                     <i class="fa-solid fa-triangle-exclamation text-amber-500 text-sm mt-0.5 flex-shrink-0"></i>
-                    <span>Bạn có chắc chắn muốn xác nhận gửi mức giá này không? Sau khi gửi, thông báo dẫn đầu hoặc vượt giá sẽ được cập nhật tức thời cho các đại lý.</span>
+                    <span>Bạn có chắc chắn muốn xác nhận gửi mức giá này không? Mức giá đặt thầu của bạn sẽ được hệ thống ghi nhận bảo mật cho đến khi phiên kết thúc.</span>
                 </div>
 
                 <div class="flex items-center justify-end gap-3 pt-2">
