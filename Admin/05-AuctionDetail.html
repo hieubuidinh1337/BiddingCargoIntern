@@ -726,7 +726,7 @@
             const highestBidPrice = auctionBids.length > 0 ? Math.max(...auctionBids.map(b => Number(b.priceKg) || 0)) : 0;
             const effectiveCurrentPrice = Math.max(Number(auction.currentPriceKg) || 0, Number(auction.startingPriceKg) || 0, highestBidPrice);
 
-            document.getElementById('detCurrentPrice').innerHTML = (isOpen && !isAdmin && !isStaff) ?
+            document.getElementById('detCurrentPrice').innerHTML = (isStaff || (isOpen && !isAdmin)) ?
                 '<span class="text-gray-500">??? <span class="text-[10px] font-normal">(Bảo mật)</span></span>' :
                 CargoStore.formatCurrency(effectiveCurrentPrice) + '/Kg';
 
@@ -990,14 +990,24 @@
                 controls.innerHTML = html;
             }
 
-            document.getElementById('detBidsCount').textContent = bids.length + ' lượt đặt';
+            document.getElementById('detBidsCount').textContent = isStaff ? '??? (Bảo mật)' : (bids.length + ' lượt đặt');
             const tbody = document.getElementById('adminBidsBody');
             const staffNoticeBadge = document.getElementById('staffBiddingNoticeBadge');
             if (staffNoticeBadge) {
                 staffNoticeBadge.classList.toggle('hidden', !isStaff);
             }
 
-            if (isOpen && !isAdmin && !isStaff) {
+            if (isStaff) {
+                // STAFF: no access to any bidding data (amounts, counts, bid history)
+                const staffControls = document.getElementById('bidsPaginationControls');
+                const staffTotalText = document.getElementById('bidsTotalCountText');
+                if (staffControls) staffControls.innerHTML = '';
+                if (staffTotalText) staffTotalText.textContent = '';
+                tbody.innerHTML = `<tr><td colspan="6" class="py-8 text-center text-gray-500"><i class="fa-solid fa-lock mb-2 text-2xl block text-gray-300"></i> Thông tin đấu giá (số tiền, lượt đặt giá) được bảo mật.<br>Tài khoản Nhân viên không có quyền xem dữ liệu đấu giá.</td></tr>`;
+                return;
+            }
+
+            if (isOpen && !isAdmin) {
                 tbody.innerHTML = `<tr><td colspan="6" class="py-8 text-center text-gray-500"><i class="fa-solid fa-lock mb-2 text-2xl block text-gray-300"></i> Đang trong thời gian đấu giá bảo mật.<br>Chi tiết các lượt đặt giá chỉ dành cho Quản trị viên, hoặc sẽ được hệ thống công bố khi đóng phiên.</td></tr>`;
                 return;
             }

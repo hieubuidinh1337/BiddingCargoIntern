@@ -1175,7 +1175,8 @@
         function renderAuctionRow(a, data) {
             const isOpen = a.status === 'OPEN';
             const isAdmin = data.currentAdmin && data.currentAdmin.role === 'ADMIN';
-            const displayPrice = (isOpen && !isAdmin) ?
+            const isStaffRole = Boolean(data.currentAdmin && String(data.currentAdmin.role).toUpperCase() === 'STAFF');
+            const displayPrice = ((isOpen && !isAdmin) || isStaffRole) ?
                 '<span class="text-gray-500 font-normal">??? <span class="text-[10px] font-normal">(Bảo mật)</span></span>' :
                 CargoStore.formatCurrency(a.currentPriceKg);
 
@@ -1233,7 +1234,7 @@
                                 <i class="fa-solid fa-pen-to-square text-[10px]"></i> Sửa
                             </button>
                         ` : `
-                            <button disabled class="inline-flex items-center gap-1 bg-gray-100 text-gray-400 font-semibold px-2 py-1 rounded-lg cursor-not-allowed opacity-60" title="${!isOpen ? 'Không thể sửa – phiên đấu giá đã đóng thầu' : `Không thể sửa – đã có ${bidsCount} lượt đặt giá`}">
+                            <button disabled class="inline-flex items-center gap-1 bg-gray-100 text-gray-400 font-semibold px-2 py-1 rounded-lg cursor-not-allowed opacity-60" title="${!isOpen ? 'Không thể sửa – phiên đấu giá đã đóng thầu' : (isStaffRole ? 'Không thể sửa – phiên đã có lượt đặt giá' : `Không thể sửa – đã có ${bidsCount} lượt đặt giá`)}">
                                 <i class="fa-solid fa-lock text-[10px]"></i> Sửa
                             </button>
                         `}
@@ -1649,7 +1650,7 @@
             const select = document.getElementById('bcAuctionSelect');
             select.innerHTML = `<option value="">-- Áp dụng cho toàn sàn (Không gán chuyến cụ thể) --</option>` +
                 (data.auctions || []).map(a => {
-                    const priceLabel = (a.status === 'OPEN' && !isAdmin) ? '??? (Bảo mật)' : CargoStore.formatCurrency(a.currentPriceKg);
+                    const priceLabel = ((a.status === 'OPEN' && !isAdmin) || (data.currentAdmin && String(data.currentAdmin.role).toUpperCase() === 'STAFF')) ? '??? (Bảo mật)' : CargoStore.formatCurrency(a.currentPriceKg);
                     return `<option value="${a.id}">Chuyến ${a.flightNumber} (${a.route}) - Giá hiện tại: ${priceLabel}</option>`;
                 }).join('');
 

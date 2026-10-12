@@ -771,7 +771,7 @@
                 tbody.innerHTML = paginatedOpen.map(a => {
                     const timer = CargoStore.getTimeRemaining(a.endTime);
                     const isOpen = a.status === 'OPEN';
-                    const displayPrice = (isOpen && !isAdmin && !isStaff) ?
+                    const displayPrice = (isStaff || (isOpen && !isAdmin)) ?
                         '<span class="text-gray-500 font-normal">??? <span class="text-[10px] font-normal">(Bảo mật)</span></span>' :
                         CargoStore.formatCurrency(a.currentPriceKg);
                     const displayLeader = (isStaff || (isOpen && !isAdmin)) ?
