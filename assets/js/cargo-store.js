@@ -2900,12 +2900,22 @@ const CargoStore = (function() {
 
             const hasBids = (auction.bidsCount && auction.bidsCount > 0);
             const minAcceptable = auction.startingPriceKg || auction.currentPriceKg || 0;
+            const minStep = Number(auction.minStep) || 500;
 
             if (bidPriceKg < minAcceptable) {
                 return {
                     success: false,
                     message:
                         `Mức giá tối thiểu để đặt thầu là giá khởi điểm ${formatCurrency(minAcceptable)}/Kg`
+                };
+            }
+
+            const diffFromStart = Math.round(Number(bidPriceKg)) - Math.round(Number(minAcceptable));
+            if (diffFromStart % Math.round(minStep) !== 0) {
+                return {
+                    success: false,
+                    message:
+                        `Mức giá đặt thầu (${formatCurrency(bidPriceKg)}/Kg) phải tuân thủ bước giá tối thiểu (+${formatCurrency(minStep)}/Kg).`
                 };
             }
 

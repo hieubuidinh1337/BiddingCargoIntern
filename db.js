@@ -841,6 +841,11 @@ async function placeBidAtomic({ auctionId, agentCode, agentName, priceKg, isAnon
         throw new Error(`Giá đặt (${new Intl.NumberFormat('vi-VN').format(priceKg)}đ) phải lớn hơn hoặc bằng giá tối thiểu (${new Intl.NumberFormat('vi-VN').format(minPriceRequired)}đ)`);
     }
 
+    const diffFromMin = Math.round(Number(priceKg)) - Math.round(minPriceRequired);
+    if (diffFromMin % Math.round(minStep) !== 0) {
+        throw new Error(`Mức giá đặt thầu (${new Intl.NumberFormat('vi-VN').format(priceKg)}đ) phải tuân thủ bước giá tối thiểu (+${new Intl.NumberFormat('vi-VN').format(minStep)}đ/Kg)`);
+    }
+
     const bidId = 'BID-' + now + '-' + Math.floor(Math.random() * 1000);
     const timeStr = 'Vừa xong';
 
