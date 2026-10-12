@@ -467,9 +467,14 @@
         <!-- Bids Realtime Log Table -->
         <div class="bg-white rounded-2xl border shadow-sm overflow-hidden space-y-3 p-5">
             <div class="flex items-center justify-between border-b pb-3">
-                <h3 class="font-bold text-sm text-slate-800 flex items-center gap-1.5">
-                    <i class="fa-solid fa-list-ol text-blue-600"></i> Lịch sử các lượt đặt giá (Realtime Bidding Log)
-                </h3>
+                <div class="flex items-center gap-2">
+                    <h3 class="font-bold text-sm text-slate-800 flex items-center gap-1.5">
+                        <i class="fa-solid fa-list-ol text-blue-600"></i> Lịch sử các lượt đặt giá (Realtime Bidding Log)
+                    </h3>
+                    <span id="staffBiddingNoticeBadge" class="hidden text-[11px] font-semibold text-amber-700 bg-amber-50 border border-amber-200 px-2.5 py-0.5 rounded-lg inline-flex items-center gap-1">
+                        <i class="fa-solid fa-shield-halved text-amber-500"></i> Quyền Staff: Thông tin người đấu giá được bảo mật ẩn danh
+                    </span>
+                </div>
                 <span class="text-xs font-semibold text-blue-600 bg-blue-50 px-2.5 py-1 rounded-lg" id="detBidsCount">0
                     lượt đặt</span>
             </div>
@@ -714,13 +719,14 @@
             const isOpen = auction.status === 'OPEN';
             const data = CargoStore.getData();
             const currentAdmin = (CargoStore && CargoStore.getCurrentAdmin) ? CargoStore.getCurrentAdmin() : data.currentAdmin;
-            const isAdmin = true; // Admin portal user has full administrative privileges
+            const isStaff = Boolean(currentAdmin && String(currentAdmin.role).toUpperCase() === 'STAFF');
+            const isAdmin = Boolean(currentAdmin && String(currentAdmin.role).toUpperCase() === 'ADMIN');
 
             const auctionBids = CargoStore.getBidsForAuction(auction.id);
             const highestBidPrice = auctionBids.length > 0 ? Math.max(...auctionBids.map(b => Number(b.priceKg) || 0)) : 0;
             const effectiveCurrentPrice = Math.max(Number(auction.currentPriceKg) || 0, Number(auction.startingPriceKg) || 0, highestBidPrice);
 
-            document.getElementById('detCurrentPrice').innerHTML = (isOpen && !isAdmin) ?
+            document.getElementById('detCurrentPrice').innerHTML = (isOpen && !isAdmin && !isStaff) ?
                 '<span class="text-gray-500">??? <span class="text-[10px] font-normal">(Bảo mật)</span></span>' :
                 CargoStore.formatCurrency(effectiveCurrentPrice) + '/Kg';
 
@@ -825,7 +831,7 @@
                                 <div class="flex items-center gap-2">
                                     <i class="fa-solid fa-clock-rotate-left text-amber-600 text-lg"></i>
                                     <div>
-                                        <p class="font-bold">Đại lý trúng thầu (${wonItem.agentCode}) chưa điền thông tin khai báo hàng hóa</p>
+                                        <p class="font-bold">${isStaff ? 'Đại lý trúng thầu (Bảo mật)' : `Đại lý trúng thầu (${wonItem.agentCode})`} chưa điền thông tin khai báo hàng hóa</p>
                                         <p class="text-[11px] text-amber-800">Đơn trúng thầu ${wonItem.wonId} đang chờ đại lý điền thông tin lô hàng.</p>
                                     </div>
                                 </div>
@@ -838,7 +844,9 @@
                     const isPending = wonItem.paymentStatus === 'PENDING_VERIFICATION';
                     const isExpired = (window.CargoStore && CargoStore.isWonAuctionExpired) ? CargoStore.isWonAuctionExpired(wonItem) : false;
                     const proof = wonItem.paymentProof;
-                    const expectedMemo = CargoStore.generatePaymentMemo ? CargoStore.generatePaymentMemo(wonItem.wonId, wonItem.agentCode) : `CARGO ${wonItem.wonId} ${wonItem.agentCode}`;
+                    const expectedMemo = isStaff 
+                        ? `CARGO ${wonItem.wonId} AG-***`
+                        : (CargoStore.generatePaymentMemo ? CargoStore.generatePaymentMemo(wonItem.wonId, wonItem.agentCode) : `CARGO ${wonItem.wonId} ${wonItem.agentCode}`);
 
                     secCargo.innerHTML += `
                         <div class="bg-white border rounded-2xl p-5 text-xs space-y-3 shadow-sm mt-3">
@@ -984,8 +992,12 @@
 
             document.getElementById('detBidsCount').textContent = bids.length + ' lượt đặt';
             const tbody = document.getElementById('adminBidsBody');
+            const staffNoticeBadge = document.getElementById('staffBiddingNoticeBadge');
+            if (staffNoticeBadge) {
+                staffNoticeBadge.classList.toggle('hidden', !isStaff);
+            }
 
-            if (isOpen && !isAdmin) {
+            if (isOpen && !isAdmin && !isStaff) {
                 tbody.innerHTML = `<tr><td colspan="6" class="py-8 text-center text-gray-500"><i class="fa-solid fa-lock mb-2 text-2xl block text-gray-300"></i> Đang trong thời gian đấu giá bảo mật.<br>Chi tiết các lượt đặt giá chỉ dành cho Quản trị viên, hoặc sẽ được hệ thống công bố khi đóng phiên.</td></tr>`;
                 return;
             }
@@ -1001,10 +1013,18 @@
             const startIdx = (currentBidsPage - 1) * bidsItemsPerPage;
             const paginatedBids = bids.slice(startIdx, startIdx + bidsItemsPerPage);
 
-            tbody.innerHTML = paginatedBids.map((b, i) => `
+            tbody.innerHTML = paginatedBids.map((b, i) => {
+                const displayCode = isStaff
+                    ? '<span class="font-mono text-slate-400 font-semibold">AG-***</span>'
+                    : `<span class="font-mono font-bold text-blue-600">${b.agentCode}</span>`;
+                const displayName = isStaff
+                    ? '<span class="text-slate-500 italic flex items-center gap-1.5"><i class="fa-solid fa-user-shield text-slate-400 text-[10px]"></i>Đại lý tham gia (Bảo mật)</span>'
+                    : `<span class="font-bold text-slate-800">${b.agentName}</span>`;
+
+                return `
                 <tr class="${(startIdx + i) === 0 ? 'bg-blue-50/50 font-medium' : 'hover:bg-slate-50'} transition">
-                    <td class="py-3 px-4 font-mono font-bold text-blue-600">${b.agentCode}</td>
-                    <td class="py-3 px-4 font-bold text-slate-800">${b.agentName}</td>
+                    <td class="py-3 px-4">${displayCode}</td>
+                    <td class="py-3 px-4">${displayName}</td>
                     <td class="py-3 px-4 font-bold text-slate-900">${CargoStore.formatCurrency(b.priceKg)}</td>
                     <td class="py-3 px-4 text-slate-700">${CargoStore.formatCurrency(b.priceKg * b.weightKg)}</td>
                     <td class="py-3 px-4 text-gray-400 text-[11px]">${CargoStore.formatTimeAgo(b.timestamp, b.time)}</td>
@@ -1014,7 +1034,7 @@
                     '<span class="bg-blue-50 text-blue-600 font-medium px-2 py-0.5 rounded text-[10px]">ĐÃ GHI NHẬN</span>'}
                     </td>
                 </tr>
-            `).join('');
+            `;}).join('');
         }
 
         function forceClose(id) {

@@ -1527,7 +1527,10 @@
             const allBids = data.bids || [];
             const bidsForThis = allBids.filter(b => b.auctionId == id);
             const bidsCount = (auction.bidsCount > 0) ? Math.max(auction.bidsCount, bidsForThis.length) : bidsForThis.length;
-            const winner = auction.winnerAgentCode || auction.leadingAgentCode;
+            const currentAdmin = (CargoStore && CargoStore.getCurrentAdmin) ? CargoStore.getCurrentAdmin() : data.currentAdmin;
+            const isStaff = Boolean(currentAdmin && String(currentAdmin.role).toUpperCase() === 'STAFF');
+            const rawWinner = auction.winnerAgentCode || auction.leadingAgentCode;
+            const winner = isStaff ? (rawWinner ? 'AG-*** (Bảo mật)' : null) : rawWinner;
 
             pendingCancelId = id;
             document.getElementById('cancelAuctionId').value = id;
@@ -1882,6 +1885,9 @@
             const endIndex = Math.min(startIndex + wonPageSize, totalItems);
             const paginatedList = list.slice(startIndex, endIndex);
 
+            const currentAdmin = (CargoStore && CargoStore.getCurrentAdmin) ? CargoStore.getCurrentAdmin() : data.currentAdmin;
+            const isStaff = Boolean(currentAdmin && String(currentAdmin.role).toUpperCase() === 'STAFF');
+
             tbody.innerHTML = paginatedList.map(item => {
                 const isExpired = (window.CargoStore && CargoStore.isWonAuctionExpired) ? CargoStore.isWonAuctionExpired(item) : false;
                 const isCancelledAfterPayment = item.paymentStatus === 'CANCELLED_AFTER_PAYMENT';
@@ -1933,7 +1939,9 @@
                     `;
                 }
 
-                const memoStr = proof?.memo || (CargoStore.generatePaymentMemo ? CargoStore.generatePaymentMemo(item.wonId, item.agentCode) : `CARGO ${item.wonId} ${item.agentCode}`);
+                const memoStr = isStaff 
+                    ? `CARGO ${item.wonId} AG-***` 
+                    : (proof?.memo || (CargoStore.generatePaymentMemo ? CargoStore.generatePaymentMemo(item.wonId, item.agentCode) : `CARGO ${item.wonId} ${item.agentCode}`));
 
                 return `
                     <tr class="hover:bg-slate-50/80 transition ${(isExpired || isCancelledAfterPayment) ? 'opacity-80 bg-rose-50/20' : ''}">
@@ -1942,8 +1950,13 @@
                             <span class="text-slate-500 font-normal text-[11px]">Chuyến ${item.flightNumber} (${item.route})</span>
                         </td>
                         <td class="py-3.5 px-4 font-medium text-slate-800 whitespace-nowrap">
-                            <p class="font-bold text-slate-900">${agentNameDisplay}</p>
-                            <p class="text-[11px] text-blue-600 font-mono font-semibold">Mã đại lý: ${item.agentCode || '-'}</p>
+                            ${isStaff ? `
+                                <p class="font-bold text-slate-700 italic flex items-center gap-1"><i class="fa-solid fa-user-shield text-slate-400 text-[10px]"></i>Đại lý trúng thầu (Bảo mật)</p>
+                                <p class="text-[11px] text-slate-400 font-mono">Mã đại lý: AG-***</p>
+                            ` : `
+                                <p class="font-bold text-slate-900">${agentNameDisplay}</p>
+                                <p class="text-[11px] text-blue-600 font-mono font-semibold">Mã đại lý: ${item.agentCode || '-'}</p>
+                            `}
                         </td>
                         <td class="py-3.5 px-4 whitespace-nowrap">
                             <p class="font-semibold text-slate-800">${CargoStore.formatNumber(item.capacityKg)} Kg</p>

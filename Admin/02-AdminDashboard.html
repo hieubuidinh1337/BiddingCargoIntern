@@ -760,7 +760,9 @@
             const openEndIndex = Math.min(openStartIndex + adminOpenPageSize, totalOpen);
             const paginatedOpen = openAuctions.slice(openStartIndex, openEndIndex);
 
-            const isAdmin = data.currentAdmin && data.currentAdmin.role === 'ADMIN';
+            const currentAdmin = (CargoStore && CargoStore.getCurrentAdmin) ? CargoStore.getCurrentAdmin() : data.currentAdmin;
+            const isStaff = Boolean(currentAdmin && String(currentAdmin.role).toUpperCase() === 'STAFF');
+            const isAdmin = Boolean(currentAdmin && String(currentAdmin.role).toUpperCase() === 'ADMIN');
 
             const tbody = document.getElementById('adminAuctionsTable');
             if (openAuctions.length === 0) {
@@ -769,11 +771,11 @@
                 tbody.innerHTML = paginatedOpen.map(a => {
                     const timer = CargoStore.getTimeRemaining(a.endTime);
                     const isOpen = a.status === 'OPEN';
-                    const displayPrice = (isOpen && !isAdmin) ?
+                    const displayPrice = (isOpen && !isAdmin && !isStaff) ?
                         '<span class="text-gray-500 font-normal">??? <span class="text-[10px] font-normal">(Bảo mật)</span></span>' :
                         CargoStore.formatCurrency(a.currentPriceKg);
-                    const displayLeader = (isOpen && !isAdmin) ?
-                        '<span class="text-gray-500 font-normal">??? <span class="text-[10px] font-normal">(Bảo mật)</span></span>' :
+                    const displayLeader = (isStaff || (isOpen && !isAdmin)) ?
+                        '<span class="text-slate-400 font-medium italic"><i class="fa-solid fa-user-shield text-slate-400 mr-1"></i>Đại lý ẩn danh (Bảo mật)</span>' :
                         `<span class="font-semibold text-slate-900 block">${a.leadingAgentName}</span><span class="text-[10px] text-slate-400 font-mono">${a.leadingAgentCode || '-'}</span>`;
 
                     return `
@@ -911,8 +913,13 @@
                                     <span class="text-slate-500 font-normal text-[11px]">Chuyến ${item.flightNumber}</span>
                                 </td>
                                 <td class="py-3 px-3 font-medium text-slate-800">
-                                    <p class="font-bold text-slate-900 line-clamp-1">${agentName}</p>
-                                    <p class="text-[10px] text-slate-400 font-mono">${item.agentCode}</p>
+                                    ${isStaff ? `
+                                        <p class="font-bold text-slate-700 italic flex items-center gap-1"><i class="fa-solid fa-user-shield text-slate-400 text-[10px]"></i>Đại lý trúng thầu (Bảo mật)</p>
+                                        <p class="text-[10px] text-slate-400 font-mono">AG-***</p>
+                                    ` : `
+                                        <p class="font-bold text-slate-900 line-clamp-1">${agentName}</p>
+                                        <p class="text-[10px] text-slate-400 font-mono">${item.agentCode}</p>
+                                    `}
                                 </td>
                                 <td class="py-3 px-3 font-semibold text-slate-800">
                                     ${CargoStore.formatNumber(item.capacityKg)} Kg

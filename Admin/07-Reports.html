@@ -1329,7 +1329,7 @@
                             "Giá khởi điểm (đ/Kg)": a.startingPriceKg || 0,
                             "Giá hiện tại / trúng (đ/Kg)": (isOpen && !isReportAdmin) ? '??? (Bảo mật)' : (a.winningPriceKg || a.currentPriceKg || 0),
                             "Số lượt đặt giá": a.bidsCount || 0,
-                            "Đại lý dẫn đầu / Thắng": (isOpen && !isReportAdmin) ? '??? (Bảo mật)' : (a.winnerAgentCode || a.leadingAgentCode || 'Chưa có'),
+                            "Đại lý dẫn đầu / Thắng": (!isReportAdmin) ? 'AG-*** (Bảo mật)' : (a.winnerAgentCode || a.leadingAgentCode || 'Chưa có'),
                             "Trạng thái": a.status === 'OPEN' ? 'ĐANG MỞ' : (a.status === 'CLOSED' ? 'ĐÃ ĐÓNG' : a.status)
                         };
                     });

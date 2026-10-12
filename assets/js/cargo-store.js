@@ -2852,8 +2852,13 @@ const CargoStore = (function() {
             const isAdminPage = pathname.includes('/Admin/') || pathname.includes('/admin/');
             const anon = isAnonymous !== false;
 
-            // 1. Admin or Staff viewing on Admin Portal -> Full visibility + tag if anonymous
+            // 1. Admin viewing on Admin Portal -> Full visibility + tag if anonymous
+            // Staff viewing on Admin Portal -> Mask bidder identity (STAFF cannot view bidder identities)
             if (isAdminPage && data.currentAdmin) {
+                const isStaff = String(data.currentAdmin.role).toUpperCase() === 'STAFF';
+                if (isStaff) {
+                    return `Đại lý ẩn danh (AG-***)`;
+                }
                 if (anon) {
                     return `${agentName || 'Đại lý'} (${agentCode || '-'}) [ẨN DANH]`;
                 }

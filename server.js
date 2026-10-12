@@ -908,18 +908,37 @@ const server = http.createServer((req, res) => {
         if (!Array.isArray(serverData.chats)) serverData.chats = [];
 
         const agentCode = parsedUrl.searchParams.get('agentCode');
-        const role = parsedUrl.searchParams.get('role');
-        const isPrivileged = role === 'admin' || role === 'staff';
+        const role = String(parsedUrl.searchParams.get('role') || '').toLowerCase();
+        const isAdminPrivileged = role === 'admin';
+        const isStaffRole = role === 'staff';
 
         // Deep copy data payload for security sanitization
         let clientPayload = JSON.parse(JSON.stringify(serverData));
 
-        // Route Subscriptions are used for notifications (email/push alerts), not for hiding auctions on the main exchange catalog.
-        // All agents can view all active auctions on the platform.
+        // 🔒 SEC-01: STAFF ROLE PRIVACY GUARD (Staff cannot view bidder identities)
+        if (isStaffRole) {
+            clientPayload.bids = (clientPayload.bids || []).map(b => ({
+                ...b,
+                agentCode: 'AG-***',
+                agentName: 'Đại lý ẩn danh (AG-***)',
+                isAnonymous: true
+            }));
 
-        // ðŸ”’ SEC-01: SEALED-BID PRIVACY GUARD (Strict Sealed-Bid Rule)
-        // If requester is Agent or Guest (not Admin/Staff), mask individual bids for OPEN auctions
-        if (!isPrivileged) {
+            (clientPayload.auctions || []).forEach(a => {
+                a.leadingAgentCode = 'AG-***';
+                a.leadingAgentName = 'Đại lý ẩn danh (AG-***)';
+                if (a.winnerAgentCode) {
+                    a.winnerAgentCode = 'AG-***';
+                    a.winnerAgentName = 'Đại lý ẩn danh (AG-***)';
+                }
+            });
+
+            (clientPayload.wonAuctions || []).forEach(w => {
+                w.agentCode = 'AG-***';
+                w.agentName = 'Đại lý ẩn danh (AG-***)';
+            });
+        } else if (!isAdminPrivileged) {
+            // 🔒 SEC-02: SEALED-BID PRIVACY GUARD (Strict Sealed-Bid Rule for Agents & Guests)
             const openAuctionIds = new Set(
                 (clientPayload.auctions || [])
                     .filter(a => a.status === 'OPEN')
