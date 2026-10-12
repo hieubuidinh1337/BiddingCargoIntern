@@ -272,8 +272,8 @@ const defaultSharedData = {
     notifications: [
         {
             id: 1,
-            title: 'Bạn đang dẫn đầu thầu VU130',
-            message: 'Mức giá 21,500 đ/Kg của bạn đang là cao nhất cho chuyến SGN-HAN.',
+            title: 'Đặt giá thành công chuyến VU130',
+            message: 'Hệ thống đã ghi nhận mức giá 21,500 đ/Kg của bạn cho chuyến SGN-HAN.',
             time: '12 phút trước',
             type: 'BID_RECEIVED',
             read: false,

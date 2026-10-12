@@ -623,9 +623,9 @@
       "timestamp": 1789966343876,
       "targetAgentCode": "AG-0892",
       "title": "Đặt giá thành công chuyến VU130",
-      "message": "Bạn (AG-0892) đang dẫn đầu mức giá 56.500đ/Kg cho chặng SGN - HAN.",
+      "message": "Hệ thống đã ghi nhận mức giá 56.500đ/Kg cho chặng SGN - HAN.",
       "time": "5 phút trước",
-      "type": "HIGHEST",
+      "type": "BID_RECEIVED",
       "read": false,
       "link": "04-Detail.html?id=1"
     },

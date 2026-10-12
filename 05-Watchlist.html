@@ -115,7 +115,7 @@
                         <span>Theo dõi thời gian thực</span>
                     </div>
                     <h1 class="text-2xl font-bold">Danh sách chuyến bay đang theo dõi</h1>
-                    <p class="text-sm text-white/70 mt-1">Nhận cảnh báo ngay khi có đại lý khác vượt giá thầu của bạn</p>
+                    <p class="text-sm text-white/70 mt-1">Theo dõi các chuyến bay đang quan tâm và cập nhật tiến độ phiên đấu giá</p>
                 </div>
                 <div class="grid grid-cols-3 gap-3">
                     <div class="bg-white/15 backdrop-blur-sm rounded-xl px-4 py-3 text-center">
@@ -477,7 +477,7 @@
 
                         <!-- Leader -->
                         <div class="hidden lg:block">
-                                                        <p class="text-[11px] text-gray-400 mb-0.5">Đại lý ${a.status === 'CLOSED' ? 'thắng thầu' : 'dẫn đầu'}</p>
+                            <p class="text-[11px] text-gray-400 mb-0.5">Đại lý trúng thầu</p>
                             <p class="text-sm font-semibold text-slate-700">${a.status === 'CLOSED' ? (isLeading ? `<span class="text-emerald-600">🏆 Bạn (${currentAgentCode})</span>` : (a.leadingAgentCode ? CargoStore.getPublicAgentName(a.leadingAgentCode, a.leadingAgentName, a.isAnonymous) : '—')) : '??? (Ẩn)'}</p>
                             <p class="text-[11px] text-gray-400">${a.status === 'CLOSED' ? (isLeading ? (data.currentUser ? data.currentUser.companyName + ' (Công ty của bạn)' : 'Công ty của bạn') : (a.leadingAgentName ? (a.isAnonymous ? 'Thông tin đã được ẩn danh' : a.leadingAgentName) : 'Chưa có lượt thầu')) : 'Đang trong phiên (Ẩn danh)'}</p>
                         </div>

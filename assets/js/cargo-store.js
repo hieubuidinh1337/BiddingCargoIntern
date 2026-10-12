@@ -649,8 +649,8 @@ const CargoStore = (function() {
                 id: 1,
                 timestamp: Date.now() - 720000,
                 targetAgentCode: 'AG-0892',
-                title: '🚀 Bạn đang dẫn đầu thầu VU130 (SGN-HAN)',
-                message: 'Mức giá 21.500 đ/Kg của bạn (AG-0892) đang là cao nhất cho chặng SGN - HAN. Giữ vững ưu thế!',
+                title: 'Đặt giá thành công chuyến VU130 (SGN-HAN)',
+                message: 'Hệ thống đã ghi nhận mức giá 21.500 đ/Kg của bạn cho chuyến bay VU130 (SGN - HAN).',
                 time: '12 phút trước',
                 type: 'BID_RECEIVED',
                 read: false,
@@ -660,8 +660,8 @@ const CargoStore = (function() {
                 id: 2,
                 timestamp: Date.now() - 1800000,
                 targetAgentCode: 'AG-0892',
-                title: '⚠️ Cảnh báo bị vượt giá chuyến VU224 (SGN-DAD)!',
-                message: 'Đại lý ẩn danh (AG-***) vừa đặt mức giá mới 19.500 đ/Kg cho chặng SGN - DAD. Bạn không còn dẫn đầu.',
+                title: 'Đặt giá thành công chuyến VU224 (SGN-DAD)',
+                message: 'Hệ thống đã ghi nhận mức giá 18.000 đ/Kg của bạn cho chuyến bay VU224 (SGN - DAD).',
                 time: '30 phút trước',
                 type: 'BID_RECEIVED',
                 read: false,
@@ -2960,34 +2960,18 @@ const anonFlag = isAnonymous !== false;
 
             if (!data.notifications) data.notifications = [];
 
-            // 1. Notification for current bidder (HIGHEST)
+            // 1. Notification for current bidder (RECORDED)
             data.notifications.unshift({
                 id: now,
                 timestamp: now,
                 targetAgentCode: user.agentCode,
                 title: `Đặt giá thành công chuyến ${auction.flightNumber}`,
-                message: `Bạn (${user.agentCode}) đang dẫn đầu mức giá ${formatCurrency(bidPriceKg)}/Kg cho chặng ${auction.route}.${anonFlag ? ' (Tên công ty được che ẩn danh đối với các đối thủ)' : ''}`,
+                message: `Hệ thống đã ghi nhận mức giá đặt thầu ${formatCurrency(bidPriceKg)}/Kg cho chặng ${auction.route}.${anonFlag ? ' (Tên công ty được bảo mật ẩn danh)' : ''}`,
                 time: formatTimeAgo(now),
                 type: 'BID_RECEIVED',
                 read: false,
                 link: `04-Detail.html?id=${auction.id}`
             });
-
-            // 2. Notification for previous leading agent (OUTBID)
-            if (previousLeaderCode && previousLeaderCode !== user.agentCode) {
-                const competitorNameDisplay = anonFlag ? 'Một đại lý đối thủ (Ẩn danh)' : `Đại lý ${user.companyName} (${user.agentCode})`;
-                data.notifications.unshift({
-                    id: now + 1,
-                    timestamp: now + 1,
-                    targetAgentCode: previousLeaderCode,
-                    title: `Cảnh báo bị vượt giá chuyến ${auction.flightNumber}!`,
-                    message: `${competitorNameDisplay} vừa đặt mức giá mới ${formatCurrency(bidPriceKg)}/Kg cho chặng ${auction.route}.`,
-                    time: formatTimeAgo(now + 1),
-                    type: 'BID_RECEIVED',
-                    read: false,
-                    link: `04-Detail.html?id=${auction.id}`
-                });
-            }
 
             if (!data.activityLogs) data.activityLogs = [];
             const padLog = n => String(n).padStart(2, '0');
@@ -3285,7 +3269,7 @@ const anonFlag = isAnonymous !== false;
                             timestamp: bTime,
                             targetAgentCode: myCode,
                             title: `Đặt giá thành công chuyến ${flightLabel}`,
-                            message: `Bạn (${myCode}) đang dẫn đầu mức giá ${formatCurrency(b.priceKg)}/Kg cho chặng ${routeLabel}.`,
+                            message: `Hệ thống đã ghi nhận mức giá ${formatCurrency(b.priceKg)}/Kg cho chặng ${routeLabel}.`,
                             time: formatTimeAgo(bTime),
                             type: 'BID_RECEIVED',
                             read: isRead,

@@ -350,7 +350,7 @@
                                         <span class="bg-slate-100 text-slate-600 font-mono font-semibold text-[10px] px-2 py-0.5 rounded-md border border-slate-200" title="Mã định danh phiên">${a.flightCode || '#' + a.id}</span>
                                         <span class="font-bold text-slate-900 text-sm">${a.route}</span>
                                         <span class="text-xs text-gray-400">· ${a.aircraft}</span>
-                                        ${(a.status === 'CLOSED' && isLeading) ? '<span class="bg-green-100 text-green-700 text-[10px] font-bold px-2 py-0.5 rounded-full flex items-center gap-1"><i class="fa-solid fa-crown"></i> Bạn đang dẫn đầu</span>' : ''}
+                                        ${(a.status === 'CLOSED' && isLeading) ? '<span class="bg-purple-100 text-purple-700 text-[10px] font-bold px-2 py-0.5 rounded-full flex items-center gap-1"><i class="fa-solid fa-trophy"></i> Bạn thắng thầu</span>' : ''}
                                     </div>
                                     <div class="flex flex-wrap items-center gap-x-4 gap-y-1 text-xs text-gray-500">
                                         <span><i class="fa-solid fa-plane-departure text-gray-400 mr-1"></i> ETD: ${a.etd}</span>
