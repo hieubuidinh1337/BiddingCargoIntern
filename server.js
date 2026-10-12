@@ -1210,7 +1210,7 @@ const server = http.createServer((req, res) => {
     if (pathname === '/api/bids/place' && req.method === 'POST') {
         readBody(req).then(async (body) => {
             try {
-                let { auctionId, agentCode, agentName, priceKg, isAnonymous, weightKg } = JSON.parse(body || '{}');
+                let { auctionId, agentCode, agentName, priceKg, isAnonymous, weightKg, bidId } = JSON.parse(body || '{}');
                 if (!auctionId || !agentCode || !priceKg) {
                     res.writeHead(400, { 'Content-Type': 'application/json; charset=UTF-8' });
                     res.end(JSON.stringify({ success: false, error: 'Thiếu auctionId, agentCode hoặc priceKg' }));
@@ -1229,7 +1229,8 @@ const server = http.createServer((req, res) => {
                     agentName: agentName || agentCode,
                     priceKg: Number(priceKg),
                     isAnonymous: isAnonymous !== false,
-                    weightKg: Number(weightKg) || 0
+                    weightKg: Number(weightKg) || 0,
+                    bidId
                 });
 
                 // Refresh in-memory state from database
@@ -1459,6 +1460,18 @@ const server = http.createServer((req, res) => {
                 }
 
                 if (incoming.bids && Array.isArray(incoming.bids)) {
+                    // Drop client-side copies (non BID- ids) of bids the server already holds
+                    incoming.bids = incoming.bids.filter(b => {
+                        if (!b) return false;
+                        if (String(b.id || '').startsWith('BID-')) return true;
+                        const bTime = Number(b.timestamp || b.id || 0);
+                        return !(serverData.bids || []).some(s =>
+                            Number(s.auctionId) === Number(b.auctionId) &&
+                            String(s.agentCode || '').toUpperCase() === String(b.agentCode || '').toUpperCase() &&
+                            Number(s.priceKg) === Number(b.priceKg) &&
+                            Math.abs(Number(s.timestamp || 0) - bTime) < 60000
+                        );
+                    });
                     const validAgentCodes = new Set([
                         ...(serverData.agentsList || []).map(a => String(a.code || '').trim().toUpperCase()),
                         ...(incoming.agentsList || []).map(a => String(a.code || '').trim().toUpperCase()),

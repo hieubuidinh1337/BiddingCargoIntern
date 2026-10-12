@@ -547,7 +547,7 @@
         document.getElementById('modalMinPrice').textContent = CargoStore.formatCurrency(modalMinPrice) + '/Kg (Bước giá: +' + CargoStore.formatCurrency(step) + ')';
         const input = document.getElementById('quickBidInput');
         input.value = modalMinPrice;
-        input.step = step;
+        input.step = "any";
         input.min = modalMinPrice;
 
         const container = document.getElementById('quickBidBtnsContainer');
@@ -581,8 +581,9 @@
             return;
         }
         const step = Number(currentBidAuction?.minStep) || 500;
-        if ((val - modalMinPrice) % step !== 0) {
-            showToast(`Mức giá phải tuân thủ bước giá (+${step.toLocaleString('vi-VN')} đ/Kg)`, 'error');
+        const diff = val - modalMinPrice;
+        if (diff > 0 && diff < step) {
+            showToast(`Mức giá phải tăng tối thiểu từ +${step.toLocaleString('vi-VN')} đ/Kg trở lên`, 'error');
             return;
         }
         if (currentBidAuction) {

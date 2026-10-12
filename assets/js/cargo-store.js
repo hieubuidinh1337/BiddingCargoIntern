@@ -2848,11 +2848,11 @@ const CargoStore = (function() {
             }
 
             const diffFromStart = Math.round(Number(bidPriceKg)) - Math.round(Number(minAcceptable));
-            if (diffFromStart % Math.round(minStep) !== 0) {
+            if (diffFromStart > 0 && diffFromStart < Math.round(minStep)) {
                 return {
                     success: false,
                     message:
-                        `Mức giá đặt thầu (${formatCurrency(bidPriceKg)}/Kg) phải tuân thủ bước giá tối thiểu (+${formatCurrency(minStep)}/Kg).`
+                        `Mức giá đặt thầu (${formatCurrency(bidPriceKg)}/Kg) phải tăng tối thiểu +${formatCurrency(minStep)}/Kg so với mức giá sàn (${formatCurrency(minAcceptable)}/Kg).`
                 };
             }
 
@@ -2875,9 +2875,10 @@ const CargoStore = (function() {
 const anonFlag = isAnonymous !== false;
 
             const now = Date.now();
+            const sharedBidId = 'BID-' + now + '-' + Math.floor(Math.random() * 1000);
             // Insert new bid with logged in agent's identity and isAnonymous flag
             const newBid = {
-                id: now,
+                id: sharedBidId,
                 timestamp: now,
                 auctionId: auction.id,
                 flightCode: auction.flightCode,
@@ -2961,6 +2962,7 @@ const anonFlag = isAnonymous !== false;
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify({
+                        bidId: sharedBidId,
                         auctionId: Number(auctionId),
                         agentCode: user.agentCode,
                         agentName: user.companyName,

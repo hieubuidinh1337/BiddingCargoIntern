@@ -377,9 +377,15 @@ async function seedFullData(data) {
                 const codeUpper = String(ag.code || '').toUpperCase();
                 const pwd = ag.password || defaultPwdMap[codeUpper] || 'abc123456';
                 const pin = ag.pin || '1234';
+                // UPSERT (not INSERT OR REPLACE): REPLACE deletes the row first and would CASCADE-delete this agent's bids/won auctions
                 await run(`
-                    INSERT OR REPLACE INTO agents (code, name, companyName, taxCode, email, phone, status, isLocked, lockedReason, lockedAt, unlockedAt, password, pin)
+                    INSERT INTO agents (code, name, companyName, taxCode, email, phone, status, isLocked, lockedReason, lockedAt, unlockedAt, password, pin)
                     VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+                    ON CONFLICT(code) DO UPDATE SET
+                        name = excluded.name, companyName = excluded.companyName, taxCode = excluded.taxCode,
+                        email = excluded.email, phone = excluded.phone, status = excluded.status,
+                        isLocked = excluded.isLocked, lockedReason = excluded.lockedReason, lockedAt = excluded.lockedAt,
+                        unlockedAt = excluded.unlockedAt, password = excluded.password, pin = excluded.pin
                 `, [
                     ag.code, ag.name || ag.companyName || '', ag.companyName || '', ag.taxCode || '', ag.email || '',
                     ag.phone || '', ag.status || 'Hoạt động', ag.isLocked ? 1 : 0, ag.lockedReason || null, ag.lockedAt || null, ag.unlockedAt || null,
@@ -422,10 +428,22 @@ async function seedFullData(data) {
         // 2. Insert auctions SECOND so child tables referencing auctions(id) satisfy Foreign Keys
         if (Array.isArray(data.auctions)) {
             for (const a of data.auctions) {
+                // UPSERT (not INSERT OR REPLACE): REPLACE would CASCADE-delete every bid of this auction
                 await run(`
-                    INSERT OR REPLACE INTO auctions 
+                    INSERT INTO auctions 
                     (id, flightCode, flightNumber, route, origin, destination, originName, destName, etd, eta, etdIso, aircraft, capacityKg, startingPriceKg, currentPriceKg, minStep, endTime, status, leadingAgentCode, leadingAgentName, bidsCount, winnerAgentCode, winnerAgentName, winningPriceKg, specialNotes, cutOffTime)
                     VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+                    ON CONFLICT(id) DO UPDATE SET
+                        flightCode = excluded.flightCode, flightNumber = excluded.flightNumber, route = excluded.route,
+                        origin = excluded.origin, destination = excluded.destination, originName = excluded.originName,
+                        destName = excluded.destName, etd = excluded.etd, eta = excluded.eta, etdIso = excluded.etdIso,
+                        aircraft = excluded.aircraft, capacityKg = excluded.capacityKg, startingPriceKg = excluded.startingPriceKg,
+                        currentPriceKg = excluded.currentPriceKg, minStep = excluded.minStep, endTime = excluded.endTime,
+                        status = excluded.status, leadingAgentCode = excluded.leadingAgentCode,
+                        leadingAgentName = excluded.leadingAgentName, bidsCount = excluded.bidsCount,
+                        winnerAgentCode = excluded.winnerAgentCode, winnerAgentName = excluded.winnerAgentName,
+                        winningPriceKg = excluded.winningPriceKg, specialNotes = excluded.specialNotes,
+                        cutOffTime = excluded.cutOffTime
                 `, [
                     a.id, a.flightCode || null, a.flightNumber || null, a.route || null, a.origin || null, a.destination || null,
                     a.originName || null, a.destName || null, a.etd || null, a.eta || null, a.etdIso || null, a.aircraft || null,
@@ -780,7 +798,7 @@ async function purgeUnregisteredBids() {
     return invalidIds.length;
 }
 
-async function placeBidAtomic({ auctionId, agentCode, agentName, priceKg, isAnonymous = true, weightKg = 0 }) {
+async function placeBidAtomic({ auctionId, agentCode, agentName, priceKg, isAnonymous = true, weightKg = 0, bidId: clientBidId = null }) {
     if (!agentCode || agentCode.trim().toUpperCase() === 'AG-***' || agentCode.trim().toUpperCase() === 'ANONYMOUS') {
         throw new Error('Mã đại lý không hợp lệ hoặc là mã ẩn danh (AG-***)');
     }
@@ -842,11 +860,30 @@ async function placeBidAtomic({ auctionId, agentCode, agentName, priceKg, isAnon
     }
 
     const diffFromMin = Math.round(Number(priceKg)) - Math.round(minPriceRequired);
-    if (diffFromMin % Math.round(minStep) !== 0) {
-        throw new Error(`Mức giá đặt thầu (${new Intl.NumberFormat('vi-VN').format(priceKg)}đ) phải tuân thủ bước giá tối thiểu (+${new Intl.NumberFormat('vi-VN').format(minStep)}đ/Kg)`);
+    if (diffFromMin > 0 && diffFromMin < Math.round(minStep)) {
+        throw new Error(`Mức giá đặt thầu (${new Intl.NumberFormat('vi-VN').format(priceKg)}đ) phải tăng tối thiểu +${new Intl.NumberFormat('vi-VN').format(minStep)}đ/Kg so với giá khởi điểm`);
     }
 
-    const bidId = 'BID-' + now + '-' + Math.floor(Math.random() * 1000);
+    const bidId = (clientBidId && /^BID-\d+-\d+$/.test(String(clientBidId)))
+        ? String(clientBidId)
+        : ('BID-' + now + '-' + Math.floor(Math.random() * 1000));
+
+    // Idempotency: the same bid ID (e.g. double submit / retry) must never be inserted twice
+    const existingBid = await get('SELECT * FROM bids WHERE id = ?', [bidId]);
+    if (existingBid) {
+        return {
+            id: existingBid.id,
+            timestamp: existingBid.timestamp,
+            auctionId: existingBid.auctionId,
+            agentCode: existingBid.agentCode,
+            agentName: existingBid.agentName,
+            isAnonymous: !!existingBid.isAnonymous,
+            priceKg: existingBid.priceKg,
+            time: existingBid.time,
+            status: existingBid.status,
+            weightKg: existingBid.weightKg
+        };
+    }
     const timeStr = 'Vừa xong';
 
     try {
