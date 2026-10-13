@@ -329,6 +329,50 @@ async function ensureDatabase() {
     }
 }
 
+// [name, childTable, childCol, parentTable, parentCol, enforced]
+// Non-enforced links exist for the diagram only: those columns may hold pseudo
+// codes (ALL / STAFF / SYSTEM / admin ...) that are not real agents.
+const FOREIGN_KEYS = [
+    ['FK_bids_auctions_auctionId', 'bids', 'auctionId', 'auctions', 'id', true],
+    ['FK_bids_agents_agentCode', 'bids', 'agentCode', 'agents', 'code', true],
+    ['FK_won_auctions_auctions_auctionId', 'won_auctions', 'auctionId', 'auctions', 'id', true],
+    ['FK_won_auctions_agents_agentCode', 'won_auctions', 'agentCode', 'agents', 'code', true],
+    ['FK_auctions_agents_leadingAgentCode', 'auctions', 'leadingAgentCode', 'agents', 'code', true],
+    ['FK_auctions_agents_winnerAgentCode', 'auctions', 'winnerAgentCode', 'agents', 'code', true],
+    ['FK_chats_agents_agentCode', 'chats', 'agentCode', 'agents', 'code', true],
+    ['FK_chat_messages_chats_chatId', 'chat_messages', 'chatId', 'chats', 'id', true],
+    ['FK_users_agents_agentCode', 'users', 'agentCode', 'agents', 'code', false],
+    ['FK_notifications_agents_targetAgentCode', 'notifications', 'targetAgentCode', 'agents', 'code', false],
+    ['FK_registrations_agents_agentCode', 'registrations', 'agentCode', 'agents', 'code', false]
+];
+const OLD_FK_NAMES = { FK_bids_auction: 'FK_bids_auctions_auctionId', FK_chat_messages_chat: 'FK_chat_messages_chats_chatId' };
+
+async function ensureForeignKeys() {
+    for (const [oldName, newName] of Object.entries(OLD_FK_NAMES)) {
+        try {
+            await pool.request().query(
+                `IF EXISTS (SELECT 1 FROM sys.foreign_keys WHERE name = N'${oldName}') EXEC sp_rename N'dbo.${oldName}', N'${newName}', N'OBJECT'`);
+        } catch (e) { console.warn(`[Database] rename ${oldName} failed: ${e.message}`); }
+    }
+    for (const [name, child, col, parent, pcol, enforced] of FOREIGN_KEYS) {
+        try {
+            const exists = await pool.request().query(`SELECT 1 AS x FROM sys.foreign_keys WHERE name = N'${name}'`);
+            if (exists.recordset.length) continue;
+            const base = `ALTER TABLE dbo.${child} %CHK% ADD CONSTRAINT ${name} FOREIGN KEY (${col}) REFERENCES dbo.${parent}(${pcol}) ON DELETE NO ACTION ON UPDATE NO ACTION`;
+            if (enforced) {
+                try { await pool.request().query(base.replace('%CHK%', 'WITH CHECK')); }
+                catch (e) {
+                    console.warn(`[Database] ${name}: existing data violates FK, adding WITH NOCHECK (${e.message})`);
+                    await pool.request().query(base.replace('%CHK%', 'WITH NOCHECK'));
+                }
+            } else {
+                await pool.request().query(base.replace('%CHK%', 'WITH NOCHECK'));
+                await pool.request().query(`ALTER TABLE dbo.${child} NOCHECK CONSTRAINT ${name}`);
+            }
+        } catch (e) { console.warn(`[Database] FK ${name} skipped: ${e.message}`); }
+    }
+}
+
 async function init() {
     if (pool) return pool;
     console.log(`[Database] Connecting to SQL Server "${SERVER}" / database "${DATABASE}" (Windows Authentication, Encrypt=True, TrustServerCertificate=True)`);
@@ -346,6 +390,7 @@ async function init() {
             `IF NOT EXISTS (SELECT 1 FROM sys.indexes WHERE name = N'${idx}' AND object_id = OBJECT_ID(N'dbo.${table}')) CREATE INDEX ${idx} ON ${table}(${col})`);
     }
     console.log('[Database] SQL Server schema ready.');
+    await ensureForeignKeys();
     return pool;
 }
 
