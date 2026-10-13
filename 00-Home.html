@@ -153,10 +153,6 @@
                             class="bg-white/15 hover:bg-white/20 border border-white/30 text-white font-semibold px-6 py-3.5 rounded-xl transition flex items-center gap-2">
                             <i class="fa-solid fa-file-pen"></i> Đăng ký tham gia
                         </a>
-                        <a href="#thong-bao"
-                            class="border border-white/20 hover:bg-white/10 text-slate-300 hover:text-white font-medium px-5 py-3.5 rounded-xl transition">
-                            Xem đợt mở xét duyệt
-                        </a>
                     </div>
                 </div>
 
@@ -181,36 +177,6 @@
                                 <span id="heroErrorTitle">Đăng nhập thất bại</span>
                             </div>
                             <p id="heroErrorMsg" class="pl-5 text-gray-600">Mã đại lý hoặc mật khẩu không đúng.</p>
-                        </div>
-
-                        <!-- Demo Accounts Selector -->
-                        <div
-                            class="bg-blue-50/80 border border-blue-200/80 rounded-xl p-3 mb-4 text-xs text-blue-900 space-y-1.5">
-                            <span class="font-bold flex items-center gap-1">
-                                <i class="fa-solid fa-bolt text-amber-500"></i> Chọn nhanh tài khoản đại lý mẫu:
-                            </span>
-                            <div class="grid grid-cols-2 gap-1.5 pt-0.5">
-                                <button type="button" onclick="fillHeroDemo('AG-0892', 'abc123456')"
-                                    class="bg-white hover:bg-blue-100 text-blue-900 border border-blue-200 px-2 py-1.5 rounded-lg text-left transition text-[11px] shadow-sm">
-                                    <span class="font-bold block truncate">ABC Logistics</span>
-                                    <span class="text-[10px] text-blue-600 font-mono">AG-0892</span>
-                                </button>
-                                <button type="button" onclick="fillHeroDemo('AG-1024', 'vina123456')"
-                                    class="bg-white hover:bg-blue-100 text-blue-900 border border-blue-200 px-2 py-1.5 rounded-lg text-left transition text-[11px] shadow-sm">
-                                    <span class="font-bold block truncate">Vinatrans</span>
-                                    <span class="text-[10px] text-blue-600 font-mono">AG-1024</span>
-                                </button>
-                                <button type="button" onclick="fillHeroDemo('AG-0556', 'star123456')"
-                                    class="bg-white hover:bg-blue-100 text-blue-900 border border-blue-200 px-2 py-1.5 rounded-lg text-left transition text-[11px] shadow-sm">
-                                    <span class="font-bold block truncate">Golden Star</span>
-                                    <span class="text-[10px] text-blue-600 font-mono">AG-0556</span>
-                                </button>
-                                <button type="button" onclick="fillHeroDemo('AG-0341', 'sky123456')"
-                                    class="bg-white hover:bg-blue-100 text-blue-900 border border-blue-200 px-2 py-1.5 rounded-lg text-left transition text-[11px] shadow-sm">
-                                    <span class="font-bold block truncate">SkyFreight</span>
-                                    <span class="text-[10px] text-blue-600 font-mono">AG-0341</span>
-                                </button>
-                            </div>
                         </div>
 
                         <form class="space-y-4" id="heroLoginForm" onsubmit="handleHeroLogin(event)">

@@ -353,9 +353,6 @@
                 <a href="08-Settings.html" class="nav-item-admin"><i class="fa-solid fa-sliders"></i>Cài đặt</a>
                 <a href="10-AuditLogs.html" class="nav-item-admin"><i class="fa-solid fa-clock-rotate-left"></i>Nhật
                     ký</a>
-                <a href="09-AdminChat.html" class="nav-item-admin chat-item"><i
-                        class="fa-solid fa-headset"></i>Chat<span id="admin-chat-badge"
-                        class="hidden chat-badge">0</span></a>
             </nav>
 
             <!-- Right Bar -->
@@ -389,9 +386,6 @@
             <a href="08-Settings.html" class="mobile-nav-item"><i class="fa-solid fa-sliders w-4"></i>Cài đặt</a>
             <a href="10-AuditLogs.html" class="mobile-nav-item"><i class="fa-solid fa-clock-rotate-left w-4"></i>Nhật
                 ký</a>
-            <a href="09-AdminChat.html" class="mobile-nav-item chat-item"><i
-                    class="fa-solid fa-headset w-4"></i>Chat<span id="admin-chat-badge-m"
-                    class="hidden chat-badge ml-auto">0</span></a>
             <a href="../00-Home.html" target="_blank" class="mobile-nav-item"
                 style="border-top:1px solid rgba(255,255,255,0.08);margin-top:6px;padding-top:10px">
                 <i class="fa-solid fa-arrow-up-right-from-square w-4"></i> Xem Sàn công khai
@@ -726,7 +720,8 @@
             const highestBidPrice = auctionBids.length > 0 ? Math.max(...auctionBids.map(b => Number(b.priceKg) || 0)) : 0;
             const effectiveCurrentPrice = Math.max(Number(auction.currentPriceKg) || 0, Number(auction.startingPriceKg) || 0, highestBidPrice);
 
-            document.getElementById('detCurrentPrice').innerHTML = (isStaff || (isOpen && !isAdmin)) ?
+            // DEMO RULE: no bid information for Admin/Staff while the session is live
+            document.getElementById('detCurrentPrice').innerHTML = isOpen ?
                 '<span class="text-gray-500">??? <span class="text-[10px] font-normal">(Bảo mật)</span></span>' :
                 CargoStore.formatCurrency(effectiveCurrentPrice) + '/Kg';
 
@@ -919,7 +914,7 @@
                         <i class="fa-solid fa-pen-to-square"></i> Sửa thông số
                     </button>
                 ` : `
-                    <button disabled class="bg-slate-200 text-slate-400 text-xs font-bold px-3.5 py-2 rounded-xl cursor-not-allowed opacity-70 flex items-center gap-1.5" title="${!isOpen ? 'Không thể sửa – phiên đấu giá đã đóng thầu' : `Không thể sửa – đã có ${bids.length} lượt đặt giá`}">
+                    <button disabled class="bg-slate-200 text-slate-400 text-xs font-bold px-3.5 py-2 rounded-xl cursor-not-allowed opacity-70 flex items-center gap-1.5" title="${!isOpen ? 'Không thể sửa – phiên đấu giá đã đóng thầu' : 'Không thể sửa – phiên đã có lượt đặt giá'}">
                         <i class="fa-solid fa-lock"></i> Khóa sửa
                     </button>
                 `}
@@ -990,20 +985,20 @@
                 controls.innerHTML = html;
             }
 
-            document.getElementById('detBidsCount').textContent = isStaff ? '??? (Bảo mật)' : (bids.length + ' lượt đặt');
+            document.getElementById('detBidsCount').textContent = isOpen ? '??? (Bảo mật)' : (bids.length + ' lượt đặt');
             const tbody = document.getElementById('adminBidsBody');
             const staffNoticeBadge = document.getElementById('staffBiddingNoticeBadge');
             if (staffNoticeBadge) {
                 staffNoticeBadge.classList.toggle('hidden', !isStaff);
             }
 
-            if (isStaff) {
-                // STAFF: no access to any bidding data (amounts, counts, bid history)
+            if (isOpen) {
+                // LIVE SESSION (Admin & Staff): no access to any bidding data (amounts, counts, bid history)
                 const staffControls = document.getElementById('bidsPaginationControls');
                 const staffTotalText = document.getElementById('bidsTotalCountText');
                 if (staffControls) staffControls.innerHTML = '';
                 if (staffTotalText) staffTotalText.textContent = '';
-                tbody.innerHTML = `<tr><td colspan="6" class="py-8 text-center text-gray-500"><i class="fa-solid fa-lock mb-2 text-2xl block text-gray-300"></i> Thông tin đấu giá (số tiền, lượt đặt giá) được bảo mật.<br>Tài khoản Nhân viên không có quyền xem dữ liệu đấu giá.</td></tr>`;
+                tbody.innerHTML = `<tr><td colspan="6" class="py-8 text-center text-gray-500"><i class="fa-solid fa-lock mb-2 text-2xl block text-gray-300"></i> Thông tin đấu giá (số tiền, lượt đặt giá) được bảo mật trong khi phiên đang diễn ra.<br>Sẽ được công bố sau khi phiên được chốt / đóng.</td></tr>`;
                 return;
             }
 
@@ -1187,19 +1182,6 @@
             if (e.key === 'CARGO_BIDDING_DATA_V3') onAdminDetailStoreUpdate();
         });
         window.addEventListener('cargostore_updated', onAdminDetailStoreUpdate);
-    </script>
-    <script>
-        (function () {
-            function updateChatBadge() {
-                fetch("/api/chat").then(r => r.json()).then(d => {
-                    if (!d.success) return;
-                    var w = (d.chats || []).filter(function (c) { return c.status === "WAITING"; }).length;
-                    var b = document.getElementById("admin-chat-badge");
-                    if (b) { b.textContent = w; b.classList.toggle("hidden", w === 0); }
-                }).catch(function () { });
-            }
-            document.addEventListener("DOMContentLoaded", function () { updateChatBadge(); setInterval(updateChatBadge, 8000); });
-        })();
     </script>
 </body>
 

@@ -639,12 +639,15 @@
                 return;
             }
 
+            // DEMO RULE: competitor information is NEVER revealed to any viewer
+            // (open OR closed, winner included). Only the viewer's own rows are identifiable.
             tbody.innerHTML = bids.map((b, index) => {
                 const isFirst = isClosed ? index === 0 : false;
                 const isMine = myCode && String(b.agentCode || '').trim().toUpperCase() === String(myCode).trim().toUpperCase();
-                const displayName = CargoStore.getPublicAgentName(b.agentCode, b.agentName, b.isAnonymous);
+                const displayName = isMine ? (b.agentName || 'Công ty của bạn') : 'Đại lý ẩn danh';
+                const isMyWin = isFirst && isMine;
                 return `
-                    <tr class="${isFirst ? 'bg-blue-50/40 font-medium' : 'hover:bg-gray-50'} transition">
+                    <tr class="${isMyWin ? 'bg-blue-50/40 font-medium' : 'hover:bg-gray-50'} transition">
                         <td class="py-3 px-4">
                             <div class="flex items-center gap-2">
                                 <span class="font-bold text-slate-800">${displayName}</span>
@@ -652,17 +655,21 @@
                                 ${isMine ? '<span class="bg-blue-100 text-blue-700 text-[10px] px-1.5 py-0.5 rounded font-bold">Bạn</span>' : ''}
                             </div>
                         </td>
-                        <td class="py-3 px-4 font-bold ${isFirst ? 'text-blue-600 text-sm' : 'text-slate-700'}">
-                            ${(isMine || isClosed) ? CargoStore.formatCurrency(b.priceKg) : '??? (Ẩn)'}
+                        <td class="py-3 px-4 font-bold ${isMyWin ? 'text-blue-600 text-sm' : 'text-slate-700'}">
+                            ${isMine ? CargoStore.formatCurrency(b.priceKg) : '??? (Ẩn)'}
                         </td>
                         <td class="py-3 px-4 text-gray-600">
-                            ${(isMine || isClosed) ? CargoStore.formatCurrency(b.priceKg * b.weightKg) : '??? (Ẩn)'}
+                            ${isMine ? CargoStore.formatCurrency(b.priceKg * b.weightKg) : '??? (Ẩn)'}
                         </td>
                         <td class="py-3 px-4 text-gray-400 text-[11px]">
                             ${CargoStore.formatTimeAgo(b.timestamp, b.time)}
                         </td>
                                                 <td class="py-3 px-4 text-right">
-                            ${isClosed ? (isFirst ? `
+                            ${!isMine ? `
+                                <span class="bg-gray-100 text-gray-400 font-medium px-2 py-0.5 rounded-full text-[10px]">
+                                    ???
+                                </span>
+                            ` : isClosed ? (isFirst ? `
                                 <span class="bg-amber-100 text-amber-900 border border-amber-300 font-bold px-2.5 py-1 rounded-full text-[10px] inline-flex items-center gap-1 shadow-xs">
                                     <i class="fa-solid fa-trophy text-amber-600 text-[9px]"></i> Thắng thầu
                                 </span>

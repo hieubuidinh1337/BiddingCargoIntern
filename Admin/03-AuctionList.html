@@ -383,9 +383,6 @@
                 <a href="08-Settings.html" class="nav-item-admin"><i class="fa-solid fa-sliders"></i>Cài đặt</a>
                 <a href="10-AuditLogs.html" class="nav-item-admin"><i class="fa-solid fa-clock-rotate-left"></i>Nhật
                     ký</a>
-                <a href="09-AdminChat.html" class="nav-item-admin chat-item"><i
-                        class="fa-solid fa-headset"></i>Chat<span id="admin-chat-badge"
-                        class="hidden chat-badge">0</span></a>
             </nav>
 
             <!-- Right Bar -->
@@ -419,9 +416,6 @@
             <a href="08-Settings.html" class="mobile-nav-item"><i class="fa-solid fa-sliders w-4"></i>Cài đặt</a>
             <a href="10-AuditLogs.html" class="mobile-nav-item"><i class="fa-solid fa-clock-rotate-left w-4"></i>Nhật
                 ký</a>
-            <a href="09-AdminChat.html" class="mobile-nav-item chat-item"><i
-                    class="fa-solid fa-headset w-4"></i>Chat<span id="admin-chat-badge-m"
-                    class="hidden chat-badge ml-auto">0</span></a>
             <a href="../00-Home.html" target="_blank" class="mobile-nav-item"
                 style="border-top:1px solid rgba(255,255,255,0.08);margin-top:6px;padding-top:10px">
                 <i class="fa-solid fa-arrow-up-right-from-square w-4"></i> Xem Sàn công khai
@@ -457,7 +451,7 @@
                 class="px-4 py-2 rounded-xl text-xs font-bold bg-blue-600 text-white shadow-sm flex items-center gap-2 transition">
                 <i class="fa-solid fa-layer-group"></i> Tất cả phiên đấu giá (<span id="allCountBadge">0</span>)
             </button>
-            <button onclick="switchAuctionTab('WON_AUCTIONS')" id="tabWonAuctionsBtn"
+            <button onclick="switchAuctionTab('WON_AUCTIONS')" id="tabWonAuctionsBtn" style="display:none" hidden
                 class="px-4 py-2 rounded-xl text-xs font-bold bg-white text-slate-600 hover:bg-slate-50 border flex items-center gap-2 transition">
                 <i class="fa-solid fa-boxes-packing"></i> Đơn thắng thầu & Khai báo Hàng hóa (<span
                     id="wonCountBadge">0</span>)
@@ -504,7 +498,7 @@
                                 <th class="py-3.5 px-4 whitespace-nowrap">Tuyến bay</th>
                                 <th class="py-3.5 px-4 whitespace-nowrap">Tàu bay & Giờ ETD</th>
                                 <th class="py-3.5 px-4 whitespace-nowrap">Tải trọng chào thầu</th>
-                                <th class="py-3.5 px-4 whitespace-nowrap">Giá hiện tại (đ/Kg)</th>
+                                <th class="py-3.5 px-4 whitespace-nowrap">Giá thắng cuộc (đ/Kg)</th>
                                 <th class="py-3.5 px-4 whitespace-nowrap">Trạng thái</th>
                                 <th class="py-3.5 px-4 text-right whitespace-nowrap">Thao tác</th>
                             </tr>
@@ -524,7 +518,7 @@
 
 
         <!-- Tab 3: Đơn thắng thầu & Khai báo Hàng hóa -->
-        <div id="sectionWonAuctions" class="hidden bg-white rounded-2xl border shadow-sm overflow-hidden">
+        <div id="sectionWonAuctions" style="display:none !important" hidden class="hidden bg-white rounded-2xl border shadow-sm overflow-hidden">
             <div
                 class="px-6 py-4 border-b bg-slate-900 text-white flex flex-col xl:flex-row xl:items-center justify-between gap-3">
                 <div class="flex items-center gap-2.5">
@@ -1176,9 +1170,11 @@
             const isOpen = a.status === 'OPEN';
             const isAdmin = data.currentAdmin && data.currentAdmin.role === 'ADMIN';
             const isStaffRole = Boolean(data.currentAdmin && String(data.currentAdmin.role).toUpperCase() === 'STAFF');
-            const displayPrice = ((isOpen && !isAdmin) || isStaffRole) ?
-                '<span class="text-gray-500 font-normal">??? <span class="text-[10px] font-normal">(Bảo mật)</span></span>' :
-                CargoStore.formatCurrency(a.currentPriceKg);
+            // DEMO RULE: Admin AND Staff can never see bid prices of a live auction.
+            // The winning price is only revealed once the session is CLOSED.
+            const displayPrice = (a.status === 'CLOSED') ?
+                CargoStore.formatCurrency(a.winningPriceKg || a.currentPriceKg) :
+                '<span class="text-gray-500 font-normal">' + (isOpen ? '???' : '-') + '</span>';
 
             const allBids = data.bids || [];
             const bidsForThis = allBids.filter(b => b.auctionId == a.id);
@@ -1650,8 +1646,8 @@
             const select = document.getElementById('bcAuctionSelect');
             select.innerHTML = `<option value="">-- Áp dụng cho toàn sàn (Không gán chuyến cụ thể) --</option>` +
                 (data.auctions || []).map(a => {
-                    const priceLabel = ((a.status === 'OPEN' && !isAdmin) || (data.currentAdmin && String(data.currentAdmin.role).toUpperCase() === 'STAFF')) ? '??? (Bảo mật)' : CargoStore.formatCurrency(a.currentPriceKg);
-                    return `<option value="${a.id}">Chuyến ${a.flightNumber} (${a.route}) - Giá hiện tại: ${priceLabel}</option>`;
+                    const priceLabel = (a.status === 'CLOSED') ? CargoStore.formatCurrency(a.winningPriceKg || a.currentPriceKg) : '???';
+                    return `<option value="${a.id}">Chuyến ${a.flightNumber} (${a.route}) - Giá thắng cuộc: ${priceLabel}</option>`;
                 }).join('');
 
             const agentSelect = document.getElementById('bcTargetAgent');
@@ -2491,19 +2487,6 @@
             if (e.key === 'CARGO_BIDDING_DATA_V3') onAdminListStoreUpdate();
         });
         window.addEventListener('cargostore_updated', onAdminListStoreUpdate);
-    </script>
-    <script>
-        (function () {
-            function updateChatBadge() {
-                fetch("/api/chat").then(r => r.json()).then(d => {
-                    if (!d.success) return;
-                    var w = (d.chats || []).filter(function (c) { return c.status === "WAITING"; }).length;
-                    var b = document.getElementById("admin-chat-badge");
-                    if (b) { b.textContent = w; b.classList.toggle("hidden", w === 0); }
-                }).catch(function () { });
-            }
-            document.addEventListener("DOMContentLoaded", function () { updateChatBadge(); setInterval(updateChatBadge, 8000); });
-        })();
     </script>
 
     <!-- Modal: Admin xác nhận hoàn tiền cho đại lý -->

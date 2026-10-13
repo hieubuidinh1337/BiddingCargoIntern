@@ -1,4 +1,4 @@
-﻿<!DOCTYPE html>
+<!DOCTYPE html>
 <html lang="vi">
 
 <head>
@@ -385,9 +385,6 @@
                 <a href="08-Settings.html" class="nav-item-admin"><i class="fa-solid fa-sliders"></i>Cài đặt</a>
                 <a href="10-AuditLogs.html" class="nav-item-admin"><i class="fa-solid fa-clock-rotate-left"></i>Nhật
                     ký</a>
-                <a href="09-AdminChat.html" class="nav-item-admin chat-item"><i
-                        class="fa-solid fa-headset"></i>Chat<span id="admin-chat-badge"
-                        class="hidden chat-badge">0</span></a>
             </nav>
 
             <!-- Right Bar -->
@@ -422,9 +419,6 @@
             <a href="08-Settings.html" class="mobile-nav-item"><i class="fa-solid fa-sliders w-4"></i>Cài đặt</a>
             <a href="10-AuditLogs.html" class="mobile-nav-item"><i class="fa-solid fa-clock-rotate-left w-4"></i>Nhật
                 ký</a>
-            <a href="09-AdminChat.html" class="mobile-nav-item chat-item"><i
-                    class="fa-solid fa-headset w-4"></i>Chat<span id="admin-chat-badge-m"
-                    class="hidden chat-badge ml-auto">0</span></a>
             <a href="../00-Home.html" target="_blank" class="mobile-nav-item"
                 style="border-top:1px solid rgba(255,255,255,0.08);margin-top:6px;padding-top:10px">
                 <i class="fa-solid fa-arrow-up-right-from-square w-4"></i> Xem Sàn công khai
@@ -1996,19 +1990,6 @@
             if (e.key === 'CARGO_BIDDING_DATA_V3') renderAgentsList();
         });
         window.addEventListener('cargostore_updated', renderAgentsList);
-    </script>
-    <script>
-        (function () {
-            function updateChatBadge() {
-                fetch("/api/chat").then(r => r.json()).then(d => {
-                    if (!d.success) return;
-                    var w = (d.chats || []).filter(function (c) { return c.status === "WAITING"; }).length;
-                    var b = document.getElementById("admin-chat-badge");
-                    if (b) { b.textContent = w; b.classList.toggle("hidden", w === 0); }
-                }).catch(function () { });
-            }
-            document.addEventListener("DOMContentLoaded", function () { updateChatBadge(); setInterval(updateChatBadge, 8000); });
-        })();
     </script>
 </body>
 

@@ -127,10 +127,6 @@
                 </h1>
                 <p class="text-sm text-gray-500 mt-1">Danh sách lô hàng bạn đã trúng thầu chính thức và tải phiếu bàn giao cut-off hợp lệ</p>
             </div>
-            <div class="flex items-center gap-2 bg-amber-50 border border-amber-200 text-amber-800 text-xs px-3.5 py-2 rounded-xl">
-                <i class="fa-solid fa-triangle-exclamation text-amber-600"></i>
-                <span>Quy định: Hoàn tất thanh toán trong <strong>24 giờ</strong> để giữ slot vận chuyển.</span>
-            </div>
         </div>
 
         <!-- Search, Filter & Sort Controls Bar -->
@@ -144,13 +140,6 @@
             <div class="w-full md:w-56">
                 <select id="wonStatusFilter" onchange="renderWonAuctions()" class="w-full border rounded-xl px-3 py-2 text-xs focus:ring-2 focus:ring-blue-500 outline-none bg-white font-medium">
                     <option value="ALL">Tất cả trạng thái</option>
-                    <option value="UNPAID">Chờ thanh toán (Trong hạn)</option>
-                    <option value="EXPIRED">Đã hủy do quá hạn</option>
-                    <option value="CANCELLED_AFTER_PAYMENT">Đã hủy – Chờ hoàn tiền</option>
-                    <option value="UNDECLARED">Chưa khai báo hàng hóa</option>
-                    <option value="DECLARED">Đã khai báo hàng hóa</option>
-                    <option value="PENDING">Chờ Admin xác nhận thanh toán</option>
-                    <option value="PAID">Đã hoàn tất thanh toán</option>
                 </select>
             </div>
 
@@ -158,8 +147,6 @@
                 <select id="wonSortSelect" onchange="renderWonAuctions()" class="w-full border rounded-xl px-3 py-2 text-xs focus:ring-2 focus:ring-blue-500 outline-none bg-white font-medium">
                     <option value="NEWEST">Sắp xếp: Mới nhất</option>
                     <option value="OLDEST">Sắp xếp: Cũ nhất</option>
-                    <option value="AMOUNT_DESC">Tổng tiền: Cao đến thấp</option>
-                    <option value="AMOUNT_ASC">Tổng tiền: Thấp đến cao</option>
                     <option value="CAPACITY_DESC">Tải trọng: Cao đến thấp</option>
                     <option value="CAPACITY_ASC">Tải trọng: Thấp đến cao</option>
                 </select>
@@ -925,23 +912,8 @@
                             OFFICIAL CARGO BIDDING AWARD CONFIRMATION & SLOT RELEASE ORDER
                         </p>
                         <p style="font-size: 8px; color: #64748b; margin: 1px 0 0 0; font-style: italic;">
-                            (Chứng từ điện tử có giá trị pháp lý để bàn giao cut-off hàng hóa và đối soát thanh toán hóa đơn)
+                            (Chứng từ điện tử xác nhận kết quả thắng thầu)
                         </p>
-                    </div>
-
-                    <!-- Status Banner -->
-                    <div style="background: ${isPaid ? '#ecfdf5' : (isExpired ? '#fef2f2' : '#fffbeb')}; border: 1px solid ${isPaid ? '#10b981' : (isExpired ? '#ef4444' : '#f59e0b')}; border-radius: 6px; padding: 6px 10px; margin-bottom: 10px; display: flex; justify-content: space-between; align-items: center;">
-                        <div>
-                            <span style="font-size: 9px; font-weight: 800; color: ${isPaid ? '#047857' : (isExpired ? '#b91c1c' : '#b45309')}; text-transform: uppercase;">
-                                TRẠNG THÁI: ${isPaid ? 'ĐÃ HOÀN TẤT THANH TOÁN (PAYMENT CONFIRMED)' : (isExpired ? 'ĐÃ HỦY DO QUÁ HẠN THANH TOÁN (EXPIRED / VOID)' : 'CHỜ THANH TOÁN (AWAITING PAYMENT)')}
-                            </span>
-                            <span style="font-size: 8px; color: ${isPaid ? '#065f46' : (isExpired ? '#991b1b' : '#92400e')}; margin-left: 6px;">
-                                ${isPaid ? `(Thời gian thanh toán: ${item.paidAt || 'Hợp lệ'})` : (isExpired ? `(Quá hạn chót: ${deadlineStr})` : `(Hạn thanh toán: ${deadlineStr})`)}
-                            </span>
-                        </div>
-                        <div style="font-size: 8.5px; font-weight: 700; color: ${isPaid ? '#047857' : (isExpired ? '#b91c1c' : '#b45309')};">
-                            SLOT TẢI TRỌNG: ${isExpired ? 'ĐÃ HỦY' : 'HỢP LỆ'}
-                        </div>
                     </div>
 
                     <!-- Section 1: Thông tin Đại lý -->
@@ -987,7 +959,6 @@
                                     <th style="padding: 5px 6px; border: 1px solid #cbd5e1;">Tuyến đường bay</th>
                                     <th style="padding: 5px 6px; border: 1px solid #cbd5e1; text-align: right;">Tải trọng trúng</th>
                                     <th style="padding: 5px 6px; border: 1px solid #cbd5e1; text-align: right;">Đơn giá trúng thầu</th>
-                                    <th style="padding: 5px 6px; border: 1px solid #cbd5e1; text-align: right;">Thành tiền (VND)</th>
                                 </tr>
                             </thead>
                             <tbody>
@@ -1006,23 +977,9 @@
                                     <td style="padding: 5px 6px; border: 1px solid #cbd5e1; text-align: right; font-weight: 700; color: #2563eb;">
                                         ${store ? store.formatCurrency(item.priceKg) : item.priceKg + ' đ'}/Kg
                                     </td>
-                                    <td style="padding: 5px 6px; border: 1px solid #cbd5e1; text-align: right; font-weight: 900; color: #0f172a; font-size: 10px;">
-                                        ${store ? store.formatCurrency(item.totalAmountVND) : item.totalAmountVND + ' đ'}
-                                    </td>
-                                </tr>
-                                <tr style="background: #f8fafc; font-weight: 700;">
-                                    <td colspan="4" style="padding: 5px 6px; border: 1px solid #cbd5e1; text-align: right; text-transform: uppercase; color: #475569;">
-                                        TỔNG CỘNG GIÁ TRỊ TRÚNG THẦU:
-                                    </td>
-                                    <td style="padding: 5px 6px; border: 1px solid #cbd5e1; text-align: right; font-weight: 900; color: #2563eb; font-size: 11px;">
-                                        ${store ? store.formatCurrency(item.totalAmountVND) : item.totalAmountVND + ' đ'}
-                                    </td>
                                 </tr>
                             </tbody>
                         </table>
-                        <p style="font-size: 8px; margin: 3px 0 0 0; color: #475569; font-style: italic;">
-                            • Số tiền bằng chữ: <strong style="color: #0f172a;">${readVietnameseCurrency(item.totalAmountVND)}</strong>
-                        </p>
                     </div>
 
                     <!-- Section 3: Quy định bàn giao hàng hóa -->
@@ -1535,6 +1492,7 @@
         }
 
         function openCargoModal(wonId) {
+            return; // DEMO: cargo declaration disabled in the bidding-only build
             const store = getStore();
             const data = store ? store.getData() : {};
             const list = data.wonAuctions || [];
@@ -2185,19 +2143,16 @@
                             </div>
                             <div class="text-left sm:text-right">
                                 <span class="inline-block ${statusBadgeClass} text-xs font-bold px-3 py-1 rounded-full shadow">
-                                    ${statusBadgeText}
+                                    TRÚNG THẦU
                                 </span>
-                                ${isPaid ? `<p class="text-xs text-white/80 mt-1">Thanh toán lúc: ${item.paidAt || 'Hợp lệ'}</p>` : ''}
-                                ${isExpired ? `<p class="text-xs text-rose-300 font-semibold mt-1">Hạn chót: ${formatEffectiveDeadline(item)}</p>` : ''}
-                                ${isCancelledAfterPayment ? `<p class="text-xs text-indigo-200 font-semibold mt-1">Hủy lúc: ${item.cancelledAt ? new Date(item.cancelledAt).toLocaleDateString('vi-VN') : 'N/A'}</p>` : ''}
-                                ${!isPaid && !isExpired && !isCancelledAfterPayment ? `<p class="text-xs text-amber-200 font-semibold mt-1">Hạn thanh toán: ${formatEffectiveDeadline(item)}</p>` : ''}
-                                ${isPending ? `<p class="text-xs text-white/80 mt-1">Đã báo lúc: ${item.notifiedAt || 'Vừa xong'}</p>` : ''}
                             </div>
                         </div>
 
                         <div class="p-6 space-y-6">
                             <!-- Cảnh báo chế tài khóa tài khoản / Thông báo khóa / Cảnh báo từ chối -->
                             ${(() => {
+                                // DEMO: payment / refund notices are disabled in the bidding-only build
+                                return '';
                                 // --- CANCELLED AFTER PAYMENT: needs refund ---
                                 if (isCancelledAfterPayment) {
                                     const refundStatus = item.refundStatus || null;
@@ -2496,10 +2451,6 @@
                                     <p class="text-lg font-bold text-blue-600">${store ? store.formatCurrency(item.priceKg) : item.priceKg + ' đ'}/Kg</p>
                                 </div>
                                 <div class="bg-slate-50 p-4 rounded-xl border">
-                                    <p class="text-xs text-gray-500 mb-1">Tổng tiền thanh toán</p>
-                                    <p class="text-lg font-bold ${isExpired ? 'text-slate-400 line-through' : 'text-slate-900'}">${store ? store.formatCurrency(item.totalAmountVND) : item.totalAmountVND + ' đ'}</p>
-                                </div>
-                                <div class="bg-slate-50 p-4 rounded-xl border">
                                     <p class="text-xs text-gray-500 mb-1">Mã vận đơn (AWB)</p>
                                     <p class="text-sm font-mono font-bold ${isExpired ? 'text-rose-500' : 'text-emerald-600'} mt-1">${item.awbNumber || '-'}</p>
                                 </div>
@@ -2507,6 +2458,8 @@
 
                             <!-- Khai báo thông tin hàng hóa -->
                             ${(() => {
+                                // DEMO: cargo declaration is disabled in the bidding-only build
+                                return '';
                                 if (isExpired) {
                                     return `
                                         <div class="rounded-xl p-4 border text-xs bg-rose-50/90 border-rose-200 text-rose-900 space-y-1.5">
@@ -2655,25 +2608,6 @@
                                     <i class="fa-solid fa-shield-check text-emerald-500"></i> Đơn vị phát hành: Ban Dịch vụ Vận chuyển Hàng hóa Vietravel Airlines
                                 </span>
                                 <div class="flex flex-wrap items-center gap-2">
-                                    ${isExpired ? `
-                                        <span class="bg-rose-100 text-rose-800 border border-rose-300 font-bold px-4 py-2.5 rounded-xl flex items-center gap-2 text-xs">
-                                            <i class="fa-solid fa-circle-xmark text-rose-600"></i> Đã hủy thanh toán (Quá hạn)
-                                        </span>
-                                    ` : (!isPaid && !isPending ? `
-                                        <button onclick="openPaymentModal('${item.wonId}')" class="bg-gradient-to-r from-amber-500 to-orange-500 hover:from-amber-600 hover:to-orange-600 text-white font-bold px-4 py-2.5 rounded-xl transition flex items-center gap-2 shadow cursor-pointer text-xs">
-                                            <i class="fa-solid fa-qrcode text-sm"></i> Chuyển khoản (VietQR / STK)
-                                        </button>
-                                    ` : '')}
-                                    ${isPending ? `
-                                        <button onclick="openPaymentModal('${item.wonId}')" class="bg-amber-100 hover:bg-amber-200 text-amber-900 border border-amber-300 font-bold px-3 py-2 rounded-xl flex items-center gap-1.5 text-xs transition cursor-pointer">
-                                            <i class="fa-solid fa-spinner fa-spin text-amber-600"></i> Đã báo chuyển khoản - Xem chi tiết / Biên lai
-                                        </button>
-                                    ` : ''}
-                                    ${isPaid ? `
-                                        <button onclick="openPaymentModal('${item.wonId}')" class="bg-emerald-50 hover:bg-emerald-100 text-emerald-800 border border-emerald-300 font-bold px-3 py-2 rounded-xl flex items-center gap-1.5 text-xs transition cursor-pointer">
-                                            <i class="fa-solid fa-receipt text-emerald-600"></i> Xem thông tin thanh toán
-                                        </button>
-                                    ` : ''}
                                     <button onclick="previewAwardSlip('${item.wonId}')" class="bg-white border border-slate-300 hover:bg-slate-50 text-slate-700 font-semibold px-3.5 py-2.5 rounded-xl transition flex items-center gap-1.5 shadow-xs cursor-pointer">
                                         <i class="fa-solid fa-eye text-blue-600"></i> Xem trước phiếu
                                     </button>
@@ -2693,6 +2627,7 @@
         let currentActiveAmountRaw = 0;
 
         function openPaymentModal(wonId) {
+            return; // DEMO: payment disabled in the bidding-only build
             const store = getStore();
             if (!store) return;
             const allWon = store.getWonAuctions ? store.getWonAuctions() : [];

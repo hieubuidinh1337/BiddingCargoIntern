@@ -355,9 +355,6 @@
                 <a href="08-Settings.html" class="nav-item-admin"><i class="fa-solid fa-sliders"></i>Cài đặt</a>
                 <a href="10-AuditLogs.html" class="nav-item-admin"><i class="fa-solid fa-clock-rotate-left"></i>Nhật
                     ký</a>
-                <a href="09-AdminChat.html" class="nav-item-admin chat-item"><i
-                        class="fa-solid fa-headset"></i>Chat<span id="admin-chat-badge"
-                        class="hidden chat-badge">0</span></a>
             </nav>
 
             <!-- Right Bar -->
@@ -391,9 +388,6 @@
             <a href="08-Settings.html" class="mobile-nav-item"><i class="fa-solid fa-sliders w-4"></i>Cài đặt</a>
             <a href="10-AuditLogs.html" class="mobile-nav-item"><i class="fa-solid fa-clock-rotate-left w-4"></i>Nhật
                 ký</a>
-            <a href="09-AdminChat.html" class="mobile-nav-item chat-item"><i
-                    class="fa-solid fa-headset w-4"></i>Chat<span id="admin-chat-badge-m"
-                    class="hidden chat-badge ml-auto">0</span></a>
             <a href="../00-Home.html" target="_blank" class="mobile-nav-item"
                 style="border-top:1px solid rgba(255,255,255,0.08);margin-top:6px;padding-top:10px">
                 <i class="fa-solid fa-arrow-up-right-from-square w-4"></i> Xem Sàn công khai
@@ -771,10 +765,11 @@
                 tbody.innerHTML = paginatedOpen.map(a => {
                     const timer = CargoStore.getTimeRemaining(a.endTime);
                     const isOpen = a.status === 'OPEN';
-                    const displayPrice = (isStaff || (isOpen && !isAdmin)) ?
+                    // DEMO RULE: live-session bid info is hidden from Admin AND Staff
+                    const displayPrice = isOpen ?
                         '<span class="text-gray-500 font-normal">??? <span class="text-[10px] font-normal">(Bảo mật)</span></span>' :
-                        CargoStore.formatCurrency(a.currentPriceKg);
-                    const displayLeader = (isStaff || (isOpen && !isAdmin)) ?
+                        CargoStore.formatCurrency(a.winningPriceKg || a.currentPriceKg);
+                    const displayLeader = isOpen ?
                         '<span class="text-slate-400 font-medium italic"><i class="fa-solid fa-user-shield text-slate-400 mr-1"></i>Đại lý ẩn danh (Bảo mật)</span>' :
                         `<span class="font-semibold text-slate-900 block">${a.leadingAgentName}</span><span class="text-[10px] text-slate-400 font-mono">${a.leadingAgentCode || '-'}</span>`;
 
@@ -1167,19 +1162,6 @@
             if (e.key === 'CARGO_BIDDING_DATA_V3') onAdminStoreUpdate();
         });
         window.addEventListener('cargostore_updated', onAdminStoreUpdate);
-    </script>
-    <script>
-        (function () {
-            function updateChatBadge() {
-                fetch("/api/chat").then(r => r.json()).then(d => {
-                    if (!d.success) return;
-                    var w = (d.chats || []).filter(function (c) { return c.status === "WAITING"; }).length;
-                    var b = document.getElementById("admin-chat-badge");
-                    if (b) { b.textContent = w; b.classList.toggle("hidden", w === 0); }
-                }).catch(function () { });
-            }
-            document.addEventListener("DOMContentLoaded", function () { updateChatBadge(); setInterval(updateChatBadge, 8000); });
-        })();
     </script>
 </body>
 

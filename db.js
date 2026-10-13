@@ -1,6 +1,14 @@
+try { require('dotenv').config(); } catch (e) { /* dotenv optional */ }
+
 const sqlite3 = require('sqlite3').verbose();
 const path = require('path');
 const fs = require('fs');
+
+// DB_TYPE=mssql  -> Microsoft SQL Server (Windows Authentication)   [demo build default]
+// DB_TYPE=sqlite -> legacy SQLite file database
+const DB_TYPE = String(process.env.DB_TYPE || 'mssql').toLowerCase();
+const USE_MSSQL = (DB_TYPE === 'mssql' || DB_TYPE === 'sqlserver');
+const mssqlDriver = USE_MSSQL ? require('./db-mssql') : null;
 
 const DB_FILE = path.join(__dirname, 'database.sqlite');
 const SEED_FILE = path.join(__dirname, 'server_data.json');
@@ -8,6 +16,7 @@ const SEED_FILE = path.join(__dirname, 'server_data.json');
 let db = null;
 
 function getDb() {
+    if (USE_MSSQL) return mssqlDriver.getDb();
     if (!db) {
         db = new sqlite3.Database(DB_FILE);
     }
@@ -16,6 +25,7 @@ function getDb() {
 
 // Promisified SQL helpers
 function run(sql, params = []) {
+    if (USE_MSSQL) return mssqlDriver.run(sql, params);
     return new Promise((resolve, reject) => {
         getDb().run(sql, params, function (err) {
             if (err) reject(err);
@@ -25,6 +35,7 @@ function run(sql, params = []) {
 }
 
 function get(sql, params = []) {
+    if (USE_MSSQL) return mssqlDriver.get(sql, params);
     return new Promise((resolve, reject) => {
         getDb().get(sql, params, (err, row) => {
             if (err) reject(err);
@@ -34,6 +45,7 @@ function get(sql, params = []) {
 }
 
 function all(sql, params = []) {
+    if (USE_MSSQL) return mssqlDriver.all(sql, params);
     return new Promise((resolve, reject) => {
         getDb().all(sql, params, (err, rows) => {
             if (err) reject(err);
@@ -43,6 +55,7 @@ function all(sql, params = []) {
 }
 
 function exec(sql) {
+    if (USE_MSSQL) return mssqlDriver.exec(sql);
     return new Promise((resolve, reject) => {
         getDb().exec(sql, (err) => {
             if (err) reject(err);
@@ -52,7 +65,10 @@ function exec(sql) {
 }
 
 async function initDatabase() {
-    console.log('[Database] Initializing SQLite database:', DB_FILE);
+    if (USE_MSSQL) {
+        await mssqlDriver.init(); // connects (Windows Auth) + creates DB/schema if missing
+    }
+    console.log('[Database] Initializing ' + (USE_MSSQL ? 'SQL Server' : 'SQLite database: ' + DB_FILE));
     
     // Enable WAL mode & foreign keys for maximum concurrency & integrity
     await run('PRAGMA journal_mode = WAL;');
@@ -314,7 +330,7 @@ async function initDatabase() {
             const raw = fs.readFileSync(SEED_FILE, 'utf8');
             const seedData = JSON.parse(raw);
             await seedFullData(seedData);
-            console.log('[Database] ✅ Successfully seeded initial data into SQLite database!');
+            console.log('[Database] ✅ Successfully seeded initial data into ' + (USE_MSSQL ? 'SQL Server' : 'SQLite') + ' database!');
         } catch (e) {
             console.error('[Database] Failed to seed data from server_data.json:', e);
         }
@@ -971,6 +987,7 @@ async function createAuditLog(actorRole, actorId, action, target, details = '') 
 }
 
 function close() {
+    if (USE_MSSQL) return mssqlDriver.close();
     return new Promise((resolve, reject) => {
         if (!db) return resolve();
         db.close((err) => {
