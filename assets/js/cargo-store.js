@@ -3100,6 +3100,8 @@ const anonFlag = isAnonymous !== false;
         isCargoUndeclared: function(item) {
             if (!item) return false;
             if (this.isWonAuctionExpired(item)) return false;
+            if (item.paymentStatus === 'CANCELLED' || item.paymentStatus === 'CANCELLED_AFTER_PAYMENT' || item.paymentStatus === 'EXPIRED') return false;
+            if (item.refundStatus === 'PENDING' || item.refundStatus === 'REFUNDED') return false;
             return !this.isCargoDeclared(item);
         },
 
