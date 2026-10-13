@@ -2848,11 +2848,11 @@ const CargoStore = (function() {
             }
 
             const diffFromStart = Math.round(Number(bidPriceKg)) - Math.round(Number(minAcceptable));
-            if (diffFromStart > 0 && diffFromStart < Math.round(minStep)) {
+            if (diffFromStart > 0 && (diffFromStart < Math.round(minStep) || diffFromStart % Math.round(minStep) !== 0)) {
                 return {
                     success: false,
                     message:
-                        `Mức giá đặt thầu (${formatCurrency(bidPriceKg)}/Kg) phải tăng tối thiểu +${formatCurrency(minStep)}/Kg so với mức giá sàn (${formatCurrency(minAcceptable)}/Kg).`
+                        `Mức giá đặt thầu (${formatCurrency(bidPriceKg)}/Kg) không hợp lệ. Phải bằng giá sàn (${formatCurrency(minAcceptable)}/Kg) hoặc tăng theo bội số của bước giá +${formatCurrency(minStep)}/Kg.`
                 };
             }
 

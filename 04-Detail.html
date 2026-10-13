@@ -729,10 +729,10 @@
             }
 
             const diff = Math.round(price) - Math.round(minAcceptable);
-            if (diff > 0 && diff < Math.round(minStep)) {
+            if (diff > 0 && (diff < Math.round(minStep) || diff % Math.round(minStep) !== 0)) {
                 const stepFmt = CargoStore.formatCurrency(minStep);
                 alertBox.className = 'mt-3 p-3 rounded-xl text-xs bg-red-50 text-red-700 border border-red-200 block font-medium';
-                alertBox.innerHTML = `⚠️ Mức giá <strong>${CargoStore.formatCurrency(price)}/Kg</strong> không hợp lệ. Mức tăng giá phải tối thiểu từ +${stepFmt}/Kg trở lên so với giá khởi điểm.`;
+                alertBox.innerHTML = `⚠️ Mức giá <strong>${CargoStore.formatCurrency(price)}/Kg</strong> không hợp lệ. Mức giá phải bằng giá khởi điểm hoặc tăng theo bội số của bước giá <strong>+${stepFmt}/Kg</strong> (VD: ${CargoStore.formatCurrency(Math.round(minAcceptable) + Math.round(minStep))}, ${CargoStore.formatCurrency(Math.round(minAcceptable) + 2 * Math.round(minStep))}...).`;
                 const input = document.getElementById('bidPriceInput');
                 if (input) input.focus();
                 return;
