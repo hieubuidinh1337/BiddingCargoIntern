@@ -2471,6 +2471,15 @@ const server = http.createServer((req, res) => {
             try {
                 const { wonId, bankName, accountNumber, accountName, agentNote } = JSON.parse(body || '{}');
                 if (!wonId || !bankName || !accountNumber || !accountName) { res.writeHead(400, {'Content-Type':'application/json; charset=UTF-8'}); res.end(JSON.stringify({success:false,error:'Thieu thong tin bat buoc.'})); return; }
+                const vBank = String(bankName).trim().replace(/\s+/g, ' ');
+                const vAcc = String(accountNumber).trim();
+                const vName = String(accountName).trim().replace(/\s+/g, ' ');
+                let vErr = '';
+                if (!/^[\p{L}0-9 .&()\-]{2,60}$/u.test(vBank) || !/\p{L}/u.test(vBank)) vErr = 'Tên ngân hàng không hợp lệ.';
+                else if (!/^\d{6,19}$/.test(vAcc)) vErr = 'Số tài khoản phải gồm 6–19 chữ số.';
+                else if (!/^[A-Z ]{2,50}$/.test(vName) || vName.split(' ').length < 2) vErr = 'Chủ tài khoản phải là chữ in hoa không dấu, gồm ít nhất 2 từ.';
+                else if (String(agentNote || '').length > 300) vErr = 'Ghi chú không được vượt quá 300 ký tự.';
+                if (vErr) { res.writeHead(400, {'Content-Type':'application/json; charset=UTF-8'}); res.end(JSON.stringify({success:false,error:vErr})); return; }
                 const wonList = serverData.wonAuctions || [];
                 const wonItem = wonList.find(w => w.wonId === wonId);
                 if (!wonItem) { res.writeHead(404, {'Content-Type':'application/json; charset=UTF-8'}); res.end(JSON.stringify({success:false,error:'Khong tim thay don hang: '+wonId})); return; }

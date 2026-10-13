@@ -3464,18 +3464,45 @@
             _refundTargetWonId = null;
         }
 
+        function validateRefundBankInfo(bankName, accountNumber, accountName) {
+            if (!bankName || !accountNumber || !accountName) {
+                return 'Vui lòng điền đầy đủ thông tin: Tên ngân hàng, Số tài khoản, Chủ tài khoản.';
+            }
+            if (!/^[\p{L}0-9 .&()\-]{2,60}$/u.test(bankName) || !/\p{L}/u.test(bankName)) {
+                return 'Tên ngân hàng không hợp lệ (2–60 ký tự, không chứa ký tự đặc biệt).';
+            }
+            if (!/^\d+$/.test(accountNumber)) {
+                return 'Số tài khoản chỉ được chứa chữ số (không có khoảng trắng hoặc ký tự khác).';
+            }
+            if (accountNumber.length < 6 || accountNumber.length > 19) {
+                return 'Số tài khoản phải từ 6 đến 19 chữ số.';
+            }
+            if (!/^[A-Z ]{2,50}$/.test(accountName) || accountName.split(' ').filter(Boolean).length < 2) {
+                return 'Chủ tài khoản phải là chữ in hoa không dấu, gồm ít nhất 2 từ, không chứa số/ký tự đặc biệt.';
+            }
+            return '';
+        }
+
         async function handleSubmitRefundBankInfo(event) {
             event.preventDefault();
             const wonId = _refundTargetWonId;
-            const bankName = document.getElementById('refundBankName').value.trim();
+            const bankName = document.getElementById('refundBankName').value.trim().replace(/\s+/g, ' ');
             const accountNumber = document.getElementById('refundAccountNumber').value.trim();
-            const accountName = document.getElementById('refundAccountName').value.trim();
+            // Chuẩn hóa chủ TK: bỏ dấu, in hoa, gộp khoảng trắng
+            const accountName = document.getElementById('refundAccountName').value
+                .normalize('NFD').replace(/[\u0300-\u036f]/g, '').replace(/đ/g, 'd').replace(/Đ/g, 'D')
+                .toUpperCase().trim().replace(/\s+/g, ' ');
             const agentNote = document.getElementById('refundAgentNote').value.trim();
             const errEl = document.getElementById('refundSubmitError');
             errEl.textContent = '';
 
-            if (!bankName || !accountNumber || !accountName) {
-                errEl.textContent = 'Vui lòng điền đầy đủ thông tin: Tên ngân hàng, Số tài khoản, Chủ tài khoản.';
+            const validationError = validateRefundBankInfo(bankName, accountNumber, accountName);
+            if (validationError) {
+                errEl.textContent = validationError;
+                return;
+            }
+            if (agentNote.length > 300) {
+                errEl.textContent = 'Ghi chú không được vượt quá 300 ký tự.';
                 return;
             }
 
@@ -3536,19 +3563,19 @@
                 <form onsubmit="handleSubmitRefundBankInfo(event)" class="space-y-3">
                     <div>
                         <label class="block font-semibold text-slate-700 mb-1">Tên Ngân hàng <span class="text-red-500">*</span></label>
-                        <input type="text" id="refundBankName" required placeholder="VD: Vietcombank, Techcombank, MB Bank..." class="w-full border rounded-xl px-3 py-2 outline-none focus:ring-2 focus:ring-indigo-500 text-xs font-medium" />
+                        <input type="text" id="refundBankName" required maxlength="60" placeholder="VD: Vietcombank, Techcombank, MB Bank..." class="w-full border rounded-xl px-3 py-2 outline-none focus:ring-2 focus:ring-indigo-500 text-xs font-medium" />
                     </div>
                     <div>
                         <label class="block font-semibold text-slate-700 mb-1">Số Tài Khoản <span class="text-red-500">*</span></label>
-                        <input type="text" id="refundAccountNumber" required placeholder="VD: 1029384756001" class="w-full border rounded-xl px-3 py-2 outline-none focus:ring-2 focus:ring-indigo-500 text-xs font-mono font-bold" />
+                        <input type="text" id="refundAccountNumber" required inputmode="numeric" maxlength="19" oninput="this.value=this.value.replace(/\D/g,'')" placeholder="VD: 1029384756001" class="w-full border rounded-xl px-3 py-2 outline-none focus:ring-2 focus:ring-indigo-500 text-xs font-mono font-bold" />
                     </div>
                     <div>
                         <label class="block font-semibold text-slate-700 mb-1">Chủ Tài Khoản <span class="text-red-500">*</span></label>
-                        <input type="text" id="refundAccountName" required placeholder="VD: NGUYEN VAN AN (chữ in hoa không dấu)" class="w-full border rounded-xl px-3 py-2 outline-none focus:ring-2 focus:ring-indigo-500 text-xs font-medium" />
+                        <input type="text" id="refundAccountName" required maxlength="50" oninput="this.value=this.value.toUpperCase()" placeholder="VD: NGUYEN VAN AN (chữ in hoa không dấu)" class="w-full border rounded-xl px-3 py-2 outline-none focus:ring-2 focus:ring-indigo-500 text-xs font-medium" />
                     </div>
                     <div>
                         <label class="block font-semibold text-slate-700 mb-1">Ghi chú thêm <span class="text-slate-400">(tuỳ chọn)</span></label>
-                        <textarea id="refundAgentNote" rows="2" placeholder="VD: Chi nhánh, lý do hoặc thông tin bổ sung..." class="w-full border rounded-xl px-3 py-2 outline-none focus:ring-2 focus:ring-indigo-500 text-xs resize-none"></textarea>
+                        <textarea id="refundAgentNote" rows="2" maxlength="300" placeholder="VD: Chi nhánh, lý do hoặc thông tin bổ sung..." class="w-full border rounded-xl px-3 py-2 outline-none focus:ring-2 focus:ring-indigo-500 text-xs resize-none"></textarea>
                     </div>
                     <p id="refundSubmitError" class="text-red-600 font-semibold text-xs"></p>
                     <div class="flex items-center justify-end gap-2 pt-1">
