@@ -3102,7 +3102,24 @@ const anonFlag = isAnonymous !== false;
             if (this.isWonAuctionExpired(item)) return false;
             if (item.paymentStatus === 'CANCELLED' || item.paymentStatus === 'CANCELLED_AFTER_PAYMENT' || item.paymentStatus === 'EXPIRED') return false;
             if (item.refundStatus === 'PENDING' || item.refundStatus === 'REFUNDED') return false;
-            return !this.isCargoDeclared(item);
+            if (this.isCargoDeclared(item)) return false;
+
+            // Hết hạn khai báo: quá Cut-off (ETD - 3h) hoặc chuyến bay đã cất cánh
+            let etdDate = null;
+            if (item.etdIso) {
+                etdDate = new Date(item.etdIso);
+            } else {
+                let etdStr = item.etd;
+                if (!etdStr) {
+                    const auctions = loadData().auctions || [];
+                    const match = auctions.find(a => a.id == item.auctionId || (item.flightNumber && a.flightNumber === item.flightNumber));
+                    if (match) etdDate = match.etdIso ? new Date(match.etdIso) : null;
+                    if (!etdDate && match) etdStr = match.etd;
+                }
+                if (!etdDate && etdStr) etdDate = parseFlightDate(etdStr);
+            }
+            if (etdDate && !isNaN(etdDate.getTime()) && Date.now() >= etdDate.getTime() - 3 * 3600 * 1000) return false;
+            return true;
         },
 
         getNotifications: function() {
