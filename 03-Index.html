@@ -6,7 +6,7 @@
     <title>Sàn đấu giá chuyến bay - Cargo Bidding</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
-    <script src="assets/js/cargo-store.js"></script>
+    <script src="assets/js/cargo-store.js?v=20261014_01"></script>
 </head>
 <body class="bg-gray-100 text-gray-800">
 
@@ -367,10 +367,16 @@
                 return;
             }
 
+            const myBids = CargoStore.getMyBids ? CargoStore.getMyBids() : [];
+
             grid.innerHTML = paginatedList.map(a => {
                 const timer = CargoStore.getTimeRemaining(a.endTime);
                 const isWatched = CargoStore.isWatched(a.id);
                 const isLeading = !!(a.leadingAgentCode && a.leadingAgentCode === currentAgentCode);
+                const auctionMyBids = (myBids || []).filter(b => String(b.auctionId) === String(a.id));
+                const myHighestBid = auctionMyBids.length > 0 
+                    ? auctionMyBids.sort((x, y) => (Number(y.priceKg) || 0) - (Number(x.priceKg) || 0))[0] 
+                    : null;
 
                 return `
                     <div class="bg-white rounded-2xl border ${isWatched ? 'border-amber-400 ring-2 ring-amber-400/20 shadow-md' : 'border-slate-200 shadow-sm'} hover:shadow-lg transition flex flex-col justify-between overflow-hidden relative">
@@ -435,8 +441,18 @@
                                     <p class="text-xs font-semibold text-gray-600">${CargoStore.formatCurrency(a.startingPriceKg)}/Kg</p>
                                 </div>
                                 <div class="text-right">
-                                    <p class="text-[11px] text-gray-400">Mức giá cao nhất hiện tại</p>
-                                    <p class="text-lg font-bold ${a.status === 'CLOSED' ? 'text-blue-600' : 'text-gray-500'}">${a.status === 'CLOSED' ? (CargoStore.formatCurrency(a.currentPriceKg) + ' đ/Kg') : '??? (Ẩn)'}</p>
+                                    ${a.status === 'CLOSED' ? `
+                                        <p class="text-[11px] text-emerald-600 font-semibold">Giá chốt thắng thầu</p>
+                                        <p class="text-base font-bold text-blue-600">${CargoStore.formatCurrency(a.winningPriceKg || a.currentPriceKg)}/Kg</p>
+                                    ` : (myHighestBid ? `
+                                        <p class="text-[11px] text-blue-600 font-semibold flex items-center justify-end gap-1">
+                                            <i class="fa-solid fa-user-check text-[10px]"></i> Giá bạn đã đặt
+                                        </p>
+                                        <p class="text-base font-bold text-blue-600">${CargoStore.formatCurrency(myHighestBid.priceKg)}/Kg</p>
+                                    ` : `
+                                        <p class="text-[11px] text-gray-400">Giá bạn đã đặt</p>
+                                        <p class="text-xs text-slate-400 font-medium mt-1">Chưa tham gia</p>
+                                    `)}
                                 </div>
                             </div>
 
@@ -456,7 +472,7 @@
                             <div class="pt-2">
                                 <a href="04-Detail.html?id=${a.id}" class="w-full ${a.status === 'OPEN' ? 'bg-blue-600 hover:bg-blue-700 text-white' : 'bg-gray-200 text-gray-500 cursor-not-allowed'} py-2.5 rounded-xl font-semibold text-xs flex items-center justify-center gap-2 transition shadow">
                                     <i class="fa-solid fa-gavel"></i>
-                                    <span>${a.status === 'OPEN' ? 'Vào đặt giá ngay' : 'Xem kết quả'}</span>
+                                    <span>${a.status === 'OPEN' ? (myHighestBid ? 'Nâng giá' : 'Vào đặt giá ngay') : 'Xem kết quả'}</span>
                                 </a>
                             </div>
                         </div>

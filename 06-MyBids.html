@@ -496,13 +496,13 @@
             if (totalCountEl) totalCountEl.textContent = `${myBidsOnAuction.length > 0 ? myBidsOnAuction.length : bidsForAuction.length} lượt`;
 
             const startPriceEl = document.getElementById('historyModalStartPrice');
-            if (startPriceEl) startPriceEl.textContent = CargoStore.formatCurrency ? CargoStore.formatCurrency(startingPrice) : `${startingPrice} đ/Kg`;
+            if (startPriceEl) startPriceEl.textContent = CargoStore.formatCurrency ? (CargoStore.formatCurrency(startingPrice) + '/Kg') : `${startingPrice} đ/Kg`;
 
             const myPrices = myBidsOnAuction.map(b => Number(b.priceKg) || 0);
             const myMaxPrice = myPrices.length > 0 ? Math.max(...myPrices) : (auction.currentPriceKg || 0);
 
             const maxPriceEl = document.getElementById('historyModalMyMaxPrice');
-            if (maxPriceEl) maxPriceEl.textContent = CargoStore.formatCurrency ? CargoStore.formatCurrency(myMaxPrice) : `${myMaxPrice} đ/Kg`;
+            if (maxPriceEl) maxPriceEl.textContent = CargoStore.formatCurrency ? (CargoStore.formatCurrency(myMaxPrice) + '/Kg') : `${myMaxPrice} đ/Kg`;
 
             const isAuctionClosed = !auction.id || auction.status === 'CLOSED' || auction.status === 'ENDED' || auction.status === 'EXPIRED';
             const statusEl = document.getElementById('historyModalStatusBadge');

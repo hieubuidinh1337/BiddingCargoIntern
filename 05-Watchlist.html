@@ -6,7 +6,7 @@
     <title>Danh sách Theo dõi | Vietravel Airlines Cargo Bidding</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    <script src="assets/js/cargo-store.js"></script>
+    <script src="assets/js/cargo-store.js?v=20261014_01"></script>
     <style>
         .price-bar { transition: width 0.5s ease-in-out; }
         .watch-card { transition: all 0.2s ease; }
@@ -415,6 +415,11 @@
             const originIcon = originMap[a.origin] || '✈️';
             const destIcon = originMap[a.destination] || '✈️';
 
+            const auctionMyBids = (myBids || []).filter(b => String(b.auctionId) === String(a.id));
+            const myHighestBid = auctionMyBids.length > 0 
+                ? auctionMyBids.sort((x, y) => (Number(y.priceKg) || 0) - (Number(x.priceKg) || 0))[0] 
+                : null;
+
             return `
             <div class="watch-card bg-white rounded-2xl border ${isUrgent ? 'border-red-200 bg-red-50/20' : (isLeading ? 'border-blue-200 bg-blue-50/10' : 'border-gray-100')} shadow-sm">
                 <!-- Card Header -->
@@ -458,21 +463,21 @@
                     <div class="flex items-center gap-6">
                         <!-- Current Price -->
                         <div>
-                            <p class="text-[11px] text-gray-400 mb-0.5">Giá cao nhất hiện tại</p>
-                            <p class="text-xl font-bold ${a.status === 'CLOSED' ? 'text-blue-600' : 'text-gray-500'}">${a.status === 'CLOSED' ? (CargoStore.formatCurrency(a.currentPriceKg) + ' đ/Kg') : '??? (Ẩn)'}</p>
-                            <p class="text-[11px] ${incPct > 0 ? 'text-rose-500' : 'text-gray-400'} font-medium">
-                                ${incPct > 0 ? `<i class="fa-solid fa-arrow-trend-up mr-0.5"></i>+${incPct}% vs khởi điểm` : 'Chưa có lượt thầu'}
+                            <p class="text-[11px] text-gray-400 mb-0.5">${a.status === 'CLOSED' ? 'Giá chốt thắng thầu' : 'Giá bạn đã đặt'}</p>
+                            <p class="text-xl font-bold ${a.status === 'CLOSED' ? 'text-blue-600' : (myHighestBid ? 'text-blue-600' : 'text-slate-400')}">${a.status === 'CLOSED' ? (CargoStore.formatCurrency(a.winningPriceKg || a.currentPriceKg) + '/Kg') : (myHighestBid ? (CargoStore.formatCurrency(myHighestBid.priceKg) + '/Kg') : 'Chưa tham gia')}</p>
+                            <p class="text-[11px] text-gray-400 font-medium">
+                                ${a.status === 'CLOSED' ? (isLeading ? '<span class="text-emerald-600 font-semibold">🏆 Bạn thắng thầu</span>' : 'Đã kết thúc') : (myHighestBid ? '<span class="text-blue-600 font-semibold"><i class="fa-solid fa-user-check mr-0.5"></i>Đã tham gia</span>' : 'Chưa gửi giá')}
                             </p>
                         </div>
 
                         <!-- Separator -->
                         <div class="w-px h-12 bg-gray-100 hidden sm:block"></div>
 
-                        <!-- Total Value -->
+                        <!-- Starting Price -->
                         <div class="hidden sm:block">
-                            <p class="text-[11px] text-gray-400 mb-0.5">Tổng giá trị ước tính</p>
-                            <p class="text-base font-bold text-slate-700">${a.status === 'CLOSED' ? (CargoStore.formatCurrency(a.currentPriceKg * (a.capacityKg || a.chargeableWeightKg || 0)) + ' đ') : '??? (Ẩn)'}</p>
-                            <p class="text-[11px] text-gray-400">(Tạm ẩn)</p>
+                            <p class="text-[11px] text-gray-400 mb-0.5">Giá sàn khởi điểm</p>
+                            <p class="text-base font-bold text-slate-700">${CargoStore.formatCurrency(a.startingPriceKg)}/Kg</p>
+                            <p class="text-[11px] text-gray-400">Giá mở phiên</p>
                         </div>
 
                         <!-- Leader -->
@@ -487,7 +492,7 @@
                     <div class="flex items-center gap-2 flex-shrink-0">
                         ${a.status === 'OPEN' ? `
                         <button onclick="openQuickBid(${a.id})" class="bg-blue-600 hover:bg-blue-700 text-white text-xs font-bold px-4 py-2.5 rounded-xl transition shadow flex items-center gap-1.5 cursor-pointer">
-                            <i class="fa-solid fa-gavel"></i> Đặt giá nhanh
+                            <i class="fa-solid fa-gavel"></i> ${myHighestBid ? 'Nâng giá' : 'Đặt giá nhanh'}
                         </button>
                         ` : ''}
                         <a href="04-Detail.html?id=${a.id}" class="${a.status === 'OPEN' ? 'bg-gray-100 hover:bg-gray-200 text-gray-700' : 'bg-blue-600 hover:bg-blue-700 text-white shadow'} text-xs font-semibold px-4 py-2.5 rounded-xl transition flex items-center gap-1.5 cursor-pointer">
@@ -543,7 +548,7 @@
         modalMinPrice = a.startingPriceKg || a.currentPriceKg || 0;
         const step = Number(a.minStep) || 500;
         document.getElementById('modalFlightLabel').textContent = a.flightNumber + ' · ' + a.route;
-        document.getElementById('modalCurrentPrice').textContent = (a.status === 'CLOSED') ? (CargoStore.formatCurrency(a.currentPriceKg) + ' đ/Kg') : '??? (Ẩn)';
+        document.getElementById('modalCurrentPrice').textContent = (a.status === 'CLOSED') ? (CargoStore.formatCurrency(a.currentPriceKg) + '/Kg') : '??? (Ẩn)';
         document.getElementById('modalMinPrice').textContent = CargoStore.formatCurrency(modalMinPrice) + '/Kg (Bước giá: +' + CargoStore.formatCurrency(step) + ')';
         const input = document.getElementById('quickBidInput');
         input.value = modalMinPrice;
