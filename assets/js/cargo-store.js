@@ -672,7 +672,7 @@ const CargoStore = (function() {
                 timestamp: Date.now() - 86400000,
                 targetAgentCode: 'AG-0556',
                 title: '🏆 CHÚC MỪNG! Bạn đã thắng thầu chuyến bay VU450',
-                message: 'Đại lý Công ty TNHH Tiếp vận Toàn Cầu Golden Star (AG-0556) đã trúng thầu chuyến bay VU450 (SGN - PQC) với giá 22.500 đ/Kg. Vui lòng hoàn tất thanh toán & khai báo hàng hóa trong 24h.',
+                message: 'Đại lý Công ty TNHH Tiếp vận Toàn Cầu Golden Star (AG-0556) đã trúng thầu chuyến bay VU450 (SGN - PQC) với giá 22.500 đ/Kg. Phiên đấu giá đã hoàn tất thành công và ghi nhận bạn là người trúng thầu.',
                 time: '1 ngày trước',
                 type: 'WON',
                 read: false,
@@ -1795,7 +1795,7 @@ const CargoStore = (function() {
                                 timestamp: wonNotifId,
                                 targetAgentCode: highestBid.agentCode,
                                 title: `🏆 CHÚC MỪNG! Bạn đã thắng thầu chuyến bay ${auction.flightNumber}`,
-                                message: `Đại lý ${highestBid.agentName} (${highestBid.agentCode}) đã trúng thầu chuyến bay ${auction.flightNumber} (${auction.route}) với giá ${formatCurrency(highestBid.priceKg)}/Kg. Vui lòng hoàn tất thanh toán & khai báo hàng hóa trong 24h.`,
+                                message: `Đại lý ${highestBid.agentName} (${highestBid.agentCode}) đã trúng thầu chuyến bay ${auction.flightNumber} (${auction.route}) với giá ${formatCurrency(highestBid.priceKg)}/Kg. Phiên đấu giá đã hoàn tất thành công và ghi nhận bạn là người trúng thầu.`,
                                 time: formatTimeAgo(wonNotifId),
                                 type: 'WON',
                                 read: false,
@@ -1884,29 +1884,7 @@ const CargoStore = (function() {
                     item.paymentStatus = 'UNPAID';
                     modified = true;
                 }
-
-                // Ensure warning notification exists for this unpaid order
-                const existingWarning = data.notifications.find(n => 
-                    (n.targetAgentCode || '').toUpperCase() === targetCode && 
-                    n.type === 'PAYMENT_REMINDER' && 
-                    (n.message || '').includes(item.wonId)
-                );
-                if (!existingWarning) {
-                    const payDl = item.paymentDeadline ? new Date(item.paymentDeadline).toLocaleString('vi-VN') : (item.cutOffTime || 'Hạn chót Cut-off');
-                    const reminderId = Date.now() + Math.floor(Math.random() * 1000);
-                    data.notifications.unshift({
-                        id: reminderId,
-                        timestamp: reminderId,
-                        targetAgentCode: item.agentCode,
-                        title: `⏰ CẢNH BÁO THANH TOÁN: Đơn ${item.wonId} (${item.flightNumber})`,
-                        message: `Quý đại lý vui lòng hoàn tất chuyển khoản cho đơn hàng ${item.wonId} trước ${payDl}. LƯU Ý: Nếu không thanh toán đúng hạn, hệ thống sẽ TỰ ĐỘNG KHÓA TÀI KHOẢN ĐẠI LÝ và hủy quyền đấu giá.`,
-                        time: formatTimeAgo(reminderId),
-                        type: 'PAYMENT_REMINDER',
-                        read: false,
-                        link: '07-WonAuction.html'
-                    });
-                    modified = true;
-                }
+                // (Payment reminder notification temporarily disabled for demo/bidding-only)
             }
         });
 
@@ -3352,6 +3330,27 @@ const anonFlag = isAnonymous !== false;
                 return true;
             });
 
+            // Filter out payment-related notifications for demo/bidding-only
+            agentNotifs = agentNotifs.filter(n => {
+                if (!n) return false;
+                if (n.type === 'PAYMENT_REMINDER' || n.type === 'PAYMENT') return false;
+                const titleUpper = String(n.title || '').toUpperCase();
+                const msgUpper = String(n.message || '').toUpperCase();
+                if (titleUpper.includes('THANH TOÁN') || titleUpper.includes('CHUYỂN KHOẢN') || titleUpper.includes('QUÁ HẠN THANH TOÁN') || titleUpper.includes('CẢNH BÁO THANH TOÁN')) return false;
+                if (msgUpper.includes('HOÀN TẤT CHUYỂN KHOẢN') || msgUpper.includes('THANH TOÁN ĐÚNG HẠN') || msgUpper.includes('QUÁ HẠN THANH TOÁN') || msgUpper.includes('KHÓA TÀI KHOẢN ĐẠI LÝ')) return false;
+                return true;
+            });
+
+            // Clean winning notification message
+            agentNotifs = agentNotifs.map(n => {
+                let msg = n.message || '';
+                if (msg.includes('hoàn tất thanh toán') || msg.includes('khai báo hàng hóa')) {
+                    msg = msg.replace(/\s*Vui lòng hoàn tất thanh toán.*$/i, ' Phiên đấu giá đã hoàn tất thành công và ghi nhận bạn là người trúng thầu.');
+                    return { ...n, message: msg.trim() };
+                }
+                return n;
+            });
+
             return agentNotifs.sort((a, b) => (Number(b.timestamp || b.createdAt || b.id) || 0) - (Number(a.timestamp || a.createdAt || a.id) || 0));
         },
 
@@ -3934,7 +3933,7 @@ const anonFlag = isAnonymous !== false;
                     timestamp: closeNotifId,
                     targetAgentCode: highestBid.agentCode,
                     title: `🏆 CHÚC MỪNG! Phiên ${auction.flightNumber} đã chốt kết quả!`,
-                    message: `Đại lý ${highestBid.agentName} (${highestBid.agentCode}) đã trúng thầu chuyến ${auction.flightNumber} (${auction.route}) mức giá ${formatCurrency(highestBid.priceKg)}/Kg. Vui lòng hoàn tất thanh toán & khai báo hàng hóa.`,
+                    message: `Đại lý ${highestBid.agentName} (${highestBid.agentCode}) đã trúng thầu chuyến ${auction.flightNumber} (${auction.route}) mức giá ${formatCurrency(highestBid.priceKg)}/Kg. Phiên đấu giá đã hoàn tất thành công và ghi nhận bạn là người trúng thầu.`,
                     time: formatTimeAgo(closeNotifId),
                     type: 'WON',
                     read: false,

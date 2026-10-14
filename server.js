@@ -657,23 +657,7 @@ function checkAndAutoLockExpiredWonAuctions(data) {
                     item.lockPenaltyHandled = true;
                     modified = true;
 
-                    const hasNotif = (data.notifications || []).some(n => 
-                        (n.targetAgentCode || '').toUpperCase() === targetCode &&
-                        n.type === 'ALERT' &&
-                        (n.title || '').includes('TÀI KHOẢN ĐÃ BỊ KHÓA')
-                    );
-                    if (!hasNotif) {
-                        const notifId = Date.now() + Math.floor(Math.random() * 1000);
-                        data.notifications.unshift({
-                            id: notifId,
-                            targetAgentCode: item.agentCode,
-                            title: `⚠️ TÀI KHOẢN ĐÃ BỊ KHÓA DO QUÁ HẠN THANH TOÁN`,
-                            message: `Tài khoản đại lý ${item.agentCode} đã bị hệ thống tự động KHÓA do không hoàn tất thanh toán đơn hàng thắng thầu ${item.wonId} (Chuyến bay ${item.flightNumber}) trước hạn chót. Quyền tham gia đấu giá trên sàn đã bị tạm ngưng. Vui lòng liên hệ Ban Điều hành Cargo để xử lý.`,
-                            time: 'Vừa xong',
-                            type: 'ALERT',
-                            unread: true
-                        });
-                    }
+                    // (Lock notification temporarily disabled for demo/bidding-only)
                 }
             }
         }

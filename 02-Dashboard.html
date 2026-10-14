@@ -251,7 +251,12 @@
             // === Update Notification Dot (Bell Badge) ===
             const notifDot = document.getElementById('headerNotifDot');
             if (notifDot) {
-                const allNotifs = CargoStore.getNotifications ? CargoStore.getNotifications() : [];
+                const allNotifs = (CargoStore.getNotifications ? CargoStore.getNotifications() : []).filter(n => {
+                    if (!n) return false;
+                    const t = (n.title || '').toUpperCase();
+                    const m = (n.message || '').toUpperCase();
+                    return !(t.includes('THANH TOÁN') || t.includes('CHUYỂN KHOẢN') || m.includes('THANH TOÁN') || m.includes('CHUYỂN KHOẢN') || n.type === 'PAYMENT_REMINDER' || n.type === 'PAYMENT');
+                });
                 const unreadCount = allNotifs.filter(n => !n.read).length;
                 notifDot.style.display = unreadCount > 0 ? 'block' : 'none';
             }
@@ -380,7 +385,13 @@
             }
 
             // === Render Notifications Widget ===
-            const notifs = CargoStore.getNotifications().slice(0, 3);
+            const rawNotifs = CargoStore.getNotifications ? CargoStore.getNotifications() : [];
+            const notifs = rawNotifs.filter(n => {
+                if (!n) return false;
+                const t = (n.title || '').toUpperCase();
+                const m = (n.message || '').toUpperCase();
+                return !(t.includes('THANH TOÁN') || t.includes('CHUYỂN KHOẢN') || m.includes('THANH TOÁN') || m.includes('CHUYỂN KHOẢN') || n.type === 'PAYMENT_REMINDER' || n.type === 'PAYMENT');
+            }).slice(0, 3);
             const notifBox = document.getElementById('quickNotificationsList');
             if (notifBox) {
                 if (notifs.length === 0) {
