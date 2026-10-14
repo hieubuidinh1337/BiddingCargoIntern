@@ -38,7 +38,7 @@
                 <a href="02-Dashboard.html" class="w-8 h-8 sm:w-9 sm:h-9 rounded-xl bg-gray-100 hover:bg-gray-200 flex items-center justify-center text-gray-600 hover:text-blue-600 transition">
                     <i class="fa-solid fa-arrow-left text-xs sm:text-sm"></i>
                 </a>
-                <a href="03-Index.html" class="flex items-center gap-2.5 shrink-0">
+                <a href="02-Dashboard.html" class="flex items-center gap-2.5 shrink-0">
             <img src="assets/images/vietravel-logo-doc.png" alt="Vietravel Airlines" class="h-8 sm:h-9 object-contain" />
             <span class="font-bold text-sm sm:text-base text-slate-900 tracking-tight border-l border-slate-200 pl-2.5">Cargo Bidding</span>
         </a>
@@ -62,13 +62,7 @@
         <!-- Mobile Drawer -->
         <div id="agentMobileNav" class="hidden md:hidden bg-white border-t px-4 py-2.5 space-y-1 text-xs font-medium shadow-lg">
             <a href="02-Dashboard.html" class="flex items-center gap-2 px-3 py-2 rounded-lg text-gray-700 hover:bg-gray-50 hover:text-blue-600 transition">
-                <i class="fa-solid fa-gauge-high w-4"></i> Tổng quan Dashboard
-            </a>
-            <a href="03-Index.html" class="flex items-center gap-2 px-3 py-2 rounded-lg text-gray-700 hover:bg-gray-50 hover:text-blue-600 transition">
-                <i class="fa-solid fa-gavel w-4"></i> Sàn đấu giá trực tiếp
-            </a>
-            <a href="05-Watchlist.html" class="flex items-center gap-2 px-3 py-2 rounded-lg text-gray-700 hover:bg-gray-50 hover:text-blue-600 transition">
-                <i class="fa-solid fa-star w-4"></i> Tuyến bay theo dõi
+                <i class="fa-solid fa-gavel w-4"></i> Sàn đấu giá trực tuyến
             </a>
             <a href="06-MyBids.html" class="flex items-center gap-2 px-3 py-2 rounded-lg text-gray-700 hover:bg-gray-50 hover:text-blue-600 transition">
                 <i class="fa-solid fa-clock-rotate-left w-4"></i> Lịch sử đặt thầu
@@ -314,10 +308,7 @@
                     <div class="empty-anim text-6xl mb-5">🔔</div>
                     <p class="font-bold text-slate-700 text-lg">${msgs[currentFilter] || 'Trống'}</p>
                     <p class="text-sm text-gray-400 mt-1">Các thông báo mới sẽ xuất hiện tại đây theo thời gian thực</p>
-                    <a href="03-Index.html" class="inline-flex items-center gap-2 mt-5 bg-blue-600 hover:bg-blue-700 text-white text-sm font-semibold px-5 py-2.5 rounded-xl transition shadow">
-                        <i class="fa-solid fa-gavel"></i> Tham gia đấu giá
-                    </a>
-                </div>`;
+                    </div>`;
             updateSelectionUI();
             return;
         }

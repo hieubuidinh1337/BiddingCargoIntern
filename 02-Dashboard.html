@@ -1,17 +1,22 @@
 <!DOCTYPE html>
 <html lang="vi">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Tổng quan đại lý - Cargo Bidding | Vietravel Airlines</title>
+    <title>Sàn Đấu Giá Trực Tuyến - Cargo Bidding | Vietravel Airlines</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
     <script src="assets/js/cargo-store.js?v=20261014_01"></script>
     <style>
         @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap');
-        * { font-family: 'Inter', sans-serif; }
+
+        * {
+            font-family: 'Inter', sans-serif;
+        }
     </style>
 </head>
+
 <body class="bg-gray-50 text-gray-800">
 
     <!-- Top Navigation Bar for Agent -->
@@ -19,28 +24,30 @@
         <div class="max-w-7xl mx-auto px-3 sm:px-4 py-2.5 sm:py-3 flex items-center justify-between">
             <div class="flex items-center gap-2.5 sm:gap-6">
                 <!-- Mobile Menu Toggle Button -->
-                <button type="button" onclick="toggleAgentMobileNav()" class="md:hidden text-gray-600 hover:text-blue-600 p-1.5 rounded-xl hover:bg-gray-100 transition focus:outline-none" aria-label="Menu">
+                <button type="button" onclick="toggleAgentMobileNav()"
+                    class="md:hidden text-gray-600 hover:text-blue-600 p-1.5 rounded-xl hover:bg-gray-100 transition focus:outline-none"
+                    aria-label="Menu">
                     <i class="fa-solid fa-bars text-base"></i>
                 </button>
 
-                <a href="03-Index.html" class="flex items-center gap-2.5 shrink-0">
-            <img src="assets/images/vietravel-logo-doc.png" alt="Vietravel Airlines" class="h-8 sm:h-9 object-contain" />
-            <span class="font-bold text-sm sm:text-base text-slate-900 tracking-tight border-l border-slate-200 pl-2.5">Cargo Bidding</span>
-        </a>
+                <a href="02-Dashboard.html" class="flex items-center gap-2.5 shrink-0">
+                    <img src="assets/images/vietravel-logo-doc.png" alt="Vietravel Airlines"
+                        class="h-8 sm:h-9 object-contain" />
+                    <span
+                        class="font-bold text-sm sm:text-base text-slate-900 tracking-tight border-l border-slate-200 pl-2.5">Cargo
+                        Bidding</span>
+                </a>
                 <nav class="hidden md:flex items-center gap-1 text-sm font-medium">
-                    <a href="02-Dashboard.html" class="px-3 py-1.5 rounded-lg bg-blue-50 text-blue-600 font-semibold flex items-center gap-1.5">
-                        <i class="fa-solid fa-gauge-high text-xs"></i> Tổng quan
+                    <a href="02-Dashboard.html"
+                        class="px-3 py-1.5 rounded-lg bg-blue-50 text-blue-600 font-semibold flex items-center gap-1.5">
+                        <i class="fa-solid fa-gavel text-xs"></i> Sàn đấu giá trực tuyến
                     </a>
-                    <a href="03-Index.html" class="px-3 py-1.5 rounded-lg text-gray-600 hover:text-blue-600 hover:bg-gray-50 transition flex items-center gap-1.5">
-                        <i class="fa-solid fa-gavel text-xs"></i> Sàn đấu giá
-                    </a>
-                    <a href="05-Watchlist.html" class="px-3 py-1.5 rounded-lg text-gray-600 hover:text-blue-600 hover:bg-gray-50 transition flex items-center gap-1.5">
-                        <i class="fa-solid fa-star text-xs"></i> Theo dõi
-                    </a>
-                    <a href="06-MyBids.html" class="px-3 py-1.5 rounded-lg text-gray-600 hover:text-blue-600 hover:bg-gray-50 transition flex items-center gap-1.5">
+                    <a href="06-MyBids.html"
+                        class="px-3 py-1.5 rounded-lg text-gray-600 hover:text-blue-600 hover:bg-gray-50 transition flex items-center gap-1.5">
                         <i class="fa-solid fa-clock-rotate-left text-xs"></i> Lịch sử thầu
                     </a>
-                    <a href="07-WonAuction.html" class="px-3 py-1.5 rounded-lg text-gray-600 hover:text-blue-600 hover:bg-gray-50 transition flex items-center gap-1.5">
+                    <a href="07-WonAuction.html"
+                        class="px-3 py-1.5 rounded-lg text-gray-600 hover:text-blue-600 hover:bg-gray-50 transition flex items-center gap-1.5">
                         <i class="fa-solid fa-trophy text-xs"></i> Thắng thầu
                     </a>
                 </nav>
@@ -48,53 +55,63 @@
 
             <!-- Right Actions: Notifications & Profile -->
             <div class="flex items-center gap-1.5 sm:gap-3">
-                <a href="08-Notifications.html" class="relative p-1.5 sm:p-2 text-gray-500 hover:text-blue-600 rounded-xl hover:bg-gray-100 transition" title="Thông báo">
+                <a href="08-Notifications.html"
+                    class="relative p-1.5 sm:p-2 text-gray-500 hover:text-blue-600 rounded-xl hover:bg-gray-100 transition"
+                    title="Thông báo">
                     <i class="fa-solid fa-bell text-base sm:text-lg"></i>
-                    <span id="headerNotifDot" class="absolute top-1 sm:top-1.5 right-1 sm:right-1.5 w-2.5 h-2.5 bg-red-500 rounded-full border-2 border-white animate-pulse"></span>
+                    <span id="headerNotifDot"
+                        class="absolute top-1 sm:top-1.5 right-1 sm:right-1.5 w-2.5 h-2.5 bg-red-500 rounded-full border-2 border-white animate-pulse"></span>
                 </a>
 
                 <div class="h-6 w-px bg-gray-200 hidden sm:block"></div>
 
-                <a href="09-Profile.html" class="flex items-center gap-2 hover:bg-gray-50 p-1 sm:p-1.5 rounded-xl transition">
-                    <div id="hdrAvatar" class="w-7 h-7 sm:w-8 sm:h-8 rounded-lg bg-blue-100 text-blue-700 flex items-center justify-center font-bold text-xs">
+                <a href="09-Profile.html"
+                    class="flex items-center gap-2 hover:bg-gray-50 p-1 sm:p-1.5 rounded-xl transition">
+                    <div id="hdrAvatar"
+                        class="w-7 h-7 sm:w-8 sm:h-8 rounded-lg bg-blue-100 text-blue-700 flex items-center justify-center font-bold text-xs">
                         AG
                     </div>
                     <div class="hidden sm:block text-left">
-                        <p id="hdrCompany" class="text-xs font-bold text-slate-800 leading-tight truncate max-w-[120px]">ABC Logistics</p>
-                        <p class="text-[11px] text-gray-500 leading-none">Mã: <span id="hdrCode" class="text-blue-600 font-semibold font-mono">AG-0892</span></p>
+                        <p id="hdrCompany"
+                            class="text-xs font-bold text-slate-800 leading-tight truncate max-w-[120px]">ABC Logistics
+                        </p>
+                        <p class="text-[11px] text-gray-500 leading-none">Mã: <span id="hdrCode"
+                                class="text-blue-600 font-semibold font-mono">AG-0892</span></p>
                     </div>
                 </a>
 
-                <a href="01-Login.html" onclick="if(window.CargoStore) CargoStore.logoutAgent()" title="Đăng xuất" class="text-gray-400 hover:text-red-600 p-1.5 sm:p-2 transition">
+                <a href="01-Login.html" onclick="if(window.CargoStore) CargoStore.logoutAgent()" title="Đăng xuất"
+                    class="text-gray-400 hover:text-red-600 p-1.5 sm:p-2 transition">
                     <i class="fa-solid fa-right-from-bracket text-sm sm:text-base"></i>
                 </a>
             </div>
         </div>
 
         <!-- Mobile Navigation Menu Dropdown -->
-        <div id="agentMobileNav" class="hidden md:hidden bg-white border-t px-4 py-2.5 space-y-1 text-xs font-medium shadow-lg">
-            <a href="02-Dashboard.html" class="flex items-center gap-2 px-3 py-2 rounded-lg bg-blue-50 text-blue-600 font-semibold">
-                <i class="fa-solid fa-gauge-high w-4"></i> Tổng quan Dashboard
+        <div id="agentMobileNav"
+            class="hidden md:hidden bg-white border-t px-4 py-2.5 space-y-1 text-xs font-medium shadow-lg">
+            <a href="02-Dashboard.html"
+                class="flex items-center gap-2 px-3 py-2 rounded-lg bg-blue-50 text-blue-600 font-semibold">
+                <i class="fa-solid fa-gavel w-4"></i> Sàn đấu giá trực tuyến
             </a>
-            <a href="03-Index.html" class="flex items-center gap-2 px-3 py-2 rounded-lg text-gray-700 hover:bg-gray-50 hover:text-blue-600 transition">
-                <i class="fa-solid fa-gavel w-4"></i> Sàn đấu giá trực tiếp
-            </a>
-            <a href="05-Watchlist.html" class="flex items-center gap-2 px-3 py-2 rounded-lg text-gray-700 hover:bg-gray-50 hover:text-blue-600 transition">
-                <i class="fa-solid fa-star w-4"></i> Tuyến bay theo dõi
-            </a>
-            <a href="06-MyBids.html" class="flex items-center gap-2 px-3 py-2 rounded-lg text-gray-700 hover:bg-gray-50 hover:text-blue-600 transition">
+            <a href="06-MyBids.html"
+                class="flex items-center gap-2 px-3 py-2 rounded-lg text-gray-700 hover:bg-gray-50 hover:text-blue-600 transition">
                 <i class="fa-solid fa-clock-rotate-left w-4"></i> Lịch sử đặt thầu
             </a>
-            <a href="07-WonAuction.html" class="flex items-center gap-2 px-3 py-2 rounded-lg text-gray-700 hover:bg-gray-50 hover:text-blue-600 transition">
+            <a href="07-WonAuction.html"
+                class="flex items-center gap-2 px-3 py-2 rounded-lg text-gray-700 hover:bg-gray-50 hover:text-blue-600 transition">
                 <i class="fa-solid fa-trophy w-4"></i> Đơn hàng thắng thầu
             </a>
-            <a href="08-Notifications.html" class="flex items-center gap-2 px-3 py-2 rounded-lg text-gray-700 hover:bg-gray-50 hover:text-blue-600 transition">
+            <a href="08-Notifications.html"
+                class="flex items-center gap-2 px-3 py-2 rounded-lg text-gray-700 hover:bg-gray-50 hover:text-blue-600 transition">
                 <i class="fa-solid fa-bell w-4"></i> Trung tâm thông báo
             </a>
-            <a href="09-Profile.html" class="flex items-center gap-2 px-3 py-2 rounded-lg text-gray-700 hover:bg-gray-50 hover:text-blue-600 transition">
+            <a href="09-Profile.html"
+                class="flex items-center gap-2 px-3 py-2 rounded-lg text-gray-700 hover:bg-gray-50 hover:text-blue-600 transition">
                 <i class="fa-solid fa-user-shield w-4"></i> Hồ sơ đại lý & Mã PIN
             </a>
-            <a href="10-Terms.html" class="flex items-center gap-2 px-3 py-2 rounded-lg text-gray-500 hover:bg-gray-50 hover:text-gray-800 transition border-t pt-2 mt-1">
+            <a href="10-Terms.html"
+                class="flex items-center gap-2 px-3 py-2 rounded-lg text-gray-500 hover:bg-gray-50 hover:text-gray-800 transition border-t pt-2 mt-1">
                 <i class="fa-solid fa-file-contract w-4"></i> Quy chế & Điều khoản
             </a>
         </div>
@@ -104,132 +121,114 @@
     <main class="max-w-7xl mx-auto px-3 sm:px-4 py-4 sm:py-6 space-y-4 sm:space-y-6">
 
         <!-- Welcome Banner -->
-        <div class="bg-gradient-to-r from-slate-900 via-blue-900 to-indigo-900 rounded-2xl text-white p-4 sm:p-6 shadow-md relative overflow-hidden">
+        <div
+            class="bg-gradient-to-r from-slate-900 via-blue-900 to-indigo-900 rounded-2xl text-white p-4 sm:p-6 shadow-md relative overflow-hidden">
             <div class="relative z-10 flex flex-col md:flex-row md:items-center justify-between gap-4">
                 <div>
-                    <div class="inline-flex items-center gap-2 bg-white/10 text-[11px] sm:text-xs px-2.5 py-0.5 sm:py-1 rounded-full mb-1.5 sm:mb-2">
+                    <div
+                        class="inline-flex items-center gap-2 bg-white/10 text-[11px] sm:text-xs px-2.5 py-0.5 sm:py-1 rounded-full mb-1.5 sm:mb-2">
                         <span class="w-2 h-2 rounded-full bg-emerald-400 animate-ping"></span>
                         <span id="dashTierLabel">Đại lý ủy quyền chính thức</span>
                     </div>
-                    <h2 id="dashWelcomeName" class="text-xl sm:text-2xl font-bold tracking-tight">Xin chào, Nguyễn Văn An</h2>
-                    <p id="dashCompanyInfo" class="text-slate-300 text-xs sm:text-sm mt-0.5 sm:mt-1">Công ty TNHH Vận tải ABC Logistics · Hôm nay có <strong>28 chuyến bay</strong> mở thầu tải trọng cargo.</p>
-                </div>
-                <div class="grid grid-cols-1 sm:flex sm:flex-wrap items-center gap-2 sm:gap-2.5">
-                    <a href="03-Index.html" class="bg-blue-500 hover:bg-blue-400 text-white font-semibold text-xs sm:text-sm px-4 py-2.5 rounded-xl transition shadow flex items-center justify-center gap-2 text-center">
-                        <i class="fa-solid fa-gavel"></i> Vào Sàn Đấu Giá
-                    </a>
+                    <h2 id="dashWelcomeName" class="text-xl sm:text-2xl font-bold tracking-tight">Xin chào, Nguyễn Văn
+                        An</h2>
+                    <p id="dashCompanyInfo" class="text-slate-300 text-xs sm:text-sm mt-0.5 sm:mt-1">Công ty TNHH Vận
+                        tải ABC Logistics · Hôm nay có <strong>28 chuyến bay</strong> mở thầu tải trọng cargo.</p>
                 </div>
             </div>
         </div>
 
         <!-- PIN Setup Reminder Banner (only shown if agent has no PIN) -->
-        <div id="pinReminderBanner" class="hidden bg-gradient-to-r from-amber-500/10 via-amber-50 to-orange-50 border border-amber-200 rounded-2xl p-4 sm:p-5 flex flex-col sm:flex-row sm:items-center justify-between gap-3 shadow-xs">
+        <div id="pinReminderBanner"
+            class="hidden bg-gradient-to-r from-amber-500/10 via-amber-50 to-orange-50 border border-amber-200 rounded-2xl p-4 sm:p-5 flex flex-col sm:flex-row sm:items-center justify-between gap-3 shadow-xs">
             <div class="flex items-start sm:items-center gap-3">
-                <div class="w-10 h-10 rounded-xl bg-amber-500 text-white flex items-center justify-center shrink-0 text-base shadow-sm">
+                <div
+                    class="w-10 h-10 rounded-xl bg-amber-500 text-white flex items-center justify-center shrink-0 text-base shadow-sm">
                     <i class="fa-solid fa-shield-halved"></i>
                 </div>
                 <div>
                     <h4 class="font-bold text-slate-900 text-xs sm:text-sm flex items-center gap-2">
                         Thiết lập Mã PIN bảo mật (4 chữ số)
-                        <span class="text-[10px] font-bold px-2 py-0.5 rounded-full bg-amber-100 text-amber-800">Khuyến nghị bảo mật</span>
+                        <span class="text-[10px] font-bold px-2 py-0.5 rounded-full bg-amber-100 text-amber-800">Khuyến
+                            nghị bảo mật</span>
                     </h4>
                     <p class="text-xs text-slate-600 mt-0.5">
-                        Tài khoản của bạn chưa tạo mã PIN. Hãy tạo ngay để có thể <strong>tự tra cứu lại mật khẩu</strong> khi cần mà không cần hỗ trợ từ Admin.
+                        Tài khoản của bạn chưa tạo mã PIN. Hãy tạo ngay để có thể <strong>tự tra cứu lại mật
+                            khẩu</strong> khi cần mà không cần hỗ trợ từ Admin.
                     </p>
                 </div>
             </div>
-            <a href="09-Profile.html#pinSecurityCard" class="shrink-0 bg-amber-600 hover:bg-amber-700 text-white font-bold text-xs px-4 py-2.5 rounded-xl transition shadow flex items-center justify-center gap-1.5">
+            <a href="09-Profile.html#pinSecurityCard"
+                class="shrink-0 bg-amber-600 hover:bg-amber-700 text-white font-bold text-xs px-4 py-2.5 rounded-xl transition shadow flex items-center justify-center gap-1.5">
                 <i class="fa-solid fa-key"></i> Thiết lập PIN ngay
             </a>
         </div>
 
-        <!-- 4 KPI Cards (2 cols on mobile, 4 cols on desktop) -->
-        <div class="grid grid-cols-2 lg:grid-cols-4 gap-2.5 sm:gap-4">
-            <div class="bg-white rounded-xl sm:rounded-2xl p-3.5 sm:p-5 border shadow-sm flex flex-col sm:flex-row items-start sm:items-center gap-2.5 sm:gap-4">
-                <div class="w-9 h-9 sm:w-12 sm:h-12 rounded-xl bg-blue-50 text-blue-600 flex items-center justify-center text-lg sm:text-xl flex-shrink-0">
+        <!-- 3 KPI Cards -->
+        <div class="grid grid-cols-1 sm:grid-cols-3 gap-3 sm:gap-4">
+            <div
+                class="bg-white rounded-xl sm:rounded-2xl p-4 sm:p-5 border shadow-sm flex items-center gap-3.5 sm:gap-4">
+                <div
+                    class="w-11 h-11 sm:w-12 sm:h-12 rounded-xl bg-blue-50 text-blue-600 flex items-center justify-center text-lg sm:text-xl shrink-0">
                     <i class="fa-solid fa-plane-departure"></i>
                 </div>
                 <div class="min-w-0 flex-1">
-                    <p class="text-[10px] sm:text-xs text-gray-500 font-medium truncate">Phiên đang mở</p>
-                    <p id="kpiOpenSessions" class="text-base sm:text-2xl font-bold text-slate-900 mt-0.5">0</p>
-                    <span class="text-[10px] sm:text-xs text-green-600 font-semibold block truncate">Hôm nay</span>
+                    <p class="text-xs text-gray-500 font-medium">Phiên đang mở thầu</p>
+                    <p id="kpiOpenSessions" class="text-xl sm:text-2xl font-bold text-slate-900 mt-0.5">0</p>
+                    <span class="text-[11px] text-green-600 font-semibold block truncate">Hôm nay sẵn sàng đấu
+                        giá</span>
                 </div>
             </div>
 
-            <div class="bg-white rounded-xl sm:rounded-2xl p-3.5 sm:p-5 border shadow-sm flex flex-col sm:flex-row items-start sm:items-center gap-2.5 sm:gap-4">
-                <div class="w-9 h-9 sm:w-12 sm:h-12 rounded-xl bg-blue-50 text-blue-600 flex items-center justify-center text-lg sm:text-xl flex-shrink-0">
+            <div
+                class="bg-white rounded-xl sm:rounded-2xl p-4 sm:p-5 border shadow-sm flex items-center gap-3.5 sm:gap-4">
+                <div
+                    class="w-11 h-11 sm:w-12 sm:h-12 rounded-xl bg-blue-50 text-blue-600 flex items-center justify-center text-lg sm:text-xl shrink-0">
                     <i class="fa-solid fa-gavel"></i>
                 </div>
                 <div class="min-w-0 flex-1">
-                    <p class="text-[10px] sm:text-xs text-gray-500 font-medium truncate">Đã đặt thầu</p>
-                    <p id="kpiLeading" class="text-base sm:text-2xl font-bold text-blue-600 mt-0.5 truncate">0 <span class="text-[10px] sm:text-xs text-gray-400 font-normal">chuyến</span></p>
-                    <span class="text-[10px] sm:text-xs text-blue-600 font-medium block truncate">Đang tham gia</span>
+                    <p class="text-xs text-gray-500 font-medium">Gói thầu đã tham gia</p>
+                    <p id="kpiLeading" class="text-xl sm:text-2xl font-bold text-blue-600 mt-0.5 truncate">0 <span
+                            class="text-xs text-gray-400 font-normal">chuyến</span></p>
+                    <span class="text-[11px] text-blue-600 font-medium block truncate">Đã nộp phiếu</span>
                 </div>
             </div>
 
-            <div class="bg-white rounded-xl sm:rounded-2xl p-3.5 sm:p-5 border shadow-sm flex flex-col sm:flex-row items-start sm:items-center gap-2.5 sm:gap-4">
-                <div class="w-9 h-9 sm:w-12 sm:h-12 rounded-xl bg-amber-50 text-amber-600 flex items-center justify-center text-lg sm:text-xl flex-shrink-0">
-                    <i class="fa-solid fa-star"></i>
-                </div>
-                <div class="min-w-0 flex-1">
-                    <p class="text-[10px] sm:text-xs text-gray-500 font-medium truncate">Đang theo dõi</p>
-                    <p id="kpiWatchlist" class="text-base sm:text-2xl font-bold text-amber-600 mt-0.5 truncate">0 <span class="text-[10px] sm:text-xs text-gray-400 font-normal">chuyến</span></p>
-                    <span class="text-[10px] sm:text-xs text-amber-600 font-medium block truncate">Tuyến quan tâm</span>
-                </div>
-            </div>
-
-            <div class="bg-white rounded-xl sm:rounded-2xl p-3.5 sm:p-5 border shadow-sm flex flex-col sm:flex-row items-start sm:items-center gap-2.5 sm:gap-4">
-                <div class="w-9 h-9 sm:w-12 sm:h-12 rounded-xl bg-purple-50 text-purple-600 flex items-center justify-center text-lg sm:text-xl flex-shrink-0">
+            <div
+                class="bg-white rounded-xl sm:rounded-2xl p-4 sm:p-5 border shadow-sm flex items-center gap-3.5 sm:gap-4">
+                <div
+                    class="w-11 h-11 sm:w-12 sm:h-12 rounded-xl bg-emerald-50 text-emerald-600 flex items-center justify-center text-lg sm:text-xl shrink-0">
                     <i class="fa-solid fa-trophy"></i>
                 </div>
                 <div class="min-w-0 flex-1">
-                    <p class="text-[10px] sm:text-xs text-gray-500 font-medium truncate">Đã trúng thầu</p>
-                    <p id="kpiWon" class="text-base sm:text-2xl font-bold text-purple-600 mt-0.5 truncate">0 <span class="text-[10px] sm:text-xs text-gray-400 font-normal">đơn</span></p>
-                    <span class="text-[10px] sm:text-xs text-purple-600 font-medium block truncate">Đã chốt phiên</span>
+                    <p class="text-xs text-gray-500 font-medium">Đã trúng thầu</p>
+                    <p id="kpiWon" class="text-xl sm:text-2xl font-bold text-emerald-600 mt-0.5 truncate">0 <span
+                            class="text-xs text-gray-400 font-normal">đơn</span></p>
+                    <span class="text-[11px] text-emerald-600 font-medium block truncate">Phiên đã đóng & xác
+                        nhận</span>
                 </div>
             </div>
         </div>
 
-        <!-- Middle Section: Main Auctions & Quick Widget -->
-        <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
-
-            <!-- Left 2 Cols: Featured Open Auctions -->
-            <div class="lg:col-span-2 space-y-4">
-                <div class="flex items-center justify-between">
-                    <h3 class="font-bold text-base text-slate-900 flex items-center gap-2">
-                        <i class="fa-solid fa-fire text-orange-500"></i> Phiên đấu giá đang diễn ra
+        <!-- Main Auctions Section (Full Width, Excel Layout) -->
+        <div class="space-y-4">
+            <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-2 pb-1">
+                <div>
+                    <h3 class="font-bold text-lg text-slate-900 flex items-center gap-2">
+                        <i class="fa-solid fa-file-excel text-emerald-600"></i> Danh sách gói thầu tải trọng đang mở
                     </h3>
-                    <a href="03-Index.html" class="text-xs font-semibold text-blue-600 hover:underline">
-                        Xem tất cả trên Sàn →
-                    </a>
+                    <p class="text-xs text-slate-500 mt-0.5">
+                        Bảng thông tin đăng ký gói thầu theo mẫu biểu: Cam kết sản lượng tối thiểu & Đơn giá
+                        cước vận chuyển.
+                    </p>
                 </div>
-
-                <div id="dashboardAuctionList" class="space-y-3">
-                    <!-- Rendered by JS -->
-                </div>
-                <div id="dashAuctionPagination"></div>
             </div>
 
-            <!-- Right 1 Col: Notifications & Quick Guide -->
-            <div class="space-y-6">
-
-                <!-- Notifications Widget -->
-                <div class="bg-white rounded-2xl border shadow-sm p-5 space-y-4">
-                    <div class="flex items-center justify-between border-b pb-3">
-                        <h3 class="font-bold text-sm text-slate-900 flex items-center gap-2">
-                            <i class="fa-solid fa-bell text-blue-600"></i> Thông báo mới nhất
-                        </h3>
-                        <a href="08-Notifications.html" class="text-xs text-blue-600 hover:underline font-medium">Xem tất cả</a>
-                    </div>
-                    <div id="quickNotificationsList" class="space-y-2.5">
-                        <!-- Rendered by JS -->
-                    </div>
-                </div>
-
-
-
+            <!-- List of Excel-style Auction Cards -->
+            <div id="dashboardAuctionList" class="space-y-4">
+                <!-- Rendered by JS -->
             </div>
-
+            <div id="dashAuctionPagination"></div>
         </div>
 
     </main>
@@ -263,7 +262,7 @@
                 const hdrAvatar = document.getElementById('hdrAvatar');
                 if (hdrCompany) hdrCompany.textContent = u.companyName || 'Đại lý';
                 if (hdrCode) hdrCode.textContent = u.agentCode || 'AG-xxxx';
-                if (hdrAvatar) hdrAvatar.textContent = (u.agentCode || 'AG').slice(0,2);
+                if (hdrAvatar) hdrAvatar.textContent = (u.agentCode || 'AG').slice(0, 2);
                 document.getElementById('dashWelcomeName').textContent = `Xin chào, ${u.fullName || 'Đại lý'}`;
                 document.getElementById('dashCompanyInfo').innerHTML = `${u.companyName} (${u.agentCode}) · Hôm nay có <strong>${openAuctions.length} chuyến bay</strong> mở thầu tải trọng cargo.`;
                 document.getElementById('dashTierLabel').textContent = 'Đại lý ủy quyền chính thức';
@@ -306,17 +305,12 @@
             const kpiLeading = document.getElementById('kpiLeading');
             if (kpiLeading) kpiLeading.innerHTML = `${participatingCount} <span class="text-xs text-gray-400 font-normal">chuyến</span>`;
 
-            // === KPI 3: Đang theo dõi ===
-            const watchlistAuctions = CargoStore.getWatchlistAuctions ? CargoStore.getWatchlistAuctions() : [];
-            const kpiWatchlist = document.getElementById('kpiWatchlist');
-            if (kpiWatchlist) kpiWatchlist.innerHTML = `${watchlistAuctions.length} <span class="text-xs text-gray-400 font-normal">chuyến</span>`;
-
-            // === KPI 4: Thắng thầu (tính từ dữ liệu thực) ===
+            // === KPI 3: Thắng thầu (tính từ dữ liệu thực) ===
             const wonAuctions = CargoStore.getWonAuctions ? CargoStore.getWonAuctions() : [];
-            const kpiWins = document.getElementById('kpiWins');
-            if (kpiWins) kpiWins.innerHTML = `${wonAuctions.length} <span class="text-xs text-gray-400 font-normal">đơn</span>`;
+            const kpiWon = document.getElementById('kpiWon');
+            if (kpiWon) kpiWon.innerHTML = `${wonAuctions.length} <span class="text-xs text-gray-400 font-normal">đơn</span>`;
 
-            // === Render Featured Open Auctions (Paginated) ===
+            // === Render Featured Open Auctions (Paginated, Full Width Excel Structure) ===
             const totalOpen = openAuctions.length;
             const totalPages = Math.max(1, Math.ceil(totalOpen / dashAuctionPageSize));
             if (dashAuctionCurrentPage > totalPages) dashAuctionCurrentPage = totalPages;
@@ -329,46 +323,175 @@
             const container = document.getElementById('dashboardAuctionList');
             if (container) {
                 if (totalOpen === 0) {
-                    container.innerHTML = `<div class="p-6 text-center text-gray-400 text-sm bg-white rounded-2xl border">Hiện chưa có phiên đấu giá nào đang mở.</div>`;
+                    container.innerHTML = `<div class="p-8 text-center text-gray-400 text-sm bg-white rounded-2xl border">Hiện chưa có phiên đấu giá nào đang mở.</div>`;
                 } else {
                     container.innerHTML = paginatedAuctions.map(a => {
                         const timer = CargoStore.getTimeRemaining(a.endTime);
                         const isLeading = !!(a.leadingAgentCode && a.leadingAgentCode === myCode);
                         const auctionMyBids = (myBids || []).filter(b => String(b.auctionId) === String(a.id));
-                        const myHighestBid = auctionMyBids.length > 0 
-                            ? auctionMyBids.sort((x, y) => (Number(y.priceKg) || 0) - (Number(x.priceKg) || 0))[0] 
+                        const myHighestBid = auctionMyBids.length > 0
+                            ? auctionMyBids.sort((x, y) => (Number(y.priceKg) || 0) - (Number(x.priceKg) || 0))[0]
                             : null;
 
+                        // Start Date and End Date formatting (no hours needed per request)
+                        let endStr = '15/10/2026';
+                        let startStr = '14/10/2026';
+                        try {
+                            if (a.endTime) {
+                                const ed = new Date(a.endTime);
+                                endStr = ed.toLocaleDateString('vi-VN');
+                                const sd = a.createdAt ? new Date(a.createdAt) : (a.startTime ? new Date(a.startTime) : new Date(ed.getTime() - 2 * 86400000));
+                                startStr = sd.toLocaleDateString('vi-VN');
+                            }
+                        } catch (err) { }
+
+                        const capKg = a.capacityKg || 3500;
+                        const startPrice = a.startingPriceKg || 18000;
+                        const effectivePrice = myHighestBid ? myHighestBid.priceKg : startPrice;
+                        const totalAmount = capKg * effectivePrice;
+
                         return `
-                            <div class="p-4 rounded-xl border border-gray-200 hover:border-blue-400 hover:shadow-md transition bg-white flex flex-col sm:flex-row sm:items-center justify-between gap-4">
-                                <div class="space-y-1.5">
-                                    <div class="flex items-center gap-2">
-                                        <span class="bg-blue-600 text-white font-bold text-xs px-2.5 py-0.5 rounded-lg">${a.flightNumber}</span>
-                                        <span class="bg-slate-100 text-slate-600 font-mono font-semibold text-[10px] px-2 py-0.5 rounded-md border border-slate-200" title="Mã định danh phiên">${a.flightCode || '#' + a.id}</span>
-                                        <span class="font-bold text-slate-900 text-sm">${a.route}</span>
-                                        <span class="text-xs text-gray-400">· ${a.aircraft}</span>
-                                        ${(a.status === 'CLOSED' && isLeading) ? '<span class="bg-purple-100 text-purple-700 text-[10px] font-bold px-2 py-0.5 rounded-full flex items-center gap-1"><i class="fa-solid fa-trophy"></i> Bạn thắng thầu</span>' : ''}
+                            <div class="bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden hover:border-blue-400 hover:shadow-md transition">
+                                <!-- Card Header: Title banner per Excel specification -->
+                                <div class="bg-gradient-to-r from-slate-900 via-blue-950 to-slate-900 text-white px-5 py-3.5 flex flex-col sm:flex-row sm:items-center justify-between gap-2.5">
+                                    <div class="flex items-center gap-2.5 flex-wrap">
+                                        <span class="bg-blue-600 text-white font-bold text-xs px-2.5 py-1 rounded-lg uppercase tracking-wider font-mono">${a.flightNumber}</span>
+                                        <h4 class="font-bold text-sm tracking-tight">THÔNG TIN ĐĂNG KÝ GÓI THẦU CHUYẾN ${a.flightNumber} KHAI THÁC TRÊN TÀU BAY ${a.aircraft || 'A321'}</h4>
                                     </div>
-                                    <div class="flex flex-wrap items-center gap-x-4 gap-y-1 text-xs text-gray-500">
-                                        <span><i class="fa-solid fa-plane-departure text-gray-400 mr-1"></i> ETD: ${a.etd}</span>
-                                        <span><i class="fa-solid fa-weight-hanging text-gray-400 mr-1"></i> Tải trọng: <strong>${CargoStore.formatNumber(a.capacityKg)} Kg</strong> <span class="text-emerald-700 font-bold ml-1">(Tối đa ${Number((a.capacityKg / 20).toFixed(1)).toLocaleString('vi-VN')} m³)</span></span>
+                                    <div class="flex items-center gap-2 text-xs">
+                                        <span class="bg-white/10 px-2.5 py-1 rounded-lg text-slate-300 font-mono text-[11px] border border-white/10" title="Mã định danh phiên">${a.flightCode || 'FL-' + a.flightNumber}</span>
+                                        <span class="dash-timer-text text-amber-300 font-semibold" data-endtime="${a.endTime}">
+                                            <i class="fa-regular fa-clock mr-1"></i><span class="timer-val">Còn ${timer.hours > 0 ? timer.hours + 'h ' : ''}${timer.minutes}m ${timer.seconds}s</span>
+                                        </span>
                                     </div>
                                 </div>
-                                <div class="flex items-center justify-between sm:justify-end gap-5">
-                                    <div class="text-left sm:text-right">
-                                        ${myHighestBid ? `
-                                            <p class="text-[11px] text-blue-600 font-semibold flex items-center justify-start sm:justify-end gap-1">
-                                                <i class="fa-solid fa-user-check text-[10px]"></i> Giá bạn đã đặt
-                                            </p>
-                                            <p class="text-base font-bold text-blue-600">${CargoStore.formatCurrency(myHighestBid.priceKg)}/Kg</p>
-                                        ` : `
-                                            <p class="text-xs text-slate-400 font-medium">Chưa tham gia</p>
-                                        `}
-                                        <p class="text-[11px] text-orange-600 font-medium dash-timer-text mt-0.5" data-endtime="${a.endTime}"><i class="fa-regular fa-clock mr-1"></i><span class="timer-val">Còn ${timer.hours > 0 ? timer.hours + 'h ' : ''}${timer.minutes}m ${timer.seconds}s</span></p>
+
+                                <!-- Body: Info & Excel Grid -->
+                                <div class="p-4 sm:p-5 space-y-4">
+                                    <!-- Meta Info Row (Excel Heading Format) -->
+                                    <div class="bg-slate-50 p-3.5 rounded-xl border border-slate-200 text-xs space-y-2.5">
+                                        <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-2 border-b border-slate-200/80 pb-2">
+                                            <div class="flex items-center gap-2 flex-wrap">
+                                                <span class="font-bold text-slate-700 uppercase tracking-wide text-[11px]">TÊN ĐƠN VỊ ĐẤU THẦU:</span>
+                                                <span class="font-bold text-blue-900 bg-white px-3 py-1 rounded-lg border border-slate-300 text-xs shadow-2xs">${u ? (u.companyName || u.fullName) + ' (' + (u.agentCode || 'AG-0892') + ')' : 'Đại lý'}</span>
+                                            </div>
+                                            <div class="flex items-center gap-1.5 text-xs text-slate-600">
+                                                <span class="text-slate-400 font-medium">Thời hạn:</span>
+                                                <span class="font-semibold text-slate-800"><i class="fa-regular fa-calendar-check text-indigo-600"></i> ${startStr}</span>
+                                                <span class="text-slate-400">➔</span>
+                                                <span class="font-semibold text-red-600"><i class="fa-regular fa-calendar-xmark text-red-500"></i> ${endStr}</span>
+                                            </div>
+                                        </div>
+                                        <div class="grid grid-cols-1 sm:grid-cols-3 gap-2 text-slate-600">
+                                            <div>
+                                                <span class="text-slate-400 text-[11px]">Chặng bay:</span>
+                                                <span class="font-bold text-slate-900 ml-1">${a.originName || a.origin} (${a.origin}) ➔ ${a.destName || a.destination} (${a.destination})</span>
+                                            </div>
+                                            <div>
+                                                <span class="text-slate-400 text-[11px]">Giờ khởi hành (ETD):</span>
+                                                <span class="font-bold text-slate-900 ml-1">${a.etd}</span>
+                                            </div>
+                                            <div>
+                                                <span class="text-slate-400 text-[11px]">Trạng thái nộp thầu:</span>
+                                                ${myHighestBid ? `
+                                                    <span class="inline-flex items-center gap-1 bg-emerald-100 text-emerald-800 font-bold px-2 py-0.5 rounded text-[11px] ml-1">
+                                                        <i class="fa-solid fa-circle-check text-emerald-600"></i> Đã nộp phiếu giá
+                                                    </span>
+                                                ` : `
+                                                    <span class="inline-flex items-center gap-1 bg-amber-50 text-amber-800 border border-amber-200 font-semibold px-2 py-0.5 rounded text-[11px] ml-1">
+                                                        <i class="fa-regular fa-clock text-amber-600"></i> Chưa nộp giá
+                                                    </span>
+                                                `}
+                                            </div>
+                                        </div>
                                     </div>
-                                    <a href="04-Detail.html?id=${a.id}" class="bg-blue-600 hover:bg-blue-700 text-white text-xs font-semibold px-4 py-2.5 rounded-xl transition shadow flex items-center gap-1.5 flex-shrink-0">
-                                        <span>${myHighestBid ? 'Nâng giá' : 'Đặt giá'}</span> <i class="fa-solid fa-arrow-right text-[10px]"></i>
-                                    </a>
+
+                                    <!-- Excel Table Structure (Ảnh 2 & Ảnh 3) -->
+                                    <div class="border border-slate-300 rounded-xl overflow-hidden shadow-2xs">
+                                        <div class="overflow-x-auto">
+                                            <table class="w-full text-xs text-left">
+                                                <thead class="bg-slate-100 border-b border-slate-300 font-bold text-slate-700 uppercase text-[11px]">
+                                                    <tr>
+                                                        <th class="py-2.5 px-4 border-r border-slate-200">Chuyến bay</th>
+                                                        <th class="py-2.5 px-4 border-r border-slate-200">Sản lượng cam kết</th>
+                                                        <th class="py-2.5 px-4 border-r border-slate-200">Giá mua (VNĐ/kg)</th>
+                                                        <th class="py-2.5 px-4">Thành tiền (VNĐ)</th>
+                                                    </tr>
+                                                </thead>
+                                                <tbody class="divide-y divide-slate-200 bg-white font-medium">
+                                                    <tr>
+                                                        <td class="py-3 px-4 border-r border-slate-200 whitespace-nowrap">
+                                                            <span class="font-bold text-slate-900 text-sm">${a.flightNumber}</span>
+                                                            <span class="text-slate-500 text-[11px] block">(${a.route})</span>
+                                                        </td>
+                                                        <td class="py-3 px-4 border-r border-slate-200">
+                                                            <span class="font-bold text-slate-900 text-sm">${CargoStore.formatNumber(capKg)} KG</span>
+                                                            <p class="text-[11px] text-red-600 italic mt-0.5">*Sản lượng ${CargoStore.formatNumber(capKg)}kg là mức tối thiểu phải cam kết</p>
+                                                        </td>
+                                                        <td class="py-3 px-4 border-r border-slate-200">
+                                                            ${myHighestBid ? `
+                                                                <div class="flex items-center gap-1.5">
+                                                                    <span class="font-bold text-blue-700 text-base">${CargoStore.formatCurrency(myHighestBid.priceKg)}</span>
+                                                                    <span class="text-xs text-slate-500 font-semibold">VNĐ</span>
+                                                                </div>
+                                                                <p class="text-[11px] text-emerald-600 font-semibold mt-0.5">✓ Giá đã nộp (quy chế nộp 1 lần duy nhất)</p>
+                                                            ` : `
+                                                                <div class="flex items-center gap-1.5">
+                                                                    <input type="number" 
+                                                                           id="dashBidInput_${a.id}" 
+                                                                           value="${startPrice}" 
+                                                                           min="${startPrice}" 
+                                                                           step="${a.minStep || 500}" 
+                                                                           oninput="updateDashCardTotal(${a.id}, ${capKg})" 
+                                                                           class="w-36 px-3 py-1.5 border-2 border-blue-400 focus:border-blue-600 focus:ring-2 focus:ring-blue-100 rounded-lg text-sm font-bold text-blue-800 bg-white outline-none shadow-2xs">
+                                                                    <span class="text-xs font-semibold text-slate-600">VNĐ</span>
+                                                                </div>
+                                                                <p class="text-[11px] text-red-600 italic mt-0.5">*Giá mua là giá áp dụng trên 1kg</p>
+                                                            `}
+                                                        </td>
+                                                        <td class="py-3 px-4">
+                                                            <span id="dashRowTotal_${a.id}" class="font-bold ${myHighestBid ? 'text-emerald-700' : 'text-slate-900'} text-base">
+                                                                ${CargoStore.formatCurrency(totalAmount)}
+                                                            </span>
+                                                        </td>
+                                                    </tr>
+                                                </tbody>
+                                                <tfoot class="bg-slate-50/90 border-t border-slate-300 font-bold">
+                                                    <tr>
+                                                        <td colspan="3" class="py-2.5 px-4 text-right uppercase text-[11px] text-slate-600 border-r border-slate-200">
+                                                            Tổng giá mua (VNĐ):
+                                                        </td>
+                                                        <td id="dashFooterTotal_${a.id}" class="py-2.5 px-4 text-blue-700 text-base">
+                                                            ${CargoStore.formatCurrency(totalAmount)}
+                                                        </td>
+                                                    </tr>
+                                                </tfoot>
+                                            </table>
+                                        </div>
+                                    </div>
+
+                                    <!-- Footer & Action Row: Nộp giá trực tiếp tại Dashboard -->
+                                    <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pt-1 border-t border-slate-100">
+                                        <div class="text-[11px] text-slate-500 space-y-0.5">
+                                            <p>• Giá mua là giá cước vận chuyển (Phụ phí nhiên liệu & an ninh: 0 VNĐ, chưa gồm VAT và phí lao vụ).</p>
+                                            <p>• Phí vận đơn: 60.000 VNĐ/AWB. Trả kết quả theo công thức: <strong>Tổng giá mua = Sản lượng (kg) × Giá mua (VNĐ/kg)</strong>.</p>
+                                        </div>
+                                        <div class="shrink-0 flex items-center gap-2">
+                                            ${myHighestBid ? `
+                                                <div class="bg-emerald-50 text-emerald-800 border border-emerald-300 text-xs font-bold px-4 py-2.5 rounded-xl flex items-center gap-2 shadow-2xs">
+                                                    <i class="fa-solid fa-circle-check text-emerald-600 text-sm"></i>
+                                                    <span>Đã nộp phiếu giá: <strong>${CargoStore.formatCurrency(myHighestBid.priceKg)}/Kg</strong> (Thành tiền: <strong>${CargoStore.formatCurrency(totalAmount)}</strong>)</span>
+                                                </div>
+                                            ` : `
+                                                <button type="button" 
+                                                        onclick="submitBidDirect(${a.id}, ${capKg}, '${a.flightNumber}', '${a.route}')" 
+                                                        id="btnSubmitBid_${a.id}" 
+                                                        class="bg-blue-600 hover:bg-blue-700 active:scale-[0.98] text-white text-xs sm:text-sm font-bold px-6 py-2.5 rounded-xl transition shadow flex items-center gap-2 cursor-pointer">
+                                                    <i class="fa-solid fa-paper-plane"></i> Xác nhận đặt giá thầu ngay
+                                                </button>
+                                            `}
+                                        </div>
+                                    </div>
                                 </div>
                             </div>
                         `;
@@ -415,35 +538,87 @@
                 }
             }
 
-            // === Render Notifications Widget ===
-            const rawNotifs = CargoStore.getNotifications ? CargoStore.getNotifications() : [];
-            const notifs = rawNotifs.filter(n => {
-                if (!n) return false;
-                const t = (n.title || '').toUpperCase();
-                const m = (n.message || '').toUpperCase();
-                return !(t.includes('THANH TOÁN') || t.includes('CHUYỂN KHOẢN') || m.includes('THANH TOÁN') || m.includes('CHUYỂN KHOẢN') || n.type === 'PAYMENT_REMINDER' || n.type === 'PAYMENT');
-            }).slice(0, 3);
-            const notifBox = document.getElementById('quickNotificationsList');
-            if (notifBox) {
-                if (notifs.length === 0) {
-                    notifBox.innerHTML = `<div class="p-4 text-center text-gray-400 text-xs">Chưa có thông báo nào</div>`;
-                } else {
-                    notifBox.innerHTML = notifs.map(n => `
-                        <div class="p-3 rounded-xl bg-gray-50 border border-gray-100 hover:bg-blue-50/50 transition text-xs">
-                            <div class="flex items-center justify-between mb-1">
-                                <span class="font-bold text-slate-800">${n.title}</span>
-                                <span class="text-[10px] text-gray-400">${CargoStore.formatTimeAgo(n.timestamp || n.createdAt || n.id, n.time)}</span>
-                            </div>
-                            <p class="text-gray-600 text-[11px] leading-relaxed">${n.message}</p>
-                        </div>
-                    `).join('');
-                }
+        }
+
+        // Live calculation of row total and formula as agent types price
+        function updateDashCardTotal(auctionId, capKg) {
+            const input = document.getElementById('dashBidInput_' + auctionId);
+            if (!input) return;
+            const price = Math.max(0, Number(input.value) || 0);
+            const total = capKg * price;
+            const totalEl = document.getElementById('dashRowTotal_' + auctionId);
+            const formulaEl = document.getElementById('dashRowFormula_' + auctionId);
+            const footerTotalEl = document.getElementById('dashFooterTotal_' + auctionId);
+            if (totalEl) totalEl.textContent = CargoStore.formatCurrency(total);
+            if (formulaEl) formulaEl.textContent = `=${CargoStore.formatNumber(capKg)} × ${CargoStore.formatNumber(price)}`;
+            if (footerTotalEl) footerTotalEl.textContent = CargoStore.formatCurrency(total);
+        }
+
+        // Direct Bid Submission right on Dashboard
+        function submitBidDirect(auctionId, capKg, flightNumber, route) {
+            const u = CargoStore.getCurrentUser();
+            if (!u) {
+                alert('Vui lòng đăng nhập trước khi nộp giá thầu!');
+                window.location.href = '01-Login.html';
+                return;
+            }
+
+            const input = document.getElementById('dashBidInput_' + auctionId);
+            if (!input) return;
+            const priceKg = Number(input.value);
+
+            const allAuctions = CargoStore.getAuctions();
+            const auction = allAuctions.find(a => String(a.id) === String(auctionId));
+            if (!auction) {
+                alert('Không tìm thấy thông tin gói thầu!');
+                return;
+            }
+
+            const minAcceptable = auction.startingPriceKg || auction.currentPriceKg || 0;
+            const minStep = Number(auction.minStep) || 500;
+
+            if (!priceKg || priceKg < minAcceptable) {
+                alert(`Mức giá đặt thầu tối thiểu phải từ giá khởi điểm: ${CargoStore.formatCurrency(minAcceptable)}/Kg trở lên!`);
+                input.focus();
+                return;
+            }
+
+            const diffFromStart = Math.round(Number(priceKg)) - Math.round(Number(minAcceptable));
+            if (diffFromStart > 0 && (diffFromStart < Math.round(minStep) || diffFromStart % Math.round(minStep) !== 0)) {
+                alert(`Mức giá đặt thầu (${CargoStore.formatCurrency(priceKg)}/Kg) không hợp lệ.\nPhải bằng giá sàn (${CargoStore.formatCurrency(minAcceptable)}/Kg) hoặc tăng theo bước giá +${CargoStore.formatCurrency(minStep)}/Kg.`);
+                input.focus();
+                return;
+            }
+
+            const totalVnd = capKg * priceKg;
+            const confirmMsg = `XÁC NHẬN NỘP PHIẾU GIÁ THẦU:\n\n` +
+                `• Đơn vị dự thầu: ${u.companyName || u.fullName} (${u.agentCode || 'AG-0892'})\n` +
+                `• Chuyến bay: ${flightNumber || auction.flightNumber} (${route || auction.route})\n` +
+                `• Tải trọng cam kết: ${CargoStore.formatNumber(capKg)} KG (Hardblock)\n` +
+                `• Đơn giá mua đề xuất: ${CargoStore.formatCurrency(priceKg)}/Kg\n` +
+                `• Tổng giá mua dự kiến: ${CargoStore.formatCurrency(totalVnd)}\n\n` +
+                `LƯU Ý QUY CHẾ: Mỗi đại lý chỉ được nộp giá 1 LẦN DUY NHẤT cho mỗi gói thầu. Phiếu giá sau khi gửi sẽ được ghi nhận ngay và KHÔNG THỂ thay đổi hay nâng giá.\n\n` +
+                `Bạn có chắc chắn muốn nộp mức giá này?`;
+
+            if (!confirm(confirmMsg)) return;
+
+            const res = CargoStore.placeBid(auctionId, priceKg, true);
+            if (res.success) {
+                alert(`✅ Đã nộp giá thầu thành công!\n\nChuyến bay: ${flightNumber || auction.flightNumber}\nMức giá: ${CargoStore.formatCurrency(priceKg)}/Kg\nTổng thành tiền: ${CargoStore.formatCurrency(totalVnd)}\n\nPhiếu giá đã được lưu trữ an toàn.`);
+                renderDashboard();
+            } else {
+                alert(res.message || 'Không thể gửi giá thầu!');
             }
         }
 
         let isRenderingDashboard = false;
         function safeRenderDashboard() {
             if (isRenderingDashboard || (typeof document !== 'undefined' && document.hidden)) return;
+            // Prevent auto-refresh from interrupting typing
+            const activeEl = document.activeElement;
+            if (activeEl && (activeEl.tagName === 'INPUT' || activeEl.tagName === 'TEXTAREA' || activeEl.tagName === 'SELECT')) {
+                return;
+            }
             isRenderingDashboard = true;
             try {
                 renderDashboard();
@@ -477,7 +652,7 @@
             }
         }
 
-        document.addEventListener('DOMContentLoaded', function() {
+        document.addEventListener('DOMContentLoaded', function () {
             safeRenderDashboard();
             setInterval(updateDashCountdowns, 1000);
         });
@@ -489,11 +664,11 @@
             dashUpdateTimeout = setTimeout(safeRenderDashboard, 100);
         }
 
-        window.addEventListener('storage', function(e) {
+        window.addEventListener('storage', function (e) {
             if (e.key === 'CARGO_BIDDING_DATA_V3') onStoreUpdate();
         });
         window.addEventListener('cargostore_updated', onStoreUpdate);
     </script>
 </body>
-</html>
 
+</html>

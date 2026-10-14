@@ -2846,6 +2846,19 @@ const CargoStore = (function() {
                 };
             }
 
+            // Rule: 1 đại lý chỉ có thể đặt giá 1 lần duy nhất cho mỗi gói thầu
+            const alreadyBid = (data.bids || []).some(b => 
+                String(b.auctionId) === String(auction.id) && 
+                String(b.agentCode || '').trim().toUpperCase() === String(user.agentCode || '').trim().toUpperCase()
+            );
+            if (alreadyBid) {
+                return {
+                    success: false,
+                    alreadyBid: true,
+                    message: 'Đại lý của bạn đã gửi mức giá cho gói thầu này rồi. Theo quy chế đấu giá kín, mỗi đại lý chỉ được gửi mức giá 1 lần duy nhất.'
+                };
+            }
+
             // Track previous leader before updating
             const previousLeaderCode = auction.leadingAgentCode;
             const previousLeaderName = auction.leadingAgentName;
@@ -4787,7 +4800,7 @@ const anonFlag = isAnonymous !== false;
                 time: 'Vừa xong',
                 type: notifData.type || 'SYSTEM',
                 read: false,
-                link: notifData.link || '03-Index.html',
+                link: notifData.link || '02-Dashboard.html',
                 targetAgentCode: notifData.targetAgentCode || null
             };
 
@@ -4861,7 +4874,7 @@ const anonFlag = isAnonymous !== false;
                             time: 'Vừa xong',
                             type: 'SYSTEM',
                             read: false,
-                            link: '03-Index.html'
+                            link: '02-Dashboard.html'
                         });
 
                         // Clean up lock alert notifications for this agent
