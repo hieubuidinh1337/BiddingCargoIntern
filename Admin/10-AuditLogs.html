@@ -417,13 +417,17 @@
                     Nhật Ký Hoạt Động & Bảo Mật
                 </h1>
                 <p class="text-xs sm:text-sm text-slate-500 mt-0.5">
-                    Ghi nhận đầy đủ thông tin đăng nhập/đăng xuất của Admin, Staff, Đại lý. Hệ thống tự động lưu trữ
-                    nhật ký trong 90 ngày (3 tháng).
+                    Ghi nhận đầy đủ thông tin đăng nhập/đăng xuất của Admin, Staff, Đại lý. Thông tin đại lý tham gia đặt giá thầu được bảo mật ẩn danh theo chính sách bảo mật đấu giá kín. Hệ thống tự động lưu trữ nhật ký trong 90 ngày (3 tháng).
                 </p>
             </div>
 
             <!-- ACTION BUTTONS & SECURITY POLICY BADGES -->
             <div class="flex flex-wrap items-center gap-2 self-start md:self-auto">
+                <div class="inline-flex items-center gap-1.5 px-3 py-2 text-xs font-semibold text-amber-700 bg-amber-50 border border-amber-200/80 rounded-xl"
+                    title="Theo quy tắc đấu giá kín của hệ thống, thông tin tên và mã đại lý tham gia đặt giá thầu được bảo mật ẩn danh tuyệt đối">
+                    <i class="fa-solid fa-user-shield text-amber-600"></i>
+                    Bảo mật danh tính Đại lý đấu giá
+                </div>
                 <div class="inline-flex items-center gap-1.5 px-3 py-2 text-xs font-semibold text-blue-700 bg-blue-50 border border-blue-200/80 rounded-xl"
                     title="Hệ thống tự động dọn dẹp nhật ký cũ sau 90 ngày lưu trữ">
                     <i class="fa-solid fa-clock-rotate-left text-blue-600"></i>
@@ -806,6 +810,48 @@
             return result;
         }
 
+        // --- DEMO BIDDER ANONYMITY HELPER ---
+        function isBidLog(log) {
+            if (!log) return false;
+            const cat = (log.actionCategory || '').trim();
+            const title = (log.actionTitle || '').trim().toLowerCase();
+            const role = (log.role || '').toUpperCase();
+
+            if (cat === 'Đấu giá') return true;
+            if (role === 'AGENT' && cat === 'Phiên đấu giá') return true;
+            if (title.includes('đặt giá') || title.includes('đặt thầu') || title.includes('trúng thầu') || title.includes('chào giá')) {
+                return true;
+            }
+            return false;
+        }
+
+        function getMaskedLog(log) {
+            if (!log) return {};
+            if (!isBidLog(log)) return log;
+
+            let maskedDetails = log.details || '';
+            if (log.actor && log.actor !== 'N/A') {
+                maskedDetails = maskedDetails.split(log.actor).join('Đại lý ẩn danh (Bảo mật)');
+            }
+            if (log.username && log.username !== '-') {
+                maskedDetails = maskedDetails.split(log.username).join('AG-***');
+            }
+            maskedDetails = maskedDetails
+                .replace(/Đại lý\s+Đại lý ẩn danh/g, 'Đại lý ẩn danh')
+                .replace(/Đại lý ẩn danh \(Bảo mật\)\s*\(\s*AG-\*\*\*\s*\)/g, 'Đại lý ẩn danh (Bảo mật)')
+                .replace(/Đại lý ẩn danh \(Bảo mật\)\s*\(\s*Mã:\s*AG-\*\*\*\s*\)/g, 'Đại lý ẩn danh (Bảo mật)');
+
+            maskedDetails = maskedDetails.replace(/^Đại lý\s+.*?\s+đặt thầu/i, 'Đại lý ẩn danh (Bảo mật) đặt thầu');
+
+            return {
+                ...log,
+                actor: 'Đại lý ẩn danh (Bảo mật)',
+                username: 'AG-***',
+                displayActorHtml: '<div class="font-bold text-slate-700 italic flex items-center gap-1.5"><i class="fa-solid fa-user-shield text-slate-400 text-xs"></i>Đại lý ẩn danh (Bảo mật)</div><div class="text-[11px] font-mono text-slate-400">@AG-*** (Bảo mật)</div>',
+                displayDetails: maskedDetails
+            };
+        }
+
         async function fetchServerLogs(isManual = false) {
             const icon = document.getElementById('btnRefreshIcon');
             if (icon) icon.classList.add('fa-spin');
@@ -1016,15 +1062,22 @@
 
             if (currentFilters.search) {
                 const q = currentFilters.search.toLowerCase().trim();
-                logs = logs.filter(l =>
-                    (l.actor || '').toLowerCase().includes(q) ||
-                    (l.username || '').toLowerCase().includes(q) ||
-                    (l.actionTitle || '').toLowerCase().includes(q) ||
-                    (l.actionCategory || '').toLowerCase().includes(q) ||
-                    (l.target || '').toLowerCase().includes(q) ||
-                    (l.details || '').toLowerCase().includes(q) ||
-                    (l.ip || '').toLowerCase().includes(q)
-                );
+                logs = logs.filter(l => {
+                    const isBid = isBidLog(l);
+                    const masked = isBid ? getMaskedLog(l) : null;
+                    const actorStr = masked ? 'đại lý ẩn danh (bảo mật)' : (l.actor || '').toLowerCase();
+                    const usernameStr = masked ? 'ag-***' : (l.username || '').toLowerCase();
+                    const detailsStr = masked ? masked.displayDetails.toLowerCase() : (l.details || '').toLowerCase();
+                    return (
+                        actorStr.includes(q) ||
+                        usernameStr.includes(q) ||
+                        (l.actionTitle || '').toLowerCase().includes(q) ||
+                        (l.actionCategory || '').toLowerCase().includes(q) ||
+                        (l.target || '').toLowerCase().includes(q) ||
+                        detailsStr.includes(q) ||
+                        (l.ip || '').toLowerCase().includes(q)
+                    );
+                });
             }
 
             return logs;
@@ -1100,16 +1153,28 @@
                     const rawTime = getEffectiveTime(log);
                     const timeAgo = (typeof CargoStore !== 'undefined' && typeof CargoStore.formatTimeAgo === 'function') ? CargoStore.formatTimeAgo(rawTime, log.timestamp) : (log.timestamp || 'Vừa xong');
 
-                    const detailsEscaped = (log.details || '').replace(/"/g, '&quot;');
+                    // Check if bidding log to mask agent identity
+                    const isBid = isBidLog(log);
+                    const masked = isBid ? getMaskedLog(log) : null;
+
+                    let actorColHtml = '';
+                    if (masked) {
+                        actorColHtml = '<div class="flex items-center gap-2"><div>' + masked.displayActorHtml + '</div><div class="ml-auto">' + roleBadge + '</div></div>';
+                    } else {
+                        actorColHtml = '<div class="flex items-center gap-2"><div><div class="font-bold text-slate-900">' + (log.actor || 'N/A') + '</div><div class="text-[11px] font-mono text-slate-500">@' + (log.username || '-') + '</div></div><div class="ml-auto">' + roleBadge + '</div></div>';
+                    }
+
+                    const displayDetailsText = masked ? masked.displayDetails : (log.details || '-');
+                    const detailsEscaped = displayDetailsText.replace(/"/g, '&quot;');
                     const targetBadge = log.target ? '<div class="text-[11px] font-mono font-semibold text-blue-600 bg-blue-50/80 px-1.5 py-0.5 rounded inline-block mt-0.5">' + log.target + '</div>' : '';
 
                     const catDisplay = (cat === 'Đăng nhập' && isLogout) ? 'Đăng xuất' : cat;
 
                     tr.innerHTML = '<td class="py-3 px-4 font-medium text-slate-800 whitespace-nowrap"><div class="font-semibold text-slate-900">' + (log.timestamp || '-') + '</div><div class="text-[11px] text-slate-400 mt-0.5">' + timeAgo + '</div></td>' +
-                        '<td class="py-3 px-4 font-medium text-slate-800"><div class="flex items-center gap-2"><div><div class="font-bold text-slate-900">' + (log.actor || 'N/A') + '</div><div class="text-[11px] font-mono text-slate-500">@' + (log.username || '-') + '</div></div><div class="ml-auto">' + roleBadge + '</div></div></td>' +
+                        '<td class="py-3 px-4 font-medium text-slate-800">' + actorColHtml + '</td>' +
                         '<td class="py-3 px-4 whitespace-nowrap"><span class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg border text-[11px] font-bold ' + catBadgeClass + '">' + catDisplay + '</span></td>' +
                         '<td class="py-3 px-4"><div class="flex items-start gap-2.5">' + catIconHtml + '<div><div class="font-bold text-slate-900 text-xs">' + (log.actionTitle || '-') + '</div>' + targetBadge + '</div></div></td>' +
-                        '<td class="py-3 px-4 text-slate-600 max-w-xs truncate cursor-pointer hover:text-slate-900" onclick="openLogModal(' + log.id + ')"><span title="' + detailsEscaped + '">' + (log.details || '-') + '</span></td>' +
+                        '<td class="py-3 px-4 text-slate-600 max-w-xs truncate cursor-pointer hover:text-slate-900" onclick="openLogModal(' + log.id + ')"><span title="' + detailsEscaped + '">' + displayDetailsText + '</span></td>' +
                         '<td class="py-3 px-4 whitespace-nowrap text-[11px] text-slate-500"><div class="font-mono font-medium text-slate-700"><i class="fa-solid fa-network-wired text-[10px] text-slate-400 mr-1"></i>' + (log.ip || '127.0.0.1') + '</div><div class="text-[10px] text-slate-400 truncate max-w-[130px] mt-0.5" title="' + (log.device || '') + '">' + (log.device || 'Browser') + '</div></td>' +
                         '<td class="py-3 px-4 text-center whitespace-nowrap"><button onclick="openLogModal(' + log.id + ')" class="p-1.5 rounded-lg text-slate-400 hover:text-blue-600 hover:bg-blue-50 transition-colors" title="Xem chi tiết"><i class="fa-solid fa-eye text-sm"></i></button></td>';
 
@@ -1178,9 +1243,14 @@
             const log = logs.find(l => String(l.id) === String(logId));
             if (!log) return;
 
+            const isBid = isBidLog(log);
+            const masked = isBid ? getMaskedLog(log) : null;
+
             document.getElementById('modalActionTitle').textContent = log.actionTitle || 'Chi tiết nhật ký';
             document.getElementById('modalLogId').textContent = 'Mã bản ghi: #' + log.id;
-            document.getElementById('modalActor').textContent = (log.actor || 'N/A') + ' (@' + (log.username || '') + ')';
+            document.getElementById('modalActor').textContent = masked
+                ? 'Đại lý ẩn danh (Bảo mật) (@AG-***)'
+                : ((log.actor || 'N/A') + ' (@' + (log.username || '') + ')');
 
             const roleUpper = (log.role || '').toUpperCase();
             const roleEl = document.getElementById('modalRoleBadge');
@@ -1197,7 +1267,7 @@
             const isLogoutModal = (log.actionCategory === 'Đăng nhập') && ((log.actionTitle || '').toLowerCase().includes('đăng xuất') || (log.actionTitle || '').toLowerCase().includes('logout'));
             document.getElementById('modalCategory').textContent = isLogoutModal ? 'Đăng xuất' : (log.actionCategory || 'Chưa phân loại');
             document.getElementById('modalTarget').textContent = log.target || 'N/A';
-            document.getElementById('modalDetailsText').textContent = log.details || 'Không có chi tiết bổ sung.';
+            document.getElementById('modalDetailsText').textContent = masked ? masked.displayDetails : (log.details || 'Không có chi tiết bổ sung.');
             document.getElementById('modalIp').textContent = log.ip || '127.0.0.1';
             document.getElementById('modalDevice').textContent = log.device || 'Chrome / Windows';
 
@@ -1228,18 +1298,24 @@
             csvContent += 'ID,Thời gian,Người thực hiện,Username,Vai trò,Danh mục,Hành động,Target,IP,Thiết bị,Chi tiết\n';
 
             logs.forEach(l => {
+                const isBid = isBidLog(l);
+                const masked = isBid ? getMaskedLog(l) : null;
+                const actorVal = masked ? 'Đại lý ẩn danh (Bảo mật)' : (l.actor || '');
+                const usernameVal = masked ? 'AG-***' : (l.username || '');
+                const detailsVal = masked ? masked.displayDetails : (l.details || '');
+
                 const row = [
                     l.id,
                     '"' + (l.timestamp || '').replace(/"/g, '""') + '"',
-                    '"' + (l.actor || '').replace(/"/g, '""') + '"',
-                    '"' + (l.username || '').replace(/"/g, '""') + '"',
+                    '"' + actorVal.replace(/"/g, '""') + '"',
+                    '"' + usernameVal.replace(/"/g, '""') + '"',
                     '"' + (l.role || '').replace(/"/g, '""') + '"',
                     '"' + (l.actionCategory || '').replace(/"/g, '""') + '"',
                     '"' + (l.actionTitle || '').replace(/"/g, '""') + '"',
                     '"' + (l.target || '').replace(/"/g, '""') + '"',
                     '"' + (l.ip || '').replace(/"/g, '""') + '"',
                     '"' + (l.device || '').replace(/"/g, '""') + '"',
-                    '"' + (l.details || '').replace(/"/g, '""') + '"'
+                    '"' + detailsVal.replace(/"/g, '""') + '"'
                 ].join(',');
                 csvContent += row + '\n';
             });
