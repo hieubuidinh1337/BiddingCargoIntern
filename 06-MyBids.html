@@ -111,11 +111,17 @@
             <button onclick="setTab('ALL')" class="tab-btn active px-4 py-2 rounded-xl text-xs font-semibold bg-blue-600 text-white shadow-sm whitespace-nowrap shrink-0 cursor-pointer" data-tab="ALL">
                 Tất cả lượt thầu
             </button>
+            <button onclick="setTab('PARTICIPATING')" class="tab-btn px-4 py-2 rounded-xl text-xs font-semibold bg-white text-gray-600 hover:bg-gray-50 border whitespace-nowrap shrink-0 cursor-pointer" data-tab="PARTICIPATING">
+                Đang tham gia
+            </button>
             <button onclick="setTab('WAITING')" class="tab-btn px-4 py-2 rounded-xl text-xs font-semibold bg-white text-gray-600 hover:bg-gray-50 border whitespace-nowrap shrink-0 cursor-pointer" data-tab="WAITING">
                 Đang chờ kết quả
             </button>
             <button onclick="setTab('WON')" class="tab-btn px-4 py-2 rounded-xl text-xs font-semibold bg-white text-gray-600 hover:bg-gray-50 border whitespace-nowrap shrink-0 cursor-pointer" data-tab="WON">
-                Đã thắng thầu (Won)
+                Thắng thầu
+            </button>
+            <button onclick="setTab('LOST')" class="tab-btn px-4 py-2 rounded-xl text-xs font-semibold bg-white text-gray-600 hover:bg-gray-50 border whitespace-nowrap shrink-0 cursor-pointer" data-tab="LOST">
+                Thua
             </button>
         </div>
 
@@ -345,24 +351,42 @@
                 }
             });
 
+            // Precompute 4 standardized statuses for each bid
+            allBids.forEach(b => {
+                const auction = auctions.find(a => String(a.id) === String(b.auctionId)) || {};
+                const bidAgentCode = String(b.agentCode || userCode || 'AG-0892').trim().toUpperCase();
+                const wonAuction = wonAuctions.find(w => (String(w.auctionId) === String(b.auctionId) || w.wonId === b.id || ('WON-BID-' + w.wonId) === b.id) && (!w.agentCode || String(w.agentCode).trim().toUpperCase() === bidAgentCode)) || null;
+                const isActualWinner = b.status === 'WON' || !!wonAuction || (auction.winnerAgentCode && String(auction.winnerAgentCode).trim().toUpperCase() === userCode);
+
+                const timer = (auction.endTime && CargoStore.getTimeRemaining) ? CargoStore.getTimeRemaining(auction.endTime) : null;
+                const isAuctionClosed = !auction.id || auction.status === 'CLOSED' || auction.status === 'ENDED' || auction.status === 'EXPIRED' || (timer && timer.isEnded);
+
+                if (isActualWinner) {
+                    b._statusKey = 'WON';
+                    b._statusBadge = '<span class="bg-purple-100 text-purple-700 font-bold px-2.5 py-1 rounded-full text-[10px] inline-flex items-center gap-1"><i class="fa-solid fa-trophy text-[9px]"></i> Thắng thầu</span>';
+                } else if (isAuctionClosed) {
+                    if (auction.status === 'CLOSED' || auction.winnerAgentCode) {
+                        b._statusKey = 'LOST';
+                        b._statusBadge = '<span class="bg-slate-100 text-slate-600 font-medium px-2.5 py-1 rounded-full text-[10px] inline-flex items-center gap-1"><i class="fa-solid fa-circle-xmark text-slate-400 text-[9px]"></i> Thua</span>';
+                    } else {
+                        b._statusKey = 'WAITING';
+                        b._statusBadge = '<span class="bg-amber-100 text-amber-800 font-bold px-2.5 py-1 rounded-full text-[10px] inline-flex items-center gap-1"><i class="fa-solid fa-clock text-[9px] text-amber-600"></i> Đang chờ kết quả</span>';
+                    }
+                } else {
+                    b._statusKey = 'PARTICIPATING';
+                    b._statusBadge = '<span class="bg-blue-100 text-blue-800 font-bold px-2.5 py-1 rounded-full text-[10px] inline-flex items-center gap-1"><i class="fa-solid fa-gavel text-[9px] text-blue-600"></i> Đang tham gia</span>';
+                }
+            });
+
             let filtered = allBids;
             if (currentTab === 'WON') {
-                filtered = allBids.filter(b => {
-                    const bidAgentCode = String(b.agentCode || userCode || 'AG-0892').trim().toUpperCase();
-                    const wonAuction = wonAuctions.find(w => (String(w.auctionId) === String(b.auctionId) || w.wonId === b.id || ('WON-BID-' + w.wonId) === b.id) && (!w.agentCode || String(w.agentCode).trim().toUpperCase() === bidAgentCode));
-                    return b.status === 'WON' || !!wonAuction;
-                });
+                filtered = allBids.filter(b => b._statusKey === 'WON');
+            } else if (currentTab === 'LOST') {
+                filtered = allBids.filter(b => b._statusKey === 'LOST');
             } else if (currentTab === 'WAITING') {
-                filtered = allBids.filter(b => {
-                    const bidAgentCode = String(b.agentCode || userCode || 'AG-0892').trim().toUpperCase();
-                    const wonAuction = wonAuctions.find(w => (String(w.auctionId) === String(b.auctionId) || w.wonId === b.id || ('WON-BID-' + w.wonId) === b.id) && (!w.agentCode || String(w.agentCode).trim().toUpperCase() === bidAgentCode));
-                    const isActualWinner = b.status === 'WON' || !!wonAuction;
-                    if (isActualWinner) return false;
-                    const auction = auctions.find(a => a.id == b.auctionId) || {};
-                    const timer = (auction.endTime && CargoStore.getTimeRemaining) ? CargoStore.getTimeRemaining(auction.endTime) : null;
-                    const isAuctionClosed = !auction.id || auction.status === 'CLOSED' || auction.status === 'ENDED' || auction.status === 'EXPIRED' || (timer && timer.isEnded);
-                    return !isAuctionClosed;
-                });
+                filtered = allBids.filter(b => b._statusKey === 'WAITING');
+            } else if (currentTab === 'PARTICIPATING') {
+                filtered = allBids.filter(b => b._statusKey === 'PARTICIPATING');
             }
 
             const totalItems = filtered.length;
@@ -385,69 +409,12 @@
             const paginatedList = filtered.slice(startIdx, startIdx + myBidsItemsPerPage);
 
             tbody.innerHTML = paginatedList.map(b => {
-                const auction = auctions.find(a => a.id == b.auctionId) || {};
-                const bidAgentCode = String(b.agentCode || userCode || 'AG-0892').trim().toUpperCase();
-                const wonAuction = wonAuctions.find(w => (String(w.auctionId) === String(b.auctionId) || w.wonId === b.id || ('WON-BID-' + w.wonId) === b.id) && (!w.agentCode || String(w.agentCode).trim().toUpperCase() === bidAgentCode)) || null;
-                const isActualWinner = b.status === 'WON' || !!wonAuction;
-                const paymentStatus = wonAuction ? wonAuction.paymentStatus : (b.status === 'WON' ? 'PAID' : null);
-                const cargoDeclared = wonAuction ? (CargoStore.isCargoDeclared ? CargoStore.isCargoDeclared(wonAuction) : !!(wonAuction.cargoDeclaration && wonAuction.cargoDeclaration.cargoName)) : false;
-
-                const timer = (auction.endTime && CargoStore.getTimeRemaining) ? CargoStore.getTimeRemaining(auction.endTime) : null;
-                const isAuctionClosed = !auction.id || auction.status === 'CLOSED' || auction.status === 'ENDED' || auction.status === 'EXPIRED' || (timer && timer.isEnded);
-
+                const auction = auctions.find(a => String(a.id) === String(b.auctionId)) || {};
                 const flightNo = auction.flightNumber || b.flightNumber || 'VU130';
                 const routeStr = auction.route || b.route || 'SGN - HAN';
                 const etdStr = auction.etd || 'Theo lịch bay';
                 const weightVal = b.weightKg || b.capacityKg || 0;
-
-                let statusBadge = '';
-                if (b.status === 'WON' || isActualWinner) {
-                    if (paymentStatus === 'PAID') {
-                        statusBadge = '<span class="bg-emerald-100 text-emerald-700 font-bold px-2.5 py-1 rounded-full text-[10px] inline-flex items-center gap-1"><i class="fa-solid fa-circle-check"></i> Đã thanh toán</span>';
-                    } else if (paymentStatus === 'PENDING_VERIFICATION') {
-                        statusBadge = '<span class="bg-amber-100 text-amber-700 font-bold px-2.5 py-1 rounded-full text-[10px] inline-flex items-center gap-1"><i class="fa-solid fa-hourglass-half"></i> Chờ xác nhận</span>';
-                    } else if (paymentStatus === 'EXPIRED') {
-                        statusBadge = '<span class="bg-red-100 text-red-700 font-bold px-2.5 py-1 rounded-full text-[10px] inline-flex items-center gap-1"><i class="fa-solid fa-ban"></i> Quá hạn</span>';
-                    } else {
-                        statusBadge = '<span class="bg-purple-100 text-purple-700 font-bold px-2.5 py-1 rounded-full text-[10px]"><i class="fa-solid fa-trophy mr-1"></i>Thắng thầu</span>';
-                    }
-                } else if (isAuctionClosed) {
-                    statusBadge = '<span class="bg-slate-100 text-slate-600 font-medium px-2.5 py-1 rounded-full text-[10px]">Không trúng thầu</span>';
-                } else {
-                    statusBadge = '<span class="bg-blue-50 text-blue-700 font-semibold px-2.5 py-1 rounded-full text-[10px] inline-flex items-center gap-1"><i class="fa-regular fa-clock text-[9px] text-blue-500"></i> Đang chờ kết quả</span>';
-                }
-
-                let wonActionHtml = '';
-                if (b.status === 'WON' || isActualWinner) {
-                    if (paymentStatus === 'PAID') {
-                        wonActionHtml = cargoDeclared
-                            ? '<span class="inline-flex items-center gap-1.5 bg-emerald-100 text-emerald-700 font-bold px-3 py-1.5 rounded-xl text-xs whitespace-nowrap shrink-0"><i class="fa-solid fa-circle-check text-[10px]"></i> Đã khai báo</span>'
-                            : `<a href="07-WonAuction.html?action=declare&flight=${encodeURIComponent(flightNo)}" class="inline-flex items-center gap-1.5 bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white font-bold px-3 py-1.5 rounded-xl text-xs transition shadow-xs whitespace-nowrap shrink-0 cursor-pointer" title="Khai báo hàng hóa">
-                                <i class="fa-solid fa-boxes-packing text-[11px]"></i> Khai báo
-                            </a>`;
-                    } else if (paymentStatus === 'PENDING_VERIFICATION') {
-                        wonActionHtml = `
-                            <a href="07-WonAuction.html?action=pay&flight=${encodeURIComponent(flightNo)}" class="inline-flex items-center gap-1.5 bg-amber-50 hover:bg-amber-100 text-amber-800 border border-amber-300 font-bold px-3 py-1.5 rounded-xl text-xs transition shadow-xs whitespace-nowrap shrink-0 cursor-pointer" title="Xem biên lai đã gửi">
-                                <i class="fa-solid fa-receipt text-[11px] text-amber-600"></i> Xem biên lai
-                            </a>
-                            ${cargoDeclared
-                                ? '<span class="inline-flex items-center gap-1.5 bg-emerald-100 text-emerald-700 font-bold px-3 py-1.5 rounded-xl text-xs whitespace-nowrap shrink-0"><i class="fa-solid fa-circle-check text-[10px]"></i> Đã khai báo</span>'
-                                : `<a href="07-WonAuction.html?action=declare&flight=${encodeURIComponent(flightNo)}" class="inline-flex items-center gap-1.5 bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white font-bold px-3 py-1.5 rounded-xl text-xs transition shadow-xs whitespace-nowrap shrink-0 cursor-pointer" title="Khai báo hàng hóa">
-                                    <i class="fa-solid fa-boxes-packing text-[11px]"></i> Khai báo
-                                </a>`
-                            }
-                        `;
-                    } else {
-                        wonActionHtml = `
-                            <a href="07-WonAuction.html?action=pay&flight=${encodeURIComponent(flightNo)}" class="inline-flex items-center gap-1.5 bg-gradient-to-r from-amber-500 to-orange-500 hover:from-amber-600 hover:to-orange-600 text-white font-bold px-3 py-1.5 rounded-xl text-xs transition shadow-xs whitespace-nowrap shrink-0 cursor-pointer" title="Chuyển qua thanh toán">
-                                <i class="fa-solid fa-qrcode text-[11px]"></i> Thanh toán
-                            </a>
-                            <a href="07-WonAuction.html?action=declare&flight=${encodeURIComponent(flightNo)}" class="inline-flex items-center gap-1.5 bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white font-bold px-3 py-1.5 rounded-xl text-xs transition shadow-xs whitespace-nowrap shrink-0 cursor-pointer" title="Khai báo hàng hóa">
-                                <i class="fa-solid fa-boxes-packing text-[11px]"></i> Khai báo
-                            </a>
-                        `;
-                    }
-                }
+                const statusBadge = b._statusBadge;
 
                 const actionBtnHtml = `<a href="04-Detail.html?id=${b.auctionId}" class="inline-flex items-center gap-1.5 bg-blue-50 hover:bg-blue-100 text-blue-700 font-semibold px-3 py-1.5 rounded-xl text-xs transition border border-blue-200/60 whitespace-nowrap shrink-0 cursor-pointer">
                     Chi tiết
@@ -484,7 +451,6 @@
                         <td class="py-3.5 px-5 text-right whitespace-nowrap">
                             <div class="flex items-center justify-end gap-2 flex-nowrap">
                                 ${historyBtnHtml}
-                                ${wonActionHtml}
                                 ${actionBtnHtml}
                             </div>
                         </td>
@@ -541,12 +507,16 @@
             const isAuctionClosed = !auction.id || auction.status === 'CLOSED' || auction.status === 'ENDED' || auction.status === 'EXPIRED';
             const statusEl = document.getElementById('historyModalStatusBadge');
             if (statusEl) {
-                if (wonItem) {
-                    statusEl.innerHTML = '<span class="bg-purple-100 text-purple-700 font-bold px-2.5 py-0.5 rounded-full text-[10px] inline-flex items-center gap-1"><i class="fa-solid fa-trophy"></i> Thắng thầu</span>';
+                if (wonItem || (auction.winnerAgentCode && String(auction.winnerAgentCode).trim().toUpperCase() === myAgentCode)) {
+                    statusEl.innerHTML = '<span class="bg-purple-100 text-purple-700 font-bold px-2.5 py-0.5 rounded-full text-[10px] inline-flex items-center gap-1"><i class="fa-solid fa-trophy text-[9px]"></i> Thắng thầu</span>';
                 } else if (isAuctionClosed) {
-                    statusEl.innerHTML = '<span class="bg-slate-100 text-slate-600 font-medium px-2.5 py-0.5 rounded-full text-[10px]">Không trúng thầu</span>';
+                    if (auction.status === 'CLOSED' || auction.winnerAgentCode) {
+                        statusEl.innerHTML = '<span class="bg-slate-100 text-slate-600 font-medium px-2.5 py-0.5 rounded-full text-[10px] inline-flex items-center gap-1"><i class="fa-solid fa-circle-xmark text-slate-400 text-[9px]"></i> Thua</span>';
+                    } else {
+                        statusEl.innerHTML = '<span class="bg-amber-100 text-amber-800 font-bold px-2.5 py-0.5 rounded-full text-[10px] inline-flex items-center gap-1"><i class="fa-solid fa-clock text-[9px] text-amber-600"></i> Đang chờ kết quả</span>';
+                    }
                 } else {
-                    statusEl.innerHTML = '<span class="bg-blue-50 text-blue-700 font-semibold px-2.5 py-0.5 rounded-full text-[10px] inline-flex items-center gap-1"><i class="fa-regular fa-clock text-[9px] text-blue-500"></i> Đang chờ kết quả</span>';
+                    statusEl.innerHTML = '<span class="bg-blue-100 text-blue-800 font-bold px-2.5 py-0.5 rounded-full text-[10px] inline-flex items-center gap-1"><i class="fa-solid fa-gavel text-[9px] text-blue-600"></i> Đang tham gia</span>';
                 }
             }
 
@@ -574,9 +544,11 @@
                         if (b.status === 'WON' || (wonItem && idx === 0)) {
                             statusTag = '<span class="bg-purple-100 text-purple-700 font-bold px-2 py-0.5 rounded text-[10px]">Thắng thầu</span>';
                         } else if (auction.status === 'CLOSED' && !wonItem) {
-                            statusTag = '<span class="bg-slate-100 text-slate-500 font-medium px-2 py-0.5 rounded text-[10px]">Đã kết thúc</span>';
+                            statusTag = '<span class="bg-slate-100 text-slate-600 font-medium px-2 py-0.5 rounded text-[10px]">Thua</span>';
+                        } else if (auction.status === 'OPEN') {
+                            statusTag = '<span class="bg-blue-100 text-blue-700 font-medium px-2 py-0.5 rounded text-[10px]">Đang tham gia</span>';
                         } else {
-                            statusTag = '<span class="bg-blue-50 text-blue-600 font-medium px-2 py-0.5 rounded text-[10px]">Đã ghi nhận</span>';
+                            statusTag = '<span class="bg-amber-100 text-amber-800 font-medium px-2 py-0.5 rounded text-[10px]">Đang chờ kết quả</span>';
                         }
 
                         return `

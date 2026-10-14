@@ -298,6 +298,11 @@
                     container.innerHTML = paginatedAuctions.map(a => {
                         const timer = CargoStore.getTimeRemaining(a.endTime);
                         const isLeading = !!(a.leadingAgentCode && a.leadingAgentCode === myCode);
+                        const auctionMyBids = (myBids || []).filter(b => String(b.auctionId) === String(a.id));
+                        const myHighestBid = auctionMyBids.length > 0 
+                            ? auctionMyBids.sort((x, y) => (Number(y.priceKg) || 0) - (Number(x.priceKg) || 0))[0] 
+                            : null;
+
                         return `
                             <div class="p-4 rounded-xl border border-gray-200 hover:border-blue-400 hover:shadow-md transition bg-white flex flex-col sm:flex-row sm:items-center justify-between gap-4">
                                 <div class="space-y-1.5">
@@ -315,12 +320,18 @@
                                 </div>
                                 <div class="flex items-center justify-between sm:justify-end gap-5">
                                     <div class="text-left sm:text-right">
-                                        <p class="text-xs text-gray-400">Giá hiện tại</p>
-                                        <p class="text-base font-bold ${a.status === 'CLOSED' ? 'text-blue-600' : 'text-gray-500'}">${a.status === 'CLOSED' ? (CargoStore.formatCurrency(a.currentPriceKg) + ' đ/Kg') : '??? (Ẩn)'}</p>
-                                        <p class="text-[11px] text-orange-600 font-medium dash-timer-text" data-endtime="${a.endTime}"><i class="fa-regular fa-clock mr-1"></i><span class="timer-val">Còn ${timer.hours > 0 ? timer.hours + 'h ' : ''}${timer.minutes}m ${timer.seconds}s</span></p>
+                                        ${myHighestBid ? `
+                                            <p class="text-[11px] text-blue-600 font-semibold flex items-center justify-start sm:justify-end gap-1">
+                                                <i class="fa-solid fa-user-check text-[10px]"></i> Giá bạn đã đặt
+                                            </p>
+                                            <p class="text-base font-bold text-blue-600">${CargoStore.formatCurrency(myHighestBid.priceKg)} đ/Kg</p>
+                                        ` : `
+                                            <p class="text-xs text-slate-400 font-medium">Chưa tham gia</p>
+                                        `}
+                                        <p class="text-[11px] text-orange-600 font-medium dash-timer-text mt-0.5" data-endtime="${a.endTime}"><i class="fa-regular fa-clock mr-1"></i><span class="timer-val">Còn ${timer.hours > 0 ? timer.hours + 'h ' : ''}${timer.minutes}m ${timer.seconds}s</span></p>
                                     </div>
                                     <a href="04-Detail.html?id=${a.id}" class="bg-blue-600 hover:bg-blue-700 text-white text-xs font-semibold px-4 py-2.5 rounded-xl transition shadow flex items-center gap-1.5 flex-shrink-0">
-                                        <span>Đặt giá</span> <i class="fa-solid fa-arrow-right text-[10px]"></i>
+                                        <span>${myHighestBid ? 'Nâng giá' : 'Đặt giá'}</span> <i class="fa-solid fa-arrow-right text-[10px]"></i>
                                     </a>
                                 </div>
                             </div>
