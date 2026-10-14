@@ -3535,8 +3535,9 @@ const anonFlag = isAnonymous !== false;
                 };
             }
 
+            // PIN is now created post-login; validate only if explicitly supplied
             const pinClean = (regData.pin || '').trim();
-            if (!pinClean || !pinRegex.test(pinClean)) {
+            if (pinClean && !pinRegex.test(pinClean)) {
                 return { success: false, message: 'Mã PIN bảo mật phải gồm đúng 4 chữ số (0-9).' };
             }
 
@@ -3685,9 +3686,9 @@ const anonFlag = isAnonymous !== false;
             const count = (data.agentsList || []).length + 1;
             const newCode = `AG-${String(count).padStart(4, '0')}`;
             const agentPwd = reg.password || '12345678';
-            const agentPin = reg.pin || '1234';
+            const agentPin = reg.pin || null; // Mã PIN được tạo sau khi đăng nhập thành công
 
-            // Add to agents list with registered password & PIN
+            // Add to agents list with registered password
             const newAgent = {
                 id: Date.now(),
                 code: newCode,
@@ -3717,7 +3718,7 @@ const anonFlag = isAnonymous !== false;
                 targetAgentCode: newCode,
                 targetEmail: reg.email,
                 title: `Phê duyệt Hồ sơ & Cấp Mã Đại lý ${newCode}`,
-                message: `Kính gửi ${reg.repName} (${reg.companyName}), Ban Điều hành Hãng hàng không xin thông báo: Hồ sơ đăng ký của Quý doanh nghiệp đã được PHÊ DUYỆT thành công! Mã Đại lý chính thức của Quý công ty là: ${newCode}. Quý công ty vui lòng sử dụng Mã Đại lý cùng Mật khẩu và Mã PIN đã đăng ký để đăng nhập vào Sàn Đấu giá Cargo.`,
+                message: `Kính gửi ${reg.repName} (${reg.companyName}), Ban Điều hành Hãng hàng không xin thông báo: Hồ sơ đăng ký của Quý doanh nghiệp đã được PHÊ DUYỆT thành công! Mã Đại lý chính thức của Quý công ty là: ${newCode}. Quý công ty vui lòng sử dụng Mã Đại lý cùng Mật khẩu để đăng nhập vào Sàn Đấu giá Cargo và thiết lập Mã PIN bảo mật.`,
                 time: formatTimeAgo(now),
                 type: 'SYSTEM',
                 read: false,
@@ -3762,19 +3763,113 @@ const anonFlag = isAnonymous !== false;
             );
 
             if (!agent) {
-                return { success: false, message: `Mã đại lý hoặc Email "${agentCodeOrEmail}" không tồn tại trong CSDL.` };
+                return { success: false, message: `Mã đại lý hoặc Email "${agentCodeOrEmail}" không tồn tại trên hệ thống.` };
             }
 
-            const expectedPin = agent.pin || '1234';
-            if (String(pinInput).trim() !== String(expectedPin).trim()) {
-                return { success: false, message: `Mã PIN Security 4 chữ số không chính xác cho đại lý ${code}!` };
+            if (!agent.pin) {
+                return { 
+                    success: false, 
+                    hasNoPin: true,
+                    message: `Tài khoản đại lý ${agent.code} chưa thiết lập Mã PIN bảo mật. Quý khách vui lòng liên hệ Tổng đài 1900.6686 hoặc email cargo@vietravelairlines.vn để được hỗ trợ cấp lại mật khẩu.` 
+                };
+            }
+
+            const expectedPin = String(agent.pin).trim();
+            if (String(pinInput).trim() !== expectedPin) {
+                return { success: false, message: `Mã PIN bảo mật (4 chữ số) không chính xác cho đại lý ${agent.code}!` };
             }
 
             return {
                 success: true,
                 password: agent.password || '12345678',
-                agent: agent
+                agent: agent,
+                agentCode: agent.code,
+                companyName: agent.companyName || agent.repName || agent.code
             };
+        },
+
+        createOrUpdatePin: function(agentCode, newPin, currentPassword = '') {
+            const data = loadData();
+            const pinStr = String(newPin || '').trim();
+            if (!/^[0-9]{4}$/.test(pinStr)) {
+                return { success: false, message: 'Mã PIN bảo mật phải gồm đúng 4 chữ số (0-9).' };
+            }
+            const codeClean = (agentCode || '').trim().toUpperCase();
+            const agent = (data.agentsList || []).find(a => (a.code || '').toUpperCase() === codeClean);
+            if (!agent) {
+                return { success: false, message: 'Không tìm thấy thông tin đại lý tương ứng.' };
+            }
+
+            if (currentPassword && agent.password && agent.password !== currentPassword) {
+                return { success: false, message: 'Mật khẩu tài khoản hiện tại không chính xác!' };
+            }
+
+            const isNewPin = !agent.pin;
+            agent.pin = pinStr;
+            agent.pinCreatedAt = Date.now();
+            agent.pinUpdatedAt = Date.now();
+
+            if (data.currentUser && (data.currentUser.agentCode || '').toUpperCase() === codeClean) {
+                data.currentUser.pin = pinStr;
+                data.currentUser.pinCreatedAt = agent.pinCreatedAt;
+            }
+
+            saveData(data);
+            this.logActivity({
+                actor: agent.companyName || agent.repName || agent.code,
+                username: agent.code,
+                role: 'AGENT',
+                actionCategory: 'Tài khoản',
+                actionTitle: isNewPin ? 'Tạo mới Mã PIN bảo mật' : 'Đổi Mã PIN bảo mật',
+                target: 'Mã PIN',
+                details: `Đại lý ${agent.companyName || agent.code} (${agent.code}) đã ${isNewPin ? 'tạo mới' : 'cập nhật'} thành công Mã PIN bảo mật 4 chữ số.`
+            });
+
+            return { 
+                success: true, 
+                message: isNewPin ? 'Khởi tạo Mã PIN bảo mật 4 chữ số thành công!' : 'Đổi Mã PIN bảo mật thành công!',
+                pin: pinStr 
+            };
+        },
+
+        resetPasswordWithPin: function(agentCode, pinInput, newPassword) {
+            const data = loadData();
+            const codeClean = (agentCode || '').trim().toUpperCase();
+            const agent = (data.agentsList || []).find(a => (a.code || '').toUpperCase() === codeClean);
+            if (!agent) {
+                return { success: false, message: 'Không tìm thấy thông tin đại lý.' };
+            }
+
+            if (!agent.pin) {
+                return { success: false, message: 'Tài khoản chưa thiết lập Mã PIN bảo mật. Vui lòng liên hệ Hotline 1900.6686.' };
+            }
+
+            if (String(agent.pin).trim() !== String(pinInput).trim()) {
+                return { success: false, message: 'Mã PIN bảo mật không chính xác!' };
+            }
+
+            const pwd = String(newPassword || '').trim();
+            if (pwd.length < 6) {
+                return { success: false, message: 'Mật khẩu mới phải có tối thiểu 6 ký tự.' };
+            }
+
+            agent.password = pwd;
+            if (data.currentUser && (data.currentUser.agentCode || '').toUpperCase() === codeClean) {
+                data.currentUser.password = pwd;
+            }
+
+            saveData(data);
+            this.logActivity({
+                actor: agent.companyName || agent.repName || agent.code,
+                username: agent.code,
+                role: 'AGENT',
+                actionCategory: 'Tài khoản',
+                actionTitle: 'Đặt lại mật khẩu qua Mã PIN',
+                target: 'Mật khẩu',
+                details: `Đại lý ${agent.companyName || agent.code} (${agent.code}) đã đặt lại mật khẩu mới thành công qua xác minh Mã PIN.`
+            });
+
+            return { success: true, message: 'Đặt lại mật khẩu thành công! Quý khách có thể đăng nhập ngay với mật khẩu mới.' };
         },
 
         rejectRegistration: function(regId, reason) {

@@ -61,30 +61,7 @@
                 <p id="errorMsg" class="pl-6">Mã đại lý hoặc mật khẩu không chính xác.</p>
             </div>
 
-            <!-- Demo Account Multi-Select Banner -->
-            <div class="bg-blue-50/90 border border-blue-200 rounded-xl p-3.5 mb-5 text-xs text-blue-800 space-y-2">
-                <div class="flex items-center justify-between">
-                    <span class="font-bold flex items-center gap-1.5 text-blue-900"><i class="fa-solid fa-bolt text-amber-500"></i> Chọn tài khoản Đại lý mẫu (Mật khẩu riêng từng tài khoản):</span>
-                </div>
-                <div id="demoAccountsGrid" class="grid grid-cols-2 gap-2 pt-1">
-                    <button type="button" onclick="fillDemo('AG-0892', 'abc123456')" class="bg-white hover:bg-blue-100 text-blue-800 border border-blue-200 p-2 rounded-lg text-left transition shadow-xs">
-                        <span class="font-bold block text-slate-900">ABC Logistics</span>
-                        <span class="text-[10px] text-blue-600 font-semibold">AG-0892 (abc123456)</span>
-                    </button>
-                    <button type="button" onclick="fillDemo('AG-1024', 'vina123456')" class="bg-white hover:bg-blue-100 text-blue-800 border border-blue-200 p-2 rounded-lg text-left transition shadow-xs">
-                        <span class="font-bold block text-slate-900">Vinatrans</span>
-                        <span class="text-[10px] text-blue-600 font-semibold">AG-1024 (vina123456)</span>
-                    </button>
-                    <button type="button" onclick="fillDemo('AG-0556', 'star123456')" class="bg-white hover:bg-blue-100 text-blue-800 border border-blue-200 p-2 rounded-lg text-left transition shadow-xs">
-                        <span class="font-bold block text-slate-900">Golden Star</span>
-                        <span class="text-[10px] text-blue-600 font-semibold">AG-0556 (star123456)</span>
-                    </button>
-                    <button type="button" onclick="fillDemo('AG-0341', 'sky123456')" class="bg-white hover:bg-blue-100 text-blue-800 border border-blue-200 p-2 rounded-lg text-left transition shadow-xs">
-                        <span class="font-bold block text-slate-900">SkyFreight</span>
-                        <span class="text-[10px] text-blue-600 font-semibold">AG-0341 (sky123456)</span>
-                    </button>
-                </div>
-            </div>
+
 
             <form id="agentLoginForm" onsubmit="handleLogin(event)" class="space-y-4">
                 <div>
@@ -99,11 +76,9 @@
                 <div>
                     <div class="flex items-center justify-between mb-1">
                         <label class="block text-sm font-medium text-gray-700">Mật khẩu bảo mật</label>
-                        <div class="flex items-center gap-2">
-                            <a href="javascript:void(0)" onclick="openPinModal()" class="text-xs text-indigo-600 hover:underline flex items-center gap-1 font-semibold"><i class="fa-solid fa-key"></i> Tra MK bằng PIN</a>
-                            <span class="text-gray-300">|</span>
-                            <a href="javascript:void(0)" onclick="forgotPassword()" class="text-xs text-blue-600 hover:underline">Quên?</a>
-                        </div>
+                        <a href="javascript:void(0)" onclick="openPinModal()" class="text-xs text-blue-600 hover:text-blue-700 hover:underline font-semibold flex items-center gap-1.5 transition">
+                            <i class="fa-solid fa-shield-halved text-blue-500"></i> Quên mật khẩu? (Tra bằng Mã PIN)
+                        </a>
                     </div>
                     <div class="relative">
                         <i class="fa-solid fa-lock absolute left-3.5 top-1/2 -translate-y-1/2 text-gray-400"></i>
@@ -237,52 +212,72 @@
     </div>
 </footer>
 
-    <!-- PIN Modal -->
-    <div id="pinModal" class="fixed inset-0 bg-black/50 backdrop-blur-sm z-50 hidden items-center justify-center p-4">
-        <div class="bg-white rounded-2xl shadow-2xl w-full max-w-md p-6 animate-in fade-in zoom-in-95 duration-200 border">
-            <div class="flex items-center justify-between border-b pb-3 mb-4">
-                <h3 class="font-bold text-lg text-slate-900 flex items-center gap-2">
-                    <i class="fa-solid fa-key text-indigo-600"></i> Xem lại mật khẩu bằng Mã PIN
-                </h3>
-                <button type="button" onclick="closePinModal()" class="text-gray-400 hover:text-gray-600">
+    <!-- PIN Modal: Tra cứu mật khẩu bằng Mã PIN -->
+    <div id="pinModal" class="fixed inset-0 bg-slate-950/65 backdrop-blur-sm z-50 hidden items-center justify-center p-4">
+        <div class="bg-white rounded-3xl shadow-2xl w-full max-w-md p-6 sm:p-7 border border-slate-100 animate-in fade-in zoom-in-95 duration-200">
+            <!-- Modal Header -->
+            <div class="flex items-start justify-between pb-4 border-b border-slate-100">
+                <div class="flex items-center gap-3">
+                    <div class="w-11 h-11 rounded-2xl bg-blue-50 text-blue-600 flex items-center justify-center text-lg font-bold shadow-inner shrink-0">
+                        <i class="fa-solid fa-key"></i>
+                    </div>
+                    <div>
+                        <h3 class="font-bold text-base text-slate-900 leading-tight">Tra cứu Mật khẩu qua Mã PIN</h3>
+                        <p class="text-xs text-slate-500 mt-0.5">Xác minh bằng Mã PIN 4 số đã thiết lập</p>
+                    </div>
+                </div>
+                <button type="button" onclick="closePinModal()" class="text-slate-400 hover:text-slate-600 w-8 h-8 rounded-full hover:bg-slate-100 flex items-center justify-center transition">
                     <i class="fa-solid fa-xmark text-lg"></i>
                 </button>
             </div>
 
-            <form id="pinVerifyForm" onsubmit="handlePinVerify(event)" class="space-y-4">
+            <!-- PIN Form -->
+            <form id="pinVerifyForm" onsubmit="handlePinVerify(event)" class="space-y-4 pt-4">
                 <div>
-                    <label class="block text-xs font-semibold text-gray-700 mb-1">Mã đại lý</label>
-                    <input type="text" id="pinModalAgentCode" required placeholder="VD: AG-0892"
-                           class="w-full border rounded-xl px-3.5 py-2.5 text-sm uppercase font-semibold focus:ring-2 focus:ring-indigo-500 outline-none">
-                </div>
-                <div>
-                    <label class="block text-xs font-semibold text-gray-700 mb-1">Mã PIN bảo mật (4 chữ số)</label>
-                    <input type="password" id="pinModalPin" maxlength="4" pattern="[0-9]{4}" required placeholder="VD: 1234"
-                           class="w-full border rounded-xl px-3.5 py-2.5 text-sm font-mono tracking-widest text-center focus:ring-2 focus:ring-indigo-500 outline-none">
+                    <label class="block text-xs font-semibold text-slate-700 mb-1.5">
+                        <i class="fa-solid fa-id-card text-blue-600 mr-1"></i> Mã đại lý hoặc Email đăng ký
+                    </label>
+                    <input type="text" id="pinModalAgentCode" required placeholder="VD: AG-0892 hoặc email đăng ký"
+                           class="w-full border border-slate-300 rounded-xl px-3.5 py-2.5 text-sm uppercase font-semibold focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none transition">
                 </div>
 
-                <div id="pinModalResult" class="hidden p-3.5 rounded-xl text-xs space-y-1.5"></div>
+                <div>
+                    <label class="block text-xs font-semibold text-slate-700 mb-1.5 flex items-center justify-between">
+                        <span><i class="fa-solid fa-lock text-blue-600 mr-1"></i> Mã PIN bảo mật (4 chữ số)</span>
+                        <span class="text-[11px] font-normal text-slate-400">Chỉ gồm chữ số 0-9</span>
+                    </label>
+                    <div class="relative">
+                        <input type="password" id="pinModalPin" maxlength="4" pattern="[0-9]{4}" inputmode="numeric" required placeholder="••••"
+                               class="w-full border border-slate-300 rounded-xl px-4 py-3 text-base font-mono tracking-[0.4em] text-center font-bold focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none transition text-slate-900 bg-slate-50 focus:bg-white">
+                        <button type="button" onclick="togglePinModalEye()" class="absolute right-3.5 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600 p-1">
+                            <i class="fa-solid fa-eye text-sm" id="pinModalEyeIcon"></i>
+                        </button>
+                    </div>
+                </div>
 
-                <div class="flex gap-2 pt-2">
-                    <button type="button" onclick="closePinModal()" class="flex-1 py-2.5 border rounded-xl text-xs font-semibold text-gray-600 hover:bg-gray-50">
+                <!-- Result Container -->
+                <div id="pinModalResult" class="hidden rounded-2xl text-xs space-y-2.5"></div>
+
+                <div class="flex gap-2.5 pt-2">
+                    <button type="button" onclick="closePinModal()" class="flex-1 py-2.5 border border-slate-300 rounded-xl text-xs font-semibold text-slate-700 hover:bg-slate-50 transition">
                         Đóng
                     </button>
-                    <button type="submit" class="flex-1 py-2.5 bg-indigo-600 hover:bg-indigo-700 text-white rounded-xl text-xs font-semibold shadow">
-                        <i class="fa-solid fa-key mr-1"></i> Tra cứu mật khẩu
+                    <button type="submit" id="btnPinSubmit" class="flex-1 py-2.5 bg-blue-600 hover:bg-blue-700 text-white rounded-xl text-xs font-bold shadow-md shadow-blue-600/20 transition flex items-center justify-center gap-1.5">
+                        <i class="fa-solid fa-magnifying-glass"></i> Tra cứu mật khẩu
                     </button>
                 </div>
             </form>
+
+            <div class="mt-4 pt-3.5 border-t border-slate-100 text-center">
+                <p class="text-[11px] text-slate-400">
+                    Chưa tạo mã PIN hoặc quên cả mã PIN?
+                    <a href="javascript:void(0)" onclick="forgotPassword()" class="text-blue-600 font-semibold hover:underline ml-0.5">Liên hệ bộ phận CSKH</a>
+                </p>
+            </div>
         </div>
     </div>
 
     <script>
-    function fillDemo(code, pwd) {
-        document.getElementById('agentCode').value = code;
-        document.getElementById('agentPassword').value = pwd;
-        hideError();
-        handleLogin(new Event('submit'));
-    }
-
     function togglePassword() {
         const input = document.getElementById('agentPassword');
         const icon = document.getElementById('eyeIcon');
@@ -292,6 +287,18 @@
         } else {
             input.type = 'password';
             icon.className = 'fa-solid fa-eye';
+        }
+    }
+
+    function togglePinModalEye() {
+        const input = document.getElementById('pinModalPin');
+        const icon = document.getElementById('pinModalEyeIcon');
+        if (input.type === 'password') {
+            input.type = 'text';
+            icon.className = 'fa-solid fa-eye-slash text-sm';
+        } else {
+            input.type = 'password';
+            icon.className = 'fa-solid fa-eye text-sm';
         }
     }
 
@@ -323,7 +330,7 @@
     }
 
     function forgotPassword() {
-        showError('Hỗ trợ cấp lại mật khẩu', 'Vui lòng gọi Hotline điều hành Cargo 1900.6686 hoặc gửi email về cargo@vietravelairlines.vn kèm bản scan Giấy đăng ký kinh doanh để được hỗ trợ cấp lại mật khẩu.');
+        showError('Hỗ trợ cấp lại mật khẩu & Mã PIN', 'Quý đại lý vui lòng gọi <strong>Hotline điều hành Cargo 1900.6686</strong> hoặc gửi email về <strong>cargo@vietravelairlines.vn</strong> kèm bản scan Giấy ĐKKD để được Ban Quản trị xác minh và cấp lại thông tin đăng nhập.');
     }
 
     function openPinModal() {
@@ -336,12 +343,51 @@
         const modal = document.getElementById('pinModal');
         modal.classList.remove('hidden');
         modal.classList.add('flex');
+        setTimeout(() => {
+            if (code) {
+                document.getElementById('pinModalPin').focus();
+            } else {
+                document.getElementById('pinModalAgentCode').focus();
+            }
+        }, 100);
     }
 
     function closePinModal() {
         const modal = document.getElementById('pinModal');
         modal.classList.add('hidden');
         modal.classList.remove('flex');
+    }
+
+    function copyToClipboard(text, btnEl) {
+        if (!navigator.clipboard) {
+            const ta = document.createElement('textarea');
+            ta.value = text;
+            document.body.appendChild(ta);
+            ta.select();
+            document.execCommand('copy');
+            document.body.removeChild(ta);
+        } else {
+            navigator.clipboard.writeText(text);
+        }
+        if (btnEl) {
+            const original = btnEl.innerHTML;
+            btnEl.innerHTML = '<i class="fa-solid fa-check text-emerald-600"></i> Đã sao chép';
+            setTimeout(() => { btnEl.innerHTML = original; }, 1800);
+        }
+    }
+
+    function toggleRetrievedPass() {
+        const el = document.getElementById('retrievedPasswordText');
+        const icon = document.getElementById('retrievedEyeIcon');
+        if (!el) return;
+        const raw = el.getAttribute('data-raw');
+        if (el.textContent === raw) {
+            el.textContent = '••••••••';
+            if (icon) icon.className = 'fa-solid fa-eye text-xs';
+        } else {
+            el.textContent = raw;
+            if (icon) icon.className = 'fa-solid fa-eye-slash text-xs';
+        }
     }
 
     function handlePinVerify(e) {
@@ -352,83 +398,54 @@
 
         const result = CargoStore.verifyPinAndGetPassword(code, pin);
         if (result.success) {
-            resEl.className = 'p-3.5 rounded-xl text-xs bg-emerald-50 border border-emerald-200 text-emerald-800 space-y-2 block';
+            resEl.className = 'p-4 rounded-2xl text-xs bg-emerald-50 border border-emerald-200 text-emerald-900 space-y-3 block shadow-xs';
             resEl.innerHTML = `
-                <div class="font-bold flex items-center gap-1.5 text-emerald-900">
-                    <i class="fa-solid fa-circle-check text-emerald-600"></i> Mã PIN chính xác!
+                <div class="flex items-center justify-between pb-2 border-b border-emerald-200/80">
+                    <span class="font-bold flex items-center gap-1.5 text-emerald-800 text-xs">
+                        <i class="fa-solid fa-circle-check text-emerald-600"></i> Mã PIN chính xác!
+                    </span>
+                    <span class="font-mono text-[11px] font-bold text-emerald-700 bg-white px-2 py-0.5 rounded-md border border-emerald-200">${result.agentCode}</span>
                 </div>
-                <p>Mật khẩu của đại lý <strong>${result.agentCode}</strong> (${result.companyName}) là:</p>
-                <div class="bg-white border border-emerald-300 rounded-lg p-2 font-mono text-sm text-center font-bold select-all text-slate-900 shadow-xs">
-                    ${result.password}
+                <p class="text-slate-600">Mật khẩu tài khoản đại lý <strong>${result.companyName}</strong>:</p>
+                <div class="bg-white border border-emerald-300 rounded-xl p-3 flex items-center justify-between shadow-xs">
+                    <span id="retrievedPasswordText" data-raw="${result.password}" class="font-mono text-base font-bold text-slate-900 select-all tracking-wider">${result.password}</span>
+                    <div class="flex items-center gap-1.5">
+                        <button type="button" onclick="toggleRetrievedPass()" class="px-2 py-1 text-slate-500 hover:text-slate-800 hover:bg-slate-100 rounded-lg text-xs transition" title="Ẩn/Hiện mật khẩu">
+                            <i class="fa-solid fa-eye text-xs" id="retrievedEyeIcon"></i>
+                        </button>
+                        <button type="button" onclick="copyToClipboard('${result.password}', this)" class="px-2.5 py-1 bg-slate-100 hover:bg-slate-200 text-slate-700 font-semibold rounded-lg text-xs transition flex items-center gap-1">
+                            <i class="fa-regular fa-copy text-xs"></i> Sao chép
+                        </button>
+                    </div>
                 </div>
-                <button type="button" onclick="autofillFoundPassword('${result.agentCode}', '${result.password}')" class="w-full mt-1 bg-emerald-600 hover:bg-emerald-700 text-white font-semibold py-1.5 rounded-lg text-xs transition shadow-xs">
-                    Tự động điền vào trang đăng nhập
+                <button type="button" onclick="autofillFoundPassword('${result.agentCode}', '${result.password}')" class="w-full bg-emerald-600 hover:bg-emerald-700 text-white font-bold py-2.5 rounded-xl text-xs transition shadow flex items-center justify-center gap-1.5 cursor-pointer">
+                    <i class="fa-solid fa-right-to-bracket"></i> Tự động điền & Đăng nhập ngay
                 </button>
             `;
         } else {
-            resEl.className = 'p-3.5 rounded-xl text-xs bg-red-50 border border-red-200 text-red-800 block';
-            resEl.innerHTML = `
-                <div class="font-bold flex items-center gap-1.5 text-red-900">
-                    <i class="fa-solid fa-circle-xmark text-red-600"></i> Xác minh thất bại
-                </div>
-                <p class="mt-1">${result.message}</p>
-            `;
-        }
-    }
-
-    function renderDemoAccounts() {
-        if (typeof CargoStore === 'undefined' || !CargoStore.getAgents) return;
-        const agents = CargoStore.getAgents();
-        const grid = document.getElementById('demoAccountsGrid');
-        if (!grid) return;
-
-        const demoCodes = [
-            { code: 'AG-0892', pwd: 'abc123456', name: 'ABC Logistics' },
-            { code: 'AG-1024', pwd: 'vina123456', name: 'Vinatrans' },
-            { code: 'AG-0556', pwd: 'star123456', name: 'Golden Star' },
-            { code: 'AG-0341', pwd: 'sky123456', name: 'SkyFreight' }
-        ];
-
-        grid.innerHTML = demoCodes.map(d => {
-            const ag = agents.find(a => (a.code || '').toUpperCase() === d.code.toUpperCase());
-            const isLocked = ag && (ag.status === 'Đã khóa' || ag.status === 'LOCKED');
-            if (isLocked) {
-                return `
-                    <button type="button" onclick="fillDemo('${d.code}', '${d.pwd}')" class="bg-red-50/80 hover:bg-red-100 text-slate-800 border border-red-200 p-2 rounded-lg text-left transition shadow-xs">
-                        <div class="flex items-center justify-between">
-                            <span class="font-bold block text-slate-900">${d.name}</span>
-                            <span class="text-[9px] font-bold bg-red-600 text-white px-1.5 py-0.5 rounded shadow-xs flex items-center gap-1">
-                                <i class="fa-solid fa-lock text-[8px]"></i> Đã khóa
-                            </span>
-                        </div>
-                        <span class="text-[10px] text-red-700 font-semibold">${d.code} (${d.pwd})</span>
-                    </button>
+            if (result.hasNoPin) {
+                resEl.className = 'p-4 rounded-2xl text-xs bg-amber-50 border border-amber-200 text-amber-900 space-y-2 block';
+                resEl.innerHTML = `
+                    <div class="font-bold flex items-center gap-1.5 text-amber-900">
+                        <i class="fa-solid fa-triangle-exclamation text-amber-600"></i> Chưa thiết lập Mã PIN
+                    </div>
+                    <p class="text-slate-700 leading-relaxed">${result.message}</p>
+                    <div class="pt-1">
+                        <button type="button" onclick="forgotPassword(); closePinModal();" class="text-blue-600 hover:underline font-semibold flex items-center gap-1">
+                            <i class="fa-solid fa-phone"></i> Gọi Tổng đài hỗ trợ 1900.6686
+                        </button>
+                    </div>
                 `;
             } else {
-                return `
-                    <button type="button" onclick="fillDemo('${d.code}', '${d.pwd}')" class="bg-white hover:bg-blue-100 text-blue-800 border border-blue-200 p-2 rounded-lg text-left transition shadow-xs">
-                        <span class="font-bold block text-slate-900">${d.name}</span>
-                        <span class="text-[10px] text-blue-600 font-semibold">${d.code} (${d.pwd})</span>
-                    </button>
+                resEl.className = 'p-3.5 rounded-2xl text-xs bg-red-50 border border-red-200 text-red-800 space-y-1 block';
+                resEl.innerHTML = `
+                    <div class="font-bold flex items-center gap-1.5 text-red-900">
+                        <i class="fa-solid fa-circle-xmark text-red-600"></i> Xác minh thất bại
+                    </div>
+                    <p class="text-xs text-red-700">${result.message}</p>
                 `;
             }
-        }).join('');
-    }
-
-    document.addEventListener('DOMContentLoaded', () => {
-        renderDemoAccounts();
-    });
-    window.addEventListener('storage', (e) => {
-        if (e.key === 'CARGO_BIDDING_DATA_V3') renderDemoAccounts();
-    });
-    window.addEventListener('cargostore_updated', renderDemoAccounts);
-    setInterval(renderDemoAccounts, 600);
-
-    function fillDemo(code, pwd) {
-        document.getElementById('agentCode').value = code;
-        document.getElementById('agentPassword').value = pwd;
-        hideError();
-        handleLogin(new Event('submit'));
+        }
     }
 
     function autofillFoundPassword(code, pwd) {
@@ -436,6 +453,7 @@
         document.getElementById('agentPassword').value = pwd;
         closePinModal();
         hideError();
+        handleLogin(new Event('submit'));
     }
 
     function handleLogin(e) {

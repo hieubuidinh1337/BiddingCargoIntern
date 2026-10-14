@@ -122,6 +122,27 @@
             </div>
         </div>
 
+        <!-- PIN Setup Reminder Banner (only shown if agent has no PIN) -->
+        <div id="pinReminderBanner" class="hidden bg-gradient-to-r from-amber-500/10 via-amber-50 to-orange-50 border border-amber-200 rounded-2xl p-4 sm:p-5 flex flex-col sm:flex-row sm:items-center justify-between gap-3 shadow-xs">
+            <div class="flex items-start sm:items-center gap-3">
+                <div class="w-10 h-10 rounded-xl bg-amber-500 text-white flex items-center justify-center shrink-0 text-base shadow-sm">
+                    <i class="fa-solid fa-shield-halved"></i>
+                </div>
+                <div>
+                    <h4 class="font-bold text-slate-900 text-xs sm:text-sm flex items-center gap-2">
+                        Thiết lập Mã PIN bảo mật (4 chữ số)
+                        <span class="text-[10px] font-bold px-2 py-0.5 rounded-full bg-amber-100 text-amber-800">Khuyến nghị bảo mật</span>
+                    </h4>
+                    <p class="text-xs text-slate-600 mt-0.5">
+                        Tài khoản của bạn chưa tạo mã PIN. Hãy tạo ngay để có thể <strong>tự tra cứu lại mật khẩu</strong> khi cần mà không cần hỗ trợ từ Admin.
+                    </p>
+                </div>
+            </div>
+            <a href="09-Profile.html#pinSecurityCard" class="shrink-0 bg-amber-600 hover:bg-amber-700 text-white font-bold text-xs px-4 py-2.5 rounded-xl transition shadow flex items-center justify-center gap-1.5">
+                <i class="fa-solid fa-key"></i> Thiết lập PIN ngay
+            </a>
+        </div>
+
         <!-- 4 KPI Cards (2 cols on mobile, 4 cols on desktop) -->
         <div class="grid grid-cols-2 lg:grid-cols-4 gap-2.5 sm:gap-4">
             <div class="bg-white rounded-xl sm:rounded-2xl p-3.5 sm:p-5 border shadow-sm flex flex-col sm:flex-row items-start sm:items-center gap-2.5 sm:gap-4">
@@ -246,6 +267,16 @@
                 document.getElementById('dashWelcomeName').textContent = `Xin chào, ${u.fullName || 'Đại lý'}`;
                 document.getElementById('dashCompanyInfo').innerHTML = `${u.companyName} (${u.agentCode}) · Hôm nay có <strong>${openAuctions.length} chuyến bay</strong> mở thầu tải trọng cargo.`;
                 document.getElementById('dashTierLabel').textContent = 'Đại lý ủy quyền chính thức';
+
+                // Check PIN status and show reminder banner if missing
+                const pinBanner = document.getElementById('pinReminderBanner');
+                if (pinBanner) {
+                    if (!u.pin) {
+                        pinBanner.classList.remove('hidden');
+                    } else {
+                        pinBanner.classList.add('hidden');
+                    }
+                }
             }
 
             // === Update Notification Dot (Bell Badge) ===

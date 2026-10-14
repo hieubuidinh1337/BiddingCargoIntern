@@ -1,5 +1,6 @@
 <!DOCTYPE html>
 <html lang="vi">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -12,7 +13,8 @@
     <!-- html2pdf.js for real PDF export -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
 </head>
-<body class="bg-slate-100 text-slate-800 antialiased min-h-screen flex flex-col">    <!-- ═══════════════════════════════════════════
+
+<body class="bg-slate-100 text-slate-800 antialiased min-h-screen flex flex-col"> <!-- ═══════════════════════════════════════════
          ADMIN HEADER — VU Cargo Admin Portal
          Premium dark navigation — DO NOT EDIT MANUALLY
          ═══════════════════════════════════════════ -->
@@ -20,130 +22,317 @@
         /* ── Admin Header ── */
         #adminHeader {
             background: linear-gradient(135deg, #0f172a 0%, #1e293b 60%, #0f172a 100%);
-            border-bottom: 1px solid rgba(59,130,246,0.18);
-            position: sticky; top: 0; z-index: 50;
-            box-shadow: 0 2px 20px rgba(0,0,0,0.35);
+            border-bottom: 1px solid rgba(59, 130, 246, 0.18);
+            position: sticky;
+            top: 0;
+            z-index: 50;
+            box-shadow: 0 2px 20px rgba(0, 0, 0, 0.35);
         }
+
         #adminHeader::after {
             content: '';
             display: block;
             height: 2px;
             background: linear-gradient(90deg, transparent 0%, #3b82f6 30%, #6366f1 65%, transparent 100%);
         }
+
         .admin-inner {
-            max-width: 1400px; margin: 0 auto;
+            max-width: 1400px;
+            margin: 0 auto;
             padding: 0 1rem;
-            display: flex; align-items: center; justify-content: space-between;
-            height: 58px; gap: 0.75rem;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            height: 58px;
+            gap: 0.75rem;
         }
-        .admin-brand { display:flex; align-items:center; gap:0.75rem; text-decoration:none; flex-shrink:0; }
-        .admin-brand img { height: 32px; object-fit:contain; filter: brightness(0) invert(1); }
-        .admin-brand-sep { width:1px; height:28px; background:rgba(255,255,255,0.15); }
-        .admin-brand-text { font-size:0.8125rem; font-weight:700; color:#e2e8f0; letter-spacing:0.04em; white-space:nowrap; }
-        .admin-brand-sub { font-size:0.6rem; font-weight:600; color:#94a3b8; text-transform:uppercase; letter-spacing:0.1em; display:block; }
+
+        .admin-brand {
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+            text-decoration: none;
+            flex-shrink: 0;
+        }
+
+        .admin-brand img {
+            height: 32px;
+            object-fit: contain;
+            filter: brightness(0) invert(1);
+        }
+
+        .admin-brand-sep {
+            width: 1px;
+            height: 28px;
+            background: rgba(255, 255, 255, 0.15);
+        }
+
+        .admin-brand-text {
+            font-size: 0.8125rem;
+            font-weight: 700;
+            color: #e2e8f0;
+            letter-spacing: 0.04em;
+            white-space: nowrap;
+        }
+
+        .admin-brand-sub {
+            font-size: 0.6rem;
+            font-weight: 600;
+            color: #94a3b8;
+            text-transform: uppercase;
+            letter-spacing: 0.1em;
+            display: block;
+        }
 
         /* Desktop Nav */
-        .admin-nav { display:none; align-items:center; gap:2px; }
-        @media (min-width:768px) { .admin-nav { display:flex; } }
+        .admin-nav {
+            display: none;
+            align-items: center;
+            gap: 2px;
+        }
+
+        @media (min-width:768px) {
+            .admin-nav {
+                display: flex;
+            }
+        }
+
         .nav-item-admin {
-            display:flex; align-items:center; gap:5px;
-            padding: 5px 10px; border-radius: 8px;
-            font-size:0.72rem; font-weight:600; color:rgba(203,213,225,0.85);
-            text-decoration:none; white-space:nowrap;
+            display: flex;
+            align-items: center;
+            gap: 5px;
+            padding: 5px 10px;
+            border-radius: 8px;
+            font-size: 0.72rem;
+            font-weight: 600;
+            color: rgba(203, 213, 225, 0.85);
+            text-decoration: none;
+            white-space: nowrap;
             transition: all 0.15s ease;
             border: 1px solid transparent;
         }
+
         .nav-item-admin:hover {
-            color:#fff; background:rgba(255,255,255,0.08);
-            border-color:rgba(255,255,255,0.1);
+            color: #fff;
+            background: rgba(255, 255, 255, 0.08);
+            border-color: rgba(255, 255, 255, 0.1);
         }
+
         .nav-item-admin.active {
-            color:#fff; background:rgba(59,130,246,0.85);
-            border-color:rgba(59,130,246,0.5);
-            box-shadow: 0 0 12px rgba(59,130,246,0.35);
+            color: #fff;
+            background: rgba(59, 130, 246, 0.85);
+            border-color: rgba(59, 130, 246, 0.5);
+            box-shadow: 0 0 12px rgba(59, 130, 246, 0.35);
         }
+
         .nav-item-admin.chat-item {
-            color:#c4b5fd; background:rgba(139,92,246,0.12);
-            border-color:rgba(139,92,246,0.25);
+            color: #c4b5fd;
+            background: rgba(139, 92, 246, 0.12);
+            border-color: rgba(139, 92, 246, 0.25);
         }
+
         .nav-item-admin.chat-item:hover {
-            color:#e9d5ff; background:rgba(139,92,246,0.22);
+            color: #e9d5ff;
+            background: rgba(139, 92, 246, 0.22);
         }
+
         .nav-item-admin.active-chat {
-            color:#fff; background:rgba(139,92,246,0.75);
-            border-color:rgba(139,92,246,0.5);
-            box-shadow:0 0 12px rgba(139,92,246,0.35);
+            color: #fff;
+            background: rgba(139, 92, 246, 0.75);
+            border-color: rgba(139, 92, 246, 0.5);
+            box-shadow: 0 0 12px rgba(139, 92, 246, 0.35);
         }
+
         .chat-badge {
-            background:#ef4444; color:#fff; font-size:0.6rem;
-            font-weight:700; padding:0 5px; border-radius:999px; min-width:16px;
-            text-align:center; line-height:16px; height:16px;
+            background: #ef4444;
+            color: #fff;
+            font-size: 0.6rem;
+            font-weight: 700;
+            padding: 0 5px;
+            border-radius: 999px;
+            min-width: 16px;
+            text-align: center;
+            line-height: 16px;
+            height: 16px;
         }
 
         /* Right Bar */
-        .admin-right { display:flex; align-items:center; gap:0.5rem; flex-shrink:0; }
+        .admin-right {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            flex-shrink: 0;
+        }
+
         .admin-public-link {
-            display:none; align-items:center; gap:5px;
-            font-size:0.68rem; font-weight:600; color:rgba(148,163,184,0.9);
-            background:rgba(255,255,255,0.06); border:1px solid rgba(255,255,255,0.1);
-            padding:4px 10px; border-radius:8px; text-decoration:none;
-            transition:all 0.15s;
+            display: none;
+            align-items: center;
+            gap: 5px;
+            font-size: 0.68rem;
+            font-weight: 600;
+            color: rgba(148, 163, 184, 0.9);
+            background: rgba(255, 255, 255, 0.06);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            padding: 4px 10px;
+            border-radius: 8px;
+            text-decoration: none;
+            transition: all 0.15s;
         }
-        @media (min-width:1024px) { .admin-public-link { display:flex; } }
-        .admin-public-link:hover { color:#fff; background:rgba(255,255,255,0.1); }
-        .admin-sep { width:1px; height:24px; background:rgba(255,255,255,0.12); }
+
+        @media (min-width:1024px) {
+            .admin-public-link {
+                display: flex;
+            }
+        }
+
+        .admin-public-link:hover {
+            color: #fff;
+            background: rgba(255, 255, 255, 0.1);
+        }
+
+        .admin-sep {
+            width: 1px;
+            height: 24px;
+            background: rgba(255, 255, 255, 0.12);
+        }
+
         .admin-avatar {
-            width:32px; height:32px; border-radius:50%;
-            background:linear-gradient(135deg,#3b82f6,#6366f1);
-            color:#fff; font-weight:800; font-size:0.7rem;
-            display:flex; align-items:center; justify-content:center;
-            border:2px solid rgba(255,255,255,0.15);
-            flex-shrink:0;
+            width: 32px;
+            height: 32px;
+            border-radius: 50%;
+            background: linear-gradient(135deg, #3b82f6, #6366f1);
+            color: #fff;
+            font-weight: 800;
+            font-size: 0.7rem;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border: 2px solid rgba(255, 255, 255, 0.15);
+            flex-shrink: 0;
         }
-        .admin-user-info { display:none; flex-direction:column; text-align:left; }
-        @media (min-width:640px) { .admin-user-info { display:flex; } }
-        .admin-user-name { font-size:0.72rem; font-weight:700; color:#e2e8f0; line-height:1.2; }
-        .admin-user-role { font-size:0.6rem; font-weight:700; color:#60a5fa; text-transform:uppercase; letter-spacing:0.08em; }
+
+        .admin-user-info {
+            display: none;
+            flex-direction: column;
+            text-align: left;
+        }
+
+        @media (min-width:640px) {
+            .admin-user-info {
+                display: flex;
+            }
+        }
+
+        .admin-user-name {
+            font-size: 0.72rem;
+            font-weight: 700;
+            color: #e2e8f0;
+            line-height: 1.2;
+        }
+
+        .admin-user-role {
+            font-size: 0.6rem;
+            font-weight: 700;
+            color: #60a5fa;
+            text-transform: uppercase;
+            letter-spacing: 0.08em;
+        }
+
         .admin-logout {
-            color:rgba(148,163,184,0.7); padding:6px; border-radius:8px;
-            text-decoration:none; transition:all 0.15s; font-size:0.8rem;
-            border:1px solid transparent;
+            color: rgba(148, 163, 184, 0.7);
+            padding: 6px;
+            border-radius: 8px;
+            text-decoration: none;
+            transition: all 0.15s;
+            font-size: 0.8rem;
+            border: 1px solid transparent;
         }
-        .admin-logout:hover { color:#f87171; background:rgba(239,68,68,0.1); border-color:rgba(239,68,68,0.2); }
+
+        .admin-logout:hover {
+            color: #f87171;
+            background: rgba(239, 68, 68, 0.1);
+            border-color: rgba(239, 68, 68, 0.2);
+        }
 
         /* Mobile hamburger */
         .admin-hamburger {
-            display:flex; align-items:center; justify-content:center;
-            width:34px; height:34px; border-radius:8px;
-            background:rgba(255,255,255,0.07); border:1px solid rgba(255,255,255,0.12);
-            color:#cbd5e1; cursor:pointer; font-size:0.85rem;
-            transition:all 0.15s;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            width: 34px;
+            height: 34px;
+            border-radius: 8px;
+            background: rgba(255, 255, 255, 0.07);
+            border: 1px solid rgba(255, 255, 255, 0.12);
+            color: #cbd5e1;
+            cursor: pointer;
+            font-size: 0.85rem;
+            transition: all 0.15s;
         }
-        .admin-hamburger:hover { background:rgba(255,255,255,0.12); color:#fff; }
-        @media (min-width:768px) { .admin-hamburger { display:none; } }
+
+        .admin-hamburger:hover {
+            background: rgba(255, 255, 255, 0.12);
+            color: #fff;
+        }
+
+        @media (min-width:768px) {
+            .admin-hamburger {
+                display: none;
+            }
+        }
 
         /* Mobile dropdown */
         #adminMobileNav {
-            display:none; padding: 0.75rem 1rem;
-            background:#1e293b; border-top:1px solid rgba(255,255,255,0.08);
-            max-width:1400px; margin:0 auto;
+            display: none;
+            padding: 0.75rem 1rem;
+            background: #1e293b;
+            border-top: 1px solid rgba(255, 255, 255, 0.08);
+            max-width: 1400px;
+            margin: 0 auto;
         }
-        #adminMobileNav.open { display:block; }
+
+        #adminMobileNav.open {
+            display: block;
+        }
+
         .mobile-nav-item {
-            display:flex; align-items:center; gap:0.6rem;
-            padding:8px 12px; border-radius:8px; margin-bottom:2px;
-            font-size:0.76rem; font-weight:600; color:#cbd5e1;
-            text-decoration:none; transition:all 0.15s;
+            display: flex;
+            align-items: center;
+            gap: 0.6rem;
+            padding: 8px 12px;
+            border-radius: 8px;
+            margin-bottom: 2px;
+            font-size: 0.76rem;
+            font-weight: 600;
+            color: #cbd5e1;
+            text-decoration: none;
+            transition: all 0.15s;
         }
-        .mobile-nav-item:hover { color:#fff; background:rgba(255,255,255,0.08); }
-        .mobile-nav-item.active { color:#fff; background:rgba(59,130,246,0.75); }
-        .mobile-nav-item.chat-item { color:#c4b5fd; }
-        .mobile-nav-item.active-chat { color:#fff; background:rgba(139,92,246,0.75); }
+
+        .mobile-nav-item:hover {
+            color: #fff;
+            background: rgba(255, 255, 255, 0.08);
+        }
+
+        .mobile-nav-item.active {
+            color: #fff;
+            background: rgba(59, 130, 246, 0.75);
+        }
+
+        .mobile-nav-item.chat-item {
+            color: #c4b5fd;
+        }
+
+        .mobile-nav-item.active-chat {
+            color: #fff;
+            background: rgba(139, 92, 246, 0.75);
+        }
     </style>
     <header id="adminHeader">
         <div class="admin-inner">
             <!-- Brand -->
-            <button type="button" class="admin-hamburger" onclick="document.getElementById('adminMobileNav').classList.toggle('open')" aria-label="Menu">
+            <button type="button" class="admin-hamburger"
+                onclick="document.getElementById('adminMobileNav').classList.toggle('open')" aria-label="Menu">
                 <i class="fa-solid fa-bars"></i>
             </button>
             <a href="02-AdminDashboard.html" class="admin-brand">
@@ -157,13 +346,18 @@
 
             <!-- Desktop Nav -->
             <nav class="admin-nav">
-                    <a href="02-AdminDashboard.html" class="nav-item-admin"><i class="fa-solid fa-gauge-high"></i>Dashboard</a>
-                    <a href="03-AuctionList.html" class="nav-item-admin"><i class="fa-solid fa-list-check"></i>Quản lý phiên</a>
-                    <a href="04-CreateAuction.html" class="nav-item-admin"><i class="fa-solid fa-circle-plus"></i>Tạo phiên</a>
-                    <a href="06-AgentList.html" class="nav-item-admin"><i class="fa-solid fa-building-user"></i>Đại lý</a>
-                    <a href="07-Reports.html" class="nav-item-admin active"><i class="fa-solid fa-chart-line"></i>Báo cáo</a>
-                    <a href="08-Settings.html" class="nav-item-admin"><i class="fa-solid fa-sliders"></i>Cài đặt</a>
-                    <a href="10-AuditLogs.html" class="nav-item-admin"><i class="fa-solid fa-clock-rotate-left"></i>Nhật ký</a>
+                <a href="02-AdminDashboard.html" class="nav-item-admin"><i
+                        class="fa-solid fa-gauge-high"></i>Dashboard</a>
+                <a href="03-AuctionList.html" class="nav-item-admin"><i class="fa-solid fa-list-check"></i>Quản lý
+                    phiên</a>
+                <a href="04-CreateAuction.html" class="nav-item-admin"><i class="fa-solid fa-circle-plus"></i>Tạo
+                    phiên</a>
+                <a href="06-AgentList.html" class="nav-item-admin"><i class="fa-solid fa-building-user"></i>Đại lý</a>
+                <a href="07-Reports.html" class="nav-item-admin active"><i class="fa-solid fa-chart-line"></i>Báo
+                    cáo</a>
+                <a href="08-Settings.html" class="nav-item-admin"><i class="fa-solid fa-sliders"></i>Cài đặt</a>
+                <a href="10-AuditLogs.html" class="nav-item-admin"><i class="fa-solid fa-clock-rotate-left"></i>Nhật
+                    ký</a>
             </nav>
 
             <!-- Right Bar -->
@@ -177,7 +371,8 @@
                     <span class="admin-user-name admin-header-name">Quản trị viên</span>
                     <span class="admin-user-role admin-header-role">QUẢN TRỊ VIÊN</span>
                 </div>
-                <a href="01-AdminLogin.html" onclick="if(window.CargoStore) CargoStore.logoutAdmin()" class="admin-logout" title="Đăng xuất">
+                <a href="01-AdminLogin.html" onclick="if(window.CargoStore) CargoStore.logoutAdmin()"
+                    class="admin-logout" title="Đăng xuất">
                     <i class="fa-solid fa-power-off"></i>
                 </a>
             </div>
@@ -185,14 +380,20 @@
 
         <!-- Mobile Dropdown -->
         <div id="adminMobileNav">
-            <a href="02-AdminDashboard.html" class="mobile-nav-item"><i class="fa-solid fa-gauge-high w-4"></i>Dashboard</a>
-            <a href="03-AuctionList.html" class="mobile-nav-item"><i class="fa-solid fa-list-check w-4"></i>Quản lý phiên</a>
-            <a href="04-CreateAuction.html" class="mobile-nav-item"><i class="fa-solid fa-circle-plus w-4"></i>Tạo phiên</a>
+            <a href="02-AdminDashboard.html" class="mobile-nav-item"><i
+                    class="fa-solid fa-gauge-high w-4"></i>Dashboard</a>
+            <a href="03-AuctionList.html" class="mobile-nav-item"><i class="fa-solid fa-list-check w-4"></i>Quản lý
+                phiên</a>
+            <a href="04-CreateAuction.html" class="mobile-nav-item"><i class="fa-solid fa-circle-plus w-4"></i>Tạo
+                phiên</a>
             <a href="06-AgentList.html" class="mobile-nav-item"><i class="fa-solid fa-building-user w-4"></i>Đại lý</a>
-            <a href="07-Reports.html" class="mobile-nav-item active"><i class="fa-solid fa-chart-line w-4"></i>Báo cáo</a>
+            <a href="07-Reports.html" class="mobile-nav-item active"><i class="fa-solid fa-chart-line w-4"></i>Báo
+                cáo</a>
             <a href="08-Settings.html" class="mobile-nav-item"><i class="fa-solid fa-sliders w-4"></i>Cài đặt</a>
-            <a href="10-AuditLogs.html" class="mobile-nav-item"><i class="fa-solid fa-clock-rotate-left w-4"></i>Nhật ký</a>
-            <a href="../00-Home.html" target="_blank" class="mobile-nav-item" style="border-top:1px solid rgba(255,255,255,0.08);margin-top:6px;padding-top:10px">
+            <a href="10-AuditLogs.html" class="mobile-nav-item"><i class="fa-solid fa-clock-rotate-left w-4"></i>Nhật
+                ký</a>
+            <a href="../00-Home.html" target="_blank" class="mobile-nav-item"
+                style="border-top:1px solid rgba(255,255,255,0.08);margin-top:6px;padding-top:10px">
                 <i class="fa-solid fa-arrow-up-right-from-square w-4"></i> Xem Sàn công khai
             </a>
         </div>
@@ -205,13 +406,16 @@
                 <h1 class="text-2xl font-bold text-slate-900 flex items-center gap-2">
                     <i class="fa-solid fa-chart-line text-blue-600"></i> Báo cáo & Thống kê Hiệu quả Vận tải
                 </h1>
-                <p class="text-xs text-slate-500 mt-1">Phân tích doanh thu đấu giá, tỷ lệ lấp đầy tải trọng theo từng chặng bay</p>
+                <p class="text-xs text-slate-500 mt-1">Phân tích doanh thu đấu giá, tỷ lệ lấp đầy tải trọng theo từng
+                    chặng bay</p>
             </div>
             <div class="flex items-center gap-2">
-                <button onclick="exportToExcel(this)" id="btnExportExcel" class="bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-semibold px-4 py-2.5 rounded-xl transition shadow flex items-center gap-1.5 cursor-pointer">
+                <button onclick="exportToExcel(this)" id="btnExportExcel"
+                    class="bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-semibold px-4 py-2.5 rounded-xl transition shadow flex items-center gap-1.5 cursor-pointer">
                     <i class="fa-solid fa-file-excel text-sm"></i> <span>Xuất Excel (.xlsx)</span>
                 </button>
-                <button onclick="exportToPDF(this)" id="btnExportPdf" class="bg-white border hover:bg-slate-50 text-slate-700 text-xs font-semibold px-4 py-2.5 rounded-xl transition shadow-sm flex items-center gap-1.5 cursor-pointer">
+                <button onclick="exportToPDF(this)" id="btnExportPdf"
+                    class="bg-white border hover:bg-slate-50 text-slate-700 text-xs font-semibold px-4 py-2.5 rounded-xl transition shadow-sm flex items-center gap-1.5 cursor-pointer">
                     <i class="fa-solid fa-file-pdf text-red-500 text-sm"></i> <span>Xuất PDF</span>
                 </button>
             </div>
@@ -221,16 +425,19 @@
         <div class="bg-white rounded-2xl border shadow-sm p-4 space-y-3">
             <div class="flex flex-col md:flex-row md:items-center justify-between gap-3 pb-3 border-b border-slate-100">
                 <div class="flex items-center gap-2">
-                    <div class="w-8 h-8 rounded-xl bg-blue-50 text-blue-600 flex items-center justify-center font-bold text-sm shadow-inner">
+                    <div
+                        class="w-8 h-8 rounded-xl bg-blue-50 text-blue-600 flex items-center justify-center font-bold text-sm shadow-inner">
                         <i class="fa-solid fa-filter"></i>
                     </div>
                     <div>
                         <h3 class="text-sm font-bold text-slate-900">Bộ Lọc Báo Cáo & Tùy Chọn Xuất File</h3>
-                        <p class="text-[11px] text-slate-500">Lọc dữ liệu theo thời gian, loại hàng hóa, tuyến bay trước khi xem & xuất file Excel / PDF</p>
+                        <p class="text-[11px] text-slate-500">Lọc dữ liệu theo thời gian, loại hàng hóa, tuyến bay trước
+                            khi xem & xuất file Excel / PDF</p>
                     </div>
                 </div>
                 <div class="flex items-center gap-2 self-end md:self-auto">
-                    <button onclick="resetReportFilters()" class="bg-slate-100 hover:bg-slate-200 text-slate-600 text-xs font-semibold px-3 py-2 rounded-xl transition flex items-center gap-1 cursor-pointer">
+                    <button onclick="resetReportFilters()"
+                        class="bg-slate-100 hover:bg-slate-200 text-slate-600 text-xs font-semibold px-3 py-2 rounded-xl transition flex items-center gap-1 cursor-pointer">
                         <i class="fa-solid fa-rotate-left"></i> Đặt lại
                     </button>
                 </div>
@@ -243,7 +450,8 @@
                     <label class="block font-bold text-slate-700 mb-1 text-[11px]">
                         <i class="fa-solid fa-calendar text-blue-500 mr-1"></i>Khoảng thời gian:
                     </label>
-                    <select id="reportTimeRangeFilter" onchange="toggleCustomDateReport(this.value)" class="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl font-medium text-slate-800 outline-none focus:ring-2 focus:ring-blue-500/20 cursor-pointer">
+                    <select id="reportTimeRangeFilter" onchange="toggleCustomDateReport(this.value)"
+                        class="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl font-medium text-slate-800 outline-none focus:ring-2 focus:ring-blue-500/20 cursor-pointer">
                         <option value="ALL">Tất cả thời gian</option>
                         <option value="THIS_MONTH">Tháng này (Tháng 09/2026)</option>
                         <option value="LAST_MONTH">Tháng trước (Tháng 08/2026)</option>
@@ -258,7 +466,8 @@
                     <label class="block font-bold text-slate-700 mb-1 text-[11px]">
                         <i class="fa-solid fa-box text-emerald-500 mr-1"></i>Loại hàng hóa:
                     </label>
-                    <select id="reportCargoTypeFilter" onchange="applyReportFilters()" class="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl font-medium text-slate-800 outline-none focus:ring-2 focus:ring-blue-500/20 cursor-pointer">
+                    <select id="reportCargoTypeFilter" onchange="applyReportFilters()"
+                        class="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl font-medium text-slate-800 outline-none focus:ring-2 focus:ring-blue-500/20 cursor-pointer">
                         <option value="ALL">Tất cả loại hàng</option>
                         <option value="GEN">Hàng thông thường (General Cargo - GEN)</option>
                         <option value="PER">Hàng đông lạnh / Tươi sống (PER/COLD)</option>
@@ -273,7 +482,8 @@
                     <label class="block font-bold text-slate-700 mb-1 text-[11px]">
                         <i class="fa-solid fa-plane-departure text-purple-500 mr-1"></i>Tuyến đường bay:
                     </label>
-                    <select id="reportRouteFilter" onchange="applyReportFilters()" class="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl font-medium text-slate-800 outline-none focus:ring-2 focus:ring-blue-500/20 cursor-pointer">
+                    <select id="reportRouteFilter" onchange="applyReportFilters()"
+                        class="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl font-medium text-slate-800 outline-none focus:ring-2 focus:ring-blue-500/20 cursor-pointer">
                         <option value="ALL">Tất cả đường bay</option>
                         <option value="SGN - HAN">SGN - HAN (Sài Gòn - Hà Nội)</option>
                         <option value="SGN - DAD">SGN - DAD (Sài Gòn - Đà Nẵng)</option>
@@ -287,7 +497,8 @@
                     <label class="block font-bold text-slate-700 mb-1 text-[11px]">
                         <i class="fa-solid fa-list-check text-amber-500 mr-1"></i>Trạng thái phiên & đơn:
                     </label>
-                    <select id="reportStatusFilter" onchange="applyReportFilters()" class="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl font-medium text-slate-800 outline-none focus:ring-2 focus:ring-blue-500/20 cursor-pointer">
+                    <select id="reportStatusFilter" onchange="applyReportFilters()"
+                        class="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl font-medium text-slate-800 outline-none focus:ring-2 focus:ring-blue-500/20 cursor-pointer">
                         <option value="ALL">Tất cả trạng thái</option>
                         <option value="CLOSED">Phiên đã đóng / Thắng thầu</option>
                         <option value="OPEN">Phiên đang mở đấu giá</option>
@@ -297,17 +508,20 @@
             </div>
 
             <!-- Custom Date Range inputs -->
-            <div id="reportCustomDateRow" class="hidden pt-2 border-t border-slate-100 flex flex-wrap items-center gap-3 text-xs bg-blue-50/50 p-2.5 rounded-xl border border-blue-100 mt-1">
+            <div id="reportCustomDateRow"
+                class="hidden pt-2 border-t border-slate-100 flex flex-wrap items-center gap-3 text-xs bg-blue-50/50 p-2.5 rounded-xl border border-blue-100 mt-1">
                 <span class="font-bold text-slate-700 flex items-center gap-1">
                     <i class="fa-solid fa-calendar-days text-blue-600"></i> Khoảng ngày tùy chọn:
                 </span>
                 <div class="flex items-center gap-1.5">
                     <label for="reportFromDate" class="text-slate-600 font-medium">Từ ngày:</label>
-                    <input type="date" id="reportFromDate" onchange="applyReportFilters()" class="px-2.5 py-1.5 bg-white border border-slate-200 rounded-lg text-slate-800 font-medium outline-none shadow-xs">
+                    <input type="date" id="reportFromDate" onchange="applyReportFilters()"
+                        class="px-2.5 py-1.5 bg-white border border-slate-200 rounded-lg text-slate-800 font-medium outline-none shadow-xs">
                 </div>
                 <div class="flex items-center gap-1.5">
                     <label for="reportToDate" class="text-slate-600 font-medium">Đến ngày:</label>
-                    <input type="date" id="reportToDate" onchange="applyReportFilters()" class="px-2.5 py-1.5 bg-white border border-slate-200 rounded-lg text-slate-800 font-medium outline-none shadow-xs">
+                    <input type="date" id="reportToDate" onchange="applyReportFilters()"
+                        class="px-2.5 py-1.5 bg-white border border-slate-200 rounded-lg text-slate-800 font-medium outline-none shadow-xs">
                 </div>
             </div>
         </div>
@@ -317,19 +531,22 @@
             <div class="bg-white rounded-2xl p-5 border shadow-sm hover:shadow-md transition">
                 <p class="text-xs text-slate-500 font-medium">Tổng doanh thu cargo qua thầu</p>
                 <p class="text-2xl font-bold text-slate-900 mt-1" id="kpiTotalRevenue">0 đ</p>
-                <span class="text-[11px] text-emerald-600 font-semibold flex items-center gap-1 mt-1" id="kpiRevenueSubtext">
+                <span class="text-[11px] text-emerald-600 font-semibold flex items-center gap-1 mt-1"
+                    id="kpiRevenueSubtext">
                     <i class="fa-solid fa-arrow-trend-up"></i> Tự động tính theo dữ liệu phiên
                 </span>
             </div>
             <div class="bg-white rounded-2xl p-5 border shadow-sm hover:shadow-md transition">
                 <p class="text-xs text-slate-500 font-medium">Tổng tải trọng khai thác</p>
                 <p class="text-2xl font-bold text-blue-600 mt-1" id="kpiTotalCapacity">0 Kg</p>
-                <span class="text-[11px] text-slate-500 block mt-1" id="kpiFillRateSubtext">Tỷ lệ lấp đầy bình quân: 0%</span>
+                <span class="text-[11px] text-slate-500 block mt-1" id="kpiFillRateSubtext">Tỷ lệ lấp đầy bình quân:
+                    0%</span>
             </div>
             <div class="bg-white rounded-2xl p-5 border shadow-sm hover:shadow-md transition">
                 <p class="text-xs text-slate-500 font-medium">Giá thắng thầu bình quân</p>
                 <p class="text-2xl font-bold text-purple-600 mt-1" id="kpiAvgPrice">0 đ/Kg</p>
-                <span class="text-[11px] text-emerald-600 font-semibold block mt-1" id="kpiPriceSubtext">Tính trên toàn bộ tải trọng trúng thầu</span>
+                <span class="text-[11px] text-emerald-600 font-semibold block mt-1" id="kpiPriceSubtext">Tính trên toàn
+                    bộ tải trọng trúng thầu</span>
             </div>
         </div>
 
@@ -340,12 +557,15 @@
                     <h2 class="text-base font-bold text-slate-900 flex items-center gap-2">
                         <i class="fa-solid fa-route text-blue-600"></i> Doanh thu & Tải trọng theo từng đường bay
                     </h2>
-                    <p class="text-xs text-slate-500 mt-0.5">Tự động tổng hợp và nhóm từ toàn bộ các chuyến bay trong hệ thống</p>
+                    <p class="text-xs text-slate-500 mt-0.5">Tự động tổng hợp và nhóm từ toàn bộ các chuyến bay trong hệ
+                        thống</p>
                 </div>
-                <span class="text-xs bg-slate-100 text-slate-700 px-3 py-1 rounded-lg font-medium" id="reportPeriodBadge">Kỳ báo cáo: Đang cập nhật</span>
+                <span class="text-xs bg-slate-100 text-slate-700 px-3 py-1 rounded-lg font-medium"
+                    id="reportPeriodBadge">Kỳ báo cáo: Đang cập nhật</span>
             </div>
 
-            <div class="sm:hidden flex items-center gap-1.5 text-[11px] text-slate-500 bg-slate-50 px-3 py-1.5 rounded-lg border border-slate-200">
+            <div
+                class="sm:hidden flex items-center gap-1.5 text-[11px] text-slate-500 bg-slate-50 px-3 py-1.5 rounded-lg border border-slate-200">
                 <i class="fa-solid fa-arrows-left-right text-blue-500"></i>
                 <span>Bảng rộng: Vuốt ngang để xem tỷ lệ lấp đầy & tổng doanh thu</span>
             </div>
@@ -387,7 +607,7 @@
             </div>
         </div>
 
-        <!-- Cargo Manifest Reports Table -->
+        <!-- Cargo Manifest Reports Table
         <div class="bg-white rounded-2xl border shadow-sm p-6 space-y-4">
             <div class="flex items-center justify-between">
                 <div>
@@ -419,23 +639,30 @@
                     </tbody>
                 </table>
             </div>
-            <!-- Pagination Container for Cargo Manifest -->
-            <div id="reportCargoPagination"></div>
+            <-- Pagination Container for Cargo Manifest -->
+        <div id="reportCargoPagination"></div>
         </div>
 
     </main>
 
     <!-- Dedicated A4 Printable Report Structure for html2pdf -->
     <div id="pdfExportTemplate" style="display: none;">
-        <div style="padding: 24px 28px; font-family: 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; color: #1e293b; background: #ffffff; max-width: 800px; margin: 0 auto; font-size: 11px;">
+        <div
+            style="padding: 24px 28px; font-family: 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; color: #1e293b; background: #ffffff; max-width: 800px; margin: 0 auto; font-size: 11px;">
             <!-- Header -->
-            <div style="border-bottom: 2px solid #0284c7; padding-bottom: 12px; margin-bottom: 16px; display: flex; justify-content: space-between; align-items: flex-start;">
+            <div
+                style="border-bottom: 2px solid #0284c7; padding-bottom: 12px; margin-bottom: 16px; display: flex; justify-content: space-between; align-items: flex-start;">
                 <div>
                     <div style="display: flex; align-items: center; gap: 8px;">
-                        <span style="background: #2563eb; color: #fff; font-weight: 900; font-size: 11px; padding: 4px 8px; border-radius: 6px; letter-spacing: 0.5px;">VU CARGO</span>
-                        <span style="font-size: 14px; font-weight: 800; color: #0f172a; text-transform: uppercase;">VIETRAVEL AIRLINES</span>
+                        <span
+                            style="background: #2563eb; color: #fff; font-weight: 900; font-size: 11px; padding: 4px 8px; border-radius: 6px; letter-spacing: 0.5px;">VU
+                            CARGO</span>
+                        <span
+                            style="font-size: 14px; font-weight: 800; color: #0f172a; text-transform: uppercase;">VIETRAVEL
+                            AIRLINES</span>
                     </div>
-                    <p style="font-size: 10px; color: #0369a1; font-weight: 600; margin: 4px 0 0 0;">KHỐI KHAI THÁC VẬN TẢI HÀNG HÓA · BAN ĐIỀU HÀNH ĐẤU GIÁ (AIR CARGO BIDDING)</p>
+                    <p style="font-size: 10px; color: #0369a1; font-weight: 600; margin: 4px 0 0 0;">KHỐI KHAI THÁC VẬN
+                        TẢI HÀNG HÓA · BAN ĐIỀU HÀNH ĐẤU GIÁ (AIR CARGO BIDDING)</p>
                 </div>
                 <div style="text-align: right; font-size: 9px; color: #64748b;">
                     <p style="margin: 0; font-weight: 700; color: #0f172a;">BIỂU MẪU BÁO CÁO QUẢN TRỊ</p>
@@ -446,24 +673,29 @@
 
             <!-- Title -->
             <div style="text-align: center; margin-bottom: 18px;">
-                <h1 style="font-size: 16px; font-weight: 800; color: #0f172a; margin: 0; text-transform: uppercase;">BÁO CÁO TỔNG KẾT HIỆU QUẢ ĐẤU GIÁ TẢI TRỌNG CARGO</h1>
-                <p style="font-size: 11px; color: #475569; margin: 4px 0 0 0; font-weight: 500;">Kỳ báo cáo: Tháng 08/2026 · Hệ thống Sàn Đấu giá Trực tuyến</p>
+                <h1 style="font-size: 16px; font-weight: 800; color: #0f172a; margin: 0; text-transform: uppercase;">BÁO
+                    CÁO TỔNG KẾT HIỆU QUẢ ĐẤU GIÁ TẢI TRỌNG CARGO</h1>
+                <p style="font-size: 11px; color: #475569; margin: 4px 0 0 0; font-weight: 500;">Kỳ báo cáo: Tháng
+                    08/2026 · Hệ thống Sàn Đấu giá Trực tuyến</p>
             </div>
 
             <!-- 3 Highlights Cards -->
             <div style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; margin-bottom: 18px;">
                 <div style="background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 8px; padding: 10px 12px;">
-                    <p style="font-size: 9px; color: #64748b; margin: 0; text-transform: uppercase; font-weight: 600;">Tổng Doanh thu Thầu</p>
+                    <p style="font-size: 9px; color: #64748b; margin: 0; text-transform: uppercase; font-weight: 600;">
+                        Tổng Doanh thu Thầu</p>
                     <p style="font-size: 15px; font-weight: 800; color: #0f172a; margin: 3px 0 0 0;">1.280.500.000 đ</p>
                     <span style="font-size: 9px; color: #16a34a; font-weight: 600;">+24.8% so với kỳ trước</span>
                 </div>
                 <div style="background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 8px; padding: 10px 12px;">
-                    <p style="font-size: 9px; color: #64748b; margin: 0; text-transform: uppercase; font-weight: 600;">Tổng Tải trọng Khai thác</p>
+                    <p style="font-size: 9px; color: #64748b; margin: 0; text-transform: uppercase; font-weight: 600;">
+                        Tổng Tải trọng Khai thác</p>
                     <p style="font-size: 15px; font-weight: 800; color: #2563eb; margin: 3px 0 0 0;">68,400 Kg</p>
                     <span style="font-size: 9px; color: #64748b; font-weight: 600;">Lấp đầy TB: 92.6%</span>
                 </div>
                 <div style="background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 8px; padding: 10px 12px;">
-                    <p style="font-size: 9px; color: #64748b; margin: 0; text-transform: uppercase; font-weight: 600;">Giá Thắng Thầu TB</p>
+                    <p style="font-size: 9px; color: #64748b; margin: 0; text-transform: uppercase; font-weight: 600;">
+                        Giá Thắng Thầu TB</p>
                     <p style="font-size: 15px; font-weight: 800; color: #9333ea; margin: 3px 0 0 0;">21.800 đ/Kg</p>
                     <span style="font-size: 9px; color: #16a34a; font-weight: 600;">+12% so với giá sàn</span>
                 </div>
@@ -471,12 +703,14 @@
 
             <!-- Table 1: Route Revenue -->
             <div style="margin-bottom: 18px;">
-                <p style="font-size: 11px; font-weight: 700; color: #0f172a; margin: 0 0 6px 0; text-transform: uppercase;">
+                <p
+                    style="font-size: 11px; font-weight: 700; color: #0f172a; margin: 0 0 6px 0; text-transform: uppercase;">
                     1. Doanh thu & Tải trọng theo từng đường bay (vw_RouteRevenueReport)
                 </p>
                 <table style="width: 100%; border-collapse: collapse; font-size: 9.5px;">
                     <thead>
-                        <tr style="background: #f1f5f9; color: #334155; border-top: 1px solid #cbd5e1; border-bottom: 1px solid #cbd5e1;">
+                        <tr
+                            style="background: #f1f5f9; color: #334155; border-top: 1px solid #cbd5e1; border-bottom: 1px solid #cbd5e1;">
                             <th style="padding: 6px 8px; text-align: left;">Tuyến bay</th>
                             <th style="padding: 6px 8px; text-align: center;">Số chuyến</th>
                             <th style="padding: 6px 8px; text-align: right;">Tải trọng chào</th>
@@ -488,33 +722,40 @@
                     </thead>
                     <tbody>
                         <tr style="border-bottom: 1px solid #f1f5f9;">
-                            <td style="padding: 6px 8px; font-weight: 700; color: #0f172a;">SGN - HAN (Sài Gòn - Hà Nội)</td>
+                            <td style="padding: 6px 8px; font-weight: 700; color: #0f172a;">SGN - HAN (Sài Gòn - Hà Nội)
+                            </td>
                             <td style="padding: 6px 8px; text-align: center;">18</td>
                             <td style="padding: 6px 8px; text-align: right;">54,000 Kg</td>
                             <td style="padding: 6px 8px; text-align: right; font-weight: 600;">52,500 Kg</td>
-                            <td style="padding: 6px 8px; text-align: center; color: #16a34a; font-weight: 700;">97.2%</td>
+                            <td style="padding: 6px 8px; text-align: center; color: #16a34a; font-weight: 700;">97.2%
+                            </td>
                             <td style="padding: 6px 8px; text-align: right; color: #2563eb;">22.000</td>
                             <td style="padding: 6px 8px; text-align: right; font-weight: 700;">1.155.000.000 đ</td>
                         </tr>
                         <tr style="border-bottom: 1px solid #f1f5f9;">
-                            <td style="padding: 6px 8px; font-weight: 700; color: #0f172a;">SGN - DAD (Sài Gòn - Đà Nẵng)</td>
+                            <td style="padding: 6px 8px; font-weight: 700; color: #0f172a;">SGN - DAD (Sài Gòn - Đà
+                                Nẵng)</td>
                             <td style="padding: 6px 8px; text-align: center;">8</td>
                             <td style="padding: 6px 8px; text-align: right;">16,000 Kg</td>
                             <td style="padding: 6px 8px; text-align: right; font-weight: 600;">14,200 Kg</td>
-                            <td style="padding: 6px 8px; text-align: center; color: #2563eb; font-weight: 700;">88.7%</td>
+                            <td style="padding: 6px 8px; text-align: center; color: #2563eb; font-weight: 700;">88.7%
+                            </td>
                             <td style="padding: 6px 8px; text-align: right; color: #2563eb;">14.500</td>
                             <td style="padding: 6px 8px; text-align: right; font-weight: 700;">205.900.000 đ</td>
                         </tr>
                         <tr style="border-bottom: 1px solid #f1f5f9;">
-                            <td style="padding: 6px 8px; font-weight: 700; color: #0f172a;">HAN - PQC (Hà Nội - Phú Quốc)</td>
+                            <td style="padding: 6px 8px; font-weight: 700; color: #0f172a;">HAN - PQC (Hà Nội - Phú
+                                Quốc)</td>
                             <td style="padding: 6px 8px; text-align: center;">4</td>
                             <td style="padding: 6px 8px; text-align: right;">16,000 Kg</td>
                             <td style="padding: 6px 8px; text-align: right; font-weight: 600;">15,000 Kg</td>
-                            <td style="padding: 6px 8px; text-align: center; color: #9333ea; font-weight: 700;">93.7%</td>
+                            <td style="padding: 6px 8px; text-align: center; color: #9333ea; font-weight: 700;">93.7%
+                            </td>
                             <td style="padding: 6px 8px; text-align: right; color: #2563eb;">25.000</td>
                             <td style="padding: 6px 8px; text-align: right; font-weight: 700;">375.000.000 đ</td>
                         </tr>
-                        <tr style="background: #f8fafc; font-weight: 700; border-top: 1px solid #cbd5e1; border-bottom: 1px solid #cbd5e1;">
+                        <tr
+                            style="background: #f8fafc; font-weight: 700; border-top: 1px solid #cbd5e1; border-bottom: 1px solid #cbd5e1;">
                             <td style="padding: 6px 8px; color: #0f172a;">TỔNG CỘNG MẠNG BAY</td>
                             <td style="padding: 6px 8px; text-align: center;">30</td>
                             <td style="padding: 6px 8px; text-align: right;">86,000 Kg</td>
@@ -529,12 +770,14 @@
 
             <!-- Table 2: Top Agents -->
             <div style="margin-bottom: 24px;">
-                <p style="font-size: 11px; font-weight: 700; color: #0f172a; margin: 0 0 6px 0; text-transform: uppercase;">
+                <p
+                    style="font-size: 11px; font-weight: 700; color: #0f172a; margin: 0 0 6px 0; text-transform: uppercase;">
                     2. Xếp hạng Doanh số Đại lý tiêu biểu (Top Forwarders)
                 </p>
                 <table style="width: 100%; border-collapse: collapse; font-size: 9.5px;">
                     <thead>
-                        <tr style="background: #f1f5f9; color: #334155; border-top: 1px solid #cbd5e1; border-bottom: 1px solid #cbd5e1;">
+                        <tr
+                            style="background: #f1f5f9; color: #334155; border-top: 1px solid #cbd5e1; border-bottom: 1px solid #cbd5e1;">
                             <th style="padding: 6px 8px; text-align: center; width: 40px;">Hạng</th>
                             <th style="padding: 6px 8px; text-align: left;">Mã đại lý</th>
                             <th style="padding: 6px 8px; text-align: left;">Tên doanh nghiệp</th>
@@ -546,34 +789,47 @@
                     <tbody>
                         <tr style="border-bottom: 1px solid #f1f5f9;">
                             <td style="padding: 6px 8px; text-align: center; font-weight: 700; color: #d97706;">#1</td>
-                            <td style="padding: 6px 8px; font-family: monospace; font-weight: 700; color: #2563eb;">AG-1024</td>
-                            <td style="padding: 6px 8px; font-weight: 700; color: #0f172a;">Vinatrans Express Logistics</td>
+                            <td style="padding: 6px 8px; font-family: monospace; font-weight: 700; color: #2563eb;">
+                                AG-1024</td>
+                            <td style="padding: 6px 8px; font-weight: 700; color: #0f172a;">Vinatrans Express Logistics
+                            </td>
                             <td style="padding: 6px 8px; text-align: center;">45 lượt</td>
-                            <td style="padding: 6px 8px; text-align: center; color: #16a34a; font-weight: 700;">16 chuyến</td>
-                            <td style="padding: 6px 8px; text-align: right; font-weight: 700; color: #2563eb;">28,500 USD</td>
+                            <td style="padding: 6px 8px; text-align: center; color: #16a34a; font-weight: 700;">16
+                                chuyến</td>
+                            <td style="padding: 6px 8px; text-align: right; font-weight: 700; color: #2563eb;">28,500
+                                USD</td>
                         </tr>
                         <tr style="border-bottom: 1px solid #f1f5f9;">
                             <td style="padding: 6px 8px; text-align: center; font-weight: 700; color: #64748b;">#2</td>
-                            <td style="padding: 6px 8px; font-family: monospace; font-weight: 700; color: #2563eb;">AG-0892</td>
-                            <td style="padding: 6px 8px; font-weight: 700; color: #0f172a;">Công ty TNHH Vận tải ABC</td>
+                            <td style="padding: 6px 8px; font-family: monospace; font-weight: 700; color: #2563eb;">
+                                AG-0892</td>
+                            <td style="padding: 6px 8px; font-weight: 700; color: #0f172a;">Công ty TNHH Vận tải ABC
+                            </td>
                             <td style="padding: 6px 8px; text-align: center;">24 lượt</td>
-                            <td style="padding: 6px 8px; text-align: center; color: #16a34a; font-weight: 700;">8 chuyến</td>
-                            <td style="padding: 6px 8px; text-align: right; font-weight: 700; color: #2563eb;">12,400 USD</td>
+                            <td style="padding: 6px 8px; text-align: center; color: #16a34a; font-weight: 700;">8 chuyến
+                            </td>
+                            <td style="padding: 6px 8px; text-align: right; font-weight: 700; color: #2563eb;">12,400
+                                USD</td>
                         </tr>
                         <tr style="border-bottom: 1px solid #f1f5f9;">
                             <td style="padding: 6px 8px; text-align: center; font-weight: 700; color: #b45309;">#3</td>
-                            <td style="padding: 6px 8px; font-family: monospace; font-weight: 700; color: #2563eb;">AG-0556</td>
-                            <td style="padding: 6px 8px; font-weight: 700; color: #0f172a;">Golden Star Forwarding Corp</td>
+                            <td style="padding: 6px 8px; font-family: monospace; font-weight: 700; color: #2563eb;">
+                                AG-0556</td>
+                            <td style="padding: 6px 8px; font-weight: 700; color: #0f172a;">Golden Star Forwarding Corp
+                            </td>
                             <td style="padding: 6px 8px; text-align: center;">18 lượt</td>
-                            <td style="padding: 6px 8px; text-align: center; color: #16a34a; font-weight: 700;">5 chuyến</td>
-                            <td style="padding: 6px 8px; text-align: right; font-weight: 700; color: #2563eb;">8,200 USD</td>
+                            <td style="padding: 6px 8px; text-align: center; color: #16a34a; font-weight: 700;">5 chuyến
+                            </td>
+                            <td style="padding: 6px 8px; text-align: right; font-weight: 700; color: #2563eb;">8,200 USD
+                            </td>
                         </tr>
                     </tbody>
                 </table>
             </div>
 
             <!-- Signature Section -->
-            <div style="display: grid; grid-template-columns: repeat(3, 1fr); text-align: center; margin-top: 24px; font-size: 9px; page-break-inside: avoid;">
+            <div
+                style="display: grid; grid-template-columns: repeat(3, 1fr); text-align: center; margin-top: 24px; font-size: 9px; page-break-inside: avoid;">
                 <div>
                     <p style="font-weight: 700; color: #0f172a; margin: 0;">NGƯỜI LẬP BIỂU</p>
                     <p style="color: #64748b; font-size: 8px; margin: 2px 0 0 0;">(Ký và ghi rõ họ tên)</p>
@@ -600,7 +856,8 @@
     </div>
 
     <!-- Notification Toast -->
-    <div id="toastReport" class="fixed bottom-5 right-5 bg-slate-900 text-white text-xs font-semibold px-4 py-3 rounded-xl shadow-xl flex items-center gap-2.5 z-50 transform translate-y-20 opacity-0 transition-all duration-300 pointer-events-none">
+    <div id="toastReport"
+        class="fixed bottom-5 right-5 bg-slate-900 text-white text-xs font-semibold px-4 py-3 rounded-xl shadow-xl flex items-center gap-2.5 z-50 transform translate-y-20 opacity-0 transition-all duration-300 pointer-events-none">
         <i class="fa-solid fa-circle-check text-emerald-400 text-base" id="toastIcon"></i>
         <span id="toastMsg">Tải xuống báo cáo thành công!</span>
     </div>
@@ -1367,10 +1624,10 @@
                     const wsAuctions = XLSX.utils.json_to_sheet(auctionRows);
                     const wsCargo = XLSX.utils.json_to_sheet(cargoRows);
 
-                    wsRoutes['!cols'] = [{wch: 10}, {wch: 32}, {wch: 18}, {wch: 20}, {wch: 20}, {wch: 16}, {wch: 24}, {wch: 24}];
-                    wsAgents['!cols'] = [{wch: 10}, {wch: 14}, {wch: 34}, {wch: 14}, {wch: 18}, {wch: 20}, {wch: 22}, {wch: 20}];
-                    wsAuctions['!cols'] = [{wch: 6}, {wch: 20}, {wch: 16}, {wch: 18}, {wch: 22}, {wch: 14}, {wch: 20}, {wch: 24}, {wch: 16}, {wch: 24}, {wch: 14}];
-                    wsCargo['!cols'] = [{wch: 6}, {wch: 16}, {wch: 14}, {wch: 14}, {wch: 12}, {wch: 16}, {wch: 14}, {wch: 18}, {wch: 16}, {wch: 16}, {wch: 18}, {wch: 20}, {wch: 24}, {wch: 18}, {wch: 12}, {wch: 12}, {wch: 22}, {wch: 22}, {wch: 30}, {wch: 25}, {wch: 20}];
+                    wsRoutes['!cols'] = [{ wch: 10 }, { wch: 32 }, { wch: 18 }, { wch: 20 }, { wch: 20 }, { wch: 16 }, { wch: 24 }, { wch: 24 }];
+                    wsAgents['!cols'] = [{ wch: 10 }, { wch: 14 }, { wch: 34 }, { wch: 14 }, { wch: 18 }, { wch: 20 }, { wch: 22 }, { wch: 20 }];
+                    wsAuctions['!cols'] = [{ wch: 6 }, { wch: 20 }, { wch: 16 }, { wch: 18 }, { wch: 22 }, { wch: 14 }, { wch: 20 }, { wch: 24 }, { wch: 16 }, { wch: 24 }, { wch: 14 }];
+                    wsCargo['!cols'] = [{ wch: 6 }, { wch: 16 }, { wch: 14 }, { wch: 14 }, { wch: 12 }, { wch: 16 }, { wch: 14 }, { wch: 18 }, { wch: 16 }, { wch: 16 }, { wch: 18 }, { wch: 20 }, { wch: 24 }, { wch: 18 }, { wch: 12 }, { wch: 12 }, { wch: 22 }, { wch: 22 }, { wch: 30 }, { wch: 25 }, { wch: 20 }];
 
                     XLSX.utils.book_append_sheet(wb, wsRoutes, "DoanhThu_TuyenBay");
                     XLSX.utils.book_append_sheet(wb, wsAgents, "Top_DaiLy");
@@ -1425,7 +1682,7 @@
                                 <div style="text-align: right; font-size: 9px; color: #64748b;">
                                     <p style="margin: 0; font-weight: 700; color: #0f172a;">BIỂU MẪU BÁO CÁO QUẢN TRỊ</p>
                                     <p style="margin: 2px 0 0 0;">Mã tài liệu: VU-CARGO-REP-${now.getFullYear()}/${String(now.getMonth() + 1).padStart(2, '0')}</p>
-                                    <p style="margin: 2px 0 0 0;">Ngày xuất: ${now.toLocaleDateString('vi-VN')} ${now.toLocaleTimeString('vi-VN', {hour:'2-digit', minute:'2-digit'})}</p>
+                                    <p style="margin: 2px 0 0 0;">Ngày xuất: ${now.toLocaleDateString('vi-VN')} ${now.toLocaleTimeString('vi-VN', { hour: '2-digit', minute: '2-digit' })}</p>
                                 </div>
                             </div>
 
@@ -1470,9 +1727,9 @@
                                     </thead>
                                     <tbody>
                                         ${metrics.routes.map(r => {
-                                            const fill = r.totalOfferedKg > 0 ? (r.totalWonKg / r.totalOfferedKg * 100) : 0;
-                                            const avgP = r.totalWonKg > 0 ? Math.round(r.totalRevenue / r.totalWonKg) : 0;
-                                            return `
+                        const fill = r.totalOfferedKg > 0 ? (r.totalWonKg / r.totalOfferedKg * 100) : 0;
+                        const avgP = r.totalWonKg > 0 ? Math.round(r.totalRevenue / r.totalWonKg) : 0;
+                        return `
                                                 <tr style="border-bottom: 1px solid #f1f5f9;">
                                                     <td style="padding: 6px 8px; font-weight: 700; color: #0f172a;">${r.route}</td>
                                                     <td style="padding: 6px 8px; text-align: center;">${r.flightCount}</td>
@@ -1483,7 +1740,7 @@
                                                     <td style="padding: 6px 8px; text-align: right; font-weight: 700;">${CargoStore.formatCurrency(r.totalRevenue)}</td>
                                                 </tr>
                                             `;
-                                        }).join('')}
+                    }).join('')}
                                         <tr style="background: #f8fafc; font-weight: 700; border-top: 1px solid #cbd5e1; border-bottom: 1px solid #cbd5e1;">
                                             <td style="padding: 6px 8px; color: #0f172a;">TỔNG CỘNG MẠNG BAY</td>
                                             <td style="padding: 6px 8px; text-align: center;">${metrics.routes.reduce((sum, r) => sum + r.flightCount, 0)}</td>
@@ -1557,11 +1814,11 @@
                     element.style.display = 'block';
 
                     const opt = {
-                        margin:       [8, 8, 8, 8],
-                        filename:     `BaoCao_HieuQua_KhaiThac_Cargo_VU_Thang${String(now.getMonth() + 1).padStart(2, '0')}_${now.getFullYear()}.pdf`,
-                        image:        { type: 'jpeg', quality: 0.98 },
-                        html2canvas:  { scale: 2, useCORS: true, letterRendering: true, logging: false },
-                        jsPDF:        { unit: 'mm', format: 'a4', orientation: 'portrait' }
+                        margin: [8, 8, 8, 8],
+                        filename: `BaoCao_HieuQua_KhaiThac_Cargo_VU_Thang${String(now.getMonth() + 1).padStart(2, '0')}_${now.getFullYear()}.pdf`,
+                        image: { type: 'jpeg', quality: 0.98 },
+                        html2canvas: { scale: 2, useCORS: true, letterRendering: true, logging: false },
+                        jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait' }
                     };
 
                     html2pdf().set(opt).from(element).save().then(() => {
@@ -1620,7 +1877,7 @@
         document.addEventListener('DOMContentLoaded', initReports);
 
         // Auto-update report numbers in real-time when data changes
-        window.addEventListener('storage', function(e) {
+        window.addEventListener('storage', function (e) {
             if (e.key === 'CARGO_BIDDING_DATA_V3') {
                 renderReportUI();
             }
@@ -1628,5 +1885,5 @@
         window.addEventListener('cargostore_updated', renderReportUI);
     </script>
 </body>
-</html>
 
+</html>

@@ -310,9 +310,9 @@
                     <span class="w-7 h-7 bg-blue-100 text-blue-700 rounded-lg flex items-center justify-center text-sm font-bold">4</span>
                     Thông tin tài khoản (sau khi được duyệt)
                 </h2>
-                <p class="text-xs text-gray-500 mb-5 ml-9">Mã đại lý sẽ do ban điều hành cấp tự động (AG-xxxx). Quý đại lý vui lòng đặt mật khẩu khởi tạo và Mã PIN bảo mật.</p>
+                <p class="text-xs text-gray-500 mb-5 ml-9">Mã đại lý sẽ do ban điều hành cấp tự động (AG-xxxx). Quý đại lý vui lòng đặt mật khẩu khởi tạo.</p>
 
-                <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
                     <div>
                         <label class="block text-sm font-medium mb-1">Mật khẩu khởi tạo <span class="text-red-500">*</span></label>
                         <input type="password" id="tempPassword" required placeholder="Tối thiểu 8 ký tự"
@@ -345,17 +345,10 @@
                                class="w-full border rounded-xl px-4 py-2.5 text-sm focus:ring-2 focus:ring-blue-500 outline-none transition">
                         <p id="confirmFeedbackMsg" class="text-xs mt-1 font-medium hidden"></p>
                     </div>
-                    <div>
-                        <label class="block text-sm font-medium mb-1">Mã PIN bảo mật (4 chữ số) <span class="text-red-500">*</span></label>
-                        <input type="password" id="pinCode" maxlength="4" pattern="[0-9]{4}" required placeholder="VD: 1234" value="1234"
-                               class="w-full border rounded-xl px-4 py-2.5 text-sm focus:ring-2 focus:ring-blue-500 outline-none transition font-mono tracking-widest text-center">
-                        <p id="pinCodeErr" class="text-xs text-red-600 font-medium mt-1 hidden"></p>
-                        <p class="text-[11px] text-gray-500 mt-1">Dùng để tra cứu/xem lại mật khẩu</p>
-                    </div>
                 </div>
-                <div class="bg-amber-50 border border-amber-200 text-amber-800 rounded-xl p-3 text-xs mt-4 flex items-center gap-2">
-                    <i class="fa-solid fa-circle-info text-amber-600"></i>
-                    <span>Sau khi được phê duyệt, thông tin đăng nhập chính thức gồm <strong>Mã Đại Lý (AG-xxxx)</strong>, Mật khẩu và Mã PIN sẽ được kích hoạt tức thì.</span>
+                <div class="bg-blue-50 border border-blue-200 text-blue-800 rounded-xl p-3 text-xs mt-4 flex items-center gap-2">
+                    <i class="fa-solid fa-circle-info text-blue-600"></i>
+                    <span>Sau khi hồ sơ được phê duyệt, Quý đại lý đăng nhập lần đầu bằng Mật khẩu đã tạo, sau đó sẽ <strong>thiết lập Mã PIN bảo mật (4 chữ số)</strong> trực tiếp trong hệ thống để bảo vệ tài khoản.</span>
                 </div>
             </div>
 
@@ -695,22 +688,14 @@
                 if (!firstInvalidEl) firstInvalidEl = document.getElementById('notifEmail');
             }
 
-            // 7. PIN Code
-            const pinVal = (document.getElementById('pinCode')?.value || '').trim();
-            const pinOk = pinRegex.test(pinVal);
-            if (!setFieldError('pinCode', 'pinCodeErr', pinOk, 'Mã PIN bảo mật phải gồm đúng 4 chữ số (0-9, VD: 1234)', showErrors)) {
-                isValid = false;
-                if (!firstInvalidEl) firstInvalidEl = document.getElementById('pinCode');
-            }
-
-            // 8. Password Strength
+            // 7. Password Strength
             const pwdOk = updatePasswordChecklist();
             if (!pwdOk) {
                 isValid = false;
                 if (!firstInvalidEl) firstInvalidEl = p1Input;
             }
 
-            // 9. Password Confirm
+            // 8. Password Confirm
             const p1 = p1Input ? p1Input.value : '';
             const p2 = p2Input ? p2Input.value : '';
             if (p1 !== p2) {
@@ -753,7 +738,7 @@
         }
 
         // Live format checks on blur / input (never steals focus or jumps cursor)
-        ['companyName', 'address', 'repPosition', 'taxCode', 'repName', 'email', 'phone', 'citizenId', 'notifEmail', 'pinCode'].forEach(id => {
+        ['companyName', 'address', 'repPosition', 'taxCode', 'repName', 'email', 'phone', 'citizenId', 'notifEmail'].forEach(id => {
             const el = document.getElementById(id);
             if (el) {
                 el.addEventListener('blur', () => validateFormInputs(true, false));
@@ -779,7 +764,6 @@
 
                 document.getElementById('tempPassword').value = "Demo@123456";
                 document.getElementById('confirmPassword').value = "Demo@123456";
-                document.getElementById('pinCode').value = "9999";
 
                 updatePasswordChecklist();
                 checkPasswordMatch();
@@ -864,7 +848,6 @@
 
             const p1 = document.getElementById('tempPassword').value;
             const p2 = document.getElementById('confirmPassword').value;
-            const pinVal = document.getElementById('pinCode').value || '1234';
             if (p1 !== p2) {
                 alert('Mật khẩu xác nhận không trùng khớp! Vui lòng kiểm tra lại.');
                 return;
@@ -891,7 +874,7 @@
                     citizenId: document.getElementById('citizenId').value,
                     notifEmail: document.getElementById('notifEmail').value,
                     password: p1,
-                    pin: pinVal,
+                    pin: null,
                     documents: collectedFiles.length > 0 ? collectedFiles : [
                         { name: 'GPKD_TanSonNhat_Scan.pdf', dataUrl: null, type: 'application/pdf' },
                         { name: 'UyQuyen_Cargo_IATA.pdf', dataUrl: null, type: 'application/pdf' },
