@@ -3279,7 +3279,7 @@ const anonFlag = isAnonymous !== false;
                 }
             }
 
-            const agentNotifs = allNotifs.filter(n => {
+            let agentNotifs = allNotifs.filter(n => {
                 // Admin / staff / registration / audit notifications must NEVER leak to agents
                 if (isAdminNotif(n)) return false;
                 
@@ -3331,7 +3331,7 @@ const anonFlag = isAnonymous !== false;
             });
 
             // Filter out payment-related notifications for demo/bidding-only
-            agentNotifs = agentNotifs.filter(n => {
+            let finalNotifs = agentNotifs.filter(n => {
                 if (!n) return false;
                 if (n.type === 'PAYMENT_REMINDER' || n.type === 'PAYMENT') return false;
                 const titleUpper = String(n.title || '').toUpperCase();
@@ -3342,7 +3342,7 @@ const anonFlag = isAnonymous !== false;
             });
 
             // Clean winning notification message
-            agentNotifs = agentNotifs.map(n => {
+            finalNotifs = finalNotifs.map(n => {
                 let msg = n.message || '';
                 if (msg.includes('hoàn tất thanh toán') || msg.includes('khai báo hàng hóa')) {
                     msg = msg.replace(/\s*Vui lòng hoàn tất thanh toán.*$/i, ' Phiên đấu giá đã hoàn tất thành công và ghi nhận bạn là người trúng thầu.');
@@ -3351,7 +3351,7 @@ const anonFlag = isAnonymous !== false;
                 return n;
             });
 
-            return agentNotifs.sort((a, b) => (Number(b.timestamp || b.createdAt || b.id) || 0) - (Number(a.timestamp || a.createdAt || a.id) || 0));
+            return finalNotifs.sort((a, b) => (Number(b.timestamp || b.createdAt || b.id) || 0) - (Number(a.timestamp || a.createdAt || a.id) || 0));
         },
 
         markNotificationRead: function(id) {
