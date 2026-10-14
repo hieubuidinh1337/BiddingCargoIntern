@@ -1,8 +1,13 @@
 (function() {
 'use strict';
-if (window.__chatBubbleLoaded) return;
-window.__chatBubbleLoaded = true;
-const API = '';
+// Disabled on demo/bidding-only branch
+try {
+  const b = document.getElementById('__cb-btn'); if (b) b.remove();
+  const m = document.getElementById('__cb-modal'); if (m) m.remove();
+  const s = document.getElementById('__chat-bubble-css'); if (s) s.remove();
+} catch(e) {}
+return;
+
 let currentChat = null;
 let pollTimer = null;
 let _lastMsgCount = -1;
