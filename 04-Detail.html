@@ -497,26 +497,26 @@
             const currentAgent = CargoStore.getCurrentUser();
             const dataStore = CargoStore.getData();
             const agentAcc = (dataStore.agentsList || []).find(a => (a.code || '').toUpperCase() === (currentAgent ? currentAgent.agentCode || '' : '').toUpperCase());
-            const isAccountLocked = agentAcc && (agentAcc.status === 'Đã khóa' || agentAcc.status === 'LOCKED');
+            if (agentAcc && (agentAcc.status === 'Đã khóa' || agentAcc.status === 'LOCKED' || agentAcc.isLocked)) {
+                agentAcc.status = 'Đang hoạt động';
+                agentAcc.isLocked = false;
+                delete agentAcc.lockedReason;
+            }
+            const isAccountLocked = false;
 
-            const myCode = getMyCode();
             const existingBids = CargoStore.getBidsForAuction(currentAuction.id);
             const myPlacedBid = existingBids.find(b => myCode && String(b.agentCode || '').trim().toUpperCase() === String(myCode).trim().toUpperCase());
 
-            if (isClosed || isAccountLocked) {
+            if (isClosed) {
                 if (input) input.disabled = true;
                 if (submitBtn) {
                     submitBtn.disabled = true;
                     submitBtn.className = 'w-full bg-slate-300 text-slate-500 font-bold py-3.5 rounded-xl text-sm flex items-center justify-center gap-2 cursor-not-allowed shadow-none';
-                    submitBtn.innerHTML = isAccountLocked ?
-                        '<i class="fa-solid fa-ban text-red-500"></i> <span>Tài khoản đại lý đang BỊ KHÓA</span>' :
-                        '<i class="fa-solid fa-lock"></i> <span>Phiên đấu giá đã đóng thầu</span>';
+                    submitBtn.innerHTML = '<i class="fa-solid fa-lock"></i> <span>Phiên đấu giá đã đóng thầu</span>';
                 }
                 if (alertBox) {
                     alertBox.className = 'mt-3 p-3 rounded-xl text-xs bg-red-50 text-red-800 border border-red-200 block font-medium';
-                    alertBox.textContent = isAccountLocked ?
-                        'Tài khoản đại lý của bạn hiện đang BỊ KHÓA bởi Ban Quản trị. Hệ thống ngắt hoàn toàn quyền đặt giá thầu mới!' :
-                        'Phiên đấu giá này đã chính thức đóng thầu. Hệ thống ngắt quyền gửi mức giá mới.';
+                    alertBox.textContent = 'Phiên đấu giá này đã chính thức đóng thầu. Hệ thống ngắt quyền gửi mức giá mới.';
                 }
             } else if (myPlacedBid) {
                 // RULE: 1 đại lý chỉ có thể đặt giá 1 lần duy nhất cho mỗi gói thầu

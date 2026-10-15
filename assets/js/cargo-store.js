@@ -64,15 +64,13 @@ const CargoStore = (function() {
             address: '88 Láng Hạ, Đống Đa, Hà Nội',
             province: 'Hà Nội',
             tier: 'TIER1',
-            status: 'Đã khóa',
+            status: 'Đang hoạt động',
             joinedDate: '22/05/2024',
             totalBids: 18,
             totalWins: 5,
             winRate: '28%',
             totalSpentUSD: '8.0k',
-            totalSpentVND: 1030000000,
-            lockedReason: 'Hệ thống tự động khóa do quá hạn thanh toán đơn WON-20260909-07 (VU450 - SGN - PQC)',
-            lockedAt: '09:10:00 9/9/2026'
+            totalSpentVND: 1030000000
         },
         {
             id: 4,
@@ -717,6 +715,7 @@ const CargoStore = (function() {
             hotline: '1900.6686',
             supportEmail: 'customercare@vietravelairlines.vn',
             hideAgentCredentials: true,
+            autoCloseOnBid: false,
             smtp: {
                 host: 'smtp.gmail.com',
                 port: 465,
@@ -1814,79 +1813,28 @@ const CargoStore = (function() {
     function checkAndAutoLockExpiredWonAuctions(data) {
         if (!data) return false;
         let modified = false;
-        const wonAuctions = data.wonAuctions || [];
-        const agentsList = data.agentsList || [];
-        if (!data.notifications) data.notifications = [];
 
-        wonAuctions.forEach(item => {
-            // NEVER lock or cancel if already paid, pending verification, or cancelled by Admin
-            if (item.paymentStatus === 'PAID' || item.paymentStatus === 'PENDING_VERIFICATION' || item.paymentStatus === 'CANCELLED' || item.paymentStatus === 'CANCELLED_AFTER_PAYMENT') {
-                return;
-            }
-
-            const isExpired = isWonAuctionExpired(item, data);
-            const targetCode = (item.agentCode || '').toUpperCase();
-            const agent = agentsList.find(a => (a.code || '').toUpperCase() === targetCode);
-
-            if (isExpired && item.paymentStatus !== 'PAID' && item.paymentStatus !== 'PENDING_VERIFICATION') {
-                if (item.paymentStatus !== 'EXPIRED' && item.paymentStatus !== 'CANCELLED') {
-                    item.paymentStatus = 'EXPIRED';
+        // Auto-heal / Unlock all agent accounts: branch policy does not lock accounts or hinder bidding for invoices
+        if (Array.isArray(data.agentsList)) {
+            data.agentsList.forEach(agent => {
+                if (agent.status === 'Đã khóa' || agent.status === 'LOCKED' || agent.isLocked || agent.lockedReason) {
+                    agent.status = 'Đang hoạt động';
+                    agent.isLocked = false;
+                    delete agent.lockedReason;
+                    delete agent.lockedAt;
                     modified = true;
                 }
+            });
+        }
 
-            const isWaived = item.lockWaivedByAdmin === true;
-
-            // Auto-lock agent account if not waived by Admin and agent hasn't been unlocked after this penalty
-            const agentUnlockedAfterThis = agent && agent.unlockedAt && item.lockPenaltyHandled;
-
-            // Auto-lock agent account if not waived by Admin
-            if (!isWaived && !agentUnlockedAfterThis && agent) {
-                    if (agent.status !== 'Đã khóa' && agent.status !== 'LOCKED') {
-                        agent.status = 'Đã khóa';
-                        agent.lockedReason = `Hệ thống tự động khóa do quá hạn thanh toán đơn ${item.wonId} (${item.flightNumber} - ${item.route})`;
-                        agent.lockedAt = new Date().toLocaleString('vi-VN');
-                        item.lockPenaltyHandled = true; // Mark penalty as applied
-                        modified = true;
-
-                        // Push high-priority lock notification
-                        const hasNotif = (data.notifications || []).some(n => 
-                            (n.targetAgentCode || '').toUpperCase() === targetCode &&
-                            n.type === 'ALERT' &&
-                            (n.title || '').includes('TÀI KHOẢN ĐÃ BỊ KHÓA')
-                        );
-                        if (!hasNotif) {
-                            const notifId = Date.now() + Math.floor(Math.random() * 1000);
-                            data.notifications.unshift({
-                                id: notifId,
-                                timestamp: notifId,
-                                targetAgentCode: item.agentCode,
-                                title: `⚠️ TÀI KHOẢN ĐÃ BỊ KHÓA DO QUÁ HẠN THANH TOÁN`,
-                                message: `Tài khoản đại lý ${item.agentCode} đã bị hệ thống tự động KHÓA do không hoàn tất thanh toán đơn hàng thắng thầu ${item.wonId} (Chuyến bay ${item.flightNumber}) trước hạn chót. Quyền tham gia đấu giá trên sàn đã bị tạm ngưng. Vui lòng liên hệ Ban Điều hành Cargo để xử lý.`,
-                                time: formatTimeAgo(notifId),
-                                type: 'ALERT',
-                                read: false,
-                                link: '07-WonAuction.html'
-                            });
-                        }
-
-                        // Clear session if logged in
-                        if (data.currentUser) {
-                            const currentCode = (data.currentUser.agentCode || data.currentUser.code || '').toUpperCase();
-                            if (currentCode === targetCode || data.currentUser.id == agent.id) {
-                                data.currentUser = null;
-                            }
-                        }
-                    }
-                }
-            } else if (!isExpired && item.paymentStatus !== 'PAID') {
-                // If previously marked EXPIRED erroneously, restore to UNPAID
-                if (item.paymentStatus === 'EXPIRED') {
-                    item.paymentStatus = 'UNPAID';
-                    modified = true;
-                }
-                // (Payment reminder notification temporarily disabled for demo/bidding-only)
+        // Clean up high-priority account lock alert notifications
+        if (Array.isArray(data.notifications)) {
+            const beforeLen = data.notifications.length;
+            data.notifications = data.notifications.filter(n => !(n.type === 'ALERT' && (n.title || '').includes('TÀI KHOẢN ĐÃ BỊ KHÓA')));
+            if (data.notifications.length !== beforeLen) {
+                modified = true;
             }
-        });
+        }
 
         return modified;
     }
@@ -2201,15 +2149,13 @@ const CargoStore = (function() {
                 }
             }
 
-            // Verify status (Check if account is locked)
-            if (agent.status === 'Đã khóa' || agent.status === 'LOCKED') {
-                const reason = agent.lockedReason || 'Tài khoản đại lý đã bị khóa do quá hạn thanh toán đơn hàng thắng thầu hoặc vi phạm quy chế.';
-                return {
-                    success: false,
-                    isLocked: true,
-                    lockedReason: reason,
-                    message: `Tài khoản đại lý ${agent.code} (${agent.companyName}) hiện đang bị KHÓA.\n\nLý do khóa: "${reason}".\n\nVui lòng liên hệ Ban Điều hành hoặc Hotline 1900.6686 để được hỗ trợ mở khóa.`
-                };
+            // Branch policy: No invoice/payment account lock - Auto-unlock agent if locked
+            if (agent.status === 'Đã khóa' || agent.status === 'LOCKED' || agent.isLocked || agent.lockedReason) {
+                agent.status = 'Đang hoạt động';
+                agent.isLocked = false;
+                delete agent.lockedReason;
+                delete agent.lockedAt;
+                this.saveData(data);
             }
 
             // Verify against THAT SPECIFIC AGENT'S PASSWORD!
@@ -2864,14 +2810,13 @@ const CargoStore = (function() {
 
             const user = data.currentUser || defaultData.currentUser;
 
-            // Check if current agent account is LOCKED in agentsList
+            // Ensure agent account is active (No invoice/payment blockage in this branch)
             const agentAccount = (data.agentsList || []).find(a => (a.code || '').toUpperCase() === (user.agentCode || '').toUpperCase());
-            if (agentAccount && (agentAccount.status === 'Đã khóa' || agentAccount.status === 'LOCKED')) {
-                return { 
-                    success: false, 
-                    isLocked: true,
-                    message: `Tài khoản đại lý ${user.agentCode} của bạn hiện đang BỊ KHÓA (${agentAccount.lockedReason || 'do quá hạn thanh toán đơn hàng thắng thầu'}). Quyền đặt giá đã bị ngưng!` 
-                };
+            if (agentAccount && (agentAccount.status === 'Đã khóa' || agentAccount.status === 'LOCKED' || agentAccount.isLocked)) {
+                agentAccount.status = 'Đang hoạt động';
+                agentAccount.isLocked = false;
+                delete agentAccount.lockedReason;
+                delete agentAccount.lockedAt;
             }
 
             // Rule: 1 đại lý chỉ có thể đặt giá 1 lần duy nhất cho mỗi gói thầu
@@ -2973,6 +2918,15 @@ const anonFlag = isAnonymous !== false;
             // overwrite the new bid in the 2-second window before server confirms it.
             lastLocalSaveTimestamp = Date.now();
             saveData(data, true);
+
+            // Auto-close feature for fast testing without waiting for timer
+            if (data.settings && data.settings.autoCloseOnBid) {
+                setTimeout(() => {
+                    if (typeof this.closeAuction === 'function') {
+                        this.closeAuction(auction.id);
+                    }
+                }, 300);
+            }
 
             // Dispatch atomic bid placement to central server if running over HTTP
             if (isHttp) {
@@ -4187,6 +4141,60 @@ const anonFlag = isAnonymous !== false;
             }
         },
 
+        closeAllOpenAuctions: function(autoSeedIfEmpty = true) {
+            const data = loadData();
+            const openAuctions = (data.auctions || []).filter(a => a && a.status === 'OPEN');
+            if (openAuctions.length === 0) {
+                return { success: false, message: 'Hiện không có phiên đấu giá nào đang mở (OPEN) để chốt thầu.' };
+            }
+
+            let closedCount = 0;
+            openAuctions.forEach(a => {
+                const bids = (data.bids || []).filter(b => b.auctionId == a.id).sort((x, y) => Number(y.priceKg) - Number(x.priceKg));
+                if (bids.length === 0 && autoSeedIfEmpty) {
+                    const testAgent = (data.agentsList || []).find(ag => (ag.code || '').toUpperCase() === 'AG-0006') || 
+                                      (data.agentsList && data.agentsList[0]) || 
+                                      { code: 'AG-0006', companyName: 'Công ty CP Viettel Post' };
+                    const bidPrice = Number(a.startingPriceKg) || 25000;
+                    const testBid = {
+                        id: Date.now() + Math.floor(Math.random() * 1000),
+                        auctionId: a.id,
+                        agentCode: testAgent.code,
+                        agentName: testAgent.companyName,
+                        priceKg: bidPrice,
+                        timestamp: new Date().toLocaleTimeString('vi-VN', { hour: '2-digit', minute: '2-digit' }),
+                        isAnonymous: true,
+                        status: 'WON'
+                    };
+                    if (!data.bids) data.bids = [];
+                    data.bids.unshift(testBid);
+                    a.currentPriceKg = bidPrice;
+                    a.winningPriceKg = bidPrice;
+                    a.winnerAgentCode = testAgent.code;
+                    a.winnerAgentName = testAgent.companyName;
+                    a.bidsCount = 1;
+                }
+                saveData(data, true);
+                const res = this.closeAuction(a.id);
+                if (res && res.success !== false) {
+                    closedCount++;
+                }
+            });
+
+            this.logActivity({
+                actionCategory: 'Cấu hình hệ thống',
+                actionTitle: 'Tự động chốt tất cả phiên đang mở',
+                target: 'Tất cả phiên OPEN',
+                details: `Quản trị viên đã kích hoạt chốt thầu tức thì cho ${closedCount} phiên đấu giá để kiểm thử.`
+            });
+
+            return {
+                success: true,
+                message: `Đã tự động chốt thầu thành công ${closedCount} phiên đấu giá!\nCác phiên đã chuyển sang trạng thái "ĐÃ CHỐT" và sinh đơn hàng trong mục "Đơn trúng thầu" để kiểm thử.`,
+                count: closedCount
+            };
+        },
+
         closeAuction: function(id) {
             const data = loadData();
             if (data.currentAdmin && data.currentAdmin.role === 'STAFF') {
@@ -5264,6 +5272,9 @@ const anonFlag = isAnonymous !== false;
             if (settingsData.platformFee) data.settings.platformFee = Number(settingsData.platformFee);
             if (settingsData.hideAgentCredentials !== undefined) {
                 data.settings.hideAgentCredentials = Boolean(settingsData.hideAgentCredentials);
+            }
+            if (settingsData.autoCloseOnBid !== undefined) {
+                data.settings.autoCloseOnBid = Boolean(settingsData.autoCloseOnBid);
             }
 
             if (settingsData.smtp) {

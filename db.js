@@ -822,7 +822,9 @@ async function placeBidAtomic({ auctionId, agentCode, agentName, priceKg, isAnon
     const cleanCode = agentCode.trim().toUpperCase();
     let agent = await get('SELECT * FROM agents WHERE UPPER(code) = ?', [cleanCode]);
     if (agent && (agent.isLocked === 1 || agent.status === 'Đã khóa' || agent.status === 'LOCKED')) {
-        throw new Error('Tài khoản đại lý đã bị khóa, không thể đặt thầu');
+        await run('UPDATE agents SET isLocked = 0, status = "Hoạt động", lockedReason = NULL WHERE UPPER(code) = ?', [cleanCode]);
+        agent.isLocked = 0;
+        agent.status = 'Hoạt động';
     }
 
     if (!agent) {

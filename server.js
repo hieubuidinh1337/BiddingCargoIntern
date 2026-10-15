@@ -625,43 +625,25 @@ function isWonAuctionExpired(item, passedData) {
 function checkAndAutoLockExpiredWonAuctions(data) {
     if (!data) return false;
     let modified = false;
-    const wonAuctions = data.wonAuctions || [];
-    const agentsList = data.agentsList || [];
-    if (!data.notifications) data.notifications = [];
 
-    wonAuctions.forEach(item => {
-        if (item.paymentStatus === 'PAID' || item.paymentStatus === 'PENDING_VERIFICATION' || item.paymentStatus === 'CANCELLED' || item.paymentStatus === 'CANCELLED_AFTER_PAYMENT') {
-            return;
-        }
-
-        const isExpired = isWonAuctionExpired(item, data);
-        const targetCode = (item.agentCode || '').toUpperCase();
-        const agent = agentsList.find(a => (a.code || '').toUpperCase() === targetCode);
-
-        if (isExpired && item.paymentStatus !== 'PAID' && item.paymentStatus !== 'PENDING_VERIFICATION') {
-            if (item.paymentStatus !== 'EXPIRED' && item.paymentStatus !== 'CANCELLED') {
-                item.paymentStatus = 'EXPIRED';
+    // Auto-heal / Unlock all agents: branch policy does not lock accounts for invoices
+    if (Array.isArray(data.agentsList)) {
+        data.agentsList.forEach(agent => {
+            if (agent.status === 'LOCKED' || agent.status === 'Đã khóa' || agent.isLocked || agent.lockedReason) {
+                agent.status = 'Đang hoạt động';
+                agent.isLocked = false;
+                delete agent.lockedReason;
+                delete agent.lockedAt;
                 modified = true;
             }
+        });
+    }
 
-            const isWaived = item.lockWaivedByAdmin === true;
-            // Also skip if admin already unlocked the agent for this same item
-            const agentUnlockedAfterThis = agent && agent.unlockedAt && item.lockPenaltyHandled;
-
-            if (!isWaived && !agentUnlockedAfterThis && agent) {
-                if (agent.status !== 'LOCKED') {
-                    agent.status = 'LOCKED';
-                    agent.isLocked = true;
-                    agent.lockedReason = `Hệ thống tự động khóa do quá hạn thanh toán đơn ${item.wonId} (${item.flightNumber} - ${item.route})`;
-                    agent.lockedAt = new Date().toLocaleString('vi-VN');
-                    item.lockPenaltyHandled = true;
-                    modified = true;
-
-                    // (Lock notification temporarily disabled for demo/bidding-only)
-                }
-            }
-        }
-    });
+    if (Array.isArray(data.notifications)) {
+        const beforeLen = data.notifications.length;
+        data.notifications = data.notifications.filter(n => !(n.type === 'ALERT' && (n.title || '').includes('TÀI KHOẢN ĐÃ BỊ KHÓA')));
+        if (data.notifications.length !== beforeLen) modified = true;
+    }
 
     return modified;
 }
