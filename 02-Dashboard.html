@@ -240,7 +240,9 @@
         }
 
         let dashAuctionCurrentPage = 1;
-        const dashAuctionPageSize = 4;
+        const dashAuctionPageSize = 20;
+        const dashInputCache = {};
+        const dashCheckCache = {};
 
         function goToDashAuctionPage(page) {
             dashAuctionCurrentPage = page;
@@ -310,252 +312,315 @@
             const kpiWon = document.getElementById('kpiWon');
             if (kpiWon) kpiWon.innerHTML = `${wonAuctions.length} <span class="text-xs text-gray-400 font-normal">đơn</span>`;
 
-            // === Render Featured Open Auctions (Paginated, Full Width Excel Structure) ===
+            // === Render Featured Open Auctions (Unified Excel Bidding Sheet) ===
             const totalOpen = openAuctions.length;
-            const totalPages = Math.max(1, Math.ceil(totalOpen / dashAuctionPageSize));
-            if (dashAuctionCurrentPage > totalPages) dashAuctionCurrentPage = totalPages;
-            if (dashAuctionCurrentPage < 1) dashAuctionCurrentPage = 1;
-
-            const startIndex = (dashAuctionCurrentPage - 1) * dashAuctionPageSize;
-            const endIndex = Math.min(startIndex + dashAuctionPageSize, totalOpen);
-            const paginatedAuctions = openAuctions.slice(startIndex, endIndex);
-
             const container = document.getElementById('dashboardAuctionList');
+            const pagContainer = document.getElementById('dashAuctionPagination');
+            if (pagContainer) pagContainer.innerHTML = '';
+
             if (container) {
                 if (totalOpen === 0) {
                     container.innerHTML = `<div class="p-8 text-center text-gray-400 text-sm bg-white rounded-2xl border">Hiện chưa có phiên đấu giá nào đang mở.</div>`;
                 } else {
-                    container.innerHTML = paginatedAuctions.map(a => {
+                    let endStr = '15/10/2026';
+                    let startStr = '13/10/2026';
+                    try {
+                        const firstWithEnd = openAuctions.find(a => a.endTime);
+                        if (firstWithEnd) {
+                            const ed = new Date(firstWithEnd.endTime);
+                            endStr = ed.toLocaleDateString('vi-VN');
+                            const sd = firstWithEnd.createdAt ? new Date(firstWithEnd.createdAt) : new Date(ed.getTime() - 2 * 86400000);
+                            startStr = sd.toLocaleDateString('vi-VN');
+                        }
+                    } catch (err) { }
+
+                    const tableRowsHtml = openAuctions.map(a => {
                         const timer = CargoStore.getTimeRemaining(a.endTime);
-                        const isLeading = !!(a.leadingAgentCode && a.leadingAgentCode === myCode);
                         const auctionMyBids = (myBids || []).filter(b => String(b.auctionId) === String(a.id));
                         const myHighestBid = auctionMyBids.length > 0
                             ? auctionMyBids.sort((x, y) => (Number(y.priceKg) || 0) - (Number(x.priceKg) || 0))[0]
                             : null;
 
-                        // Start Date and End Date formatting (no hours needed per request)
-                        let endStr = '15/10/2026';
-                        let startStr = '14/10/2026';
-                        try {
-                            if (a.endTime) {
-                                const ed = new Date(a.endTime);
-                                endStr = ed.toLocaleDateString('vi-VN');
-                                const sd = a.createdAt ? new Date(a.createdAt) : (a.startTime ? new Date(a.startTime) : new Date(ed.getTime() - 2 * 86400000));
-                                startStr = sd.toLocaleDateString('vi-VN');
-                            }
-                        } catch (err) { }
-
                         const capKg = a.capacityKg || 3500;
                         const startPrice = a.startingPriceKg || 18000;
-                        const effectivePrice = myHighestBid ? myHighestBid.priceKg : startPrice;
-                        const totalAmount = capKg * effectivePrice;
+                        const isSubmitted = !!myHighestBid;
+                        const currentPrice = isSubmitted
+                            ? myHighestBid.priceKg
+                            : (dashInputCache[a.id] !== undefined ? dashInputCache[a.id] : startPrice);
+                        const isChecked = !isSubmitted && (dashCheckCache[a.id] !== undefined ? dashCheckCache[a.id] : true);
+                        const rowTotal = capKg * currentPrice;
 
                         return `
-                            <div class="bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden hover:border-blue-400 hover:shadow-md transition">
-                                <!-- Card Header: Title banner per Excel specification -->
-                                <div class="bg-gradient-to-r from-slate-900 via-blue-950 to-slate-900 text-white px-5 py-3.5 flex flex-col sm:flex-row sm:items-center justify-between gap-2.5">
-                                    <div class="flex items-center gap-2.5 flex-wrap">
-                                        <span class="bg-blue-600 text-white font-bold text-xs px-2.5 py-1 rounded-lg uppercase tracking-wider font-mono">${a.flightNumber}</span>
-                                        <h4 class="font-bold text-sm tracking-tight">THÔNG TIN ĐĂNG KÝ GÓI THẦU CHUYẾN ${a.flightNumber} KHAI THÁC TRÊN TÀU BAY ${a.aircraft || 'A321'}</h4>
-                                    </div>
-                                    <div class="flex items-center gap-2 text-xs">
-                                        <span class="bg-white/10 px-2.5 py-1 rounded-lg text-slate-300 font-mono text-[11px] border border-white/10" title="Mã định danh phiên">${a.flightCode || 'FL-' + a.flightNumber}</span>
-                                        <span class="dash-timer-text text-amber-300 font-semibold" data-endtime="${a.endTime}">
-                                            <i class="fa-regular fa-clock mr-1"></i><span class="timer-val">Còn ${timer.hours > 0 ? timer.hours + 'h ' : ''}${timer.minutes}m ${timer.seconds}s</span>
-                                        </span>
-                                    </div>
-                                </div>
-
-                                <!-- Body: Info & Excel Grid -->
-                                <div class="p-4 sm:p-5 space-y-4">
-                                    <!-- Meta Info Row (Excel Heading Format) -->
-                                    <div class="bg-slate-50 p-3.5 rounded-xl border border-slate-200 text-xs space-y-2.5">
-                                        <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-2 border-b border-slate-200/80 pb-2">
-                                            <div class="flex items-center gap-2 flex-wrap">
-                                                <span class="font-bold text-slate-700 uppercase tracking-wide text-[11px]">TÊN ĐƠN VỊ ĐẤU THẦU:</span>
-                                                <span class="font-bold text-blue-900 bg-white px-3 py-1 rounded-lg border border-slate-300 text-xs shadow-2xs">${u ? (u.companyName || u.fullName) + ' (' + (u.agentCode || 'AG-0892') + ')' : 'Đại lý'}</span>
+                            <tr class="hover:bg-blue-50/30 transition">
+                                <td class="py-3.5 px-4 border-r border-slate-200">
+                                    <div class="flex items-start gap-2.5">
+                                        ${isSubmitted ? `
+                                            <span class="mt-0.5 text-emerald-600 text-sm" title="Đã nộp phiếu giá"><i class="fa-solid fa-circle-check"></i></span>
+                                        ` : `
+                                            <input type="checkbox" 
+                                                   id="dashCheck_${a.id}" 
+                                                   ${isChecked ? 'checked' : ''} 
+                                                   onchange="onDashCheckChange(${a.id})" 
+                                                   class="dash-flight-chk mt-1 w-4 h-4 text-blue-600 rounded cursor-pointer border-slate-300 focus:ring-blue-500" 
+                                                   title="Tích chọn chuyến này để chuẩn bị đặt giá thầu">
+                                        `}
+                                        <div>
+                                            <div class="flex items-center gap-2">
+                                                <span class="font-bold text-slate-900 text-sm font-mono bg-blue-50 text-blue-800 px-2 py-0.5 rounded border border-blue-200">${a.flightNumber}</span>
+                                                <span class="text-slate-600 font-semibold text-xs">(${a.route})</span>
                                             </div>
-                                            <div class="flex items-center gap-1.5 text-xs text-slate-600">
-                                                <span class="text-slate-400 font-medium">Thời hạn:</span>
-                                                <span class="font-semibold text-slate-800"><i class="fa-regular fa-calendar-check text-indigo-600"></i> ${startStr}</span>
-                                                <span class="text-slate-400">➔</span>
-                                                <span class="font-semibold text-red-600"><i class="fa-regular fa-calendar-xmark text-red-500"></i> ${endStr}</span>
-                                            </div>
-                                        </div>
-                                        <div class="grid grid-cols-1 sm:grid-cols-3 gap-2 text-slate-600">
-                                            <div>
-                                                <span class="text-slate-400 text-[11px]">Chặng bay:</span>
-                                                <span class="font-bold text-slate-900 ml-1">${a.originName || a.origin} (${a.origin}) ➔ ${a.destName || a.destination} (${a.destination})</span>
-                                            </div>
-                                            <div>
-                                                <span class="text-slate-400 text-[11px]">Giờ khởi hành (ETD):</span>
-                                                <span class="font-bold text-slate-900 ml-1">${a.etd}</span>
-                                            </div>
-                                            <div>
-                                                <span class="text-slate-400 text-[11px]">Trạng thái nộp thầu:</span>
-                                                ${myHighestBid ? `
-                                                    <span class="inline-flex items-center gap-1 bg-emerald-100 text-emerald-800 font-bold px-2 py-0.5 rounded text-[11px] ml-1">
-                                                        <i class="fa-solid fa-circle-check text-emerald-600"></i> Đã nộp phiếu giá
+                                            <div class="text-[11px] text-slate-500 mt-1 space-y-0.5">
+                                                <p>${a.originName || a.origin} ➔ ${a.destName || a.destination}</p>
+                                                <div class="flex items-center gap-2 flex-wrap">
+                                                    <span>ETD: <strong>${a.etd}</strong></span>
+                                                    <span>·</span>
+                                                    <span class="dash-timer-text text-amber-600 font-semibold" data-endtime="${a.endTime}">
+                                                        <i class="fa-regular fa-clock mr-0.5"></i><span class="timer-val">Còn ${timer.hours > 0 ? timer.hours + 'h ' : ''}${timer.minutes}m ${timer.seconds}s</span>
                                                     </span>
-                                                ` : `
-                                                    <span class="inline-flex items-center gap-1 bg-amber-50 text-amber-800 border border-amber-200 font-semibold px-2 py-0.5 rounded text-[11px] ml-1">
-                                                        <i class="fa-regular fa-clock text-amber-600"></i> Chưa nộp giá
-                                                    </span>
-                                                `}
-                                            </div>
-                                        </div>
-                                    </div>
-
-                                    <!-- Excel Table Structure (Ảnh 2 & Ảnh 3) -->
-                                    <div class="border border-slate-300 rounded-xl overflow-hidden shadow-2xs">
-                                        <div class="overflow-x-auto">
-                                            <table class="w-full text-xs text-left">
-                                                <thead class="bg-slate-100 border-b border-slate-300 font-bold text-slate-700 uppercase text-[11px]">
-                                                    <tr>
-                                                        <th class="py-2.5 px-4 border-r border-slate-200">Chuyến bay</th>
-                                                        <th class="py-2.5 px-4 border-r border-slate-200">Sản lượng cam kết</th>
-                                                        <th class="py-2.5 px-4 border-r border-slate-200">Giá mua (VNĐ/kg)</th>
-                                                        <th class="py-2.5 px-4">Thành tiền (VNĐ)</th>
-                                                    </tr>
-                                                </thead>
-                                                <tbody class="divide-y divide-slate-200 bg-white font-medium">
-                                                    <tr>
-                                                        <td class="py-3 px-4 border-r border-slate-200 whitespace-nowrap">
-                                                            <span class="font-bold text-slate-900 text-sm">${a.flightNumber}</span>
-                                                            <span class="text-slate-500 text-[11px] block">(${a.route})</span>
-                                                        </td>
-                                                        <td class="py-3 px-4 border-r border-slate-200">
-                                                            <span class="font-bold text-slate-900 text-sm">${CargoStore.formatNumber(capKg)} KG</span>
-                                                            <p class="text-[11px] text-red-600 italic mt-0.5">*Sản lượng ${CargoStore.formatNumber(capKg)}kg là mức tối thiểu phải cam kết</p>
-                                                        </td>
-                                                        <td class="py-3 px-4 border-r border-slate-200">
-                                                            ${myHighestBid ? `
-                                                                <div class="flex items-center gap-1.5">
-                                                                    <span class="font-bold text-blue-700 text-base">${CargoStore.formatCurrency(myHighestBid.priceKg)}</span>
-                                                                    <span class="text-xs text-slate-500 font-semibold">VNĐ</span>
-                                                                </div>
-                                                                <p class="text-[11px] text-emerald-600 font-semibold mt-0.5">✓ Giá đã nộp (quy chế nộp 1 lần duy nhất)</p>
-                                                            ` : `
-                                                                <div class="flex items-center gap-1.5">
-                                                                    <input type="number" 
-                                                                           id="dashBidInput_${a.id}" 
-                                                                           value="${startPrice}" 
-                                                                           min="${startPrice}" 
-                                                                           step="${a.minStep || 500}" 
-                                                                           oninput="updateDashCardTotal(${a.id}, ${capKg})" 
-                                                                           class="w-36 px-3 py-1.5 border-2 border-blue-400 focus:border-blue-600 focus:ring-2 focus:ring-blue-100 rounded-lg text-sm font-bold text-blue-800 bg-white outline-none shadow-2xs">
-                                                                    <span class="text-xs font-semibold text-slate-600">VNĐ</span>
-                                                                </div>
-                                                                <p class="text-[11px] text-red-600 italic mt-0.5">*Giá mua là giá áp dụng trên 1kg</p>
-                                                            `}
-                                                        </td>
-                                                        <td class="py-3 px-4">
-                                                            <span id="dashRowTotal_${a.id}" class="font-bold ${myHighestBid ? 'text-emerald-700' : 'text-slate-900'} text-base">
-                                                                ${CargoStore.formatCurrency(totalAmount)}
-                                                            </span>
-                                                        </td>
-                                                    </tr>
-                                                </tbody>
-                                                <tfoot class="bg-slate-50/90 border-t border-slate-300 font-bold">
-                                                    <tr>
-                                                        <td colspan="3" class="py-2.5 px-4 text-right uppercase text-[11px] text-slate-600 border-r border-slate-200">
-                                                            Tổng giá mua (VNĐ):
-                                                        </td>
-                                                        <td id="dashFooterTotal_${a.id}" class="py-2.5 px-4 text-blue-700 text-base">
-                                                            ${CargoStore.formatCurrency(totalAmount)}
-                                                        </td>
-                                                    </tr>
-                                                </tfoot>
-                                            </table>
-                                        </div>
-                                    </div>
-
-                                    <!-- Footer & Action Row: Nộp giá trực tiếp tại Dashboard -->
-                                    <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pt-1 border-t border-slate-100">
-                                        <div class="text-[11px] text-slate-500 space-y-0.5">
-                                            <p>• Giá mua là giá cước vận chuyển (Phụ phí nhiên liệu & an ninh: 0 VNĐ, chưa gồm VAT và phí lao vụ).</p>
-                                            <p>• Phí vận đơn: 60.000 VNĐ/AWB. Trả kết quả theo công thức: <strong>Tổng giá mua = Sản lượng (kg) × Giá mua (VNĐ/kg)</strong>.</p>
-                                        </div>
-                                        <div class="shrink-0 flex items-center gap-2">
-                                            ${myHighestBid ? `
-                                                <div class="bg-emerald-50 text-emerald-800 border border-emerald-300 text-xs font-bold px-4 py-2.5 rounded-xl flex items-center gap-2 shadow-2xs">
-                                                    <i class="fa-solid fa-circle-check text-emerald-600 text-sm"></i>
-                                                    <span>Đã nộp phiếu giá: <strong>${CargoStore.formatCurrency(myHighestBid.priceKg)}/Kg</strong> (Thành tiền: <strong>${CargoStore.formatCurrency(totalAmount)}</strong>)</span>
                                                 </div>
-                                            ` : `
-                                                <button type="button" 
-                                                        onclick="submitBidDirect(${a.id}, ${capKg}, '${a.flightNumber}', '${a.route}')" 
-                                                        id="btnSubmitBid_${a.id}" 
-                                                        class="bg-blue-600 hover:bg-blue-700 active:scale-[0.98] text-white text-xs sm:text-sm font-bold px-6 py-2.5 rounded-xl transition shadow flex items-center gap-2 cursor-pointer">
-                                                    <i class="fa-solid fa-paper-plane"></i> Xác nhận đặt giá thầu ngay
-                                                </button>
-                                            `}
+                                            </div>
                                         </div>
                                     </div>
-                                </div>
-                            </div>
+                                </td>
+                                <td class="py-3.5 px-4 border-r border-slate-200">
+                                    <span class="font-bold text-slate-900 text-sm">${CargoStore.formatNumber(capKg)} KG</span>  
+                                </td>
+                                <td class="py-3.5 px-4 border-r border-slate-200">
+                                    ${isSubmitted ? `
+                                        <div class="flex items-center gap-1.5">
+                                            <span class="font-bold text-blue-700 text-base">${CargoStore.formatCurrency(myHighestBid.priceKg)}</span>
+                                            <span class="text-xs text-slate-500 font-semibold">VNĐ</span>
+                                        </div>                                        
+                                    ` : `
+                                        <div class="flex items-center gap-1.5">
+                                            <input type="number" 
+                                                   id="dashBidInput_${a.id}" 
+                                                   value="${currentPrice}" 
+                                                   min="${startPrice}" 
+                                                   step="${a.minStep || 500}" 
+                                                   oninput="onDashPriceInput(${a.id}, ${capKg})" 
+                                                   class="w-36 px-3 py-1.5 border-2 border-blue-400 focus:border-blue-600 focus:ring-2 focus:ring-blue-100 rounded-lg text-sm font-bold text-blue-800 bg-white outline-none shadow-2xs">
+                                            <span class="text-xs font-semibold text-slate-600">VNĐ</span>
+                                        </div>
+                                    `}
+                                </td>
+                                <td class="py-3.5 px-4">
+                                    <div class="flex items-center justify-between gap-3">
+                                        <div>
+                                            <span id="dashRowTotal_${a.id}" class="font-bold ${isSubmitted ? 'text-emerald-700' : 'text-slate-900'} text-base">
+                                                ${CargoStore.formatCurrency(rowTotal)}
+                                            </span>
+                                            <p id="dashRowFormula_${a.id}" class="text-[11px] text-slate-400 mt-0.5">=${CargoStore.formatNumber(capKg)} × ${CargoStore.formatNumber(currentPrice)}</p>
+                                        </div>
+                                        ${isSubmitted ? `
+                                            <span class="inline-flex items-center gap-1 bg-emerald-50 text-emerald-800 border border-emerald-300 text-xs font-bold px-2.5 py-1 rounded-lg shadow-2xs shrink-0">
+                                                <i class="fa-solid fa-circle-check text-emerald-600"></i> Đã nộp
+                                            </span>
+                                        ` : `
+                                            <button type="button" 
+                                                    onclick="submitBidSingle(${a.id}, ${capKg}, '${a.flightNumber}', '${a.route}')" 
+                                                    class="bg-blue-50 hover:bg-blue-600 text-blue-700 hover:text-white border border-blue-200 hover:border-blue-600 text-[11px] font-bold px-2.5 py-1.5 rounded-lg transition shadow-2xs flex items-center gap-1 shrink-0 cursor-pointer"
+                                                    title="Nộp riêng giá thầu cho chuyến bay này">
+                                                <i class="fa-solid fa-paper-plane text-[9px]"></i> Nộp lẻ
+                                            </button>
+                                        `}
+                                    </div>
+                                </td>
+                            </tr>
                         `;
                     }).join('');
-                }
-            }
 
-            // Render Pagination Controls for open auctions on Dashboard
-            const pagContainer = document.getElementById('dashAuctionPagination');
-            if (pagContainer) {
-                if (totalOpen <= dashAuctionPageSize) {
-                    pagContainer.innerHTML = '';
-                } else {
-                    const pages = [];
-                    for (let i = 1; i <= totalPages; i++) pages.push(i);
-
-                    const pageBtns = pages.map(p => {
-                        const isActive = p === dashAuctionCurrentPage;
-                        if (isActive) {
-                            return `<button type="button" class="w-7 h-7 rounded-lg bg-blue-600 text-white font-bold text-xs flex items-center justify-center shadow-xs cursor-default">${p}</button>`;
-                        } else {
-                            return `<button type="button" onclick="goToDashAuctionPage(${p})" class="w-7 h-7 rounded-lg border border-slate-200 bg-white hover:bg-slate-50 text-slate-700 font-semibold text-xs flex items-center justify-center transition cursor-pointer">${p}</button>`;
-                        }
-                    }).join('');
-
-                    pagContainer.innerHTML = `
-                        <div class="bg-white rounded-xl border border-slate-200 px-4 py-2.5 flex items-center justify-between text-xs text-slate-500 shadow-2xs">
-                            <span>Hiển thị <strong>${startIndex + 1} - ${endIndex}</strong> trên <strong>${totalOpen}</strong> phiên đang mở</span>
-                            <div class="flex items-center gap-1.5">
-                                <button type="button" ${dashAuctionCurrentPage <= 1 ? 'disabled' : `onclick="goToDashAuctionPage(${dashAuctionCurrentPage - 1})"`} 
-                                        class="px-2.5 py-1 border rounded-lg bg-white text-slate-600 hover:bg-slate-50 disabled:opacity-40 disabled:cursor-not-allowed font-medium text-xs flex items-center gap-1">
-                                    <i class="fa-solid fa-chevron-left text-[10px]"></i> Trước
-                                </button>
-                                <div class="flex items-center gap-1">
-                                    ${pageBtns}
+                    container.innerHTML = `
+                        <div class="bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden hover:border-blue-300 transition">
+                            <!-- Card Header Banner -->
+                            <div class="bg-gradient-to-r from-slate-900 via-blue-950 to-slate-900 text-white px-5 py-3.5 flex flex-col sm:flex-row sm:items-center justify-between gap-2.5">
+                                <div class="flex items-center gap-2.5 flex-wrap">
+                                    <span class="bg-blue-600 text-white font-bold text-xs px-2.5 py-1 rounded-lg uppercase tracking-wider font-mono">VIETRAVEL CARGO</span>
+                                    <h4 class="font-bold text-sm sm:text-base tracking-tight">THÔNG TIN ĐĂNG KÝ GÓI THẦU CÁC CHUYẾN BAY KHAI THÁC TRÊN TÀU BAY CARGO</h4>
                                 </div>
-                                <button type="button" ${dashAuctionCurrentPage >= totalPages ? 'disabled' : `onclick="goToDashAuctionPage(${dashAuctionCurrentPage + 1})"`} 
-                                        class="px-2.5 py-1 border rounded-lg bg-white text-slate-600 hover:bg-slate-50 disabled:opacity-40 disabled:cursor-not-allowed font-medium text-xs flex items-center gap-1">
-                                    Sau <i class="fa-solid fa-chevron-right text-[10px]"></i>
-                                </button>
+                                <div class="flex items-center gap-2 text-xs">
+                                    <span class="bg-emerald-500/20 text-emerald-300 border border-emerald-400/30 px-2.5 py-1 rounded-lg font-semibold text-[11px]">
+                                        <i class="fa-solid fa-signal mr-1"></i>Đang mở (${totalOpen} chuyến bay)
+                                    </span>
+                                </div>
+                            </div>
+
+                            <!-- Body: Meta Info & Single Excel Grid -->
+                            <div class="p-4 sm:p-5 space-y-4">
+                                <!-- Meta Info Row (Excel Heading Format) -->
+                                <div class="bg-slate-50 p-3.5 rounded-xl border border-slate-200 text-xs space-y-2.5">
+                                    <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-2 border-b border-slate-200/80 pb-2">
+                                        <div class="flex items-center gap-2 flex-wrap">
+                                            <span class="font-bold text-slate-700 uppercase tracking-wide text-[11px]">TÊN ĐƠN VỊ ĐẤU THẦU:</span>
+                                            <span class="font-bold text-blue-900 bg-white px-3 py-1 rounded-lg border border-slate-300 text-xs shadow-2xs">${u ? (u.companyName || u.fullName) + ' (' + (u.agentCode || 'AG-0892') + ')' : 'Đại lý'}</span>
+                                        </div>
+
+                                    </div>
+                                    <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-2 text-slate-600 text-xs">
+                                        <div>
+                                            <span class="text-slate-400 text-[11px]">Quy chế nộp thầu:</span>
+                                            <span class="font-semibold text-slate-800 ml-1">Mỗi đại lý nộp giá <strong>1 lần duy nhất</strong> cho mỗi chuyến bay.</span>
+                                        </div>
+                                        <div class="text-[11px] text-blue-700 font-medium flex items-center gap-1">
+                                            <i class="fa-solid fa-circle-info text-blue-500"></i> Tích chọn các chuyến bay chuẩn bị nộp giá thầu bên dưới.
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <!-- Excel Table Structure -->
+                                <div class="border border-slate-300 rounded-xl overflow-hidden shadow-2xs">
+                                    <div class="overflow-x-auto">
+                                        <table class="w-full text-xs text-left">
+                                            <thead class="bg-slate-100 border-b border-slate-300 font-bold text-slate-700 uppercase text-[11px]">
+                                                <tr>
+                                                    <th class="py-2.5 px-4 border-r border-slate-200">
+                                                        <div class="flex items-center gap-2">
+                                                            <input type="checkbox" 
+                                                                   id="dashCheckAll" 
+                                                                   checked 
+                                                                   onchange="toggleSelectAllDash(this.checked)" 
+                                                                   class="w-4 h-4 text-blue-600 rounded cursor-pointer border-slate-300 focus:ring-blue-500" 
+                                                                   title="Chọn/Bỏ chọn tất cả các chuyến chưa nộp">
+                                                            <span>Chuyến bay</span>
+                                                        </div>
+                                                    </th>
+                                                    <th class="py-2.5 px-4 border-r border-slate-200">SẢN LƯỢNG CAM KẾT</th>
+                                                    <th class="py-2.5 px-4 border-r border-slate-200">GIÁ MUA (VNĐ/KG)</th>
+                                                    <th class="py-2.5 px-4">THÀNH TIỀN (VNĐ)</th>
+                                                </tr>
+                                            </thead>
+                                            <tbody class="divide-y divide-slate-200 bg-white font-medium">
+                                                ${tableRowsHtml}
+                                            </tbody>
+                                            <tfoot class="bg-slate-50/90 border-t-2 border-slate-300 font-bold">
+                                                <tr>
+                                                    <td colspan="3" class="py-3 px-4 text-right uppercase text-xs text-slate-700 border-r border-slate-200">
+                                                        <div class="font-extrabold text-slate-800 text-xs tracking-wide">TỔNG GIÁ MUA (VNĐ):</div>
+                                                        <div id="dashPreparedCountNote" class="text-[11px] font-normal text-slate-500 lowercase mt-0.5">
+                                                            (tính trên tất cả các phiên đại lý chuẩn bị đặt)
+                                                        </div>
+                                                    </td>
+                                                    <td class="py-3 px-4 text-blue-700 text-lg sm:text-xl font-extrabold bg-blue-50/70">
+                                                        <span id="dashGrandTotal">0 đ</span>
+                                                    </td>
+                                                </tr>
+                                            </tfoot>
+                                        </table>
+                                    </div>
+                                </div>
+
+                                <!-- Footer & Action Row -->
+                                <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pt-2 border-t border-slate-100">
+                                    <div class="text-[11px] text-slate-500 space-y-0.5">
+                                        <p>• Giá mua là giá cước vận chuyển (Phụ phí nhiên liệu & an ninh: 0 VNĐ, chưa gồm VAT và phí lao vụ).</p>
+                                        <p>• Phí vận đơn: 60.000 VNĐ/AWB. Trả kết quả theo công thức: <strong>Tổng giá mua = Tổng sản lượng (kg) × Giá mua (VNĐ/kg)</strong></p>
+                                    </div>
+                                    <div class="shrink-0 flex items-center gap-2">
+                                        <button type="button" 
+                                                onclick="submitAllPreparedBids()" 
+                                                id="btnSubmitAllBids" 
+                                                class="bg-blue-600 hover:bg-blue-700 active:scale-[0.98] text-white text-xs sm:text-sm font-bold px-6 py-2.5 rounded-xl transition shadow flex items-center gap-2 cursor-pointer disabled:opacity-40 disabled:cursor-not-allowed">
+                                            <i class="fa-solid fa-paper-plane"></i> <span id="btnSubmitAllText">Xác nhận đặt giá thầu ngay</span>
+                                        </button>
+                                    </div>
+                                </div>
                             </div>
                         </div>
                     `;
+
+                    updateDashAllTotals();
                 }
             }
-
         }
 
-        // Live calculation of row total and formula as agent types price
-        function updateDashCardTotal(auctionId, capKg) {
+        // Live calculation across all selected unsubmitted auctions
+        function onDashCheckChange(auctionId) {
+            const chk = document.getElementById('dashCheck_' + auctionId);
+            if (chk) {
+                dashCheckCache[auctionId] = chk.checked;
+            }
+            updateDashAllTotals();
+        }
+
+        function toggleSelectAllDash(checked) {
+            const allAuctions = CargoStore.getAuctions();
+            const openAuctions = allAuctions.filter(a => a.status === 'OPEN');
+            const myBids = CargoStore.getMyBids ? CargoStore.getMyBids() : [];
+
+            openAuctions.forEach(a => {
+                const isSubmitted = (myBids || []).some(b => String(b.auctionId) === String(a.id));
+                if (isSubmitted) return;
+                dashCheckCache[a.id] = checked;
+                const chk = document.getElementById('dashCheck_' + a.id);
+                if (chk) chk.checked = checked;
+            });
+            updateDashAllTotals();
+        }
+
+        function onDashPriceInput(auctionId, capKg) {
             const input = document.getElementById('dashBidInput_' + auctionId);
             if (!input) return;
             const price = Math.max(0, Number(input.value) || 0);
-            const total = capKg * price;
-            const totalEl = document.getElementById('dashRowTotal_' + auctionId);
+            dashInputCache[auctionId] = price;
+
+            const rowTotal = capKg * price;
+            const rowEl = document.getElementById('dashRowTotal_' + auctionId);
             const formulaEl = document.getElementById('dashRowFormula_' + auctionId);
-            const footerTotalEl = document.getElementById('dashFooterTotal_' + auctionId);
-            if (totalEl) totalEl.textContent = CargoStore.formatCurrency(total);
+            if (rowEl) rowEl.textContent = CargoStore.formatCurrency(rowTotal);
             if (formulaEl) formulaEl.textContent = `=${CargoStore.formatNumber(capKg)} × ${CargoStore.formatNumber(price)}`;
-            if (footerTotalEl) footerTotalEl.textContent = CargoStore.formatCurrency(total);
+
+            updateDashAllTotals();
         }
 
-        // Direct Bid Submission right on Dashboard
-        function submitBidDirect(auctionId, capKg, flightNumber, route) {
+        function updateDashAllTotals() {
+            const allAuctions = CargoStore.getAuctions();
+            const openAuctions = allAuctions.filter(a => a.status === 'OPEN');
+            const myBids = CargoStore.getMyBids ? CargoStore.getMyBids() : [];
+
+            let grandTotal = 0;
+            let preparedCount = 0;
+
+            openAuctions.forEach(a => {
+                const isSubmitted = (myBids || []).some(b => String(b.auctionId) === String(a.id));
+                if (isSubmitted) return;
+
+                const chk = document.getElementById('dashCheck_' + a.id);
+                const isChecked = chk ? chk.checked : (dashCheckCache[a.id] !== undefined ? dashCheckCache[a.id] : true);
+                if (!isChecked) return;
+
+                const input = document.getElementById('dashBidInput_' + a.id);
+                const startPrice = a.startingPriceKg || 18000;
+                const price = input ? Math.max(0, Number(input.value) || 0) : (dashInputCache[a.id] !== undefined ? dashInputCache[a.id] : startPrice);
+                const capKg = a.capacityKg || 3500;
+
+                grandTotal += (capKg * price);
+                preparedCount++;
+            });
+
+            const grandTotalEl = document.getElementById('dashGrandTotal');
+            if (grandTotalEl) grandTotalEl.textContent = CargoStore.formatCurrency(grandTotal);
+
+            const countNoteEl = document.getElementById('dashPreparedCountNote');
+            if (countNoteEl) {
+                countNoteEl.textContent = `(tổng của ${preparedCount} phiên đại lý chuẩn bị đặt)`;
+            }
+
+            const btnSubmitText = document.getElementById('btnSubmitAllText');
+            const btnSubmit = document.getElementById('btnSubmitAllBids');
+            if (btnSubmitText) {
+                if (preparedCount > 0) {
+                    btnSubmitText.textContent = `Xác nhận đặt giá thầu ngay (${preparedCount} phiên - ${CargoStore.formatCurrency(grandTotal)})`;
+                } else {
+                    btnSubmitText.textContent = `Xác nhận đặt giá thầu ngay (0 phiên)`;
+                }
+            }
+            if (btnSubmit) {
+                btnSubmit.disabled = (preparedCount === 0);
+            }
+        }
+
+        // Submit Bids for All Prepared (Selected) Sessions
+        function submitAllPreparedBids() {
             const u = CargoStore.getCurrentUser();
             if (!u) {
                 alert('Vui lòng đăng nhập trước khi nộp giá thầu!');
@@ -563,9 +628,98 @@
                 return;
             }
 
-            const input = document.getElementById('dashBidInput_' + auctionId);
-            if (!input) return;
-            const priceKg = Number(input.value);
+            const allAuctions = CargoStore.getAuctions();
+            const openAuctions = allAuctions.filter(a => a.status === 'OPEN');
+            const myBids = CargoStore.getMyBids ? CargoStore.getMyBids() : [];
+
+            const preparedList = [];
+            for (const a of openAuctions) {
+                const isSubmitted = (myBids || []).some(b => String(b.auctionId) === String(a.id));
+                if (isSubmitted) continue;
+
+                const chk = document.getElementById('dashCheck_' + a.id);
+                const isChecked = chk ? chk.checked : (dashCheckCache[a.id] !== undefined ? dashCheckCache[a.id] : true);
+                if (!isChecked) continue;
+
+                const input = document.getElementById('dashBidInput_' + a.id);
+                const startPrice = a.startingPriceKg || 18000;
+                const priceKg = input ? Number(input.value) : (dashInputCache[a.id] || startPrice);
+                const capKg = a.capacityKg || 3500;
+                const minAcceptable = a.startingPriceKg || a.currentPriceKg || 0;
+                const minStep = Number(a.minStep) || 500;
+
+                if (!priceKg || priceKg < minAcceptable) {
+                    alert(`Mức giá chuyến ${a.flightNumber} tối thiểu phải từ giá sàn: ${CargoStore.formatCurrency(minAcceptable)}/Kg trở lên!`);
+                    if (input) input.focus();
+                    return;
+                }
+
+                const diffFromStart = Math.round(Number(priceKg)) - Math.round(Number(minAcceptable));
+                if (diffFromStart > 0 && (diffFromStart < Math.round(minStep) || diffFromStart % Math.round(minStep) !== 0)) {
+                    alert(`Mức giá chuyến ${a.flightNumber} (${CargoStore.formatCurrency(priceKg)}/Kg) không hợp lệ.\nPhải bằng giá sàn hoặc tăng theo bước giá +${CargoStore.formatCurrency(minStep)}/Kg.`);
+                    if (input) input.focus();
+                    return;
+                }
+
+                preparedList.push({
+                    auction: a,
+                    priceKg: priceKg,
+                    capKg: capKg,
+                    total: capKg * priceKg
+                });
+            }
+
+            if (preparedList.length === 0) {
+                alert('Vui lòng tích chọn ít nhất 1 chuyến bay chuẩn bị đặt giá thầu!');
+                return;
+            }
+
+            const grandTotal = preparedList.reduce((sum, item) => sum + item.total, 0);
+            const breakdown = preparedList.map(item =>
+                `  • ${item.auction.flightNumber} (${item.auction.route}): ${CargoStore.formatNumber(item.capKg)} KG × ${CargoStore.formatCurrency(item.priceKg)}/Kg = ${CargoStore.formatCurrency(item.total)}`
+            ).join('\n');
+
+            const confirmMsg = `XÁC NHẬN NỘP PHIẾU GIÁ THẦU:\n\n` +
+                `• Đơn vị dự thầu: ${u.companyName || u.fullName} (${u.agentCode || 'AG-0892'})\n` +
+                `• Số lượng chuyến bay đặt giá: ${preparedList.length} chuyến\n` +
+                `• Chi tiết các chuyến chuẩn bị đặt:\n${breakdown}\n\n` +
+                `• TỔNG GIÁ MUA DỰ KIẾN: ${CargoStore.formatCurrency(grandTotal)}\n\n` +
+                `LƯU Ý QUY CHẾ: Mỗi đại lý chỉ được nộp giá 1 LẦN DUY NHẤT cho mỗi gói thầu. Phiếu giá sau khi gửi sẽ được ghi nhận ngay và KHÔNG THỂ thay đổi hay hủy bỏ.\n\n` +
+                `Bạn có chắc chắn muốn nộp giá cho ${preparedList.length} chuyến bay này?`;
+
+            if (!confirm(confirmMsg)) return;
+
+            let successCount = 0;
+            let failedList = [];
+
+            for (const item of preparedList) {
+                const res = CargoStore.placeBid(item.auction.id, item.priceKg, true);
+                if (res.success) {
+                    successCount++;
+                    delete dashInputCache[item.auction.id];
+                    delete dashCheckCache[item.auction.id];
+                } else {
+                    failedList.push(`${item.auction.flightNumber}: ${res.message || 'Lỗi nộp giá'}`);
+                }
+            }
+
+            if (failedList.length === 0) {
+                alert(`✅ ĐÃ NỘP GIÁ THẦU THÀNH CÔNG CHO ${successCount} CHUYẾN BAY!\n\nTổng giá mua: ${CargoStore.formatCurrency(grandTotal)}\n\nPhiếu giá đã được hệ thống ghi nhận an toàn.`);
+            } else {
+                alert(`Đã nộp thành công ${successCount}/${preparedList.length} chuyến bay.\nCác chuyến gặp lỗi:\n${failedList.join('\n')}`);
+            }
+
+            renderDashboard();
+        }
+
+        // Submit Bid for a Single Flight
+        function submitBidSingle(auctionId, capKg, flightNumber, route) {
+            const u = CargoStore.getCurrentUser();
+            if (!u) {
+                alert('Vui lòng đăng nhập trước khi nộp giá thầu!');
+                window.location.href = '01-Login.html';
+                return;
+            }
 
             const allAuctions = CargoStore.getAuctions();
             const auction = allAuctions.find(a => String(a.id) === String(auctionId));
@@ -574,30 +728,33 @@
                 return;
             }
 
+            const input = document.getElementById('dashBidInput_' + auctionId);
+            const startPrice = auction.startingPriceKg || 18000;
+            const priceKg = input ? Number(input.value) : (dashInputCache[auctionId] || startPrice);
             const minAcceptable = auction.startingPriceKg || auction.currentPriceKg || 0;
             const minStep = Number(auction.minStep) || 500;
 
             if (!priceKg || priceKg < minAcceptable) {
-                alert(`Mức giá đặt thầu tối thiểu phải từ giá khởi điểm: ${CargoStore.formatCurrency(minAcceptable)}/Kg trở lên!`);
-                input.focus();
+                alert(`Mức giá đặt thầu tối thiểu phải từ giá sàn: ${CargoStore.formatCurrency(minAcceptable)}/Kg trở lên!`);
+                if (input) input.focus();
                 return;
             }
 
             const diffFromStart = Math.round(Number(priceKg)) - Math.round(Number(minAcceptable));
             if (diffFromStart > 0 && (diffFromStart < Math.round(minStep) || diffFromStart % Math.round(minStep) !== 0)) {
-                alert(`Mức giá đặt thầu (${CargoStore.formatCurrency(priceKg)}/Kg) không hợp lệ.\nPhải bằng giá sàn (${CargoStore.formatCurrency(minAcceptable)}/Kg) hoặc tăng theo bước giá +${CargoStore.formatCurrency(minStep)}/Kg.`);
-                input.focus();
+                alert(`Mức giá đặt thầu (${CargoStore.formatCurrency(priceKg)}/Kg) không hợp lệ.\nPhải bằng giá sàn hoặc tăng theo bước giá +${CargoStore.formatCurrency(minStep)}/Kg.`);
+                if (input) input.focus();
                 return;
             }
 
             const totalVnd = capKg * priceKg;
-            const confirmMsg = `XÁC NHẬN NỘP PHIẾU GIÁ THẦU:\n\n` +
+            const confirmMsg = `XÁC NHẬN NỘP PHIẾU GIÁ THẦU CHUYẾN ${flightNumber || auction.flightNumber}:\n\n` +
                 `• Đơn vị dự thầu: ${u.companyName || u.fullName} (${u.agentCode || 'AG-0892'})\n` +
                 `• Chuyến bay: ${flightNumber || auction.flightNumber} (${route || auction.route})\n` +
                 `• Tải trọng cam kết: ${CargoStore.formatNumber(capKg)} KG (Hardblock)\n` +
                 `• Đơn giá mua đề xuất: ${CargoStore.formatCurrency(priceKg)}/Kg\n` +
                 `• Tổng giá mua dự kiến: ${CargoStore.formatCurrency(totalVnd)}\n\n` +
-                `LƯU Ý QUY CHẾ: Mỗi đại lý chỉ được nộp giá 1 LẦN DUY NHẤT cho mỗi gói thầu. Phiếu giá sau khi gửi sẽ được ghi nhận ngay và KHÔNG THỂ thay đổi hay nâng giá.\n\n` +
+                `LƯU Ý QUY CHẾ: Mỗi đại lý chỉ được nộp giá 1 LẦN DUY NHẤT cho mỗi gói thầu. Phiếu giá sau khi gửi sẽ được ghi nhận ngay và KHÔNG THỂ thay đổi hay hủy bỏ.\n\n` +
                 `Bạn có chắc chắn muốn nộp mức giá này?`;
 
             if (!confirm(confirmMsg)) return;
@@ -605,11 +762,17 @@
             const res = CargoStore.placeBid(auctionId, priceKg, true);
             if (res.success) {
                 alert(`✅ Đã nộp giá thầu thành công!\n\nChuyến bay: ${flightNumber || auction.flightNumber}\nMức giá: ${CargoStore.formatCurrency(priceKg)}/Kg\nTổng thành tiền: ${CargoStore.formatCurrency(totalVnd)}\n\nPhiếu giá đã được lưu trữ an toàn.`);
+                delete dashInputCache[auctionId];
+                delete dashCheckCache[auctionId];
                 renderDashboard();
             } else {
                 alert(res.message || 'Không thể gửi giá thầu!');
             }
         }
+
+        // Backward compatibility
+        window.submitBidDirect = submitBidSingle;
+        window.updateDashCardTotal = onDashPriceInput;
 
         let isRenderingDashboard = false;
         function safeRenderDashboard() {
