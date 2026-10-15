@@ -1099,6 +1099,9 @@
                                 <div class="flex items-center gap-2.5 flex-wrap">
                                     <span class="font-mono font-bold text-xs bg-slate-100 text-slate-700 px-2.5 py-1 rounded-lg">${r.regId}</span>
                                     <h3 class="font-bold text-sm sm:text-base text-slate-900 break-words">${r.companyName}</h3>
+                                    <a href="09-AgentDetail.html?regId=${r.regId}" class="inline-flex items-center gap-1 text-[11px] font-bold text-blue-600 hover:text-white hover:bg-blue-600 border border-blue-200 hover:border-blue-600 px-2.5 py-0.5 rounded-lg transition shadow-2xs" title="Xem hồ sơ chi tiết & lịch sử đại lý">
+                                        <i class="fa-solid fa-address-card text-[10px]"></i> Xem hồ sơ
+                                    </a>
                                 </div>
                                 <div>
                                     ${isPending ? '<span class="bg-amber-100 text-amber-800 text-xs font-bold px-2.5 py-1 rounded-full">CHỜ XÉT DUYỆT</span>' : ''}
@@ -1321,8 +1324,16 @@
                     const isLocked = ag.status === 'Đã khóa' || ag.status === 'LOCKED';
                     return `
                         <tr class="hover:bg-slate-50 transition">
-                            <td class="py-3.5 px-4 font-mono font-bold text-blue-600">${ag.code}</td>
-                            <td class="py-3.5 px-4 font-bold text-slate-800">${ag.companyName}</td>
+                            <td class="py-3.5 px-4 font-mono font-bold">
+                                <a href="09-AgentDetail.html?code=${ag.code}" class="text-blue-600 hover:text-blue-800 hover:underline flex items-center gap-1" title="Bấm để xem hồ sơ đại lý">
+                                    ${ag.code} <i class="fa-solid fa-arrow-up-right-from-square text-[9px] opacity-60"></i>
+                                </a>
+                            </td>
+                            <td class="py-3.5 px-4 font-bold text-slate-800">
+                                <a href="09-AgentDetail.html?code=${ag.code}" class="hover:text-blue-600 transition" title="Xem hồ sơ & lịch sử đại lý">
+                                    ${ag.companyName}
+                                </a>
+                            </td>
                             <td class="py-3.5 px-4 text-slate-700 font-medium">${ag.repName || '-'}</td>
                             <td class="py-3.5 px-4 text-slate-600">${ag.phone || '-'}<br><span class="text-[10px] text-gray-400">${ag.email || '-'}</span></td>
                             <td class="py-3.5 px-4 font-mono text-slate-600">${ag.taxCode || '-'}</td>
@@ -1336,6 +1347,9 @@
                                 `}
                             </td>
                             <td class="py-3.5 px-4 text-right space-x-1.5 whitespace-nowrap">
+                                <a href="09-AgentDetail.html?code=${ag.code}" class="inline-flex items-center gap-1 bg-blue-50 hover:bg-blue-600 text-blue-700 hover:text-white font-semibold px-2.5 py-1 rounded-lg transition shadow-2xs" title="Xem hồ sơ & Lịch sử đặt phiên">
+                                    <i class="fa-solid fa-id-card text-[10px]"></i> Hồ sơ
+                                </a>
                                 ${isStaff ? `
                                     <button disabled class="inline-flex items-center gap-1 bg-slate-100 text-slate-400 font-semibold px-2 py-1 rounded-lg opacity-60 cursor-not-allowed" title="Chỉ ADMIN mới có quyền khóa/kích hoạt tài khoản đại lý">
                                         <i class="fa-solid ${isLocked ? 'fa-lock-open' : 'fa-lock'} text-[10px]"></i> ${isLocked ? 'Kích hoạt' : 'Khóa'}

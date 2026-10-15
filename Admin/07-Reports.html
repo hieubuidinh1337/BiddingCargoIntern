@@ -443,8 +443,8 @@
                 </div>
             </div>
 
-            <!-- Controls Grid -->
-            <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 text-xs">
+            <!-- Controls Grid (3 Filters) -->
+            <div class="grid grid-cols-1 sm:grid-cols-3 gap-3 text-xs">
                 <!-- 1. Thời gian -->
                 <div>
                     <label class="block font-bold text-slate-700 mb-1 text-[11px]">
@@ -489,20 +489,6 @@
                         <option value="SGN - DAD">SGN - DAD (Sài Gòn - Đà Nẵng)</option>
                         <option value="HAN - PQC">HAN - PQC (Hà Nội - Phú Quốc)</option>
                         <option value="SGN - PQC">SGN - PQC (Sài Gòn - Phú Quốc)</option>
-                    </select>
-                </div>
-
-                <!-- 4. Trạng thái -->
-                <div>
-                    <label class="block font-bold text-slate-700 mb-1 text-[11px]">
-                        <i class="fa-solid fa-list-check text-amber-500 mr-1"></i>Trạng thái phiên & đơn:
-                    </label>
-                    <select id="reportStatusFilter" onchange="applyReportFilters()"
-                        class="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl font-medium text-slate-800 outline-none focus:ring-2 focus:ring-blue-500/20 cursor-pointer">
-                        <option value="ALL">Tất cả trạng thái</option>
-                        <option value="CLOSED">Phiên đã đóng / Thắng thầu</option>
-                        <option value="OPEN">Phiên đang mở đấu giá</option>
-                        <option value="DECLARED">Đã hoàn tất khai báo hàng hóa</option>
                     </select>
                 </div>
             </div>
@@ -867,11 +853,10 @@
             const timeRange = document.getElementById('reportTimeRangeFilter')?.value || 'ALL';
             const cargoType = document.getElementById('reportCargoTypeFilter')?.value || 'ALL';
             const route = document.getElementById('reportRouteFilter')?.value || 'ALL';
-            const status = document.getElementById('reportStatusFilter')?.value || 'ALL';
             const fromDate = document.getElementById('reportFromDate')?.value || '';
             const toDate = document.getElementById('reportToDate')?.value || '';
 
-            return { timeRange, cargoType, route, status, fromDate, toDate };
+            return { timeRange, cargoType, route, fromDate, toDate };
         }
 
         function toggleCustomDateReport(val) {
@@ -890,7 +875,6 @@
             if (document.getElementById('reportTimeRangeFilter')) document.getElementById('reportTimeRangeFilter').value = 'ALL';
             if (document.getElementById('reportCargoTypeFilter')) document.getElementById('reportCargoTypeFilter').value = 'ALL';
             if (document.getElementById('reportRouteFilter')) document.getElementById('reportRouteFilter').value = 'ALL';
-            if (document.getElementById('reportStatusFilter')) document.getElementById('reportStatusFilter').value = 'ALL';
             if (document.getElementById('reportFromDate')) document.getElementById('reportFromDate').value = '';
             if (document.getElementById('reportToDate')) document.getElementById('reportToDate').value = '';
 
@@ -996,14 +980,12 @@
             const oneDay = 24 * 60 * 60 * 1000;
             const nowTime = now.getTime();
 
-            // Filter auctions by selected filter parameters
+            // Filter auctions by selected filter parameters - chỉ báo cáo phiên đã đóng / đã chốt
             const filteredAuctions = auctions.filter(a => {
+                if (a.status !== 'CLOSED') return false;
+
                 const rName = a.route || `${a.origin || 'SGN'} - ${a.destination || 'HAN'}`;
                 if (filters.route !== 'ALL' && rName !== filters.route) return false;
-
-                if (filters.status === 'CLOSED' && a.status !== 'CLOSED') return false;
-                if (filters.status === 'OPEN' && a.status !== 'OPEN') return false;
-                if (filters.status === 'DECLARED' && (!a.cargoDeclaration || !a.cargoDeclaration.cargoName)) return false;
 
                 if (filters.cargoType !== 'ALL') {
                     const declType = (a.cargoDeclaration ? a.cargoDeclaration.cargoType : '') || a.cargoType || '';
@@ -1043,8 +1025,6 @@
             const filteredWonList = wonList.filter(w => {
                 const rName = w.route || (w.flightNumber ? w.flightNumber : '');
                 if (filters.route !== 'ALL' && !rName.includes(filters.route)) return false;
-
-                if (filters.status === 'DECLARED' && (!w.cargoDeclaration || !w.cargoDeclaration.cargoName)) return false;
 
                 if (filters.cargoType !== 'ALL') {
                     const decl = w.cargoDeclaration || {};
@@ -1567,10 +1547,10 @@
                         "Tổng chi tiêu (~USD)": Math.round((ag.totalSpentVND || 0) / 25000)
                     }));
 
-                    // Sheet 3: Dynamic flight auctions from CargoStore
+                    // Sheet 3: Dynamic flight auctions from CargoStore (Chỉ phiên đã đóng)
                     const store = getStore();
                     const storeData = store ? store.getData() : {};
-                    const auctions = storeData.auctions || [];
+                    const auctions = (storeData.auctions || []).filter(a => a.status === 'CLOSED');
                     const isReportAdmin = storeData.currentAdmin && storeData.currentAdmin.role === 'ADMIN';
                     const auctionRows = auctions.map((a, idx) => {
                         const isOpen = a.status === 'OPEN';
