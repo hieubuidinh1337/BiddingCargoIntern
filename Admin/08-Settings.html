@@ -970,6 +970,19 @@
             document.getElementById('adminConfirmPwd').value = '';
         }
 
+        
+        function handleInstantCloseAllAuctions() {
+            if (!confirm('Bạn có chắc chắn muốn chốt thầu TẤT CẢ các phiên đang mở ngay bây giờ để kiểm thử nhanh?')) return;
+            const res = (window.CargoStore && CargoStore.closeAllOpenAuctions) 
+                ? CargoStore.closeAllOpenAuctions(true) 
+                : { success: false, message: 'Chức năng chưa sẵn sàng' };
+            if (res.success) {
+                alert('✅ ' + res.message + '\n\nĐã chốt xong các phiên đấu giá và sinh đơn trúng thầu thành công.');
+            } else {
+                alert(res.message || 'Không thể đóng phiên!');
+            }
+        }
+
         document.addEventListener('DOMContentLoaded', function() {
             loadSettings();
             if (window.CargoStore && CargoStore.syncAdminHeaderUI) CargoStore.syncAdminHeaderUI();

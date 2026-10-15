@@ -1221,6 +1221,11 @@
                         </span>
                     </td>
                     <td class="py-3.5 px-4 text-right space-x-1.5 whitespace-nowrap">
+                        ${isOpen ? `
+                            <button onclick="handleCloseAuction(${a.id})" class="inline-flex items-center gap-1 bg-amber-500 hover:bg-amber-600 active:scale-95 text-slate-950 font-bold px-2.5 py-1.5 rounded-lg transition shadow-2xs text-xs cursor-pointer" title="Đóng phiên & chốt thầu ngay">
+                                <i class="fa-solid fa-gavel"></i> Đóng phiên
+                            </button>
+                        ` : ''}
                         <a href="05-AuctionDetail.html?id=${a.id}" class="inline-flex items-center gap-1.5 bg-blue-50 hover:bg-blue-600 text-blue-700 hover:text-white font-semibold px-3 py-1.5 rounded-lg transition shadow-2xs" title="Xem chi tiết & lịch sử">
                             <i class="fa-solid fa-eye text-xs"></i> Xem chi tiết
                         </a>
@@ -1442,8 +1447,13 @@
 
         function handleCloseAuction(id) {
             if (confirm('Bạn có chắc chắn muốn chốt phiên đấu giá này và công bố đại lý trúng thầu ngay?')) {
-                CargoStore.closeAuction(id);
-                renderAuctionsTable();
+                const res = CargoStore.closeAuction(id);
+                if (res.success) {
+                    renderAuctionsTable();
+                    showToast(res.message || 'Đã chốt phiên đấu giá thành công!', 'success');
+                } else {
+                    alert(res.message || 'Không thể đóng phiên!');
+                }
             }
         }
 

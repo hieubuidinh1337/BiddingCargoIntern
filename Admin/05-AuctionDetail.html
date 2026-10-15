@@ -367,7 +367,8 @@
                     <span class="admin-user-role admin-header-role">QUẢN TRỊ VIÊN</span>
                 </div>
 
-                <a href="01-AdminLogin.html" onclick="if(window.CargoStore) CargoStore.logoutAdmin()" class="admin-logout" title="Đăng xuất">
+                <a href="01-AdminLogin.html" onclick="if(window.CargoStore) CargoStore.logoutAdmin()"
+                    class="admin-logout" title="Đăng xuất">
                     <i class="fa-solid fa-power-off"></i>
                 </a>
             </div>
@@ -459,10 +460,13 @@
             <div class="flex items-center justify-between border-b pb-3">
                 <div class="flex items-center gap-2">
                     <h3 class="font-bold text-sm text-slate-800 flex items-center gap-1.5">
-                        <i class="fa-solid fa-list-ol text-blue-600"></i> Lịch sử các lượt đặt giá (Realtime Bidding Log)
+                        <i class="fa-solid fa-list-ol text-blue-600"></i> Lịch sử các lượt đặt giá (Realtime Bidding
+                        Log)
                     </h3>
-                    <span id="staffBiddingNoticeBadge" class="hidden text-[11px] font-semibold text-amber-700 bg-amber-50 border border-amber-200 px-2.5 py-0.5 rounded-lg inline-flex items-center gap-1">
-                        <i class="fa-solid fa-shield-halved text-amber-500"></i> Quyền Staff: Thông tin người đấu giá được bảo mật ẩn danh
+                    <span id="staffBiddingNoticeBadge"
+                        class="hidden text-[11px] font-semibold text-amber-700 bg-amber-50 border border-amber-200 px-2.5 py-0.5 rounded-lg inline-flex items-center gap-1">
+                        <i class="fa-solid fa-shield-halved text-amber-500"></i> Quyền Staff: Thông tin người đấu giá
+                        được bảo mật ẩn danh
                     </span>
                 </div>
                 <span class="text-xs font-semibold text-blue-600 bg-blue-50 px-2.5 py-1 rounded-lg" id="detBidsCount">0
@@ -668,7 +672,7 @@
                 const w = window.open();
                 if (w) {
                     const ext = (name.split('.').pop() || '').toLowerCase();
-                    if (['jpg','jpeg','png','webp','gif'].includes(ext)) {
+                    if (['jpg', 'jpeg', 'png', 'webp', 'gif'].includes(ext)) {
                         w.document.write(`<html><head><title>${name}</title><style>body{margin:0;background:#111;display:flex;justify-content:center;align-items:flex-start;min-height:100vh;}img{max-width:100%;height:auto;margin:auto;display:block;}</style></head><body><img src="${finalUrl}" alt="${name}"/></body></html>`);
                     } else {
                         w.document.write(`<html><head><title>${name}</title><style>body,html{margin:0;padding:0;height:100%;}embed{width:100%;height:100%;}</style></head><body><embed src="${finalUrl}" type="application/pdf" width="100%" height="100%"/></body></html>`);
@@ -692,6 +696,20 @@
         }
 
         let currentAuction = null;
+
+
+        window.handleDetailCloseAuction = function () {
+            if (!currentAuction) return;
+            if (confirm('Bạn có chắc chắn muốn chốt đóng phiên chuyến bay ' + currentAuction.flightNumber + ' (' + currentAuction.route + ') và công bố kết quả ngay?')) {
+                const res = CargoStore.closeAuction(currentAuction.id);
+                if (res.success) {
+                    alert('✅ ' + (res.message || 'Đã chốt phiên thành công!'));
+                    loadAdminDetail();
+                } else {
+                    alert(res.message || 'Không thể đóng phiên!');
+                }
+            }
+        };
 
         function loadAdminDetail() {
             if (typeof CargoStore === 'undefined') return;
@@ -820,17 +838,17 @@
                             </div>
                         `;
                     } else {
-                        secCargo.innerHTML = `
-                            <div class="bg-amber-50 border border-amber-200 rounded-2xl p-4 text-xs text-amber-900 flex items-center justify-between">
-                                <div class="flex items-center gap-2">
-                                    <i class="fa-solid fa-clock-rotate-left text-amber-600 text-lg"></i>
-                                    <div>
-                                        <p class="font-bold">${isStaff ? 'Đại lý trúng thầu (Bảo mật)' : `Đại lý trúng thầu (${wonItem.agentCode})`} chưa điền thông tin khai báo hàng hóa</p>
-                                        <p class="text-[11px] text-amber-800">Đơn trúng thầu ${wonItem.wonId} đang chờ đại lý điền thông tin lô hàng.</p>
-                                    </div>
-                                </div>
-                            </div>
-                        `;
+                        // secCargo.innerHTML = `
+                        //     <div class="bg-amber-50 border border-amber-200 rounded-2xl p-4 text-xs text-amber-900 flex items-center justify-between">
+                        //         <div class="flex items-center gap-2">
+                        //             <i class="fa-solid fa-clock-rotate-left text-amber-600 text-lg"></i>
+                        //             <div>
+                        //                 <p class="font-bold">${isStaff ? 'Đại lý trúng thầu (Bảo mật)' : `Đại lý trúng thầu (${wonItem.agentCode})`} chưa điền thông tin khai báo hàng hóa</p>
+                        //                 <p class="text-[11px] text-amber-800">Đơn trúng thầu ${wonItem.wonId} đang chờ đại lý điền thông tin lô hàng.</p>
+                        //             </div>
+                        //         </div>
+                        //     </div>
+                        // `;
                     }
 
                     // Append Payment Proof & Reconciliation Card
@@ -838,64 +856,64 @@
                     const isPending = wonItem.paymentStatus === 'PENDING_VERIFICATION';
                     const isExpired = (window.CargoStore && CargoStore.isWonAuctionExpired) ? CargoStore.isWonAuctionExpired(wonItem) : false;
                     const proof = wonItem.paymentProof;
-                    const expectedMemo = isStaff 
+                    const expectedMemo = isStaff
                         ? `CARGO ${wonItem.wonId} AG-***`
                         : (CargoStore.generatePaymentMemo ? CargoStore.generatePaymentMemo(wonItem.wonId, wonItem.agentCode) : `CARGO ${wonItem.wonId} ${wonItem.agentCode}`);
 
-                    secCargo.innerHTML += `
-                        <div class="bg-white border rounded-2xl p-5 text-xs space-y-3 shadow-sm mt-3">
-                            <div class="flex items-center justify-between border-b pb-2.5">
-                                <h3 class="font-bold text-sm text-slate-900 flex items-center gap-2">
-                                    <i class="fa-solid fa-file-invoice-dollar text-emerald-600 text-base"></i>
-                                    Tình trạng Thanh toán & Đối soát Chuyển khoản (Đơn ${wonItem.wonId})
-                                </h3>
-                                <div>
-                                    ${isPaid ? `<span class="bg-emerald-100 text-emerald-800 font-bold px-2.5 py-1 rounded-full text-[10px] inline-flex items-center gap-1"><i class="fa-solid fa-circle-check text-emerald-600"></i> ĐÃ THANH TOÁN (${wonItem.paidAt || 'Đã khớp'})</span>` :
-                            (isPending ? `<span class="bg-amber-100 text-amber-900 font-bold px-2.5 py-1 rounded-full text-[10px] inline-flex items-center gap-1 animate-pulse"><i class="fa-solid fa-spinner fa-spin text-amber-600"></i> ĐẠI LÝ BÁO ĐÃ CK - CHỜ DUYỆT</span>` :
-                                (isExpired ? `<span class="bg-rose-100 text-rose-800 font-bold px-2.5 py-1 rounded-full text-[10px] inline-flex items-center gap-1"><i class="fa-solid fa-ban text-rose-600"></i> ĐƠN QUÁ HẠN</span>` :
-                                    `<span class="bg-red-100 text-red-700 font-bold px-2.5 py-1 rounded-full text-[10px] inline-flex items-center gap-1"><i class="fa-solid fa-clock text-red-500"></i> CHỜ THANH TOÁN</span>`))}
-                                </div>
-                            </div>
+                    // secCargo.innerHTML += `
+                    //     <div class="bg-white border rounded-2xl p-5 text-xs space-y-3 shadow-sm mt-3">
+                    //         <div class="flex items-center justify-between border-b pb-2.5">
+                    //             <h3 class="font-bold text-sm text-slate-900 flex items-center gap-2">
+                    //                 <i class="fa-solid fa-file-invoice-dollar text-emerald-600 text-base"></i>
+                    //                 Tình trạng Thanh toán & Đối soát Chuyển khoản (Đơn ${wonItem.wonId})
+                    //             </h3>
+                    //             <div>
+                    //                 ${isPaid ? `<span class="bg-emerald-100 text-emerald-800 font-bold px-2.5 py-1 rounded-full text-[10px] inline-flex items-center gap-1"><i class="fa-solid fa-circle-check text-emerald-600"></i> ĐÃ THANH TOÁN (${wonItem.paidAt || 'Đã khớp'})</span>` :
+                    //         (isPending ? `<span class="bg-amber-100 text-amber-900 font-bold px-2.5 py-1 rounded-full text-[10px] inline-flex items-center gap-1 animate-pulse"><i class="fa-solid fa-spinner fa-spin text-amber-600"></i> ĐẠI LÝ BÁO ĐÃ CK - CHỜ DUYỆT</span>` :
+                    //             (isExpired ? `<span class="bg-rose-100 text-rose-800 font-bold px-2.5 py-1 rounded-full text-[10px] inline-flex items-center gap-1"><i class="fa-solid fa-ban text-rose-600"></i> ĐƠN QUÁ HẠN</span>` :
+                    //                 `<span class="bg-red-100 text-red-700 font-bold px-2.5 py-1 rounded-full text-[10px] inline-flex items-center gap-1"><i class="fa-solid fa-clock text-red-500"></i> CHỜ THANH TOÁN</span>`))}
+                    //             </div>
+                    //         </div>
 
-                            <div class="grid grid-cols-1 sm:grid-cols-3 gap-3">
-                                <div class="bg-slate-50 p-3 rounded-xl border">
-                                    <span class="text-[11px] text-slate-500 block">Số tiền cần thanh toán:</span>
-                                    <p class="font-bold text-emerald-700 text-base mt-0.5">${CargoStore.formatCurrency(wonItem.totalAmountVND)}</p>
-                                </div>
-                                <div class="bg-slate-50 p-3 rounded-xl border">
-                                    <span class="text-[11px] text-slate-500 block">Cú pháp chuyển khoản:</span>
-                                    <p class="font-mono font-bold text-blue-700 text-xs mt-0.5">${expectedMemo}</p>
-                                </div>
-                                <div class="bg-slate-50 p-3 rounded-xl border">
-                                    <span class="text-[11px] text-slate-500 block">Mã GD / FT Ngân hàng:</span>
-                                    <p class="font-mono font-bold text-slate-900 text-xs mt-0.5">${proof?.transactionRef || '<span class="text-slate-400 font-normal italic">Chưa nhập mã</span>'}</p>
-                                </div>
-                            </div>
+                    //         <div class="grid grid-cols-1 sm:grid-cols-3 gap-3">
+                    //             <div class="bg-slate-50 p-3 rounded-xl border">
+                    //                 <span class="text-[11px] text-slate-500 block">Số tiền cần thanh toán:</span>
+                    //                 <p class="font-bold text-emerald-700 text-base mt-0.5">${CargoStore.formatCurrency(wonItem.totalAmountVND)}</p>
+                    //             </div>
+                    //             <div class="bg-slate-50 p-3 rounded-xl border">
+                    //                 <span class="text-[11px] text-slate-500 block">Cú pháp chuyển khoản:</span>
+                    //                 <p class="font-mono font-bold text-blue-700 text-xs mt-0.5">${expectedMemo}</p>
+                    //             </div>
+                    //             <div class="bg-slate-50 p-3 rounded-xl border">
+                    //                 <span class="text-[11px] text-slate-500 block">Mã GD / FT Ngân hàng:</span>
+                    //                 <p class="font-mono font-bold text-slate-900 text-xs mt-0.5">${proof?.transactionRef || '<span class="text-slate-400 font-normal italic">Chưa nhập mã</span>'}</p>
+                    //             </div>
+                    //         </div>
 
-                            ${proof?.proofImageUrl ? `
-                                <div class="border rounded-xl p-3 bg-slate-50 space-y-2">
-                                    <div class="flex items-center justify-between">
-                                        <span class="font-bold text-slate-800 text-[11px] flex items-center gap-1.5">
-                                            <i class="fa-solid fa-image text-blue-600"></i> Ảnh biên lai chuyển tiền:
-                                        </span>
-                                        <button type="button" onclick="openProofImageInNewTab('${proof.proofImageUrl}'); return false;" class="text-blue-600 hover:text-blue-800 text-[11px] underline font-bold">Mở ảnh lớn</button>
-                                    </div>
-                                    <img src="${proof.proofImageUrl}" alt="Biên lai" class="max-h-48 rounded-lg object-contain">
-                                </div>
-                            ` : ''}
+                    //         ${proof?.proofImageUrl ? `
+                    //             <div class="border rounded-xl p-3 bg-slate-50 space-y-2">
+                    //                 <div class="flex items-center justify-between">
+                    //                     <span class="font-bold text-slate-800 text-[11px] flex items-center gap-1.5">
+                    //                         <i class="fa-solid fa-image text-blue-600"></i> Ảnh biên lai chuyển tiền:
+                    //                     </span>
+                    //                     <button type="button" onclick="openProofImageInNewTab('${proof.proofImageUrl}'); return false;" class="text-blue-600 hover:text-blue-800 text-[11px] underline font-bold">Mở ảnh lớn</button>
+                    //                 </div>
+                    //                 <img src="${proof.proofImageUrl}" alt="Biên lai" class="max-h-48 rounded-lg object-contain">
+                    //             </div>
+                    //         ` : ''}
 
-                            ${!isPaid && !isExpired ? `
-                                <div class="pt-2 flex justify-end gap-2">
-                                    <button onclick="handleDetailRejectPayment('${wonItem.wonId}')" class="bg-rose-600 hover:bg-rose-700 text-white font-bold px-4 py-2 rounded-xl text-xs transition shadow flex items-center gap-1.5 cursor-pointer">
-                                        <i class="fa-solid fa-circle-xmark"></i> Từ chối biên lai & Yêu cầu nộp lại
-                                    </button>
-                                    <button onclick="handleDetailConfirmPayment('${wonItem.wonId}')" class="bg-emerald-600 hover:bg-emerald-700 text-white font-bold px-4 py-2 rounded-xl text-xs transition shadow flex items-center gap-1.5 cursor-pointer">
-                                        <i class="fa-solid fa-circle-check"></i> Xác nhận Đã nhận tiền (Khớp lệnh)
-                                    </button>
-                                </div>
-                            ` : ''}
-                        </div>
-                    `;
+                    //         ${!isPaid && !isExpired ? `
+                    //             <div class="pt-2 flex justify-end gap-2">
+                    //                 <button onclick="handleDetailRejectPayment('${wonItem.wonId}')" class="bg-rose-600 hover:bg-rose-700 text-white font-bold px-4 py-2 rounded-xl text-xs transition shadow flex items-center gap-1.5 cursor-pointer">
+                    //                     <i class="fa-solid fa-circle-xmark"></i> Từ chối biên lai & Yêu cầu nộp lại
+                    //                 </button>
+                    //                 <button onclick="handleDetailConfirmPayment('${wonItem.wonId}')" class="bg-emerald-600 hover:bg-emerald-700 text-white font-bold px-4 py-2 rounded-xl text-xs transition shadow flex items-center gap-1.5 cursor-pointer">
+                    //                     <i class="fa-solid fa-circle-check"></i> Xác nhận Đã nhận tiền (Khớp lệnh)
+                    //                 </button>
+                    //             </div>
+                    //         ` : ''}
+                    //     </div>
+                    // `;
                 } else {
                     secCargo.classList.add('hidden');
                 }
@@ -911,11 +929,15 @@
                 <button onclick="openDetailBroadcastModal()" class="bg-blue-600 hover:bg-blue-700 text-white text-xs font-bold px-3.5 py-2 rounded-xl transition shadow flex items-center gap-1.5">
                     <i class="fa-solid fa-bullhorn"></i> Phát thông báo
                 </button>
-                ${(!isOpen ? `
+                ${(isOpen ? `
+                    <button onclick="handleDetailCloseAuction()" class="bg-amber-500 hover:bg-amber-600 active:scale-95 text-slate-950 text-xs font-bold px-3.5 py-2 rounded-xl transition shadow flex items-center gap-1.5 cursor-pointer">
+                        <i class="fa-solid fa-gavel"></i> Đóng phiên & Chốt thầu ngay
+                    </button>
+                ` : `
                     <span class="bg-slate-200 text-slate-700 text-xs font-bold px-3 py-2 rounded-xl flex items-center gap-1">
                         <i class="fa-solid fa-lock"></i> Đã đóng thầu
                     </span>
-                ` : '')}
+                `)}
             `;
 
             let currentBidsPage = 1;
@@ -1042,7 +1064,8 @@
                         ${statusBadge}
                     </td>
                 </tr>
-            `;}).join('');
+            `;
+            }).join('');
         }
 
         async function openDocumentInNewTab(docUrl, docName) {
@@ -1060,7 +1083,7 @@
                 const w = window.open();
                 if (w) {
                     const ext = (name.split('.').pop() || '').toLowerCase();
-                    if (['jpg','jpeg','png','webp','gif'].includes(ext)) {
+                    if (['jpg', 'jpeg', 'png', 'webp', 'gif'].includes(ext)) {
                         w.document.write(`<html><head><title>${name}</title><style>body{margin:0;background:#111;display:flex;justify-content:center;align-items:flex-start;min-height:100vh;}img{max-width:100%;height:auto;margin:auto;display:block;}</style></head><body><img src="${finalUrl}" alt="${name}"/></body></html>`);
                     } else {
                         w.document.write(`<html><head><title>${name}</title><style>body,html{margin:0;padding:0;height:100%;}embed{width:100%;height:100%;}</style></head><body><embed src="${finalUrl}" type="application/pdf" width="100%" height="100%"/></body></html>`);
@@ -1129,7 +1152,7 @@
             if (window.CargoStore && CargoStore.syncAdminHeaderUI) CargoStore.syncAdminHeaderUI();
         });
 
-        document.addEventListener('visibilitychange', function() {
+        document.addEventListener('visibilitychange', function () {
             if (!document.hidden) {
                 syncAdminDetailFromServer();
             }
