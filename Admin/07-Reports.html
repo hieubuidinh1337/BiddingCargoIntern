@@ -580,11 +580,16 @@
 
         <!-- Top Active Agents -->
         <div class="bg-white rounded-2xl border shadow-sm p-6 space-y-4">
-            <div class="flex items-center justify-between">
-                <h2 class="text-base font-bold text-slate-900 flex items-center gap-2">
-                    <i class="fa-solid fa-ranking-star text-amber-500"></i> Top Đại lý có doanh số đấu giá cao nhất
-                </h2>
-                <span class="text-[11px] text-gray-400">Cập nhật tự động theo lịch sử đặt thầu</span>
+            <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-1">
+                <div>
+                    <h2 class="text-base font-bold text-slate-900 flex items-center gap-2">
+                        <i class="fa-solid fa-trophy text-amber-500"></i> Top Đại lý trúng thầu nhiều nhất
+                    </h2>
+                    <p class="text-xs text-slate-500 mt-0.5">Xếp hạng dựa trên tổng số lượng chuyến bay trúng thầu thành công</p>
+                </div>
+                <span class="text-[11px] text-emerald-700 bg-emerald-50 border border-emerald-200/70 px-2.5 py-1 rounded-lg font-semibold flex items-center gap-1.5 self-start sm:self-auto">
+                    <i class="fa-solid fa-circle-check text-emerald-500"></i> Cập nhật theo phiên đã chốt
+                </span>
             </div>
             <div id="topAgentsContainer" class="grid grid-cols-1 md:grid-cols-3 gap-4 pt-2">
                 <div class="col-span-3 text-center py-6 text-gray-400">
@@ -841,6 +846,42 @@
         </div>
     </div>
 
+    <!-- Beautiful HTML Modal Dialog for Reports -->
+    <div id="reportCustomModal" class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-xs transition-opacity duration-200 hidden opacity-0 pointer-events-none" onclick="if(event.target === this) closeReportModal()">
+        <div id="reportModalBox" class="bg-white rounded-2xl shadow-2xl border border-slate-100 max-w-md w-full overflow-hidden transform scale-95 transition-all duration-200">
+            <!-- Header bar with decorative color line -->
+            <div id="reportModalHeaderColor" class="h-1.5 w-full bg-blue-600"></div>
+            
+            <div class="p-6">
+                <!-- Icon & Title -->
+                <div class="flex items-start gap-4">
+                    <div id="reportModalIconContainer" class="w-12 h-12 rounded-2xl flex items-center justify-center shrink-0 bg-blue-50 text-blue-600 text-xl border border-blue-100 shadow-xs">
+                        <i id="reportModalIcon" class="fa-solid fa-circle-info"></i>
+                    </div>
+                    <div class="flex-1 min-w-0">
+                        <h3 id="reportModalTitle" class="text-base font-bold text-slate-900 leading-snug">Thông báo</h3>
+                        <p id="reportModalSubtitle" class="text-xs text-slate-500 mt-0.5">Hệ thống Báo cáo & Thống kê</p>
+                    </div>
+                    <button type="button" onclick="closeReportModal()" class="w-8 h-8 rounded-lg hover:bg-slate-100 text-slate-400 hover:text-slate-600 flex items-center justify-center transition cursor-pointer">
+                        <i class="fa-solid fa-xmark text-sm"></i>
+                    </button>
+                </div>
+
+                <!-- Body Content -->
+                <div id="reportModalBody" class="mt-4 text-xs text-slate-600 leading-relaxed max-h-[60vh] overflow-y-auto">
+                    Nội dung thông báo
+                </div>
+
+                <!-- Action Footer -->
+                <div id="reportModalActions" class="mt-6 flex items-center justify-end gap-2.5 pt-4 border-t border-slate-100">
+                    <button type="button" onclick="closeReportModal()" id="reportModalCloseBtn" class="px-4 py-2 bg-slate-900 hover:bg-slate-800 text-white text-xs font-semibold rounded-xl shadow-xs transition cursor-pointer">
+                        Đóng
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
     <!-- Notification Toast -->
     <div id="toastReport"
         class="fixed bottom-5 right-5 bg-slate-900 text-white text-xs font-semibold px-4 py-3 rounded-xl shadow-xl flex items-center gap-2.5 z-50 transform translate-y-20 opacity-0 transition-all duration-300 pointer-events-none">
@@ -906,6 +947,174 @@
             setTimeout(() => {
                 toast.classList.add('translate-y-20', 'opacity-0', 'pointer-events-none');
             }, 3500);
+        }
+
+        // HTML Modal Dialog Controllers
+        function showReportModal({ title = 'Thông báo', subtitle = 'Hệ thống Báo cáo & Thống kê', message = '', type = 'info', confirmText = 'Đã hiểu', onConfirm = null }) {
+            const modal = document.getElementById('reportCustomModal');
+            const box = document.getElementById('reportModalBox');
+            const headerColor = document.getElementById('reportModalHeaderColor');
+            const iconContainer = document.getElementById('reportModalIconContainer');
+            const icon = document.getElementById('reportModalIcon');
+            const titleEl = document.getElementById('reportModalTitle');
+            const subEl = document.getElementById('reportModalSubtitle');
+            const bodyEl = document.getElementById('reportModalBody');
+            const actionsEl = document.getElementById('reportModalActions');
+
+            if (!modal) return;
+
+            // Types: success | warning | error | info
+            let iconClass = 'fa-solid fa-circle-info';
+            let colorClass = 'bg-blue-600';
+            let containerBg = 'bg-blue-50 text-blue-600 border-blue-100';
+
+            if (type === 'success') {
+                iconClass = 'fa-solid fa-circle-check';
+                colorClass = 'bg-emerald-600';
+                containerBg = 'bg-emerald-50 text-emerald-600 border-emerald-100';
+            } else if (type === 'warning') {
+                iconClass = 'fa-solid fa-triangle-exclamation';
+                colorClass = 'bg-amber-500';
+                containerBg = 'bg-amber-50 text-amber-600 border-amber-100';
+            } else if (type === 'error') {
+                iconClass = 'fa-solid fa-circle-xmark';
+                colorClass = 'bg-red-600';
+                containerBg = 'bg-red-50 text-red-600 border-red-100';
+            }
+
+            if (headerColor) headerColor.className = `h-1.5 w-full ${colorClass}`;
+            if (iconContainer) iconContainer.className = `w-12 h-12 rounded-2xl flex items-center justify-center shrink-0 text-xl border shadow-xs ${containerBg}`;
+            if (icon) icon.className = iconClass;
+            if (titleEl) titleEl.textContent = title;
+            if (subEl) subEl.textContent = subtitle;
+
+            if (bodyEl) {
+                if (typeof message === 'string') {
+                    bodyEl.innerHTML = message;
+                } else if (message instanceof HTMLElement) {
+                    bodyEl.innerHTML = '';
+                    bodyEl.appendChild(message);
+                }
+            }
+
+            if (actionsEl) {
+                actionsEl.innerHTML = '';
+                const confirmBtn = document.createElement('button');
+                confirmBtn.type = 'button';
+                confirmBtn.className = 'px-4 py-2 bg-slate-900 hover:bg-slate-800 text-white text-xs font-semibold rounded-xl shadow-xs transition cursor-pointer';
+                confirmBtn.textContent = confirmText;
+                confirmBtn.onclick = () => {
+                    closeReportModal();
+                    if (typeof onConfirm === 'function') onConfirm();
+                };
+                actionsEl.appendChild(confirmBtn);
+            }
+
+            modal.classList.remove('hidden', 'pointer-events-none');
+            requestAnimationFrame(() => {
+                modal.classList.remove('opacity-0');
+                if (box) box.classList.remove('scale-95');
+            });
+        }
+
+        function closeReportModal() {
+            const modal = document.getElementById('reportCustomModal');
+            const box = document.getElementById('reportModalBox');
+            if (!modal) return;
+
+            modal.classList.add('opacity-0');
+            if (box) box.classList.add('scale-95');
+
+            setTimeout(() => {
+                modal.classList.add('hidden', 'pointer-events-none');
+            }, 200);
+        }
+
+        // Tự động chuyển đổi toàn bộ popup alert của trình duyệt thành HTML Modal đẹp mắt
+        window.alert = function (msg) {
+            showReportModal({
+                title: 'Thông báo hệ thống',
+                subtitle: 'Hệ thống Đấu giá Cargo',
+                message: `<div class="p-3.5 bg-slate-50 border border-slate-200 rounded-xl font-medium text-slate-800 whitespace-pre-line text-xs">${msg}</div>`,
+                type: 'info'
+            });
+        };
+
+        // Modal chi tiết đại lý trúng thầu dạng HTML
+        function showAgentDetailModal(code) {
+            const store = getStore();
+            const data = store ? store.getData() : {};
+            const agentsList = data.agentsList || [];
+            const agent = agentsList.find(a => (a.code || '').toUpperCase() === (code || '').toUpperCase()) || {
+                code: code,
+                companyName: code,
+                taxId: 'Chưa cập nhật',
+                email: 'Chưa cập nhật',
+                phone: 'Chưa cập nhật',
+                address: 'Chưa cập nhật',
+                tier: 'TIER2'
+            };
+
+            const metrics = computeReportMetrics();
+            const agentMetric = (metrics.topAgents || []).find(a => (a.code || '').toUpperCase() === (code || '').toUpperCase()) || {
+                totalBids: agent.totalBids || 0,
+                wonCount: agent.totalWins || 0,
+                totalSpentVND: agent.totalSpentVND || 0
+            };
+
+            const spentUSD = Math.round((agentMetric.totalSpentVND || 0) / 25000);
+
+            const contentHtml = `
+                <div class="space-y-4 text-xs">
+                    <div class="bg-slate-50 p-3.5 rounded-xl border border-slate-200/80 space-y-2">
+                        <div class="flex items-center justify-between">
+                            <span class="font-mono font-bold text-blue-600 bg-blue-50 border border-blue-200 px-2 py-0.5 rounded-md text-[11px]">${agent.code}</span>
+                            <span class="px-2 py-0.5 rounded-full text-[10px] font-bold bg-emerald-100 text-emerald-700 border border-emerald-200">
+                                <i class="fa-solid fa-circle-check mr-1"></i>Hạng ${agent.tier || 'TIER2'}
+                            </span>
+                        </div>
+                        <p class="text-sm font-bold text-slate-900 leading-snug">${agent.companyName}</p>
+                        <div class="grid grid-cols-2 gap-2 text-slate-600 text-[11px] pt-1.5 border-t border-slate-200/60">
+                            <div><span class="text-slate-400">MST:</span> <strong>${agent.taxId || '-'}</strong></div>
+                            <div><span class="text-slate-400">Điện thoại:</span> <strong>${agent.phone || '-'}</strong></div>
+                            <div class="col-span-2 truncate"><span class="text-slate-400">Email:</span> <strong>${agent.email || '-'}</strong></div>
+                        </div>
+                    </div>
+
+                    <div class="grid grid-cols-3 gap-2">
+                        <div class="bg-emerald-50/70 border border-emerald-200/80 p-2.5 rounded-xl text-center">
+                            <span class="text-[10px] font-bold text-emerald-800 uppercase block">Trúng thầu</span>
+                            <span class="text-base font-extrabold text-emerald-600">${agentMetric.wonCount || 0}</span>
+                            <span class="text-[10px] text-emerald-700 block">chuyến</span>
+                        </div>
+                        <div class="bg-blue-50/70 border border-blue-200/80 p-2.5 rounded-xl text-center">
+                            <span class="text-[10px] font-bold text-blue-800 uppercase block">Lượt đặt thầu</span>
+                            <span class="text-base font-extrabold text-blue-600">${agentMetric.totalBids || 0}</span>
+                            <span class="text-[10px] text-blue-700 block">lượt</span>
+                        </div>
+                        <div class="bg-purple-50/70 border border-purple-200/80 p-2.5 rounded-xl text-center">
+                            <span class="text-[10px] font-bold text-purple-800 uppercase block">Tổng chi tiêu</span>
+                            <span class="text-xs font-extrabold text-purple-700 block truncate" title="${CargoStore.formatCurrency(agentMetric.totalSpentVND)}">${CargoStore.formatCurrency(agentMetric.totalSpentVND)}</span>
+                            <span class="text-[9px] text-purple-600 block">~${CargoStore.formatNumber(spentUSD)} USD</span>
+                        </div>
+                    </div>
+
+                    <div class="pt-2 flex justify-between items-center border-t border-slate-100">
+                        <span class="text-slate-400 text-[11px]">Xem toàn bộ hồ sơ & lịch sử:</span>
+                        <a href="09-AgentDetail.html?code=${agent.code}" class="px-3 py-1.5 bg-blue-600 hover:bg-blue-700 text-white rounded-lg font-bold text-xs flex items-center gap-1.5 transition">
+                            <span>Chi tiết hồ sơ</span> <i class="fa-solid fa-arrow-right text-[10px]"></i>
+                        </a>
+                    </div>
+                </div>
+            `;
+
+            showReportModal({
+                title: 'Hồ sơ đại lý trúng thầu',
+                subtitle: `Mã đại lý: ${agent.code}`,
+                message: contentHtml,
+                type: 'info',
+                confirmText: 'Đóng'
+            });
         }
 
         function parseVietnameseDate(str) {
@@ -1155,8 +1364,8 @@
                 }
             });
 
-            // Calculate spent and won from auctions
-            auctions.forEach(a => {
+            // Calculate spent and won from filtered closed auctions
+            filteredAuctions.forEach(a => {
                 const winner = a.winnerAgentCode || (a.status === 'CLOSED' ? a.leadingAgentCode : null);
                 if (winner && a.bidsCount > 0) {
                     if (!agentStats[winner]) {
@@ -1175,7 +1384,7 @@
                 }
             });
 
-            wonList.forEach(w => {
+            filteredWonList.forEach(w => {
                 const winner = w.agentCode;
                 if (winner) {
                     if (!agentStats[winner]) {
@@ -1188,25 +1397,32 @@
                             totalSpentVND: 0
                         };
                     }
-                    if (!auctions.some(a => (a.winnerAgentCode === winner || a.leadingAgentCode === winner) && a.id == w.auctionId)) {
+                    if (!filteredAuctions.some(a => (a.winnerAgentCode === winner || a.leadingAgentCode === winner) && a.id == w.auctionId)) {
                         agentStats[winner].wonCount += 1;
                         agentStats[winner].totalSpentVND += (w.totalAmountVND || ((w.capacityKg || 0) * (w.priceKg || 0)));
                     }
                 }
             });
 
+            // Xếp hạng Top đại lý theo số chuyến TRÚNG THẦU NHIỀU NHẤT (wonCount)
             const sortedAgents = Object.values(agentStats)
                 .filter(a => a.totalBids > 0 || a.wonCount > 0 || a.totalSpentVND > 0)
-                .sort((a, b) => b.totalSpentVND - a.totalSpentVND);
+                .sort((a, b) => {
+                    if (b.wonCount !== a.wonCount) return b.wonCount - a.wonCount;
+                    if (b.totalSpentVND !== a.totalSpentVND) return b.totalSpentVND - a.totalSpentVND;
+                    return (b.totalBids || 0) - (a.totalBids || 0);
+                });
 
-            const finalTopAgents = sortedAgents.length > 0 ? sortedAgents : agentsList.slice(0, 3).map(ag => ({
-                code: ag.code,
-                companyName: ag.companyName,
-                tier: ag.tier || 'TIER2',
-                totalBids: ag.totalBids || 0,
-                wonCount: ag.totalWins || 0,
-                totalSpentVND: ag.totalSpentVND || 0
-            }));
+            const finalTopAgents = sortedAgents.length > 0
+                ? sortedAgents
+                : [...agentsList].sort((a, b) => (b.totalWins || 0) - (a.totalWins || 0)).slice(0, 3).map(ag => ({
+                    code: ag.code,
+                    companyName: ag.companyName,
+                    tier: ag.tier || 'TIER2',
+                    totalBids: ag.totalBids || 0,
+                    wonCount: ag.totalWins || 0,
+                    totalSpentVND: ag.totalSpentVND || 0
+                }));
 
             return {
                 grandTotalRevenue,
@@ -1334,36 +1550,57 @@
                 }
             }
 
-            // 3. Render Top Agents
+            // 3. Render Top Agents (Ưu tiên số chuyến trúng thầu nhiều nhất)
             const topBox = document.getElementById('topAgentsContainer');
             if (topBox) {
                 const agentsToShow = metrics.topAgents.slice(0, 3);
                 if (agentsToShow.length === 0) {
-                    topBox.innerHTML = `<div class="col-span-3 text-center py-6 text-gray-400">Chưa có dữ liệu giao dịch của đại lý</div>`;
+                    topBox.innerHTML = `<div class="col-span-3 text-center py-6 text-gray-400">Chưa có dữ liệu trúng thầu của đại lý</div>`;
                 } else {
                     const medalBadges = [
-                        { bg: 'bg-amber-400', cardBg: 'bg-amber-50/40 border-amber-200', num: '1' },
-                        { bg: 'bg-slate-400', cardBg: 'bg-slate-50 border-slate-200', num: '2' },
-                        { bg: 'bg-amber-700', cardBg: 'bg-slate-50 border-slate-200', num: '3' }
+                        { bg: 'bg-gradient-to-r from-amber-500 to-amber-600', ring: 'ring-amber-200', cardBg: 'bg-gradient-to-b from-amber-50/50 to-white border-amber-200/90 shadow-xs', num: '1', label: 'Quán quân' },
+                        { bg: 'bg-gradient-to-r from-slate-400 to-slate-500', ring: 'ring-slate-200', cardBg: 'bg-white border-slate-200 shadow-xs', num: '2', label: 'Á quân 1' },
+                        { bg: 'bg-gradient-to-r from-amber-700 to-amber-800', ring: 'ring-amber-200', cardBg: 'bg-white border-slate-200 shadow-xs', num: '3', label: 'Á quân 2' }
                     ];
 
                     topBox.innerHTML = agentsToShow.map((ag, idx) => {
                         const m = medalBadges[idx] || medalBadges[1];
-                        const spentUSD = Math.round(ag.totalSpentVND / 25000);
+                        const spentUSD = Math.round((ag.totalSpentVND || 0) / 25000);
                         return `
-                            <div class="p-4 rounded-xl border ${m.cardBg} space-y-2 hover:shadow-sm transition">
+                            <div class="p-4 sm:p-5 rounded-2xl border ${m.cardBg} space-y-3 hover:shadow-md transition-all relative overflow-hidden group">
                                 <div class="flex items-center justify-between">
-                                    <span class="w-6 h-6 rounded-full ${m.bg} text-white font-bold flex items-center justify-center text-[10px] shadow-2xs">${m.num}</span>
+                                    <div class="flex items-center gap-2">
+                                        <span class="w-6 h-6 sm:w-7 sm:h-7 rounded-full ${m.bg} text-white font-extrabold flex items-center justify-center text-[10px] sm:text-xs shadow-sm ring-2 ${m.ring}">${m.num}</span>
+                                        <span class="text-[10px] sm:text-[11px] font-bold text-slate-500 uppercase tracking-wider">${m.label}</span>
+                                    </div>
+                                    <span class="text-xs font-bold text-emerald-700 bg-emerald-50 border border-emerald-200 px-2.5 py-1 rounded-full flex items-center gap-1.5 shadow-2xs">
+                                        <i class="fa-solid fa-trophy text-amber-500 text-[11px]"></i>
+                                        <strong>${ag.wonCount || 0}</strong> chuyến thắng
+                                    </span>
                                 </div>
-                                <p class="font-bold text-slate-900 text-sm truncate" title="${ag.companyName}">${ag.companyName}</p>
-                                <p class="text-gray-500 font-mono text-[11px]">${ag.code}</p>
-                                <p class="text-gray-600 text-xs">
-                                    Lượt thầu: <strong>${ag.totalBids || 0} lượt</strong> · Thắng: <strong class="text-green-600">${ag.wonCount || 0} chuyến</strong>
-                                </p>
-                                <p class="font-bold text-blue-600 text-sm pt-1 border-t border-slate-200/80">
-                                    Chi tiêu: ${CargoStore.formatCurrency(ag.totalSpentVND)}
-                                    ${spentUSD > 0 ? `<span class="text-[10px] font-normal text-slate-400"> (~${CargoStore.formatNumber(spentUSD)} USD)</span>` : ''}
-                                </p>
+                                <div>
+                                    <h3 class="font-bold text-slate-900 text-sm leading-tight truncate group-hover:text-blue-600 transition" title="${ag.companyName}">${ag.companyName}</h3>
+                                    <p class="text-slate-400 font-mono text-[11px] mt-0.5">${ag.code} · Hạng ${ag.tier || 'TIER2'}</p>
+                                </div>
+                                <div class="pt-2.5 border-t border-slate-100 grid grid-cols-2 gap-2 text-xs">
+                                    <div>
+                                        <span class="text-slate-400 block text-[10px] font-medium">Lượt đặt giá</span>
+                                        <strong class="text-slate-800 font-semibold">${ag.totalBids || 0} lượt</strong>
+                                    </div>
+                                    <div>
+                                        <span class="text-slate-400 block text-[10px] font-medium">Tổng giá trị trúng</span>
+                                        <strong class="text-blue-600 font-semibold">${CargoStore.formatCurrency(ag.totalSpentVND)}</strong>
+                                        ${spentUSD > 0 ? `<span class="text-[9px] font-normal text-slate-400 block">(~${CargoStore.formatNumber(spentUSD)} USD)</span>` : ''}
+                                    </div>
+                                </div>
+                                <div class="pt-2 flex items-center justify-between border-t border-dashed border-slate-100">
+                                    <button type="button" onclick="showAgentDetailModal('${ag.code}')" class="text-[11px] font-bold text-slate-700 hover:text-blue-600 flex items-center gap-1 cursor-pointer transition">
+                                        <i class="fa-solid fa-eye text-blue-500"></i> Xem nhanh
+                                    </button>
+                                    <a href="09-AgentDetail.html?code=${ag.code}" class="text-[11px] font-bold text-blue-600 hover:text-blue-800 flex items-center gap-1 transition">
+                                        <span>Hồ sơ chi tiết</span> <i class="fa-solid fa-arrow-right text-[10px]"></i>
+                                    </a>
+                                </div>
                             </div>
                         `;
                     }).join('');
@@ -1505,7 +1742,11 @@
             setTimeout(() => {
                 try {
                     if (typeof XLSX === 'undefined') {
-                        alert('Thư viện XLSX đang tải, vui lòng thử lại sau giây lát!');
+                        showReportModal({
+                            title: 'Thư viện chưa sẵn sàng',
+                            message: 'Thư viện XLSX đang được tải từ máy chủ CDN, vui lòng thử lại sau vài giây!',
+                            type: 'warning'
+                        });
                         btn.disabled = false;
                         btn.innerHTML = originalContent;
                         return;
@@ -1536,13 +1777,13 @@
                         "Tổng doanh thu (VND)": metrics.grandTotalRevenue
                     });
 
-                    // Sheet 2: Top Agents from store
+                    // Sheet 2: Top Agents ranked by most won auctions
                     const agentData = metrics.topAgents.map((ag, idx) => ({
                         "Xếp hạng": idx + 1,
                         "Mã đại lý": ag.code,
                         "Tên doanh nghiệp": ag.companyName,
+                        "Số chuyến thắng thầu (Trúng thầu)": ag.wonCount || 0,
                         "Tổng lượt đấu giá": ag.totalBids || 0,
-                        "Số chuyến thắng thầu": ag.wonCount || 0,
                         "Tổng chi tiêu (VND)": ag.totalSpentVND || 0,
                         "Tổng chi tiêu (~USD)": Math.round((ag.totalSpentVND || 0) / 25000)
                     }));
@@ -1605,12 +1846,12 @@
                     const wsCargo = XLSX.utils.json_to_sheet(cargoRows);
 
                     wsRoutes['!cols'] = [{ wch: 10 }, { wch: 32 }, { wch: 18 }, { wch: 20 }, { wch: 20 }, { wch: 16 }, { wch: 24 }, { wch: 24 }];
-                    wsAgents['!cols'] = [{ wch: 10 }, { wch: 14 }, { wch: 34 }, { wch: 14 }, { wch: 18 }, { wch: 20 }, { wch: 22 }, { wch: 20 }];
+                    wsAgents['!cols'] = [{ wch: 10 }, { wch: 14 }, { wch: 34 }, { wch: 20 }, { wch: 18 }, { wch: 20 }, { wch: 22 }, { wch: 20 }];
                     wsAuctions['!cols'] = [{ wch: 6 }, { wch: 20 }, { wch: 16 }, { wch: 18 }, { wch: 22 }, { wch: 14 }, { wch: 20 }, { wch: 24 }, { wch: 16 }, { wch: 24 }, { wch: 14 }];
                     wsCargo['!cols'] = [{ wch: 6 }, { wch: 16 }, { wch: 14 }, { wch: 14 }, { wch: 12 }, { wch: 16 }, { wch: 14 }, { wch: 18 }, { wch: 16 }, { wch: 16 }, { wch: 18 }, { wch: 20 }, { wch: 24 }, { wch: 18 }, { wch: 12 }, { wch: 12 }, { wch: 22 }, { wch: 22 }, { wch: 30 }, { wch: 25 }, { wch: 20 }];
 
                     XLSX.utils.book_append_sheet(wb, wsRoutes, "DoanhThu_TuyenBay");
-                    XLSX.utils.book_append_sheet(wb, wsAgents, "Top_DaiLy");
+                    XLSX.utils.book_append_sheet(wb, wsAgents, "Top_DaiLy_TrungThau");
                     XLSX.utils.book_append_sheet(wb, wsAuctions, "ChiTiet_ChuyenBay");
                     XLSX.utils.book_append_sheet(wb, wsCargo, "KhaiBao_HangHoa");
 
@@ -1620,7 +1861,11 @@
                     showToast("Đã tải xuống file Excel (.xlsx) thành công!");
                 } catch (err) {
                     console.error("Export Excel error:", err);
-                    alert("Lỗi khi xuất file Excel: " + err.message);
+                    showReportModal({
+                        title: 'Lỗi xuất file Excel',
+                        message: `<div class="p-3 bg-red-50 text-red-700 border border-red-200 rounded-xl font-mono text-xs">${err.message}</div>`,
+                        type: 'error'
+                    });
                 } finally {
                     btn.disabled = false;
                     btn.innerHTML = originalContent;
@@ -1637,7 +1882,11 @@
             setTimeout(() => {
                 try {
                     if (typeof html2pdf === 'undefined') {
-                        alert('Thư viện PDF đang tải, vui lòng thử lại sau giây lát!');
+                        showReportModal({
+                            title: 'Thư viện chưa sẵn sàng',
+                            message: 'Thư viện tạo PDF đang được tải từ CDN, vui lòng thử lại sau vài giây!',
+                            type: 'warning'
+                        });
                         btn.disabled = false;
                         btn.innerHTML = originalContent;
                         return;
@@ -1736,7 +1985,7 @@
 
                             <div style="margin-bottom: 24px;">
                                 <p style="font-size: 11px; font-weight: 700; color: #0f172a; margin: 0 0 6px 0; text-transform: uppercase;">
-                                    2. Xếp hạng Doanh số Đại lý tiêu biểu (Top Forwarders)
+                                    2. Bảng xếp hạng Top Đại lý trúng thầu nhiều nhất (Top Winning Forwarders)
                                 </p>
                                 <table style="width: 100%; border-collapse: collapse; font-size: 9.5px;">
                                     <thead>
@@ -1744,8 +1993,8 @@
                                             <th style="padding: 6px 8px; text-align: center; width: 40px;">Hạng</th>
                                             <th style="padding: 6px 8px; text-align: left;">Mã đại lý</th>
                                             <th style="padding: 6px 8px; text-align: left;">Tên doanh nghiệp</th>
+                                            <th style="padding: 6px 8px; text-align: center; color: #16a34a;">Số chuyến trúng</th>
                                             <th style="padding: 6px 8px; text-align: center;">Lượt thầu</th>
-                                            <th style="padding: 6px 8px; text-align: center;">Thắng thầu</th>
                                             <th style="padding: 6px 8px; text-align: right;">Tổng chi tiêu</th>
                                         </tr>
                                     </thead>
@@ -1755,8 +2004,8 @@
                                                 <td style="padding: 6px 8px; text-align: center; font-weight: 700; color: ${idx === 0 ? '#d97706' : '#64748b'};">#${idx + 1}</td>
                                                 <td style="padding: 6px 8px; font-family: monospace; font-weight: 700; color: #2563eb;">${ag.code}</td>
                                                 <td style="padding: 6px 8px; font-weight: 700; color: #0f172a;">${ag.companyName}</td>
-                                                <td style="padding: 6px 8px; text-align: center;">${ag.totalBids || 0} lượt</td>
                                                 <td style="padding: 6px 8px; text-align: center; color: #16a34a; font-weight: 700;">${ag.wonCount || 0} chuyến</td>
+                                                <td style="padding: 6px 8px; text-align: center;">${ag.totalBids || 0} lượt</td>
                                                 <td style="padding: 6px 8px; text-align: right; font-weight: 700; color: #2563eb;">${CargoStore.formatCurrency(ag.totalSpentVND)}</td>
                                             </tr>
                                         `).join('')}
@@ -1805,14 +2054,22 @@
                         showToast("Đã tải xuống file Báo cáo PDF thành công!");
                     }).catch(err => {
                         console.error("html2pdf save error:", err);
-                        alert("Lỗi xuất PDF: " + err.message);
+                        showReportModal({
+                            title: 'Lỗi xuất file PDF',
+                            message: `<div class="p-3 bg-red-50 text-red-700 border border-red-200 rounded-xl font-mono text-xs">${err.message}</div>`,
+                            type: 'error'
+                        });
                     }).finally(() => {
                         btn.disabled = false;
                         btn.innerHTML = originalContent;
                     });
                 } catch (err) {
                     console.error("Export PDF error:", err);
-                    alert("Lỗi khi xuất file PDF: " + err.message);
+                    showReportModal({
+                        title: 'Lỗi khi xuất file PDF',
+                        message: `<div class="p-3 bg-red-50 text-red-700 border border-red-200 rounded-xl font-mono text-xs">${err.message}</div>`,
+                        type: 'error'
+                    });
                     btn.disabled = false;
                     btn.innerHTML = originalContent;
                 }
