@@ -1706,24 +1706,27 @@
                     if (blob) {
                         activeBlobUrl = URL.createObjectURL(blob);
                     }
+                }
 
-                    if (isPdf && activeBlobUrl) {
-                        // In Chromium (Chrome/Edge), setting an iframe or object with blob: URL renders the built-in PDF viewer directly without downloading!
-                        containerEl.innerHTML = `
-                            <div class="w-full h-full min-h-[500px] flex flex-col rounded-xl overflow-hidden shadow border border-slate-300 bg-white">
-                                <object data="${activeBlobUrl}#toolbar=1&navpanes=0&view=FitH" type="application/pdf" class="w-full h-full flex-1 min-h-[500px]">
-                                    <iframe src="${activeBlobUrl}#toolbar=1&navpanes=0&view=FitH" class="w-full h-full flex-1 min-h-[500px] border-0" title="${activeDocObj.name}">
-                                        <div class="p-6 text-center text-slate-700">
-                                            <p class="font-bold mb-2">Trình duyệt không hỗ trợ hiển thị PDF trực tiếp trong khung này.</p>
-                                            <button onclick="openInNewBrowserTab()" class="px-4 py-2 bg-blue-600 text-white rounded-xl font-bold text-xs hover:bg-blue-700 transition">
-                                                Mở tệp tin trên tab mới
-                                            </button>
-                                        </div>
-                                    </iframe>
-                                </object>
-                            </div>
-                        `;
-                    } else if (isImg) {
+                if (isPdf) {
+                    const pdfSrc = activeBlobUrl || '../uploads/sample_document.pdf';
+                    // In Chromium (Chrome/Edge), setting an iframe or object with blob: URL or static PDF renders the built-in PDF viewer directly without downloading!
+                    containerEl.innerHTML = `
+                        <div class="w-full h-full min-h-[500px] flex flex-col rounded-xl overflow-hidden shadow border border-slate-300 bg-white">
+                            <object data="${pdfSrc}#toolbar=1&navpanes=0&view=FitH" type="application/pdf" class="w-full h-full flex-1 min-h-[500px]">
+                                <iframe src="${pdfSrc}#toolbar=1&navpanes=0&view=FitH" class="w-full h-full flex-1 min-h-[500px] border-0" title="${activeDocObj.name}">
+                                    <div class="p-6 text-center text-slate-700">
+                                        <p class="font-bold mb-2">Trình duyệt không hỗ trợ hiển thị PDF trực tiếp trong khung này.</p>
+                                        <a href="${pdfSrc}" target="_blank" class="px-4 py-2 bg-blue-600 text-white rounded-xl font-bold text-xs hover:bg-blue-700 transition inline-block">
+                                            Mở tệp tin PDF trên tab mới
+                                        </a>
+                                    </div>
+                                </iframe>
+                            </object>
+                        </div>
+                    `;
+                } else if (activeDocObj.dataUrl) {
+                    if (isImg) {
                         const imgSrc = activeBlobUrl || activeDocObj.dataUrl;
                         containerEl.innerHTML = `
                             <div class="w-full flex flex-col items-center justify-center p-3 bg-slate-900 rounded-xl overflow-hidden min-h-[420px]">
@@ -1851,6 +1854,15 @@
         function openInNewBrowserTab() {
             if (!activeDocObj) return;
 
+            const docNameLower = (activeDocObj.name || '').toLowerCase();
+            const isPdf = (activeDocObj.type || '').includes('pdf') || docNameLower.endsWith('.pdf');
+
+            if (isPdf) {
+                const pdfSrc = activeBlobUrl || (activeDocObj.dataUrl ? activeDocObj.dataUrl : '../uploads/sample_document.pdf');
+                window.open(pdfSrc, '_blank');
+                return;
+            }
+
             if (activeBlobUrl) {
                 window.open(activeBlobUrl, '_blank');
                 return;
@@ -1910,6 +1922,9 @@
         function downloadCurrentDocument() {
             if (!activeDocObj) return;
 
+            const docNameLower = (activeDocObj.name || '').toLowerCase();
+            const isPdf = (activeDocObj.type || '').includes('pdf') || docNameLower.endsWith('.pdf');
+
             if (activeDocObj.dataUrl) {
                 const blob = dataUrlToBlob(activeDocObj.dataUrl);
                 const url = blob ? URL.createObjectURL(blob) : activeDocObj.dataUrl;
@@ -1920,6 +1935,13 @@
                 a.click();
                 document.body.removeChild(a);
                 setTimeout(() => { if (blob) URL.revokeObjectURL(url); }, 5000);
+            } else if (isPdf) {
+                const a = document.createElement('a');
+                a.href = '../uploads/sample_document.pdf';
+                a.download = activeDocObj.name || 'document.pdf';
+                document.body.appendChild(a);
+                a.click();
+                document.body.removeChild(a);
             } else {
                 // If demo file without uploaded binary, generate real downloadable PDF via html2pdf
                 const paperEl = document.getElementById('mockDocPaper');

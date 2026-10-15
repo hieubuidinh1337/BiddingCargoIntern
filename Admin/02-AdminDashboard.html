@@ -512,7 +512,7 @@
                         <h2 class="text-base font-bold text-slate-900 flex items-center gap-2">
                             <i class="fa-solid fa-tower-broadcast text-blue-600"></i> Giám sát các phiên đấu giá đang mở
                         </h2>
-                        <p class="text-xs text-slate-500 mt-0.5">Theo dõi thời gian thực các bước giá và đại lý dẫn đầu
+                        <p class="text-xs text-slate-500 mt-0.5">Theo dõi thời gian thực các phiên đấu giá đang mở
                         </p>
                     </div>
                     <a href="03-AuctionList.html" class="text-xs font-semibold text-blue-600 hover:underline">
@@ -526,7 +526,7 @@
                             <tr>
                                 <th class="py-3 px-3">Chuyến bay</th>
                                 <th class="py-3 px-3">Tải trọng</th>
-                                <th class="py-3 px-3">Giá cao nhất</th>
+                                <th class="py-3 px-3">Giá khởi điểm</th>
                                 <th class="py-3 px-3">Đại lý dẫn đầu</th>
                                 <th class="py-3 px-3">Đếm ngược</th>
                                 <th class="py-3 px-3 text-right">Thao tác</th>
@@ -563,9 +563,10 @@
 
     <script>
         async function openDocumentInNewTab(docUrl, docName) {
-            if (!docUrl) return;
-            let finalUrl = String(docUrl).trim();
-            if (!finalUrl) return;
+            let finalUrl = String(docUrl || '').trim();
+            if (!finalUrl || finalUrl === '#' || finalUrl === 'undefined') {
+                finalUrl = '/uploads/sample_document.pdf';
+            }
             const name = docName || 'chung_tu';
             try {
                 if (finalUrl.startsWith('data:')) {
@@ -670,10 +671,7 @@
                 tbody.innerHTML = paginatedOpen.map(a => {
                     const timer = CargoStore.getTimeRemaining(a.endTime);
                     const isOpen = a.status === 'OPEN';
-                    // DEMO RULE: live-session bid info is hidden from Admin AND Staff
-                    const displayPrice = isOpen ?
-                        '<span class="text-gray-500 font-normal">??? <span class="text-[10px] font-normal">(Bảo mật)</span></span>' :
-                        CargoStore.formatCurrency(a.winningPriceKg || a.currentPriceKg);
+                    const displayPrice = CargoStore.formatCurrency(a.startingPriceKg);
                     const displayLeader = isOpen ?
                         '<span class="text-slate-400 font-medium italic"><i class="fa-solid fa-user-shield text-slate-400 mr-1"></i>Đại lý ẩn danh (Bảo mật)</span>' :
                         `<span class="font-semibold text-slate-900 block">${a.leadingAgentName}</span><span class="text-[10px] text-slate-400 font-mono">${a.leadingAgentCode || '-'}</span>`;

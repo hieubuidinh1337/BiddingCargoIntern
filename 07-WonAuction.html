@@ -1445,14 +1445,14 @@
         }
 
         function viewDgrDocument() {
-            if (!currentDgrFile || !currentDgrFile.url) return;
-            const url = currentDgrFile.url;
-            const name = currentDgrFile.name || 'dgr_msds_document';
+            if (!currentDgrFile) return;
+            const url = currentDgrFile.url || 'uploads/sample_document.pdf';
+            const name = currentDgrFile.name || 'dgr_msds_document.pdf';
             // Open in new tab — browser will render PDF/image natively
             const w = window.open();
             if (w) {
                 const ext = (name.split('.').pop() || '').toLowerCase();
-                if (['jpg', 'jpeg', 'png', 'webp'].includes(ext)) {
+                if (['jpg', 'jpeg', 'png', 'webp'].includes(ext) && !url.endsWith('.pdf')) {
                     w.document.write(`<html><head><title>${name} — DGR/MSDS</title><style>body{margin:0;background:#111;display:flex;justify-content:center;align-items:flex-start;min-height:100vh;} img{max-width:100%;height:auto;margin:auto;display:block;}</style></head><body><img src="${url}" alt="${name}" /></body></html>`);
                 } else {
                     // For PDF: use embed

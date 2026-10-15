@@ -413,8 +413,8 @@
             </div>
         </div>
 
-        <!-- 4 KPI Specs for Auction -->
-        <div class="grid grid-cols-2 md:grid-cols-4 gap-4">
+        <!-- 3 KPI Specs for Auction -->
+        <div class="grid grid-cols-1 sm:grid-cols-3 gap-4">
             <div class="bg-white rounded-2xl p-4 border shadow-sm">
                 <p class="text-xs text-slate-500">Tải trọng chào thầu</p>
                 <p class="text-xl font-bold text-slate-900 mt-1" id="detCapacity">3,500 Kg</p>
@@ -426,10 +426,6 @@
             <div class="bg-white rounded-2xl p-4 border shadow-sm">
                 <p class="text-xs text-slate-500">Bước giá tối thiểu</p>
                 <p class="text-xl font-bold text-slate-700 mt-1" id="detMinStep">+500 đ</p>
-            </div>
-            <div class="bg-white rounded-2xl p-4 border shadow-sm">
-                <p class="text-xs text-slate-500">Giá cao nhất hiện tại</p>
-                <p class="text-xl font-bold text-blue-600 mt-1" id="detCurrentPrice">21.500 đ</p>
             </div>
         </div>
 
@@ -721,9 +717,12 @@
             const effectiveCurrentPrice = Math.max(Number(auction.currentPriceKg) || 0, Number(auction.startingPriceKg) || 0, highestBidPrice);
 
             // DEMO RULE: no bid information for Admin/Staff while the session is live
-            document.getElementById('detCurrentPrice').innerHTML = isOpen ?
-                '<span class="text-gray-500">??? <span class="text-[10px] font-normal">(Bảo mật)</span></span>' :
-                CargoStore.formatCurrency(effectiveCurrentPrice) + '/Kg';
+            const detPriceEl = document.getElementById('detCurrentPrice');
+            if (detPriceEl) {
+                detPriceEl.innerHTML = isOpen ?
+                    '<span class="text-gray-500">??? <span class="text-[10px] font-normal">(Bảo mật)</span></span>' :
+                    CargoStore.formatCurrency(effectiveCurrentPrice) + '/Kg';
+            }
 
             document.getElementById('detAircraft').textContent = auction.aircraft;
             document.getElementById('detEtd').textContent = auction.etd;
@@ -909,23 +908,10 @@
             const canEdit = isOpen && !hasBids;
 
             btnContainer.innerHTML = `
-                ${canEdit ? `
-                    <button onclick="openDetailEditModal()" class="bg-amber-500 hover:bg-amber-600 text-white text-xs font-bold px-3.5 py-2 rounded-xl transition shadow flex items-center gap-1.5" title="Chỉnh sửa thông số">
-                        <i class="fa-solid fa-pen-to-square"></i> Sửa thông số
-                    </button>
-                ` : `
-                    <button disabled class="bg-slate-200 text-slate-400 text-xs font-bold px-3.5 py-2 rounded-xl cursor-not-allowed opacity-70 flex items-center gap-1.5" title="${!isOpen ? 'Không thể sửa – phiên đấu giá đã đóng thầu' : 'Không thể sửa – phiên đã có lượt đặt giá'}">
-                        <i class="fa-solid fa-lock"></i> Khóa sửa
-                    </button>
-                `}
                 <button onclick="openDetailBroadcastModal()" class="bg-blue-600 hover:bg-blue-700 text-white text-xs font-bold px-3.5 py-2 rounded-xl transition shadow flex items-center gap-1.5">
                     <i class="fa-solid fa-bullhorn"></i> Phát thông báo
                 </button>
-                ${(isOpen && isAdmin) ? `
-                    <button onclick="forceClose(${auction.id})" class="bg-red-600 hover:bg-red-700 text-white text-xs font-bold px-3.5 py-2 rounded-xl transition shadow flex items-center gap-1.5">
-                        <i class="fa-solid fa-gavel"></i> Chốt thầu ngay
-                    </button>
-                ` : (!isOpen ? `
+                ${(!isOpen ? `
                     <span class="bg-slate-200 text-slate-700 text-xs font-bold px-3 py-2 rounded-xl flex items-center gap-1">
                         <i class="fa-solid fa-lock"></i> Đã đóng thầu
                     </span>
@@ -1040,15 +1026,13 @@
                     statusBadge = (isHighest || b.status === 'WON') ?
                         '<span class="bg-green-100 text-green-700 font-bold px-2 py-0.5 rounded text-[10px]">THẮNG THẦU</span>' :
                         '<span class="bg-slate-100 text-slate-500 font-medium px-2 py-0.5 rounded text-[10px]">KHÔNG TRÚNG THẦU</span>';
-                } else if (isHighest) {
-                    statusBadge = '<span class="bg-emerald-100 text-emerald-800 font-bold px-2 py-0.5 rounded text-[10px] inline-flex items-center gap-1 shadow-xs"><i class="fa-solid fa-crown text-amber-500"></i> GIÁ CAO NHẤT</span>';
                 } else {
                     statusBadge = '<span class="bg-blue-50 text-blue-600 font-medium px-2 py-0.5 rounded text-[10px]">ĐÃ GHI NHẬN</span>';
                 }
 
                 const isNewestItem = isOpen && (startIdx + i) === 0;
                 return `
-                <tr class="${isNewestItem ? 'bg-blue-50/70 font-medium border-l-4 border-l-blue-600' : (isHighest ? 'bg-emerald-50/30' : 'hover:bg-slate-50')} transition">
+                <tr class="${isNewestItem ? 'bg-blue-50/70 font-medium border-l-4 border-l-blue-600' : 'hover:bg-slate-50'} transition">
                     <td class="py-3 px-4">${displayCode}</td>
                     <td class="py-3 px-4">${displayName}</td>
                     <td class="py-3 px-4 font-bold text-slate-900">${CargoStore.formatCurrency(b.priceKg)}</td>
@@ -1061,51 +1045,31 @@
             `;}).join('');
         }
 
-        function forceClose(id) {
-            if (confirm('Xác nhận đóng phiên đấu giá và chốt người chiến thắng?')) {
-                CargoStore.closeAuction(id);
-                loadAdminDetail();
+        async function openDocumentInNewTab(docUrl, docName) {
+            let finalUrl = String(docUrl || '').trim();
+            if (!finalUrl || finalUrl === '#' || finalUrl === 'undefined') {
+                finalUrl = '../uploads/sample_document.pdf';
             }
-        }
-
-        function openDetailEditModal() {
-            if (!currentAuction) return;
-            document.getElementById('modalDetCapacity').value = currentAuction.capacityKg;
-            document.getElementById('modalDetStarting').value = currentAuction.startingPriceKg;
-            document.getElementById('modalDetMinStep').value = currentAuction.minStep;
-            document.getElementById('modalDetAircraft').value = currentAuction.aircraft;
-            document.getElementById('modalDetEtd').value = currentAuction.etd;
-            document.getElementById('modalDetEta').value = currentAuction.eta;
-            document.getElementById('modalDetNotes').value = currentAuction.specialNotes || '';
-            document.getElementById('modalDetExtendTime').value = '0';
-            document.getElementById('detailEditModal').classList.remove('hidden');
-        }
-
-        function closeDetailEditModal() {
-            document.getElementById('detailEditModal').classList.add('hidden');
-        }
-
-        function saveDetailEdit(e) {
-            e.preventDefault();
-            if (!currentAuction) return;
-
-            const res = CargoStore.updateAuction(currentAuction.id, {
-                capacityKg: document.getElementById('modalDetCapacity').value,
-                startingPriceKg: document.getElementById('modalDetStarting').value,
-                minStep: document.getElementById('modalDetMinStep').value,
-                aircraft: document.getElementById('modalDetAircraft').value,
-                etd: document.getElementById('modalDetEtd').value,
-                eta: document.getElementById('modalDetEta').value,
-                specialNotes: document.getElementById('modalDetNotes').value,
-                extendMinutes: Number(document.getElementById('modalDetExtendTime').value)
-            });
-
-            if (res.success) {
-                alert(res.message);
-                closeDetailEditModal();
-                loadAdminDetail();
-            } else {
-                alert(res.message);
+            const name = docName || 'chung_tu';
+            try {
+                if (finalUrl.startsWith('data:')) {
+                    const response = await fetch(finalUrl);
+                    const blob = await response.blob();
+                    finalUrl = URL.createObjectURL(blob);
+                }
+                const w = window.open();
+                if (w) {
+                    const ext = (name.split('.').pop() || '').toLowerCase();
+                    if (['jpg','jpeg','png','webp','gif'].includes(ext)) {
+                        w.document.write(`<html><head><title>${name}</title><style>body{margin:0;background:#111;display:flex;justify-content:center;align-items:flex-start;min-height:100vh;}img{max-width:100%;height:auto;margin:auto;display:block;}</style></head><body><img src="${finalUrl}" alt="${name}"/></body></html>`);
+                    } else {
+                        w.document.write(`<html><head><title>${name}</title><style>body,html{margin:0;padding:0;height:100%;}embed{width:100%;height:100%;}</style></head><body><embed src="${finalUrl}" type="application/pdf" width="100%" height="100%"/></body></html>`);
+                    }
+                    w.document.close();
+                    if (finalUrl.startsWith('blob:')) setTimeout(() => URL.revokeObjectURL(finalUrl), 30000);
+                }
+            } catch (err) {
+                console.error('openDocumentInNewTab error:', err);
             }
         }
 

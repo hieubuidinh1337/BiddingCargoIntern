@@ -430,8 +430,7 @@
                 <h1 class="text-lg sm:text-2xl font-bold text-slate-900 flex items-center gap-2">
                     <i class="fa-solid fa-list-check text-blue-600 text-base sm:text-xl"></i> Quản lý phiên đấu giá
                 </h1>
-                <p class="text-[11px] sm:text-xs text-slate-500 mt-0.5 sm:mt-1">Chức năng Điều hành: Thêm, Xóa, Sửa
-                    thông số, Chốt thầu và Phát thông báo</p>
+                <p class="text-[11px] sm:text-xs text-slate-500 mt-0.5 sm:mt-1">Chức năng Điều hành: Theo dõi phiên thầu, Tiếp nhận kết quả và Phát thông báo</p>
             </div>
             <div class="grid grid-cols-2 sm:flex items-center gap-2 w-full sm:w-auto">
                 <button onclick="openBroadcastModal()"
@@ -474,7 +473,7 @@
                         class="w-full border rounded-xl px-3 py-2 text-xs focus:ring-2 focus:ring-blue-500 outline-none bg-white">
                         <option value="ALL">Tất cả trạng thái</option>
                         <option value="OPEN">Đang mở</option>
-                        <option value="CLOSED">Đã đóng / Chốt thầu</option>
+                        <option value="CLOSED">Đã đóng thầu</option>
                         <option value="CANCELLED">Đã hủy chuyến</option>
                     </select>
                 </div>
@@ -487,8 +486,7 @@
                         <i class="fa-solid fa-list-check text-blue-600"></i> Danh sách tất cả các phiên đấu giá tải
                         trọng trên hệ thống
                     </span>
-                    <span class="text-[11px] text-slate-500">Thao tác: Xem chi tiết, Chỉnh sửa thông số, Chốt thầu hoặc
-                        Xóa</span>
+                    <span class="text-[11px] text-slate-500">Thao tác: Xem chi tiết phiên thầu và giám sát hồ sơ</span>
                 </div>
                 <div class="overflow-x-auto">
                     <table class="w-full text-xs text-left min-w-[780px] whitespace-nowrap">
@@ -1105,9 +1103,10 @@
         }
 
         async function openDocumentInNewTab(docUrl, docName) {
-            if (!docUrl) return;
-            let finalUrl = String(docUrl).trim();
-            if (!finalUrl) return;
+            let finalUrl = String(docUrl || '').trim();
+            if (!finalUrl || finalUrl === '#' || finalUrl === 'undefined') {
+                finalUrl = '/uploads/sample_document.pdf';
+            }
             const name = docName || 'chung_tu';
             try {
                 if (finalUrl.startsWith('data:')) {
@@ -1222,44 +1221,9 @@
                         </span>
                     </td>
                     <td class="py-3.5 px-4 text-right space-x-1.5 whitespace-nowrap">
-                        <a href="05-AuctionDetail.html?id=${a.id}" class="inline-flex items-center gap-1 bg-blue-50 hover:bg-blue-100 text-blue-700 font-semibold px-2 py-1 rounded-lg transition" title="Xem chi tiết & lịch sử">
-                            <i class="fa-solid fa-eye text-[10px]"></i> Xem
+                        <a href="05-AuctionDetail.html?id=${a.id}" class="inline-flex items-center gap-1.5 bg-blue-50 hover:bg-blue-600 text-blue-700 hover:text-white font-semibold px-3 py-1.5 rounded-lg transition shadow-2xs" title="Xem chi tiết & lịch sử">
+                            <i class="fa-solid fa-eye text-xs"></i> Xem chi tiết
                         </a>
-                        ${canEdit ? `
-                            <button onclick="openEditModal(${a.id})" class="inline-flex items-center gap-1 bg-amber-50 hover:bg-amber-100 text-amber-700 font-semibold px-2 py-1 rounded-lg transition" title="Chỉnh sửa thông số">
-                                <i class="fa-solid fa-pen-to-square text-[10px]"></i> Sửa
-                            </button>
-                        ` : `
-                            <button disabled class="inline-flex items-center gap-1 bg-gray-100 text-gray-400 font-semibold px-2 py-1 rounded-lg cursor-not-allowed opacity-60" title="${!isOpen ? 'Không thể sửa – phiên đấu giá đã đóng thầu' : (isStaffRole ? 'Không thể sửa – phiên đã có lượt đặt giá' : `Không thể sửa – đã có ${bidsCount} lượt đặt giá`)}">
-                                <i class="fa-solid fa-lock text-[10px]"></i> Sửa
-                            </button>
-                        `}
-                        ${(isOpen && data.currentAdmin && data.currentAdmin.role !== 'STAFF') ? `
-                            <button onclick="handleCloseAuction(${a.id})" class="inline-flex items-center gap-1 bg-emerald-50 hover:bg-emerald-100 text-emerald-700 font-semibold px-2 py-1 rounded-lg transition" title="Chốt thầu">
-                                <i class="fa-solid fa-gavel text-[10px]"></i> Chốt
-                            </button>
-                        ` : ''}
-                        ${isCancelled ? `
-                            <span class="inline-flex items-center gap-1 bg-red-50 text-red-400 font-semibold px-2 py-1 rounded-lg text-[10px] opacity-70 cursor-default" title="Chuyến bay đã bị hủy">
-                                <i class="fa-solid fa-plane-circle-xmark text-[10px]"></i> Đã Hủy
-                            </span>
-                        ` : isDeleted ? `
-                            <span class="inline-flex items-center gap-1 bg-slate-100 text-slate-400 font-semibold px-2 py-1 rounded-lg text-[10px] opacity-70 cursor-default" title="Phiên đấu giá đã bị xóa">
-                                <i class="fa-solid fa-trash text-[10px]"></i> Đã Xóa
-                            </span>
-                        ` : hasBids ? (isAdmin ? `
-                            <button onclick="handleCancelAuction(${a.id}, '${a.flightNumber}')" class="inline-flex items-center gap-1 bg-orange-50 hover:bg-orange-100 text-orange-600 font-semibold px-2 py-1 rounded-lg transition" title="Hủy chuyến bay – có ${bidsCount} lượt đặt giá">
-                                <i class="fa-solid fa-plane-circle-xmark text-[10px]"></i> Hủy
-                            </button>
-                        ` : `
-                            <button disabled class="inline-flex items-center gap-1 bg-gray-100 text-gray-400 font-semibold px-2 py-1 rounded-lg cursor-not-allowed opacity-60" title="Không thể hủy – chỉ Quản trị viên (Admin) mới có quyền hủy phiên đã có lượt đấu giá">
-                                <i class="fa-solid fa-lock text-[10px]"></i> Hủy
-                            </button>
-                        `) : `
-                            <button onclick="handleDeleteAuction(${a.id}, '${a.flightNumber}')" class="inline-flex items-center gap-1 bg-red-50 hover:bg-red-100 text-red-600 font-semibold px-2 py-1 rounded-lg transition" title="Xóa phiên đấu giá">
-                                <i class="fa-solid fa-trash text-[10px]"></i> Xóa
-                            </button>
-                        `}
                     </td>
                 </tr>
             `;
