@@ -921,6 +921,8 @@
 
             const btnContainer = document.getElementById('adminActionButtons');
 
+            const sysSettings = (typeof CargoStore !== 'undefined' && CargoStore.getSystemSettings) ? CargoStore.getSystemSettings() : {};
+            const hideCloseBtn = sysSettings && sysSettings.hideCloseAuctionBtn === true;
             const bids = CargoStore.getBidsForAuction(auction.id);
             const hasBids = bids.length > 0;
             const canEdit = isOpen && !hasBids;
@@ -929,11 +931,11 @@
                 <button onclick="openDetailBroadcastModal()" class="bg-blue-600 hover:bg-blue-700 text-white text-xs font-bold px-3.5 py-2 rounded-xl transition shadow flex items-center gap-1.5">
                     <i class="fa-solid fa-bullhorn"></i> Phát thông báo
                 </button>
-                ${(isOpen ? `
+                ${(isOpen ? (hideCloseBtn ? '' : `
                     <button onclick="handleDetailCloseAuction()" class="bg-amber-500 hover:bg-amber-600 active:scale-95 text-slate-950 text-xs font-bold px-3.5 py-2 rounded-xl transition shadow flex items-center gap-1.5 cursor-pointer">
                         <i class="fa-solid fa-gavel"></i> Đóng phiên & Chốt thầu ngay
                     </button>
-                ` : `
+                `) : `
                     <span class="bg-slate-200 text-slate-700 text-xs font-bold px-3 py-2 rounded-xl flex items-center gap-1">
                         <i class="fa-solid fa-lock"></i> Đã đóng thầu
                     </span>

@@ -1166,6 +1166,8 @@
         }
 
         function renderAuctionRow(a, data) {
+            const sysSettings = (typeof CargoStore !== 'undefined' && CargoStore.getSystemSettings) ? CargoStore.getSystemSettings() : (data.settings || {});
+            const hideCloseBtn = sysSettings && sysSettings.hideCloseAuctionBtn === true;
             const isOpen = a.status === 'OPEN';
             const isAdmin = data.currentAdmin && data.currentAdmin.role === 'ADMIN';
             const isStaffRole = Boolean(data.currentAdmin && String(data.currentAdmin.role).toUpperCase() === 'STAFF');
@@ -1221,7 +1223,7 @@
                         </span>
                     </td>
                     <td class="py-3.5 px-4 text-right space-x-1.5 whitespace-nowrap">
-                        ${isOpen ? `
+                        ${(isOpen && !hideCloseBtn) ? `
                             <button onclick="handleCloseAuction(${a.id})" class="inline-flex items-center gap-1 bg-amber-500 hover:bg-amber-600 active:scale-95 text-slate-950 font-bold px-2.5 py-1.5 rounded-lg transition shadow-2xs text-xs cursor-pointer" title="Đóng phiên & chốt thầu ngay">
                                 <i class="fa-solid fa-gavel"></i> Đóng phiên
                             </button>

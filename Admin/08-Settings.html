@@ -230,43 +230,44 @@
                 </div>
             </div>
 
-            <!-- Chế độ Thử nghiệm: Tự Chốt Đấu Giá Nhanh (Fast Test / Auto-Close) -->
-            <div class="bg-gradient-to-br from-white to-blue-50/40 rounded-2xl border border-blue-200 shadow-sm p-6 space-y-4 relative overflow-hidden">
-                <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-2 border-b border-blue-100 pb-3">
+            <!-- Cài đặt Ẩn nút Chốt thầu (Hide Close Auction Buttons) -->
+            <div class="bg-gradient-to-br from-white to-slate-50/70 rounded-2xl border border-slate-200 shadow-sm p-6 space-y-4 relative overflow-hidden">
+                <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-2 border-b border-slate-100 pb-3">
                     <h2 class="font-bold text-sm text-slate-900 flex items-center gap-2">
-                        <i class="fa-solid fa-bolt-lightning text-amber-500 text-base"></i> Tùy chọn Tự chốt Đấu giá (Chế độ Kiểm thử nhanh / Fast-Testing)
+                        <i class="fa-solid fa-eye-slash text-blue-600 text-base"></i> Cài đặt Ẩn nút Chốt thầu (Hide Close Auction Buttons)
                     </h2>
-                    <span class="text-[11px] font-bold text-blue-700 bg-blue-100/80 border border-blue-200 px-3 py-0.5 rounded-full flex items-center gap-1.5">
-                        <i class="fa-solid fa-flask-vial"></i> Dành cho Quản trị viên Test
+                    <span class="text-[11px] font-bold text-slate-700 bg-slate-100 border border-slate-200 px-3 py-0.5 rounded-full flex items-center gap-1.5">
+                        <i class="fa-solid fa-sliders"></i> Tùy chọn Vận hành & Test
                     </span>
                 </div>
                 <p class="text-xs text-slate-600 leading-relaxed">
-                    Cho phép chốt phiên đấu giá tức thì để kiểm thử sớm các quy trình sau đấu giá (xác nhận đơn trúng thầu, thanh toán VietQR / MoMo, khai báo thông tin hàng hóa AWB, đối soát doanh thu và xuất báo cáo) thay vì phải đợi hết thời gian đếm ngược của phiên.
+                    Cấu hình cho phép ẩn hoặc hiển thị các nút "Đóng phiên" / "Chốt thầu" thủ công trên toàn bộ hệ thống (danh sách phiên đấu giá và trang chi tiết chuyến bay).
                 </p>
 
                 <div class="space-y-3 pt-1">
-                    <!-- Toggle Auto-close on bid -->
-                    <label class="flex items-start gap-3 p-4 rounded-xl border border-blue-200 bg-white hover:bg-blue-50/50 transition cursor-pointer shadow-xs">
-                        <input type="checkbox" id="cfgAutoCloseOnBid" class="mt-0.5 w-4 h-4 text-blue-600 rounded border-slate-300 focus:ring-blue-500">
+                    <!-- Toggle Hide Close Button -->
+                    <label class="flex items-start gap-3 p-4 rounded-xl border border-slate-200 bg-white hover:bg-slate-50 transition cursor-pointer shadow-xs">
+                        <input type="checkbox" id="cfgHideCloseAuctionBtn" class="mt-0.5 w-4 h-4 text-blue-600 rounded border-slate-300 focus:ring-blue-500">
                         <div class="text-xs space-y-1">
                             <span class="font-bold text-slate-900 flex items-center gap-2">
-                                <span>Tự động chốt thầu ngay khi đại lý đặt giá mới (Auto-close after placing bid)</span>
-                                <span class="bg-amber-100 text-amber-800 text-[10px] px-2 py-0.5 rounded-md font-bold">Khuyên dùng khi Test</span>
+                                <span>Ẩn nút chốt thầu trên toàn sàn (Hide manual close buttons)</span>
+                                <span class="bg-blue-100 text-blue-800 text-[10px] px-2 py-0.5 rounded-md font-bold">Chế độ Sàn Chính thức</span>
                             </span>
                             <span class="text-slate-500 block leading-relaxed">
-                                Khi tính năng này được <strong>BẬT</strong>: Ngay khi đại lý gửi mức giá đặt thầu hợp lệ, hệ thống sẽ <strong>tự động chốt thầu ngay lập tức</strong>, trao quyền thắng thầu cho đại lý đó và chuyển ngay sang danh sách <strong>Đơn trúng thầu</strong> để bạn kiểm tra luồng thanh toán và khai báo mà không cần chờ đợi.
+                                • <strong>Khi BẬT</strong>: Hệ thống sẽ ẩn toàn bộ các nút "Đóng phiên" và "Chốt thầu" thủ công trên danh sách phiên (Admin) và chi tiết chuyến bay. Các phiên đấu giá sẽ chỉ tự động chốt theo thời gian thực đếm ngược.<br>
+                                • <strong>Khi TẮT (Chế độ Test)</strong>: Hiển thị các nút chốt thầu để Quản trị viên có thể bấm chốt sớm và kiểm thử các tính năng sau đấu giá ngay lập tức.
                             </span>
                         </div>
                     </label>
 
-                    <!-- Instant Action button -->
-                    <div class="p-4 rounded-xl border border-slate-200 bg-slate-50 flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+                    <!-- Instant Action button (Fast Testing) -->
+                    <div class="p-4 rounded-xl border border-amber-200 bg-amber-50/50 flex flex-col sm:flex-row sm:items-center justify-between gap-3">
                         <div class="text-xs space-y-0.5">
                             <span class="font-bold text-slate-900 block flex items-center gap-1.5">
-                                <i class="fa-solid fa-gavel text-amber-600"></i> Chốt thầu ngay lập tức tất cả các phiên đang mở
+                                <i class="fa-solid fa-bolt-lightning text-amber-600"></i> Phím tắt kiểm thử: Chốt thầu ngay tất cả các phiên đang mở
                             </span>
                             <span class="text-slate-500 text-[11px] block">
-                                Đóng toàn bộ các phiên đang ở trạng thái OPEN sang CLOSED ngay lập tức và sinh đơn hàng thắng thầu tương ứng.
+                                Đóng tất cả các phiên đang mở ngay tức thì và sinh đơn hàng thắng thầu để test quy trình thanh toán/vận đơn.
                             </span>
                         </div>
                         <button type="button" id="btnInstantCloseAll" onclick="handleInstantCloseAllAuctions()"
@@ -705,8 +706,8 @@
                 if (s.hotline) document.getElementById('cfgHotline').value = s.hotline;
                 if (s.supportEmail) document.getElementById('cfgSupportEmail').value = s.supportEmail;
                 document.getElementById('cfgHideAgentCredentials').checked = s.hideAgentCredentials !== false;
-                if (document.getElementById('cfgAutoCloseOnBid')) {
-                    document.getElementById('cfgAutoCloseOnBid').checked = s.autoCloseOnBid === true;
+                if (document.getElementById('cfgHideCloseAuctionBtn')) {
+                    document.getElementById('cfgHideCloseAuctionBtn').checked = s.hideCloseAuctionBtn === true;
                 }
 
                 if (s.smtp) {
@@ -751,7 +752,7 @@
                     `;
                 }
 
-                ['cfgMinIncrement', 'cfgPaymentWindow', 'cfgHotline', 'cfgSupportEmail', 'cfgHideAgentCredentials', 'cfgAutoCloseOnBid', 'btnInstantCloseAll', 'bankName', 'bankAccNum', 'bankAccName', 'bankBranch', 'bankMemoPrefix', 'bankBin', 'smtpProvider', 'smtpHost', 'smtpPort', 'smtpUser', 'smtpPass', 'smtpFromName'].forEach(id => {
+                ['cfgMinIncrement', 'cfgPaymentWindow', 'cfgHotline', 'cfgSupportEmail', 'cfgHideAgentCredentials', 'cfgHideCloseAuctionBtn', 'btnInstantCloseAll', 'bankName', 'bankAccNum', 'bankAccName', 'bankBranch', 'bankMemoPrefix', 'bankBin', 'smtpProvider', 'smtpHost', 'smtpPort', 'smtpUser', 'smtpPass', 'smtpFromName'].forEach(id => {
                     const el = document.getElementById(id);
                     if (el) {
                         el.disabled = true;
@@ -920,7 +921,7 @@
                 hotline: document.getElementById('cfgHotline').value,
                 supportEmail: document.getElementById('cfgSupportEmail').value,
                 hideAgentCredentials: document.getElementById('cfgHideAgentCredentials').checked,
-                autoCloseOnBid: document.getElementById('cfgAutoCloseOnBid') ? document.getElementById('cfgAutoCloseOnBid').checked : false,
+                hideCloseAuctionBtn: document.getElementById('cfgHideCloseAuctionBtn') ? document.getElementById('cfgHideCloseAuctionBtn').checked : false,
                 smtp: smtpData
             });
 

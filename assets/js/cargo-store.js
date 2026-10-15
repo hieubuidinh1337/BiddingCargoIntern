@@ -716,6 +716,7 @@ const CargoStore = (function () {
             supportEmail: 'customercare@vietravelairlines.vn',
             hideAgentCredentials: true,
             autoCloseOnBid: false,
+            hideCloseAuctionBtn: false,
             smtp: {
                 host: 'smtp.gmail.com',
                 port: 465,
@@ -5290,6 +5291,9 @@ const CargoStore = (function () {
             if (settingsData.platformFee) data.settings.platformFee = Number(settingsData.platformFee);
             if (settingsData.hideAgentCredentials !== undefined) {
                 data.settings.hideAgentCredentials = Boolean(settingsData.hideAgentCredentials);
+            }
+            if (settingsData.hideCloseAuctionBtn !== undefined) {
+                data.settings.hideCloseAuctionBtn = Boolean(settingsData.hideCloseAuctionBtn);
             }
             if (settingsData.autoCloseOnBid !== undefined) {
                 data.settings.autoCloseOnBid = Boolean(settingsData.autoCloseOnBid);

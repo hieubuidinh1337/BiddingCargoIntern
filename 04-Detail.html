@@ -482,7 +482,10 @@
                         </span>
                     `;
                 } else if (isClosed) {
+                const sysSettings = (typeof CargoStore !== 'undefined' && CargoStore.getSystemSettings) ? CargoStore.getSystemSettings() : {};
+                const hideCloseBtn = sysSettings && sysSettings.hideCloseAuctionBtn === true;
                 const testSec = document.getElementById('quickTestCloseSection');
+                if (testSec && hideCloseBtn) testSec.classList.add('hidden');
                 if (testSec) testSec.classList.add('hidden');
                     topBadge.innerHTML = `
                         <span class="inline-block w-2.5 h-2.5 rounded-full bg-red-500"></span>
