@@ -355,7 +355,7 @@
                 <a href="06-AgentList.html" class="nav-item-admin"><i class="fa-solid fa-building-user"></i>Đại lý</a>
                 <a href="07-Reports.html" class="nav-item-admin active"><i class="fa-solid fa-chart-line"></i>Báo
                     cáo</a>
-                <a href="08-Settings.html" class="nav-item-admin"><i class="fa-solid fa-sliders"></i>Cài đặt</a>
+                <a href="08-Settings.html" class="nav-item-admin"><i class="fa-solid fa-gear"></i>Cài đặt</a>
                 <a href="10-AuditLogs.html" class="nav-item-admin"><i class="fa-solid fa-clock-rotate-left"></i>Nhật
                     ký</a>
             </nav>
@@ -389,7 +389,7 @@
             <a href="06-AgentList.html" class="mobile-nav-item"><i class="fa-solid fa-building-user w-4"></i>Đại lý</a>
             <a href="07-Reports.html" class="mobile-nav-item active"><i class="fa-solid fa-chart-line w-4"></i>Báo
                 cáo</a>
-            <a href="08-Settings.html" class="mobile-nav-item"><i class="fa-solid fa-sliders w-4"></i>Cài đặt</a>
+            <a href="08-Settings.html" class="mobile-nav-item"><i class="fa-solid fa-gear w-4"></i>Cài đặt</a>
             <a href="10-AuditLogs.html" class="mobile-nav-item"><i class="fa-solid fa-clock-rotate-left w-4"></i>Nhật
                 ký</a>
             <a href="../00-Home.html" target="_blank" class="mobile-nav-item"
@@ -596,42 +596,6 @@
                     <i class="fa-solid fa-spinner fa-spin text-amber-500 mr-2"></i> Đang tổng hợp dữ liệu đại lý...
                 </div>
             </div>
-        </div>
-
-        <!-- Cargo Manifest Reports Table
-        <div class="bg-white rounded-2xl border shadow-sm p-6 space-y-4">
-            <div class="flex items-center justify-between">
-                <div>
-                    <h2 class="text-base font-bold text-slate-900 flex items-center gap-2">
-                        <i class="fa-solid fa-boxes-packing text-emerald-600"></i> Báo cáo Chi tiết Hồ sơ Khai báo Hàng hóa (Cargo Manifest)
-                    </h2>
-                    <p class="text-xs text-slate-500 mt-0.5">Danh sách toàn bộ lô hàng được đại lý trúng thầu điền thông tin quy cách vận chuyển</p>
-                </div>
-                <span class="text-xs bg-emerald-50 text-emerald-700 border border-emerald-200 px-3 py-1 rounded-lg font-bold" id="cargoManifestCountBadge">0 lô hàng</span>
-            </div>
-
-            <div class="overflow-x-auto">
-                <table class="w-full text-left text-xs">
-                    <thead class="bg-slate-50 text-slate-500 font-semibold border-b">
-                        <tr>
-                            <th class="py-3 px-4">Mã đơn & Chuyến</th>
-                            <th class="py-3 px-4">Đại lý trúng</th>
-                            <th class="py-3 px-4">Mặt hàng & HAWB</th>
-                            <th class="py-3 px-4">Khối lượng / Kiện / Thể tích</th>
-                            <th class="py-3 px-4">Shipper & Consignee</th>
-                            <th class="py-3 px-4">Địa chỉ kho nhận</th>
-                            <th class="py-3 px-4 text-right">Trạng thái khai báo</th>
-                        </tr>
-                    </thead>
-                    <tbody class="divide-y divide-gray-100" id="reportCargoTableBody">
-                        <tr>
-                            <td colspan="7" class="py-8 text-center text-gray-400">Đang tổng hợp dữ liệu khai báo hàng hóa...</td>
-                        </tr>
-                    </tbody>
-                </table>
-            </div>
-            <-- Pagination Container for Cargo Manifest -->
-        <div id="reportCargoPagination"></div>
         </div>
 
     </main>
@@ -1439,20 +1403,6 @@
             };
         }
 
-        let reportCargoCurrentPage = 1;
-        let reportCargoPageSize = 5;
-
-        function setReportCargoPageSize(size) {
-            reportCargoPageSize = Number(size) || 5;
-            reportCargoCurrentPage = 1;
-            renderReportUI();
-        }
-
-        function goToReportCargoPage(p) {
-            reportCargoCurrentPage = p;
-            renderReportUI();
-        }
-
         // Render dynamic UI from store
         function renderReportUI(e) {
             const passedData = (e && e.detail) ? e.detail : (window.CargoStore ? CargoStore.getData() : null);
@@ -1607,130 +1557,7 @@
                 }
             }
 
-            // 4. Render Cargo Manifest Table (Paginated)
-            const cargoTbody = document.getElementById('reportCargoTableBody');
-            const cargoBadge = document.getElementById('cargoManifestCountBadge');
-            const store = getStore();
-            const storeData = passedData || (store ? store.getData() : {});
-            const wonList = storeData.wonAuctions || [];
-            const totalWon = wonList.length;
 
-            if (cargoBadge) cargoBadge.textContent = `${totalWon} lô hàng`;
-
-            const totalPages = Math.max(1, Math.ceil(totalWon / reportCargoPageSize));
-            if (reportCargoCurrentPage > totalPages) reportCargoCurrentPage = totalPages;
-            if (reportCargoCurrentPage < 1) reportCargoCurrentPage = 1;
-
-            const startIndex = (reportCargoCurrentPage - 1) * reportCargoPageSize;
-            const endIndex = Math.min(startIndex + reportCargoPageSize, totalWon);
-            const paginatedWonList = wonList.slice(startIndex, endIndex);
-
-            if (cargoTbody) {
-                if (totalWon === 0) {
-                    cargoTbody.innerHTML = `<tr><td colspan="7" class="py-8 text-center text-gray-400">Chưa có đơn trúng thầu nào trong hệ thống</td></tr>`;
-                } else {
-                    cargoTbody.innerHTML = paginatedWonList.map(item => {
-                        const decl = item.cargoDeclaration;
-                        const agentInfo = (storeData.agentsList || []).find(a => (a.code || '').toUpperCase() === (item.agentCode || '').toUpperCase());
-                        const agentName = agentInfo ? agentInfo.companyName : (item.agentCode || 'Đại lý');
-
-                        return `
-                            <tr class="hover:bg-slate-50 transition">
-                                <td class="py-3 px-4 font-mono">
-                                    <strong class="text-blue-600 block">${item.wonId}</strong>
-                                    <span class="text-slate-500 font-normal text-[11px]">Chuyến ${item.flightNumber} (${item.route})</span>
-                                </td>
-                                <td class="py-3 px-4 font-medium text-slate-800">
-                                    <p class="font-bold text-slate-900">${agentName}</p>
-                                    <p class="text-[10px] text-blue-600 font-mono font-semibold">${item.agentCode}</p>
-                                </td>
-                                <td class="py-3 px-4">
-                                    ${decl ? `
-                                        <p class="font-bold text-slate-900">${decl.cargoName}</p>
-                                        <span class="text-[10px] text-emerald-700 font-semibold bg-emerald-50 px-1.5 py-0.5 rounded border border-emerald-200">${decl.cargoType}</span>
-                                        <p class="text-[10px] text-blue-600 font-mono font-semibold mt-0.5">HAWB: ${decl.hawbNumber || 'Chưa gắn'}</p>
-                                    ` : '<span class="text-gray-400 italic">Chưa khai báo</span>'}
-                                </td>
-                                <td class="py-3 px-4">
-                                    ${decl ? `
-                                        <p class="font-bold text-blue-600">${CargoStore.formatNumber(decl.grossWeightKg || 0)} Kg</p>
-                                        <p class="text-[10px] text-slate-500">${decl.piecesCount || 0} kiện · ${decl.volumeCbm || 0} m³</p>
-                                    ` : '<span class="text-gray-400">-</span>'}
-                                </td>
-                                <td class="py-3 px-4 text-slate-800">
-                                    ${decl ? `
-                                        <p class="text-[11px]"><span class="text-slate-400">Gửi:</span> <strong>${decl.shipperName || '-'}</strong></p>
-                                        <p class="text-[11px]"><span class="text-slate-400">Nhận:</span> <strong>${decl.consigneeName || '-'}</strong></p>
-                                    ` : '<span class="text-gray-400">-</span>'}
-                                </td>
-                                <td class="py-3 px-4 max-w-[180px] text-slate-700">
-                                    ${decl && decl.consigneeAddress ? `
-                                        <p class="line-clamp-2 text-[11px]"><i class="fa-solid fa-location-dot text-red-500"></i> ${decl.consigneeAddress}</p>
-                                    ` : '<span class="text-gray-400">-</span>'}
-                                </td>
-                                <td class="py-3 px-4 text-right">
-                                    ${decl ? `
-                                        <span class="inline-flex items-center gap-1 bg-emerald-100 text-emerald-800 text-[10px] font-bold px-2 py-0.5 rounded-md">
-                                            <i class="fa-solid fa-circle-check text-emerald-600"></i> Đã khai báo
-                                        </span>
-                                        ${decl.updatedAt ? `<p class="text-[9px] text-slate-400 mt-0.5">${decl.updatedAt}</p>` : ''}
-                                    ` : `
-                                        <span class="inline-flex items-center gap-1 bg-amber-100 text-amber-800 text-[10px] font-semibold px-2 py-0.5 rounded-md">
-                                            <i class="fa-solid fa-clock text-amber-600"></i> Chưa điền
-                                        </span>
-                                    `}
-                                </td>
-                            </tr>
-                        `;
-                    }).join('');
-                }
-            }
-
-            // Render Pagination Controls
-            const cargoPagEl = document.getElementById('reportCargoPagination');
-            if (cargoPagEl) {
-                if (totalWon === 0) {
-                    cargoPagEl.innerHTML = '';
-                } else {
-                    const pages = [];
-                    for (let i = 1; i <= totalPages; i++) pages.push(i);
-                    const btns = pages.map(p => {
-                        if (p === reportCargoCurrentPage) {
-                            return `<button type="button" class="w-6 h-6 rounded bg-emerald-600 text-white font-bold text-xs flex items-center justify-center shadow-xs cursor-default">${p}</button>`;
-                        }
-                        return `<button type="button" onclick="goToReportCargoPage(${p})" class="w-6 h-6 rounded border border-slate-200 bg-white hover:bg-slate-100 text-slate-700 font-semibold text-xs flex items-center justify-center transition cursor-pointer">${p}</button>`;
-                    }).join('');
-
-                    cargoPagEl.innerHTML = `
-                        <div class="border-t pt-3 flex flex-col sm:flex-row items-center justify-between gap-3 text-xs text-slate-500">
-                            <div class="flex items-center gap-3">
-                                <span>Hiển thị <strong>${startIndex + 1} - ${endIndex}</strong> trên tổng số <strong>${totalWon}</strong> lô hàng</span>
-                                <div class="flex items-center gap-1">
-                                    <span class="text-[11px] text-slate-400">Dòng/Trang:</span>
-                                    <select onchange="setReportCargoPageSize(this.value)" class="border rounded-lg px-2 py-0.5 text-xs bg-white text-slate-700 font-semibold outline-none focus:ring-1 focus:ring-emerald-500 cursor-pointer">
-                                        <option value="5" ${reportCargoPageSize === 5 ? 'selected' : ''}>5</option>
-                                        <option value="10" ${reportCargoPageSize === 10 ? 'selected' : ''}>10</option>
-                                        <option value="20" ${reportCargoPageSize === 20 ? 'selected' : ''}>20</option>
-                                    </select>
-                                </div>
-                            </div>
-                            <div class="inline-flex items-center gap-1 bg-white border border-slate-200 rounded-xl p-1 shadow-2xs">
-                                <button type="button" ${reportCargoCurrentPage <= 1 ? 'disabled' : `onclick="goToReportCargoPage(${reportCargoCurrentPage - 1})"`} 
-                                        class="px-2 py-0.5 text-slate-600 hover:text-emerald-600 disabled:opacity-30 font-bold transition flex items-center gap-1 cursor-pointer disabled:cursor-not-allowed" title="Trang trước">
-                                    <i class="fa-solid fa-arrow-left text-[10px]"></i>
-                                </button>
-                                <div class="flex items-center gap-1 px-1">
-                                    ${btns}
-                                </div>
-                                <button type="button" ${reportCargoCurrentPage >= totalPages ? 'disabled' : `onclick="goToReportCargoPage(${reportCargoCurrentPage + 1})"`} 
-                                        class="px-2 py-0.5 text-slate-600 hover:text-emerald-600 disabled:opacity-30 font-bold transition flex items-center gap-1 cursor-pointer disabled:cursor-not-allowed" title="Trang sau">
-                                    <i class="fa-solid fa-arrow-right text-[10px]"></i>
-                                </button>
-                            </div>
-                        </div>
-                    `;
-                }
-            }
         }
 
         // 1. Export to Excel (.xlsx) using dynamic metrics

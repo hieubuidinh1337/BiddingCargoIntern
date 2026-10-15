@@ -158,7 +158,7 @@
                     <a href="04-CreateAuction.html" class="nav-item-admin"><i class="fa-solid fa-circle-plus"></i>Tạo phiên</a>
                     <a href="06-AgentList.html" class="nav-item-admin"><i class="fa-solid fa-building-user"></i>Đại lý</a>
                     <a href="07-Reports.html" class="nav-item-admin"><i class="fa-solid fa-chart-line"></i>Báo cáo</a>
-                    <a href="08-Settings.html" class="nav-item-admin active"><i class="fa-solid fa-sliders"></i>Cài đặt</a>
+                    <a href="08-Settings.html" class="nav-item-admin active"><i class="fa-solid fa-gear"></i>Cài đặt</a>
                     <a href="10-AuditLogs.html" class="nav-item-admin"><i class="fa-solid fa-clock-rotate-left"></i>Nhật ký</a>
             </nav>
 
@@ -186,7 +186,7 @@
             <a href="04-CreateAuction.html" class="mobile-nav-item"><i class="fa-solid fa-circle-plus w-4"></i>Tạo phiên</a>
             <a href="06-AgentList.html" class="mobile-nav-item"><i class="fa-solid fa-building-user w-4"></i>Đại lý</a>
             <a href="07-Reports.html" class="mobile-nav-item"><i class="fa-solid fa-chart-line w-4"></i>Báo cáo</a>
-            <a href="08-Settings.html" class="mobile-nav-item active"><i class="fa-solid fa-sliders w-4"></i>Cài đặt</a>
+            <a href="08-Settings.html" class="mobile-nav-item active"><i class="fa-solid fa-gear w-4"></i>Cài đặt</a>
             <a href="10-AuditLogs.html" class="mobile-nav-item"><i class="fa-solid fa-clock-rotate-left w-4"></i>Nhật ký</a>
             <a href="../00-Home.html" target="_blank" class="mobile-nav-item" style="border-top:1px solid rgba(255,255,255,0.08);margin-top:6px;padding-top:10px">
                 <i class="fa-solid fa-arrow-up-right-from-square w-4"></i> Xem Sàn công khai
@@ -222,24 +222,10 @@
                     </div>
 
                     <div>
-                        <label class="block font-semibold text-slate-700 mb-1">Thời gian đóng thầu trước ETD (Giờ)</label>
-                        <input type="number" id="cfgCutoffHours" value="3" min="1" max="12" required
-                               class="w-full border rounded-xl px-3.5 py-2.5 font-bold focus:ring-2 focus:ring-blue-500 outline-none">
-                        <p class="text-[10px] text-gray-400 mt-1">Đảm bảo đủ thời gian giao nhận hàng hóa tại sân bay</p>
-                    </div>
-
-                    <div>
                         <label class="block font-semibold text-slate-700 mb-1">Thời hạn thanh toán sau khi thắng thầu (Giờ)</label>
                         <input type="number" id="cfgPaymentWindow" value="24" min="1" max="72" required
                                class="w-full border rounded-xl px-3.5 py-2.5 font-bold text-red-600 focus:ring-2 focus:ring-blue-500 outline-none">
                         <p class="text-[10px] text-gray-400 mt-1">Quá thời hạn chưa thanh toán sẽ tự động hủy đơn trúng</p>
-                    </div>
-
-                    <div>
-                        <label class="block font-semibold text-slate-700 mb-1">Phí sàn giao dịch / Kg (VND)</label>
-                        <input type="number" id="cfgPlatformFee" value="50" min="0" step="10"
-                               class="w-full border rounded-xl px-3.5 py-2.5 font-bold text-emerald-600 focus:ring-2 focus:ring-blue-500 outline-none">
-                        <p class="text-[10px] text-gray-400 mt-1">Phí phục vụ nền tảng đấu giá trực tuyến</p>
                     </div>
                 </div>
             </div>
@@ -490,9 +476,124 @@
 
         </form>
 
+    
+    <!-- Beautiful HTML Modal Dialog -->
+    <div id="appCustomModal" class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-xs transition-opacity duration-200 hidden opacity-0 pointer-events-none" onclick="if(event.target === this) closeAppModal()">
+        <div id="appModalBox" class="bg-white rounded-2xl shadow-2xl border border-slate-100 max-w-md w-full overflow-hidden transform scale-95 transition-all duration-200">
+            <div id="appModalHeaderColor" class="h-1.5 w-full bg-blue-600"></div>
+            <div class="p-6">
+                <div class="flex items-start gap-4">
+                    <div id="appModalIconContainer" class="w-12 h-12 rounded-2xl flex items-center justify-center shrink-0 bg-blue-50 text-blue-600 text-xl border border-blue-100 shadow-xs">
+                        <i id="appModalIcon" class="fa-solid fa-circle-info"></i>
+                    </div>
+                    <div class="flex-1 min-w-0">
+                        <h3 id="appModalTitle" class="text-base font-bold text-slate-900 leading-snug">Thông báo</h3>
+                        <p id="appModalSubtitle" class="text-xs text-slate-500 mt-0.5">Cài đặt hệ thống</p>
+                    </div>
+                    <button type="button" onclick="closeAppModal()" class="w-8 h-8 rounded-lg hover:bg-slate-100 text-slate-400 hover:text-slate-600 flex items-center justify-center transition cursor-pointer">
+                        <i class="fa-solid fa-xmark text-sm"></i>
+                    </button>
+                </div>
+                <div id="appModalBody" class="mt-4 text-xs text-slate-600 leading-relaxed max-h-[60vh] overflow-y-auto">
+                    Nội dung thông báo
+                </div>
+                <div id="appModalActions" class="mt-6 flex items-center justify-end gap-2.5 pt-4 border-t border-slate-100">
+                    <button type="button" onclick="closeAppModal()" class="px-4 py-2 bg-slate-900 hover:bg-slate-800 text-white text-xs font-semibold rounded-xl shadow-xs transition cursor-pointer">
+                        Đóng
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
     </main>
 
     <script>
+
+        function showAppModal({ title = 'Thông báo', subtitle = 'Cài đặt hệ thống', message = '', type = 'info', confirmText = 'Đóng', onConfirm = null }) {
+            const modal = document.getElementById('appCustomModal');
+            const box = document.getElementById('appModalBox');
+            const headerColor = document.getElementById('appModalHeaderColor');
+            const iconContainer = document.getElementById('appModalIconContainer');
+            const icon = document.getElementById('appModalIcon');
+            const titleEl = document.getElementById('appModalTitle');
+            const subEl = document.getElementById('appModalSubtitle');
+            const bodyEl = document.getElementById('appModalBody');
+            const actionsEl = document.getElementById('appModalActions');
+            if (!modal) return;
+
+            let iconClass = 'fa-solid fa-circle-info';
+            let colorClass = 'bg-blue-600';
+            let containerBg = 'bg-blue-50 text-blue-600 border-blue-100';
+
+            if (type === 'success' || /thành công/i.test(message)) {
+                iconClass = 'fa-solid fa-circle-check';
+                colorClass = 'bg-emerald-600';
+                containerBg = 'bg-emerald-50 text-emerald-600 border-emerald-100';
+            } else if (type === 'warning' || /quyền|giới hạn|cảnh báo/i.test(message)) {
+                iconClass = 'fa-solid fa-triangle-exclamation';
+                colorClass = 'bg-amber-500';
+                containerBg = 'bg-amber-50 text-amber-600 border-amber-100';
+            } else if (type === 'error' || /lỗi|thất bại/i.test(message)) {
+                iconClass = 'fa-solid fa-circle-xmark';
+                colorClass = 'bg-red-600';
+                containerBg = 'bg-red-50 text-red-600 border-red-100';
+            }
+
+            if (headerColor) headerColor.className = 'h-1.5 w-full ' + colorClass;
+            if (iconContainer) iconContainer.className = 'w-12 h-12 rounded-2xl flex items-center justify-center shrink-0 text-xl border shadow-xs ' + containerBg;
+            if (icon) icon.className = iconClass;
+            if (titleEl) titleEl.textContent = title;
+            if (subEl) subEl.textContent = subtitle;
+
+            if (bodyEl) {
+                if (typeof message === 'string') {
+                    bodyEl.innerHTML = '<div class="p-3 bg-slate-50 border border-slate-200 rounded-xl font-medium text-slate-800 whitespace-pre-line text-xs">' + message + '</div>';
+                } else if (message instanceof HTMLElement) {
+                    bodyEl.innerHTML = '';
+                    bodyEl.appendChild(message);
+                }
+            }
+
+            if (actionsEl) {
+                actionsEl.innerHTML = '';
+                const confirmBtn = document.createElement('button');
+                confirmBtn.type = 'button';
+                confirmBtn.className = 'px-4 py-2 bg-slate-900 hover:bg-slate-800 text-white text-xs font-semibold rounded-xl shadow-xs transition cursor-pointer';
+                confirmBtn.textContent = confirmText;
+                confirmBtn.onclick = () => {
+                    closeAppModal();
+                    if (typeof onConfirm === 'function') onConfirm();
+                };
+                actionsEl.appendChild(confirmBtn);
+            }
+
+            modal.classList.remove('hidden', 'pointer-events-none');
+            requestAnimationFrame(() => {
+                modal.classList.remove('opacity-0');
+                if (box) box.classList.remove('scale-95');
+            });
+        }
+
+        function closeAppModal() {
+            const modal = document.getElementById('appCustomModal');
+            const box = document.getElementById('appModalBox');
+            if (!modal) return;
+            modal.classList.add('opacity-0');
+            if (box) box.classList.add('scale-95');
+            setTimeout(() => {
+                modal.classList.add('hidden', 'pointer-events-none');
+            }, 200);
+        }
+
+        window.alert = function(msg) {
+            showAppModal({
+                title: 'Thông báo cài đặt',
+                message: msg,
+                type: 'info'
+            });
+        };
+
         function toggleAdminMobileNav() {
             const nav = document.getElementById('adminMobileNav');
             if (nav) nav.classList.toggle('hidden');
@@ -553,9 +654,7 @@
             const s = CargoStore.getSystemSettings();
             if (s) {
                 if (s.minIncrement) document.getElementById('cfgMinIncrement').value = s.minIncrement;
-                if (s.cutoffHours) document.getElementById('cfgCutoffHours').value = s.cutoffHours;
                 if (s.paymentWindowHours) document.getElementById('cfgPaymentWindow').value = s.paymentWindowHours;
-                if (s.platformFee !== undefined) document.getElementById('cfgPlatformFee').value = s.platformFee;
                 if (s.hotline) document.getElementById('cfgHotline').value = s.hotline;
                 if (s.supportEmail) document.getElementById('cfgSupportEmail').value = s.supportEmail;
                 document.getElementById('cfgHideAgentCredentials').checked = s.hideAgentCredentials !== false;
@@ -602,7 +701,7 @@
                     `;
                 }
 
-                ['cfgMinIncrement', 'cfgCutoffHours', 'cfgPaymentWindow', 'cfgPlatformFee', 'cfgHotline', 'cfgSupportEmail', 'cfgHideAgentCredentials', 'bankName', 'bankAccNum', 'bankAccName', 'bankBranch', 'bankMemoPrefix', 'bankBin', 'smtpProvider', 'smtpHost', 'smtpPort', 'smtpUser', 'smtpPass', 'smtpFromName'].forEach(id => {
+                ['cfgMinIncrement', 'cfgPaymentWindow', 'cfgHotline', 'cfgSupportEmail', 'cfgHideAgentCredentials', 'bankName', 'bankAccNum', 'bankAccName', 'bankBranch', 'bankMemoPrefix', 'bankBin', 'smtpProvider', 'smtpHost', 'smtpPort', 'smtpUser', 'smtpPass', 'smtpFromName'].forEach(id => {
                     const el = document.getElementById(id);
                     if (el) {
                         el.disabled = true;
@@ -767,9 +866,7 @@
 
             const res = CargoStore.updateSystemSettings({
                 minIncrement: document.getElementById('cfgMinIncrement').value,
-                cutoffHours: document.getElementById('cfgCutoffHours').value,
                 paymentWindowHours: document.getElementById('cfgPaymentWindow').value,
-                platformFee: document.getElementById('cfgPlatformFee').value,
                 hotline: document.getElementById('cfgHotline').value,
                 supportEmail: document.getElementById('cfgSupportEmail').value,
                 hideAgentCredentials: document.getElementById('cfgHideAgentCredentials').checked,
