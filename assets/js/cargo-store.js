@@ -3815,6 +3815,21 @@ const anonFlag = isAnonymous !== false;
                 return { success: false, message: `Tài khoản đại lý ${agent.code} chưa cập nhật địa chỉ Email. Vui lòng liên hệ Hotline 1900.6686 để được hỗ trợ.` };
             }
 
+            // Anti-spam cooldown: prevent sending multiple emails within 30 seconds
+            if (data.passwordResetOtps && data.passwordResetOtps[agent.code]) {
+                const existing = data.passwordResetOtps[agent.code];
+                const elapsedSec = Math.floor((Date.now() - (existing.createdAt || 0)) / 1000);
+                if (elapsedSec < 30) {
+                    const waitSec = 30 - elapsedSec;
+                    return {
+                        success: false,
+                        rateLimited: true,
+                        waitSec: waitSec,
+                        message: `Hệ thống vừa gửi mã OTP đến email của bạn. Vui lòng đợi ${waitSec} giây nữa trước khi gửi lại.`
+                    };
+                }
+            }
+
             // Generate 6-digit numeric OTP
             const otp = Math.floor(100000 + Math.random() * 900000).toString();
             const expiresAt = Date.now() + 15 * 60 * 1000; // 15 mins
@@ -3867,7 +3882,48 @@ const anonFlag = isAnonymous !== false;
                 email: agent.email,
                 maskedEmail: maskedEmail,
                 companyName: agent.companyName || agent.repName,
-                otpDemo: otp // Helper for local testing and demonstration
+            };
+        },
+
+        verifyPasswordResetOtp: function(emailOrCode, otpInput) {
+            const data = loadData();
+            const identifier = (emailOrCode || '').trim().toLowerCase();
+            const agent = (data.agentsList || []).find(a => 
+                (a.email || '').toLowerCase() === identifier ||
+                (a.code || '').toLowerCase() === identifier ||
+                (a.taxCode || '').toLowerCase() === identifier
+            );
+
+            if (!agent) {
+                return { success: false, message: 'Không tìm thấy thông tin tài khoản đại lý.' };
+            }
+
+            const record = (data.passwordResetOtps || {})[agent.code];
+            const cleanOtp = String(otpInput || '').trim();
+
+            if (!record) {
+                return { success: false, message: 'Yêu cầu OTP đã hết hạn hoặc chưa được tạo. Vui lòng bấm "Gửi lại OTP".' };
+            }
+
+            if (Date.now() > record.expiresAt) {
+                return { success: false, message: 'Mã xác nhận OTP đã hết hạn (quá 15 phút). Vui lòng yêu cầu mã OTP mới.' };
+            }
+
+            if (cleanOtp !== String(record.otp).trim()) {
+                return { success: false, message: 'Mã xác nhận OTP không chính xác. Vui lòng kiểm tra lại hòm thư email.' };
+            }
+
+            // Mark OTP as verified
+            record.verified = true;
+            record.verifiedAt = Date.now();
+            saveData(data);
+
+            return {
+                success: true,
+                message: 'Xác thực mã OTP thành công!',
+                agentCode: agent.code,
+                companyName: agent.companyName || agent.repName,
+                maskedEmail: agent.email
             };
         },
 

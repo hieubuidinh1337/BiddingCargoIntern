@@ -313,24 +313,21 @@
                 </div>
             </div>
 
-            <!-- Step 2: Input OTP & Set New Password -->
-            <form id="forgotStep2" onsubmit="handleResetPassword(event)" class="space-y-4 pt-4 hidden">
+            <!-- Step 2: Input OTP Only (Verify First) -->
+            <div id="forgotStep2" class="space-y-4 pt-4 hidden">
                 <!-- Info banner -->
-                <div class="p-3.5 rounded-2xl bg-blue-50 border border-blue-200 text-xs text-blue-900 space-y-1">
+                <div class="p-3.5 rounded-2xl bg-blue-50 border border-blue-200 text-xs text-blue-900 space-y-1.5">
                     <div class="font-bold flex items-center justify-between">
-                        <span class="flex items-center gap-1.5">
-                            <i class="fa-solid fa-circle-check text-blue-600"></i> Đã gửi mã OTP đến Email
+                        <span class="flex items-center gap-1.5 text-blue-800">
+                            <i class="fa-solid fa-circle-check text-emerald-600 text-sm"></i> Đã gửi mã OTP đến Email
                         </span>
                         <span id="forgotTargetCode"
                             class="font-mono text-[10px] bg-white text-blue-700 px-2 py-0.5 rounded font-bold border border-blue-200"></span>
                     </div>
-                    <p id="forgotTargetEmailDisplay" class="text-blue-800 text-[11px]"></p>
-                    <div id="demoOtpBox"
-                        class="pt-1 mt-1 border-t border-blue-200/80 flex items-center justify-between text-[11px]">
-                        <span class="text-slate-600">Mã OTP thử nghiệm: <strong id="demoOtpCode"
-                                class="font-mono text-emerald-700 font-black text-sm tracking-wider"></strong></span>
-                        <button type="button" onclick="fillDemoOtp()"
-                            class="text-blue-700 hover:underline font-bold text-[10px]">Điền nhanh</button>
+                    <p id="forgotTargetEmailDisplay" class="text-slate-700 text-[11px] font-medium"></p>
+                    <div class="pt-1 mt-1 border-t border-blue-200/80 flex items-center gap-1.5 text-[11px] text-blue-700">
+                        <i class="fa-solid fa-envelope-open-text text-blue-600"></i>
+                        <span>Vui lòng kiểm tra hòm thư Email (hoặc thư mục Spam) để nhận mã OTP.</span>
                     </div>
                 </div>
 
@@ -342,6 +339,38 @@
                     <input type="text" id="forgotOtpInput" maxlength="6" pattern="[0-9]{6}" inputmode="numeric" required
                         placeholder="••••••"
                         class="w-full border border-slate-300 rounded-xl px-4 py-2.5 text-lg font-mono tracking-[0.5em] text-center font-bold focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none transition text-slate-900 bg-slate-50 focus:bg-white">
+                </div>
+
+                <div id="forgotStep2Error"
+                    class="hidden p-3 rounded-xl text-xs bg-red-50 border border-red-200 text-red-700"></div>
+
+                <div class="flex gap-2.5 pt-2">
+                    <button type="button" onclick="backToStep1()"
+                        class="flex-1 py-2.5 border border-slate-300 rounded-xl text-xs font-semibold text-slate-700 hover:bg-slate-50 transition">
+                        Quay lại
+                    </button>
+                    <button type="button" id="btnVerifyOtp" onclick="handleVerifyOtp()"
+                        class="flex-1 py-2.5 bg-blue-600 hover:bg-blue-700 text-white rounded-xl text-xs font-bold shadow-md shadow-blue-600/20 transition flex items-center justify-center gap-1.5">
+                        <i class="fa-solid fa-arrow-right"></i> Xác nhận OTP
+                    </button>
+                </div>
+
+                <div class="text-center pt-1">
+                    <button type="button" id="btnResendOtp" onclick="handleSendOtp(true)"
+                        class="text-[11px] text-blue-600 hover:underline font-semibold inline-flex items-center gap-1">
+                        <i class="fa-solid fa-rotate-right text-[10px]"></i> <span id="resendBtnText">Chưa nhận được mã? Gửi lại OTP</span>
+                    </button>
+                </div>
+            </div>
+
+            <!-- Step 3: Set New Password (Only after OTP verified) -->
+            <form id="forgotStep3" onsubmit="handleResetPassword(event)" class="space-y-4 pt-4 hidden">
+                <div class="p-3.5 rounded-2xl bg-emerald-50 border border-emerald-200 text-xs text-emerald-900 space-y-1">
+                    <div class="font-bold flex items-center gap-1.5 text-emerald-800">
+                        <i class="fa-solid fa-circle-check text-emerald-600 text-sm"></i>
+                        <span>Xác thực OTP thành công!</span>
+                    </div>
+                    <p class="text-[11px] text-emerald-700">Tài khoản đại lý: <strong id="step3AgentCode" class="font-mono text-emerald-900"></strong>. Vui lòng thiết lập mật khẩu mới.</p>
                 </div>
 
                 <div>
@@ -374,29 +403,22 @@
                     </div>
                 </div>
 
-                <div id="forgotStep2Error"
+                <div id="forgotStep3Error"
                     class="hidden p-3 rounded-xl text-xs bg-red-50 border border-red-200 text-red-700"></div>
 
                 <div class="flex gap-2.5 pt-2">
-                    <button type="button" onclick="backToStep1()"
+                    <button type="button" onclick="closeForgotPasswordModal()"
                         class="flex-1 py-2.5 border border-slate-300 rounded-xl text-xs font-semibold text-slate-700 hover:bg-slate-50 transition">
-                        Quay lại
+                        Hủy bỏ
                     </button>
                     <button type="submit" id="btnSubmitReset"
                         class="flex-1 py-2.5 bg-blue-600 hover:bg-blue-700 text-white rounded-xl text-xs font-bold shadow-md shadow-blue-600/20 transition flex items-center justify-center gap-1.5">
                         <i class="fa-solid fa-check"></i> Đổi mật khẩu
                     </button>
                 </div>
-
-                <div class="text-center pt-1">
-                    <button type="button" onclick="handleSendOtp(true)"
-                        class="text-[11px] text-blue-600 hover:underline font-semibold inline-flex items-center gap-1">
-                        <i class="fa-solid fa-rotate-right text-[10px]"></i> Chưa nhận được mã? Gửi lại OTP
-                    </button>
-                </div>
             </form>
 
-            <!-- Step 3: Success Screen -->
+            <!-- Step 4: Success Screen -->
             <div id="forgotSuccessScreen" class="space-y-4 pt-4 hidden text-center">
                 <div
                     class="w-14 h-14 bg-emerald-100 text-emerald-600 rounded-2xl flex items-center justify-center text-2xl mx-auto shadow-inner">
@@ -486,6 +508,8 @@
         }
 
         let currentResetData = null;
+        let resendCooldownTimer = null;
+        let isSendingOtp = false;
 
         function openForgotPasswordModal() {
             const code = document.getElementById('agentCode').value.trim();
@@ -493,6 +517,7 @@
             document.getElementById('forgotStep1Error').classList.add('hidden');
             document.getElementById('forgotStep1').classList.remove('hidden');
             document.getElementById('forgotStep2').classList.add('hidden');
+            document.getElementById('forgotStep3').classList.add('hidden');
             document.getElementById('forgotSuccessScreen').classList.add('hidden');
             const modal = document.getElementById('forgotPasswordModal');
             modal.classList.remove('hidden');
@@ -506,11 +531,16 @@
             const modal = document.getElementById('forgotPasswordModal');
             modal.classList.add('hidden');
             modal.classList.remove('flex');
+            if (resendCooldownTimer) {
+                clearInterval(resendCooldownTimer);
+                resendCooldownTimer = null;
+            }
         }
 
         function backToStep1() {
             document.getElementById('forgotStep1').classList.remove('hidden');
             document.getElementById('forgotStep2').classList.add('hidden');
+            document.getElementById('forgotStep3').classList.add('hidden');
             document.getElementById('forgotSuccessScreen').classList.add('hidden');
         }
 
@@ -527,13 +557,34 @@
             }
         }
 
-        function fillDemoOtp() {
-            if (currentResetData && currentResetData.otpDemo) {
-                document.getElementById('forgotOtpInput').value = currentResetData.otpDemo;
-            }
+        function startResendCooldown(seconds = 30) {
+            const btn = document.getElementById('btnResendOtp');
+            const textEl = document.getElementById('resendBtnText');
+            if (!btn || !textEl) return;
+            
+            btn.disabled = true;
+            btn.classList.add('opacity-50', 'pointer-events-none');
+            let remain = seconds;
+            textEl.textContent = `Gửi lại OTP sau (${remain}s)`;
+
+            if (resendCooldownTimer) clearInterval(resendCooldownTimer);
+            resendCooldownTimer = setInterval(() => {
+                remain--;
+                if (remain <= 0) {
+                    clearInterval(resendCooldownTimer);
+                    resendCooldownTimer = null;
+                    btn.disabled = false;
+                    btn.classList.remove('opacity-50', 'pointer-events-none');
+                    textEl.textContent = 'Chưa nhận được mã? Gửi lại OTP';
+                } else {
+                    textEl.textContent = `Gửi lại OTP sau (${remain}s)`;
+                }
+            }, 1000);
         }
 
         function handleSendOtp(isResend = false) {
+            if (isSendingOtp) return; // Prevent duplicate clicks
+
             const inputVal = document.getElementById('forgotEmailOrCode').value.trim();
             const errEl = isResend ? document.getElementById('forgotStep2Error') : document.getElementById('forgotStep1Error');
             errEl.classList.add('hidden');
@@ -544,45 +595,95 @@
                 return;
             }
 
-            const btn = document.getElementById('btnRequestOtp');
-            if (btn) btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Đang gửi mã...';
+            isSendingOtp = true;
+            const btn = isResend ? document.getElementById('btnResendOtp') : document.getElementById('btnRequestOtp');
+            if (btn) {
+                btn.disabled = true;
+                if (!isResend) btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Đang gửi mã...';
+            }
 
             setTimeout(() => {
-                if (btn) btn.innerHTML = '<i class="fa-solid fa-paper-plane"></i> Gửi mã OTP qua Email';
+                isSendingOtp = false;
+                if (btn && !isResend) {
+                    btn.disabled = false;
+                    btn.innerHTML = '<i class="fa-solid fa-paper-plane"></i> Gửi mã OTP qua Email';
+                }
+
                 const res = CargoStore.requestPasswordResetOtp(inputVal);
                 if (res.success) {
                     currentResetData = res;
                     document.getElementById('forgotTargetCode').textContent = res.agentCode;
                     document.getElementById('forgotTargetEmailDisplay').textContent = `Mã xác thực đã được gửi đến email: ${res.maskedEmail}`;
-                    document.getElementById('demoOtpCode').textContent = res.otpDemo;
 
                     document.getElementById('forgotStep1').classList.add('hidden');
                     document.getElementById('forgotStep2').classList.remove('hidden');
+                    document.getElementById('forgotStep3').classList.add('hidden');
                     document.getElementById('forgotStep2Error').classList.add('hidden');
                     document.getElementById('forgotOtpInput').value = '';
-                    document.getElementById('forgotNewPassword').value = '';
-                    document.getElementById('forgotConfirmPassword').value = '';
                     document.getElementById('forgotOtpInput').focus();
+
+                    startResendCooldown(30);
                 } else {
+                    if (btn) btn.disabled = false;
                     errEl.textContent = res.message;
                     errEl.classList.remove('hidden');
+                    if (res.rateLimited && res.waitSec) {
+                        startResendCooldown(res.waitSec);
+                    }
                 }
-            }, 300);
+            }, 250);
         }
 
-        function handleResetPassword(e) {
-            e.preventDefault();
+        function handleVerifyOtp() {
             const otpVal = document.getElementById('forgotOtpInput').value.trim();
-            const newPwd = document.getElementById('forgotNewPassword').value;
-            const confirmPwd = document.getElementById('forgotConfirmPassword').value;
             const errEl = document.getElementById('forgotStep2Error');
             errEl.classList.add('hidden');
 
             if (!otpVal || otpVal.length !== 6) {
-                errEl.textContent = 'Vui lòng nhập mã OTP gồm đúng 6 chữ số.';
+                errEl.textContent = 'Vui lòng nhập đầy đủ mã OTP gồm 6 chữ số.';
                 errEl.classList.remove('hidden');
+                document.getElementById('forgotOtpInput').focus();
                 return;
             }
+
+            const agentIdentifier = currentResetData ? currentResetData.agentCode : document.getElementById('forgotEmailOrCode').value.trim();
+            const btn = document.getElementById('btnVerifyOtp');
+            if (btn) {
+                btn.disabled = true;
+                btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Đang xác thực...';
+            }
+
+            setTimeout(() => {
+                if (btn) {
+                    btn.disabled = false;
+                    btn.innerHTML = '<i class="fa-solid fa-arrow-right"></i> Xác nhận OTP';
+                }
+
+                const verifyRes = CargoStore.verifyPasswordResetOtp(agentIdentifier, otpVal);
+                if (verifyRes.success) {
+                    currentResetData.verifiedOtp = otpVal;
+                    document.getElementById('step3AgentCode').textContent = verifyRes.agentCode;
+
+                    // Hide Step 2, Show Step 3
+                    document.getElementById('forgotStep2').classList.add('hidden');
+                    document.getElementById('forgotStep3').classList.remove('hidden');
+                    document.getElementById('forgotStep3Error').classList.add('hidden');
+                    document.getElementById('forgotNewPassword').value = '';
+                    document.getElementById('forgotConfirmPassword').value = '';
+                    document.getElementById('forgotNewPassword').focus();
+                } else {
+                    errEl.textContent = verifyRes.message;
+                    errEl.classList.remove('hidden');
+                }
+            }, 200);
+        }
+
+        function handleResetPassword(e) {
+            e.preventDefault();
+            const newPwd = document.getElementById('forgotNewPassword').value;
+            const confirmPwd = document.getElementById('forgotConfirmPassword').value;
+            const errEl = document.getElementById('forgotStep3Error');
+            errEl.classList.add('hidden');
 
             if (newPwd.length < 6) {
                 errEl.textContent = 'Mật khẩu mới phải có tối thiểu 6 ký tự.';
@@ -597,17 +698,31 @@
             }
 
             const agentIdentifier = currentResetData ? currentResetData.agentCode : document.getElementById('forgotEmailOrCode').value.trim();
-            const res = CargoStore.resetPasswordWithOtp(agentIdentifier, otpVal, newPwd);
+            const verifiedOtp = currentResetData ? currentResetData.verifiedOtp : document.getElementById('forgotOtpInput').value.trim();
 
-            if (res.success) {
-                currentResetData.newPassword = newPwd;
-                document.getElementById('successAgentCode').textContent = res.agentCode;
-                document.getElementById('forgotStep2').classList.add('hidden');
-                document.getElementById('forgotSuccessScreen').classList.remove('hidden');
-            } else {
-                errEl.textContent = res.message;
-                errEl.classList.remove('hidden');
+            const btn = document.getElementById('btnSubmitReset');
+            if (btn) {
+                btn.disabled = true;
+                btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Đang đổi mật khẩu...';
             }
+
+            setTimeout(() => {
+                if (btn) {
+                    btn.disabled = false;
+                    btn.innerHTML = '<i class="fa-solid fa-check"></i> Đổi mật khẩu';
+                }
+
+                const res = CargoStore.resetPasswordWithOtp(agentIdentifier, verifiedOtp, newPwd);
+                if (res.success) {
+                    currentResetData.newPassword = newPwd;
+                    document.getElementById('successAgentCode').textContent = res.agentCode;
+                    document.getElementById('forgotStep3').classList.add('hidden');
+                    document.getElementById('forgotSuccessScreen').classList.remove('hidden');
+                } else {
+                    errEl.textContent = res.message;
+                    errEl.classList.remove('hidden');
+                }
+            }, 200);
         }
 
         function autoLoginWithNewPassword() {

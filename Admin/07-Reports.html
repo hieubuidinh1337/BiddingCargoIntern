@@ -431,7 +431,7 @@
                     </div>
                     <div>
                         <h3 class="text-sm font-bold text-slate-900">Bộ Lọc Báo Cáo & Tùy Chọn Xuất File</h3>
-                        <p class="text-[11px] text-slate-500">Lọc dữ liệu theo thời gian, loại hàng hóa, tuyến bay trước
+                        <p class="text-[11px] text-slate-500">Lọc dữ liệu theo thời gian và tuyến bay trước
                             khi xem & xuất file Excel / PDF</p>
                     </div>
                 </div>
@@ -443,8 +443,8 @@
                 </div>
             </div>
 
-            <!-- Controls Grid (3 Filters) -->
-            <div class="grid grid-cols-1 sm:grid-cols-3 gap-3 text-xs">
+            <!-- Controls Grid (2 Filters) -->
+            <div class="grid grid-cols-1 sm:grid-cols-2 gap-3 text-xs">
                 <!-- 1. Thời gian -->
                 <div>
                     <label class="block font-bold text-slate-700 mb-1 text-[11px]">
@@ -461,23 +461,7 @@
                     </select>
                 </div>
 
-                <!-- 2. Loại hàng hóa -->
-                <div>
-                    <label class="block font-bold text-slate-700 mb-1 text-[11px]">
-                        <i class="fa-solid fa-box text-emerald-500 mr-1"></i>Loại hàng hóa:
-                    </label>
-                    <select id="reportCargoTypeFilter" onchange="applyReportFilters()"
-                        class="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl font-medium text-slate-800 outline-none focus:ring-2 focus:ring-blue-500/20 cursor-pointer">
-                        <option value="ALL">Tất cả loại hàng</option>
-                        <option value="GEN">Hàng thông thường (General Cargo - GEN)</option>
-                        <option value="PER">Hàng đông lạnh / Tươi sống (PER/COLD)</option>
-                        <option value="DG">Hàng nguy hiểm (Dangerous Goods - DG)</option>
-                        <option value="VAL">Hàng giá trị cao (High Value - VAL)</option>
-                        <option value="OTHER">May mặc & Hàng khác</option>
-                    </select>
-                </div>
-
-                <!-- 3. Tuyến đường bay -->
+                <!-- 2. Tuyến đường bay -->
                 <div>
                     <label class="block font-bold text-slate-700 mb-1 text-[11px]">
                         <i class="fa-solid fa-plane-departure text-purple-500 mr-1"></i>Tuyến đường bay:
@@ -856,12 +840,11 @@
     <script>
         function getReportFilters() {
             const timeRange = document.getElementById('reportTimeRangeFilter')?.value || 'ALL';
-            const cargoType = document.getElementById('reportCargoTypeFilter')?.value || 'ALL';
             const route = document.getElementById('reportRouteFilter')?.value || 'ALL';
             const fromDate = document.getElementById('reportFromDate')?.value || '';
             const toDate = document.getElementById('reportToDate')?.value || '';
 
-            return { timeRange, cargoType, route, fromDate, toDate };
+            return { timeRange, route, fromDate, toDate };
         }
 
         function toggleCustomDateReport(val) {
@@ -878,7 +861,6 @@
 
         function resetReportFilters() {
             if (document.getElementById('reportTimeRangeFilter')) document.getElementById('reportTimeRangeFilter').value = 'ALL';
-            if (document.getElementById('reportCargoTypeFilter')) document.getElementById('reportCargoTypeFilter').value = 'ALL';
             if (document.getElementById('reportRouteFilter')) document.getElementById('reportRouteFilter').value = 'ALL';
             if (document.getElementById('reportFromDate')) document.getElementById('reportFromDate').value = '';
             if (document.getElementById('reportToDate')) document.getElementById('reportToDate').value = '';
@@ -1160,15 +1142,6 @@
                 const rName = a.route || `${a.origin || 'SGN'} - ${a.destination || 'HAN'}`;
                 if (filters.route !== 'ALL' && rName !== filters.route) return false;
 
-                if (filters.cargoType !== 'ALL') {
-                    const declType = (a.cargoDeclaration ? a.cargoDeclaration.cargoType : '') || a.cargoType || '';
-                    if (filters.cargoType === 'GEN' && !/GEN|thường|thông thường/i.test(declType)) return false;
-                    if (filters.cargoType === 'PER' && !/PER|đông lạnh|tươi sống|COLD/i.test(declType)) return false;
-                    if (filters.cargoType === 'DG' && !/DG|nguy hiểm/i.test(declType)) return false;
-                    if (filters.cargoType === 'VAL' && !/VAL|giá trị high/i.test(declType)) return false;
-                    if (filters.cargoType === 'OTHER' && /GEN|PER|DG|VAL/i.test(declType)) return false;
-                }
-
                 const aTs = getItemTimestamp(a);
                 if (filters.timeRange === '30DAYS') {
                     if (aTs > 0 && (nowTime - aTs > 30 * oneDay)) return false;
@@ -1198,16 +1171,6 @@
             const filteredWonList = wonList.filter(w => {
                 const rName = w.route || (w.flightNumber ? w.flightNumber : '');
                 if (filters.route !== 'ALL' && !rName.includes(filters.route)) return false;
-
-                if (filters.cargoType !== 'ALL') {
-                    const decl = w.cargoDeclaration || {};
-                    const declType = decl.cargoType || w.cargoType || '';
-                    if (filters.cargoType === 'GEN' && !/GEN|thường|thông thường/i.test(declType)) return false;
-                    if (filters.cargoType === 'PER' && !/PER|đông lạnh|tươi sống|COLD/i.test(declType)) return false;
-                    if (filters.cargoType === 'DG' && !/DG|nguy hiểm/i.test(declType)) return false;
-                    if (filters.cargoType === 'VAL' && !/VAL|giá trị high/i.test(declType)) return false;
-                    if (filters.cargoType === 'OTHER' && /GEN|PER|DG|VAL/i.test(declType)) return false;
-                }
 
                 const wTs = getItemTimestamp(w);
                 if (filters.timeRange === '30DAYS') {
@@ -1432,7 +1395,6 @@
                 else if (flt.timeRange === 'CUSTOM' && (flt.fromDate || flt.toDate)) parts.push(`${flt.fromDate || '...'} đến ${flt.toDate || '...'}`);
                 else parts.push('Tất cả thời gian');
 
-                if (flt.cargoType && flt.cargoType !== 'ALL') parts.push(`Loại hàng: ${flt.cargoType}`);
                 if (flt.route && flt.route !== 'ALL') parts.push(`Tuyến: ${flt.route}`);
                 if (flt.status && flt.status !== 'ALL') parts.push(`Trạng thái: ${flt.status}`);
 
