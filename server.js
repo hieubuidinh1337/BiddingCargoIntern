@@ -2351,6 +2351,43 @@ const server = http.createServer((req, res) => {
                             </p>
                         `
                     });
+                } else if (type === 'PASSWORD_RESET_OTP') {
+                    const otpCode = reqData.otp || '000000';
+                    const agentName = reqData.agentName || 'Quý đại lý';
+                    const agentCode = reqData.agentCode || '';
+                    subject = `[Vietravel Airlines Cargo] Mã xác thực OTP khôi phục mật khẩu: ${otpCode}`;
+                    html = buildEmailHtml({
+                        title: 'Yêu cầu Khôi phục Mật khẩu Tài khoản',
+                        subtitle: `Mã đại lý: ${agentCode}`,
+                        contentHtml: `
+                            <p>Kính gửi <strong>${agentName}</strong> (${agentCode}),</p>
+                            <p>Hệ thống Vietravel Airlines Cargo nhận được yêu cầu đặt lại mật khẩu cho tài khoản đại lý của Quý vị.</p>
+                            
+                            <div style="background:#f0f7ff;border:2px dashed #0284c7;border-radius:12px;padding:20px;text-align:center;margin:24px 0;">
+                                <p style="font-size:13px;color:#555;margin:0 0 8px 0;font-weight:600;">MÃ XÁC THỰC (OTP) CỦA BẠN:</p>
+                                <div style="font-family:monospace;font-size:32px;font-weight:900;letter-spacing:8px;color:#0369a1;">${otpCode}</div>
+                                <p style="font-size:12px;color:#888;margin:8px 0 0 0;">(Mã này có hiệu lực trong vòng 15 phút. Tuyệt đối không chia sẻ mã này cho bất kỳ ai)</p>
+                            </div>
+
+                            <p style="font-size:13px;color:#555;line-height:1.6;">Nếu Quý đại lý không thực hiện yêu cầu này, vui lòng bỏ qua email hoặc liên hệ ngay với Hotline <strong>1900.6686</strong> để bảo vệ tài khoản.</p>
+                        `
+                    });
+                } else if (type === 'PASSWORD_RESET_SUCCESS') {
+                    const agentName = reqData.agentName || 'Quý đại lý';
+                    const agentCode = reqData.agentCode || '';
+                    subject = `[Vietravel Airlines Cargo] Mật khẩu tài khoản đã được thay đổi thành công`;
+                    html = buildEmailHtml({
+                        title: 'Mật khẩu Tài khoản Đã Được Đặt Lại',
+                        subtitle: `Mã đại lý: ${agentCode}`,
+                        contentHtml: `
+                            <p>Kính gửi <strong>${agentName}</strong> (${agentCode}),</p>
+                            <p style="color:#2e7d32;font-weight:bold;">Mật khẩu tài khoản của Quý đại lý đã được đặt lại thành công qua xác minh Email OTP.</p>
+                            <p>Quý vị hiện có thể đăng nhập vào Sàn Đấu giá Cargo bằng mật khẩu mới vừa thiết lập.</p>
+                            <p style="text-align:center;margin:24px 0;">
+                                <a href="http://localhost:8085/01-Login.html" style="display:inline-block;background-color:#1565c0;color:#ffffff;font-weight:bold;padding:12px 28px;border-radius:6px;text-decoration:none;">ĐĂNG NHẬP VÀO SÀN NGAY</a>
+                            </p>
+                        `
+                    });
                 }
 
                 // Fallback HTML builder if html is still empty

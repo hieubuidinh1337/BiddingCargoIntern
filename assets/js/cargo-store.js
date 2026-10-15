@@ -2392,35 +2392,68 @@ const CargoStore = (function() {
 
             const now = new Date();
             
-            // Validate ETD date
-            const parsedEtd = this.parseFlightDate(auctionData.etd);
-            if (!parsedEtd) {
-                return { success: false, message: 'Thời gian cất cánh dự kiến (ETD) không đúng định dạng hợp lệ.' };
-            }
+            let parsedEtd = null;
+            let parsedOpen = null;
+            let parsedClose = null;
+            let endTimeDate = null;
 
-            const closeOffsetHours = Number(auctionData.auctionCloseOffsetHours) || 5;
-            const minLeadHours = closeOffsetHours + 1; // At least closeOffset + 1h active bidding window
-            const minEtdMs = now.getTime() + (minLeadHours * 3600 * 1000);
+            if (auctionData.closeDate) {
+                parsedClose = this.parseFlightDate(auctionData.closeDate);
+                if (!parsedClose) {
+                    return { success: false, message: 'Ngày đóng phiên không đúng định dạng hợp lệ.' };
+                }
+                if (parsedClose.getTime() <= now.getTime()) {
+                    return { success: false, message: 'Ngày đóng phiên phải là thời điểm trong tương lai.' };
+                }
+                parsedOpen = auctionData.openDate ? this.parseFlightDate(auctionData.openDate) : now;
+                if (parsedOpen && parsedClose.getTime() <= parsedOpen.getTime()) {
+                    return { success: false, message: 'Ngày đóng phiên phải diễn ra sau ngày mở phiên.' };
+                }
+                endTimeDate = parsedClose;
+                parsedEtd = parsedClose;
+            } else {
+                // Validate ETD date (legacy flow)
+                parsedEtd = this.parseFlightDate(auctionData.etd);
+                if (!parsedEtd) {
+                    return { success: false, message: 'Thời gian cất cánh dự kiến (ETD) không đúng định dạng hợp lệ.' };
+                }
 
-            // Check if ETD has sufficient lead time
-            if (parsedEtd.getTime() < minEtdMs) {
-                const pad = n => String(n).padStart(2, '0');
-                const minEtdDate = new Date(minEtdMs);
-                const minEtdFormatted = `${pad(minEtdDate.getHours())}:${pad(minEtdDate.getMinutes())} · ${pad(minEtdDate.getDate())}/${pad(minEtdDate.getMonth() + 1)}/${minEtdDate.getFullYear()}`;
-                return {
-                    success: false,
-                    message: `❌ Thời gian cất cánh (ETD) không đủ thời gian vận hành!\n\nTheo quy định: Hạn chốt thầu là trước ETD ${closeOffsetHours} giờ, thời gian Cut-off kho là trước ETD 3 giờ.\nĐể đủ tối thiểu 1 giờ cho đại lý tham gia đấu giá, thời gian ETD mới phải cách hiện tại ít nhất ${minLeadHours} giờ (Sớm nhất có thể chọn: ${minEtdFormatted}).`
-                };
-            }
+                const closeOffsetHours = Number(auctionData.auctionCloseOffsetHours) || 5;
+                const minLeadHours = closeOffsetHours + 1; // At least closeOffset + 1h active bidding window
+                const minEtdMs = now.getTime() + (minLeadHours * 3600 * 1000);
 
-            // Validate ETA if provided
-            if (auctionData.eta) {
-                const parsedEta = this.parseFlightDate(auctionData.eta);
-                if (parsedEta && parsedEta.getTime() <= parsedEtd.getTime()) {
+                // Check if ETD has sufficient lead time
+                if (parsedEtd.getTime() < minEtdMs) {
+                    const pad = n => String(n).padStart(2, '0');
+                    const minEtdDate = new Date(minEtdMs);
+                    const minEtdFormatted = `${pad(minEtdDate.getHours())}:${pad(minEtdDate.getMinutes())} · ${pad(minEtdDate.getDate())}/${pad(minEtdDate.getMonth() + 1)}/${minEtdDate.getFullYear()}`;
                     return {
                         success: false,
-                        message: 'Thời gian hạ cánh dự kiến (ETA) phải sau thời gian cất cánh dự kiến (ETD).'
+                        message: `❌ Thời gian cất cánh (ETD) không đủ thời gian vận hành!\n\nTheo quy định: Hạn chốt thầu là trước ETD ${closeOffsetHours} giờ, thời gian Cut-off kho là trước ETD 3 giờ.\nĐể đủ tối thiểu 1 giờ cho đại lý tham gia đấu giá, thời gian ETD mới phải cách hiện tại ít nhất ${minLeadHours} giờ (Sớm nhất có thể chọn: ${minEtdFormatted}).`
                     };
+                }
+
+                // Validate ETA if provided
+                if (auctionData.eta) {
+                    const parsedEta = this.parseFlightDate(auctionData.eta);
+                    if (parsedEta && parsedEta.getTime() <= parsedEtd.getTime()) {
+                        return {
+                            success: false,
+                            message: 'Thời gian hạ cánh dự kiến (ETA) phải sau thời gian cất cánh dự kiến (ETD).'
+                        };
+                    }
+                }
+
+                const closeOffset = Number(auctionData.auctionCloseOffsetHours) || 5;
+                if (parsedEtd && !isNaN(parsedEtd.getTime())) {
+                    const etdCloseTime = new Date(parsedEtd.getTime() - closeOffset * 60 * 60 * 1000);
+                    if (etdCloseTime.getTime() > now.getTime()) {
+                        endTimeDate = etdCloseTime;
+                    } else {
+                        endTimeDate = new Date(now.getTime() + 30 * 60 * 1000);
+                    }
+                } else {
+                    endTimeDate = new Date(now.getTime() + 24 * 60 * 60 * 1000);
                 }
             }
 
@@ -2468,7 +2501,7 @@ const CargoStore = (function() {
                 };
             }
 
-            const capacityKg = Number(auctionData.capacityKg) || 3000;
+            const capacityKg = Number(auctionData.capacityKg) || 3500;
             if (isNaN(capacityKg) || capacityKg < 100 || capacityKg > 50000) {
                 return {
                     success: false,
@@ -2482,22 +2515,13 @@ const CargoStore = (function() {
                 ? Number(auctionData.minStep) 
                 : defaultMinIncrement;
 
-            const formattedEtd = this.formatFlightDateDisplay(parsedEtd);
-            const formattedEta = auctionData.eta ? this.formatFlightDateDisplay(auctionData.eta) : 'Chưa cập nhật';
-
-            // Calculate End Time (Thời gian đóng thầu): e.g. 5 hours before ETD so agent has time to pay & declare before warehouse Cut-off (ETD - 3h)
-            let endTimeDate;
-            if (parsedEtd && !isNaN(parsedEtd.getTime())) {
-                const etdCloseTime = new Date(parsedEtd.getTime() - closeOffsetHours * 60 * 60 * 1000);
-                if (etdCloseTime.getTime() > now.getTime()) {
-                    endTimeDate = etdCloseTime;
-                } else {
-                    endTimeDate = new Date(now.getTime() + 30 * 60 * 1000);
-                }
-            } else {
-                endTimeDate = new Date(now.getTime() + 24 * 60 * 60 * 1000);
-            }
+            const formattedOpen = parsedOpen ? this.formatFlightDateDisplay(parsedOpen) : '';
+            const formattedClose = parsedClose ? this.formatFlightDateDisplay(parsedClose) : '';
+            const formattedEtd = parsedClose ? formattedClose : this.formatFlightDateDisplay(parsedEtd);
+            const formattedEta = auctionData.eta ? this.formatFlightDateDisplay(auctionData.eta) : (formattedClose || 'Chưa cập nhật');
             const endTime = endTimeDate.toISOString();
+
+            const isUpcoming = parsedOpen && parsedOpen.getTime() > (now.getTime() + 60000);
 
             const newAuction = {
                 id: newId,
@@ -2508,6 +2532,10 @@ const CargoStore = (function() {
                 destination: dest,
                 originName: originName,
                 destName: destName,
+                openDate: formattedOpen,
+                closeDate: formattedClose,
+                openDateIso: parsedOpen ? parsedOpen.toISOString() : now.toISOString(),
+                closeDateIso: parsedClose ? parsedClose.toISOString() : endTime,
                 etd: formattedEtd,
                 eta: formattedEta,
                 etdIso: parsedEtd.toISOString(),
@@ -2517,12 +2545,12 @@ const CargoStore = (function() {
                 currentPriceKg: startingPriceKg,
                 minStep: minStep,
                 endTime: endTime,
-                status: 'OPEN',
+                status: isUpcoming ? 'UPCOMING' : 'OPEN',
                 leadingAgentCode: 'Chưa có',
                 leadingAgentName: 'Chưa có đại lý nào đặt giá',
                 bidsCount: 0,
                 specialNotes: auctionData.specialNotes || 'Tải trọng tổng hợp tiêu chuẩn IATA.',
-                cutOffTime: auctionData.cutOffTime || 'Trước ETD 3 giờ'
+                cutOffTime: auctionData.cutOffTime || 'Theo ngày đóng phiên'
             };
 
             data.auctions.unshift(newAuction);
@@ -3763,6 +3791,155 @@ const anonFlag = isAnonymous !== false;
                 email: reg.email,
                 companyName: reg.companyName,
                 repName: reg.repName
+            };
+        },
+
+        requestPasswordResetOtp: function(emailOrCode) {
+            const data = loadData();
+            const identifier = (emailOrCode || '').trim().toLowerCase();
+            if (!identifier) {
+                return { success: false, message: 'Vui lòng nhập Email hoặc Mã đại lý của bạn.' };
+            }
+
+            const agent = (data.agentsList || []).find(a => 
+                (a.email || '').toLowerCase() === identifier ||
+                (a.code || '').toLowerCase() === identifier ||
+                (a.taxCode || '').toLowerCase() === identifier
+            );
+
+            if (!agent) {
+                return { success: false, message: `Không tìm thấy tài khoản đại lý với thông tin "${emailOrCode}". Vui lòng kiểm tra lại Email đăng ký.` };
+            }
+
+            if (!agent.email) {
+                return { success: false, message: `Tài khoản đại lý ${agent.code} chưa cập nhật địa chỉ Email. Vui lòng liên hệ Hotline 1900.6686 để được hỗ trợ.` };
+            }
+
+            // Generate 6-digit numeric OTP
+            const otp = Math.floor(100000 + Math.random() * 900000).toString();
+            const expiresAt = Date.now() + 15 * 60 * 1000; // 15 mins
+
+            if (!data.passwordResetOtps) data.passwordResetOtps = {};
+            data.passwordResetOtps[agent.code] = {
+                otp: otp,
+                email: agent.email,
+                expiresAt: expiresAt,
+                createdAt: Date.now()
+            };
+            saveData(data);
+
+            // Log activity
+            this.logActivity({
+                actor: agent.companyName || agent.repName || agent.code,
+                username: agent.code,
+                role: 'AGENT',
+                actionCategory: 'Tài khoản',
+                actionTitle: 'Yêu cầu mã OTP khôi phục mật khẩu',
+                target: 'Email OTP',
+                details: `Đại lý ${agent.code} (${agent.companyName}) đã yêu cầu gửi mã xác thực OTP qua email ${agent.email}.`
+            });
+
+            // Dispatch email notification via backend
+            if (this.sendEmailNotification) {
+                this.sendEmailNotification({
+                    type: 'PASSWORD_RESET_OTP',
+                    to: agent.email,
+                    agentCode: agent.code,
+                    agentName: agent.companyName || agent.repName || agent.code,
+                    otp: otp,
+                    expiresMinutes: 15
+                });
+            }
+
+            // Mask email for privacy display: e.g. lo***@viettelpost.com.vn
+            const parts = agent.email.split('@');
+            let maskedEmail = agent.email;
+            if (parts.length === 2) {
+                const namePart = parts[0];
+                const visibleLen = Math.min(2, namePart.length);
+                maskedEmail = namePart.substring(0, visibleLen) + '••••' + '@' + parts[1];
+            }
+
+            return {
+                success: true,
+                message: `Mã OTP đã được gửi đến email ${maskedEmail}. Vui lòng kiểm tra hộp thư của bạn!`,
+                agentCode: agent.code,
+                email: agent.email,
+                maskedEmail: maskedEmail,
+                companyName: agent.companyName || agent.repName,
+                otpDemo: otp // Helper for local testing and demonstration
+            };
+        },
+
+        resetPasswordWithOtp: function(emailOrCode, otpInput, newPassword) {
+            const data = loadData();
+            const identifier = (emailOrCode || '').trim().toLowerCase();
+            const agent = (data.agentsList || []).find(a => 
+                (a.email || '').toLowerCase() === identifier ||
+                (a.code || '').toLowerCase() === identifier ||
+                (a.taxCode || '').toLowerCase() === identifier
+            );
+
+            if (!agent) {
+                return { success: false, message: 'Không tìm thấy thông tin tài khoản đại lý.' };
+            }
+
+            const record = (data.passwordResetOtps || {})[agent.code];
+            const cleanOtp = String(otpInput || '').trim();
+
+            if (!record) {
+                return { success: false, message: 'Yêu cầu OTP đã hết hạn hoặc chưa được tạo. Vui lòng bấm "Gửi lại OTP".' };
+            }
+
+            if (Date.now() > record.expiresAt) {
+                return { success: false, message: 'Mã xác nhận OTP đã hết hạn (quá 15 phút). Vui lòng yêu cầu mã OTP mới.' };
+            }
+
+            if (cleanOtp !== String(record.otp).trim()) {
+                return { success: false, message: 'Mã xác nhận OTP không chính xác. Vui lòng kiểm tra lại email.' };
+            }
+
+            const pwd = String(newPassword || '').trim();
+            if (pwd.length < 6) {
+                return { success: false, message: 'Mật khẩu mới phải có tối thiểu 6 ký tự.' };
+            }
+
+            // Update agent password
+            agent.password = pwd;
+            if (data.currentUser && (data.currentUser.agentCode || '').toUpperCase() === (agent.code || '').toUpperCase()) {
+                data.currentUser.password = pwd;
+            }
+
+            // Remove used OTP
+            delete data.passwordResetOtps[agent.code];
+            saveData(data);
+
+            // Log activity
+            this.logActivity({
+                actor: agent.companyName || agent.repName || agent.code,
+                username: agent.code,
+                role: 'AGENT',
+                actionCategory: 'Tài khoản',
+                actionTitle: 'Đặt lại mật khẩu qua Email OTP',
+                target: 'Mật khẩu',
+                details: `Đại lý ${agent.companyName || agent.code} (${agent.code}) đã đổi mật khẩu thành công qua xác minh Email OTP.`
+            });
+
+            // Dispatch confirmation email
+            if (this.sendEmailNotification) {
+                this.sendEmailNotification({
+                    type: 'PASSWORD_RESET_SUCCESS',
+                    to: agent.email,
+                    agentCode: agent.code,
+                    agentName: agent.companyName || agent.repName || agent.code
+                });
+            }
+
+            return {
+                success: true,
+                message: 'Đặt lại mật khẩu mới thành công! Quý khách có thể đăng nhập ngay vào hệ thống.',
+                agentCode: agent.code,
+                newPassword: pwd
             };
         },
 
