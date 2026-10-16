@@ -569,9 +569,11 @@
                     <h2 class="text-base font-bold text-slate-900 flex items-center gap-2">
                         <i class="fa-solid fa-trophy text-amber-500"></i> Top Đại lý trúng thầu nhiều nhất
                     </h2>
-                    <p class="text-xs text-slate-500 mt-0.5">Xếp hạng dựa trên tổng số lượng chuyến bay trúng thầu thành công</p>
+                    <p class="text-xs text-slate-500 mt-0.5">Xếp hạng dựa trên tổng số lượng chuyến bay trúng thầu thành
+                        công</p>
                 </div>
-                <span class="text-[11px] text-emerald-700 bg-emerald-50 border border-emerald-200/70 px-2.5 py-1 rounded-lg font-semibold flex items-center gap-1.5 self-start sm:self-auto">
+                <span
+                    class="text-[11px] text-emerald-700 bg-emerald-50 border border-emerald-200/70 px-2.5 py-1 rounded-lg font-semibold flex items-center gap-1.5 self-start sm:self-auto">
                     <i class="fa-solid fa-circle-check text-emerald-500"></i> Cập nhật theo phiên đã chốt
                 </span>
             </div>
@@ -795,34 +797,43 @@
     </div>
 
     <!-- Beautiful HTML Modal Dialog for Reports -->
-    <div id="reportCustomModal" class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-xs transition-opacity duration-200 hidden opacity-0 pointer-events-none" onclick="if(event.target === this) closeReportModal()">
-        <div id="reportModalBox" class="bg-white rounded-2xl shadow-2xl border border-slate-100 max-w-md w-full overflow-hidden transform scale-95 transition-all duration-200">
+    <div id="reportCustomModal"
+        class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-xs transition-opacity duration-200 hidden opacity-0 pointer-events-none"
+        onclick="if(event.target === this) closeReportModal()">
+        <div id="reportModalBox"
+            class="bg-white rounded-2xl shadow-2xl border border-slate-100 max-w-md w-full overflow-hidden transform scale-95 transition-all duration-200">
             <!-- Header bar with decorative color line -->
             <div id="reportModalHeaderColor" class="h-1.5 w-full bg-blue-600"></div>
-            
+
             <div class="p-6">
                 <!-- Icon & Title -->
                 <div class="flex items-start gap-4">
-                    <div id="reportModalIconContainer" class="w-12 h-12 rounded-2xl flex items-center justify-center shrink-0 bg-blue-50 text-blue-600 text-xl border border-blue-100 shadow-xs">
+                    <div id="reportModalIconContainer"
+                        class="w-12 h-12 rounded-2xl flex items-center justify-center shrink-0 bg-blue-50 text-blue-600 text-xl border border-blue-100 shadow-xs">
                         <i id="reportModalIcon" class="fa-solid fa-circle-info"></i>
                     </div>
                     <div class="flex-1 min-w-0">
                         <h3 id="reportModalTitle" class="text-base font-bold text-slate-900 leading-snug">Thông báo</h3>
-                        <p id="reportModalSubtitle" class="text-xs text-slate-500 mt-0.5">Hệ thống Báo cáo & Thống kê</p>
+                        <p id="reportModalSubtitle" class="text-xs text-slate-500 mt-0.5">Hệ thống Báo cáo & Thống kê
+                        </p>
                     </div>
-                    <button type="button" onclick="closeReportModal()" class="w-8 h-8 rounded-lg hover:bg-slate-100 text-slate-400 hover:text-slate-600 flex items-center justify-center transition cursor-pointer">
+                    <button type="button" onclick="closeReportModal()"
+                        class="w-8 h-8 rounded-lg hover:bg-slate-100 text-slate-400 hover:text-slate-600 flex items-center justify-center transition cursor-pointer">
                         <i class="fa-solid fa-xmark text-sm"></i>
                     </button>
                 </div>
 
                 <!-- Body Content -->
-                <div id="reportModalBody" class="mt-4 text-xs text-slate-600 leading-relaxed max-h-[60vh] overflow-y-auto">
+                <div id="reportModalBody"
+                    class="mt-4 text-xs text-slate-600 leading-relaxed max-h-[60vh] overflow-y-auto">
                     Nội dung thông báo
                 </div>
 
                 <!-- Action Footer -->
-                <div id="reportModalActions" class="mt-6 flex items-center justify-end gap-2.5 pt-4 border-t border-slate-100">
-                    <button type="button" onclick="closeReportModal()" id="reportModalCloseBtn" class="px-4 py-2 bg-slate-900 hover:bg-slate-800 text-white text-xs font-semibold rounded-xl shadow-xs transition cursor-pointer">
+                <div id="reportModalActions"
+                    class="mt-6 flex items-center justify-end gap-2.5 pt-4 border-t border-slate-100">
+                    <button type="button" onclick="closeReportModal()" id="reportModalCloseBtn"
+                        class="px-4 py-2 bg-slate-900 hover:bg-slate-800 text-white text-xs font-semibold rounded-xl shadow-xs transition cursor-pointer">
                         Đóng
                     </button>
                 </div>
@@ -1015,9 +1026,6 @@
                     <div class="bg-slate-50 p-3.5 rounded-xl border border-slate-200/80 space-y-2">
                         <div class="flex items-center justify-between">
                             <span class="font-mono font-bold text-blue-600 bg-blue-50 border border-blue-200 px-2 py-0.5 rounded-md text-[11px]">${agent.code}</span>
-                            <span class="px-2 py-0.5 rounded-full text-[10px] font-bold bg-emerald-100 text-emerald-700 border border-emerald-200">
-                                <i class="fa-solid fa-circle-check mr-1"></i>Hạng ${agent.tier || 'TIER2'}
-                            </span>
                         </div>
                         <p class="text-sm font-bold text-slate-900 leading-snug">${agent.companyName}</p>
                         <div class="grid grid-cols-2 gap-2 text-slate-600 text-[11px] pt-1.5 border-t border-slate-200/60">
@@ -1398,7 +1406,7 @@
                 if (flt.route && flt.route !== 'ALL') parts.push(`Tuyến: ${flt.route}`);
                 if (flt.status && flt.status !== 'ALL') parts.push(`Trạng thái: ${flt.status}`);
 
-                periodBadge.textContent = `Kỳ báo cáo: ${parts.join(' · ')}`;
+                periodBadge.textContent = `${parts.join(' · ')}`;
             }
 
             // 2. Render Route Revenue Table
@@ -1470,9 +1478,9 @@
                     topBox.innerHTML = `<div class="col-span-3 text-center py-6 text-gray-400">Chưa có dữ liệu trúng thầu của đại lý</div>`;
                 } else {
                     const medalBadges = [
-                        { bg: 'bg-gradient-to-r from-amber-500 to-amber-600', ring: 'ring-amber-200', cardBg: 'bg-gradient-to-b from-amber-50/50 to-white border-amber-200/90 shadow-xs', num: '1', label: 'Quán quân' },
-                        { bg: 'bg-gradient-to-r from-slate-400 to-slate-500', ring: 'ring-slate-200', cardBg: 'bg-white border-slate-200 shadow-xs', num: '2', label: 'Á quân 1' },
-                        { bg: 'bg-gradient-to-r from-amber-700 to-amber-800', ring: 'ring-amber-200', cardBg: 'bg-white border-slate-200 shadow-xs', num: '3', label: 'Á quân 2' }
+                        { bg: 'bg-gradient-to-r from-amber-500 to-amber-600', ring: 'ring-amber-200', cardBg: 'bg-gradient-to-b from-amber-50/50 to-white border-amber-200/90 shadow-xs', num: '1', label: 'Thứ nhất' },
+                        { bg: 'bg-gradient-to-r from-slate-400 to-slate-500', ring: 'ring-slate-200', cardBg: 'bg-white border-slate-200 shadow-xs', num: '2', label: 'Thứ nhì' },
+                        { bg: 'bg-gradient-to-r from-amber-700 to-amber-800', ring: 'ring-amber-200', cardBg: 'bg-white border-slate-200 shadow-xs', num: '3', label: 'Thứ ba' }
                     ];
 
                     topBox.innerHTML = agentsToShow.map((ag, idx) => {
@@ -1492,7 +1500,7 @@
                                 </div>
                                 <div>
                                     <h3 class="font-bold text-slate-900 text-sm leading-tight truncate group-hover:text-blue-600 transition" title="${ag.companyName}">${ag.companyName}</h3>
-                                    <p class="text-slate-400 font-mono text-[11px] mt-0.5">${ag.code} · Hạng ${ag.tier || 'TIER2'}</p>
+                                    <p class="text-slate-400 font-mono text-[11px] mt-0.5">${ag.code}</p>
                                 </div>
                                 <div class="pt-2.5 border-t border-slate-100 grid grid-cols-2 gap-2 text-xs">
                                     <div>
