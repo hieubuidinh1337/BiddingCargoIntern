@@ -459,13 +459,6 @@
                         id="detEtd">14:30 · 15/08/2026</strong></div>
                 <div><span class="text-gray-400 block">Hạ cánh (ETA):</span> <strong class="text-slate-800"
                         id="detEta">16:45 · 15/08/2026</strong></div>
-                <div><span class="text-gray-400 block">Cut-off nhận hàng:</span> <strong class="text-slate-800"
-                        id="detCutOff">11:30 · 15/08/2026</strong></div>
-            </div>
-            <div class="pt-2 border-t">
-                <span class="text-gray-400">Ghi chú hàng hóa: </span>
-                <span class="text-slate-700 font-medium" id="detNotes">Hàng tổng hợp, hỗ trợ kho lạnh bảo quản thực phẩm
-                    & dược phẩm.</span>
             </div>
             <div class="pt-2 border-t flex flex-wrap items-center gap-2">
                 <span class="text-gray-400">Đại lý được quyền tham gia:</span>
@@ -485,24 +478,17 @@
                         Bảng Tổng Kết Xếp Hạng Đặt Giá & Thứ Tự Trúng Thầu
                     </h3>
                     <p class="text-xs text-slate-500 mt-0.5">
-                        Hệ thống tự động xác nhận đại lý có giá cao nhất (Auto Confirm). Trong thời gian xem xét, Quản
-                        trị viên Khai thác (COD ADMIN) có quyền Reject để chuyển sang đại lý kế tiếp. Hết thời gian cấu
-                        hình, toàn bộ chức năng Reject sẽ tự động đóng lại để chốt thầu chính thức.
+                        Hệ thống tự động xác nhận đại lý có giá cao nhất. Trong thời gian xem xét, Quản trị viên có
+                        quyền Reject để chuyển sang đại lý kế tiếp. Hết thời gian xem xét, toàn bộ chức năng Reject sẽ
+                        tự động đóng lại để chốt thầu chính thức.
                     </p>
                 </div>
                 <div class="flex items-center gap-2 flex-wrap">
-                    <div id="roleSwitcherBadgeContainer" class="flex items-center gap-1.5"></div>
                     <span
                         class="text-xs font-semibold text-blue-700 bg-blue-50 border border-blue-200 px-2.5 py-1 rounded-lg"
                         id="leaderboardSummaryBadge">
                         0 đại lý tham gia
                     </span>
-                    <!-- Quick Seed button for testing demo -->
-                    <button type="button" id="btnSeedDemoBids" onclick="handleSeedDemoBids()"
-                        class="text-xs font-bold text-purple-700 bg-purple-50 hover:bg-purple-100 border border-purple-200 px-3 py-1 rounded-lg transition inline-flex items-center gap-1 cursor-pointer"
-                        title="Tạo nhanh 4 đại lý đặt thầu mẫu với thời gian xem xét 15 phút để test xếp hạng & Reject">
-                        <i class="fa-solid fa-wand-magic-sparkles"></i> Tạo 4 đại lý mẫu test
-                    </button>
                 </div>
             </div>
 
@@ -799,28 +785,45 @@
             }
 
             const flight = currentAuction.flightNumber || 'chuyến bay';
-            const ok = window.Swal ? (await Swal.fire({
-                title: 'Chốt phiên & Tự động Confirm?',
-                html: `
-                    <div class="text-left text-xs space-y-2.5 pt-1">
-                        <div class="p-3 bg-blue-50 border border-blue-200 rounded-xl text-blue-950 leading-relaxed">
-                            <i class="fa-solid fa-circle-info text-blue-600 mr-1"></i>
-                            Bạn có chắc chắn muốn chốt đóng phiên chuyến bay <strong>${flight}</strong> (${currentAuction.route})?
-                        </div>
-                        <div class="p-3 bg-amber-50 border border-amber-200 rounded-xl text-amber-900 space-y-1.5">
-                            <p>✓ <strong>Auto-Confirm:</strong> Hệ thống tự động xác nhận đại lý có mức giá đặt cao nhất trúng thầu.</p>
-                            <p>✓ <strong>Bỏ nút Confirm:</strong> Nút Confirm được bỏ hoàn toàn, chỉ để lại nút <strong>Reject</strong>.</p>
-                            <p>✓ <strong>Thời gian xem xét:</strong> Bắt đầu đếm ngược thời gian cấu hình (15 phút). Hết giờ không đổi sẽ ẩn Reject.</p>
-                            <p>✓ <strong>Phân quyền Chốt thầu & Reject:</strong> Thẩm quyền độc lập dành riêng cho vai trò <strong>AUCTION SETTLEMENT</strong> (hoặc ITD ADMIN tối cao) có ghi audit logs đầy đủ.</p>
-                        </div>
+            const sysSettings = CargoStore.getSystemSettings ? CargoStore.getSystemSettings() : {};
+            const configReviewMins = Number(sysSettings.reviewWindowMinutes) || 15;
+            const bids = CargoStore.getBidsForAuction ? CargoStore.getBidsForAuction(currentAuction.id) : [];
+            const uniqueAgentCodes = Array.from(new Set(bids.map(b => (b.agentCode || '').toUpperCase()).filter(Boolean)));
+            const isSingleAgent = uniqueAgentCodes.length <= 1;
+
+            const modalHtml = isSingleAgent ? `
+                <div class="text-left text-xs space-y-2.5 pt-1">
+                    <div class="p-3 bg-blue-50 border border-blue-200 rounded-xl text-blue-950 leading-relaxed">
+                        <i class="fa-solid fa-circle-info text-blue-600 mr-1"></i>
+                        Bạn có chắc chắn muốn chốt đóng phiên chuyến bay <strong>${flight}</strong> (${currentAuction.route})?
                     </div>
-                `,
+                    <div class="p-3 bg-emerald-50 border border-emerald-200 rounded-xl text-emerald-950 space-y-1">
+                        <p class="font-bold text-emerald-900"><i class="fa-solid fa-circle-check text-emerald-600 mr-1"></i>Chỉ có 1 đại lý tham gia đặt giá</p>
+                        <p class="text-emerald-800">Hệ thống sẽ tự động xác nhận và chốt thầu chính thức ngay cho đại lý này.</p>
+                    </div>
+                </div>
+            ` : `
+                <div class="text-left text-xs space-y-2.5 pt-1">
+                    <div class="p-3 bg-blue-50 border border-blue-200 rounded-xl text-blue-950 leading-relaxed">
+                        <i class="fa-solid fa-circle-info text-blue-600 mr-1"></i>
+                        Bạn có chắc chắn muốn chốt đóng phiên chuyến bay <strong>${flight}</strong> (${currentAuction.route})?
+                    </div>
+                    <div class="p-3 bg-amber-50 border border-amber-200 rounded-xl text-amber-900 space-y-1.5 leading-relaxed">
+                        <p>✓ Tự động xác nhận đại lý có mức giá đặt cao nhất trúng thầu.</p>
+                        <p>✓ Thời gian xem xét: <strong>${configReviewMins} phút</strong> (theo cấu hình hệ thống). Hết thời gian sẽ tự động chốt thầu chính thức.</p>
+                    </div>
+                </div>
+            `;
+
+            const ok = window.Swal ? (await Swal.fire({
+                title: 'Xác nhận chốt phiên đấu giá?',
+                html: modalHtml,
                 icon: 'question',
                 showCancelButton: true,
                 confirmButtonText: '<i class="fa-solid fa-gavel"></i> Chốt phiên ngay',
                 confirmButtonColor: '#2563eb',
                 cancelButtonText: 'Xem lại'
-            })).isConfirmed : confirm('Bạn có chắc chắn muốn chốt đóng phiên chuyến bay ' + flight + ' và tự động confirm mức giá cao nhất?');
+            })).isConfirmed : confirm('Bạn có chắc chắn muốn chốt đóng phiên chuyến bay ' + flight + '?');
 
             if (ok) {
                 const res = CargoStore.closeAuction(currentAuction.id);
@@ -829,102 +832,93 @@
                         await Swal.fire({
                             icon: 'success',
                             title: 'Chốt phiên thành công!',
-                            text: res.message || 'Đã tự động Confirm đại lý cao nhất!'
+                            text: res.message || 'Đã tự động xác nhận đại lý cao nhất!'
                         });
                     } else {
-                        alert('✅ ' + (res.message || 'Đã chốt phiên thành công!'));
+                        alert(res.message || 'Đã chốt phiên thành công!');
                     }
-                    loadAdminDetail();
+                    loadAuctionDetail();
                 } else {
-                    if (window.Swal) Swal.fire('Thông báo', res.message || 'Không thể đóng phiên!', 'warning');
-                    else alert(res.message || 'Không thể đóng phiên!');
+                    alert(res.message || 'Không thể chốt phiên.');
                 }
             }
-        };
+        }
 
-        let reviewTimerInterval = null;
-
-        // Render Leaderboard & Fallback transfer table
         function renderLeaderboardTable(auction, isStaff) {
             const lbody = document.getElementById('leaderboardBody');
             const summaryBadge = document.getElementById('leaderboardSummaryBadge');
             const reviewBanner = document.getElementById('reviewWindowBanner');
             const historyBox = document.getElementById('fallbackHistoryAlert');
             const auditTrailBox = document.getElementById('rejectAuditTrailSection');
-            const roleContainer = document.getElementById('roleSwitcherBadgeContainer');
             if (!lbody) return;
 
             const list = CargoStore.getAuctionLeaderboard ? CargoStore.getAuctionLeaderboard(auction.id) : [];
             const isLocked = Boolean(auction.isFinalLocked);
             const currentAdmin = CargoStore.getCurrentAdmin ? CargoStore.getCurrentAdmin() : {};
-            const adminRole = String(currentAdmin.role || '').toUpperCase();
             const hasSettlement = Boolean(CargoStore.hasSettlementRole && CargoStore.hasSettlementRole(currentAdmin));
 
-            // Render interactive role switcher testing bar
-            if (roleContainer) {
-                const rolesList = Array.isArray(currentAdmin.roles) ? currentAdmin.roles : [currentAdmin.role || 'STAFF'];
-                const badges = rolesList.map(r => {
-                    const ru = String(r).toUpperCase();
-                    if (ru === 'ITD_ADMIN') return '<span class="bg-blue-600 text-white font-bold px-2 py-0.5 rounded text-[10px]">ITD</span>';
-                    if (ru === 'COD_ADMIN') return '<span class="bg-amber-600 text-white font-bold px-2 py-0.5 rounded text-[10px]">COD</span>';
-                    if (ru === 'AUCTION_SETTLEMENT') return '<span class="bg-purple-600 text-white font-bold px-2 py-0.5 rounded text-[10px]">SETTLEMENT</span>';
-                    return '<span class="bg-emerald-600 text-white font-bold px-2 py-0.5 rounded text-[10px]">STAFF</span>';
-                }).join(' ');
-
-                roleContainer.innerHTML = `
-                    <div class="flex items-center gap-1.5 bg-slate-900 text-white px-2.5 py-1 rounded-xl text-xs shadow-xs border border-slate-700">
-                        <span class="text-slate-400 text-[10px] uppercase font-bold">Role hiện tại:</span>
-                        <span class="font-bold text-amber-300">@${currentAdmin.username || 'admin'}</span>
-                        ${badges}
-                        <div class="h-3 w-[1px] bg-slate-700 mx-1"></div>
-                        <span class="text-slate-400 text-[10px]">Test nhanh:</span>
-                        <button type="button" onclick="switchAdminRoleDemo('SETTLER')" class="px-2 py-0.5 rounded bg-purple-700 hover:bg-purple-600 text-[10px] font-bold transition cursor-pointer" title="Role độc lập AUCTION_SETTLEMENT (Vũ Thẩm Định)">
-                            Settler (Độc lập)
-                        </button>
-                        <button type="button" onclick="switchAdminRoleDemo('COD_ADMIN')" class="px-2 py-0.5 rounded bg-amber-700 hover:bg-amber-600 text-[10px] font-bold transition cursor-pointer" title="Đa vai trò COD ADMIN + AUCTION_SETTLEMENT (Lê Khai Thác)">
-                            COD + Settlement
-                        </button>
-                        <button type="button" onclick="switchAdminRoleDemo('STAFF')" class="px-2 py-0.5 rounded bg-slate-700 hover:bg-slate-600 text-[10px] font-bold transition cursor-pointer" title="Tài khoản STAFF - Không có quyền chốt & reject">
-                            Staff (Chặn)
-                        </button>
-                        <button type="button" onclick="switchAdminRoleDemo('ITD_ADMIN')" class="px-2 py-0.5 rounded bg-blue-700 hover:bg-blue-600 text-[10px] font-bold transition cursor-pointer" title="Tài khoản ITD ADMIN tối cao - Toàn quyền">
-                            ITD (Full)
-                        </button>
-                    </div>
-                `;
-            }
+            // Kiểm tra số lượng đại lý thực tế tham gia: nếu chỉ có 1 đại lý thì auto confirm vì chỉ có 1 đại lý
+            const uniqueAgents = Array.from(new Set(list.map(b => (b.agentCode || '').toUpperCase()).filter(Boolean)));
+            const isSingleAgent = uniqueAgents.length <= 1;
 
             if (summaryBadge) {
-                summaryBadge.textContent = isLocked
-                    ? `${list.length} đại lý · ĐÃ CHỐT CHÍNH THỨC`
-                    : `${list.length} đại lý · Đang trong thời gian xem xét`;
-                summaryBadge.className = isLocked
-                    ? 'text-xs font-bold text-emerald-800 bg-emerald-50 border border-emerald-300 px-3 py-1 rounded-lg flex items-center gap-1.5'
-                    : 'text-xs font-semibold text-amber-800 bg-amber-50 border border-amber-300 px-2.5 py-1 rounded-lg';
+                if (isSingleAgent && list.length > 0) {
+                    summaryBadge.textContent = '1 đại lý · Đã tự động chốt thầu';
+                    summaryBadge.className = 'text-xs font-bold text-emerald-800 bg-emerald-50 border border-emerald-300 px-3 py-1 rounded-lg flex items-center gap-1.5';
+                } else if (isLocked) {
+                    summaryBadge.textContent = `${list.length} đại lý · Đã chốt chính thức`;
+                    summaryBadge.className = 'text-xs font-bold text-emerald-800 bg-emerald-50 border border-emerald-300 px-3 py-1 rounded-lg flex items-center gap-1.5';
+                } else {
+                    summaryBadge.textContent = `${list.length} đại lý · Đang trong thời gian xem xét`;
+                    summaryBadge.className = 'text-xs font-semibold text-amber-800 bg-amber-50 border border-amber-300 px-2.5 py-1 rounded-lg';
+                }
             }
 
             // Render Review Window Banner
             if (reviewBanner) {
                 reviewBanner.classList.remove('hidden');
-                if (isLocked) {
-                    if (reviewTimerInterval) { clearInterval(reviewTimerInterval); reviewTimerInterval = null; }
+                if (reviewTimerInterval) { clearInterval(reviewTimerInterval); reviewTimerInterval = null; }
+
+                if (isSingleAgent && list.length > 0) {
+                    // Nếu chỉ có 1 đại lý đặt thì auto confirm và chốt thầu chính thức ngay vì chỉ có 1 đại lý
+                    reviewBanner.className = 'p-3.5 bg-emerald-50 border border-emerald-300 rounded-xl text-xs text-emerald-950 flex flex-col sm:flex-row sm:items-center justify-between gap-2 shadow-2xs';
+                    reviewBanner.innerHTML = `
+                        <div class="flex items-center gap-2.5">
+                            <i class="fa-solid fa-circle-check text-emerald-600 text-lg"></i>
+                            <div>
+                                <div class="flex items-center gap-2">
+                                    <span class="font-bold text-sm text-emerald-900 uppercase">TỰ ĐỘNG CHỐT THẦU CHÍNH THỨC</span>
+                                    <span class="text-[10px] font-bold bg-emerald-200 text-emerald-900 px-2 py-0.5 rounded-full">FINALIZED</span>
+                                </div>
+                                <p class="text-[11px] text-emerald-800 mt-0.5">
+                                    Phiên đấu giá có <strong>1 đại lý tham gia duy nhất (${auction.winnerAgentName || auction.winnerAgentCode || 'Đại lý'})</strong> · Mức giá: <strong>${CargoStore.formatCurrency(auction.winningPriceKg)}/Kg</strong>. Hệ thống tự động xác nhận và chốt thầu chính thức.
+                                </p>
+                            </div>
+                        </div>
+                        <div class="flex items-center gap-2 shrink-0">
+                            <span class="text-xs bg-emerald-100 text-emerald-800 font-bold px-3 py-1.5 rounded-xl border border-emerald-300 inline-flex items-center gap-1.5 shadow-2xs">
+                                <i class="fa-solid fa-lock text-emerald-600"></i> Đã chốt thầu chính thức
+                            </span>
+                        </div>
+                    `;
+                } else if (isLocked) {
                     reviewBanner.className = 'p-3.5 bg-emerald-50 border border-emerald-300 rounded-xl text-xs text-emerald-950 flex flex-col sm:flex-row sm:items-center justify-between gap-2 shadow-2xs';
                     reviewBanner.innerHTML = `
                         <div class="flex items-center gap-2.5">
                             <i class="fa-solid fa-shield-check text-emerald-600 text-lg"></i>
                             <div>
                                 <div class="flex items-center gap-2">
-                                    <span class="font-bold text-sm text-emerald-900 uppercase">HẾT HẠN XEM XÉT (${auction.reviewWindowMinutes || 15} PHÚT) - ĐÃ KHÓA CHỐT TOÀN PHẦN!</span>
+                                    <span class="font-bold text-sm text-emerald-900 uppercase">HẾT HẠN XEM XÉT - ĐÃ KHÓA CHỐT THẦU CHÍNH THỨC</span>
                                     <span class="text-[10px] font-bold bg-emerald-200 text-emerald-900 px-2 py-0.5 rounded-full">FINALIZED</span>
                                 </div>
                                 <p class="text-[11px] text-emerald-800 mt-0.5">
-                                    Đại lý trúng thầu chính thức: <strong>${auction.winnerAgentName || auction.winnerAgentCode}</strong> · Mức giá: <strong>${CargoStore.formatCurrency(auction.winningPriceKg)}/Kg</strong>. Toàn bộ thao tác Reject và chuyển đại lý đã được ẩn vĩnh viễn theo quy định.
+                                    Đại lý trúng thầu chính thức: <strong>${auction.winnerAgentName || auction.winnerAgentCode}</strong> · Mức giá: <strong>${CargoStore.formatCurrency(auction.winningPriceKg)}/Kg</strong>. Toàn bộ thao tác Reject đã được ẩn theo quy định.
                                 </p>
                             </div>
                         </div>
                         <div class="flex items-center gap-2 shrink-0">
                             <span class="text-xs bg-emerald-100 text-emerald-800 font-bold px-3 py-1.5 rounded-xl border border-emerald-300 inline-flex items-center gap-1.5 shadow-2xs">
-                                <i class="fa-solid fa-lock text-emerald-600"></i> Đã đóng chốt hoàn tất (Ẩn chức năng Reject)
+                                <i class="fa-solid fa-lock text-emerald-600"></i> Đã đóng chốt hoàn tất
                             </span>
                         </div>
                     `;
@@ -932,40 +926,27 @@
                     reviewBanner.className = 'p-3.5 bg-gradient-to-r from-purple-50 via-amber-50 to-orange-50 border border-purple-200 rounded-xl text-xs text-slate-900 flex flex-col md:flex-row md:items-center justify-between gap-3 shadow-2xs';
                     reviewBanner.innerHTML = `
                         <div class="flex items-center gap-3">
-                            <div class="w-10 h-10 rounded-xl bg-purple-600 text-white flex items-center justify-center shrink-0 shadow-xs animate-pulse">
+                            <div class="w-10 h-10 rounded-xl bg-purple-600 text-white flex items-center justify-center shrink-0 shadow-xs">
                                 <i class="fa-solid fa-stopwatch text-lg"></i>
                             </div>
                             <div>
                                 <div class="flex items-center gap-2 flex-wrap">
-                                    <span class="font-bold text-slate-900 text-xs uppercase tracking-wide">Thời gian xem xét & quyền Reject còn lại:</span>
+                                    <span class="font-bold text-slate-900 text-xs uppercase tracking-wide">Thời gian xem xét còn lại:</span>
                                     <span id="reviewCountdownTimer" class="font-mono font-black text-rose-600 bg-white px-2.5 py-0.5 rounded-lg border border-purple-200 text-sm shadow-xs">--:--</span>
-                                    <span class="text-[10px] font-bold bg-purple-100 text-purple-900 px-2 py-0.5 rounded-md">Cấu hình: ${auction.reviewWindowMinutes || 15} phút</span>
-                                    <span class="text-[10px] font-bold bg-purple-100 text-purple-900 border border-purple-200 px-2 py-0.5 rounded-md flex items-center gap-1 shadow-2xs">
-                                        <i class="fa-solid fa-gavel text-purple-600"></i> Phân quyền Chốt thầu & Reject: AUCTION SETTLEMENT
-                                    </span>
                                 </div>
                                 <p class="text-[11px] text-slate-600 mt-1">
-                                    Hệ thống <strong>auto-confirm đại lý cao nhất</strong> (đã bỏ nút confirm, chỉ để Reject). Sau khi hết thời gian trên nếu không có thay đổi, hệ thống tự động ẩn chức năng Reject và chuyển đại lý để chốt thầu chính thức.
+                                    Hệ thống tự động xác nhận đại lý cao nhất. Sau khi hết thời gian xem xét nếu không có thay đổi, hệ thống tự động chốt thầu chính thức.
                                 </p>
                             </div>
                         </div>
                         <div class="flex items-center gap-2 shrink-0 self-end md:self-center">
                             ${hasSettlement ? `
-                                <div class="flex items-center gap-1.5">
-                                    <select onchange="handleSetReviewMinutes('${auction.id}', this.value)"
-                                        class="text-xs bg-white border border-purple-300 rounded-xl px-2 py-1.5 font-medium outline-none shadow-2xs" title="Cấu hình thời gian xem xét">
-                                        <option value="5" ${auction.reviewWindowMinutes == 5 ? 'selected' : ''}>Cấu hình: 5 phút</option>
-                                        <option value="15" ${(!auction.reviewWindowMinutes || auction.reviewWindowMinutes == 15) ? 'selected' : ''}>Cấu hình: 15 phút</option>
-                                        <option value="30" ${auction.reviewWindowMinutes == 30 ? 'selected' : ''}>Cấu hình: 30 phút</option>
-                                        <option value="60" ${auction.reviewWindowMinutes == 60 ? 'selected' : ''}>Cấu hình: 60 phút</option>
-                                    </select>
-                                    <button type="button" onclick="handleLockAuctionReview('${auction.id}')"
-                                        class="bg-slate-900 hover:bg-slate-800 text-white font-bold px-3 py-1.5 rounded-xl text-xs transition inline-flex items-center gap-1.5 shadow-xs cursor-pointer">
-                                        <i class="fa-solid fa-lock text-amber-400"></i> Khóa chốt ngay
-                                    </button>
-                                </div>
+                                <button type="button" onclick="handleLockAuctionReview('${auction.id}')"
+                                    class="bg-slate-900 hover:bg-slate-800 text-white font-bold px-3 py-1.5 rounded-xl text-xs transition inline-flex items-center gap-1.5 shadow-xs cursor-pointer">
+                                    <i class="fa-solid fa-lock text-amber-400"></i> Khóa chốt ngay
+                                </button>
                             ` : `
-                                <span class="text-slate-500 text-[11px] font-semibold bg-white/80 border border-purple-200 px-2.5 py-1.5 rounded-xl inline-flex items-center gap-1 shadow-2xs">
+                                <span class="text-slate-500 text-[11px] font-semibold bg-white/80 border border-purple-200 px-2.5 py-1 rounded-xl inline-flex items-center gap-1 shadow-2xs">
                                     <i class="fa-solid fa-lock text-slate-400"></i> Cần vai trò AUCTION SETTLEMENT
                                 </span>
                             `}
@@ -973,8 +954,7 @@
                     `;
 
                     // Start/Update live countdown timer
-                    if (reviewTimerInterval) clearInterval(reviewTimerInterval);
-                    const deadlineMs = auction.reviewDeadline ? new Date(auction.reviewDeadline).getTime() : (Date.now() + 15 * 60 * 1000);
+                    const deadlineMs = auction.reviewDeadline ? new Date(auction.reviewDeadline).getTime() : (Date.now() + (auction.reviewWindowMinutes || 15) * 60 * 1000);
                     function updateTimerDisplay() {
                         const remaining = deadlineMs - Date.now();
                         const timerElem = document.getElementById('reviewCountdownTimer');
@@ -1003,8 +983,7 @@
                     <tr>
                         <td colspan="7" class="py-8 text-center text-slate-400">
                             <i class="fa-solid fa-inbox text-3xl mb-2 text-slate-300 block"></i>
-                            Chưa có đại lý nào đặt giá cho chuyến bay này.<br>
-                            <span class="text-[11px] text-slate-500">Bạn có thể bấm nút <strong>"Tạo 4 đại lý mẫu test"</strong> ở góc phải trên để thử nghiệm bảng xếp hạng.</span>
+                            Chưa có đại lý nào đặt giá cho chuyến bay này.
                         </td>
                     </tr>
                 `;
@@ -1027,7 +1006,7 @@
                 const displayName = isStaff ? 'Đại lý tham gia (Bảo mật thông tin Staff)' : item.agentName;
 
                 let statusBadge = '';
-                if (item.isFinalLocked && item.isCurrentCandidate) {
+                if ((item.isFinalLocked || isSingleAgent) && item.isCurrentCandidate) {
                     statusBadge = '<span class="bg-emerald-100 text-emerald-800 font-bold px-2.5 py-1 rounded-full text-[10px] inline-flex items-center gap-1 border border-emerald-300 shadow-2xs"><i class="fa-solid fa-circle-check text-emerald-600"></i> ĐÃ CHỐT TRÚNG THẦU</span>';
                 } else if (item.isRejected) {
                     statusBadge = '<span class="bg-rose-50 text-rose-700 font-semibold px-2.5 py-1 rounded-full text-[10px] inline-flex items-center gap-1 border border-rose-200"><i class="fa-solid fa-circle-xmark text-rose-500"></i> ĐÃ TỪ CHỐI (REJECT)</span>';
@@ -1037,9 +1016,9 @@
                     statusBadge = `<span class="bg-slate-100 text-slate-600 font-medium px-2.5 py-1 rounded-full text-[10px] inline-flex items-center gap-1 border">DỰ PHÒNG #${item.rank}</span>`;
                 }
 
-                // Action Column: BỎ nút confirm, chỉ để Reject; khi hết giờ cấu hình (isLocked) ẩn toàn bộ action!
+                // Action Column: BỎ nút confirm, chỉ để Reject; khi hết giờ hoặc chỉ có 1 đại lý thì auto confirm chốt thầu chính thức
                 let actionContent = '';
-                if (isLocked) {
+                if (isLocked || isSingleAgent) {
                     if (item.isCurrentCandidate) {
                         actionContent = `
                             <span class="inline-flex items-center gap-1.5 text-emerald-700 font-bold text-xs bg-emerald-50 border border-emerald-200 px-3 py-1.5 rounded-xl shadow-2xs">
@@ -1167,39 +1146,6 @@
             }
         }
 
-        // Quick seed demo bids handler
-        function handleSeedDemoBids() {
-            if (!currentAuction) return;
-            const res = CargoStore.seedDemoBidsForAuction(currentAuction.id);
-            if (res.success) {
-                if (window.Swal) {
-                    Swal.fire({
-                        icon: 'success',
-                        title: 'Đã tạo dữ liệu mẫu!',
-                        text: res.message
-                    });
-                } else {
-                    alert(res.message);
-                }
-                loadAdminDetail();
-            }
-        }
-
-        // Cấu hình thời gian xem xét / Review window (phút)
-        window.handleSetReviewMinutes = function (auctionId, minutes) {
-            const admin = CargoStore.getCurrentAdmin ? CargoStore.getCurrentAdmin() : {};
-            if (!CargoStore.hasSettlementRole || !CargoStore.hasSettlementRole(admin)) {
-                if (window.Swal) Swal.fire('Từ chối quyền', 'Cấu hình thời gian xem xét yêu cầu vai trò AUCTION SETTLEMENT hoặc ITD Admin!', 'warning');
-                else alert('Cấu hình thời gian xem xét yêu cầu vai trò AUCTION SETTLEMENT hoặc ITD Admin!');
-                return;
-            }
-            const res = CargoStore.setAuctionReviewWindow(auctionId, minutes);
-            if (res.success) {
-                if (window.Swal) Swal.fire({ icon: 'success', title: 'Cấu hình thời gian', text: res.message, timer: 1500, showConfirmButton: false });
-                loadAdminDetail();
-            }
-        };
-
         // Khóa chốt thầu ngay (kết thúc sớm thời gian xem xét)
         window.handleLockAuctionReview = async function (auctionId) {
             const admin = CargoStore.getCurrentAdmin ? CargoStore.getCurrentAdmin() : {};
@@ -1227,74 +1173,12 @@
             }
         };
 
-        // Switch role demo tester for testing multi-role and settlement
-        window.switchAdminRoleDemo = function (roleKey) {
-            const data = CargoStore.getData();
-            if (roleKey === 'SETTLER') {
-                data.currentAdmin = {
-                    id: 95,
-                    username: 'settler01',
-                    password: 'admin2026',
-                    role: 'AUCTION_SETTLEMENT',
-                    roles: ['AUCTION_SETTLEMENT'],
-                    fullName: 'Vũ Thẩm Định (Settlement Admin)',
-                    email: 'settler@airline.vn',
-                    department: 'Cargo Bidding Settlement Board'
-                };
-            } else if (roleKey === 'COD_ADMIN') {
-                data.currentAdmin = {
-                    id: 98,
-                    username: 'cod_admin',
-                    password: 'admin2026',
-                    role: 'COD_ADMIN',
-                    roles: ['COD_ADMIN', 'AUCTION_SETTLEMENT'],
-                    fullName: 'Lê Khai Thác (COD Admin)',
-                    email: 'cod@airline.vn',
-                    department: 'Cargo Operations Directorate (COD)'
-                };
-            } else if (roleKey === 'STAFF') {
-                data.currentAdmin = {
-                    id: 97,
-                    username: 'staff01',
-                    password: 'staff2026',
-                    role: 'STAFF',
-                    roles: ['STAFF'],
-                    fullName: 'Nguyễn Điều Hành (Staff)',
-                    email: 'staff01@airline.vn',
-                    department: 'Air Cargo Flight Operations'
-                };
-            } else {
-                data.currentAdmin = {
-                    id: 99,
-                    username: 'admin',
-                    password: 'admin2026',
-                    role: 'ITD_ADMIN',
-                    roles: ['ITD_ADMIN', 'COD_ADMIN', 'AUCTION_SETTLEMENT'],
-                    fullName: 'Trần Quản Trị (ITD Admin)',
-                    email: 'admin@airline.vn',
-                    department: 'Information Technology Directorate (ITD)'
-                };
-            }
-            CargoStore.saveData(data);
-            if (window.Swal) {
-                const rolesStr = data.currentAdmin.roles.join(', ');
-                Swal.fire({
-                    icon: 'info',
-                    title: `Đã chuyển sang: ${data.currentAdmin.fullName}`,
-                    text: `Các vai trò: [${rolesStr}] - ${CargoStore.hasSettlementRole(data.currentAdmin) ? 'CÓ QUYỀN Chốt thầu & Reject.' : 'KHÔNG có quyền Chốt thầu & Reject.'}`,
-                    timer: 1800,
-                    showConfirmButton: false
-                });
-            }
-            loadAdminDetail();
-        };
-
         // Action: Reject đại lý hiện tại và tự động chuyển sang đại lý kế tiếp
         // Phân quyền chuyên trách riêng: AUCTION SETTLEMENT (hoặc ITD ADMIN)
         // Ghi nhật ký Audit Trail đầy đủ, bảo mật
         async function handleRejectToNextAgent(auctionId, targetAgentCode, targetAgentName, priceKg) {
             const admin = CargoStore.getCurrentAdmin ? CargoStore.getCurrentAdmin() : {};
-            
+
             if (!CargoStore.hasSettlementRole || !CargoStore.hasSettlementRole(admin)) {
                 if (window.Swal) {
                     const currentRolesStr = (Array.isArray(admin.roles) ? admin.roles.join(', ') : admin.role) || 'STAFF';
@@ -1309,9 +1193,9 @@
                                     <div class="font-bold flex items-center gap-1.5 text-purple-900">
                                         <i class="fa-solid fa-gavel text-purple-600"></i> Thẩm quyền chuyên trách độc lập:
                                     </div>
-                                    <p>Toàn bộ thao tác <strong>Confirm, Reject & điều chuyển thầu dự phòng</strong> đã được chuyển giao độc quyền cho vai trò <strong>AUCTION SETTLEMENT (CHỐT THẦU & REJECT)</strong> (hoặc ITD ADMIN).</p>
+                                    <p>Toàn bộ thao tác <strong>Confirm, Reject & điều chuyển thầu dự phòng</strong> đã được phân quyền độc quyền cho vai trò <strong>AUCTION SETTLEMENT (CHỐT THẦU & REJECT)</strong> (hoặc ITD ADMIN).</p>
                                 </div>
-                                <p class="text-[11px] text-slate-500">Vui lòng sử dụng tài khoản có Role AUCTION SETTLEMENT (hoặc bấm chọn nút "Settler" / "COD + Settlement" ở thanh trên) để thực hiện.</p>
+                                <p class="text-[11px] text-slate-500">Vui lòng sử dụng tài khoản có vai trò AUCTION SETTLEMENT (hoặc ITD Admin) để thực hiện.</p>
                             </div>
                         `
                     });

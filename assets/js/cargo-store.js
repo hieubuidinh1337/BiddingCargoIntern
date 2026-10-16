@@ -762,6 +762,7 @@ const CargoStore = (function () {
             minIncrement: 500,
             cutoffHours: 3,
             paymentWindowHours: 24,
+            reviewWindowMinutes: 15,
             hotline: '1900.6686',
             supportEmail: 'customercare@vietravelairlines.vn',
             hideAgentCredentials: true,
@@ -4473,14 +4474,27 @@ const CargoStore = (function () {
 
             auction.status = 'CLOSED';
             auction.closedAt = new Date().toISOString();
-            const reviewMins = Number(auction.reviewWindowMinutes) || 15;
-            auction.reviewWindowMinutes = reviewMins;
-            auction.reviewDeadline = new Date(Date.now() + (reviewMins * 60 * 1000)).toISOString();
-            auction.isFinalLocked = false;
+
+            const sysSettings = data.settings || defaultData.settings || {};
+            const configReviewMins = Number(sysSettings.reviewWindowMinutes) || 15;
+            auction.reviewWindowMinutes = configReviewMins;
 
             // Find highest bid for this auction
             let bids = (data.bids || []).filter(b => b.auctionId == id).sort((a, b) => b.priceKg - a.priceKg);
             let highestBid = bids.length > 0 ? bids[0] : null;
+
+            // Check how many unique agents bid: nếu phiếu có 1 đại lý đặt thì auto confirm vì chỉ có 1 đại lý
+            const uniqueAgentCodes = Array.from(new Set(bids.map(b => (b.agentCode || '').toUpperCase()).filter(Boolean)));
+            const isSingleAgent = uniqueAgentCodes.length <= 1;
+
+            if (isSingleAgent) {
+                auction.isFinalLocked = true;
+                auction.finalLockedAt = auction.closedAt;
+                auction.reviewDeadline = auction.closedAt;
+            } else {
+                auction.isFinalLocked = false;
+                auction.reviewDeadline = new Date(Date.now() + (configReviewMins * 60 * 1000)).toISOString();
+            }
 
             // If empty, auto-seed a winning bid for AG-0892 so won order is immediately available for testing
             if (!highestBid) {
@@ -4594,12 +4608,14 @@ const CargoStore = (function () {
                 actionTitle: 'Chốt thầu / Đóng phiên đấu giá',
                 target: auction.flightNumber,
                 details: `Đóng phiên chuyến bay ${auction.flightNumber} (${auction.route}). ` +
-                    (highestBid ? `Tự động Confirm đại lý trúng thầu cao nhất: ${highestBid.agentName} (${highestBid.agentCode}), Giá thắng: ${this.formatCurrency(highestBid.priceKg)}/Kg. Bắt đầu thời gian xem xét cấu hình (${reviewMins} phút).` : 'Không có đại lý trúng thầu.')
+                    (highestBid ? (isSingleAgent ? `Chỉ có 1 đại lý tham gia (${highestBid.agentName}), tự động xác nhận và chốt thầu chính thức.` : `Tự động xác nhận đại lý cao nhất: ${highestBid.agentName} (${highestBid.agentCode}), Giá: ${this.formatCurrency(highestBid.priceKg)}/Kg. Bắt đầu thời gian xem xét (${configReviewMins} phút).`) : 'Không có đại lý trúng thầu.')
             });
             return {
                 success: true,
                 auction: auction,
-                message: `Đã chốt phiên thành công! Hệ thống tự động Confirm đại lý cao nhất: ${highestBid ? highestBid.agentName : ''} (${this.formatCurrency(highestBid ? highestBid.priceKg : 0)}/Kg). Bắt đầu đếm ngược ${reviewMins} phút xem xét.`
+                message: isSingleAgent
+                    ? `Phiên chỉ có 1 đại lý tham gia (${highestBid ? highestBid.agentName : ''}). Hệ thống đã tự động xác nhận và chốt thầu chính thức!`
+                    : `Đã chốt phiên thành công! Hệ thống tự động xác nhận đại lý cao nhất: ${highestBid ? highestBid.agentName : ''} (${this.formatCurrency(highestBid ? highestBid.priceKg : 0)}/Kg). Bắt đầu thời gian xem xét ${configReviewMins} phút theo cấu hình.`
             };
         },
 
@@ -4628,8 +4644,10 @@ const CargoStore = (function () {
                 return (Number(a.timestamp || 0)) - (Number(b.timestamp || 0));
             });
 
-            // Cấu hình thời gian xem xét / review window (mặc định 15 phút)
-            const reviewMinutes = Number(auction.reviewWindowMinutes) || 15;
+            // Cấu hình thời gian xem xét / review window từ System Settings
+            const sysSettings = data.settings || defaultData.settings || {};
+            const configMinutes = Number(sysSettings.reviewWindowMinutes) || 15;
+            const reviewMinutes = Number(auction.reviewWindowMinutes || configMinutes);
             auction.reviewWindowMinutes = reviewMinutes;
 
             if (auction.status === 'CLOSED') {
@@ -4641,16 +4659,30 @@ const CargoStore = (function () {
                 }
             }
 
-            // Kiểm tra xem đã hết thời gian cấu hình hay chưa
-            const isExpiredByTime = (auction.status === 'CLOSED' && auction.reviewDeadline)
-                ? (Date.now() >= new Date(auction.reviewDeadline).getTime())
-                : false;
+            // Kiểm tra số lượng đại lý tham gia đặt giá: nếu chỉ có 1 đại lý thì auto confirm vì chỉ có 1 đại lý
+            const uniqueAgentCodes = Array.from(new Set(sortedBids.map(b => (b.agentCode || '').toUpperCase()).filter(Boolean)));
+            const isSingleAgent = uniqueAgentCodes.length <= 1;
 
-            const isFinalLocked = Boolean(auction.isFinalLocked) || isExpiredByTime;
-            if (isExpiredByTime && !auction.isFinalLocked) {
-                auction.isFinalLocked = true;
-                auction.finalLockedAt = new Date().toISOString();
-                saveData(data);
+            let isFinalLocked = false;
+            if (isSingleAgent) {
+                isFinalLocked = true;
+                if (!auction.isFinalLocked) {
+                    auction.isFinalLocked = true;
+                    auction.finalLockedAt = auction.closedAt || new Date().toISOString();
+                    saveData(data);
+                }
+            } else {
+                // Có từ 2 đại lý trở lên: kiểm tra xem đã hết thời gian xem xét hay chưa
+                const isExpiredByTime = (auction.status === 'CLOSED' && auction.reviewDeadline)
+                    ? (Date.now() >= new Date(auction.reviewDeadline).getTime())
+                    : false;
+
+                isFinalLocked = Boolean(auction.isFinalLocked) || isExpiredByTime;
+                if (isExpiredByTime && !auction.isFinalLocked) {
+                    auction.isFinalLocked = true;
+                    auction.finalLockedAt = new Date().toISOString();
+                    saveData(data);
+                }
             }
 
             // Danh sách các đại lý đã bị từ chối / reject
@@ -6065,6 +6097,7 @@ const CargoStore = (function () {
             if (settingsData.minIncrement) data.settings.minIncrement = Number(settingsData.minIncrement);
             if (settingsData.cutoffHours) data.settings.cutoffHours = Number(settingsData.cutoffHours);
             if (settingsData.paymentWindowHours) data.settings.paymentWindowHours = Number(settingsData.paymentWindowHours);
+            if (settingsData.reviewWindowMinutes !== undefined) data.settings.reviewWindowMinutes = Math.max(1, Number(settingsData.reviewWindowMinutes) || 15);
             if (settingsData.hotline) data.settings.hotline = settingsData.hotline;
             if (settingsData.supportEmail) data.settings.supportEmail = settingsData.supportEmail;
             if (settingsData.platformFee) data.settings.platformFee = Number(settingsData.platformFee);
@@ -7599,6 +7632,156 @@ if (typeof window !== 'undefined') {
 (function initCargoAlertSystem() {
     if (typeof window === 'undefined') return;
 
+    // Format plain message into structured modern HTML
+    function formatCargoDialogHtml(rawText) {
+        if (!rawText || typeof rawText !== 'string') return '';
+        if (rawText.includes('<div') || rawText.includes('<span') || rawText.includes('<p') || rawText.includes('<table')) {
+            return rawText;
+        }
+
+        const lines = rawText.split('\n').map(l => l.trim()).filter(Boolean);
+        if (lines.length <= 1) {
+            return `<div style="font-size: 13.5px; color: #334155; line-height: 1.55; text-align: left;">${rawText}</div>`;
+        }
+
+        let headerPill = null;
+        const bullets = [];
+        let highlightItem = null;
+        let noticeText = null;
+        let questionText = null;
+        const generalLines = [];
+
+        for (let i = 0; i < lines.length; i++) {
+            let line = lines[i];
+
+            // Notice / warning lines
+            if (line.toUpperCase().includes('LƯU Ý') || line.toUpperCase().includes('QUY CHẾ') || line.toUpperCase().includes('CẢNH BÁO') || line.toUpperCase().includes('CHÚ Ý')) {
+                noticeText = (noticeText ? noticeText + ' ' : '') + line;
+                continue;
+            }
+
+            // Question lines
+            if (line.endsWith('?') || line.toLowerCase().startsWith('bạn có chắc') || line.toLowerCase().startsWith('quý đại lý có chắc')) {
+                questionText = line;
+                continue;
+            }
+
+            // Header line
+            if (i === 0 && (line.endsWith(':') || line === line.toUpperCase()) && !line.startsWith('•') && !line.startsWith('-')) {
+                headerPill = line.replace(/:$/, '');
+                continue;
+            }
+
+            // Bullet lines
+            if (line.startsWith('•') || line.startsWith('-') || line.startsWith('*')) {
+                const clean = line.replace(/^[•\-\*]\s*/, '');
+                const colonIdx = clean.indexOf(':');
+                if (colonIdx > -1) {
+                    const label = clean.substring(0, colonIdx).trim();
+                    const val = clean.substring(colonIdx + 1).trim();
+                    if (label.toLowerCase().includes('tổng giá') || label.toLowerCase().includes('tổng thành tiền')) {
+                        highlightItem = { label, val };
+                    } else {
+                        bullets.push({ label, val });
+                    }
+                } else {
+                    bullets.push({ label: '', val: clean });
+                }
+                continue;
+            }
+
+            // Key-value lines without bullet (e.g. "Chuyến bay: VU232")
+            const colonIdx = line.indexOf(':');
+            if (colonIdx > 0 && colonIdx < 35 && !line.includes('http')) {
+                const label = line.substring(0, colonIdx).trim();
+                const val = line.substring(colonIdx + 1).trim();
+                if (label.toLowerCase().includes('tổng giá') || label.toLowerCase().includes('tổng thành tiền')) {
+                    highlightItem = { label, val };
+                } else {
+                    bullets.push({ label, val });
+                }
+                continue;
+            }
+
+            generalLines.push(line);
+        }
+
+        let html = '<div style="text-align: left; font-family: inherit;">';
+
+        if (headerPill) {
+            html += `
+                <div style="background: linear-gradient(135deg, #1e3a8a 0%, #2563eb 100%); color: #ffffff; padding: 10px 14px; border-radius: 10px; margin-bottom: 12px; display: flex; justify-content: space-between; align-items: center; box-shadow: 0 2px 6px rgba(37,99,235,0.2);">
+                    <div style="font-size: 13px; font-weight: 700; letter-spacing: 0.3px;">✈️ ${headerPill}</div>
+                </div>
+            `;
+        }
+
+        if (generalLines.length > 0) {
+            html += `
+                <div style="margin-bottom: 10px; font-size: 13px; color: #475569; line-height: 1.5;">
+                    ${generalLines.join('<br>')}
+                </div>
+            `;
+        }
+
+        if (bullets.length > 0) {
+            html += `
+                <div style="background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 10px; padding: 6px 12px; margin-bottom: 10px;">
+            `;
+            bullets.forEach((b, idx) => {
+                const isLast = idx === bullets.length - 1;
+                const borderStyle = isLast ? '' : 'border-bottom: 1px solid #f1f5f9;';
+                if (b.label) {
+                    let valDisplay = b.val;
+                    if (b.val.includes('đ') || b.val.includes('VND') || b.val.includes('VNĐ')) {
+                        valDisplay = `<span style="color: #047857; font-weight: 700;">${b.val}</span>`;
+                    }
+                    html += `
+                        <div style="display: flex; justify-content: space-between; align-items: center; padding: 6px 0; ${borderStyle} font-size: 12.5px;">
+                            <span style="color: #64748b; font-weight: 500;">${b.label}:</span>
+                            <span style="color: #0f172a; font-weight: 600; text-align: right; margin-left: 8px;">${valDisplay}</span>
+                        </div>
+                    `;
+                } else {
+                    html += `
+                        <div style="padding: 4px 0; ${borderStyle} font-size: 12.5px; color: #334155;">
+                            • ${b.val}
+                        </div>
+                    `;
+                }
+            });
+            html += `</div>`;
+        }
+
+        if (highlightItem) {
+            html += `
+                <div style="background: linear-gradient(135deg, #059669 0%, #047857 100%); color: #ffffff; border-radius: 10px; padding: 10px 14px; margin-bottom: 10px; display: flex; justify-content: space-between; align-items: center; box-shadow: 0 3px 8px rgba(5,150,105,0.25);">
+                    <div style="font-size: 11px; text-transform: uppercase; font-weight: 600; letter-spacing: 0.4px; opacity: 0.9;">${highlightItem.label}</div>
+                    <div style="font-size: 17px; font-weight: 800; letter-spacing: 0.3px;">${highlightItem.val}</div>
+                </div>
+            `;
+        }
+
+        if (noticeText) {
+            html += `
+                <div style="background: #fffbeb; border: 1px solid #fef3c7; border-left: 4px solid #f59e0b; border-radius: 8px; padding: 8px 12px; font-size: 11.5px; color: #92400e; line-height: 1.45; margin-bottom: 10px;">
+                    ${noticeText}
+                </div>
+            `;
+        }
+
+        if (questionText) {
+            html += `
+                <div style="text-align: center; font-size: 13px; font-weight: 600; color: #1e293b; margin-top: 6px;">
+                    ${questionText}
+                </div>
+            `;
+        }
+
+        html += '</div>';
+        return html;
+    }
+
     // Inject styles for SweetAlert2
     function injectStyles() {
         const styleId = 'cargo-swal2-styles';
@@ -7609,71 +7792,93 @@ if (typeof window !== 'undefined') {
             .swal2-container {
                 z-index: 999999 !important;
                 font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif !important;
+                backdrop-filter: blur(6px) !important;
+                -webkit-backdrop-filter: blur(6px) !important;
+                background: rgba(15, 23, 42, 0.6) !important;
             }
             .swal2-popup.cargo-swal-popup {
                 border-radius: 1.25rem !important;
-                padding: 1.75rem 1.5rem !important;
+                padding: 1.5rem 1.5rem 1.25rem 1.5rem !important;
                 background: #ffffff !important;
-                box-shadow: 0 20px 25px -5px rgba(15, 23, 42, 0.15), 0 8px 10px -6px rgba(15, 23, 42, 0.1) !important;
-                border: 1px solid #e2e8f0 !important;
+                box-shadow: 0 25px 50px -12px rgba(15, 23, 42, 0.25), 0 0 0 1px rgba(226, 232, 240, 0.9) !important;
+                border: none !important;
                 max-width: 32rem !important;
+                width: 95% !important;
             }
             .swal2-popup.cargo-swal-popup .swal2-title {
-                font-size: 1.2rem !important;
+                font-size: 1.25rem !important;
                 font-weight: 700 !important;
                 color: #0f172a !important;
-                padding-top: 0.5rem !important;
-                margin-bottom: 0.5rem !important;
+                padding-top: 0.25rem !important;
+                margin-bottom: 0.75rem !important;
+                letter-spacing: -0.01em !important;
+            }
+            .swal2-popup.cargo-swal-popup .swal2-icon {
+                margin: 0.25rem auto 0.75rem auto !important;
+                border-width: 3px !important;
+                width: 4rem !important;
+                height: 4rem !important;
+            }
+            .swal2-popup.cargo-swal-popup .swal2-icon .swal2-icon-content {
+                font-size: 2.25rem !important;
             }
             .swal2-popup.cargo-swal-popup .swal2-html-container {
-                margin: 0.75rem 0 1.25rem 0 !important;
+                margin: 0.5rem 0 1rem 0 !important;
                 font-size: 0.875rem !important;
-                line-height: 1.6 !important;
-                color: #475569 !important;
+                line-height: 1.5 !important;
+                color: #334155 !important;
                 text-align: left !important;
                 word-break: break-word !important;
-                white-space: pre-line !important;
-                max-height: 380px !important;
+                max-height: 480px !important;
                 overflow-y: auto !important;
-                padding: 0 0.25rem !important;
+                padding: 0 !important;
             }
             .swal2-popup.cargo-swal-popup .swal2-actions {
                 gap: 0.75rem !important;
-                margin-top: 0.5rem !important;
+                margin-top: 0.75rem !important;
                 width: 100% !important;
                 justify-content: flex-end !important;
+                padding: 0 !important;
             }
             .cargo-swal-confirm-btn {
-                background-color: #2563eb !important;
+                background: linear-gradient(135deg, #2563eb 0%, #1d4ed8 100%) !important;
                 color: #ffffff !important;
                 border-radius: 0.75rem !important;
                 font-weight: 600 !important;
                 font-size: 0.875rem !important;
                 padding: 0.65rem 1.5rem !important;
-                box-shadow: 0 4px 6px -1px rgba(37, 99, 235, 0.25) !important;
+                box-shadow: 0 4px 10px rgba(37, 99, 235, 0.3) !important;
                 border: none !important;
                 cursor: pointer !important;
-                transition: all 0.15s ease-in-out !important;
+                display: inline-flex !important;
+                align-items: center !important;
+                gap: 0.5rem !important;
+                transition: all 0.2s ease !important;
             }
             .cargo-swal-confirm-btn:hover {
-                background-color: #1d4ed8 !important;
-                box-shadow: 0 6px 10px -1px rgba(37, 99, 235, 0.35) !important;
+                background: linear-gradient(135deg, #1d4ed8 0%, #1e40af 100%) !important;
+                transform: translateY(-1px) !important;
+                box-shadow: 0 6px 15px rgba(37, 99, 235, 0.4) !important;
             }
             .cargo-swal-danger-btn {
-                background-color: #ef4444 !important;
+                background: linear-gradient(135deg, #ef4444 0%, #dc2626 100%) !important;
                 color: #ffffff !important;
                 border-radius: 0.75rem !important;
                 font-weight: 600 !important;
                 font-size: 0.875rem !important;
                 padding: 0.65rem 1.5rem !important;
-                box-shadow: 0 4px 6px -1px rgba(239, 68, 68, 0.25) !important;
+                box-shadow: 0 4px 10px rgba(239, 68, 68, 0.3) !important;
                 border: none !important;
                 cursor: pointer !important;
-                transition: all 0.15s ease-in-out !important;
+                display: inline-flex !important;
+                align-items: center !important;
+                gap: 0.5rem !important;
+                transition: all 0.2s ease !important;
             }
             .cargo-swal-danger-btn:hover {
-                background-color: #dc2626 !important;
-                box-shadow: 0 6px 10px -1px rgba(239, 68, 68, 0.35) !important;
+                background: linear-gradient(135deg, #dc2626 0%, #b91c1c 100%) !important;
+                transform: translateY(-1px) !important;
+                box-shadow: 0 6px 15px rgba(239, 68, 68, 0.4) !important;
             }
             .cargo-swal-cancel-btn {
                 background-color: #f1f5f9 !important;
@@ -7684,7 +7889,7 @@ if (typeof window !== 'undefined') {
                 padding: 0.65rem 1.25rem !important;
                 border: 1px solid #cbd5e1 !important;
                 cursor: pointer !important;
-                transition: all 0.15s ease-in-out !important;
+                transition: all 0.15s ease !important;
             }
             .cargo-swal-cancel-btn:hover {
                 background-color: #e2e8f0 !important;
@@ -7733,35 +7938,36 @@ if (typeof window !== 'undefined') {
             return Promise.resolve();
         }
 
-        let text = '';
+        let content = '';
         let title = 'Thông báo';
         let icon = optionalType || 'info';
 
         if (typeof messageOrOptions === 'string') {
-            text = messageOrOptions;
+            content = messageOrOptions;
             if (!optionalType) {
-                if (text.includes('✅') || text.toLowerCase().includes('thành công')) {
+                if (content.includes('✅') || content.toLowerCase().includes('thành công')) {
                     icon = 'success';
                     title = 'Thành công';
-                } else if (text.includes('❌') || text.toLowerCase().includes('thất bại') || text.toLowerCase().includes('lỗi') || text.toLowerCase().includes('không thể') || text.toLowerCase().includes('không đúng') || text.toLowerCase().includes('sai')) {
+                } else if (content.includes('❌') || content.toLowerCase().includes('thất bại') || content.toLowerCase().includes('lỗi') || content.toLowerCase().includes('không thể') || content.toLowerCase().includes('không đúng') || content.toLowerCase().includes('sai')) {
                     icon = 'error';
                     title = 'Không thể thực hiện';
-                } else if (text.includes('⚠️') || text.includes('🔒') || text.toLowerCase().includes('tối thiểu') || text.toLowerCase().includes('vui lòng') || text.toLowerCase().includes('chưa') || text.toLowerCase().includes('cảnh báo')) {
+                } else if (content.includes('⚠️') || content.includes('🔒') || content.toLowerCase().includes('tối thiểu') || content.toLowerCase().includes('vui lòng') || content.toLowerCase().includes('chưa') || content.toLowerCase().includes('cảnh báo')) {
                     icon = 'warning';
                     title = 'Lưu ý';
                 }
             }
         } else if (typeof messageOrOptions === 'object' && messageOrOptions !== null) {
-            text = messageOrOptions.text || messageOrOptions.html || '';
+            content = messageOrOptions.html || messageOrOptions.text || '';
             title = messageOrOptions.title || title;
             icon = messageOrOptions.icon || optionalType || icon;
         }
 
-        let cleanText = text.replace(/^[✅❌⚠️🔒ℹ️\s]+/, '');
+        let cleanText = typeof content === 'string' ? content.replace(/^[✅❌⚠️🔒ℹ️\s]+/, '') : '';
+        let formattedHtml = formatCargoDialogHtml(cleanText);
 
         return Swal.fire({
             title: title,
-            text: cleanText,
+            html: formattedHtml,
             icon: icon,
             confirmButtonText: 'Đã hiểu',
             buttonsStyling: false,
@@ -7781,7 +7987,7 @@ if (typeof window !== 'undefined') {
             return window.confirm(typeof messageOrOptions === 'string' ? messageOrOptions : (messageOrOptions.text || 'Xác nhận?'));
         }
 
-        let text = '';
+        let content = '';
         let title = 'Xác nhận thao tác';
         let confirmText = 'Xác nhận';
         let cancelText = 'Hủy bỏ';
@@ -7789,23 +7995,23 @@ if (typeof window !== 'undefined') {
         let isDanger = false;
 
         if (typeof messageOrOptions === 'string') {
-            text = messageOrOptions;
-            if (text.includes('XÁC NHẬN NỘP PHIẾU GIÁ THẦU')) {
+            content = messageOrOptions;
+            if (content.includes('XÁC NHẬN NỘP PHIẾU GIÁ THẦU')) {
                 title = 'Xác nhận nộp phiếu thầu';
                 confirmText = 'Nộp giá thầu ngay';
                 icon = 'info';
-            } else if (text.toLowerCase().includes('xóa') || text.toLowerCase().includes('reset') || text.toLowerCase().includes('từ chối')) {
+            } else if (content.toLowerCase().includes('xóa') || content.toLowerCase().includes('reset') || content.toLowerCase().includes('từ chối')) {
                 title = 'Cảnh báo thao tác';
                 confirmText = 'Đồng ý thực hiện';
                 isDanger = true;
                 icon = 'warning';
-            } else if (text.includes('chốt') || text.includes('Chốt')) {
+            } else if (content.includes('chốt') || content.includes('Chốt')) {
                 title = 'Xác nhận chốt phiên / Duyệt';
                 confirmText = 'Xác nhận ngay';
                 icon = 'question';
             }
         } else if (typeof messageOrOptions === 'object' && messageOrOptions !== null) {
-            text = messageOrOptions.text || messageOrOptions.html || '';
+            content = messageOrOptions.html || messageOrOptions.text || '';
             title = messageOrOptions.title || title;
             confirmText = messageOrOptions.confirmText || confirmText;
             cancelText = messageOrOptions.cancelText || cancelText;
@@ -7813,11 +8019,12 @@ if (typeof window !== 'undefined') {
             isDanger = !!messageOrOptions.danger;
         }
 
-        let cleanText = text.replace(/^[❓⚠️ℹ️\s]+/, '');
+        let cleanText = typeof content === 'string' ? content.replace(/^[❓⚠️ℹ️\s]+/, '') : '';
+        let formattedHtml = formatCargoDialogHtml(cleanText);
 
         const result = await Swal.fire({
             title: title,
-            text: cleanText,
+            html: formattedHtml,
             icon: icon,
             showCancelButton: true,
             confirmButtonText: confirmText,

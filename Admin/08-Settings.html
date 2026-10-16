@@ -11,9 +11,15 @@
     <script src="../assets/js/cargo-store.js"></script>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Exo:ital,wght@0,100;0,200;0,300;0,400;0,500;0,531;0,600;0,700;0,800;0,900;1,100;1,200;1,300;1,400;1,500;1,531;1,600;1,700;1,800;1,900" rel="stylesheet" />
+    <link
+        href="https://fonts.googleapis.com/css2?family=Exo:ital,wght@0,100;0,200;0,300;0,400;0,500;0,531;0,600;0,700;0,800;0,900;1,100;1,200;1,300;1,400;1,500;1,531;1,600;1,700;1,800;1,900"
+        rel="stylesheet" />
     <style>
-        body, input, select, textarea, button {
+        body,
+        input,
+        select,
+        textarea,
+        button {
             font-family: 'Exo', sans-serif;
         }
     </style>
@@ -422,7 +428,7 @@
                     <i class="fa-solid fa-gavel text-blue-600"></i> Tham số Đấu giá & Quy chế thời gian
                 </h2>
 
-                <div class="grid grid-cols-1 sm:grid-cols-2 gap-4 text-xs">
+                <div class="grid grid-cols-1 sm:grid-cols-3 gap-4 text-xs">
                     <div>
                         <label class="block font-semibold text-slate-700 mb-1">Bước giá tối thiểu mặc định
                             (VND/Kg)</label>
@@ -433,11 +439,20 @@
                     </div>
 
                     <div>
-                        <label class="block font-semibold text-slate-700 mb-1">Thời hạn thanh toán sau khi thắng thầu
-                            (Giờ)</label>
+                        <label class="block font-semibold text-slate-700 mb-1">Thời hạn thanh toán (Giờ)</label>
                         <input type="number" id="cfgPaymentWindow" value="24" min="1" max="72" required
                             class="w-full border rounded-xl px-3.5 py-2.5 font-bold text-red-600 focus:ring-2 focus:ring-blue-500 outline-none">
                         <p class="text-[10px] text-gray-400 mt-1">Quá thời hạn chưa thanh toán sẽ tự động hủy đơn trúng
+                        </p>
+                    </div>
+
+                    <div>
+                        <label class="block font-semibold text-slate-700 mb-1">Thời gian xem xét trước chốt thầu
+                            (Phút)</label>
+                        <input type="number" id="cfgReviewWindow" value="15" min="1" max="1440" required
+                            class="w-full border rounded-xl px-3.5 py-2.5 font-bold text-purple-700 focus:ring-2 focus:ring-purple-500 outline-none">
+                        <p class="text-[10px] text-gray-400 mt-1">Thời gian đếm ngược xem xét / Reject chuyển đại lý
+                            (khi có &ge;2 đại lý)
                         </p>
                     </div>
                 </div>
@@ -1406,6 +1421,7 @@
             if (s) {
                 if (s.minIncrement) document.getElementById('cfgMinIncrement').value = s.minIncrement;
                 if (s.paymentWindowHours) document.getElementById('cfgPaymentWindow').value = s.paymentWindowHours;
+                if (s.reviewWindowMinutes) document.getElementById('cfgReviewWindow').value = s.reviewWindowMinutes;
                 if (s.hotline) document.getElementById('cfgHotline').value = s.hotline;
                 if (s.supportEmail) document.getElementById('cfgSupportEmail').value = s.supportEmail;
                 document.getElementById('cfgHideAgentCredentials').checked = s.hideAgentCredentials !== false;
@@ -1459,7 +1475,7 @@
                     `;
                 }
 
-                ['cfgMinIncrement', 'cfgPaymentWindow', 'cfgHotline', 'cfgSupportEmail', 'cfgHideAgentCredentials', 'cfgHideCloseAuctionBtn', 'btnInstantCloseAll', 'bankName', 'bankAccNum', 'bankAccName', 'bankBranch', 'bankMemoPrefix', 'bankBin', 'smtpProvider', 'smtpHost', 'smtpPort', 'smtpUser', 'smtpPass', 'smtpFromName'].forEach(id => {
+                ['cfgMinIncrement', 'cfgPaymentWindow', 'cfgReviewWindow', 'cfgHotline', 'cfgSupportEmail', 'cfgHideAgentCredentials', 'cfgHideCloseAuctionBtn', 'btnInstantCloseAll', 'bankName', 'bankAccNum', 'bankAccName', 'bankBranch', 'bankMemoPrefix', 'bankBin', 'smtpProvider', 'smtpHost', 'smtpPort', 'smtpUser', 'smtpPass', 'smtpFromName'].forEach(id => {
                     const el = document.getElementById(id);
                     if (el) {
                         el.disabled = true;
@@ -1633,6 +1649,7 @@
             const res = CargoStore.updateSystemSettings({
                 minIncrement: document.getElementById('cfgMinIncrement').value,
                 paymentWindowHours: document.getElementById('cfgPaymentWindow').value,
+                reviewWindowMinutes: document.getElementById('cfgReviewWindow').value,
                 hotline: document.getElementById('cfgHotline').value,
                 supportEmail: document.getElementById('cfgSupportEmail').value,
                 hideAgentCredentials: document.getElementById('cfgHideAgentCredentials').checked,

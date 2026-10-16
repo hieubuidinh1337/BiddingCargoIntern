@@ -390,7 +390,6 @@
                         const currentPrice = isSubmitted
                             ? myHighestBid.priceKg
                             : (dashInputCache[a.id] !== undefined ? dashInputCache[a.id] : startPrice);
-                        const isChecked = !isSubmitted && (dashCheckCache[a.id] !== undefined ? dashCheckCache[a.id] : true);
                         const rowTotal = capKg * currentPrice;
 
                         return `
@@ -398,14 +397,9 @@
                                 <td class="py-3.5 px-4 border-r border-slate-200">
                                     <div class="flex items-start gap-2.5">
                                         ${isSubmitted ? `
-                                            <span class="mt-0.5 text-emerald-600 text-sm" title="Đã nộp phiếu giá"><i class="fa-solid fa-circle-check"></i></span>
+                                            <span class="mt-0.5 text-emerald-600 text-sm shrink-0" title="Đã xác nhận đặt giá"><i class="fa-solid fa-circle-check"></i></span>
                                         ` : `
-                                            <input type="checkbox" 
-                                                   id="dashCheck_${a.id}" 
-                                                   ${isChecked ? 'checked' : ''} 
-                                                   onchange="onDashCheckChange(${a.id})" 
-                                                   class="dash-flight-chk mt-1 w-4 h-4 text-blue-600 rounded cursor-pointer border-slate-300 focus:ring-blue-500" 
-                                                   title="Tích chọn chuyến này để chuẩn bị đặt giá thầu">
+                                            <span class="mt-0.5 text-slate-400 text-xs shrink-0" title="Chưa xác nhận đặt giá"><i class="fa-solid fa-plane-departure"></i></span>
                                         `}
                                         <div>
                                             <div class="flex items-center gap-2">
@@ -510,9 +504,6 @@
                                             <p>• Giá mua là giá cước vận chuyển (Phụ phí nhiên liệu & an ninh: 0 VNĐ, chưa gồm VAT và phí lao vụ).</p>
                                             <p>• Phí vận đơn: 60.000 VNĐ/AWB. Trả kết quả theo công thức: <strong>Tổng giá mua = Tổng sản lượng (kg) × Giá mua (VNĐ/kg)</strong></p>
                                         </div>
-                                        <div class="text-[11px] text-blue-700 font-medium flex items-center gap-1">
-                                            <i class="fa-solid fa-circle-info text-blue-500"></i> Tích chọn các chuyến bay chuẩn bị nộp giá thầu bên dưới.
-                                        </div>
                                     </div>
                                 </div>
 
@@ -522,17 +513,7 @@
                                         <table class="w-full text-xs text-left">
                                             <thead class="bg-slate-100 border-b border-slate-300 font-bold text-slate-700 uppercase text-[11px]">
                                                 <tr>
-                                                    <th class="py-2.5 px-4 border-r border-slate-200">
-                                                        <div class="flex items-center gap-2">
-                                                            <input type="checkbox" 
-                                                                   id="dashCheckAll" 
-                                                                   checked 
-                                                                   onchange="toggleSelectAllDash(this.checked)" 
-                                                                   class="w-4 h-4 text-blue-600 rounded cursor-pointer border-slate-300 focus:ring-blue-500" 
-                                                                   title="Chọn/Bỏ chọn tất cả các chuyến chưa nộp">
-                                                            <span>Chuyến bay</span>
-                                                        </div>
-                                                    </th>
+                                                    <th class="py-2.5 px-4 border-r border-slate-200">CHUYẾN BAY</th>
                                                     <th class="py-2.5 px-4 border-r border-slate-200">SẢN LƯỢNG CAM KẾT</th>
                                                     <th class="py-2.5 px-4 border-r border-slate-200">GIÁ MUA (VNĐ/KG)</th>
                                                     <th class="py-2.5 px-4">THÀNH TIỀN (VNĐ)</th>
@@ -544,9 +525,13 @@
                                             <tfoot class="bg-slate-50/90 border-t-2 border-slate-300 font-bold">
                                                 <tr>
                                                     <td colspan="3" class="py-3 px-4 text-right uppercase text-xs text-slate-700 border-r border-slate-200">
-                                                        <div class="font-extrabold text-slate-800 text-xs tracking-wide">TỔNG GIÁ MUA (VNĐ):</div>
+                                                        <div class="font-extrabold text-slate-900 text-xs tracking-wide flex items-center justify-end gap-1.5">
+                                                            <i class="fa-solid fa-receipt text-blue-600"></i>
+                                                            <span>TỔNG GIÁ ĐÃ ĐẶT (VNĐ):</span>
+                                                        </div>
+                                                        <div class="text-[10px] text-slate-400 font-normal mt-0.5 normal-case">(Chỉ tính các chuyến bay đã bấm Xác nhận đặt giá)</div>
                                                     </td>
-                                                    <td class="py-3 px-4 text-blue-700 text-lg sm:text-xl font-extrabold bg-blue-50/70">
+                                                    <td class="py-3 px-4 text-emerald-700 text-lg sm:text-xl font-extrabold bg-emerald-50/70">
                                                         <span id="dashGrandTotal">0 đ</span>
                                                     </td>
                                                 </tr>
@@ -566,32 +551,6 @@
             }
         }
 
-        // Live calculation across all selected unsubmitted auctions
-        function onDashCheckChange(auctionId) {
-            const chk = document.getElementById('dashCheck_' + auctionId);
-            if (chk) {
-                dashCheckCache[auctionId] = chk.checked;
-            }
-            updateDashAllTotals();
-        }
-
-        function toggleSelectAllDash(checked) {
-            const u = CargoStore.getCurrentUser();
-            const myCode = u ? (u.agentCode || '') : '';
-            const allAuctions = CargoStore.getAuctions();
-            const openAuctions = allAuctions.filter(a => a.status === 'OPEN' && CargoStore.isAgentAllowedForAuction(a, myCode));
-            const myBids = CargoStore.getMyBids ? CargoStore.getMyBids() : [];
-
-            openAuctions.forEach(a => {
-                const isSubmitted = (myBids || []).some(b => String(b.auctionId) === String(a.id));
-                if (isSubmitted) return;
-                dashCheckCache[a.id] = checked;
-                const chk = document.getElementById('dashCheck_' + a.id);
-                if (chk) chk.checked = checked;
-            });
-            updateDashAllTotals();
-        }
-
         function onDashPriceInput(auctionId, capKg) {
             const input = document.getElementById('dashBidInput_' + auctionId);
             if (!input) return;
@@ -604,9 +563,11 @@
             if (rowEl) rowEl.textContent = CargoStore.formatCurrency(rowTotal);
             if (formulaEl) formulaEl.textContent = `=${CargoStore.formatNumber(capKg)} × ${CargoStore.formatNumber(price)}`;
 
+            // Đang điền chưa xác nhận thì không cộng vào tổng giá đã đặt
             updateDashAllTotals();
         }
 
+        // Tính tổng giá đã đặt: CHỈ cộng những chuyến bay đã bấm Xác nhận đặt giá
         function updateDashAllTotals() {
             const u = CargoStore.getCurrentUser();
             const myCode = u ? (u.agentCode || '') : '';
@@ -615,44 +576,26 @@
             const myBids = CargoStore.getMyBids ? CargoStore.getMyBids() : [];
 
             let grandTotal = 0;
-            let preparedCount = 0;
+            let confirmedCount = 0;
 
             openAuctions.forEach(a => {
-                const isSubmitted = (myBids || []).some(b => String(b.auctionId) === String(a.id));
-                if (isSubmitted) return;
+                const auctionMyBids = (myBids || []).filter(b => String(b.auctionId) === String(a.id));
+                const myHighestBid = auctionMyBids.length > 0
+                    ? auctionMyBids.sort((x, y) => (Number(y.priceKg) || 0) - (Number(x.priceKg) || 0))[0]
+                    : null;
 
-                const chk = document.getElementById('dashCheck_' + a.id);
-                const isChecked = chk ? chk.checked : (dashCheckCache[a.id] !== undefined ? dashCheckCache[a.id] : true);
-                if (!isChecked) return;
-
-                const input = document.getElementById('dashBidInput_' + a.id);
-                const startPrice = a.startingPriceKg || 18000;
-                const price = input ? Math.max(0, Number(input.value) || 0) : (dashInputCache[a.id] !== undefined ? dashInputCache[a.id] : startPrice);
-                const capKg = a.capacityKg || 3500;
-
-                grandTotal += (capKg * price);
-                preparedCount++;
+                // Chỉ tính tổng cho các chuyến bay đã bấm Xác nhận nộp giá thầu
+                if (myHighestBid) {
+                    const capKg = a.capacityKg || 3500;
+                    const price = Number(myHighestBid.priceKg) || 0;
+                    grandTotal += (capKg * price);
+                    confirmedCount++;
+                }
             });
 
             const grandTotalEl = document.getElementById('dashGrandTotal');
-            if (grandTotalEl) grandTotalEl.textContent = CargoStore.formatCurrency(grandTotal);
-
-            // const countNoteEl = document.getElementById('dashPreparedCountNote');
-            // if (countNoteEl) {
-            //     countNoteEl.textContent = `(tổng của ${preparedCount} phiên đại lý chuẩn bị đặt)`;
-            // }
-
-            const btnSubmitText = document.getElementById('btnSubmitAllText');
-            const btnSubmit = document.getElementById('btnSubmitAllBids');
-            if (btnSubmitText) {
-                if (preparedCount > 0) {
-                    btnSubmitText.textContent = `Xác nhận đặt giá thầu ngay (${preparedCount} phiên - ${CargoStore.formatCurrency(grandTotal)})`;
-                } else {
-                    btnSubmitText.textContent = `Xác nhận đặt giá thầu ngay (0 phiên)`;
-                }
-            }
-            if (btnSubmit) {
-                btnSubmit.disabled = (preparedCount === 0);
+            if (grandTotalEl) {
+                grandTotalEl.textContent = CargoStore.formatCurrency(grandTotal);
             }
         }
 
@@ -675,11 +618,8 @@
                 const isSubmitted = (myBids || []).some(b => String(b.auctionId) === String(a.id));
                 if (isSubmitted) continue;
 
-                const chk = document.getElementById('dashCheck_' + a.id);
-                const isChecked = chk ? chk.checked : (dashCheckCache[a.id] !== undefined ? dashCheckCache[a.id] : true);
-                if (!isChecked) continue;
-
                 const input = document.getElementById('dashBidInput_' + a.id);
+                if (!input || !input.value) continue;
                 const startPrice = a.startingPriceKg || 18000;
                 const priceKg = input ? Number(input.value) : (dashInputCache[a.id] || startPrice);
                 const capKg = a.capacityKg || 3500;
@@ -713,19 +653,66 @@
             }
 
             const grandTotal = preparedList.reduce((sum, item) => sum + item.total, 0);
-            const breakdown = preparedList.map(item =>
-                `  • ${item.auction.flightNumber} (${item.auction.route}): ${CargoStore.formatNumber(item.capKg)} KG × ${CargoStore.formatCurrency(item.priceKg)}/Kg = ${CargoStore.formatCurrency(item.total)}`
-            ).join('\n');
+            const breakdownHtml = preparedList.map(item => `
+                <div style="display: flex; justify-content: space-between; align-items: center; padding: 7px 8px; border-bottom: 1px solid #f1f5f9; font-size: 12px;">
+                    <div>
+                        <span style="font-weight: 700; color: #1e3a8a;">✈️ ${item.auction.flightNumber}</span>
+                        <span style="color: #64748b; font-size: 11px; margin-left: 4px;">(${item.auction.route})</span>
+                        <div style="color: #64748b; font-size: 11px;">${CargoStore.formatNumber(item.capKg)} KG × ${CargoStore.formatCurrency(item.priceKg)}/Kg</div>
+                    </div>
+                    <div style="font-weight: 700; color: #059669;">
+                        ${CargoStore.formatCurrency(item.total)}
+                    </div>
+                </div>
+            `).join('');
 
-            const confirmMsg = `XÁC NHẬN NỘP PHIẾU GIÁ THẦU:\n\n` +
-                `• Đơn vị dự thầu: ${u.companyName || u.fullName} (${u.agentCode || 'AG-0892'})\n` +
-                `• Số lượng chuyến bay đặt giá: ${preparedList.length} chuyến\n` +
-                `• Chi tiết các chuyến chuẩn bị đặt:\n${breakdown}\n\n` +
-                `• TỔNG GIÁ MUA DỰ KIẾN: ${CargoStore.formatCurrency(grandTotal)}\n\n` +
-                `LƯU Ý QUY CHẾ: Mỗi đại lý chỉ được nộp giá 1 LẦN DUY NHẤT cho mỗi gói thầu. Phiếu giá sau khi gửi sẽ được ghi nhận ngay và KHÔNG THỂ thay đổi hay hủy bỏ.\n\n` +
-                `Bạn có chắc chắn muốn nộp giá cho ${preparedList.length} chuyến bay này?`;
+            const bulkModalHtml = `
+                <div style="text-align: left; font-family: inherit;">
+                    <div style="background: linear-gradient(135deg, #1e3a8a 0%, #2563eb 100%); color: #ffffff; padding: 12px 16px; border-radius: 12px; margin-bottom: 12px; display: flex; justify-content: space-between; align-items: center; box-shadow: 0 4px 12px rgba(37,99,235,0.25);">
+                        <div>
+                            <span style="font-size: 11px; text-transform: uppercase; letter-spacing: 0.5px; opacity: 0.85; font-weight: 600;">Đơn vị dự thầu</span>
+                            <div style="font-size: 14px; font-weight: 700; margin-top: 1px;">${u.companyName || u.fullName}</div>
+                        </div>
+                        <div style="text-align: right;">
+                            <span style="font-size: 11px; opacity: 0.85; font-weight: 500;">Số lượng</span>
+                            <div style="font-size: 15px; font-weight: 800; background: rgba(255,255,255,0.2); padding: 3px 10px; border-radius: 6px; margin-top: 2px;">${preparedList.length} chuyến</div>
+                        </div>
+                    </div>
 
-            const isOk = window.showConfirm ? await window.showConfirm(confirmMsg) : confirm(confirmMsg);
+                    <div style="background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 10px; max-height: 180px; overflow-y: auto; margin-bottom: 12px; padding: 4px 6px;">
+                        ${breakdownHtml}
+                    </div>
+
+                    <div style="background: linear-gradient(135deg, #059669 0%, #047857 100%); color: #ffffff; border-radius: 12px; padding: 12px 16px; margin-bottom: 12px; display: flex; justify-content: space-between; align-items: center; box-shadow: 0 4px 12px rgba(5, 150, 105, 0.25);">
+                        <div>
+                            <div style="font-size: 11px; text-transform: uppercase; letter-spacing: 0.5px; opacity: 0.9; font-weight: 600;">Tổng giá mua dự kiến (${preparedList.length} chuyến)</div>
+                            <div style="font-size: 20px; font-weight: 800; letter-spacing: 0.5px; margin-top: 1px;">${CargoStore.formatCurrency(grandTotal)}</div>
+                        </div>
+                        <div style="font-size: 24px;">💰</div>
+                    </div>
+
+                    <div style="background: #fffbeb; border: 1px solid #fef3c7; border-left: 4px solid #f59e0b; border-radius: 8px; padding: 9px 12px; font-size: 11.5px; color: #92400e; line-height: 1.45; margin-bottom: 12px;">
+                        <strong>⚠️ LƯU Ý QUY CHẾ:</strong> Mỗi đại lý chỉ được nộp giá <strong>1 LẦN DUY NHẤT</strong> cho mỗi gói thầu. Phiếu giá sau khi gửi sẽ được ghi nhận ngay và <strong>KHÔNG THỂ</strong> thay đổi hay hủy bỏ.
+                    </div>
+
+                    <div style="text-align: center; font-size: 13px; font-weight: 600; color: #1e293b;">
+                        Bạn có chắc chắn muốn nộp giá cho ${preparedList.length} chuyến bay này?
+                    </div>
+                </div>
+            `;
+
+            let isOk = false;
+            if (window.showConfirm) {
+                isOk = await window.showConfirm({
+                    title: 'Xác nhận nộp phiếu thầu nhiều chuyến',
+                    html: bulkModalHtml,
+                    confirmText: 'Nộp tất cả phiếu giá',
+                    cancelText: 'Kiểm tra lại',
+                    icon: 'info'
+                });
+            } else {
+                isOk = confirm(`Xác nhận nộp giá thầu cho ${preparedList.length} chuyến bay với tổng giá trị ${CargoStore.formatCurrency(grandTotal)}?`);
+            }
             if (!isOk) return;
 
             let successCount = 0;
@@ -743,7 +730,37 @@
             }
 
             if (failedList.length === 0) {
-                alert(`✅ ĐÃ NỘP GIÁ THẦU THÀNH CÔNG CHO ${successCount} CHUYẾN BAY!\n\nTổng giá mua: ${CargoStore.formatCurrency(grandTotal)}\n\nPhiếu giá đã được hệ thống ghi nhận an toàn.`);
+                if (typeof Swal !== 'undefined') {
+                    await Swal.fire({
+                        icon: 'success',
+                        title: 'Nộp phiếu thầu thành công!',
+                        html: `
+                            <div style="text-align: left; font-family: inherit;">
+                                <div style="background: #ecfdf5; border: 1px solid #a7f3d0; border-radius: 12px; padding: 14px; margin-bottom: 12px;">
+                                    <div style="display: flex; justify-content: space-between; font-size: 13px; margin-bottom: 6px;">
+                                        <span style="color: #065f46; font-weight: 600;">Số chuyến đã nộp:</span>
+                                        <span style="color: #047857; font-weight: 700;">${successCount} chuyến bay</span>
+                                    </div>
+                                    <div style="display: flex; justify-content: space-between; font-size: 14px; border-top: 1px dashed #6ee7b7; padding-top: 8px; margin-top: 2px;">
+                                        <span style="color: #065f46; font-weight: 700;">Tổng giá trị đã nộp:</span>
+                                        <span style="color: #047857; font-weight: 800; font-size: 17px;">${CargoStore.formatCurrency(grandTotal)}</span>
+                                    </div>
+                                </div>
+                                <div style="font-size: 12px; color: #64748b; text-align: center;">
+                                    🔒 Tất cả phiếu giá đã được mã hóa an toàn trong hệ thống.
+                                </div>
+                            </div>
+                        `,
+                        confirmButtonText: 'Đã hoàn tất',
+                        buttonsStyling: false,
+                        customClass: {
+                            popup: 'cargo-swal-popup',
+                            confirmButton: 'cargo-swal-confirm-btn'
+                        }
+                    });
+                } else {
+                    alert(`✅ ĐÃ NỘP GIÁ THẦU THÀNH CÔNG CHO ${successCount} CHUYẾN BAY!\n\nTổng giá mua: ${CargoStore.formatCurrency(grandTotal)}\n\nPhiếu giá đã được hệ thống ghi nhận an toàn.`);
+                }
             } else {
                 alert(`Đã nộp thành công ${successCount}/${preparedList.length} chuyến bay.\nCác chuyến gặp lỗi:\n${failedList.join('\n')}`);
             }
@@ -792,21 +809,126 @@
             }
 
             const totalVnd = capKg * priceKg;
-            const confirmMsg = `XÁC NHẬN NỘP PHIẾU GIÁ THẦU CHUYẾN ${flightNumber || auction.flightNumber}:\n\n` +
-                `• Đơn vị dự thầu: ${u.companyName || u.fullName} (${u.agentCode || 'AG-0892'})\n` +
-                `• Chuyến bay: ${flightNumber || auction.flightNumber} (${route || auction.route})\n` +
-                `• Tải trọng cam kết: ${CargoStore.formatNumber(capKg)} KG (Hardblock)\n` +
-                `• Đơn giá mua đề xuất: ${CargoStore.formatCurrency(priceKg)}/Kg\n` +
-                `• Tổng giá mua dự kiến: ${CargoStore.formatCurrency(totalVnd)}\n\n` +
-                `LƯU Ý QUY CHẾ: Mỗi đại lý chỉ được nộp giá 1 LẦN DUY NHẤT cho mỗi gói thầu. Phiếu giá sau khi gửi sẽ được ghi nhận ngay và KHÔNG THỂ thay đổi hay hủy bỏ.\n\n` +
-                `Bạn có chắc chắn muốn nộp mức giá này?`;
+            const flCode = flightNumber || auction.flightNumber || 'VU232';
+            const rtCode = route || auction.route || '';
+            const companyDisplay = u.companyName || u.fullName || 'Đại lý hàng hóa';
+            const agentCodeDisplay = u.agentCode || 'AG-0892';
 
-            const isOk = window.showConfirm ? await window.showConfirm(confirmMsg) : confirm(confirmMsg);
+            const singleModalHtml = `
+                <div style="text-align: left; font-family: inherit;">
+                    <!-- Flight Tag Header -->
+                    <div style="background: linear-gradient(135deg, #1e3a8a 0%, #2563eb 100%); color: #ffffff; padding: 12px 16px; border-radius: 12px; margin-bottom: 12px; display: flex; justify-content: space-between; align-items: center; box-shadow: 0 4px 12px rgba(37,99,235,0.25);">
+                        <div>
+                            <span style="font-size: 11px; text-transform: uppercase; letter-spacing: 0.5px; opacity: 0.85; font-weight: 600;">Chuyến bay dự thầu</span>
+                            <div style="font-size: 19px; font-weight: 800; letter-spacing: 0.5px; margin-top: 1px;">✈️ ${flCode}</div>
+                        </div>
+                        <div style="text-align: right;">
+                            <span style="font-size: 11px; opacity: 0.85; font-weight: 500;">Chặng bay</span>
+                            <div style="font-size: 13.5px; font-weight: 700; background: rgba(255,255,255,0.2); padding: 3px 10px; border-radius: 6px; margin-top: 2px;">${rtCode}</div>
+                        </div>
+                    </div>
+
+                    <!-- Bidder Info -->
+                    <div style="background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 10px; padding: 10px 14px; margin-bottom: 12px;">
+                        <div style="display: flex; justify-content: space-between; align-items: center;">
+                            <span style="font-size: 12px; color: #64748b; font-weight: 500;">Đơn vị dự thầu:</span>
+                            <span style="font-size: 12.5px; font-weight: 700; color: #0f172a;">${companyDisplay}</span>
+                        </div>
+                        <div style="display: flex; justify-content: space-between; align-items: center; margin-top: 5px;">
+                            <span style="font-size: 12px; color: #64748b; font-weight: 500;">Mã định danh đại lý:</span>
+                            <span style="font-size: 11.5px; font-weight: 700; color: #2563eb; background: #eff6ff; padding: 2px 8px; border-radius: 4px; border: 1px solid #dbeafe;">${agentCodeDisplay}</span>
+                        </div>
+                    </div>
+
+                    <!-- Metrics 2 cols -->
+                    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 12px;">
+                        <div style="background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 10px; padding: 10px 12px;">
+                            <div style="font-size: 11px; color: #64748b; text-transform: uppercase; font-weight: 600;">Tải trọng cam kết</div>
+                            <div style="font-size: 16px; font-weight: 800; color: #0f172a; margin-top: 2px;">
+                                ${CargoStore.formatNumber(capKg)} <span style="font-size: 12px; font-weight: 500; color: #64748b;">KG</span>
+                            </div>
+                            <span style="display: inline-block; font-size: 10px; font-weight: 600; color: #0284c7; background: #e0f2fe; padding: 1px 6px; border-radius: 4px; margin-top: 3px;">Hardblock</span>
+                        </div>
+                        <div style="background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 10px; padding: 10px 12px;">
+                            <div style="font-size: 11px; color: #64748b; text-transform: uppercase; font-weight: 600;">Đơn giá đề xuất</div>
+                            <div style="font-size: 16px; font-weight: 800; color: #2563eb; margin-top: 2px;">
+                                ${CargoStore.formatCurrency(priceKg)}<span style="font-size: 12px; font-weight: 500; color: #64748b;">/Kg</span>
+                            </div>
+                            <span style="display: inline-block; font-size: 10px; font-weight: 600; color: #059669; background: #d1fae5; padding: 1px 6px; border-radius: 4px; margin-top: 3px;">Hợp lệ</span>
+                        </div>
+                    </div>
+
+                    <!-- Total Banner -->
+                    <div style="background: linear-gradient(135deg, #059669 0%, #047857 100%); color: #ffffff; border-radius: 12px; padding: 12px 16px; margin-bottom: 12px; display: flex; justify-content: space-between; align-items: center; box-shadow: 0 4px 12px rgba(5, 150, 105, 0.25);">
+                        <div>
+                            <div style="font-size: 11px; text-transform: uppercase; letter-spacing: 0.5px; opacity: 0.9; font-weight: 600;">Tổng giá mua dự kiến</div>
+                            <div style="font-size: 21px; font-weight: 800; letter-spacing: 0.5px; margin-top: 1px;">${CargoStore.formatCurrency(totalVnd)}</div>
+                        </div>
+                        <div style="font-size: 26px;">💰</div>
+                    </div>
+
+                    <!-- Rule Callout -->
+                    <div style="background: #fffbeb; border: 1px solid #fef3c7; border-left: 4px solid #f59e0b; border-radius: 8px; padding: 10px 12px; font-size: 11.5px; color: #92400e; line-height: 1.5; margin-bottom: 12px;">
+                        <strong>⚠️ LƯU Ý QUY CHẾ:</strong> Mỗi đại lý chỉ được nộp giá <strong>1 LẦN DUY NHẤT</strong> cho mỗi gói thầu. Phiếu giá sau khi gửi sẽ được ghi nhận ngay và <strong>KHÔNG THỂ</strong> thay đổi hay hủy bỏ.
+                    </div>
+
+                    <div style="text-align: center; font-size: 13px; font-weight: 600; color: #1e293b;">
+                        Bạn có chắc chắn muốn nộp mức giá này?
+                    </div>
+                </div>
+            `;
+
+            let isOk = false;
+            if (window.showConfirm) {
+                isOk = await window.showConfirm({
+                    title: 'Xác nhận nộp phiếu thầu',
+                    html: singleModalHtml,
+                    confirmText: 'Nộp giá thầu ngay',
+                    cancelText: 'Kiểm tra lại',
+                    icon: 'info'
+                });
+            } else {
+                isOk = confirm(`Xác nhận nộp giá thầu cho chuyến ${flCode} với đơn giá ${CargoStore.formatCurrency(priceKg)}/Kg (Tổng: ${CargoStore.formatCurrency(totalVnd)})?`);
+            }
             if (!isOk) return;
 
             const res = CargoStore.placeBid(auctionId, priceKg, true);
             if (res.success) {
-                alert(`✅ Đã nộp giá thầu thành công!\n\nChuyến bay: ${flightNumber || auction.flightNumber}\nMức giá: ${CargoStore.formatCurrency(priceKg)}/Kg\nTổng thành tiền: ${CargoStore.formatCurrency(totalVnd)}\n\nPhiếu giá đã được lưu trữ an toàn.`);
+                if (typeof Swal !== 'undefined') {
+                    await Swal.fire({
+                        icon: 'success',
+                        title: 'Nộp phiếu thầu thành công!',
+                        html: `
+                            <div style="text-align: left; font-family: inherit; margin-top: 4px;">
+                                <div style="background: #ecfdf5; border: 1px solid #a7f3d0; border-radius: 12px; padding: 14px; margin-bottom: 12px;">
+                                    <div style="display: flex; justify-content: space-between; font-size: 13px; margin-bottom: 6px;">
+                                        <span style="color: #065f46; font-weight: 600;">Chuyến bay:</span>
+                                        <span style="color: #047857; font-weight: 700;">✈️ ${flCode} (${rtCode})</span>
+                                    </div>
+                                    <div style="display: flex; justify-content: space-between; font-size: 13px; margin-bottom: 6px;">
+                                        <span style="color: #065f46; font-weight: 600;">Đơn giá nộp:</span>
+                                        <span style="color: #047857; font-weight: 700;">${CargoStore.formatCurrency(priceKg)}/Kg</span>
+                                    </div>
+                                    <div style="display: flex; justify-content: space-between; font-size: 14px; border-top: 1px dashed #6ee7b7; padding-top: 8px; margin-top: 2px;">
+                                        <span style="color: #065f46; font-weight: 700;">Tổng thành tiền:</span>
+                                        <span style="color: #047857; font-weight: 800; font-size: 17px;">${CargoStore.formatCurrency(totalVnd)}</span>
+                                    </div>
+                                </div>
+                                <div style="font-size: 12px; color: #64748b; text-align: center; display: flex; align-items: center; justify-content: center; gap: 4px;">
+                                    <span>🔒</span> Phiếu giá đã được hệ thống mã hóa và lưu trữ an toàn.
+                                </div>
+                            </div>
+                        `,
+                        confirmButtonText: 'Đã hoàn tất',
+                        buttonsStyling: false,
+                        customClass: {
+                            popup: 'cargo-swal-popup',
+                            confirmButton: 'cargo-swal-confirm-btn'
+                        }
+                    });
+                } else {
+                    alert(`✅ Đã nộp giá thầu thành công!\n\nChuyến bay: ${flCode}\nMức giá: ${CargoStore.formatCurrency(priceKg)}/Kg\nTổng thành tiền: ${CargoStore.formatCurrency(totalVnd)}\n\nPhiếu giá đã được lưu trữ an toàn.`);
+                }
                 delete dashInputCache[auctionId];
                 delete dashCheckCache[auctionId];
                 renderDashboard();
