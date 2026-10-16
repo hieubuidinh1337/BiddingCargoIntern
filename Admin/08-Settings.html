@@ -7,6 +7,7 @@
     <title>Cấu hình hệ thống - Cargo Bidding Admin</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+    <script src="../assets/js/sweetalert2.all.min.js"></script>
     <script src="../assets/js/cargo-store.js"></script>
 </head>
 
@@ -1118,7 +1119,7 @@
                 return;
             }
 
-            const confirmed = confirm('Bạn có chắc muốn reset toàn bộ dữ liệu hệ thống về trạng thái mặc định? Tất cả dữ liệu hiện tại sẽ bị xóa và khôi phục lại giá trị mặc định.');
+            const confirmed = window.showConfirm ? await window.showConfirm('Bạn có chắc muốn reset toàn bộ dữ liệu hệ thống về trạng thái mặc định? Tất cả dữ liệu hiện tại sẽ bị xóa và khôi phục lại giá trị mặc định.') : confirm('Bạn có chắc muốn reset toàn bộ dữ liệu hệ thống về trạng thái mặc định? Tất cả dữ liệu hiện tại sẽ bị xóa và khôi phục lại giá trị mặc định.');
             if (!confirmed) return;
 
             const btn = document.getElementById('resetAllDataBtn');
@@ -1225,8 +1226,9 @@
         }
 
 
-        function handleInstantCloseAllAuctions() {
-            if (!confirm('Bạn có chắc chắn muốn chốt thầu TẤT CẢ các phiên đang mở ngay bây giờ để kiểm thử nhanh?')) return;
+        async function handleInstantCloseAllAuctions() {
+            const ok = window.showConfirm ? await window.showConfirm('Bạn có chắc chắn muốn chốt thầu TẤT CẢ các phiên đang mở ngay bây giờ để kiểm thử nhanh?') : confirm('Bạn có chắc chắn muốn chốt thầu TẤT CẢ các phiên đang mở ngay bây giờ để kiểm thử nhanh?');
+            if (!ok) return;
             const res = (window.CargoStore && CargoStore.closeAllOpenAuctions)
                 ? CargoStore.closeAllOpenAuctions(true)
                 : { success: false, message: 'Chức năng chưa sẵn sàng' };

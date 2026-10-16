@@ -7,6 +7,7 @@
     <title>Giám sát chi tiết phiên - Cargo Bidding Admin</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+    <script src="../assets/js/sweetalert2.all.min.js"></script>
     <script src="../assets/js/cargo-store.js"></script>
 </head>
 
@@ -698,9 +699,10 @@
         let currentAuction = null;
 
 
-        window.handleDetailCloseAuction = function () {
+        window.handleDetailCloseAuction = async function () {
             if (!currentAuction) return;
-            if (confirm('Bạn có chắc chắn muốn chốt đóng phiên chuyến bay ' + currentAuction.flightNumber + ' (' + currentAuction.route + ') và công bố kết quả ngay?')) {
+            const ok = window.showConfirm ? await window.showConfirm('Bạn có chắc chắn muốn chốt đóng phiên chuyến bay ' + currentAuction.flightNumber + ' (' + currentAuction.route + ') và công bố kết quả ngay?') : confirm('Bạn có chắc chắn muốn chốt đóng phiên chuyến bay ' + currentAuction.flightNumber + ' (' + currentAuction.route + ') và công bố kết quả ngay?');
+            if (ok) {
                 const res = CargoStore.closeAuction(currentAuction.id);
                 if (res.success) {
                     alert('✅ ' + (res.message || 'Đã chốt phiên thành công!'));
@@ -1126,8 +1128,9 @@
             }
         }
 
-        function handleDetailConfirmPayment(wonId) {
-            if (confirm(`Xác nhận đã nhận đủ số tiền thanh toán cho đơn hàng thắng thầu ${wonId}?\n\nHệ thống sẽ tự động cập nhật trạng thái PAID và gửi Email xác nhận kèm chứng từ cho đại lý.`)) {
+        async function handleDetailConfirmPayment(wonId) {
+            const ok = window.showConfirm ? await window.showConfirm(`Xác nhận đã nhận đủ số tiền thanh toán cho đơn hàng thắng thầu ${wonId}?\n\nHệ thống sẽ tự động cập nhật trạng thái PAID và gửi Email xác nhận kèm chứng từ cho đại lý.`) : confirm(`Xác nhận đã nhận đủ số tiền thanh toán cho đơn hàng thắng thầu ${wonId}?\n\nHệ thống sẽ tự động cập nhật trạng thái PAID và gửi Email xác nhận kèm chứng từ cho đại lý.`);
+            if (ok) {
                 const res = CargoStore.confirmPayment(wonId);
                 if (res.success) {
                     alert(res.message);

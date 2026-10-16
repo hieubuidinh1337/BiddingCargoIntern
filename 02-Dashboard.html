@@ -7,6 +7,7 @@
     <title>Sàn Đấu Giá Trực Tuyến - Cargo Bidding | Vietravel Airlines</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+    <script src="assets/js/sweetalert2.all.min.js"></script>
     <script src="assets/js/cargo-store.js?v=20261014_01"></script>
     <style>
         @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap');
@@ -618,7 +619,7 @@
         }
 
         // Submit Bids for All Prepared (Selected) Sessions
-        function submitAllPreparedBids() {
+        async function submitAllPreparedBids() {
             const u = CargoStore.getCurrentUser();
             if (!u) {
                 alert('Vui lòng đăng nhập trước khi nộp giá thầu!');
@@ -685,7 +686,8 @@
                 `LƯU Ý QUY CHẾ: Mỗi đại lý chỉ được nộp giá 1 LẦN DUY NHẤT cho mỗi gói thầu. Phiếu giá sau khi gửi sẽ được ghi nhận ngay và KHÔNG THỂ thay đổi hay hủy bỏ.\n\n` +
                 `Bạn có chắc chắn muốn nộp giá cho ${preparedList.length} chuyến bay này?`;
 
-            if (!confirm(confirmMsg)) return;
+            const isOk = window.showConfirm ? await window.showConfirm(confirmMsg) : confirm(confirmMsg);
+            if (!isOk) return;
 
             let successCount = 0;
             let failedList = [];
@@ -711,7 +713,7 @@
         }
 
         // Submit Bid for a Single Flight
-        function submitBidSingle(auctionId, capKg, flightNumber, route) {
+        async function submitBidSingle(auctionId, capKg, flightNumber, route) {
             const u = CargoStore.getCurrentUser();
             if (!u) {
                 alert('Vui lòng đăng nhập trước khi nộp giá thầu!');
@@ -755,7 +757,8 @@
                 `LƯU Ý QUY CHẾ: Mỗi đại lý chỉ được nộp giá 1 LẦN DUY NHẤT cho mỗi gói thầu. Phiếu giá sau khi gửi sẽ được ghi nhận ngay và KHÔNG THỂ thay đổi hay hủy bỏ.\n\n` +
                 `Bạn có chắc chắn muốn nộp mức giá này?`;
 
-            if (!confirm(confirmMsg)) return;
+            const isOk = window.showConfirm ? await window.showConfirm(confirmMsg) : confirm(confirmMsg);
+            if (!isOk) return;
 
             const res = CargoStore.placeBid(auctionId, priceKg, true);
             if (res.success) {

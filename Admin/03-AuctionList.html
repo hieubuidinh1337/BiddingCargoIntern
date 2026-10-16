@@ -7,6 +7,7 @@
     <title>Quản lý phiên đấu giá - Cargo Bidding Admin</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+    <script src="../assets/js/sweetalert2.all.min.js"></script>
     <script src="../assets/js/cargo-store.js"></script>
     <style>
         .custom-scrollbar {
@@ -1447,8 +1448,9 @@
             }
         }
 
-        function handleCloseAuction(id) {
-            if (confirm('Bạn có chắc chắn muốn chốt phiên đấu giá này và công bố đại lý trúng thầu ngay?')) {
+        async function handleCloseAuction(id) {
+            const ok = window.showConfirm ? await window.showConfirm('Bạn có chắc chắn muốn chốt phiên đấu giá này và công bố đại lý trúng thầu ngay?') : confirm('Bạn có chắc chắn muốn chốt phiên đấu giá này và công bố đại lý trúng thầu ngay?');
+            if (ok) {
                 const res = CargoStore.closeAuction(id);
                 if (res.success) {
                     renderAuctionsTable();
@@ -2283,7 +2285,7 @@
             }
         }
 
-        function handleConfirmRejectPayment() {
+        async function handleConfirmRejectPayment() {
             const wonId = document.getElementById('rejectModalTargetWonId').value;
             const reason = document.getElementById('rejectReasonInput').value.trim();
             if (!wonId) return;
@@ -2294,7 +2296,8 @@
                 return;
             }
 
-            if (confirm(`Xác nhận TỪ CHỐI biên lai thanh toán cho đơn hàng ${wonId}?\n\nHệ thống sẽ tự động gửi Email thông báo kèm lý do "${reason}" cho đại lý để họ nộp lại biên lai.`)) {
+            const ok = window.showConfirm ? await window.showConfirm(`Xác nhận TỪ CHỐI biên lai thanh toán cho đơn hàng ${wonId}?\n\nHệ thống sẽ tự động gửi Email thông báo kèm lý do "${reason}" cho đại lý để họ nộp lại biên lai.`) : confirm(`Xác nhận TỪ CHỐI biên lai thanh toán cho đơn hàng ${wonId}?\n\nHệ thống sẽ tự động gửi Email thông báo kèm lý do "${reason}" cho đại lý để họ nộp lại biên lai.`);
+            if (ok) {
                 const res = CargoStore.rejectPayment(wonId, reason);
                 if (res && res.success) {
                     alert(res.message);
@@ -2313,8 +2316,9 @@
             handleAdminConfirmPayment(wonId);
         }
 
-        function handleAdminConfirmPayment(wonId) {
-            if (confirm(`Xác nhận đã nhận đủ số tiền thanh toán cho đơn hàng thắng thầu ${wonId}?\n\nHệ thống sẽ tự động cập nhật trạng thái PAID và gửi Email xác nhận kèm chứng từ cho đại lý.`)) {
+        async function handleAdminConfirmPayment(wonId) {
+            const ok = window.showConfirm ? await window.showConfirm(`Xác nhận đã nhận đủ số tiền thanh toán cho đơn hàng thắng thầu ${wonId}?\n\nHệ thống sẽ tự động cập nhật trạng thái PAID và gửi Email xác nhận kèm chứng từ cho đại lý.`) : confirm(`Xác nhận đã nhận đủ số tiền thanh toán cho đơn hàng thắng thầu ${wonId}?\n\nHệ thống sẽ tự động cập nhật trạng thái PAID và gửi Email xác nhận kèm chứng từ cho đại lý.`);
+            if (ok) {
                 const res = CargoStore.confirmPayment(wonId);
                 if (res.success) {
                     alert(res.message);
@@ -2357,7 +2361,8 @@
             if (!wonId) return;
             const refundNote = document.getElementById('adminRefundNote').value.trim();
 
-            if (!confirm(`Xác nhận đã CHUYỂN TIỀN HOÀN cho đơn hàng ${wonId}?\n\nHệ thống sẽ tự động gửi thông báo đến đại lý.`)) return;
+            const ok = window.showConfirm ? await window.showConfirm(`Xác nhận đã CHUYỂN TIỀN HOÀN cho đơn hàng ${wonId}?\n\nHệ thống sẽ tự động gửi thông báo đến đại lý.`) : confirm(`Xác nhận đã CHUYỂN TIỀN HOÀN cho đơn hàng ${wonId}?\n\nHệ thống sẽ tự động gửi thông báo đến đại lý.`);
+            if (!ok) return;
 
             const btn = document.getElementById('adminRefundConfirmBtn');
             btn.disabled = true;

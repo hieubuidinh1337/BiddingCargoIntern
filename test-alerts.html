@@ -1,0 +1,42 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <title>Test Alerts & Confirms</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="assets/js/sweetalert2.all.min.js"></script>
+    <script src="assets/js/cargo-store.js"></script>
+</head>
+<body class="p-8 bg-slate-50 space-y-4">
+    <h1 class="text-xl font-bold">Kiểm thử SweetAlert2 và Box Confirm</h1>
+    
+    <div class="flex flex-wrap gap-3">
+        <button id="btnWarning" onclick="alert('Mức giá đặt thầu tối thiểu phải từ giá sàn: 18.000 đ/Kg trở lên!')" class="bg-amber-500 text-white px-4 py-2 rounded-xl font-semibold">
+            Test Alert Cảnh báo (từ screenshot)
+        </button>
+
+        <button id="btnSuccess" onclick="alert('✅ ĐÃ NỘP GIÁ THẦU THÀNH CÔNG CHO 1 CHUYẾN BAY!\n\nTổng giá mua: 35.000.000 đ')" class="bg-emerald-600 text-white px-4 py-2 rounded-xl font-semibold">
+            Test Alert Thành công
+        </button>
+
+        <button id="btnError" onclick="alert('❌ Không thể gửi giá thầu do phiên đã đóng!')" class="bg-red-600 text-white px-4 py-2 rounded-xl font-semibold">
+            Test Alert Lỗi
+        </button>
+
+        <button id="btnConfirm" onclick="testConfirm()" class="bg-blue-600 text-white px-4 py-2 rounded-xl font-semibold">
+            Test Confirm Nộp thầu
+        </button>
+    </div>
+
+    <div id="result" class="p-4 bg-white rounded-xl border border-slate-200 text-sm font-medium text-slate-700">
+        Chưa có hành động nào
+    </div>
+
+    <script>
+        async function testConfirm() {
+            const ok = await showConfirm(`XÁC NHẬN NỘP PHIẾU GIÁ THẦU CHUYẾN VU123:\n\n• Đơn vị dự thầu: Công ty TNHH Vận tải ABC Logistics (AG-0892)\n• Chuyến bay: VU123 (SGN - HAN)\n• Tải trọng cam kết: 3.500 KG (Hardblock)\n• Đơn giá mua đề xuất: 20.000 đ/Kg\n• Tổng giá mua dự kiến: 70.000.000 đ\n\nBạn có chắc chắn muốn nộp mức giá này?`);
+            document.getElementById('result').textContent = ok ? 'Kết quả: Người dùng đã bấm Xác nhận / Nộp giá!' : 'Kết quả: Người dùng đã bấm Hủy bỏ!';
+        }
+    </script>
+</body>
+</html>
