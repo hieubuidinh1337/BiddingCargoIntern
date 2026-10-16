@@ -122,6 +122,7 @@ const CargoStore = (function () {
             username: 'admin',
             password: 'admin2026',
             role: 'ITD_ADMIN',
+            roles: ['ITD_ADMIN', 'COD_ADMIN', 'AUCTION_SETTLEMENT'],
             fullName: 'Trần Quản Trị (ITD Admin)',
             email: 'admin@airline.vn',
             department: 'Information Technology Directorate (ITD)'
@@ -131,15 +132,27 @@ const CargoStore = (function () {
             username: 'cod_admin',
             password: 'admin2026',
             role: 'COD_ADMIN',
+            roles: ['COD_ADMIN', 'AUCTION_SETTLEMENT'],
             fullName: 'Lê Khai Thác (COD Admin)',
             email: 'cod@airline.vn',
             department: 'Cargo Operations Directorate (COD)'
+        },
+        {
+            id: 95,
+            username: 'settler01',
+            password: 'admin2026',
+            role: 'AUCTION_SETTLEMENT',
+            roles: ['AUCTION_SETTLEMENT'],
+            fullName: 'Vũ Thẩm Định (Settlement Admin)',
+            email: 'settler@airline.vn',
+            department: 'Cargo Bidding Settlement Board'
         },
         {
             id: 97,
             username: 'staff01',
             password: 'staff2026',
             role: 'STAFF',
+            roles: ['STAFF'],
             fullName: 'Nguyễn Điều Hành (Staff)',
             email: 'staff01@airline.vn',
             department: 'Air Cargo Flight Operations'
@@ -149,6 +162,7 @@ const CargoStore = (function () {
             username: 'staff02',
             password: 'staff2026',
             role: 'STAFF',
+            roles: ['STAFF'],
             fullName: 'Lê Thị Bích Vân (Staff)',
             email: 'staff02@airline.vn',
             department: 'Cargo Reporting & Analytics'
@@ -981,7 +995,7 @@ const CargoStore = (function () {
                 updated = true;
             }
 
-            // Ensure 3 roles in adminsList (ITD_ADMIN, COD_ADMIN, STAFF)
+            // Ensure roles and admins in adminsList
             if (!data.adminsList || !Array.isArray(data.adminsList) || data.adminsList.length === 0) {
                 data.adminsList = JSON.parse(JSON.stringify(seedAdmins));
                 updated = true;
@@ -999,6 +1013,7 @@ const CargoStore = (function () {
                         username: 'cod_admin',
                         password: 'admin2026',
                         role: 'COD_ADMIN',
+                        roles: ['COD_ADMIN', 'AUCTION_SETTLEMENT'],
                         fullName: 'Lê Khai Thác (COD Admin)',
                         email: 'cod@airline.vn',
                         department: 'Cargo Operations Directorate (COD)',
@@ -1006,10 +1021,50 @@ const CargoStore = (function () {
                     });
                     updated = true;
                 }
-                if (data.currentAdmin && data.currentAdmin.role === 'ADMIN') {
-                    data.currentAdmin.role = 'ITD_ADMIN';
-                    data.currentAdmin.fullName = 'Trần Quản Trị (ITD Admin)';
+                const hasSettler = data.adminsList.some(a => (a.username || '').toLowerCase() === 'settler01');
+                if (!hasSettler) {
+                    data.adminsList.push({
+                        id: 95,
+                        username: 'settler01',
+                        password: 'admin2026',
+                        role: 'AUCTION_SETTLEMENT',
+                        roles: ['AUCTION_SETTLEMENT'],
+                        fullName: 'Vũ Thẩm Định (Settlement Admin)',
+                        email: 'settler@airline.vn',
+                        department: 'Cargo Bidding Settlement Board',
+                        status: 'Đang hoạt động'
+                    });
                     updated = true;
+                }
+
+                // Ensure every account has a valid roles array
+                data.adminsList.forEach(a => {
+                    if (!Array.isArray(a.roles) || a.roles.length === 0) {
+                        const r = String(a.role || '').toUpperCase();
+                        if (r === 'ITD_ADMIN' || r === 'ADMIN') {
+                            a.roles = ['ITD_ADMIN', 'COD_ADMIN', 'AUCTION_SETTLEMENT'];
+                        } else if (r === 'COD_ADMIN' || r === 'COD ADMIN') {
+                            a.roles = ['COD_ADMIN', 'AUCTION_SETTLEMENT'];
+                        } else if (r === 'AUCTION_SETTLEMENT' || r === 'SETTLEMENT_ADMIN') {
+                            a.roles = ['AUCTION_SETTLEMENT'];
+                        } else {
+                            a.roles = [a.role || 'STAFF'];
+                        }
+                        updated = true;
+                    }
+                });
+
+                if (data.currentAdmin) {
+                    const matchedStaff = data.adminsList.find(a => (a.username || '').toLowerCase() === (data.currentAdmin.username || '').toLowerCase());
+                    if (matchedStaff && matchedStaff.roles) {
+                        data.currentAdmin.roles = matchedStaff.roles;
+                    } else if (!Array.isArray(data.currentAdmin.roles) || data.currentAdmin.roles.length === 0) {
+                        const cr = String(data.currentAdmin.role || '').toUpperCase();
+                        if (cr === 'ITD_ADMIN' || cr === 'ADMIN') data.currentAdmin.roles = ['ITD_ADMIN', 'COD_ADMIN', 'AUCTION_SETTLEMENT'];
+                        else if (cr === 'COD_ADMIN' || cr === 'COD ADMIN') data.currentAdmin.roles = ['COD_ADMIN', 'AUCTION_SETTLEMENT'];
+                        else if (cr === 'AUCTION_SETTLEMENT') data.currentAdmin.roles = ['AUCTION_SETTLEMENT'];
+                        else data.currentAdmin.roles = [data.currentAdmin.role || 'STAFF'];
+                    }
                 }
             }
 
@@ -2396,6 +2451,32 @@ const CargoStore = (function () {
                 return null;
             }
             return admin;
+        },
+
+        hasAdminRole: function (roleName, admin) {
+            const data = loadData();
+            const cur = admin || (this.getCurrentAdmin ? this.getCurrentAdmin() : data.currentAdmin);
+            if (!cur) return false;
+            const rUpper = String(roleName || '').trim().toUpperCase();
+
+            let rolesList = [];
+            if (Array.isArray(cur.roles)) {
+                rolesList = cur.roles.map(r => String(r || '').trim().toUpperCase());
+            }
+            if (cur.role) {
+                rolesList.push(String(cur.role).trim().toUpperCase());
+            }
+
+            // ITD ADMIN / ADMIN has supreme access to all features
+            if (rolesList.includes('ITD_ADMIN') || rolesList.includes('ADMIN')) {
+                return true;
+            }
+
+            return rolesList.includes(rUpper);
+        },
+
+        hasSettlementRole: function (admin) {
+            return this.hasAdminRole('AUCTION_SETTLEMENT', admin);
         },
 
         parseFlightDate: function (dateInput) {
@@ -4371,8 +4452,17 @@ const CargoStore = (function () {
             };
         },
 
-        closeAuction: function (id) {
+        closeAuction: function (id, callerAdmin) {
             const data = loadData();
+            const currentAdmin = callerAdmin || (this.getCurrentAdmin ? this.getCurrentAdmin() : data.currentAdmin);
+
+            // KIỂM TRA PHÂN QUYỀN CHỐT THẦU: Yêu cầu vai trò AUCTION_SETTLEMENT hoặc ITD_ADMIN
+            if (currentAdmin && !this.hasSettlementRole(currentAdmin)) {
+                return {
+                    success: false,
+                    message: 'Quyền bị từ chối: Thao tác Chốt phiên & Auto-confirm thuộc thẩm quyền của Quản trị viên Chốt thầu (AUCTION SETTLEMENT) hoặc ITD Admin!'
+                };
+            }
 
             const auction = (data.auctions || []).find(a => a.id == id);
             if (!auction) return { success: false, message: 'Phiên đấu giá không tồn tại' };
@@ -4615,6 +4705,14 @@ const CargoStore = (function () {
         // Khóa chốt kết quả chính thức (hết hạn thời gian hoặc chốt ngay) - Ẩn toàn bộ nút Reject
         lockAuctionReview: function (auctionId) {
             const data = loadData();
+            const currentAdmin = this.getCurrentAdmin ? this.getCurrentAdmin() : data.currentAdmin;
+            if (currentAdmin && !this.hasSettlementRole(currentAdmin)) {
+                return { 
+                    success: false, 
+                    message: 'Quyền bị từ chối: Thao tác Khóa chốt phiên thuộc thẩm quyền của Quản trị viên Chốt thầu (AUCTION SETTLEMENT) hoặc ITD Admin!' 
+                };
+            }
+
             const auction = (data.auctions || []).find(a => a.id == auctionId);
             if (!auction) return { success: false, message: 'Không tìm thấy chuyến bay / phiên đấu giá.' };
 
@@ -4623,13 +4721,12 @@ const CargoStore = (function () {
 
             saveData(data);
 
-            const currentAdmin = this.getCurrentAdmin ? this.getCurrentAdmin() : data.currentAdmin;
-            const adminActor = (currentAdmin && (currentAdmin.fullName || currentAdmin.username)) || 'Ban Điều Hành COD';
-            const adminRole = (currentAdmin && currentAdmin.role) || 'COD ADMIN';
+            const adminActor = (currentAdmin && (currentAdmin.fullName || currentAdmin.username)) || 'Ban Quản Trị Chốt Thầu';
+            const adminRole = (currentAdmin && (Array.isArray(currentAdmin.roles) ? currentAdmin.roles.join(', ') : currentAdmin.role)) || 'AUCTION_SETTLEMENT';
 
             this.logActivity({
                 actor: adminActor,
-                username: (currentAdmin && currentAdmin.username) || 'cod_admin',
+                username: (currentAdmin && currentAdmin.username) || 'settler01',
                 role: adminRole,
                 actionCategory: 'Chốt thầu',
                 actionTitle: 'Khóa kết quả trúng thầu chính thức',
@@ -4650,6 +4747,14 @@ const CargoStore = (function () {
         // Cấu hình thời gian xem xét / review window (phút)
         setAuctionReviewWindow: function (auctionId, minutes) {
             const data = loadData();
+            const currentAdmin = this.getCurrentAdmin ? this.getCurrentAdmin() : data.currentAdmin;
+            if (currentAdmin && !this.hasSettlementRole(currentAdmin)) {
+                return { 
+                    success: false, 
+                    message: 'Quyền bị từ chối: Thao tác cấu hình thời gian xem xét thuộc thẩm quyền của Quản trị viên Chốt thầu (AUCTION SETTLEMENT) hoặc ITD Admin!' 
+                };
+            }
+
             const auction = (data.auctions || []).find(a => a.id == auctionId);
             if (!auction) return { success: false, message: 'Không tìm thấy chuyến bay.' };
 
@@ -4671,6 +4776,14 @@ const CargoStore = (function () {
         // Mở khóa lại xét duyệt (Unlock) nếu cần can thiệp lại
         unlockFinalWinner: function (auctionId) {
             const data = loadData();
+            const currentAdmin = this.getCurrentAdmin ? this.getCurrentAdmin() : data.currentAdmin;
+            if (currentAdmin && !this.hasSettlementRole(currentAdmin)) {
+                return { 
+                    success: false, 
+                    message: 'Quyền bị từ chối: Thao tác mở khóa xem xét thuộc thẩm quyền của Quản trị viên Chốt thầu (AUCTION SETTLEMENT) hoặc ITD Admin!' 
+                };
+            }
+
             const auction = (data.auctions || []).find(a => a.id == auctionId);
             if (!auction) return { success: false, message: 'Không tìm thấy chuyến bay.' };
             
@@ -4689,18 +4802,16 @@ const CargoStore = (function () {
         },
 
         // Từ chối đại lý hiện tại (Reject) và tự động chuyển quyền cho đại lý kế tiếp
-        // Phân quyền đặc trách riêng: COD ADMIN (hoặc ITD ADMIN), ghi audit log đầy đủ
+        // Phân quyền đặc trách riêng: AUCTION SETTLEMENT (hoặc ITD ADMIN), ghi audit log đầy đủ
         rejectAndPassToNextAgent: function (auctionId, agentCode, reason, note) {
             const data = loadData();
             const currentAdmin = this.getCurrentAdmin ? this.getCurrentAdmin() : data.currentAdmin;
-            const adminRole = (currentAdmin && currentAdmin.role ? currentAdmin.role : '').toUpperCase();
 
-            // KIỂM TRA PHÂN QUYỀN RIÊNG: Chỉ COD ADMIN hoặc ITD ADMIN có thẩm quyền Reject!
-            const isAllowedRole = adminRole === 'COD ADMIN' || adminRole === 'COD_ADMIN' || adminRole === 'ITD ADMIN' || adminRole === 'ADMIN';
-            if (!isAllowedRole || adminRole === 'STAFF') {
+            // KIỂM TRA PHÂN QUYỀN ĐỘC LẬP: Chỉ AUCTION SETTLEMENT hoặc ITD ADMIN có thẩm quyền Reject & Chuyển đại lý!
+            if (!this.hasSettlementRole(currentAdmin)) {
                 return { 
                     success: false, 
-                    message: 'Quyền bị từ chối: Thao tác Reject đại lý thuộc thẩm quyền độc quyền của Quản trị viên Khai thác (COD ADMIN)!' 
+                    message: 'Quyền bị từ chối: Thao tác Reject đại lý & điều chuyển thầu thuộc thẩm quyền độc quyền của Quản trị viên Chốt thầu (AUCTION SETTLEMENT) hoặc ITD Admin!' 
                 };
             }
 
@@ -4763,13 +4874,15 @@ const CargoStore = (function () {
             const pad = n => String(n).padStart(2, '0');
             const timeStr = `${pad(now.getHours())}:${pad(now.getMinutes())}:${pad(now.getSeconds())} ${pad(now.getDate())}/${pad(now.getMonth() + 1)}/${now.getFullYear()}`;
             
+            const rolesFormatted = (currentAdmin && Array.isArray(currentAdmin.roles)) ? currentAdmin.roles.join(', ') : ((currentAdmin && currentAdmin.role) || 'AUCTION_SETTLEMENT');
+
             const logEntry = {
                 id: `REJ-${Date.now()}`,
                 auctionId: auction.id,
                 flightNumber: auction.flightNumber,
-                actorName: currentAdmin.fullName || currentAdmin.username || 'Ban Điều Hành COD',
-                actorUsername: currentAdmin.username || 'cod_admin',
-                actorRole: currentAdmin.role || 'COD ADMIN',
+                actorName: (currentAdmin && currentAdmin.fullName) || 'Vũ Thẩm Định',
+                actorUsername: (currentAdmin && currentAdmin.username) || 'settler01',
+                actorRole: rolesFormatted,
                 fromAgentCode: previousWinnerCode,
                 fromAgentName: previousWinnerName,
                 fromPriceKg: previousPrice,
@@ -4780,7 +4893,7 @@ const CargoStore = (function () {
                 note: note || '',
                 timestamp: now.toISOString(),
                 formattedTime: timeStr,
-                auditHash: 'SEC-COD-' + Math.random().toString(36).substring(2, 9).toUpperCase()
+                auditHash: 'SEC-SETTLE-' + Math.random().toString(36).substring(2, 9).toUpperCase()
             };
 
             auction.rejectAuditLogs = auction.rejectAuditLogs || [];
@@ -4850,14 +4963,15 @@ const CargoStore = (function () {
             saveData(data);
 
             // 5. GHI AUDIT LOG HỆ THỐNG TOÀN DIỆN (hiển thị trên trang 10-AuditLogs.html)
+            const executorRoles = (currentAdmin && Array.isArray(currentAdmin.roles)) ? currentAdmin.roles.join(', ') : ((currentAdmin && currentAdmin.role) || 'AUCTION_SETTLEMENT');
             this.logActivity({
-                actor: currentAdmin.fullName || 'Lê Khai Thác',
-                username: currentAdmin.username || 'cod_admin',
-                role: currentAdmin.role || 'COD ADMIN',
-                actionCategory: 'Điều hành chuyển thầu',
+                actor: (currentAdmin && currentAdmin.fullName) || 'Vũ Thẩm Định',
+                username: (currentAdmin && currentAdmin.username) || 'settler01',
+                role: executorRoles,
+                actionCategory: 'Chốt thầu & Điều chuyển',
                 actionTitle: 'Reject đại lý & Tự động chuyển thầu dự phòng',
                 target: auction.flightNumber,
-                details: `[${currentAdmin.role || 'COD ADMIN'}] ${currentAdmin.fullName || 'Quản trị viên'} đã REJECT đại lý ${previousWinnerName} (${previousWinnerCode}, mức giá ${this.formatCurrency(previousPrice)}/Kg). Hệ thống tự động chuyển quyền trúng thầu cho đại lý kế tiếp: ${nextCandidate.agentName} (${nextCandidate.agentCode}, mức giá ${this.formatCurrency(nextCandidate.priceKg)}/Kg). Lý do: ${reason}. Ghi chú kiểm toán: ${note || 'Không có'}.`
+                details: `[${executorRoles}] ${(currentAdmin && currentAdmin.fullName) || 'Quản trị viên'} đã REJECT đại lý ${previousWinnerName} (${previousWinnerCode}, mức giá ${this.formatCurrency(previousPrice)}/Kg). Hệ thống tự động chuyển quyền trúng thầu cho đại lý kế tiếp: ${nextCandidate.agentName} (${nextCandidate.agentCode}, mức giá ${this.formatCurrency(nextCandidate.priceKg)}/Kg). Lý do: ${reason}. Ghi chú kiểm toán: ${note || 'Không có'}.`
             });
 
             if (typeof window !== 'undefined') {
@@ -5849,15 +5963,37 @@ const CargoStore = (function () {
             } else {
                 const target = (data.adminsList || []).find(a => (a.username || '').toLowerCase() === (identifier || '').toLowerCase());
                 if (target) {
-                    target.role = newRole;
+                    let rolesArr = [];
+                    if (Array.isArray(newRole)) {
+                        rolesArr = newRole.map(r => String(r).trim().toUpperCase()).filter(Boolean);
+                    } else if (typeof newRole === 'string' && newRole.includes(',')) {
+                        rolesArr = newRole.split(',').map(r => r.trim().toUpperCase()).filter(Boolean);
+                    } else if (newRole) {
+                        rolesArr = [String(newRole).trim().toUpperCase()];
+                    }
+                    if (rolesArr.length === 0) rolesArr = ['STAFF'];
+
+                    target.roles = rolesArr;
+                    target.role = rolesArr[0]; // primary role for backwards compatibility
+
+                    // If this is currently logged in admin, update data.currentAdmin too
+                    if (data.currentAdmin && (data.currentAdmin.username || '').toLowerCase() === target.username.toLowerCase()) {
+                        data.currentAdmin.roles = target.roles;
+                        data.currentAdmin.role = target.role;
+                    }
+
                     saveData(data);
                     this.logActivity({
                         actionCategory: 'Tài khoản',
-                        actionTitle: 'Phân quyền Nhân viên',
+                        actionTitle: 'Phân quyền Nhân viên (Đa vai trò)',
                         target: target.username || identifier,
-                        details: `Cập nhật vai trò nhân viên ${target.username} thành [${newRole}].`
+                        details: `Cập nhật vai trò nhân viên ${target.username} thành [${rolesArr.join(', ')}].`
                     });
-                    return { success: true, message: `Đã cập nhật vai trò cho "${target.username}" thành ${newRole}.` };
+
+                    if (typeof window !== 'undefined') {
+                        window.dispatchEvent(new CustomEvent('cargostore_updated'));
+                    }
+                    return { success: true, message: `Đã cập nhật các vai trò cho "${target.username}" thành: [${rolesArr.join(', ')}].` };
                 }
             }
             return { success: false, message: 'Không tìm thấy người dùng.' };
@@ -5880,11 +6016,24 @@ const CargoStore = (function () {
             const exists = data.adminsList.some(a => (a.username || '').toLowerCase() === u);
             if (exists) return { success: false, message: `Tài khoản "${u}" đã tồn tại trên hệ thống.` };
 
+            let rolesArr = [];
+            if (Array.isArray(staffData.roles) && staffData.roles.length > 0) {
+                rolesArr = staffData.roles.map(r => String(r).toUpperCase());
+            } else if (staffData.role) {
+                const r = String(staffData.role).toUpperCase();
+                if (r === 'ITD_ADMIN' || r === 'ADMIN') rolesArr = ['ITD_ADMIN', 'COD_ADMIN', 'AUCTION_SETTLEMENT'];
+                else if (r === 'COD_ADMIN') rolesArr = ['COD_ADMIN', 'AUCTION_SETTLEMENT'];
+                else rolesArr = [r];
+            } else {
+                rolesArr = ['STAFF'];
+            }
+
             const newStaff = {
                 id: Date.now(),
                 username: u,
                 password: staffData.password || 'staff2026',
-                role: staffData.role || 'STAFF',
+                role: rolesArr[0],
+                roles: rolesArr,
                 fullName: staffData.fullName || 'Nhân viên Điều hành',
                 email: staffData.email || `${u}@airline.vn`,
                 department: staffData.department || 'Air Cargo Flight Operations',
@@ -5897,9 +6046,9 @@ const CargoStore = (function () {
                 actionCategory: 'Tài khoản',
                 actionTitle: 'Tạo mới tài khoản Nhân viên',
                 target: u,
-                details: `Khởi tạo tài khoản nhân viên vận hành mới: ${newStaff.fullName} (@${u}), Phòng ban: ${newStaff.department}, Vai trò: ${newStaff.role}.`
+                details: `Khởi tạo tài khoản nhân viên vận hành mới: ${newStaff.fullName} (@${u}), Phòng ban: ${newStaff.department}, Vai trò: [${rolesArr.join(', ')}].`
             });
-            return { success: true, message: `Đã tạo mới tài khoản "${u}" (${newStaff.fullName}) với vai trò ${newStaff.role}.`, staff: newStaff };
+            return { success: true, message: `Đã tạo mới tài khoản "${u}" (${newStaff.fullName}) với vai trò [${rolesArr.join(', ')}].`, staff: newStaff };
         },
 
         updateSystemSettings: function (settingsData) {

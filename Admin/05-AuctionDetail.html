@@ -784,6 +784,20 @@
 
         window.handleDetailCloseAuction = async function () {
             if (!currentAuction) return;
+            const currentAdmin = CargoStore.getCurrentAdmin ? CargoStore.getCurrentAdmin() : {};
+            if (!CargoStore.hasSettlementRole || !CargoStore.hasSettlementRole(currentAdmin)) {
+                if (window.Swal) {
+                    Swal.fire({
+                        icon: 'error',
+                        title: 'Từ chối quyền truy cập',
+                        text: 'Chỉ tài khoản có vai trò AUCTION SETTLEMENT (hoặc ITD ADMIN) mới có quyền Chốt phiên và Auto-confirm trúng thầu!'
+                    });
+                } else {
+                    alert('Quyền bị từ chối: Thao tác Chốt phiên thuộc thẩm quyền của AUCTION SETTLEMENT hoặc ITD Admin!');
+                }
+                return;
+            }
+
             const flight = currentAuction.flightNumber || 'chuyến bay';
             const ok = window.Swal ? (await Swal.fire({
                 title: 'Chốt phiên & Tự động Confirm?',
@@ -797,7 +811,7 @@
                             <p>✓ <strong>Auto-Confirm:</strong> Hệ thống tự động xác nhận đại lý có mức giá đặt cao nhất trúng thầu.</p>
                             <p>✓ <strong>Bỏ nút Confirm:</strong> Nút Confirm được bỏ hoàn toàn, chỉ để lại nút <strong>Reject</strong>.</p>
                             <p>✓ <strong>Thời gian xem xét:</strong> Bắt đầu đếm ngược thời gian cấu hình (15 phút). Hết giờ không đổi sẽ ẩn Reject.</p>
-                            <p>✓ <strong>Phân quyền Reject:</strong> Thẩm quyền dành riêng cho <strong>COD ADMIN</strong> có ghi logs đàng hoàng.</p>
+                            <p>✓ <strong>Phân quyền Chốt thầu & Reject:</strong> Thẩm quyền độc lập dành riêng cho vai trò <strong>AUCTION SETTLEMENT</strong> (hoặc ITD ADMIN tối cao) có ghi audit logs đầy đủ.</p>
                         </div>
                     </div>
                 `,
@@ -844,9 +858,41 @@
             const isLocked = Boolean(auction.isFinalLocked);
             const currentAdmin = CargoStore.getCurrentAdmin ? CargoStore.getCurrentAdmin() : {};
             const adminRole = String(currentAdmin.role || '').toUpperCase();
-            const isCodAdmin = adminRole === 'COD ADMIN' || adminRole === 'COD_ADMIN' || adminRole === 'ITD ADMIN' || adminRole === 'ADMIN';
+            const hasSettlement = Boolean(CargoStore.hasSettlementRole && CargoStore.hasSettlementRole(currentAdmin));
 
-            // Role Switcher for easy testing
+            // Render interactive role switcher testing bar
+            if (roleContainer) {
+                const rolesList = Array.isArray(currentAdmin.roles) ? currentAdmin.roles : [currentAdmin.role || 'STAFF'];
+                const badges = rolesList.map(r => {
+                    const ru = String(r).toUpperCase();
+                    if (ru === 'ITD_ADMIN') return '<span class="bg-blue-600 text-white font-bold px-2 py-0.5 rounded text-[10px]">ITD</span>';
+                    if (ru === 'COD_ADMIN') return '<span class="bg-amber-600 text-white font-bold px-2 py-0.5 rounded text-[10px]">COD</span>';
+                    if (ru === 'AUCTION_SETTLEMENT') return '<span class="bg-purple-600 text-white font-bold px-2 py-0.5 rounded text-[10px]">SETTLEMENT</span>';
+                    return '<span class="bg-emerald-600 text-white font-bold px-2 py-0.5 rounded text-[10px]">STAFF</span>';
+                }).join(' ');
+
+                roleContainer.innerHTML = `
+                    <div class="flex items-center gap-1.5 bg-slate-900 text-white px-2.5 py-1 rounded-xl text-xs shadow-xs border border-slate-700">
+                        <span class="text-slate-400 text-[10px] uppercase font-bold">Role hiện tại:</span>
+                        <span class="font-bold text-amber-300">@${currentAdmin.username || 'admin'}</span>
+                        ${badges}
+                        <div class="h-3 w-[1px] bg-slate-700 mx-1"></div>
+                        <span class="text-slate-400 text-[10px]">Test nhanh:</span>
+                        <button type="button" onclick="switchAdminRoleDemo('SETTLER')" class="px-2 py-0.5 rounded bg-purple-700 hover:bg-purple-600 text-[10px] font-bold transition cursor-pointer" title="Role độc lập AUCTION_SETTLEMENT (Vũ Thẩm Định)">
+                            Settler (Độc lập)
+                        </button>
+                        <button type="button" onclick="switchAdminRoleDemo('COD_ADMIN')" class="px-2 py-0.5 rounded bg-amber-700 hover:bg-amber-600 text-[10px] font-bold transition cursor-pointer" title="Đa vai trò COD ADMIN + AUCTION_SETTLEMENT (Lê Khai Thác)">
+                            COD + Settlement
+                        </button>
+                        <button type="button" onclick="switchAdminRoleDemo('STAFF')" class="px-2 py-0.5 rounded bg-slate-700 hover:bg-slate-600 text-[10px] font-bold transition cursor-pointer" title="Tài khoản STAFF - Không có quyền chốt & reject">
+                            Staff (Chặn)
+                        </button>
+                        <button type="button" onclick="switchAdminRoleDemo('ITD_ADMIN')" class="px-2 py-0.5 rounded bg-blue-700 hover:bg-blue-600 text-[10px] font-bold transition cursor-pointer" title="Tài khoản ITD ADMIN tối cao - Toàn quyền">
+                            ITD (Full)
+                        </button>
+                    </div>
+                `;
+            }
 
             if (summaryBadge) {
                 summaryBadge.textContent = isLocked
@@ -883,31 +929,31 @@
                         </div>
                     `;
                 } else {
-                    reviewBanner.className = 'p-3.5 bg-gradient-to-r from-amber-50 to-orange-50 border border-amber-300 rounded-xl text-xs text-amber-950 flex flex-col md:flex-row md:items-center justify-between gap-3 shadow-2xs';
+                    reviewBanner.className = 'p-3.5 bg-gradient-to-r from-purple-50 via-amber-50 to-orange-50 border border-purple-200 rounded-xl text-xs text-slate-900 flex flex-col md:flex-row md:items-center justify-between gap-3 shadow-2xs';
                     reviewBanner.innerHTML = `
                         <div class="flex items-center gap-3">
-                            <div class="w-10 h-10 rounded-xl bg-amber-500 text-white flex items-center justify-center shrink-0 shadow-xs animate-pulse">
+                            <div class="w-10 h-10 rounded-xl bg-purple-600 text-white flex items-center justify-center shrink-0 shadow-xs animate-pulse">
                                 <i class="fa-solid fa-stopwatch text-lg"></i>
                             </div>
                             <div>
                                 <div class="flex items-center gap-2 flex-wrap">
-                                    <span class="font-bold text-amber-950 text-xs uppercase tracking-wide">Thời gian xem xét & quyền Reject còn lại:</span>
-                                    <span id="reviewCountdownTimer" class="font-mono font-black text-rose-600 bg-white px-2.5 py-0.5 rounded-lg border border-amber-200 text-sm shadow-xs">--:--</span>
-                                    <span class="text-[10px] font-bold bg-amber-200/80 text-amber-900 px-2 py-0.5 rounded-md">Cấu hình: ${auction.reviewWindowMinutes || 15} phút</span>
-                                    <span class="text-[10px] font-bold bg-indigo-100 text-indigo-900 border border-indigo-200 px-2 py-0.5 rounded-md flex items-center gap-1">
-                                        <i class="fa-solid fa-user-shield text-indigo-600"></i> Phân quyền Reject: COD ADMIN
+                                    <span class="font-bold text-slate-900 text-xs uppercase tracking-wide">Thời gian xem xét & quyền Reject còn lại:</span>
+                                    <span id="reviewCountdownTimer" class="font-mono font-black text-rose-600 bg-white px-2.5 py-0.5 rounded-lg border border-purple-200 text-sm shadow-xs">--:--</span>
+                                    <span class="text-[10px] font-bold bg-purple-100 text-purple-900 px-2 py-0.5 rounded-md">Cấu hình: ${auction.reviewWindowMinutes || 15} phút</span>
+                                    <span class="text-[10px] font-bold bg-purple-100 text-purple-900 border border-purple-200 px-2 py-0.5 rounded-md flex items-center gap-1 shadow-2xs">
+                                        <i class="fa-solid fa-gavel text-purple-600"></i> Phân quyền Chốt thầu & Reject: AUCTION SETTLEMENT
                                     </span>
                                 </div>
-                                <p class="text-[11px] text-amber-800 mt-1">
+                                <p class="text-[11px] text-slate-600 mt-1">
                                     Hệ thống <strong>auto-confirm đại lý cao nhất</strong> (đã bỏ nút confirm, chỉ để Reject). Sau khi hết thời gian trên nếu không có thay đổi, hệ thống tự động ẩn chức năng Reject và chuyển đại lý để chốt thầu chính thức.
                                 </p>
                             </div>
                         </div>
                         <div class="flex items-center gap-2 shrink-0 self-end md:self-center">
-                            ${!isStaff ? `
+                            ${hasSettlement ? `
                                 <div class="flex items-center gap-1.5">
                                     <select onchange="handleSetReviewMinutes('${auction.id}', this.value)"
-                                        class="text-xs bg-white border border-amber-300 rounded-xl px-2 py-1.5 font-medium outline-none shadow-2xs">
+                                        class="text-xs bg-white border border-purple-300 rounded-xl px-2 py-1.5 font-medium outline-none shadow-2xs" title="Cấu hình thời gian xem xét">
                                         <option value="5" ${auction.reviewWindowMinutes == 5 ? 'selected' : ''}>Cấu hình: 5 phút</option>
                                         <option value="15" ${(!auction.reviewWindowMinutes || auction.reviewWindowMinutes == 15) ? 'selected' : ''}>Cấu hình: 15 phút</option>
                                         <option value="30" ${auction.reviewWindowMinutes == 30 ? 'selected' : ''}>Cấu hình: 30 phút</option>
@@ -918,7 +964,11 @@
                                         <i class="fa-solid fa-lock text-amber-400"></i> Khóa chốt ngay
                                     </button>
                                 </div>
-                            ` : ''}
+                            ` : `
+                                <span class="text-slate-500 text-[11px] font-semibold bg-white/80 border border-purple-200 px-2.5 py-1.5 rounded-xl inline-flex items-center gap-1 shadow-2xs">
+                                    <i class="fa-solid fa-lock text-slate-400"></i> Cần vai trò AUCTION SETTLEMENT
+                                </span>
+                            `}
                         </div>
                     `;
 
@@ -982,7 +1032,7 @@
                 } else if (item.isRejected) {
                     statusBadge = '<span class="bg-rose-50 text-rose-700 font-semibold px-2.5 py-1 rounded-full text-[10px] inline-flex items-center gap-1 border border-rose-200"><i class="fa-solid fa-circle-xmark text-rose-500"></i> ĐÃ TỪ CHỐI (REJECT)</span>';
                 } else if (item.isCurrentCandidate) {
-                    statusBadge = '<span class="bg-amber-100 text-amber-900 font-bold px-2.5 py-1 rounded-full text-[10px] inline-flex items-center gap-1 border border-amber-300 animate-pulse"><i class="fa-solid fa-crown text-amber-600"></i> AUTO-CONFIRM TOP 1</span>';
+                    statusBadge = '<span class="bg-amber-100 text-amber-900 font-bold px-2.5 py-1 rounded-full text-[10px] inline-flex items-center gap-1 border border-amber-300 animate-pulse"><i class="fa-solid fa-crown text-amber-600"></i> Đang đợi chốt thầu</span>';
                 } else {
                     statusBadge = `<span class="bg-slate-100 text-slate-600 font-medium px-2.5 py-1 rounded-full text-[10px] inline-flex items-center gap-1 border">DỰ PHÒNG #${item.rank}</span>`;
                 }
@@ -1001,14 +1051,14 @@
                     }
                 } else {
                     if (item.isCurrentCandidate) {
-                        // CHỈ CÓ NÚT REJECT CHO ĐẠI LÝ ĐANG GIỮ THẦU, PHÂN QUYỀN CHO COD ADMIN
-                        if (!isCodAdmin) {
-                            actionContent = '<span class="text-slate-400 text-[11px] font-semibold bg-slate-100 border border-slate-200 px-2.5 py-1 rounded-lg inline-flex items-center gap-1 cursor-not-allowed" title="Chỉ Quản trị viên Khai thác (COD ADMIN) có thẩm quyền Reject đại lý"><i class="fa-solid fa-lock text-slate-400"></i> Chỉ COD ADMIN</span>';
+                        // CHỈ CÓ NÚT REJECT CHO ĐẠI LÝ ĐANG GIỮ THẦU, PHÂN QUYỀN CHO AUCTION SETTLEMENT (hoặc ITD ADMIN)
+                        if (!hasSettlement) {
+                            actionContent = '<span class="text-slate-400 text-[11px] font-semibold bg-slate-100 border border-slate-200 px-2.5 py-1 rounded-lg inline-flex items-center gap-1 cursor-not-allowed" title="Chỉ Quản trị viên có quyền AUCTION SETTLEMENT (hoặc ITD ADMIN) mới có thẩm quyền Reject đại lý"><i class="fa-solid fa-lock text-slate-400"></i> Cần quyền SETTLEMENT</span>';
                         } else {
                             actionContent = `
                                 <button type="button" onclick="handleRejectToNextAgent('${auction.id}', '${item.agentCode}', '${item.agentName.replace(/'/g, "\\'")}', ${item.priceKg})"
                                     class="bg-rose-600 hover:bg-rose-700 text-white font-bold px-3.5 py-1.5 rounded-xl text-xs transition inline-flex items-center gap-1.5 shadow-2xs cursor-pointer group active:scale-95"
-                                    title="Từ chối đại lý này và tự động chuyển sang đại lý kế tiếp (Thẩm quyền COD ADMIN)">
+                                    title="Từ chối đại lý này và tự động chuyển sang đại lý kế tiếp (Thẩm quyền AUCTION SETTLEMENT)">
                                     <i class="fa-solid fa-ban"></i>
                                     <span>Reject & Chuyển đại lý</span>
                                 </button>
@@ -1137,6 +1187,12 @@
 
         // Cấu hình thời gian xem xét / Review window (phút)
         window.handleSetReviewMinutes = function (auctionId, minutes) {
+            const admin = CargoStore.getCurrentAdmin ? CargoStore.getCurrentAdmin() : {};
+            if (!CargoStore.hasSettlementRole || !CargoStore.hasSettlementRole(admin)) {
+                if (window.Swal) Swal.fire('Từ chối quyền', 'Cấu hình thời gian xem xét yêu cầu vai trò AUCTION SETTLEMENT hoặc ITD Admin!', 'warning');
+                else alert('Cấu hình thời gian xem xét yêu cầu vai trò AUCTION SETTLEMENT hoặc ITD Admin!');
+                return;
+            }
             const res = CargoStore.setAuctionReviewWindow(auctionId, minutes);
             if (res.success) {
                 if (window.Swal) Swal.fire({ icon: 'success', title: 'Cấu hình thời gian', text: res.message, timer: 1500, showConfirmButton: false });
@@ -1147,10 +1203,9 @@
         // Khóa chốt thầu ngay (kết thúc sớm thời gian xem xét)
         window.handleLockAuctionReview = async function (auctionId) {
             const admin = CargoStore.getCurrentAdmin ? CargoStore.getCurrentAdmin() : {};
-            const adminRole = String(admin.role || '').toUpperCase();
-            if (adminRole === 'STAFF') {
-                if (window.Swal) Swal.fire('Thông báo', 'Tài khoản STAFF không có quyền khóa chốt phiên!', 'warning');
-                else alert('Tài khoản STAFF không có quyền khóa chốt phiên!');
+            if (!CargoStore.hasSettlementRole || !CargoStore.hasSettlementRole(admin)) {
+                if (window.Swal) Swal.fire('Từ chối quyền', 'Tài khoản của bạn không có vai trò AUCTION SETTLEMENT (hoặc ITD ADMIN) để khóa chốt phiên!', 'warning');
+                else alert('Tài khoản của bạn không có vai trò AUCTION SETTLEMENT (hoặc ITD ADMIN) để khóa chốt phiên!');
                 return;
             }
             const ok = window.Swal ? (await Swal.fire({
@@ -1172,37 +1227,62 @@
             }
         };
 
-        // Switch role demo tester for pair testing (COD ADMIN vs STAFF)
+        // Switch role demo tester for testing multi-role and settlement
         window.switchAdminRoleDemo = function (roleKey) {
             const data = CargoStore.getData();
-            if (roleKey === 'COD_ADMIN') {
+            if (roleKey === 'SETTLER') {
+                data.currentAdmin = {
+                    id: 95,
+                    username: 'settler01',
+                    password: 'admin2026',
+                    role: 'AUCTION_SETTLEMENT',
+                    roles: ['AUCTION_SETTLEMENT'],
+                    fullName: 'Vũ Thẩm Định (Settlement Admin)',
+                    email: 'settler@airline.vn',
+                    department: 'Cargo Bidding Settlement Board'
+                };
+            } else if (roleKey === 'COD_ADMIN') {
                 data.currentAdmin = {
                     id: 98,
                     username: 'cod_admin',
                     password: 'admin2026',
-                    role: 'COD ADMIN',
+                    role: 'COD_ADMIN',
+                    roles: ['COD_ADMIN', 'AUCTION_SETTLEMENT'],
                     fullName: 'Lê Khai Thác (COD Admin)',
                     email: 'cod@airline.vn',
                     department: 'Cargo Operations Directorate (COD)'
                 };
-            } else {
+            } else if (roleKey === 'STAFF') {
                 data.currentAdmin = {
                     id: 97,
                     username: 'staff01',
                     password: 'staff2026',
                     role: 'STAFF',
+                    roles: ['STAFF'],
                     fullName: 'Nguyễn Điều Hành (Staff)',
                     email: 'staff01@airline.vn',
                     department: 'Air Cargo Flight Operations'
                 };
+            } else {
+                data.currentAdmin = {
+                    id: 99,
+                    username: 'admin',
+                    password: 'admin2026',
+                    role: 'ITD_ADMIN',
+                    roles: ['ITD_ADMIN', 'COD_ADMIN', 'AUCTION_SETTLEMENT'],
+                    fullName: 'Trần Quản Trị (ITD Admin)',
+                    email: 'admin@airline.vn',
+                    department: 'Information Technology Directorate (ITD)'
+                };
             }
             CargoStore.saveData(data);
             if (window.Swal) {
+                const rolesStr = data.currentAdmin.roles.join(', ');
                 Swal.fire({
                     icon: 'info',
-                    title: `Đã chuyển sang vai trò: ${data.currentAdmin.role}`,
-                    text: roleKey === 'COD_ADMIN' ? 'Bạn hiện có toàn quyền Thẩm định & Reject đại lý trúng thầu.' : 'Vai trò STAFF chỉ được xem và bị vô hiệu hóa quyền Reject.',
-                    timer: 1600,
+                    title: `Đã chuyển sang: ${data.currentAdmin.fullName}`,
+                    text: `Các vai trò: [${rolesStr}] - ${CargoStore.hasSettlementRole(data.currentAdmin) ? 'CÓ QUYỀN Chốt thầu & Reject.' : 'KHÔNG có quyền Chốt thầu & Reject.'}`,
+                    timer: 1800,
                     showConfirmButton: false
                 });
             }
@@ -1210,31 +1290,33 @@
         };
 
         // Action: Reject đại lý hiện tại và tự động chuyển sang đại lý kế tiếp
-        // Phân quyền chuyên trách riêng: COD ADMIN
+        // Phân quyền chuyên trách riêng: AUCTION SETTLEMENT (hoặc ITD ADMIN)
         // Ghi nhật ký Audit Trail đầy đủ, bảo mật
         async function handleRejectToNextAgent(auctionId, targetAgentCode, targetAgentName, priceKg) {
             const admin = CargoStore.getCurrentAdmin ? CargoStore.getCurrentAdmin() : {};
-            const adminRole = String(admin.role || '').toUpperCase();
-            const isCodAdmin = adminRole === 'COD ADMIN' || adminRole === 'COD_ADMIN' || adminRole === 'ITD ADMIN' || adminRole === 'ADMIN';
-
-            if (!isCodAdmin || adminRole === 'STAFF') {
+            
+            if (!CargoStore.hasSettlementRole || !CargoStore.hasSettlementRole(admin)) {
                 if (window.Swal) {
+                    const currentRolesStr = (Array.isArray(admin.roles) ? admin.roles.join(', ') : admin.role) || 'STAFF';
                     Swal.fire({
                         icon: 'error',
                         title: 'Từ chối quyền truy cập',
                         html: `
                             <div class="text-left text-xs space-y-2">
-                                <p class="text-slate-700">Tài khoản hiện tại của bạn có vai trò: <strong class="text-rose-600 font-bold">${admin.role || 'STAFF'}</strong>.</p>
-                                <p class="p-2.5 bg-rose-50 border border-rose-200 rounded-xl text-rose-900 leading-relaxed">
-                                    <i class="fa-solid fa-shield-halved text-rose-600 mr-1"></i>
-                                    Quyền <strong>Reject đại lý & điều chuyển thầu</strong> thuộc thẩm quyền chuyên trách của <strong>Quản trị viên Khai thác (COD ADMIN)</strong>.
-                                </p>
-                                <p class="text-[11px] text-slate-500">Vui lòng sử dụng tài khoản có Role COD ADMIN (hoặc bấm nút "COD ADMIN" ở góc trên) để thực hiện.</p>
+                                <p class="text-slate-700">Tài khoản hiện tại của bạn: <strong class="text-slate-900">${admin.fullName || admin.username}</strong> (@${admin.username || 'staff'}).</p>
+                                <p class="text-slate-600">Vai trò hiện có: <strong class="text-rose-600 font-bold">${currentRolesStr}</strong>.</p>
+                                <div class="p-3 bg-purple-50 border border-purple-200 rounded-xl text-purple-950 leading-relaxed space-y-1">
+                                    <div class="font-bold flex items-center gap-1.5 text-purple-900">
+                                        <i class="fa-solid fa-gavel text-purple-600"></i> Thẩm quyền chuyên trách độc lập:
+                                    </div>
+                                    <p>Toàn bộ thao tác <strong>Confirm, Reject & điều chuyển thầu dự phòng</strong> đã được chuyển giao độc quyền cho vai trò <strong>AUCTION SETTLEMENT (CHỐT THẦU & REJECT)</strong> (hoặc ITD ADMIN).</p>
+                                </div>
+                                <p class="text-[11px] text-slate-500">Vui lòng sử dụng tài khoản có Role AUCTION SETTLEMENT (hoặc bấm chọn nút "Settler" / "COD + Settlement" ở thanh trên) để thực hiện.</p>
                             </div>
                         `
                     });
                 } else {
-                    alert('Quyền bị từ chối: Thao tác Reject đại lý thuộc thẩm quyền độc quyền của Quản trị viên Khai thác (COD ADMIN)!');
+                    alert('Quyền bị từ chối: Thao tác Reject đại lý thuộc thẩm quyền độc quyền của Quản trị viên Chốt thầu (AUCTION SETTLEMENT) hoặc ITD Admin!');
                 }
                 return;
             }
@@ -1613,7 +1695,15 @@
             const hasBids = bids.length > 0;
             const canEdit = isOpen && !hasBids;
 
+            const curAdminForBtn = CargoStore.getCurrentAdmin ? CargoStore.getCurrentAdmin() : {};
+            const hasSettlementBtn = CargoStore.hasSettlementRole ? CargoStore.hasSettlementRole(curAdminForBtn) : false;
+
             btnContainer.innerHTML = `
+                ${(isOpen && !hideCloseBtn && hasSettlementBtn) ? `
+                    <button onclick="handleDetailCloseAuction()" class="bg-amber-600 hover:bg-amber-700 text-white text-xs font-bold px-3.5 py-2 rounded-xl transition shadow flex items-center gap-1.5 cursor-pointer" title="Chốt đóng phiên và Auto-confirm mức giá cao nhất">
+                        <i class="fa-solid fa-gavel"></i> Chốt phiên đấu giá
+                    </button>
+                ` : ''}
                 <button onclick="openDetailBroadcastModal()" class="bg-blue-600 hover:bg-blue-700 text-white text-xs font-bold px-3.5 py-2 rounded-xl transition shadow flex items-center gap-1.5 cursor-pointer">
                     <i class="fa-solid fa-bullhorn"></i> Phát thông báo
                 </button>
