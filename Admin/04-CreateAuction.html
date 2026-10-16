@@ -787,6 +787,32 @@
     </main>
 
     <script>
+        document.addEventListener('DOMContentLoaded', function () {
+            const admin = (window.CargoStore && CargoStore.getCurrentAdmin) ? CargoStore.getCurrentAdmin() : null;
+            const role = (admin && admin.role ? admin.role : '').toUpperCase();
+            if (role === 'STAFF') {
+                const main = document.querySelector('main');
+                if (main) {
+                    main.innerHTML = `
+                        <div class="max-w-xl mx-auto my-12 bg-white rounded-3xl p-8 border shadow-xl text-center space-y-4">
+                            <div class="w-16 h-16 bg-red-100 text-red-600 rounded-2xl mx-auto flex items-center justify-center text-3xl shadow-sm">
+                                <i class="fa-solid fa-ban"></i>
+                            </div>
+                            <h2 class="text-xl font-bold text-slate-900">Truy cập bị từ chối (Access Denied)</h2>
+                            <p class="text-xs text-slate-600 leading-relaxed">
+                                Tài khoản <strong>Nhân viên Điều hành (STAFF)</strong> không có quyền tạo chuyến bay mới. Thao tác này thuộc thẩm quyền của <strong>COD ADMIN</strong> hoặc <strong>ITD ADMIN</strong>.
+                            </p>
+                            <a href="02-AdminDashboard.html" class="inline-block bg-blue-600 hover:bg-blue-700 text-white text-xs font-bold px-6 py-3 rounded-xl transition shadow">
+                                Quay lại Admin Dashboard
+                            </a>
+                        </div>
+                    `;
+                }
+                if (window.CargoStore && CargoStore.syncAdminHeaderUI) CargoStore.syncAdminHeaderUI();
+                return;
+            }
+        });
+
         function toggleAdminMobileNav() {
             const nav = document.getElementById('adminMobileNav');
             if (nav) nav.classList.toggle('hidden');

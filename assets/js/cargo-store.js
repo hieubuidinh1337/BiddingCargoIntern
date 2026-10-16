@@ -121,28 +121,37 @@ const CargoStore = (function () {
             id: 99,
             username: 'admin',
             password: 'admin2026',
-            role: 'ADMIN',
-            fullName: 'Trần Quản Trị',
+            role: 'ITD_ADMIN',
+            fullName: 'Trần Quản Trị (ITD Admin)',
             email: 'admin@airline.vn',
-            department: 'Cargo Operations Directorate'
+            department: 'Information Technology Directorate (ITD)'
         },
         {
             id: 98,
+            username: 'cod_admin',
+            password: 'admin2026',
+            role: 'COD_ADMIN',
+            fullName: 'Lê Khai Thác (COD Admin)',
+            email: 'cod@airline.vn',
+            department: 'Cargo Operations Directorate (COD)'
+        },
+        {
+            id: 97,
             username: 'staff01',
             password: 'staff2026',
             role: 'STAFF',
-            fullName: 'Nguyễn Điều Hành',
+            fullName: 'Nguyễn Điều Hành (Staff)',
             email: 'staff01@airline.vn',
             department: 'Air Cargo Flight Operations'
         },
         {
-            id: 97,
+            id: 96,
             username: 'staff02',
             password: 'staff2026',
             role: 'STAFF',
-            fullName: 'Lê Thị Bích Vân',
+            fullName: 'Lê Thị Bích Vân (Staff)',
             email: 'staff02@airline.vn',
-            department: 'Agent Audit & Approval'
+            department: 'Cargo Reporting & Analytics'
         }
     ];
 
@@ -175,10 +184,10 @@ const CargoStore = (function () {
             id: 99,
             username: 'admin',
             password: 'admin2026',
-            role: 'ADMIN',
-            fullName: 'Trần Quản Trị',
+            role: 'ITD_ADMIN',
+            fullName: 'Trần Quản Trị (ITD Admin)',
             email: 'admin@airline.vn',
-            department: 'Cargo Operations Directorate'
+            department: 'Information Technology Directorate (ITD)'
         },
         agentsList: seedAgents,
         adminsList: seedAdmins,
@@ -970,6 +979,38 @@ const CargoStore = (function () {
             if (!data.aircraftTypes || !Array.isArray(data.aircraftTypes) || data.aircraftTypes.length === 0) {
                 data.aircraftTypes = JSON.parse(JSON.stringify(defaultData.aircraftTypes));
                 updated = true;
+            }
+
+            // Ensure 3 roles in adminsList (ITD_ADMIN, COD_ADMIN, STAFF)
+            if (!data.adminsList || !Array.isArray(data.adminsList) || data.adminsList.length === 0) {
+                data.adminsList = JSON.parse(JSON.stringify(seedAdmins));
+                updated = true;
+            } else {
+                const adminRec = data.adminsList.find(a => (a.username || '').toLowerCase() === 'admin');
+                if (adminRec && (adminRec.role === 'ADMIN' || !adminRec.role)) {
+                    adminRec.role = 'ITD_ADMIN';
+                    adminRec.fullName = 'Trần Quản Trị (ITD Admin)';
+                    updated = true;
+                }
+                const hasCod = data.adminsList.some(a => (a.username || '').toLowerCase() === 'cod_admin');
+                if (!hasCod) {
+                    data.adminsList.push({
+                        id: 98,
+                        username: 'cod_admin',
+                        password: 'admin2026',
+                        role: 'COD_ADMIN',
+                        fullName: 'Lê Khai Thác (COD Admin)',
+                        email: 'cod@airline.vn',
+                        department: 'Cargo Operations Directorate (COD)',
+                        status: 'Đang hoạt động'
+                    });
+                    updated = true;
+                }
+                if (data.currentAdmin && data.currentAdmin.role === 'ADMIN') {
+                    data.currentAdmin.role = 'ITD_ADMIN';
+                    data.currentAdmin.fullName = 'Trần Quản Trị (ITD Admin)';
+                    updated = true;
+                }
             }
 
             if (data.bids && Array.isArray(data.bids)) {
@@ -4463,6 +4504,317 @@ const CargoStore = (function () {
             return { success: true, auction: auction };
         },
 
+        // Lấy bảng xếp hạng Top đại lý theo thứ tự giá từ cao xuống thấp & thứ tự tiếp nhận dự phòng
+        getAuctionLeaderboard: function (auctionId) {
+            const data = loadData();
+            const auction = (data.auctions || []).find(a => a.id == auctionId);
+            if (!auction) return [];
+
+            const bids = (data.bids || []).filter(b => b.auctionId == auctionId);
+            if (bids.length === 0) return [];
+
+            // Group by agentCode, lấy mức giá cao nhất mà mỗi đại lý đã đặt
+            const agentMap = {};
+            bids.forEach(b => {
+                const code = (b.agentCode || '').toUpperCase();
+                if (!agentMap[code] || Number(b.priceKg) > Number(agentMap[code].priceKg)) {
+                    agentMap[code] = b;
+                }
+            });
+
+            // Sắp xếp giảm dần theo priceKg, nếu bằng nhau thì ưu tiên thời gian nộp sớm hơn
+            const sortedBids = Object.values(agentMap).sort((a, b) => {
+                const diff = Number(b.priceKg) - Number(a.priceKg);
+                if (diff !== 0) return diff;
+                return (Number(a.timestamp || 0)) - (Number(b.timestamp || 0));
+            });
+
+            const wonItem = (data.wonAuctions || []).find(w => w.auctionId == auctionId);
+            const currentWinnerCode = (auction.winnerAgentCode || (wonItem && wonItem.agentCode) || (sortedBids[0] && sortedBids[0].agentCode) || '').toUpperCase();
+
+            return sortedBids.map((b, idx) => {
+                const code = (b.agentCode || '').toUpperCase();
+                const ag = (data.agentsList || []).find(x => (x.agentCode || '').toUpperCase() === code) || {};
+                
+                const wasCancelledUnpaid = b.status === 'CANCELLED_UNPAID' || 
+                    (wonItem && wonItem.previousWinner && (wonItem.previousWinner.agentCode || '').toUpperCase() === code) ||
+                    (auction.fallbackTransfers && auction.fallbackTransfers.some(t => (t.fromAgentCode || '').toUpperCase() === code));
+
+                const isCurrentWinner = code === currentWinnerCode && !wasCancelledUnpaid;
+
+                let paymentStatus = 'PENDING_PAYMENT';
+                let paidAt = null;
+                if (isCurrentWinner && wonItem) {
+                    paymentStatus = wonItem.paymentStatus || 'UNPAID';
+                    paidAt = wonItem.paidAt || null;
+                }
+
+                return {
+                    rank: idx + 1,
+                    agentCode: b.agentCode,
+                    agentName: b.agentName || ag.companyName || 'Đại lý',
+                    repName: ag.repName || 'Đại diện ủy quyền',
+                    phone: ag.phone || '0901 234 567',
+                    email: ag.email || '-',
+                    priceKg: Number(b.priceKg),
+                    totalAmountVND: Number(b.priceKg) * Number(auction.capacityKg),
+                    timestamp: b.timestamp,
+                    time: b.time || formatTimeAgo(b.timestamp),
+                    isCurrentWinner: isCurrentWinner,
+                    wasCancelledUnpaid: wasCancelledUnpaid,
+                    paymentStatus: isCurrentWinner ? paymentStatus : null,
+                    paidAt: paidAt,
+                    paymentDeadline: (isCurrentWinner && wonItem) ? wonItem.paymentDeadline : null,
+                    canTransferTo: !isCurrentWinner && !wasCancelledUnpaid
+                };
+            });
+        },
+
+        // Điều hành: Chuyển quyền trúng thầu cho đại lý có giá kế tiếp khi đại lý hiện tại không thanh toán
+        transferAuctionWinner: function (auctionId, targetAgentCode, reason) {
+            const data = loadData();
+            const currentAdmin = this.getCurrentAdmin ? this.getCurrentAdmin() : data.currentAdmin;
+            const adminRole = (currentAdmin && currentAdmin.role ? currentAdmin.role : '').toUpperCase();
+            if (adminRole === 'STAFF') {
+                return { 
+                    success: false, 
+                    message: 'Tài khoản Nhân viên (STAFF) không có quyền can thiệp điều chuyển trúng thầu. Thao tác này thuộc thẩm quyền của COD ADMIN hoặc ITD ADMIN.' 
+                };
+            }
+
+            const auction = (data.auctions || []).find(a => a.id == auctionId);
+            if (!auction) return { success: false, message: 'Không tìm thấy chuyến bay / phiên đấu giá.' };
+
+            const bids = (data.bids || []).filter(b => b.auctionId == auctionId);
+            const targetBid = bids.find(b => (b.agentCode || '').toUpperCase() === (targetAgentCode || '').toUpperCase());
+            if (!targetBid) {
+                return { success: false, message: `Không tìm thấy lượt đặt thầu hợp lệ của đại lý ${targetAgentCode}.` };
+            }
+
+            const previousWinnerCode = auction.winnerAgentCode;
+            const previousWinnerName = auction.winnerAgentName || previousWinnerCode;
+            const previousPrice = auction.winningPriceKg;
+
+            // 1. Cập nhật Auction
+            auction.status = 'CLOSED';
+            auction.winnerAgentCode = targetBid.agentCode;
+            auction.winnerAgentName = targetBid.agentName;
+            auction.winningPriceKg = Number(targetBid.priceKg);
+            auction.winnerTotalAmountVND = Number(targetBid.priceKg) * Number(auction.capacityKg);
+            
+            auction.fallbackTransfers = auction.fallbackTransfers || [];
+            auction.fallbackTransfers.push({
+                fromAgentCode: previousWinnerCode,
+                fromAgentName: previousWinnerName,
+                toAgentCode: targetBid.agentCode,
+                toAgentName: targetBid.agentName,
+                priceKg: Number(targetBid.priceKg),
+                transferredAt: new Date().toISOString(),
+                reason: reason || 'Đại lý trúng thầu trước đó không hoàn tất thanh toán đúng hạn quy định'
+            });
+
+            // 2. Cập nhật Bids status
+            bids.forEach(b => {
+                if ((b.agentCode || '').toUpperCase() === (previousWinnerCode || '').toUpperCase()) {
+                    b.status = 'CANCELLED_UNPAID';
+                }
+                if ((b.agentCode || '').toUpperCase() === (targetBid.agentCode || '').toUpperCase()) {
+                    b.status = 'WON';
+                }
+            });
+
+            // 3. Cập nhật WonAuctions
+            if (!data.wonAuctions) data.wonAuctions = [];
+            let wonItem = data.wonAuctions.find(w => w.auctionId == auction.id);
+            const now = new Date();
+            const dateStr = now.toISOString().slice(0, 10).replace(/-/g, '');
+            const newDeadline = calculatePaymentDeadline ? calculatePaymentDeadline(auction, now) : 'Trước giờ bay 3 giờ';
+
+            if (wonItem) {
+                wonItem.previousWinner = {
+                    agentCode: previousWinnerCode,
+                    agentName: previousWinnerName,
+                    transferredAt: now.toLocaleString('vi-VN'),
+                    reason: reason || 'Không thanh toán theo quy chế'
+                };
+                wonItem.agentCode = targetBid.agentCode;
+                wonItem.agentName = targetBid.agentName;
+                wonItem.priceKg = Number(targetBid.priceKg);
+                wonItem.totalAmountVND = Number(targetBid.priceKg) * Number(auction.capacityKg);
+                wonItem.paymentStatus = 'UNPAID';
+                wonItem.paidAt = null;
+                wonItem.paymentProof = null;
+                wonItem.cargoDeclaration = null;
+                wonItem.paymentDeadline = newDeadline;
+                wonItem.isFallbackHandover = true;
+            } else {
+                wonItem = {
+                    wonId: `WON-${dateStr}-${String(auction.id).padStart(2, '0')}`,
+                    auctionId: auction.id,
+                    agentCode: targetBid.agentCode,
+                    agentName: targetBid.agentName,
+                    flightNumber: auction.flightNumber,
+                    route: auction.route,
+                    capacityKg: auction.capacityKg,
+                    priceKg: Number(targetBid.priceKg),
+                    totalAmountVND: Number(targetBid.priceKg) * Number(auction.capacityKg),
+                    paymentDeadline: newDeadline,
+                    paymentStatus: 'UNPAID',
+                    paidAt: null,
+                    notifiedAt: null,
+                    awbNumber: `998-${Math.floor(10000000 + Math.random() * 90000000)}`,
+                    cutOffTime: auction.cutOffTime || 'Hôm nay 18:00',
+                    warehouse: 'Kho hàng SCSC / TCS Tân Sơn Nhất (Cửa số 4)',
+                    cargoDeclaration: null,
+                    isFallbackHandover: true
+                };
+                data.wonAuctions.unshift(wonItem);
+            }
+
+            // 4. Bắn thông báo realtime
+            if (!data.notifications) data.notifications = [];
+            const notifTime = Date.now();
+            
+            // Thông báo cho đại lý kế tiếp được kích hoạt trúng thầu
+            data.notifications.unshift({
+                id: notifTime,
+                timestamp: notifTime,
+                targetAgentCode: targetBid.agentCode,
+                title: `🎉 KÍCH HOẠT TRÚNG THẦU: Chuyến bay ${auction.flightNumber}!`,
+                message: `Quý đại lý ${targetBid.agentName} đã được kích hoạt TRÚNG THẦU chính thức chuyến bay ${auction.flightNumber} (${auction.route}) với mức giá ${formatCurrency(targetBid.priceKg)}/Kg (Tổng giá trị: ${formatCurrency(targetBid.priceKg * auction.capacityKg)}) do đại lý xếp trước không thanh toán. Vui lòng thanh toán trước hạn chót ${newDeadline} để giữ tải trọng.`,
+                time: formatTimeAgo(notifTime),
+                type: 'WON',
+                read: false,
+                link: '07-WonAuction.html'
+            });
+
+            // Thông báo cho đại lý cũ bị hủy quyền
+            if (previousWinnerCode) {
+                data.notifications.unshift({
+                    id: notifTime + 1,
+                    timestamp: notifTime + 1,
+                    targetAgentCode: previousWinnerCode,
+                    title: `⚠️ HỦY QUYỀN TRÚNG THẦU: Chuyến bay ${auction.flightNumber}`,
+                    message: `Quý đại lý đã bị hủy quyền trúng thầu chuyến bay ${auction.flightNumber} (${auction.route}) do quá hạn không hoàn tất thanh toán. Quyền nhận tải trọng đã được điều phối cho đại lý có giá đặt kế tiếp.`,
+                    time: formatTimeAgo(notifTime),
+                    type: 'SYSTEM',
+                    read: false,
+                    link: '06-MyBids.html'
+                });
+            }
+
+            saveData(data);
+
+            const adminActor = (currentAdmin && (currentAdmin.fullName || currentAdmin.username)) || 'Điều hành bay COD';
+            this.logActivity({
+                actor: adminActor,
+                username: (currentAdmin && currentAdmin.username) || 'admin',
+                role: adminRole || 'ADMIN',
+                actionCategory: 'Điều phối trúng thầu',
+                actionTitle: 'Chuyển quyền trúng thầu cho đại lý kế tiếp',
+                target: auction.flightNumber,
+                details: `Chuyển quyền trúng thầu chuyến bay ${auction.flightNumber} (${auction.route}) từ đại lý ${previousWinnerName} sang đại lý ${targetBid.agentName} (${targetBid.agentCode}) mức giá ${this.formatCurrency(targetBid.priceKg)}/Kg. Lý do: ${reason || 'Đại lý trước không thanh toán'}.`
+            });
+
+            if (typeof window !== 'undefined') {
+                window.dispatchEvent(new CustomEvent('cargostore_updated'));
+            }
+
+            return {
+                success: true,
+                message: `Đã chuyển quyền trúng thầu chuyến bay ${auction.flightNumber} thành công cho đại lý ${targetBid.agentName} (${targetBid.agentCode})!`,
+                newWinner: targetBid
+            };
+        },
+
+        // Tiện ích: Tạo 3-4 đại lý đặt thầu mẫu cho chuyến bay để kiểm thử xếp hạng & chuyển thầu
+        seedDemoBidsForAuction: function (auctionId) {
+            const data = loadData();
+            const auction = (data.auctions || []).find(a => a.id == auctionId);
+            if (!auction) return { success: false, message: 'Chuyến bay không tồn tại' };
+
+            const basePrice = Number(auction.startingPriceKg || 20000);
+            const step = Number(auction.minStep || 500);
+
+            const demoAgents = [
+                { code: 'AG-0892', name: 'Công ty TNHH Vận tải ABC Logistics', stepMul: 5 },
+                { code: 'AG-1044', name: 'Công ty Cổ phần Giao nhận Tân Sơn Nhất', stepMul: 4 },
+                { code: 'AG-2309', name: 'Công ty TNHH Quốc tế Đông Dương Logistics', stepMul: 2 },
+                { code: 'AG-3821', name: 'Công ty CP Tiếp vận Hàng không Việt Á', stepMul: 1 }
+            ];
+
+            if (!data.bids) data.bids = [];
+            // Remove previous bids for this auction to have a clean ordered ranking
+            data.bids = data.bids.filter(b => b.auctionId != auctionId);
+
+            const now = Date.now();
+            demoAgents.forEach((ag, i) => {
+                const bidPrice = basePrice + ag.stepMul * step;
+                data.bids.push({
+                    id: 'BID-' + (now - (i * 120000)),
+                    timestamp: now - (i * 120000),
+                    auctionId: auction.id,
+                    flightCode: auction.flightCode,
+                    agentCode: ag.code,
+                    agentName: ag.name,
+                    priceKg: bidPrice,
+                    weightKg: auction.capacityKg,
+                    time: `${(i + 1) * 3} phút trước`,
+                    status: i === 0 ? 'WON' : 'SUBMITTED'
+                });
+            });
+
+            // Set Top 1 as winner
+            const topBid = data.bids.find(b => b.auctionId == auction.id && b.agentCode === 'AG-0892');
+            if (topBid) {
+                auction.currentPriceKg = topBid.priceKg;
+                auction.winnerAgentCode = topBid.agentCode;
+                auction.winnerAgentName = topBid.agentName;
+                auction.winningPriceKg = topBid.priceKg;
+                auction.winnerTotalAmountVND = topBid.priceKg * auction.capacityKg;
+                auction.status = 'CLOSED';
+
+                // Add to wonAuctions as UNPAID (chờ thanh toán để test chuyển thầu)
+                if (!data.wonAuctions) data.wonAuctions = [];
+                let wonItem = data.wonAuctions.find(w => w.auctionId == auction.id);
+                const dateStr = new Date().toISOString().slice(0, 10).replace(/-/g, '');
+                if (wonItem) {
+                    wonItem.agentCode = topBid.agentCode;
+                    wonItem.agentName = topBid.agentName;
+                    wonItem.priceKg = topBid.priceKg;
+                    wonItem.totalAmountVND = topBid.priceKg * auction.capacityKg;
+                    wonItem.paymentStatus = 'UNPAID';
+                    wonItem.paidAt = null;
+                } else {
+                    data.wonAuctions.unshift({
+                        wonId: `WON-${dateStr}-${String(auction.id).padStart(2, '0')}`,
+                        auctionId: auction.id,
+                        agentCode: topBid.agentCode,
+                        agentName: topBid.agentName,
+                        flightNumber: auction.flightNumber,
+                        route: auction.route,
+                        capacityKg: auction.capacityKg,
+                        priceKg: topBid.priceKg,
+                        totalAmountVND: topBid.priceKg * auction.capacityKg,
+                        paymentDeadline: 'Trước giờ bay 3 giờ',
+                        paymentStatus: 'UNPAID',
+                        paidAt: null,
+                        notifiedAt: null,
+                        awbNumber: `998-${Math.floor(10000000 + Math.random() * 90000000)}`,
+                        cutOffTime: auction.cutOffTime || 'Hôm nay 18:00',
+                        warehouse: 'Kho hàng SCSC / TCS Tân Sơn Nhất',
+                        cargoDeclaration: null
+                    });
+                }
+            }
+
+            saveData(data);
+            if (typeof window !== 'undefined') {
+                window.dispatchEvent(new CustomEvent('cargostore_updated'));
+            }
+            return { success: true, message: 'Đã tạo 4 đại lý đặt thầu mẫu với các mức giá khác nhau. Bạn có thể thử nghiệm chuyển thầu cho đại lý kế tiếp ngay!' };
+        },
+
         confirmPayment: function (wonId) {
             const data = loadData();
             if (!data.wonAuctions) data.wonAuctions = [];
@@ -5339,8 +5691,15 @@ const CargoStore = (function () {
 
         updateUserRole: function (identifier, newRole, type = 'agent') {
             const data = loadData();
-            if (data.currentAdmin && data.currentAdmin.role === 'STAFF') {
-                return { success: false, message: 'Nhân viên (STAFF) không có quyền phân quyền hoặc thay đổi vai trò/phân hạng người dùng. Thao tác này chỉ dành cho Quản trị viên (ADMIN).' };
+            const currentAdminRole = (data.currentAdmin && data.currentAdmin.role || '').toUpperCase();
+            const isItdAdmin = (currentAdminRole === 'ITD_ADMIN' || currentAdminRole === 'ADMIN');
+
+            if (type === 'staff') {
+                if (!isItdAdmin) {
+                    return { success: false, message: 'Chỉ Quản trị viên ITD ADMIN (Full quyền) mới có thẩm quyền phân quyền vai trò cho nhân sự.' };
+                }
+            } else if (currentAdminRole === 'STAFF') {
+                return { success: false, message: 'Nhân viên (STAFF) không có quyền thay đổi phân hạng đại lý. Thao tác này thuộc thẩm quyền của COD ADMIN hoặc ITD ADMIN.' };
             }
 
             if (type === 'agent') {
@@ -5375,8 +5734,11 @@ const CargoStore = (function () {
 
         createStaffAccount: function (staffData) {
             const data = loadData();
-            if (data.currentAdmin && data.currentAdmin.role === 'STAFF') {
-                return { success: false, message: 'Nhân viên (STAFF) không có quyền tạo hoặc phân quyền tài khoản nhân viên mới. Thao tác này chỉ dành cho Quản trị viên (ADMIN).' };
+            const currentAdminRole = (data.currentAdmin && data.currentAdmin.role || '').toUpperCase();
+            const isItdAdmin = (currentAdminRole === 'ITD_ADMIN' || currentAdminRole === 'ADMIN');
+
+            if (!isItdAdmin) {
+                return { success: false, message: 'Chỉ Quản trị viên ITD ADMIN (Full quyền) mới có quyền tạo mới tài khoản quản trị và nhân sự.' };
             }
 
             if (!data.adminsList) data.adminsList = seedAdmins;
@@ -5406,13 +5768,16 @@ const CargoStore = (function () {
                 target: u,
                 details: `Khởi tạo tài khoản nhân viên vận hành mới: ${newStaff.fullName} (@${u}), Phòng ban: ${newStaff.department}, Vai trò: ${newStaff.role}.`
             });
-            return { success: true, message: `Đã tạo mới tài khoản nhân viên "${u}" (${newStaff.fullName}).`, staff: newStaff };
+            return { success: true, message: `Đã tạo mới tài khoản "${u}" (${newStaff.fullName}) với vai trò ${newStaff.role}.`, staff: newStaff };
         },
 
         updateSystemSettings: function (settingsData) {
             const data = loadData();
-            if (data.currentAdmin && data.currentAdmin.role === 'STAFF') {
-                return { success: false, message: 'Nhân viên (STAFF) không có quyền thay đổi cấu hình hệ thống (CRUD System Settings). Thao tác này chỉ dành cho Quản trị viên (ADMIN).' };
+            const currentAdminRole = (data.currentAdmin && data.currentAdmin.role || '').toUpperCase();
+            const isItdAdmin = (currentAdminRole === 'ITD_ADMIN' || currentAdminRole === 'ADMIN');
+
+            if (!isItdAdmin) {
+                return { success: false, message: 'Chỉ Quản trị viên ITD ADMIN (Full quyền) mới có quyền thay đổi Cấu hình hệ thống (Settings).' };
             }
 
             if (!data.settings) data.settings = {};
@@ -5718,8 +6083,9 @@ const CargoStore = (function () {
 
         clearActivityLogs: function () {
             const data = loadData();
-            if (data.currentAdmin && data.currentAdmin.role === 'STAFF') {
-                return { success: false, message: 'Nhân viên (STAFF) không có quyền xóa nhật ký hệ thống.' };
+            const currentAdminRole = (data.currentAdmin && data.currentAdmin.role || '').toUpperCase();
+            if (currentAdminRole !== 'ITD_ADMIN' && currentAdminRole !== 'ADMIN') {
+                return { success: false, message: 'Chỉ Quản trị viên ITD ADMIN mới có quyền xóa nhật ký hệ thống.' };
             }
             data.activityLogs = [];
             saveData(data);
@@ -5875,15 +6241,33 @@ const CargoStore = (function () {
 
         syncAdminHeaderUI: function () {
             const pathname = (typeof window !== 'undefined' && window.location.pathname) ? window.location.pathname.toLowerCase() : '';
-            const isAdminPage = pathname.includes('/admin/') || pathname.includes('\\admin\\');
+            const isAdminPage = pathname.includes('/admin/') || pathname.includes('\\admin\\') || pathname.startsWith('/admin');
             if (!isAdminPage) return;
 
             const admin = this.getCurrentAdmin();
             if (!admin) return;
 
-            const isStaff = admin.role === 'STAFF';
-            const roleName = isStaff ? 'NHÂN VIÊN ĐIỀU HÀNH' : 'QUẢN TRỊ VIÊN';
-            const badgeClass = isStaff ? 'bg-emerald-500/20 text-emerald-400 border border-emerald-500/30' : 'bg-blue-500/20 text-blue-400 border border-blue-500/30';
+            const role = (admin.role || '').toUpperCase();
+            const isItdAdmin = (role === 'ITD_ADMIN' || role === 'ADMIN');
+            const isCodAdmin = (role === 'COD_ADMIN');
+            const isStaff = (role === 'STAFF');
+
+            let roleName = 'QUẢN TRỊ VIÊN HỆ THỐNG (ITD ADMIN)';
+            let roleBadge = 'ITD ADMIN';
+            let badgeClass = 'bg-blue-500/20 text-blue-400 border border-blue-500/30';
+            let roleIcon = '<i class="fa-solid fa-shield-halved text-[9px]"></i>';
+
+            if (isCodAdmin) {
+                roleName = 'ĐIỀU HÀNH KHAI THÁC (COD ADMIN)';
+                roleBadge = 'COD ADMIN';
+                badgeClass = 'bg-amber-500/20 text-amber-400 border border-amber-500/30';
+                roleIcon = '<i class="fa-solid fa-plane-circle-check text-[9px]"></i>';
+            } else if (isStaff) {
+                roleName = 'NHÂN VIÊN ĐIỀU HÀNH (STAFF)';
+                roleBadge = 'STAFF';
+                badgeClass = 'bg-emerald-500/20 text-emerald-400 border border-emerald-500/30';
+                roleIcon = '<i class="fa-solid fa-file-invoice text-[9px]"></i>';
+            }
 
             document.querySelectorAll('.admin-header-name').forEach(el => {
                 el.textContent = admin.fullName || admin.username;
@@ -5891,18 +6275,35 @@ const CargoStore = (function () {
 
             document.querySelectorAll('.admin-header-role').forEach(el => {
                 el.className = `text-[10px] font-bold px-2 py-0.5 rounded-full ${badgeClass} inline-flex items-center gap-1`;
-                el.innerHTML = isStaff ? '<i class="fa-solid fa-user-gear text-[9px]"></i> ' + roleName : '<i class="fa-solid fa-shield-halved text-[9px]"></i> ' + roleName;
+                el.innerHTML = `${roleIcon} ${roleBadge}`;
+                el.title = roleName;
             });
 
-            // Hide AgentList & AuditLogs nav links for STAFF across headers & dashboard
+            // Nav link visibility across headers, mobile menu, and dashboard cards
             if (isStaff) {
-                document.querySelectorAll('a[href*="06-AgentList.html"], a[href*="10-AuditLogs.html"]').forEach(el => {
+                // STAFF: Reports only, view auction list and dashboard
+                // Hide: Create Auction, Agent List, Settings, Audit Logs
+                document.querySelectorAll(`
+                    a[href*="04-CreateAuction.html"], a[href*="create-auction"],
+                    a[href*="06-AgentList.html"], a[href*="agents"],
+                    a[href*="08-Settings.html"], a[href*="settings"],
+                    a[href*="10-AuditLogs.html"], a[href*="audit-logs"]
+                `).forEach(el => {
+                    el.style.display = 'none';
+                });
+            } else if (isCodAdmin) {
+                // COD ADMIN: Approves agents, creates flights/auctions, views reports
+                // Hide: Settings, Audit Logs (reserved for ITD ADMIN)
+                document.querySelectorAll(`
+                    a[href*="08-Settings.html"], a[href*="settings"],
+                    a[href*="10-AuditLogs.html"], a[href*="audit-logs"]
+                `).forEach(el => {
                     el.style.display = 'none';
                 });
             }
 
-            // Block access on 06-AgentList.html for STAFF
-            if (isStaff && typeof window !== 'undefined' && window.location.pathname.includes('06-AgentList.html')) {
+            // Block access on 04-CreateAuction.html for STAFF
+            if (isStaff && (pathname.includes('04-createauction') || pathname.endsWith('/create-auction'))) {
                 const main = document.querySelector('main');
                 if (main) {
                     main.innerHTML = `
@@ -5912,7 +6313,7 @@ const CargoStore = (function () {
                             </div>
                             <h2 class="text-xl font-bold text-slate-900">Truy cập bị từ chối (Access Denied)</h2>
                             <p class="text-xs text-slate-600 leading-relaxed">
-                                Tài khoản <strong>Nhân viên Điều hành (STAFF)</strong> không có quyền sử dụng trang Quản lý Đại lý & Phê duyệt hồ sơ. Thao tác này thuộc thẩm quyền của <strong>Quản trị viên (ADMIN)</strong>.
+                                Tài khoản <strong>Nhân viên Điều hành (STAFF)</strong> không có quyền tạo chuyến bay mới. Thao tác này thuộc thẩm quyền của <strong>COD ADMIN</strong> hoặc <strong>ITD ADMIN</strong>.
                             </p>
                             <a href="02-AdminDashboard.html" class="inline-block bg-blue-600 hover:bg-blue-700 text-white text-xs font-bold px-6 py-3 rounded-xl transition shadow">
                                 Quay lại Admin Dashboard
@@ -5922,8 +6323,8 @@ const CargoStore = (function () {
                 }
             }
 
-            // Block access on 10-AuditLogs.html for STAFF
-            if (isStaff && typeof window !== 'undefined' && window.location.pathname.includes('10-AuditLogs.html')) {
+            // Block access on 06-AgentList.html for STAFF
+            if (isStaff && (pathname.includes('06-agentlist') || pathname.endsWith('/agents') || pathname.endsWith('/agent-list'))) {
                 const main = document.querySelector('main');
                 if (main) {
                     main.innerHTML = `
@@ -5933,7 +6334,49 @@ const CargoStore = (function () {
                             </div>
                             <h2 class="text-xl font-bold text-slate-900">Truy cập bị từ chối (Access Denied)</h2>
                             <p class="text-xs text-slate-600 leading-relaxed">
-                                Tài khoản <strong>Nhân viên Điều hành (STAFF)</strong> không có quyền xem <strong>Nhật ký hoạt động & Bảo mật hệ thống</strong>. Thao tác này thuộc thẩm quyền của <strong>Quản trị viên (ADMIN)</strong>.
+                                Tài khoản <strong>Nhân viên Điều hành (STAFF)</strong> không có quyền sử dụng trang Quản lý Đại lý & Phê duyệt hồ sơ. Thao tác này thuộc thẩm quyền của <strong>COD ADMIN</strong> hoặc <strong>ITD ADMIN</strong>.
+                            </p>
+                            <a href="02-AdminDashboard.html" class="inline-block bg-blue-600 hover:bg-blue-700 text-white text-xs font-bold px-6 py-3 rounded-xl transition shadow">
+                                Quay lại Admin Dashboard
+                            </a>
+                        </div>
+                    `;
+                }
+            }
+
+            // Block access on 08-Settings.html for non-ITD_ADMIN
+            if (!isItdAdmin && (pathname.includes('08-settings') || pathname.endsWith('/settings') || pathname.endsWith('/setting'))) {
+                const main = document.querySelector('main');
+                if (main) {
+                    main.innerHTML = `
+                        <div class="max-w-xl mx-auto my-12 bg-white rounded-3xl p-8 border shadow-xl text-center space-y-4">
+                            <div class="w-16 h-16 bg-red-100 text-red-600 rounded-2xl mx-auto flex items-center justify-center text-3xl shadow-sm">
+                                <i class="fa-solid fa-ban"></i>
+                            </div>
+                            <h2 class="text-xl font-bold text-slate-900">Truy cập bị từ chối (Access Denied)</h2>
+                            <p class="text-xs text-slate-600 leading-relaxed">
+                                Tài khoản <strong>${roleName}</strong> không có quyền can thiệp Cấu hình kỹ thuật hệ thống. Trang này thuộc thẩm quyền riêng của <strong>Quản trị viên ITD ADMIN</strong>.
+                            </p>
+                            <a href="02-AdminDashboard.html" class="inline-block bg-blue-600 hover:bg-blue-700 text-white text-xs font-bold px-6 py-3 rounded-xl transition shadow">
+                                Quay lại Admin Dashboard
+                            </a>
+                        </div>
+                    `;
+                }
+            }
+
+            // Block access on 10-AuditLogs.html for non-ITD_ADMIN
+            if (!isItdAdmin && (pathname.includes('10-auditlogs') || pathname.endsWith('/audit-logs') || pathname.endsWith('/logs'))) {
+                const main = document.querySelector('main');
+                if (main) {
+                    main.innerHTML = `
+                        <div class="max-w-xl mx-auto my-12 bg-white rounded-3xl p-8 border shadow-xl text-center space-y-4">
+                            <div class="w-16 h-16 bg-red-100 text-red-600 rounded-2xl mx-auto flex items-center justify-center text-3xl shadow-sm">
+                                <i class="fa-solid fa-ban"></i>
+                            </div>
+                            <h2 class="text-xl font-bold text-slate-900">Truy cập bị từ chối (Access Denied)</h2>
+                            <p class="text-xs text-slate-600 leading-relaxed">
+                                Tài khoản <strong>${roleName}</strong> không có quyền xem <strong>Nhật ký hoạt động & Bảo mật hệ thống</strong>. Thao tác này thuộc thẩm quyền riêng của <strong>Quản trị viên ITD ADMIN</strong>.
                             </p>
                             <a href="02-AdminDashboard.html" class="inline-block bg-blue-600 hover:bg-blue-700 text-white text-xs font-bold px-6 py-3 rounded-xl transition shadow">
                                 Quay lại Admin Dashboard

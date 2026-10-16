@@ -493,8 +493,8 @@
                                 class="fa-solid fa-filter text-slate-400"></i> Trạng thái:</span>
                         <select id="regStatusFilter" onchange="renderAgentsList()"
                             class="w-full bg-slate-50 border border-slate-200 rounded-xl px-2.5 py-2 font-medium text-slate-700 focus:outline-none focus:border-blue-500 transition">
+                            <option value="PENDING" selected>Chờ duyệt / Chưa phê duyệt</option>
                             <option value="ALL">Tất cả trạng thái</option>
-                            <option value="PENDING">Chờ duyệt / Chưa phê duyệt</option>
                             <option value="APPROVED">Đã phê duyệt</option>
                             <option value="REJECTED">Đã từ chối</option>
                         </select>
@@ -684,8 +684,10 @@
                     <label class="block font-semibold text-slate-700 mb-1">Phân quyền vai trò</label>
                     <select id="newStaffRole"
                         class="w-full border rounded-xl px-3 py-2 bg-white outline-none focus:ring-2 focus:ring-blue-500">
-                        <option value="STAFF">NHÂN VIÊN ĐIỀU HÀNH (STAFF)</option>
-                        <option value="ADMIN">QUẢN TRỊ VIÊN HỆ THỐNG (ADMIN)</option>
+                        <option value="ITD_ADMIN">QUẢN TRỊ VIÊN HỆ THỐNG (ITD ADMIN) - Full quyền</option>
+                        <option value="COD_ADMIN">ĐIỀU HÀNH KHAI THÁC (COD ADMIN) - Duyệt đại lý / Tạo chuyến bay</option>
+                        <option value="STAFF">NHÂN VIÊN ĐIỀU HÀNH (STAFF) - Xuất xem các report</option>
+
                     </select>
                 </div>
                 <div>
@@ -1007,7 +1009,9 @@
             if (typeof CargoStore === 'undefined') return;
             const data = CargoStore.getData();
             const currentAdmin = CargoStore.getCurrentAdmin();
-            const isStaff = currentAdmin && currentAdmin.role === 'STAFF';
+            const currentAdminRole = (currentAdmin && currentAdmin.role ? currentAdmin.role : '').toUpperCase();
+            const isItdAdmin = (currentAdminRole === 'ITD_ADMIN' || currentAdminRole === 'ADMIN');
+            const isStaff = (currentAdminRole === 'STAFF');
 
             // Notice Banner for Staff
             const noticeContainer = document.getElementById('staffListNotice');
@@ -1031,11 +1035,11 @@
             // Disable or hide Add Staff button for Staff
             const addStaffBtn = document.getElementById('addStaffBtn');
             if (addStaffBtn) {
-                if (isStaff) {
+                if (!isItdAdmin) {
                     addStaffBtn.disabled = true;
                     addStaffBtn.className = 'bg-slate-200 text-slate-400 text-xs font-bold px-3 py-1.5 rounded-xl cursor-not-allowed flex items-center gap-1.5';
-                    addStaffBtn.title = 'Nhân viên không có quyền cấp tài khoản nhân sự mới';
-                    addStaffBtn.innerHTML = '<i class="fa-solid fa-lock"></i> Giới hạn tạo nhân viên';
+                    addStaffBtn.title = 'Chỉ Quản trị viên ITD ADMIN (Full quyền) mới có thẩm quyền cấp tài khoản nhân sự mới';
+                    addStaffBtn.innerHTML = '<i class="fa-solid fa-lock"></i> Giới hạn tạo nhân sự';
                 } else {
                     addStaffBtn.disabled = false;
                     addStaffBtn.className = 'bg-blue-600 hover:bg-blue-700 text-white text-xs font-bold px-3 py-1.5 rounded-xl transition shadow flex items-center gap-1.5';
@@ -1381,7 +1385,18 @@
             const staffTbody = document.getElementById('staffTableBody');
             staffTbody.innerHTML = staffList.map(st => {
                 const isLocked = st.status === 'Đã khóa' || st.status === 'LOCKED';
-                const isAdmin = st.role === 'ADMIN';
+                const rUpper = (st.role || '').toUpperCase();
+                const isItemItd = rUpper === 'ITD_ADMIN' || rUpper === 'ADMIN';
+                const isItemCod = rUpper === 'COD_ADMIN';
+
+                let roleBadgeHtml = '';
+                if (isItemItd) {
+                    roleBadgeHtml = '<span class="bg-blue-100 text-blue-800 border border-blue-200 font-bold px-2 py-0.5 rounded text-[10px] inline-flex items-center gap-1"><i class="fa-solid fa-shield-halved text-[9px]"></i> ITD ADMIN (Full quyền)</span>';
+                } else if (isItemCod) {
+                    roleBadgeHtml = '<span class="bg-amber-100 text-amber-800 border border-amber-200 font-bold px-2 py-0.5 rounded text-[10px] inline-flex items-center gap-1"><i class="fa-solid fa-plane-circle-check text-[9px]"></i> COD ADMIN (Duyệt đại lý / Chuyến bay)</span>';
+                } else {
+                    roleBadgeHtml = '<span class="bg-emerald-100 text-emerald-800 border border-emerald-200 font-bold px-2 py-0.5 rounded text-[10px] inline-flex items-center gap-1"><i class="fa-solid fa-file-invoice text-[9px]"></i> STAFF (Xuất xem report)</span>';
+                }
 
                 return `
                     <tr class="hover:bg-slate-50 transition">
@@ -1390,9 +1405,7 @@
                         <td class="py-3.5 px-4 text-slate-600 font-medium">${st.department || 'Air Cargo Flight Operations'}</td>
                         <td class="py-3.5 px-4 text-slate-500 font-mono text-[11px]">${st.email || '-'}</td>
                         <td class="py-3.5 px-4">
-                            <span class="${isAdmin ? 'bg-blue-100 text-blue-800' : 'bg-emerald-100 text-emerald-800'} font-bold px-2 py-0.5 rounded text-[10px]">
-                                ${isAdmin ? 'ADMIN (QUẢN TRỊ)' : 'STAFF (ĐIỀU HÀNH)'}
-                            </span>
+                            ${roleBadgeHtml}
                         </td>
                         <td class="py-3.5 px-4">
                             ${isLocked ?
@@ -1400,16 +1413,16 @@
                         '<span class="bg-emerald-100 text-emerald-700 font-bold px-2.5 py-1 rounded-full text-[10px] inline-flex items-center gap-1"><i class="fa-solid fa-circle-check"></i> HOẠT ĐỘNG</span>'}
                         </td>
                         <td class="py-3.5 px-4 text-right space-x-1.5 whitespace-nowrap">
-                            ${st.username !== 'admin' ? (isStaff ? `
-                                <button disabled class="inline-flex items-center gap-1 bg-slate-100 text-slate-400 font-semibold px-2 py-1 rounded-lg opacity-60 cursor-not-allowed" title="Chỉ ADMIN mới có quyền phân quyền vai trò">
-                                    <i class="fa-solid fa-id-badge text-[10px]"></i> Cấp ${isAdmin ? 'Staff' : 'Admin'}
+                            ${st.username !== 'admin' ? (!isItdAdmin ? `
+                                <button disabled class="inline-flex items-center gap-1 bg-slate-100 text-slate-400 font-semibold px-2 py-1 rounded-lg opacity-60 cursor-not-allowed" title="Chỉ ITD ADMIN mới có quyền phân quyền vai trò">
+                                    <i class="fa-solid fa-id-badge text-[10px]"></i> Đổi quyền
                                 </button>
-                                <button disabled class="inline-flex items-center gap-1 bg-slate-100 text-slate-400 font-semibold px-2 py-1 rounded-lg opacity-60 cursor-not-allowed" title="Chỉ ADMIN mới có quyền khóa/kích hoạt nhân sự">
+                                <button disabled class="inline-flex items-center gap-1 bg-slate-100 text-slate-400 font-semibold px-2 py-1 rounded-lg opacity-60 cursor-not-allowed" title="Chỉ ITD ADMIN mới có quyền khóa/kích hoạt nhân sự">
                                     <i class="fa-solid ${isLocked ? 'fa-lock-open' : 'fa-lock'} text-[10px]"></i> ${isLocked ? 'Mở khóa' : 'Khóa'}
                                 </button>
                             ` : `
-                                <button onclick="handleToggleRole('${st.username}', '${isAdmin ? 'STAFF' : 'ADMIN'}')" class="inline-flex items-center gap-1 bg-slate-100 hover:bg-slate-200 text-slate-700 font-semibold px-2 py-1 rounded-lg transition" title="Đổi quyền">
-                                    <i class="fa-solid fa-id-badge text-[10px]"></i> Cấp ${isAdmin ? 'Staff' : 'Admin'}
+                                <button onclick="handleToggleRole('${st.username}', '${st.role || 'STAFF'}')" class="inline-flex items-center gap-1 bg-blue-50 hover:bg-blue-100 text-blue-700 font-semibold px-2.5 py-1 rounded-lg transition" title="Đổi quyền trong 3 vai trò (ITD Admin, COD Admin, Staff)">
+                                    <i class="fa-solid fa-id-badge text-[10px]"></i> Đổi quyền
                                 </button>
                                 <button onclick="handleToggleLock('${st.username}', 'staff')" class="inline-flex items-center gap-1 ${isLocked ? 'bg-emerald-50 hover:bg-emerald-100 text-emerald-700' : 'bg-red-50 hover:bg-red-100 text-red-600'} font-semibold px-2 py-1 rounded-lg transition">
                                     <i class="fa-solid ${isLocked ? 'fa-lock-open' : 'fa-lock'} text-[10px]"></i> ${isLocked ? 'Mở khóa' : 'Khóa'}
@@ -1566,15 +1579,67 @@
         }
 
 
-        async function handleToggleRole(username, newRole) {
-            const ok = window.showConfirm ? await window.showConfirm(`Xác nhận chuyển vai trò tài khoản "${username}" sang ${newRole}?`) : confirm(`Xác nhận chuyển vai trò tài khoản "${username}" sang ${newRole}?`);
-            if (ok) {
-                const res = CargoStore.updateUserRole(username, newRole, 'staff');
-                if (res.success) {
+        async function handleToggleRole(username, currentRole) {
+            const admin = CargoStore.getCurrentAdmin();
+            const currentAdminRole = (admin && admin.role ? admin.role : '').toUpperCase();
+            if (currentAdminRole !== 'ITD_ADMIN' && currentAdminRole !== 'ADMIN') {
+                alert('Chỉ tài khoản ITD ADMIN (Full quyền) mới có thẩm quyền phân quyền vai trò cho nhân sự!');
+                return;
+            }
+
+            if (window.Swal) {
+                const { value: selectedRole } = await Swal.fire({
+                    title: 'Phân quyền vai trò tài khoản',
+                    html: `
+                        <div class="text-left text-xs space-y-2 pt-2">
+                            <p class="text-slate-600 mb-2">Chọn vai trò mới cho tài khoản <strong>@${username}</strong>:</p>
+                            <label class="flex items-center gap-2.5 p-2.5 rounded-xl border border-slate-200 hover:bg-blue-50/50 cursor-pointer">
+                                <input type="radio" name="swalRoleChoice" value="ITD_ADMIN" ${currentRole === 'ITD_ADMIN' || currentRole === 'ADMIN' ? 'checked' : ''} class="w-4 h-4 text-blue-600">
+                                <div>
+                                    <div class="font-bold text-slate-900">ITD ADMIN</div>
+                                    <div class="text-[11px] text-slate-500">Toàn quyền hệ thống (Full Quyền)</div>
+                                </div>
+                            </label>
+                            <label class="flex items-center gap-2.5 p-2.5 rounded-xl border border-slate-200 hover:bg-amber-50/50 cursor-pointer">
+                                <input type="radio" name="swalRoleChoice" value="COD_ADMIN" ${currentRole === 'COD_ADMIN' ? 'checked' : ''} class="w-4 h-4 text-amber-600">
+                                <div>
+                                    <div class="font-bold text-slate-900">COD ADMIN</div>
+                                    <div class="text-[11px] text-slate-500">Duyệt đại lý / Tạo chuyến bay ..</div>
+                                </div>
+                            </label>
+                            <label class="flex items-center gap-2.5 p-2.5 rounded-xl border border-slate-200 hover:bg-emerald-50/50 cursor-pointer">
+                                <input type="radio" name="swalRoleChoice" value="STAFF" ${currentRole === 'STAFF' ? 'checked' : ''} class="w-4 h-4 text-emerald-600">
+                                <div>
+                                    <div class="font-bold text-slate-900">STAFF</div>
+                                    <div class="text-[11px] text-slate-500">Xuất xem các report</div>
+                                </div>
+                            </label>
+                        </div>
+                    `,
+                    showCancelButton: true,
+                    confirmButtonText: 'Lưu phân quyền',
+                    cancelButtonText: 'Hủy bỏ',
+                    preConfirm: () => {
+                        const checked = document.querySelector('input[name="swalRoleChoice"]:checked');
+                        return checked ? checked.value : null;
+                    }
+                });
+
+                if (selectedRole && selectedRole !== currentRole) {
+                    const res = CargoStore.updateUserRole(username, selectedRole, 'staff');
+                    if (res.success) {
+                        Swal.fire('Thành công', res.message, 'success');
+                        renderAgentsList();
+                    } else {
+                        Swal.fire('Thất bại', res.message, 'error');
+                    }
+                }
+            } else {
+                const choice = prompt(`Nhập vai trò mới cho tài khoản "${username}" (ITD_ADMIN / COD_ADMIN / STAFF):`, currentRole);
+                if (choice && choice.trim() !== currentRole) {
+                    const res = CargoStore.updateUserRole(username, choice.trim().toUpperCase(), 'staff');
                     alert(res.message);
                     renderAgentsList();
-                } else {
-                    alert(res.message);
                 }
             }
         }
@@ -1611,8 +1676,9 @@
 
         function openAddStaffModal() {
             const admin = CargoStore.getCurrentAdmin();
-            if (admin && admin.role === 'STAFF') {
-                alert('Tài khoản Nhân viên không có quyền cấp tài khoản nhân sự mới!');
+            const role = (admin && admin.role ? admin.role : '').toUpperCase();
+            if (role !== 'ITD_ADMIN' && role !== 'ADMIN') {
+                alert('Chỉ tài khoản ITD ADMIN (Full quyền) mới có quyền cấp mới và phân quyền tài khoản nhân sự!');
                 return;
             }
             document.getElementById('addStaffModal').classList.remove('hidden');
@@ -2028,8 +2094,57 @@
         }
 
         document.addEventListener('DOMContentLoaded', function () {
+            // Read URL search params
+            const params = new URLSearchParams(window.location.search);
+            const tabParam = params.get('tab');
+            const statusParam = params.get('status') || params.get('filter');
+            const searchParam = params.get('q') || params.get('search');
+            const regIdParam = params.get('regId');
+
+            if (tabParam) {
+                switchTab(tabParam);
+            }
+
+            if (statusParam) {
+                const upperStatus = statusParam.toUpperCase();
+                if (!tabParam && ['PENDING', 'APPROVED', 'REJECTED', 'ALL'].includes(upperStatus)) {
+                    switchTab('REGISTRATIONS');
+                }
+                const regFilter = document.getElementById('regStatusFilter');
+                if (regFilter && ['PENDING', 'APPROVED', 'REJECTED', 'ALL'].includes(upperStatus)) {
+                    regFilter.value = upperStatus;
+                }
+                const agentFilter = document.getElementById('agentStatusFilter');
+                if (agentFilter && ['ACTIVE', 'LOCKED', 'ALL'].includes(upperStatus)) {
+                    agentFilter.value = upperStatus;
+                }
+            } else if (!tabParam) {
+                // Default to PENDING for unapproved applications if no params specified
+                const regFilter = document.getElementById('regStatusFilter');
+                if (regFilter && !regFilter.value) regFilter.value = 'PENDING';
+            }
+
+            if (searchParam) {
+                const regSearch = document.getElementById('regSearchInput');
+                if (regSearch) regSearch.value = searchParam;
+                const agentSearch = document.getElementById('agentSearchInput');
+                if (agentSearch) agentSearch.value = searchParam;
+            }
+
             renderAgentsList();
             if (window.CargoStore && CargoStore.syncAdminHeaderUI) CargoStore.syncAdminHeaderUI();
+
+            // Auto scroll & highlight specific registration if regId is in URL
+            if (regIdParam) {
+                setTimeout(() => {
+                    const el = document.getElementById('pwd-val-' + regIdParam) || document.querySelector('[data-reg-id="' + regIdParam + '"]');
+                    const card = el ? el.closest('.bg-white') : null;
+                    if (card) {
+                        card.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                        card.classList.add('ring-2', 'ring-blue-500');
+                    }
+                }, 350);
+            }
         });
 
         // Cross-tab sync

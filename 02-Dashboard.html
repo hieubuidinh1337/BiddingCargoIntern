@@ -128,24 +128,6 @@
     <!-- Main Content -->
     <main class="max-w-7xl mx-auto px-3 sm:px-4 py-4 sm:py-6 space-y-4 sm:space-y-6">
 
-        <!-- Welcome Banner -->
-        <div
-            class="bg-gradient-to-r from-slate-900 via-blue-900 to-indigo-900 rounded-2xl text-white p-4 sm:p-6 shadow-md relative overflow-hidden">
-            <div class="relative z-10 flex flex-col md:flex-row md:items-center justify-between gap-4">
-                <div>
-                    <div
-                        class="inline-flex items-center gap-2 bg-white/10 text-[11px] sm:text-xs px-2.5 py-0.5 sm:py-1 rounded-full mb-1.5 sm:mb-2">
-                        <span class="w-2 h-2 rounded-full bg-emerald-400 animate-ping"></span>
-                        <span id="dashTierLabel">Đại lý ủy quyền chính thức</span>
-                    </div>
-                    <h2 id="dashWelcomeName" class="text-xl sm:text-2xl font-bold tracking-tight">Xin chào, Nguyễn Văn
-                        An</h2>
-                    <p id="dashCompanyInfo" class="text-slate-300 text-xs sm:text-sm mt-0.5 sm:mt-1">Công ty TNHH Vận
-                        tải ABC Logistics · Hôm nay có <strong>28 chuyến bay</strong> mở thầu.</p>
-                </div>
-            </div>
-        </div>
-
         <!-- PIN Setup Reminder Banner (only shown if agent has no PIN) -->
         <div id="pinReminderBanner"
             class="hidden bg-gradient-to-r from-amber-500/10 via-amber-50 to-orange-50 border border-amber-200 rounded-2xl p-4 sm:p-5 flex flex-col sm:flex-row sm:items-center justify-between gap-3 shadow-xs">
@@ -232,7 +214,7 @@
                 <div
                     class="flex items-center gap-2 bg-white px-3 py-1.5 rounded-xl border border-slate-200 shadow-2xs text-xs flex-wrap">
                     <span class="text-slate-600 font-semibold flex items-center gap-1">
-                        <i class="fa-regular fa-calendar-days text-blue-600"></i> Lọc ngày bay:
+                        <i class="fa-regular fa-calendar-days text-blue-600"></i> Giai đoạn bay:
                     </span>
                     <div class="flex items-center gap-1.5">
                         <input type="date" id="dashFilterFromDate" onchange="applyDashDateFilter()"
@@ -326,9 +308,9 @@
                 if (hdrCompany) hdrCompany.textContent = u.companyName || 'Đại lý';
                 if (hdrCode) hdrCode.textContent = u.agentCode || 'AG-xxxx';
                 if (hdrAvatar) hdrAvatar.textContent = (u.agentCode || 'AG').slice(0, 2);
-                document.getElementById('dashWelcomeName').textContent = `Xin chào, ${u.fullName || 'Đại lý'}`;
-                document.getElementById('dashCompanyInfo').innerHTML = `${u.companyName} (${u.agentCode}) · Hôm nay có <strong>${openAuctions.length} chuyến bay</strong> mở thầu tải trọng cargo.`;
-                document.getElementById('dashTierLabel').textContent = 'Đại lý ủy quyền chính thức';
+                if (document.getElementById('dashWelcomeName')) document.getElementById('dashWelcomeName').textContent = `Xin chào, ${u.fullName || 'Đại lý'}`;
+                if (document.getElementById('dashCompanyInfo')) document.getElementById('dashCompanyInfo').innerHTML = `${u.companyName} (${u.agentCode}) · Hôm nay có <strong>${openAuctions.length} chuyến bay</strong> mở thầu tải trọng cargo.`;
+                if (document.getElementById('dashTierLabel')) document.getElementById('dashTierLabel').textContent = 'Đại lý ủy quyền chính thức';
 
                 // Check PIN status and show reminder banner if missing
                 const pinBanner = document.getElementById('pinReminderBanner');
