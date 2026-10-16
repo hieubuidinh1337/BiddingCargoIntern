@@ -2969,8 +2969,105 @@ const server = http.createServer((req, res) => {
         return;
     }
 
-    // --- Static File Serving ---
-    if (pathname === '/') pathname = '/00-Home.html';
+    // Fix potential subpath asset requests e.g. /admin/assets/... -> /assets/...
+    if (pathname.startsWith('/admin/assets/')) {
+        pathname = pathname.replace(/^\/admin/, '');
+    }
+
+    // --- Clean URL Routing Map (Pretty Routes) ---
+    const CLEAN_ROUTES = {
+        // Agent & Public Routes
+        '/': '/00-Home.html',
+        '/home': '/00-Home.html',
+        '/login': '/01-Login.html',
+        '/dashboard': '/02-Dashboard.html',
+        '/auctions': '/03-Index.html',
+        '/auction': '/03-Index.html',
+        '/detail': '/04-Detail.html',
+        '/auction-detail': '/04-Detail.html',
+        '/watchlist': '/05-Watchlist.html',
+        '/my-bids': '/06-MyBids.html',
+        '/bids': '/06-MyBids.html',
+        '/won': '/07-WonAuction.html',
+        '/won-auction': '/07-WonAuction.html',
+        '/notifications': '/08-Notifications.html',
+        '/notification': '/08-Notifications.html',
+        '/profile': '/09-Profile.html',
+        '/terms': '/10-Terms.html',
+        '/register': '/Register.html',
+
+        // Admin Routes
+        '/admin': '/Admin/01-AdminLogin.html',
+        '/admin/login': '/Admin/01-AdminLogin.html',
+        '/admin/dashboard': '/Admin/02-AdminDashboard.html',
+        '/admin/auctions': '/Admin/03-AuctionList.html',
+        '/admin/auction-list': '/Admin/03-AuctionList.html',
+        '/admin/create-auction': '/Admin/04-CreateAuction.html',
+        '/admin/auction-detail': '/Admin/05-AuctionDetail.html',
+        '/admin/agents': '/Admin/06-AgentList.html',
+        '/admin/agent-list': '/Admin/06-AgentList.html',
+        '/admin/reports': '/Admin/07-Reports.html',
+        '/admin/report': '/Admin/07-Reports.html',
+        '/admin/settings': '/Admin/08-Settings.html',
+        '/admin/setting': '/Admin/08-Settings.html',
+        '/admin/agent-detail': '/Admin/09-AgentDetail.html',
+        '/admin/audit-logs': '/Admin/10-AuditLogs.html',
+        '/admin/logs': '/Admin/10-AuditLogs.html'
+    };
+
+    // Reverse map: redirect legacy .html requests to clean URLs
+    const REVERSE_ROUTES = {
+        '/00-home.html': '/home',
+        '/01-login.html': '/login',
+        '/02-dashboard.html': '/dashboard',
+        '/03-index.html': '/auctions',
+        '/04-detail.html': '/detail',
+        '/05-watchlist.html': '/watchlist',
+        '/06-mybids.html': '/my-bids',
+        '/07-wonauction.html': '/won-auction',
+        '/08-notifications.html': '/notifications',
+        '/09-profile.html': '/profile',
+        '/10-terms.html': '/terms',
+        '/register.html': '/register',
+
+        '/admin/01-adminlogin.html': '/admin/login',
+        '/admin/02-admindashboard.html': '/admin/dashboard',
+        '/admin/03-auctionlist.html': '/admin/auctions',
+        '/admin/04-createauction.html': '/admin/create-auction',
+        '/admin/05-auctiondetail.html': '/admin/auction-detail',
+        '/admin/06-agentlist.html': '/admin/agents',
+        '/admin/07-reports.html': '/admin/reports',
+        '/admin/08-settings.html': '/admin/settings',
+        '/admin/09-agentdetail.html': '/admin/agent-detail',
+        '/admin/10-auditlogs.html': '/admin/audit-logs'
+    };
+
+    // Normalize path by stripping trailing slashes (except root '/')
+    if (pathname.length > 1 && pathname.endsWith('/')) {
+        const cleanNoSlash = pathname.replace(/\/+$/, '');
+        res.writeHead(301, { 'Location': cleanNoSlash + (parsedUrl.search || '') });
+        res.end();
+        return;
+    }
+
+    const normalizedPath = pathname.toLowerCase();
+
+    // Check if client requested legacy .html that should redirect to clean URL
+    if (REVERSE_ROUTES[normalizedPath] && (req.method === 'GET' || req.method === 'HEAD')) {
+        res.writeHead(302, { 'Location': REVERSE_ROUTES[normalizedPath] + (parsedUrl.search || '') });
+        res.end();
+        return;
+    }
+
+    if (CLEAN_ROUTES[normalizedPath]) {
+        pathname = CLEAN_ROUTES[normalizedPath];
+    } else if (!path.extname(pathname)) {
+        // If no extension, try checking if direct HTML exists
+        const candidate = path.normalize(path.join(PUBLIC_DIR, pathname + '.html'));
+        if (candidate.startsWith(PUBLIC_DIR) && fs.existsSync(candidate)) {
+            pathname = pathname + '.html';
+        }
+    }
 
     let filePath = path.normalize(path.join(PUBLIC_DIR, pathname));
     if (!filePath.startsWith(PUBLIC_DIR)) {

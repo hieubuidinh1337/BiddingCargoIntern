@@ -11,9 +11,15 @@
     <script src="assets/js/cargo-store.js?v=20261014_01"></script>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Exo:ital,wght@0,100;0,200;0,300;0,400;0,500;0,531;0,600;0,700;0,800;0,900;1,100;1,200;1,300;1,400;1,500;1,531;1,600;1,700;1,800;1,900" rel="stylesheet" />
+    <link
+        href="https://fonts.googleapis.com/css2?family=Exo:ital,wght@0,100;0,200;0,300;0,400;0,500;0,531;0,600;0,700;0,800;0,900;1,100;1,200;1,300;1,400;1,500;1,531;1,600;1,700;1,800;1,900"
+        rel="stylesheet" />
     <style>
-        body, input, select, textarea, button {
+        body,
+        input,
+        select,
+        textarea,
+        button {
             font-family: 'Exo', sans-serif;
         }
     </style>
@@ -212,7 +218,7 @@
         <!-- Main Auctions Section (Full Width, Excel Layout) -->
         <div class="space-y-4">
             <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pb-1">
-                <div>
+                <!-- <div>
                     <h3 class="font-bold text-lg text-slate-900 flex items-center gap-2">
                         <i class="fa-solid fa-file-excel text-emerald-600"></i> Danh sách gói thầu tải trọng đang mở
                     </h3>
@@ -220,7 +226,7 @@
                         Bảng thông tin đăng ký gói thầu theo mẫu biểu: Cam kết sản lượng tối thiểu & Đơn giá
                         cước vận chuyển.
                     </p>
-                </div>
+                </div> -->
 
                 <!-- Bộ lọc theo giai đoạn bay: Từ ngày -> Đến ngày -->
                 <div
@@ -496,8 +502,7 @@
                             <!-- Card Header Banner -->
                             <div class="bg-gradient-to-r from-slate-900 via-blue-950 to-slate-900 text-white px-5 py-3.5 flex flex-col sm:flex-row sm:items-center justify-between gap-2.5">
                                 <div class="flex items-center gap-2.5 flex-wrap">
-                                    <span class="bg-blue-600 text-white font-bold text-xs px-2.5 py-1 rounded-lg uppercase tracking-wider font-mono">VIETRAVEL CARGO</span>
-                                    <h4 class="font-bold text-sm sm:text-base tracking-tight">THÔNG TIN ĐĂNG KÝ GÓI THẦU CÁC CHUYẾN BAY KHAI THÁC TRÊN TÀU BAY CARGO</h4>
+                                    <h4 class="font-bold text-sm sm:text-base tracking-tight">Danh sách các chuyến bay đang mở đấu giá  </h4>
                                 </div>
                                 <div class="flex items-center gap-2 text-xs">
                                     <span class="bg-emerald-500/20 text-emerald-300 border border-emerald-400/30 px-2.5 py-1 rounded-lg font-semibold text-[11px]">
@@ -518,8 +523,10 @@
                                     </div>
                                     <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-2 text-slate-600 text-xs">
                                         <div>
-                                            <span class="text-slate-400 text-[11px]">Quy chế nộp thầu:</span>
+                                            <span class="text-slate-400 text-[11px]">Quy chế đấu giá:</span>
                                             <span class="font-semibold text-slate-800 ml-1">Mỗi đại lý nộp giá <strong>1 lần duy nhất</strong> cho mỗi chuyến bay.</span>
+                                            <p>• Giá mua là giá cước vận chuyển (Phụ phí nhiên liệu & an ninh: 0 VNĐ, chưa gồm VAT và phí lao vụ).</p>
+                                            <p>• Phí vận đơn: 60.000 VNĐ/AWB. Trả kết quả theo công thức: <strong>Tổng giá mua = Tổng sản lượng (kg) × Giá mua (VNĐ/kg)</strong></p>
                                         </div>
                                         <div class="text-[11px] text-blue-700 font-medium flex items-center gap-1">
                                             <i class="fa-solid fa-circle-info text-blue-500"></i> Tích chọn các chuyến bay chuẩn bị nộp giá thầu bên dưới.
@@ -556,9 +563,6 @@
                                                 <tr>
                                                     <td colspan="3" class="py-3 px-4 text-right uppercase text-xs text-slate-700 border-r border-slate-200">
                                                         <div class="font-extrabold text-slate-800 text-xs tracking-wide">TỔNG GIÁ MUA (VNĐ):</div>
-                                                        <div id="dashPreparedCountNote" class="text-[11px] font-normal text-slate-500 lowercase mt-0.5">
-                                                            (tính trên tất cả các phiên đại lý chuẩn bị đặt)
-                                                        </div>
                                                     </td>
                                                     <td class="py-3 px-4 text-blue-700 text-lg sm:text-xl font-extrabold bg-blue-50/70">
                                                         <span id="dashGrandTotal">0 đ</span>
@@ -570,12 +574,7 @@
                                 </div>
 
                                 <!-- Footer & Action Row -->
-                                <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pt-2 border-t border-slate-100">
-                                    <div class="text-[11px] text-slate-500 space-y-0.5">
-                                        <p>• Giá mua là giá cước vận chuyển (Phụ phí nhiên liệu & an ninh: 0 VNĐ, chưa gồm VAT và phí lao vụ).</p>
-                                        <p>• Phí vận đơn: 60.000 VNĐ/AWB. Trả kết quả theo công thức: <strong>Tổng giá mua = Tổng sản lượng (kg) × Giá mua (VNĐ/kg)</strong></p>
-                                    </div>
-                                </div>
+                                
                             </div>
                         </div>
                     `;
@@ -656,10 +655,10 @@
             const grandTotalEl = document.getElementById('dashGrandTotal');
             if (grandTotalEl) grandTotalEl.textContent = CargoStore.formatCurrency(grandTotal);
 
-            const countNoteEl = document.getElementById('dashPreparedCountNote');
-            if (countNoteEl) {
-                countNoteEl.textContent = `(tổng của ${preparedCount} phiên đại lý chuẩn bị đặt)`;
-            }
+            // const countNoteEl = document.getElementById('dashPreparedCountNote');
+            // if (countNoteEl) {
+            //     countNoteEl.textContent = `(tổng của ${preparedCount} phiên đại lý chuẩn bị đặt)`;
+            // }
 
             const btnSubmitText = document.getElementById('btnSubmitAllText');
             const btnSubmit = document.getElementById('btnSubmitAllBids');

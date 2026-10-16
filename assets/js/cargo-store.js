@@ -6591,6 +6591,157 @@ if (typeof globalThis !== 'undefined') {
 if (typeof window !== 'undefined') {
     let isRedirecting = false;
 
+    // --- Pretty URL Router (Client-side URL beautifier & link transformer) ---
+    function initPrettyUrlRouter() {
+        if (typeof window === 'undefined' || !window.location) return;
+        // Only activate over HTTP/HTTPS to never break file:/// local usage
+        if (!window.location.protocol.startsWith('http')) return;
+
+        const ROUTE_MAP = {
+            // Agent pages
+            '00-home.html': '/home',
+            '01-login.html': '/login',
+            '02-dashboard.html': '/dashboard',
+            '03-index.html': '/auctions',
+            '04-detail.html': '/detail',
+            '05-watchlist.html': '/watchlist',
+            '06-mybids.html': '/my-bids',
+            '07-wonauction.html': '/won-auction',
+            '08-notifications.html': '/notifications',
+            '09-profile.html': '/profile',
+            '10-terms.html': '/terms',
+            'register.html': '/register',
+
+            // Admin pages
+            'admin/01-adminlogin.html': '/admin/login',
+            '01-adminlogin.html': '/admin/login',
+            'admin/02-admindashboard.html': '/admin/dashboard',
+            '02-admindashboard.html': '/admin/dashboard',
+            'admin/03-auctionlist.html': '/admin/auctions',
+            '03-auctionlist.html': '/admin/auctions',
+            'admin/04-createauction.html': '/admin/create-auction',
+            '04-createauction.html': '/admin/create-auction',
+            'admin/05-auctiondetail.html': '/admin/auction-detail',
+            '05-auctiondetail.html': '/admin/auction-detail',
+            'admin/06-agentlist.html': '/admin/agents',
+            '06-agentlist.html': '/admin/agents',
+            'admin/07-reports.html': '/admin/reports',
+            '07-reports.html': '/admin/reports',
+            'admin/08-settings.html': '/admin/settings',
+            '08-settings.html': '/admin/settings',
+            'admin/09-agentdetail.html': '/admin/agent-detail',
+            '09-agentdetail.html': '/admin/agent-detail',
+            'admin/10-auditlogs.html': '/admin/audit-logs',
+            '10-auditlogs.html': '/admin/audit-logs'
+        };
+
+        // 1. Beautify current URL in address bar if it still has legacy .html
+        try {
+            const rawPath = window.location.pathname || '';
+            const lowerPath = rawPath.toLowerCase();
+            const isAdmin = lowerPath.includes('/admin/') || lowerPath.includes('\\admin\\') || lowerPath === '/admin';
+
+            for (const [key, cleanRoute] of Object.entries(ROUTE_MAP)) {
+                if (isAdmin && !key.startsWith('admin/') && !lowerPath.includes(key)) {
+                    continue;
+                }
+                const filenameOnly = key.replace(/^admin\//, '');
+                if (lowerPath.endsWith('/' + filenameOnly) || lowerPath.endsWith('/' + key) || lowerPath === '/' + filenameOnly || lowerPath === '/' + key) {
+                    const target = cleanRoute + window.location.search + window.location.hash;
+                    if (window.location.pathname !== cleanRoute) {
+                        window.history.replaceState(null, document.title, target);
+                    }
+                    break;
+                }
+            }
+        } catch (e) { }
+
+        // 2. Helper to resolve any legacy href to clean URL
+        function resolveCleanHref(href) {
+            if (!href || href.startsWith('#') || href.startsWith('javascript:') || href.startsWith('mailto:') || href.startsWith('tel:')) {
+                return null;
+            }
+            if (href.startsWith('http://') || href.startsWith('https://')) {
+                try {
+                    const u = new URL(href);
+                    if (u.origin !== window.location.origin) return null;
+                    href = u.pathname + u.search + u.hash;
+                } catch (e) {
+                    return null;
+                }
+            }
+
+            const hashIndex = href.indexOf('#');
+            const hash = hashIndex !== -1 ? href.substring(hashIndex) : '';
+            const withoutHash = hashIndex !== -1 ? href.substring(0, hashIndex) : href;
+
+            const queryIndex = withoutHash.indexOf('?');
+            const search = queryIndex !== -1 ? withoutHash.substring(queryIndex) : '';
+            const pathOnly = (queryIndex !== -1 ? withoutHash.substring(0, queryIndex) : withoutHash).replace(/^(\.\.\/|\.\/)+/, '');
+
+            const lower = pathOnly.toLowerCase().replace(/^\/+/, '');
+            const isCurrentlyAdmin = (window.location.pathname || '').toLowerCase().includes('/admin');
+
+            if (ROUTE_MAP[lower]) {
+                return ROUTE_MAP[lower] + search + hash;
+            }
+            if (isCurrentlyAdmin && ROUTE_MAP['admin/' + lower]) {
+                return ROUTE_MAP['admin/' + lower] + search + hash;
+            }
+            const parts = lower.split('/');
+            const fileName = parts[parts.length - 1];
+            if (isCurrentlyAdmin && ROUTE_MAP['admin/' + fileName]) {
+                return ROUTE_MAP['admin/' + fileName] + search + hash;
+            }
+            if (!isCurrentlyAdmin && ROUTE_MAP[fileName]) {
+                return ROUTE_MAP[fileName] + search + hash;
+            }
+            return null;
+        }
+
+        // 3. Rewrite links in DOM
+        function rewriteAllLinks() {
+            try {
+                const links = document.querySelectorAll('a[href]');
+                links.forEach(a => {
+                    const raw = a.getAttribute('href');
+                    const clean = resolveCleanHref(raw);
+                    if (clean && raw !== clean) {
+                        a.setAttribute('href', clean);
+                    }
+                });
+            } catch (e) { }
+        }
+
+        rewriteAllLinks();
+
+        // 4. Delegated link click interceptor
+        document.addEventListener('click', function (e) {
+            const a = e.target.closest('a[href]');
+            if (!a) return;
+            const raw = a.getAttribute('href');
+            const clean = resolveCleanHref(raw);
+            if (clean && raw !== clean) {
+                a.setAttribute('href', clean);
+            }
+        }, true);
+
+        // 5. Watch dynamic DOM changes
+        if (typeof MutationObserver !== 'undefined' && document.body) {
+            const observer = new MutationObserver(function (mutations) {
+                let shouldRewrite = false;
+                for (const m of mutations) {
+                    if (m.addedNodes && m.addedNodes.length > 0) {
+                        shouldRewrite = true;
+                        break;
+                    }
+                }
+                if (shouldRewrite) rewriteAllLinks();
+            });
+            observer.observe(document.body, { childList: true, subtree: true });
+        }
+    }
+
     function checkAccountLockGuard() {
         if (typeof window === 'undefined' || !window.location || !window.location.pathname) return;
         if (isRedirecting || window._isManualLogout) return;
@@ -6607,40 +6758,50 @@ if (typeof window !== 'undefined') {
             pathname.includes('01-login') ||
             pathname.includes('adminlogin') ||
             pathname.includes('register') ||
-            pathname.includes('10-terms')
+            pathname.includes('10-terms') ||
+            pathname === '/home' ||
+            pathname === '/login' ||
+            pathname === '/admin/login' ||
+            pathname === '/terms' ||
+            pathname === '/register'
         );
 
         if (isPublicOrLoginPage) return;
 
-        const isAdminPage = pathname.includes('/admin/') || pathname.includes('\\admin\\');
+        const isAdminPage = (
+            pathname.includes('/admin/') ||
+            pathname.includes('\\admin\\') ||
+            pathname === '/admin' ||
+            pathname.startsWith('/admin')
+        );
 
         if (isAdminPage) {
-            // Guard protected Admin pages (02-AdminDashboard, 03-AuctionList, 04-CreateAuction, 05-AuctionDetail, 06-AgentList, 07-Reports, 08-Settings)
-            if (pathname.includes('01-adminlogin')) return;
+            // Guard protected Admin pages
+            if (pathname.includes('01-adminlogin') || pathname === '/admin/login' || pathname === '/admin') return;
             const admin = CargoStore.getCurrentAdmin();
             if (!admin) {
                 isRedirecting = true;
-                window.location.href = '01-AdminLogin.html';
+                window.location.href = window.location.protocol.startsWith('http') ? '/admin/login' : '01-AdminLogin.html';
                 return;
             }
         } else {
-            // Guard protected Agent pages (02-Dashboard, 03-Index, 04-Detail, 05-Watchlist, 06-MyBids, 07-WonAuction, 08-Notifications, 09-Profile)
+            // Guard protected Agent pages
             const isAgentProtectedPage = (
-                pathname.includes('02-dashboard') ||
-                pathname.includes('03-index') ||
-                pathname.includes('04-detail') ||
-                pathname.includes('05-watchlist') ||
-                pathname.includes('06-mybids') ||
-                pathname.includes('07-wonauction') ||
-                pathname.includes('08-notifications') ||
-                pathname.includes('09-profile')
+                pathname.includes('02-dashboard') || pathname.includes('/dashboard') ||
+                pathname.includes('03-index') || pathname.includes('/auctions') || pathname.includes('/auction') ||
+                pathname.includes('04-detail') || pathname.includes('/detail') ||
+                pathname.includes('05-watchlist') || pathname.includes('/watchlist') ||
+                pathname.includes('06-mybids') || pathname.includes('/my-bids') || pathname.includes('/bids') ||
+                pathname.includes('07-wonauction') || pathname.includes('/won') || pathname.includes('/won-auction') ||
+                pathname.includes('08-notifications') || pathname.includes('/notifications') || pathname.includes('/notification') ||
+                pathname.includes('09-profile') || pathname.includes('/profile')
             );
 
             if (isAgentProtectedPage) {
                 const user = CargoStore.getCurrentUser();
                 if (!user) {
                     isRedirecting = true;
-                    window.location.href = '01-Login.html';
+                    window.location.href = window.location.protocol.startsWith('http') ? '/login' : '01-Login.html';
                     return;
                 }
             }
@@ -6649,6 +6810,7 @@ if (typeof window !== 'undefined') {
 
     if (typeof document !== 'undefined') {
         document.addEventListener('DOMContentLoaded', function () {
+            initPrettyUrlRouter();
             if (typeof CargoStore !== 'undefined') {
                 if (CargoStore.syncHeaderUI) CargoStore.syncHeaderUI();
                 if (CargoStore.syncAdminHeaderUI) CargoStore.syncAdminHeaderUI();
