@@ -539,8 +539,7 @@
                                     title="Giờ mở phiên (Tùy chọn - không bắt buộc)">
                             </div>
                         </div>
-                        <p class="text-[10px] text-slate-400 mt-1">Chỉ bắt buộc ngày. Giờ nhập vào không nhập vào cũng
-                            được.</p>
+                        <p class="text-[10px] text-slate-400 mt-1">Chỉ bắt buộc ngày.</p>
                     </div>
                     <div>
                         <label class="block text-xs font-semibold text-slate-700 mb-1">
@@ -558,8 +557,7 @@
                                     title="Giờ đóng phiên (Tùy chọn - không bắt buộc)">
                             </div>
                         </div>
-                        <p class="text-[10px] text-slate-400 mt-1">Chỉ bắt buộc ngày. Giờ nhập vào không nhập vào cũng
-                            được.</p>
+                        <p class="text-[10px] text-slate-400 mt-1">Chỉ bắt buộc ngày.</p>
                     </div>
                 </div>
 
@@ -597,7 +595,7 @@
                             <input type="number" id="capacityKg" required value="3500" min="100" max="50000" step="100"
                                 placeholder="Nhập số Kg (VD: 3500)" oninput="updateVolumePreview()"
                                 class="w-full border rounded-xl px-3.5 py-2.5 text-xs font-bold text-slate-900 focus:ring-2 focus:ring-blue-500 outline-none">
-                            <p class="text-[10px] text-slate-400 mt-1">Mặc định 3.500 Kg. Bạn có thể tự nhập bất kỳ từ
+                            <p class="text-[10px] text-slate-400 mt-1">Có thể tự nhập bất kỳ từ
                                 100 đến 50.000 Kg.</p>
                         </div>
                         <div class="sm:col-span-2 flex items-center">
@@ -655,7 +653,7 @@
                 </div>
 
                 <div>
-                    <label class="block text-xs font-semibold text-slate-700 mb-1">Ghi chú & Yêu cầu loại hàng</label>
+                    <label class="block text-xs font-semibold text-slate-700 mb-1">Ghi chú</label>
                     <textarea id="specialNotes" rows="2"
                         placeholder="Hàng bưu phẩm, hàng tươi sống, vắc-xin bảo quản lạnh..."
                         class="w-full border rounded-xl px-3.5 py-2 text-xs focus:ring-2 focus:ring-blue-500 outline-none">Tải trọng tổng hợp tiêu chuẩn IATA. Có hỗ trợ xe nâng hàng pallet tại sân bay.</textarea>
@@ -909,8 +907,8 @@
                 durationText = `${totalHours} giờ`;
             }
 
-            const hasCustomOpenTime = openTimeInput?.value ? ` (${openTimeInput.value})` : ' (Tự động 08:00)';
-            const hasCustomCloseTime = closeTimeInput?.value ? ` (${closeTimeInput.value})` : ' (Tự động 23:59)';
+            const hasCustomOpenTime = openTimeInput?.value ? ` (${openTimeInput.value})` : ' ';
+            const hasCustomCloseTime = closeTimeInput?.value ? ` (${closeTimeInput.value})` : '';
 
             if (previewBox) previewBox.className = 'p-3.5 rounded-xl border border-blue-200 bg-blue-50/60 text-xs text-slate-800 shadow-xs';
             previewEl.innerHTML = `
