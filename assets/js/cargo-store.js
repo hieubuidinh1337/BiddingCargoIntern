@@ -1011,6 +1011,23 @@ const CargoStore = (function () {
                                 updated = true;
                             }
                         }
+
+                        if (!a.flightPeriod) {
+                            if (a.flightStartDate && a.flightEndDate) {
+                                a.flightPeriod = (a.flightStartDate === a.flightEndDate) ? `Ngày ${a.flightStartDate}` : `Từ ${a.flightStartDate} ➔ Đến ${a.flightEndDate}`;
+                            } else {
+                                const baseDate = a.etdIso ? new Date(a.etdIso) : (parseFlightDate(a.etd) || new Date(now + 86400000));
+                                const pad = n => String(n).padStart(2, '0');
+                                const sStr = `${pad(baseDate.getDate())}/${pad(baseDate.getMonth() + 1)}/${baseDate.getFullYear()}`;
+                                const endD = new Date(baseDate.getTime() + 6 * 86400000);
+                                const eStr = `${pad(endD.getDate())}/${pad(endD.getMonth() + 1)}/${endD.getFullYear()}`;
+                                a.flightStartDate = `${baseDate.getFullYear()}-${pad(baseDate.getMonth() + 1)}-${pad(baseDate.getDate())}`;
+                                a.flightEndDate = `${endD.getFullYear()}-${pad(endD.getMonth() + 1)}-${pad(endD.getDate())}`;
+                                a.flightPeriod = `Từ ${sStr} ➔ Đến ${eStr}`;
+                                updated = true;
+                            }
+                        }
+
                         uniqueAuctions.push(a);
                     } else {
                         updated = true;
@@ -2486,6 +2503,15 @@ const CargoStore = (function () {
                 }
             }
 
+            const flightStartDate = auctionData.flightStartDate || '';
+            const flightEndDate = auctionData.flightEndDate || '';
+            let flightPeriod = auctionData.flightPeriod || '';
+            if (!flightPeriod && flightStartDate) {
+                const sFmt = this.formatFlightDateDisplay ? this.formatFlightDateDisplay(flightStartDate) : flightStartDate;
+                const eFmt = flightEndDate ? (this.formatFlightDateDisplay ? this.formatFlightDateDisplay(flightEndDate) : flightEndDate) : '';
+                flightPeriod = (flightStartDate === flightEndDate || !flightEndDate) ? `Ngày ${sFmt}` : `Từ ${sFmt} ➔ Đến ${eFmt}`;
+            }
+
             const newAuction = {
                 id: newId,
                 flightCode: flightCode,
@@ -2495,6 +2521,9 @@ const CargoStore = (function () {
                 destination: dest,
                 originName: originName,
                 destName: destName,
+                flightStartDate: flightStartDate,
+                flightEndDate: flightEndDate,
+                flightPeriod: flightPeriod,
                 openDate: formattedOpen,
                 closeDate: formattedClose,
                 openDateIso: parsedOpen ? parsedOpen.toISOString() : now.toISOString(),

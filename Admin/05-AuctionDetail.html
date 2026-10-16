@@ -436,12 +436,14 @@
             <h3 class="font-bold text-sm text-slate-800 border-b pb-2 flex items-center gap-1.5">
                 <i class="fa-solid fa-circle-info text-blue-600"></i> Thông tin hành trình & Khai thác
             </h3>
-            <div class="grid grid-cols-2 md:grid-cols-4 gap-4 text-slate-600">
+            <div class="grid grid-cols-2 md:grid-cols-5 gap-4 text-slate-600">
                 <div><span class="text-gray-400 block">Tàu bay:</span> <strong class="text-slate-800"
                         id="detAircraft">Airbus A321neo Cargo</strong></div>
-                <div><span class="text-gray-400 block">Giờ khởi hành (ETD):</span> <strong class="text-slate-800"
+                <div><span class="text-gray-400 block">Giai đoạn bay:</span> <strong class="text-blue-700 font-bold"
+                        id="detFlightPeriod">-</strong></div>
+                <div><span class="text-gray-400 block">Khởi hành (ETD):</span> <strong class="text-slate-800"
                         id="detEtd">14:30 · 15/08/2026</strong></div>
-                <div><span class="text-gray-400 block">Giờ hạ cánh (ETA):</span> <strong class="text-slate-800"
+                <div><span class="text-gray-400 block">Hạ cánh (ETA):</span> <strong class="text-slate-800"
                         id="detEta">16:45 · 15/08/2026</strong></div>
                 <div><span class="text-gray-400 block">Cut-off nhận hàng:</span> <strong class="text-slate-800"
                         id="detCutOff">11:30 · 15/08/2026</strong></div>
@@ -749,6 +751,10 @@
             }
 
             document.getElementById('detAircraft').textContent = auction.aircraft;
+            const detFlightPeriodEl = document.getElementById('detFlightPeriod');
+            if (detFlightPeriodEl) {
+                detFlightPeriodEl.textContent = auction.flightPeriod || auction.etd || 'Chưa cập nhật';
+            }
             document.getElementById('detEtd').textContent = auction.etd;
             document.getElementById('detEta').textContent = auction.eta;
             document.getElementById('detCutOff').textContent = (CargoStore && CargoStore.calculateCutOffTime) ? CargoStore.calculateCutOffTime(auction.etd) : (auction.cutOffTime || 'Trước ETD 3 giờ');

@@ -463,6 +463,65 @@
                     </div>
                 </div>
 
+                <!-- Giai đoạn khai thác chuyến bay: Từ ngày -> Đến ngày -->
+                <div class="bg-blue-50/50 border border-blue-200/90 rounded-2xl p-4 sm:p-5 space-y-3.5 shadow-2xs">
+                    <div class="flex items-center justify-between flex-wrap gap-2">
+                        <div>
+                            <label class="text-xs font-bold text-slate-900 flex items-center gap-1.5">
+                                <i class="fa-regular fa-calendar-days text-blue-600 text-sm"></i>
+                                Giai đoạn khai thác chuyến bay<span class="text-red-500">*</span>
+                            </label>
+                            <p class="text-[11px] text-slate-500 mt-0.5">Khoảng thời gian tàu bay thực hiện vận chuyển
+                                hàng hóa cho gói thầu này</p>
+                        </div>
+                        <div class="flex items-center gap-1.5 text-[11px] flex-wrap">
+                            <span class="text-slate-400 font-medium mr-0.5">Chọn nhanh:</span>
+                            <button type="button" onclick="setFlightDateQuick('single')"
+                                class="px-2.5 py-1 rounded-lg bg-white border border-slate-200 hover:border-blue-400 hover:text-blue-600 font-semibold text-slate-600 shadow-2xs transition cursor-pointer">1
+                                chuyến (Ngày mai)</button>
+                            <button type="button" onclick="setFlightDateQuick('week')"
+                                class="px-2.5 py-1 rounded-lg bg-white border border-slate-200 hover:border-blue-400 hover:text-blue-600 font-semibold text-slate-600 shadow-2xs transition cursor-pointer">1
+                                Tuần</button>
+                            <button type="button" onclick="setFlightDateQuick('two_weeks')"
+                                class="px-2.5 py-1 rounded-lg bg-white border border-slate-200 hover:border-blue-400 hover:text-blue-600 font-semibold text-slate-600 shadow-2xs transition cursor-pointer">2
+                                Tuần</button>
+                            <button type="button" onclick="setFlightDateQuick('month')"
+                                class="px-2.5 py-1 rounded-lg bg-white border border-slate-200 hover:border-blue-400 hover:text-blue-600 font-semibold text-slate-600 shadow-2xs transition cursor-pointer">1
+                                Tháng</button>
+                        </div>
+                    </div>
+
+                    <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                        <div>
+                            <label class="block text-[11px] font-semibold text-slate-700 mb-1">
+                                <i class="fa-solid fa-plane-departure text-blue-500 mr-1"></i> Từ ngày (Bắt đầu bay)
+                                <span class="text-red-500">*</span>
+                            </label>
+                            <input type="date" id="flightStartDate" required onchange="onFlightDateRangeChanged()"
+                                class="w-full border rounded-xl px-3.5 py-2.5 text-xs font-bold text-slate-800 bg-white focus:ring-2 focus:ring-blue-500 outline-none border-slate-300">
+                        </div>
+                        <div>
+                            <label class="block text-[11px] font-semibold text-slate-700 mb-1">
+                                <i class="fa-solid fa-plane-arrival text-emerald-500 mr-1"></i> Đến ngày (Kết thúc giai
+                                đoạn) <span class="text-red-500">*</span>
+                            </label>
+                            <input type="date" id="flightEndDate" required onchange="onFlightDateRangeChanged()"
+                                class="w-full border rounded-xl px-3.5 py-2.5 text-xs font-bold text-slate-800 bg-white focus:ring-2 focus:ring-blue-500 outline-none border-slate-300">
+                        </div>
+                    </div>
+
+                    <div
+                        class="flex items-center justify-between flex-wrap gap-2 pt-1 border-t border-blue-100 text-[11px]">
+                        <span class="text-blue-800 font-semibold flex items-center gap-1.5"
+                            id="flightPeriodSummaryText">
+                            <i class="fa-solid fa-calendar-check text-blue-600"></i>
+                            Giai đoạn khai thác: <strong class="text-blue-900" id="flightPeriodVal">Chưa chọn</strong>
+                        </span>
+                        <span class="text-slate-500 text-[10px] font-medium" id="flightPeriodDaysCount">Tổng số: 7
+                            ngày</span>
+                    </div>
+                </div>
+
                 <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
                     <div>
                         <label class="block text-xs font-semibold text-slate-700 mb-1">
@@ -953,6 +1012,84 @@
             updateAutoGeneratedFlightNumber(true);
         }
 
+        function formatDateVN(dateStr) {
+            if (!dateStr) return '';
+            const parts = dateStr.split('-');
+            if (parts.length === 3) {
+                return `${parts[2]}/${parts[1]}/${parts[0]}`;
+            }
+            return dateStr;
+        }
+
+        function setFlightDateQuick(mode) {
+            const now = new Date();
+            const pad = n => String(n).padStart(2, '0');
+            const fmt = d => `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}`;
+
+            // Start date default: tomorrow
+            const startDt = new Date(now.getTime() + 24 * 3600 * 1000);
+            let endDt = new Date(startDt.getTime());
+
+            if (mode === 'single') {
+                endDt = new Date(startDt.getTime());
+            } else if (mode === 'week') {
+                endDt = new Date(startDt.getTime() + 6 * 24 * 3600 * 1000);
+            } else if (mode === 'two_weeks') {
+                endDt = new Date(startDt.getTime() + 13 * 24 * 3600 * 1000);
+            } else if (mode === 'month') {
+                endDt = new Date(startDt.getTime() + 29 * 24 * 3600 * 1000);
+            }
+
+            const sInput = document.getElementById('flightStartDate');
+            const eInput = document.getElementById('flightEndDate');
+            if (sInput) sInput.value = fmt(startDt);
+            if (eInput) eInput.value = fmt(endDt);
+
+            onFlightDateRangeChanged();
+        }
+
+        function onFlightDateRangeChanged() {
+            const sInput = document.getElementById('flightStartDate');
+            const eInput = document.getElementById('flightEndDate');
+            if (!sInput || !eInput) return;
+
+            const sVal = sInput.value;
+            const eVal = eInput.value;
+
+            const valEl = document.getElementById('flightPeriodVal');
+            const countEl = document.getElementById('flightPeriodDaysCount');
+
+            if (!sVal || !eVal) {
+                if (valEl) valEl.textContent = 'Chưa chọn đủ Từ ngày ➔ Đến ngày';
+                if (countEl) countEl.textContent = '';
+                return;
+            }
+
+            const sDate = new Date(sVal + 'T00:00:00');
+            const eDate = new Date(eVal + 'T00:00:00');
+
+            if (eDate.getTime() < sDate.getTime()) {
+                if (valEl) valEl.innerHTML = '<span class="text-red-500 font-bold">Lỗi: Đến ngày phải sau hoặc cùng Từ ngày!</span>';
+                if (countEl) countEl.textContent = '';
+                return;
+            }
+
+            const days = Math.round((eDate.getTime() - sDate.getTime()) / (24 * 3600 * 1000)) + 1;
+            const sFormatted = formatDateVN(sVal);
+            const eFormatted = formatDateVN(eVal);
+
+            if (valEl) {
+                if (sVal === eVal) {
+                    valEl.textContent = `Ngày ${sFormatted}`;
+                } else {
+                    valEl.textContent = `Từ ${sFormatted} ➔ Đến ${eFormatted}`;
+                }
+            }
+            if (countEl) {
+                countEl.textContent = `Tổng số: ${days} ngày khai thác`;
+            }
+        }
+
         function initDateInputs() {
             const now = new Date();
             const pad = n => String(n).padStart(2, '0');
@@ -973,6 +1110,21 @@
                 closeDateInput.min = todayStr;
                 if (!closeDateInput.value) closeDateInput.value = closeStr;
             }
+
+            // Init flight date range (tomorrow -> 7 days later)
+            const sInput = document.getElementById('flightStartDate');
+            const eInput = document.getElementById('flightEndDate');
+            if (sInput && !sInput.value) {
+                const startDt = new Date(now.getTime() + 24 * 3600 * 1000);
+                sInput.value = `${startDt.getFullYear()}-${pad(startDt.getMonth() + 1)}-${pad(startDt.getDate())}`;
+                sInput.min = todayStr;
+            }
+            if (eInput && !eInput.value) {
+                const endDt = new Date(now.getTime() + 7 * 24 * 3600 * 1000);
+                eInput.value = `${endDt.getFullYear()}-${pad(endDt.getMonth() + 1)}-${pad(endDt.getDate())}`;
+                eInput.min = todayStr;
+            }
+            onFlightDateRangeChanged();
 
             updateAuctionDurationPreview();
             onRouteOrDateChanged();
@@ -1239,6 +1391,25 @@
                 return;
             }
 
+            const flightStartDateVal = document.getElementById('flightStartDate')?.value;
+            const flightEndDateVal = document.getElementById('flightEndDate')?.value;
+
+            if (!flightStartDateVal || !flightEndDateVal) {
+                alert('Vui lòng chọn đầy đủ giai đoạn khai thác chuyến bay (Từ ngày ➔ Đến ngày)!');
+                return;
+            }
+
+            const fsDate = new Date(flightStartDateVal + 'T00:00:00');
+            const feDate = new Date(flightEndDateVal + 'T00:00:00');
+            if (feDate.getTime() < fsDate.getTime()) {
+                alert('❌ Giai đoạn khai thác: "Đến ngày" phải diễn ra sau hoặc cùng "Từ ngày"!');
+                return;
+            }
+
+            const flightPeriodVal = flightStartDateVal === flightEndDateVal
+                ? `Ngày ${formatDateVN(flightStartDateVal)}`
+                : `Từ ${formatDateVN(flightStartDateVal)} ➔ Đến ${formatDateVN(flightEndDateVal)}`;
+
             const openDateVal = document.getElementById('openDate').value;
             const openTimeVal = document.getElementById('openTime').value;
             const closeDateVal = document.getElementById('closeDate').value;
@@ -1298,6 +1469,9 @@
                     flightNumber: fn,
                     origin: origin,
                     destination: dest,
+                    flightStartDate: flightStartDateVal,
+                    flightEndDate: flightEndDateVal,
+                    flightPeriod: flightPeriodVal,
                     openDate: openIso,
                     closeDate: closeIso,
                     etd: closeIso,

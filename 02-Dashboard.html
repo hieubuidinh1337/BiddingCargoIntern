@@ -212,7 +212,7 @@
 
         <!-- Main Auctions Section (Full Width, Excel Layout) -->
         <div class="space-y-4">
-            <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-2 pb-1">
+            <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pb-1">
                 <div>
                     <h3 class="font-bold text-lg text-slate-900 flex items-center gap-2">
                         <i class="fa-solid fa-file-excel text-emerald-600"></i> Danh sách gói thầu tải trọng đang mở
@@ -221,6 +221,24 @@
                         Bảng thông tin đăng ký gói thầu theo mẫu biểu: Cam kết sản lượng tối thiểu & Đơn giá
                         cước vận chuyển.
                     </p>
+                </div>
+
+                <!-- Bộ lọc theo giai đoạn bay: Từ ngày -> Đến ngày -->
+                <div class="flex items-center gap-2 bg-white px-3 py-1.5 rounded-xl border border-slate-200 shadow-2xs text-xs flex-wrap">
+                    <span class="text-slate-600 font-semibold flex items-center gap-1">
+                        <i class="fa-regular fa-calendar-days text-blue-600"></i> Lọc ngày bay:
+                    </span>
+                    <div class="flex items-center gap-1.5">
+                        <input type="date" id="dashFilterFromDate" onchange="applyDashDateFilter()"
+                            class="border border-slate-200 rounded-lg px-2 py-1 text-xs font-medium outline-none focus:border-blue-500 bg-slate-50 focus:bg-white text-slate-700" title="Từ ngày">
+                        <span class="text-slate-400 font-bold">➔</span>
+                        <input type="date" id="dashFilterToDate" onchange="applyDashDateFilter()"
+                            class="border border-slate-200 rounded-lg px-2 py-1 text-xs font-medium outline-none focus:border-blue-500 bg-slate-50 focus:bg-white text-slate-700" title="Đến ngày">
+                        <button type="button" onclick="clearDashDateFilter()" title="Xóa bộ lọc ngày"
+                            class="text-slate-400 hover:text-slate-700 px-1.5 py-1 text-xs cursor-pointer">
+                            <i class="fa-solid fa-rotate-left"></i>
+                        </button>
+                    </div>
                 </div>
             </div>
 
@@ -243,6 +261,26 @@
         const dashAuctionPageSize = 20;
         const dashInputCache = {};
         const dashCheckCache = {};
+        let dashFilterFrom = '';
+        let dashFilterTo = '';
+
+        function applyDashDateFilter() {
+            dashFilterFrom = document.getElementById('dashFilterFromDate')?.value || '';
+            dashFilterTo = document.getElementById('dashFilterToDate')?.value || '';
+            dashAuctionCurrentPage = 1;
+            renderDashboard();
+        }
+
+        function clearDashDateFilter() {
+            dashFilterFrom = '';
+            dashFilterTo = '';
+            const f1 = document.getElementById('dashFilterFromDate');
+            const f2 = document.getElementById('dashFilterToDate');
+            if (f1) f1.value = '';
+            if (f2) f2.value = '';
+            dashAuctionCurrentPage = 1;
+            renderDashboard();
+        }
 
         function goToDashAuctionPage(page) {
             dashAuctionCurrentPage = page;
@@ -255,7 +293,22 @@
             const u = CargoStore.getCurrentUser();
             const myCode = u ? (u.agentCode || '') : '';
             const allAuctions = CargoStore.getAuctions();
-            const openAuctions = allAuctions.filter(a => a.status === 'OPEN' && CargoStore.isAgentAllowedForAuction(a, myCode));
+            let openAuctions = allAuctions.filter(a => a.status === 'OPEN' && CargoStore.isAgentAllowedForAuction(a, myCode));
+
+            // Filter by date range (Giai đoạn bay)
+            if (dashFilterFrom) {
+                openAuctions = openAuctions.filter(a => {
+                    const fStart = a.flightStartDate || (a.etdIso ? a.etdIso.slice(0, 10) : '');
+                    const fEnd = a.flightEndDate || fStart;
+                    return !fEnd || fEnd >= dashFilterFrom;
+                });
+            }
+            if (dashFilterTo) {
+                openAuctions = openAuctions.filter(a => {
+                    const fStart = a.flightStartDate || (a.etdIso ? a.etdIso.slice(0, 10) : '');
+                    return !fStart || fStart <= dashFilterTo;
+                });
+            }
 
             // === Update Header Profile ===
             if (u) {
@@ -371,6 +424,12 @@
                                             </div>
                                             <div class="text-[11px] text-slate-500 mt-1 space-y-0.5">
                                                 <p>${a.originName || a.origin} ➔ ${a.destName || a.destination}</p>
+                                                ${a.flightPeriod ? `
+                                                    <div class="flex items-center gap-1.5 text-blue-700 font-semibold py-0.5">
+                                                        <i class="fa-regular fa-calendar-days text-blue-600"></i>
+                                                        <span>Giai đoạn bay: <strong>${a.flightPeriod}</strong></span>
+                                                    </div>
+                                                ` : ''}
                                                 <div class="flex items-center gap-2 flex-wrap">
                                                     <span>ETD: <strong>${a.etd}</strong></span>
                                                     <span>·</span>

@@ -353,7 +353,8 @@
             document.getElementById('flightBadge').textContent = currentAuction.flightNumber;
             document.getElementById('flightCode').textContent = currentAuction.flightCode;
             document.getElementById('aircraftType').textContent = currentAuction.aircraft;
-            document.getElementById('flightTimes').textContent = `ETD: ${currentAuction.etd} | ETA: ${currentAuction.eta}`;
+            const periodStr = currentAuction.flightPeriod ? ` | Giai đoạn bay: ${currentAuction.flightPeriod}` : '';
+            document.getElementById('flightTimes').textContent = `ETD: ${currentAuction.etd} | ETA: ${currentAuction.eta}${periodStr}`;
             const airportCityMap = {
                 'SGN': 'TP. Hồ Chí Minh',
                 'HAN': 'Hà Nội',

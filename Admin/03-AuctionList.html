@@ -1208,7 +1208,7 @@
                     </td>
                     <td class="py-3.5 px-4 text-gray-600">
                         <p class="font-medium">${a.aircraft}</p>
-                        <p class="text-[11px] text-gray-400">${a.etd}</p>
+                        ${a.flightPeriod ? `<p class="text-[11px] text-blue-600 font-semibold"><i class="fa-regular fa-calendar-days text-[10px]"></i> ${a.flightPeriod}</p>` : `<p class="text-[11px] text-gray-400">${a.etd}</p>`}
                     </td>
                     <td class="py-3.5 px-4 font-semibold text-slate-900">
                         ${CargoStore.formatNumber(a.capacityKg)} Kg
