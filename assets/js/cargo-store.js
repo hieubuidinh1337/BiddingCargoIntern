@@ -182,6 +182,33 @@ const CargoStore = (function () {
         },
         agentsList: seedAgents,
         adminsList: seedAdmins,
+        airports: [
+            { code: 'DAD', name: 'Da Nang International Airport' },
+            { code: 'DLI', name: 'Lien Khuong Airport' },
+            { code: 'HAN', name: 'Noi Bai International Airport' },
+            { code: 'HPH', name: 'Cat Bi International Airport' },
+            { code: 'HUI', name: 'Phu Bai International Airport' },
+            { code: 'SGN', name: 'Tan Son Nhat International Airport' },
+            { code: 'UIH', name: 'Phu Cat Airport' },
+            { code: 'PQC', name: 'Phu Quoc International Airport' },
+            { code: 'VCA', name: 'Can Tho International Airport' },
+            { code: 'CXR', name: 'Cam Ranh International Airport' },
+            { code: 'VII', name: 'Vinh International Airport' },
+            { code: 'VDO', name: 'Van Don International Airport' }
+        ],
+        aircraftTypes: [
+            { code: '32V', name: 'A320' },
+            { code: '32I', name: 'A321' },
+            { code: '32E', name: 'A321' },
+            { code: '32S', name: 'A320' },
+            { code: '32O', name: 'A320' },
+            { code: '32Q', name: 'A320' },
+            { code: '32Y', name: 'A320' },
+            { code: '32L', name: 'A320' },
+            { code: '32B', name: 'A321' },
+            { code: '320', name: 'A320' },
+            { code: '321', name: 'A321' }
+        ],
         auctions: [
             {
                 id: 1,
@@ -932,6 +959,16 @@ const CargoStore = (function () {
 
             if (!data.watchlist || !Array.isArray(data.watchlist)) {
                 data.watchlist = [];
+                updated = true;
+            }
+
+            if (!data.airports || !Array.isArray(data.airports) || data.airports.length === 0) {
+                data.airports = JSON.parse(JSON.stringify(defaultData.airports));
+                updated = true;
+            }
+
+            if (!data.aircraftTypes || !Array.isArray(data.aircraftTypes) || data.aircraftTypes.length === 0) {
+                data.aircraftTypes = JSON.parse(JSON.stringify(defaultData.aircraftTypes));
                 updated = true;
             }
 
@@ -2432,16 +2469,8 @@ const CargoStore = (function () {
             const origin = (auctionData.origin || 'SGN').trim().toUpperCase();
             const dest = (auctionData.destination || 'HAN').trim().toUpperCase();
 
-            const airportNames = {
-                'SGN': 'TP. Hồ Chí Minh',
-                'HAN': 'Hà Nội',
-                'DAD': 'Đà Nẵng',
-                'PQC': 'Phú Quốc',
-                'CXR': 'Nha Trang'
-            };
-
-            const originName = airportNames[origin] || origin;
-            const destName = airportNames[dest] || dest;
+            const originName = this.getAirportName(origin) || origin;
+            const destName = this.getAirportName(dest) || dest;
             const dateStr = now.toISOString().slice(2, 10).replace(/-/g, '');
             const flightCode = `FL-${flightNumber}-${dateStr}`;
 
@@ -5427,6 +5456,154 @@ const CargoStore = (function () {
 
         getSystemSettings: function () {
             return loadData().settings || defaultData.settings;
+        },
+
+        // ==========================================
+        // AIRPORT CONFIGURATION (Mã & Tên Sân bay)
+        // ==========================================
+        getAirports: function () {
+            const data = loadData();
+            return (data.airports && Array.isArray(data.airports)) ? [...data.airports] : [];
+        },
+        addAirport: function (code, name) {
+            if (!code || !name) return { success: false, message: 'Mã và tên sân bay không được để trống.' };
+            const cleanCode = String(code).trim().toUpperCase();
+            const cleanName = String(name).trim();
+            const data = loadData();
+            if (!data.airports) data.airports = [];
+            if (data.airports.some(a => (a.code || '').toUpperCase() === cleanCode)) {
+                return { success: false, message: `Mã sân bay "${cleanCode}" đã tồn tại trên hệ thống!` };
+            }
+            data.airports.push({ code: cleanCode, name: cleanName });
+            saveData(data);
+            this.logActivity({
+                actionCategory: 'Cấu hình hệ thống',
+                actionTitle: 'Thêm sân bay mới',
+                target: `Sân bay ${cleanCode}`,
+                details: `Đã thêm sân bay ${cleanCode} - ${cleanName} vào danh mục.`
+            });
+            return { success: true, message: `Đã thêm sân bay ${cleanCode} (${cleanName}) thành công!` };
+        },
+        updateAirport: function (oldCode, newCode, name) {
+            if (!oldCode || !newCode || !name) return { success: false, message: 'Thông tin sân bay không hợp lệ.' };
+            const cleanOld = String(oldCode).trim().toUpperCase();
+            const cleanNew = String(newCode).trim().toUpperCase();
+            const cleanName = String(name).trim();
+            const data = loadData();
+            if (!data.airports) return { success: false, message: 'Không tìm thấy danh sách sân bay.' };
+            const idx = data.airports.findIndex(a => (a.code || '').toUpperCase() === cleanOld);
+            if (idx === -1) return { success: false, message: 'Không tìm thấy sân bay cần cập nhật.' };
+            if (cleanNew !== cleanOld && data.airports.some(a => (a.code || '').toUpperCase() === cleanNew)) {
+                return { success: false, message: `Mã sân bay "${cleanNew}" đã bị trùng với sân bay khác!` };
+            }
+            data.airports[idx] = { code: cleanNew, name: cleanName };
+            saveData(data);
+            this.logActivity({
+                actionCategory: 'Cấu hình hệ thống',
+                actionTitle: 'Cập nhật sân bay',
+                target: `Sân bay ${cleanNew}`,
+                details: `Cập nhật thông tin sân bay ${cleanOld} thành ${cleanNew} - ${cleanName}.`
+            });
+            return { success: true, message: `Đã cập nhật sân bay ${cleanNew} thành công!` };
+        },
+        deleteAirport: function (code) {
+            const cleanCode = String(code).trim().toUpperCase();
+            const data = loadData();
+            if (!data.airports) return { success: false, message: 'Danh sách sân bay trống.' };
+            const origLen = data.airports.length;
+            data.airports = data.airports.filter(a => (a.code || '').toUpperCase() !== cleanCode);
+            if (data.airports.length === origLen) {
+                return { success: false, message: `Không tìm thấy sân bay "${cleanCode}".` };
+            }
+            saveData(data);
+            this.logActivity({
+                actionCategory: 'Cấu hình hệ thống',
+                actionTitle: 'Xóa sân bay',
+                target: `Sân bay ${cleanCode}`,
+                details: `Đã xóa sân bay ${cleanCode} khỏi danh mục.`
+            });
+            return { success: true, message: `Đã xóa sân bay ${cleanCode} thành công!` };
+        },
+        getAirportName: function (code) {
+            if (!code) return '';
+            const clean = String(code).trim().toUpperCase();
+            const list = this.getAirports();
+            const found = list.find(a => (a.code || '').toUpperCase() === clean);
+            return found ? found.name : clean;
+        },
+
+        // ==========================================
+        // AIRCRAFT TYPES CONFIGURATION (msg_AcType)
+        // ==========================================
+        getAircraftTypes: function () {
+            const data = loadData();
+            return (data.aircraftTypes && Array.isArray(data.aircraftTypes)) ? [...data.aircraftTypes] : [];
+        },
+        addAircraftType: function (code, name) {
+            if (!code || !name) return { success: false, message: 'Mã và tên loại tàu bay không được để trống.' };
+            const cleanCode = String(code).trim().toUpperCase();
+            const cleanName = String(name).trim();
+            const data = loadData();
+            if (!data.aircraftTypes) data.aircraftTypes = [];
+            if (data.aircraftTypes.some(a => (a.code || '').toUpperCase() === cleanCode)) {
+                return { success: false, message: `Mã loại tàu bay "${cleanCode}" đã tồn tại trên hệ thống!` };
+            }
+            data.aircraftTypes.push({ code: cleanCode, name: cleanName });
+            saveData(data);
+            this.logActivity({
+                actionCategory: 'Cấu hình hệ thống',
+                actionTitle: 'Thêm loại tàu bay mới',
+                target: `Tàu bay ${cleanCode}`,
+                details: `Đã thêm loại tàu bay ${cleanCode} - ${cleanName} vào danh mục.`
+            });
+            return { success: true, message: `Đã thêm loại tàu bay ${cleanCode} (${cleanName}) thành công!` };
+        },
+        updateAircraftType: function (oldCode, newCode, name) {
+            if (!oldCode || !newCode || !name) return { success: false, message: 'Thông tin loại tàu bay không hợp lệ.' };
+            const cleanOld = String(oldCode).trim().toUpperCase();
+            const cleanNew = String(newCode).trim().toUpperCase();
+            const cleanName = String(name).trim();
+            const data = loadData();
+            if (!data.aircraftTypes) return { success: false, message: 'Không tìm thấy danh sách loại tàu bay.' };
+            const idx = data.aircraftTypes.findIndex(a => (a.code || '').toUpperCase() === cleanOld);
+            if (idx === -1) return { success: false, message: 'Không tìm thấy loại tàu bay cần cập nhật.' };
+            if (cleanNew !== cleanOld && data.aircraftTypes.some(a => (a.code || '').toUpperCase() === cleanNew)) {
+                return { success: false, message: `Mã loại tàu bay "${cleanNew}" đã bị trùng!` };
+            }
+            data.aircraftTypes[idx] = { code: cleanNew, name: cleanName };
+            saveData(data);
+            this.logActivity({
+                actionCategory: 'Cấu hình hệ thống',
+                actionTitle: 'Cập nhật loại tàu bay',
+                target: `Tàu bay ${cleanNew}`,
+                details: `Cập nhật loại tàu bay ${cleanOld} thành ${cleanNew} - ${cleanName}.`
+            });
+            return { success: true, message: `Đã cập nhật loại tàu bay ${cleanNew} thành công!` };
+        },
+        deleteAircraftType: function (code) {
+            const cleanCode = String(code).trim().toUpperCase();
+            const data = loadData();
+            if (!data.aircraftTypes) return { success: false, message: 'Danh sách loại tàu bay trống.' };
+            const origLen = data.aircraftTypes.length;
+            data.aircraftTypes = data.aircraftTypes.filter(a => (a.code || '').toUpperCase() !== cleanCode);
+            if (data.aircraftTypes.length === origLen) {
+                return { success: false, message: `Không tìm thấy loại tàu bay "${cleanCode}".` };
+            }
+            saveData(data);
+            this.logActivity({
+                actionCategory: 'Cấu hình hệ thống',
+                actionTitle: 'Xóa loại tàu bay',
+                target: `Tàu bay ${cleanCode}`,
+                details: `Đã xóa loại tàu bay ${cleanCode} khỏi danh mục.`
+            });
+            return { success: true, message: `Đã xóa loại tàu bay ${cleanCode} thành công!` };
+        },
+        getAircraftTypeName: function (code) {
+            if (!code) return '';
+            const clean = String(code).trim().toUpperCase();
+            const list = this.getAircraftTypes();
+            const found = list.find(a => (a.code || '').toUpperCase() === clean);
+            return found ? found.name : clean;
         },
 
         logActivity: function (logInfo) {

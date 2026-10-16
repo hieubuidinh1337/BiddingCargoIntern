@@ -440,25 +440,23 @@
                         </p>
                     </div>
                     <div>
-                        <label class="block text-xs font-semibold text-slate-700 mb-1">Sân bay đi (Origin) <span
-                                class="text-red-500">*</span></label>
+                        <label class="block text-xs font-semibold text-slate-700 mb-1 flex items-center justify-between">
+                            <span>Sân bay đi (Origin) <span class="text-red-500">*</span></span>
+                            <a href="08-Settings.html" target="_blank" class="text-[10px] text-blue-600 hover:underline">
+                                <i class="fa-solid fa-gear text-[9px]"></i> Cấu hình sân bay
+                            </a>
+                        </label>
                         <select id="originAirport" onchange="onOriginAirportChanged()"
-                            class="w-full border rounded-xl px-3 py-2.5 text-xs focus:ring-2 focus:ring-blue-500 outline-none bg-white">
-                            <option value="SGN">SGN - TP. Hồ Chí Minh</option>
-                            <option value="HAN">HAN - Hà Nội</option>
-                            <option value="DAD">DAD - Đà Nẵng</option>
-                            <option value="PQC">PQC - Phú Quốc</option>
+                            class="w-full border rounded-xl px-3 py-2.5 text-xs font-bold text-slate-800 focus:ring-2 focus:ring-blue-500 outline-none bg-white">
+                            <!-- Populated dynamically -->
                         </select>
                     </div>
                     <div>
                         <label class="block text-xs font-semibold text-slate-700 mb-1">Sân bay đến (Destination) <span
                                 class="text-red-500">*</span></label>
                         <select id="destinationAirport" onchange="onDestinationAirportChanged()"
-                            class="w-full border rounded-xl px-3 py-2.5 text-xs focus:ring-2 focus:ring-blue-500 outline-none bg-white">
-                            <option value="HAN">HAN - Hà Nội</option>
-                            <option value="DAD">DAD - Đà Nẵng</option>
-                            <option value="PQC">PQC - Phú Quốc</option>
-                            <option value="SGN">SGN - TP. Hồ Chí Minh</option>
+                            class="w-full border rounded-xl px-3 py-2.5 text-xs font-bold text-slate-800 focus:ring-2 focus:ring-blue-500 outline-none bg-white">
+                            <!-- Populated dynamically -->
                         </select>
                     </div>
                 </div>
@@ -476,17 +474,14 @@
                         </div>
                         <div class="flex items-center gap-1.5 text-[11px] flex-wrap">
                             <span class="text-slate-400 font-medium mr-0.5">Chọn nhanh:</span>
-                            <button type="button" onclick="setFlightDateQuick('single')"
+                            <button type="button" onclick="setFlightDateQuick('1_month')"
                                 class="px-2.5 py-1 rounded-lg bg-white border border-slate-200 hover:border-blue-400 hover:text-blue-600 font-semibold text-slate-600 shadow-2xs transition cursor-pointer">1
-                                Ngày</button>
-                            <button type="button" onclick="setFlightDateQuick('week')"
-                                class="px-2.5 py-1 rounded-lg bg-white border border-slate-200 hover:border-blue-400 hover:text-blue-600 font-semibold text-slate-600 shadow-2xs transition cursor-pointer">1
-                                Tuần</button>
-                            <button type="button" onclick="setFlightDateQuick('two_weeks')"
-                                class="px-2.5 py-1 rounded-lg bg-white border border-slate-200 hover:border-blue-400 hover:text-blue-600 font-semibold text-slate-600 shadow-2xs transition cursor-pointer">2
-                                Tuần</button>
-                            <button type="button" onclick="setFlightDateQuick('month')"
-                                class="px-2.5 py-1 rounded-lg bg-white border border-slate-200 hover:border-blue-400 hover:text-blue-600 font-semibold text-slate-600 shadow-2xs transition cursor-pointer">1
+                                Tháng</button>
+                            <button type="button" onclick="setFlightDateQuick('6_months')"
+                                class="px-2.5 py-1 rounded-lg bg-white border border-slate-200 hover:border-blue-400 hover:text-blue-600 font-semibold text-slate-600 shadow-2xs transition cursor-pointer">6
+                                Tháng</button>
+                            <button type="button" onclick="setFlightDateQuick('12_months')"
+                                class="px-2.5 py-1 rounded-lg bg-white border border-slate-200 hover:border-blue-400 hover:text-blue-600 font-semibold text-slate-600 shadow-2xs transition cursor-pointer">12
                                 Tháng</button>
                         </div>
                     </div>
@@ -638,9 +633,16 @@
 
                 <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
                     <div>
-                        <label class="block text-xs font-semibold text-slate-700 mb-1">Loại tàu bay khai thác</label>
-                        <input type="text" id="aircraftType" value="Airbus A321neo Cargo"
-                            class="w-full border rounded-xl px-3.5 py-2.5 text-xs focus:ring-2 focus:ring-blue-500 outline-none">
+                        <label class="block text-xs font-semibold text-slate-700 mb-1 flex items-center justify-between">
+                            <span>Loại tàu bay khai thác <span class="text-red-500">*</span></span>
+                            <a href="08-Settings.html" target="_blank" class="text-[10px] text-blue-600 hover:underline">
+                                <i class="fa-solid fa-gear text-[9px]"></i> Quản lý loại tàu bay
+                            </a>
+                        </label>
+                        <select id="aircraftType" required
+                            class="w-full border rounded-xl px-3.5 py-2.5 text-xs font-bold text-slate-800 bg-white focus:ring-2 focus:ring-blue-500 outline-none">
+                            <!-- Populated dynamically -->
+                        </select>
                     </div>
                     <div>
                         <label class="block text-xs font-semibold text-slate-700 mb-1">Quy định giao nhận & Cut-off
@@ -966,12 +968,56 @@
             updateAutoGeneratedFlightNumber(false);
         }
 
-        const AVAILABLE_AIRPORTS = [
-            { code: 'SGN', name: 'SGN - TP. Hồ Chí Minh' },
-            { code: 'HAN', name: 'HAN - Hà Nội' },
-            { code: 'DAD', name: 'DAD - Đà Nẵng' },
-            { code: 'PQC', name: 'PQC - Phú Quốc' }
-        ];
+        function getAvailableAirports() {
+            if (window.CargoStore && CargoStore.getAirports) {
+                const list = CargoStore.getAirports();
+                if (list && list.length > 0) {
+                    return list.map(a => ({ code: a.code, name: `${a.code} - ${a.name}` }));
+                }
+            }
+            return [
+                { code: 'DAD', name: 'DAD - Da Nang International Airport' },
+                { code: 'DLI', name: 'DLI - Lien Khuong Airport' },
+                { code: 'HAN', name: 'HAN - Noi Bai International Airport' },
+                { code: 'HPH', name: 'HPH - Cat Bi International Airport' },
+                { code: 'HUI', name: 'HUI - Phu Bai International Airport' },
+                { code: 'SGN', name: 'SGN - Tan Son Nhat International Airport' },
+                { code: 'UIH', name: 'UIH - Phu Cat Airport' },
+                { code: 'PQC', name: 'PQC - Phu Quoc International Airport' },
+                { code: 'VCA', name: 'VCA - Can Tho International Airport' },
+                { code: 'CXR', name: 'CXR - Cam Ranh International Airport' }
+            ];
+        }
+
+        function initAirportAndAircraftDropdowns() {
+            const airports = getAvailableAirports();
+            const originSelect = document.getElementById('originAirport');
+            if (originSelect) {
+                const currVal = originSelect.value || 'SGN';
+                originSelect.innerHTML = airports.map(a => `<option value="${a.code}">${a.name}</option>`).join('');
+                if (airports.some(a => a.code === currVal)) {
+                    originSelect.value = currVal;
+                } else if (airports.length > 0) {
+                    originSelect.value = airports[0].code;
+                }
+            }
+            updateDestinationOptions();
+
+            // Populate Aircraft Type select
+            const acSelect = document.getElementById('aircraftType');
+            if (acSelect) {
+                const acTypes = (window.CargoStore && CargoStore.getAircraftTypes) ? CargoStore.getAircraftTypes() : [];
+                if (acTypes.length > 0) {
+                    acSelect.innerHTML = acTypes.map(ac => `<option value="${ac.name} (${ac.code})">${ac.code} - ${ac.name}</option>`).join('');
+                } else {
+                    acSelect.innerHTML = `
+                        <option value="A320 (32V)">32V - A320</option>
+                        <option value="A321 (32I)">32I - A321</option>
+                        <option value="A321 (321)">321 - A321</option>
+                    `;
+                }
+            }
+        }
 
         function updateDestinationOptions() {
             const originSelect = document.getElementById('originAirport');
@@ -980,9 +1026,10 @@
 
             const currentOrigin = originSelect.value;
             const currentDest = destSelect.value;
+            const airports = getAvailableAirports();
 
             // Exclude current origin airport from destination options
-            const availableDests = AVAILABLE_AIRPORTS.filter(a => a.code !== currentOrigin);
+            const availableDests = airports.filter(a => a.code !== currentOrigin);
 
             destSelect.innerHTML = availableDests.map(a => `
                 <option value="${a.code}">${a.name}</option>
@@ -1028,14 +1075,15 @@
             const startDt = new Date(now.getTime() + 24 * 3600 * 1000);
             let endDt = new Date(startDt.getTime());
 
-            if (mode === 'single') {
-                endDt = new Date(startDt.getTime());
-            } else if (mode === 'week') {
-                endDt = new Date(startDt.getTime() + 6 * 24 * 3600 * 1000);
-            } else if (mode === 'two_weeks') {
-                endDt = new Date(startDt.getTime() + 13 * 24 * 3600 * 1000);
-            } else if (mode === 'month') {
-                endDt = new Date(startDt.getTime() + 29 * 24 * 3600 * 1000);
+            if (mode === '1_month' || mode === 'month' || mode === '1m') {
+                endDt.setMonth(endDt.getMonth() + 1);
+                endDt.setDate(endDt.getDate() - 1);
+            } else if (mode === '6_months' || mode === '6m') {
+                endDt.setMonth(endDt.getMonth() + 6);
+                endDt.setDate(endDt.getDate() - 1);
+            } else if (mode === '12_months' || mode === '12m' || mode === 'year') {
+                endDt.setFullYear(endDt.getFullYear() + 1);
+                endDt.setDate(endDt.getDate() - 1);
             }
 
             const sInput = document.getElementById('flightStartDate');
@@ -1084,7 +1132,11 @@
                 }
             }
             if (countEl) {
-                countEl.textContent = `Tổng số: ${days} ngày`;
+                let approx = '';
+                if (days >= 360 && days <= 370) approx = ' (~12 tháng)';
+                else if (days >= 175 && days <= 190) approx = ' (~6 tháng)';
+                else if (days >= 28 && days <= 32) approx = ' (~1 tháng)';
+                countEl.textContent = `Tổng số: ${days} ngày${approx}`;
             }
         }
 
@@ -1109,7 +1161,7 @@
                 if (!closeDateInput.value) closeDateInput.value = closeStr;
             }
 
-            // Init flight date range (tomorrow -> 7 days later)
+            // Init flight date range (tomorrow -> 1 month later)
             const sInput = document.getElementById('flightStartDate');
             const eInput = document.getElementById('flightEndDate');
             if (sInput && !sInput.value) {
@@ -1118,7 +1170,10 @@
                 sInput.min = todayStr;
             }
             if (eInput && !eInput.value) {
-                const endDt = new Date(now.getTime() + 7 * 24 * 3600 * 1000);
+                const startDt = new Date(now.getTime() + 24 * 3600 * 1000);
+                const endDt = new Date(startDt.getTime());
+                endDt.setMonth(endDt.getMonth() + 1);
+                endDt.setDate(endDt.getDate() - 1);
                 eInput.value = `${endDt.getFullYear()}-${pad(endDt.getMonth() + 1)}-${pad(endDt.getDate())}`;
                 eInput.min = todayStr;
             }
@@ -1348,6 +1403,7 @@
         }
 
         document.addEventListener('DOMContentLoaded', function () {
+            initAirportAndAircraftDropdowns();
             initDateInputs();
             attachFieldListeners();
             updateVolumePreview();
@@ -1358,6 +1414,7 @@
 
         // Run immediately in case DOM is already ready
         if (document.readyState === 'complete' || document.readyState === 'interactive') {
+            initAirportAndAircraftDropdowns();
             initDateInputs();
             attachFieldListeners();
             initSystemDefaults();

@@ -134,7 +134,7 @@
                     <h2 id="dashWelcomeName" class="text-xl sm:text-2xl font-bold tracking-tight">Xin chào, Nguyễn Văn
                         An</h2>
                     <p id="dashCompanyInfo" class="text-slate-300 text-xs sm:text-sm mt-0.5 sm:mt-1">Công ty TNHH Vận
-                        tải ABC Logistics · Hôm nay có <strong>28 chuyến bay</strong> mở thầu tải trọng cargo.</p>
+                        tải ABC Logistics · Hôm nay có <strong>28 chuyến bay</strong> mở thầu.</p>
                 </div>
             </div>
         </div>
@@ -154,7 +154,8 @@
                             nghị bảo mật</span>
                     </h4>
                     <p class="text-xs text-slate-600 mt-0.5">
-                        Tài khoản của bạn chưa tạo mã PIN. Hãy thiết lập ngay để tăng cường bảo mật và ủy quyền giao dịch đấu giá nhanh chóng.
+                        Tài khoản của bạn chưa tạo mã PIN. Hãy thiết lập ngay để tăng cường bảo mật và ủy quyền giao
+                        dịch đấu giá nhanh chóng.
                     </p>
                 </div>
             </div>
@@ -190,7 +191,6 @@
                     <p class="text-xs text-gray-500 font-medium">Gói thầu đã tham gia</p>
                     <p id="kpiLeading" class="text-xl sm:text-2xl font-bold text-blue-600 mt-0.5 truncate">0 <span
                             class="text-xs text-gray-400 font-normal">chuyến</span></p>
-                    <span class="text-[11px] text-blue-600 font-medium block truncate">Đã nộp phiếu</span>
                 </div>
             </div>
 
@@ -204,8 +204,6 @@
                     <p class="text-xs text-gray-500 font-medium">Đã trúng thầu</p>
                     <p id="kpiWon" class="text-xl sm:text-2xl font-bold text-emerald-600 mt-0.5 truncate">0 <span
                             class="text-xs text-gray-400 font-normal">đơn</span></p>
-                    <span class="text-[11px] text-emerald-600 font-medium block truncate">Phiên đã đóng & xác
-                        nhận</span>
                 </div>
             </div>
         </div>
@@ -224,16 +222,19 @@
                 </div>
 
                 <!-- Bộ lọc theo giai đoạn bay: Từ ngày -> Đến ngày -->
-                <div class="flex items-center gap-2 bg-white px-3 py-1.5 rounded-xl border border-slate-200 shadow-2xs text-xs flex-wrap">
+                <div
+                    class="flex items-center gap-2 bg-white px-3 py-1.5 rounded-xl border border-slate-200 shadow-2xs text-xs flex-wrap">
                     <span class="text-slate-600 font-semibold flex items-center gap-1">
                         <i class="fa-regular fa-calendar-days text-blue-600"></i> Lọc ngày bay:
                     </span>
                     <div class="flex items-center gap-1.5">
                         <input type="date" id="dashFilterFromDate" onchange="applyDashDateFilter()"
-                            class="border border-slate-200 rounded-lg px-2 py-1 text-xs font-medium outline-none focus:border-blue-500 bg-slate-50 focus:bg-white text-slate-700" title="Từ ngày">
+                            class="border border-slate-200 rounded-lg px-2 py-1 text-xs font-medium outline-none focus:border-blue-500 bg-slate-50 focus:bg-white text-slate-700"
+                            title="Từ ngày">
                         <span class="text-slate-400 font-bold">➔</span>
                         <input type="date" id="dashFilterToDate" onchange="applyDashDateFilter()"
-                            class="border border-slate-200 rounded-lg px-2 py-1 text-xs font-medium outline-none focus:border-blue-500 bg-slate-50 focus:bg-white text-slate-700" title="Đến ngày">
+                            class="border border-slate-200 rounded-lg px-2 py-1 text-xs font-medium outline-none focus:border-blue-500 bg-slate-50 focus:bg-white text-slate-700"
+                            title="Đến ngày">
                         <button type="button" onclick="clearDashDateFilter()" title="Xóa bộ lọc ngày"
                             class="text-slate-400 hover:text-slate-700 px-1.5 py-1 text-xs cursor-pointer">
                             <i class="fa-solid fa-rotate-left"></i>
@@ -480,7 +481,7 @@
                                                     onclick="submitBidSingle(${a.id}, ${capKg}, '${a.flightNumber}', '${a.route}')" 
                                                     class="bg-blue-50 hover:bg-blue-600 text-blue-700 hover:text-white border border-blue-200 hover:border-blue-600 text-[11px] font-bold px-2.5 py-1.5 rounded-lg transition shadow-2xs flex items-center gap-1 shrink-0 cursor-pointer"
                                                     title="Nộp riêng giá thầu cho chuyến bay này">
-                                                <i class="fa-solid fa-paper-plane text-[9px]"></i> Đặt lẻ
+                                                <i class="fa-solid fa-paper-plane text-[9px]"></i> Xác nhận
                                             </button>
                                         `}
                                     </div>
@@ -572,14 +573,6 @@
                                     <div class="text-[11px] text-slate-500 space-y-0.5">
                                         <p>• Giá mua là giá cước vận chuyển (Phụ phí nhiên liệu & an ninh: 0 VNĐ, chưa gồm VAT và phí lao vụ).</p>
                                         <p>• Phí vận đơn: 60.000 VNĐ/AWB. Trả kết quả theo công thức: <strong>Tổng giá mua = Tổng sản lượng (kg) × Giá mua (VNĐ/kg)</strong></p>
-                                    </div>
-                                    <div class="shrink-0 flex items-center gap-2">
-                                        <button type="button" 
-                                                onclick="submitAllPreparedBids()" 
-                                                id="btnSubmitAllBids" 
-                                                class="bg-blue-600 hover:bg-blue-700 active:scale-[0.98] text-white text-xs sm:text-sm font-bold px-6 py-2.5 rounded-xl transition shadow flex items-center gap-2 cursor-pointer disabled:opacity-40 disabled:cursor-not-allowed">
-                                            <i class="fa-solid fa-paper-plane"></i> <span id="btnSubmitAllText">Xác nhận đặt giá thầu ngay</span>
-                                        </button>
                                     </div>
                                 </div>
                             </div>

@@ -756,6 +756,118 @@
                 </div>
             </div>
 
+            <!-- ========================================================= -->
+            <!-- 1. AIRPORT CONFIGURATION CARD (Cấu hình Danh mục Sân bay) -->
+            <!-- ========================================================= -->
+            <div class="bg-white rounded-2xl border shadow-sm p-6 space-y-4" id="airportConfigCard">
+                <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b pb-3">
+                    <div>
+                        <h2 class="font-bold text-sm text-slate-900 flex items-center gap-2">
+                            <i class="fa-solid fa-plane-arrival text-blue-600"></i> Danh mục Sân bay khai thác
+                        </h2>
+                        <p class="text-xs text-slate-500 mt-0.5">Quản lý danh sách mã IATA và tên sân bay phục vụ khai
+                            thác vận chuyển hàng hóa (Origin & Destination)</p>
+                    </div>
+                    <div class="flex items-center gap-2 flex-wrap">
+                        <span id="airportCountBadge"
+                            class="text-[11px] font-semibold text-blue-700 bg-blue-50 border border-blue-200 px-2.5 py-1 rounded-full">
+                            0 sân bay
+                        </span>
+                        <button type="button" id="btnAddAirport" onclick="openAirportModal()"
+                            class="bg-blue-600 hover:bg-blue-700 text-white text-xs font-bold px-3.5 py-1.5 rounded-xl transition shadow-xs flex items-center gap-1.5 cursor-pointer">
+                            <i class="fa-solid fa-plus"></i> Thêm Sân bay mới
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Search bar -->
+                <div class="flex items-center gap-2">
+                    <div class="relative flex-1">
+                        <i
+                            class="fa-solid fa-magnifying-glass absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 text-xs"></i>
+                        <input type="text" id="airportSearchInput" oninput="renderAirportsTable()"
+                            placeholder="Tìm kiếm theo mã sân bay (SGN, HAN, DAD...) hoặc tên..."
+                            class="w-full pl-8 pr-3 py-2 text-xs border rounded-xl bg-slate-50/50 focus:bg-white focus:ring-2 focus:ring-blue-500 outline-none">
+                    </div>
+                </div>
+
+                <!-- Airports Table -->
+                <div class="border border-slate-200 rounded-xl overflow-hidden shadow-2xs">
+                    <div class="max-h-72 overflow-y-auto">
+                        <table class="w-full text-left border-collapse text-xs">
+                            <thead class="bg-slate-50 text-slate-700 font-bold border-b sticky top-0 z-10">
+                                <tr>
+                                    <th class="py-2.5 px-3 w-14 text-center">STT</th>
+                                    <th class="py-2.5 px-3 w-32">Mã Sân bay</th>
+                                    <th class="py-2.5 px-3">Tên Sân bay (Airport Description)</th>
+                                    <th class="py-2.5 px-3 w-28 text-center">Thao tác</th>
+                                </tr>
+                            </thead>
+                            <tbody id="airportsTableBody" class="divide-y divide-slate-100 font-medium text-slate-700">
+                                <!-- Rendered dynamically -->
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+
+            <!-- ====================================================================== -->
+            <!-- 2. AIRCRAFT TYPES CONFIGURATION CARD (Cấu hình Loại tàu bay khai thác) -->
+            <!-- ====================================================================== -->
+            <div class="bg-white rounded-2xl border shadow-sm p-6 space-y-4" id="aircraftTypeConfigCard">
+                <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b pb-3">
+                    <div>
+                        <h2 class="font-bold text-sm text-slate-900 flex items-center gap-2">
+                            <i class="fa-solid fa-plane text-indigo-600"></i> Danh mục Loại tàu bay khai thác
+                        </h2>
+                        <p class="text-xs text-slate-500 mt-0.5">Quản lý mã định danh tàu bay (AcCode) và tên dòng tàu
+                            bay (AcName: A320, A321...) từ bảng VU_VFM</p>
+                    </div>
+                    <div class="flex items-center gap-2 flex-wrap">
+                        <span id="aircraftTypeCountBadge"
+                            class="text-[11px] font-semibold text-indigo-700 bg-indigo-50 border border-indigo-200 px-2.5 py-1 rounded-full">
+                            0 loại tàu bay
+                        </span>
+                        <button type="button" id="btnAddAircraftType" onclick="openAircraftTypeModal()"
+                            class="bg-indigo-600 hover:bg-indigo-700 text-white text-xs font-bold px-3.5 py-1.5 rounded-xl transition shadow-xs flex items-center gap-1.5 cursor-pointer">
+                            <i class="fa-solid fa-plus"></i> Thêm Loại tàu bay
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Search bar -->
+                <div class="flex items-center gap-2">
+                    <div class="relative flex-1">
+                        <i
+                            class="fa-solid fa-magnifying-glass absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 text-xs"></i>
+                        <input type="text" id="aircraftTypeSearchInput" oninput="renderAircraftTypesTable()"
+                            placeholder="Tìm kiếm theo mã tàu bay (32V, 321, 320...) hoặc tên..."
+                            class="w-full pl-8 pr-3 py-2 text-xs border rounded-xl bg-slate-50/50 focus:bg-white focus:ring-2 focus:ring-indigo-500 outline-none">
+                    </div>
+                </div>
+
+                <!-- Aircraft Types Table -->
+                <div class="border border-slate-200 rounded-xl overflow-hidden shadow-2xs">
+                    <div class="max-h-72 overflow-y-auto">
+                        <table class="w-full text-left border-collapse text-xs">
+                            <thead class="bg-slate-50 text-slate-700 font-bold border-b sticky top-0 z-10">
+                                <tr>
+                                    <th class="py-2.5 px-3 w-14 text-center">STT</th>
+                                    <th class="py-2.5 px-3 w-32">Mã tàu bay (AcCode)</th>
+                                    <th class="py-2.5 px-3">Tên loại tàu bay (AcName)</th>
+                                    <th class="py-2.5 px-3 w-28 text-center">Thao tác</th>
+                                </tr>
+                            </thead>
+                            <tbody id="aircraftTypesTableBody"
+                                class="divide-y divide-slate-100 font-medium text-slate-700">
+                                <!-- Rendered dynamically -->
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+
+
             <div class="flex items-center justify-end gap-3 flex-wrap">
                 <button type="button" id="resetAllDataBtn" onclick="handleResetAllData()"
                     class="bg-rose-600 hover:bg-rose-700 text-white text-xs font-bold px-5 py-2.5 rounded-xl transition shadow flex items-center gap-1.5">
@@ -951,6 +1063,335 @@
             }
         }
 
+        // ==========================================
+        // AIRPORT MANAGEMENT (Danh mục Sân bay khai thác)
+        // ==========================================
+        function renderAirportsTable() {
+            const tbody = document.getElementById('airportsTableBody');
+            const badge = document.getElementById('airportCountBadge');
+            const searchVal = ((document.getElementById('airportSearchInput')?.value) || '').trim().toLowerCase();
+            if (!tbody) return;
+
+            const list = (window.CargoStore && CargoStore.getAirports) ? CargoStore.getAirports() : [];
+            if (badge) badge.textContent = `${list.length} sân bay`;
+
+            let filtered = list;
+            if (searchVal) {
+                filtered = list.filter(item =>
+                    (item.code || '').toLowerCase().includes(searchVal) ||
+                    (item.name || '').toLowerCase().includes(searchVal)
+                );
+            }
+
+            if (filtered.length === 0) {
+                tbody.innerHTML = `
+                    <tr>
+                        <td colspan="4" class="text-center py-6 text-slate-400">
+                            <i class="fa-solid fa-inbox text-2xl mb-1 block"></i>
+                            ${searchVal ? 'Không tìm thấy sân bay phù hợp với từ khóa.' : 'Chưa có dữ liệu sân bay.'}
+                        </td>
+                    </tr>
+                `;
+                return;
+            }
+
+            const admin = (window.CargoStore && CargoStore.getCurrentAdmin) ? CargoStore.getCurrentAdmin() : null;
+            const isStaff = admin && admin.role === 'STAFF';
+
+            tbody.innerHTML = filtered.map((item, idx) => `
+                <tr class="hover:bg-blue-50/40 transition">
+                    <td class="py-2.5 px-3 text-center text-slate-400 font-mono">${idx + 1}</td>
+                    <td class="py-2.5 px-3 font-mono font-bold text-blue-700">
+                        <span class="inline-block bg-blue-50 text-blue-700 border border-blue-200 px-2 py-0.5 rounded-md">${escapeHtml(item.code)}</span>
+                    </td>
+                    <td class="py-2.5 px-3 font-semibold text-slate-800">${escapeHtml(item.name)}</td>
+                    <td class="py-2.5 px-3 text-center">
+                        <div class="inline-flex items-center gap-1.5">
+                            <button type="button" onclick="openAirportModal('${escapeHtml(item.code)}', '${escapeHtml(item.name)}')"
+                                class="p-1.5 text-blue-600 hover:bg-blue-100 rounded-lg transition cursor-pointer" title="Chỉnh sửa">
+                                <i class="fa-solid fa-pen-to-square"></i>
+                            </button>
+                            <button type="button" onclick="handleDeleteAirport('${escapeHtml(item.code)}')"
+                                class="p-1.5 text-rose-600 hover:bg-rose-100 rounded-lg transition cursor-pointer" title="Xóa">
+                                <i class="fa-solid fa-trash-can"></i>
+                            </button>
+                        </div>
+                    </td>
+                </tr>
+            `).join('');
+        }
+
+        function openAirportModal(oldCode = null, oldName = null) {
+            const isEdit = !!oldCode;
+            const admin = (window.CargoStore && CargoStore.getCurrentAdmin) ? CargoStore.getCurrentAdmin() : null;
+            if (admin && admin.role === 'STAFF') {
+                alert('Tài khoản Nhân viên (STAFF) không có quyền thêm hoặc sửa danh mục sân bay!');
+                return;
+            }
+
+            if (window.Swal) {
+                Swal.fire({
+                    title: isEdit ? 'Cập nhật Sân bay' : 'Thêm Sân bay mới',
+                    html: `
+                        <div class="text-left space-y-3 pt-2 text-xs">
+                            <div>
+                                <label class="block font-bold text-slate-700 mb-1">Mã Sân bay (IATA Code) <span class="text-red-500">*</span></label>
+                                <input id="swalAirportCode" type="text" class="w-full border rounded-xl px-3 py-2 text-xs font-mono font-bold uppercase text-blue-700 focus:ring-2 focus:ring-blue-500 outline-none" 
+                                    placeholder="VD: SGN, HAN, DAD..." value="${oldCode || ''}" maxlength="10">
+                            </div>
+                            <div>
+                                <label class="block font-bold text-slate-700 mb-1">Tên Sân bay (Airport Description) <span class="text-red-500">*</span></label>
+                                <input id="swalAirportName" type="text" class="w-full border rounded-xl px-3 py-2 text-xs font-medium focus:ring-2 focus:ring-blue-500 outline-none" 
+                                    placeholder="VD: Tan Son Nhat International Airport" value="${oldName || ''}">
+                            </div>
+                        </div>
+                    `,
+                    showCancelButton: true,
+                    confirmButtonText: isEdit ? '<i class="fa-solid fa-check mr-1"></i> Lưu cập nhật' : '<i class="fa-solid fa-plus mr-1"></i> Thêm sân bay',
+                    cancelButtonText: 'Hủy bỏ',
+                    confirmButtonColor: '#2563eb',
+                    cancelButtonColor: '#64748b',
+                    focusConfirm: false,
+                    preConfirm: () => {
+                        const code = (document.getElementById('swalAirportCode').value || '').trim().toUpperCase();
+                        const name = (document.getElementById('swalAirportName').value || '').trim();
+                        if (!code || !name) {
+                            Swal.showValidationMessage('Vui lòng nhập đầy đủ Mã và Tên sân bay!');
+                            return false;
+                        }
+                        return { code, name };
+                    }
+                }).then((result) => {
+                    if (result.isConfirmed && result.value) {
+                        const { code, name } = result.value;
+                        const res = isEdit ? CargoStore.updateAirport(oldCode, code, name) : CargoStore.addAirport(code, name);
+                        if (res.success) {
+                            Swal.fire({ icon: 'success', title: 'Thành công', text: res.message, timer: 1500, showConfirmButton: false });
+                            renderAirportsTable();
+                        } else {
+                            Swal.fire({ icon: 'error', title: 'Không thể thực hiện', text: res.message });
+                        }
+                    }
+                });
+            } else {
+                const code = prompt('Nhập Mã Sân bay (IATA):', oldCode || '');
+                if (!code) return;
+                const name = prompt('Nhập Tên Sân bay:', oldName || '');
+                if (!name) return;
+                const res = isEdit ? CargoStore.updateAirport(oldCode, code, name) : CargoStore.addAirport(code, name);
+                alert(res.message);
+                if (res.success) renderAirportsTable();
+            }
+        }
+
+        async function handleDeleteAirport(code) {
+            const admin = (window.CargoStore && CargoStore.getCurrentAdmin) ? CargoStore.getCurrentAdmin() : null;
+            if (admin && admin.role === 'STAFF') {
+                alert('Tài khoản Nhân viên không có quyền xóa sân bay!');
+                return;
+            }
+
+            const confirmMsg = `Bạn có chắc muốn xóa sân bay "${code}" khỏi danh mục cấu hình?`;
+            let ok = false;
+            if (window.Swal) {
+                const result = await Swal.fire({
+                    title: 'Xác nhận xóa sân bay',
+                    text: confirmMsg,
+                    icon: 'warning',
+                    showCancelButton: true,
+                    confirmButtonText: 'Đồng ý xóa',
+                    cancelButtonText: 'Hủy bỏ',
+                    confirmButtonColor: '#dc2626',
+                    cancelButtonColor: '#64748b'
+                });
+                ok = result.isConfirmed;
+            } else {
+                ok = confirm(confirmMsg);
+            }
+
+            if (!ok) return;
+
+            const res = CargoStore.deleteAirport(code);
+            if (res.success) {
+                if (window.Swal) {
+                    Swal.fire({ icon: 'success', title: 'Đã xóa', text: res.message, timer: 1500, showConfirmButton: false });
+                } else {
+                    alert(res.message);
+                }
+                renderAirportsTable();
+            } else {
+                alert(res.message);
+            }
+        }
+
+        // ==========================================
+        // AIRCRAFT TYPES MANAGEMENT (msg_AcType)
+        // ==========================================
+        function renderAircraftTypesTable() {
+            const tbody = document.getElementById('aircraftTypesTableBody');
+            const badge = document.getElementById('aircraftTypeCountBadge');
+            const searchVal = ((document.getElementById('aircraftTypeSearchInput')?.value) || '').trim().toLowerCase();
+            if (!tbody) return;
+
+            const list = (window.CargoStore && CargoStore.getAircraftTypes) ? CargoStore.getAircraftTypes() : [];
+            if (badge) badge.textContent = `${list.length} loại tàu bay`;
+
+            let filtered = list;
+            if (searchVal) {
+                filtered = list.filter(item =>
+                    (item.code || '').toLowerCase().includes(searchVal) ||
+                    (item.name || '').toLowerCase().includes(searchVal)
+                );
+            }
+
+            if (filtered.length === 0) {
+                tbody.innerHTML = `
+                    <tr>
+                        <td colspan="4" class="text-center py-6 text-slate-400">
+                            <i class="fa-solid fa-inbox text-2xl mb-1 block"></i>
+                            ${searchVal ? 'Không tìm thấy loại tàu bay phù hợp với từ khóa.' : 'Chưa có loại tàu bay nào.'}
+                        </td>
+                    </tr>
+                `;
+                return;
+            }
+
+            tbody.innerHTML = filtered.map((item, idx) => `
+                <tr class="hover:bg-indigo-50/40 transition">
+                    <td class="py-2.5 px-3 text-center text-slate-400 font-mono">${idx + 1}</td>
+                    <td class="py-2.5 px-3 font-mono font-bold text-indigo-700">
+                        <span class="inline-block bg-indigo-50 text-indigo-700 border border-indigo-200 px-2 py-0.5 rounded-md">${escapeHtml(item.code)}</span>
+                    </td>
+                    <td class="py-2.5 px-3 font-semibold text-slate-800">${escapeHtml(item.name)}</td>
+                    <td class="py-2.5 px-3 text-center">
+                        <div class="inline-flex items-center gap-1.5">
+                            <button type="button" onclick="openAircraftTypeModal('${escapeHtml(item.code)}', '${escapeHtml(item.name)}')"
+                                class="p-1.5 text-indigo-600 hover:bg-indigo-100 rounded-lg transition cursor-pointer" title="Chỉnh sửa">
+                                <i class="fa-solid fa-pen-to-square"></i>
+                            </button>
+                            <button type="button" onclick="handleDeleteAircraftType('${escapeHtml(item.code)}')"
+                                class="p-1.5 text-rose-600 hover:bg-rose-100 rounded-lg transition cursor-pointer" title="Xóa">
+                                <i class="fa-solid fa-trash-can"></i>
+                            </button>
+                        </div>
+                    </td>
+                </tr>
+            `).join('');
+        }
+
+        function openAircraftTypeModal(oldCode = null, oldName = null) {
+            const isEdit = !!oldCode;
+            const admin = (window.CargoStore && CargoStore.getCurrentAdmin) ? CargoStore.getCurrentAdmin() : null;
+            if (admin && admin.role === 'STAFF') {
+                alert('Tài khoản Nhân viên (STAFF) không có quyền thêm hoặc sửa loại tàu bay!');
+                return;
+            }
+
+            if (window.Swal) {
+                Swal.fire({
+                    title: isEdit ? 'Cập nhật Loại tàu bay' : 'Thêm Loại tàu bay mới',
+                    html: `
+                        <div class="text-left space-y-3 pt-2 text-xs">
+                            <div>
+                                <label class="block font-bold text-slate-700 mb-1">Mã tàu bay (AcCode) <span class="text-red-500">*</span></label>
+                                <input id="swalAcCode" type="text" class="w-full border rounded-xl px-3 py-2 text-xs font-mono font-bold uppercase text-indigo-700 focus:ring-2 focus:ring-indigo-500 outline-none" 
+                                    placeholder="VD: 32V, 32I, 321, 320..." value="${oldCode || ''}" maxlength="10">
+                            </div>
+                            <div>
+                                <label class="block font-bold text-slate-700 mb-1">Tên dòng tàu bay (AcName) <span class="text-red-500">*</span></label>
+                                <input id="swalAcName" type="text" class="w-full border rounded-xl px-3 py-2 text-xs font-medium focus:ring-2 focus:ring-indigo-500 outline-none" 
+                                    placeholder="VD: A320, A321..." value="${oldName || ''}">
+                            </div>
+                        </div>
+                    `,
+                    showCancelButton: true,
+                    confirmButtonText: isEdit ? '<i class="fa-solid fa-check mr-1"></i> Lưu cập nhật' : '<i class="fa-solid fa-plus mr-1"></i> Thêm loại tàu bay',
+                    cancelButtonText: 'Hủy bỏ',
+                    confirmButtonColor: '#4f46e5',
+                    cancelButtonColor: '#64748b',
+                    focusConfirm: false,
+                    preConfirm: () => {
+                        const code = (document.getElementById('swalAcCode').value || '').trim().toUpperCase();
+                        const name = (document.getElementById('swalAcName').value || '').trim();
+                        if (!code || !name) {
+                            Swal.showValidationMessage('Vui lòng nhập đầy đủ Mã tàu bay và Tên loại tàu bay!');
+                            return false;
+                        }
+                        return { code, name };
+                    }
+                }).then((result) => {
+                    if (result.isConfirmed && result.value) {
+                        const { code, name } = result.value;
+                        const res = isEdit ? CargoStore.updateAircraftType(oldCode, code, name) : CargoStore.addAircraftType(code, name);
+                        if (res.success) {
+                            Swal.fire({ icon: 'success', title: 'Thành công', text: res.message, timer: 1500, showConfirmButton: false });
+                            renderAircraftTypesTable();
+                        } else {
+                            Swal.fire({ icon: 'error', title: 'Không thể thực hiện', text: res.message });
+                        }
+                    }
+                });
+            } else {
+                const code = prompt('Nhập Mã tàu bay (AcCode):', oldCode || '');
+                if (!code) return;
+                const name = prompt('Nhập Tên loại tàu bay (AcName):', oldName || '');
+                if (!name) return;
+                const res = isEdit ? CargoStore.updateAircraftType(oldCode, code, name) : CargoStore.addAircraftType(code, name);
+                alert(res.message);
+                if (res.success) renderAircraftTypesTable();
+            }
+        }
+
+        async function handleDeleteAircraftType(code) {
+            const admin = (window.CargoStore && CargoStore.getCurrentAdmin) ? CargoStore.getCurrentAdmin() : null;
+            if (admin && admin.role === 'STAFF') {
+                alert('Tài khoản Nhân viên không có quyền xóa loại tàu bay!');
+                return;
+            }
+
+            const confirmMsg = `Bạn có chắc muốn xóa loại tàu bay "${code}" khỏi danh mục cấu hình?`;
+            let ok = false;
+            if (window.Swal) {
+                const result = await Swal.fire({
+                    title: 'Xác nhận xóa loại tàu bay',
+                    text: confirmMsg,
+                    icon: 'warning',
+                    showCancelButton: true,
+                    confirmButtonText: 'Đồng ý xóa',
+                    cancelButtonText: 'Hủy bỏ',
+                    confirmButtonColor: '#dc2626',
+                    cancelButtonColor: '#64748b'
+                });
+                ok = result.isConfirmed;
+            } else {
+                ok = confirm(confirmMsg);
+            }
+
+            if (!ok) return;
+
+            const res = CargoStore.deleteAircraftType(code);
+            if (res.success) {
+                if (window.Swal) {
+                    Swal.fire({ icon: 'success', title: 'Đã xóa', text: res.message, timer: 1500, showConfirmButton: false });
+                } else {
+                    alert(res.message);
+                }
+                renderAircraftTypesTable();
+            } else {
+                alert(res.message);
+            }
+        }
+
+        function escapeHtml(str) {
+            if (!str) return '';
+            return String(str)
+                .replace(/&/g, '&amp;')
+                .replace(/</g, '&lt;')
+                .replace(/>/g, '&gt;')
+                .replace(/"/g, '&quot;')
+                .replace(/'/g, '&#039;');
+        }
+
         function loadSettings() {
             if (typeof CargoStore === 'undefined') return;
             const s = CargoStore.getSystemSettings();
@@ -990,6 +1431,10 @@
                 if (bankCfg.bankBin) document.getElementById('bankBin').value = bankCfg.bankBin;
             }
 
+            // Render Airport and Aircraft Types tables
+            renderAirportsTable();
+            renderAircraftTypesTable();
+
             const admin = CargoStore.getCurrentAdmin();
             if (admin && admin.role === 'STAFF') {
                 const noticeEl = document.getElementById('staffPermissionNotice');
@@ -1011,6 +1456,14 @@
                     if (el) {
                         el.disabled = true;
                         el.classList.add('bg-slate-100', 'cursor-not-allowed', 'text-slate-500');
+                    }
+                });
+
+                ['btnAddAirport', 'btnAddAircraftType'].forEach(id => {
+                    const el = document.getElementById(id);
+                    if (el) {
+                        el.disabled = true;
+                        el.classList.add('opacity-50', 'cursor-not-allowed');
                     }
                 });
 
