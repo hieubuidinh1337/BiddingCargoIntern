@@ -293,6 +293,10 @@
             const searchVal = document.getElementById('searchInput').value.trim().toLowerCase();
 
             let list = CargoStore.getAuctions();
+            const u = CargoStore.getCurrentUser();
+            if (u && u.agentCode && CargoStore.isAgentAllowedForAuction) {
+                list = list.filter(a => CargoStore.isAgentAllowedForAuction(a, u.agentCode));
+            }
 
             // Filters
             if (routeVal !== 'ALL') {

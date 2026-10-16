@@ -2470,6 +2470,22 @@ const CargoStore = (function () {
 
             const isUpcoming = parsedOpen && parsedOpen.getTime() > (now.getTime() + 60000);
 
+            // Process allowedAgents (Approvals for this flight)
+            let allowedAgents = ['ALL'];
+            if (Array.isArray(auctionData.allowedAgents) && auctionData.allowedAgents.length > 0) {
+                if (auctionData.allowedAgents.includes('ALL')) {
+                    allowedAgents = ['ALL'];
+                } else {
+                    allowedAgents = auctionData.allowedAgents.map(c => String(c).trim().toUpperCase()).filter(Boolean);
+                }
+            } else if (typeof auctionData.allowedAgents === 'string' && auctionData.allowedAgents.trim()) {
+                if (auctionData.allowedAgents.trim().toUpperCase() === 'ALL') {
+                    allowedAgents = ['ALL'];
+                } else {
+                    allowedAgents = auctionData.allowedAgents.split(',').map(c => c.trim().toUpperCase()).filter(Boolean);
+                }
+            }
+
             const newAuction = {
                 id: newId,
                 flightCode: flightCode,
@@ -2497,24 +2513,43 @@ const CargoStore = (function () {
                 leadingAgentName: 'Chưa có đại lý nào đặt giá',
                 bidsCount: 0,
                 specialNotes: auctionData.specialNotes || 'Tải trọng tổng hợp tiêu chuẩn IATA.',
-                cutOffTime: auctionData.cutOffTime || 'Theo ngày đóng phiên'
+                cutOffTime: auctionData.cutOffTime || 'Theo ngày đóng phiên',
+                allowedAgents: allowedAgents
             };
 
             data.auctions.unshift(newAuction);
 
-            // Broadcast notification for all agents
+            // Notifications
             if (!data.notifications) data.notifications = [];
-            data.notifications.unshift({
-                id: Date.now(),
-                timestamp: Date.now(),
-                targetAgentCode: null, // Broadcast to all agents
-                title: `Mở phiên đấu giá mới: Chuyến ${flightNumber} (${origin} - ${dest})`,
-                message: `Chuyến bay ${flightNumber} (${originName} - ${destName}) với tải trọng ${this.formatNumber(capacityKg)} Kg, giá khởi điểm ${this.formatCurrency(startingPriceKg)}/Kg đã chính thức mở nhận giá thầu.`,
-                time: 'Vừa xong',
-                type: 'AUCTION_OPEN',
-                read: false,
-                link: `04-Detail.html?id=${newId}`
-            });
+            if (allowedAgents.includes('ALL')) {
+                // Broadcast notification for all agents
+                data.notifications.unshift({
+                    id: Date.now(),
+                    timestamp: Date.now(),
+                    targetAgentCode: null, // Broadcast to all agents
+                    title: `Mở phiên đấu giá mới: Chuyến ${flightNumber} (${origin} - ${dest})`,
+                    message: `Chuyến bay ${flightNumber} (${originName} - ${destName}) với tải trọng ${this.formatNumber(capacityKg)} Kg, giá khởi điểm ${this.formatCurrency(startingPriceKg)}/Kg đã chính thức mở nhận giá thầu.`,
+                    time: 'Vừa xong',
+                    type: 'AUCTION_OPEN',
+                    read: false,
+                    link: `04-Detail.html?id=${newId}`
+                });
+            } else {
+                // Targeted notifications only to approved assigned agents
+                allowedAgents.forEach((agentCode, idx) => {
+                    data.notifications.unshift({
+                        id: Date.now() + idx + 1,
+                        timestamp: Date.now(),
+                        targetAgentCode: agentCode,
+                        title: `🎯 Phê duyệt quyền đấu giá: Chuyến ${flightNumber} (${origin} - ${dest})`,
+                        message: `Đại lý ${agentCode} đã được chọn tham gia đấu giá tải trọng ${this.formatNumber(capacityKg)} Kg cho chuyến bay ${flightNumber} (${originName} - ${destName}). Giá khởi điểm: ${this.formatCurrency(startingPriceKg)}/Kg.`,
+                        time: 'Vừa xong',
+                        type: 'AUCTION_OPEN',
+                        read: false,
+                        link: `02-Dashboard.html`
+                    });
+                });
+            }
 
             // Targeted Route Subscription Notifications for agents who subscribed to this specific route
             const routePair = `${origin}-${dest}`.toUpperCase();
@@ -2660,6 +2695,39 @@ const CargoStore = (function () {
 
             // Filter out soft-deleted and cancelled auctions from normal views
             return auctions.filter(a => a.status !== 'DELETED' && a.status !== 'CANCELLED');
+        },
+
+        // Lấy danh sách các đại lý đã được phê duyệt và đang hoạt động
+        getApprovedAgents: function () {
+            const data = loadData();
+            const list = Array.isArray(data.agentsList) ? data.agentsList : [];
+            return list.filter(ag => {
+                if (!ag || !ag.code) return false;
+                const codeUpper = String(ag.code).trim().toUpperCase();
+                if (['ALL', 'STAFF', 'SYSTEM', 'ADMIN', 'VU-ADMIN-01', 'VU-OPS-88'].includes(codeUpper)) return false;
+                const isLocked = ag.status === 'Đã khóa' || ag.status === 'LOCKED' || ag.isLocked === true;
+                return !isLocked;
+            });
+        },
+
+        // Kiểm tra xem đại lý có được quyền tham gia đấu giá chuyến bay này không
+        isAgentAllowedForAuction: function (auction, agentCode) {
+            if (!auction) return false;
+            const allowed = auction.allowedAgents;
+            // Nếu không giới hạn hoặc gán ALL hoặc mảng rỗng -> cho phép toàn bộ đại lý đã duyệt
+            if (!allowed || !Array.isArray(allowed) || allowed.length === 0 || allowed.includes('ALL')) {
+                return true;
+            }
+            if (!agentCode) return false;
+            const targetCode = String(agentCode).trim().toUpperCase();
+            return allowed.some(c => String(c).trim().toUpperCase() === targetCode);
+        },
+
+        // Lấy danh sách các phiên đấu giá mà đại lý cụ thể được quyền xem & tham gia
+        getAuctionsForAgent: function (agentCode) {
+            const all = this.getAuctions();
+            if (!agentCode) return all;
+            return all.filter(a => this.isAgentAllowedForAuction(a, agentCode));
         },
 
         // Admin-only: returns ALL auctions including DELETED and CANCELLED (for audit/management)
@@ -2810,6 +2878,14 @@ const CargoStore = (function () {
             }
 
             const user = data.currentUser || defaultData.currentUser;
+
+            // Check if agent is permitted to bid on this auction
+            if (!this.isAgentAllowedForAuction(auction, user.agentCode)) {
+                return {
+                    success: false,
+                    message: `Đại lý của bạn (${user.agentCode || 'chưa xác định'}) không nằm trong danh sách đại lý được phê duyệt tham gia đấu giá cho chuyến bay ${auction.flightNumber}.`
+                };
+            }
 
             // Ensure agent account is active (No invoice/payment blockage in this branch)
             const agentAccount = (data.agentsList || []).find(a => (a.code || '').toUpperCase() === (user.agentCode || '').toUpperCase());

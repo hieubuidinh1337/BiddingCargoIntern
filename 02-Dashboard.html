@@ -253,9 +253,9 @@
             if (typeof CargoStore === 'undefined') return;
 
             const u = CargoStore.getCurrentUser();
+            const myCode = u ? (u.agentCode || '') : '';
             const allAuctions = CargoStore.getAuctions();
-            const openAuctions = allAuctions.filter(a => a.status === 'OPEN');
-            const myCode = u ? u.agentCode : '';
+            const openAuctions = allAuctions.filter(a => a.status === 'OPEN' && CargoStore.isAgentAllowedForAuction(a, myCode));
 
             // === Update Header Profile ===
             if (u) {
@@ -542,8 +542,10 @@
         }
 
         function toggleSelectAllDash(checked) {
+            const u = CargoStore.getCurrentUser();
+            const myCode = u ? (u.agentCode || '') : '';
             const allAuctions = CargoStore.getAuctions();
-            const openAuctions = allAuctions.filter(a => a.status === 'OPEN');
+            const openAuctions = allAuctions.filter(a => a.status === 'OPEN' && CargoStore.isAgentAllowedForAuction(a, myCode));
             const myBids = CargoStore.getMyBids ? CargoStore.getMyBids() : [];
 
             openAuctions.forEach(a => {
@@ -572,8 +574,10 @@
         }
 
         function updateDashAllTotals() {
+            const u = CargoStore.getCurrentUser();
+            const myCode = u ? (u.agentCode || '') : '';
             const allAuctions = CargoStore.getAuctions();
-            const openAuctions = allAuctions.filter(a => a.status === 'OPEN');
+            const openAuctions = allAuctions.filter(a => a.status === 'OPEN' && CargoStore.isAgentAllowedForAuction(a, myCode));
             const myBids = CargoStore.getMyBids ? CargoStore.getMyBids() : [];
 
             let grandTotal = 0;
@@ -627,8 +631,9 @@
                 return;
             }
 
+            const myCode = u ? (u.agentCode || '') : '';
             const allAuctions = CargoStore.getAuctions();
-            const openAuctions = allAuctions.filter(a => a.status === 'OPEN');
+            const openAuctions = allAuctions.filter(a => a.status === 'OPEN' && CargoStore.isAgentAllowedForAuction(a, myCode));
             const myBids = CargoStore.getMyBids ? CargoStore.getMyBids() : [];
 
             const preparedList = [];
@@ -725,6 +730,11 @@
             const auction = allAuctions.find(a => String(a.id) === String(auctionId));
             if (!auction) {
                 alert('Không tìm thấy thông tin gói thầu!');
+                return;
+            }
+
+            if (!CargoStore.isAgentAllowedForAuction(auction, u.agentCode)) {
+                alert('Đại lý của bạn không nằm trong danh sách đại lý được phê duyệt tham gia phiên đấu giá chuyến bay này!');
                 return;
             }
 

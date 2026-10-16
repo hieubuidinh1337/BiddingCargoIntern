@@ -451,6 +451,10 @@
                 <span class="text-slate-700 font-medium" id="detNotes">Hàng tổng hợp, hỗ trợ kho lạnh bảo quản thực phẩm
                     & dược phẩm.</span>
             </div>
+            <div class="pt-2 border-t flex flex-wrap items-center gap-2">
+                <span class="text-gray-400">Đại lý được quyền tham gia:</span>
+                <span id="detAllowedAgentsBadge" class="font-semibold text-slate-700">Tất cả đại lý</span>
+            </div>
         </div>
 
         <!-- Declared Cargo Box for Winner (Rendered if closed/winner exists) -->
@@ -750,6 +754,19 @@
             document.getElementById('detCutOff').textContent = (CargoStore && CargoStore.calculateCutOffTime) ? CargoStore.calculateCutOffTime(auction.etd) : (auction.cutOffTime || 'Trước ETD 3 giờ');
             document.getElementById('detNotes').textContent = auction.specialNotes;
 
+            const detAllowedAgentsBadge = document.getElementById('detAllowedAgentsBadge');
+            if (detAllowedAgentsBadge) {
+                if (!auction.allowedAgents || auction.allowedAgents.includes('ALL')) {
+                    detAllowedAgentsBadge.innerHTML = '<span class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-semibold bg-blue-50 text-blue-700 border border-blue-200"><i class="fa-solid fa-earth-americas text-blue-500"></i> Mở cho tất cả đại lý đã phê duyệt</span>';
+                } else {
+                    const agentNames = auction.allowedAgents.map(code => {
+                        const ag = (data.agentsList || []).find(x => x.agentCode === code);
+                        return ag ? `<span class="bg-emerald-100 text-emerald-800 px-2 py-0.5 rounded font-mono font-bold">${code}</span>` : `<span class="bg-emerald-100 text-emerald-800 px-2 py-0.5 rounded font-mono font-bold">${code}</span>`;
+                    });
+                    detAllowedAgentsBadge.innerHTML = `<span class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-semibold bg-emerald-50 text-emerald-700 border border-emerald-200"><i class="fa-solid fa-user-check text-emerald-600"></i> Giới hạn ${auction.allowedAgents.length} đại lý được duyệt:</span> <div class="inline-flex flex-wrap items-center gap-1.5">${agentNames.join(' ')}</div>`;
+                }
+            }
+
             // Declared Cargo section for winner
             const secCargo = document.getElementById('adminDeclaredCargoSection');
             if (secCargo) {
@@ -933,17 +950,17 @@
                 <button onclick="openDetailBroadcastModal()" class="bg-blue-600 hover:bg-blue-700 text-white text-xs font-bold px-3.5 py-2 rounded-xl transition shadow flex items-center gap-1.5">
                     <i class="fa-solid fa-bullhorn"></i> Phát thông báo
                 </button>
-                ${(isOpen ? (hideCloseBtn ? '' : `
-                    <button onclick="handleDetailCloseAuction()" class="bg-amber-500 hover:bg-amber-600 active:scale-95 text-slate-950 text-xs font-bold px-3.5 py-2 rounded-xl transition shadow flex items-center gap-1.5 cursor-pointer">
-                        <i class="fa-solid fa-gavel"></i> Đóng phiên & Chốt thầu ngay
-                    </button>
-                `) : `
-                    <span class="bg-slate-200 text-slate-700 text-xs font-bold px-3 py-2 rounded-xl flex items-center gap-1">
-                        <i class="fa-solid fa-lock"></i> Đã đóng thầu
-                    </span>
-                `)}
             `;
 
+            //             ${(isOpen ? (hideCloseBtn ? '' : `
+            //     <button onclick="handleDetailCloseAuction()" class="bg-amber-500 hover:bg-amber-600 active:scale-95 text-slate-950 text-xs font-bold px-3.5 py-2 rounded-xl transition shadow flex items-center gap-1.5 cursor-pointer">
+            //         <i class="fa-solid fa-gavel"></i> Đóng phiên & Chốt thầu ngay
+            //     </button>
+            // `) : `
+            //     <span class="bg-slate-200 text-slate-700 text-xs font-bold px-3 py-2 rounded-xl flex items-center gap-1">
+            //         <i class="fa-solid fa-lock"></i> Đã đóng thầu
+            //     </span>
+            // `)}
             let currentBidsPage = 1;
             let bidsItemsPerPage = 10;
 

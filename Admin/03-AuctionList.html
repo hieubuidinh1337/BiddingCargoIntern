@@ -431,7 +431,8 @@
                 <h1 class="text-lg sm:text-2xl font-bold text-slate-900 flex items-center gap-2">
                     <i class="fa-solid fa-list-check text-blue-600 text-base sm:text-xl"></i> Quản lý phiên đấu giá
                 </h1>
-                <p class="text-[11px] sm:text-xs text-slate-500 mt-0.5 sm:mt-1">Chức năng Điều hành: Theo dõi phiên thầu, Tiếp nhận kết quả và Phát thông báo</p>
+                <p class="text-[11px] sm:text-xs text-slate-500 mt-0.5 sm:mt-1">Chức năng Điều hành: Theo dõi phiên
+                    thầu, Tiếp nhận kết quả và Phát thông báo</p>
             </div>
             <div class="grid grid-cols-2 sm:flex items-center gap-2 w-full sm:w-auto">
                 <button onclick="openBroadcastModal()"
@@ -517,7 +518,8 @@
 
 
         <!-- Tab 3: Đơn thắng thầu & Khai báo Hàng hóa -->
-        <div id="sectionWonAuctions" style="display:none !important" hidden class="hidden bg-white rounded-2xl border shadow-sm overflow-hidden">
+        <div id="sectionWonAuctions" style="display:none !important" hidden
+            class="hidden bg-white rounded-2xl border shadow-sm overflow-hidden">
             <div
                 class="px-6 py-4 border-b bg-slate-900 text-white flex flex-col xl:flex-row xl:items-center justify-between gap-3">
                 <div class="flex items-center gap-2.5">
@@ -1118,7 +1120,7 @@
                 const w = window.open();
                 if (w) {
                     const ext = (name.split('.').pop() || '').toLowerCase();
-                    if (['jpg','jpeg','png','webp','gif'].includes(ext)) {
+                    if (['jpg', 'jpeg', 'png', 'webp', 'gif'].includes(ext)) {
                         w.document.write(`<html><head><title>${name}</title><style>body{margin:0;background:#111;display:flex;justify-content:center;align-items:flex-start;min-height:100vh;}img{max-width:100%;height:auto;margin:auto;display:block;}</style></head><body><img src="${finalUrl}" alt="${name}"/></body></html>`);
                     } else {
                         w.document.write(`<html><head><title>${name}</title><style>body,html{margin:0;padding:0;height:100%;}embed{width:100%;height:100%;}</style></head><body><embed src="${finalUrl}" type="application/pdf" width="100%" height="100%"/></body></html>`);
@@ -1199,6 +1201,10 @@
                     </td>
                     <td class="py-3.5 px-4 font-bold text-slate-800">
                         ${a.route}
+                        ${(!a.allowedAgents || a.allowedAgents.includes('ALL')) ?
+                            '<p class="text-[10px] text-slate-400 font-normal mt-0.5 flex items-center gap-1"><i class="fa-solid fa-earth-americas text-blue-500"></i> Mở cho: Tất cả đại lý</p>' :
+                            `<p class="text-[10px] text-emerald-700 font-medium mt-0.5 flex items-center gap-1" title="Đại lý: ${a.allowedAgents.join(', ')}"><i class="fa-solid fa-user-check text-emerald-600"></i> Giới hạn: ${a.allowedAgents.length} đại lý (${a.allowedAgents.slice(0, 2).join(', ')}${a.allowedAgents.length > 2 ? '...' : ''})</p>`
+                        }
                     </td>
                     <td class="py-3.5 px-4 text-gray-600">
                         <p class="font-medium">${a.aircraft}</p>
@@ -1224,11 +1230,6 @@
                         </span>
                     </td>
                     <td class="py-3.5 px-4 text-right space-x-1.5 whitespace-nowrap">
-                        ${(isOpen && !hideCloseBtn) ? `
-                            <button onclick="handleCloseAuction(${a.id})" class="inline-flex items-center gap-1 bg-amber-500 hover:bg-amber-600 active:scale-95 text-slate-950 font-bold px-2.5 py-1.5 rounded-lg transition shadow-2xs text-xs cursor-pointer" title="Đóng phiên & chốt thầu ngay">
-                                <i class="fa-solid fa-gavel"></i> Đóng phiên
-                            </button>
-                        ` : ''}
                         <a href="05-AuctionDetail.html?id=${a.id}" class="inline-flex items-center gap-1.5 bg-blue-50 hover:bg-blue-600 text-blue-700 hover:text-white font-semibold px-3 py-1.5 rounded-lg transition shadow-2xs" title="Xem chi tiết & lịch sử">
                             <i class="fa-solid fa-eye text-xs"></i> Xem chi tiết
                         </a>
@@ -1914,8 +1915,8 @@
                     `;
                 }
 
-                const memoStr = isStaff 
-                    ? `CARGO ${item.wonId} AG-***` 
+                const memoStr = isStaff
+                    ? `CARGO ${item.wonId} AG-***`
                     : (proof?.memo || (CargoStore.generatePaymentMemo ? CargoStore.generatePaymentMemo(item.wonId, item.agentCode) : `CARGO ${item.wonId} ${item.agentCode}`));
 
                 return `
