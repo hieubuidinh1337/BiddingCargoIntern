@@ -1,5 +1,6 @@
 <!DOCTYPE html>
 <html lang="vi">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -8,7 +9,8 @@
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
     <script src="../assets/js/cargo-store.js"></script>
 </head>
-<body class="bg-slate-100 text-slate-800 antialiased min-h-screen flex flex-col">    <!-- ═══════════════════════════════════════════
+
+<body class="bg-slate-100 text-slate-800 antialiased min-h-screen flex flex-col"> <!-- ═══════════════════════════════════════════
          ADMIN HEADER — VU Cargo Admin Portal
          Premium dark navigation — DO NOT EDIT MANUALLY
          ═══════════════════════════════════════════ -->
@@ -16,130 +18,317 @@
         /* ── Admin Header ── */
         #adminHeader {
             background: linear-gradient(135deg, #0f172a 0%, #1e293b 60%, #0f172a 100%);
-            border-bottom: 1px solid rgba(59,130,246,0.18);
-            position: sticky; top: 0; z-index: 50;
-            box-shadow: 0 2px 20px rgba(0,0,0,0.35);
+            border-bottom: 1px solid rgba(59, 130, 246, 0.18);
+            position: sticky;
+            top: 0;
+            z-index: 50;
+            box-shadow: 0 2px 20px rgba(0, 0, 0, 0.35);
         }
+
         #adminHeader::after {
             content: '';
             display: block;
             height: 2px;
             background: linear-gradient(90deg, transparent 0%, #3b82f6 30%, #6366f1 65%, transparent 100%);
         }
+
         .admin-inner {
-            max-width: 1400px; margin: 0 auto;
+            max-width: 1400px;
+            margin: 0 auto;
             padding: 0 1rem;
-            display: flex; align-items: center; justify-content: space-between;
-            height: 58px; gap: 0.75rem;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            height: 58px;
+            gap: 0.75rem;
         }
-        .admin-brand { display:flex; align-items:center; gap:0.75rem; text-decoration:none; flex-shrink:0; }
-        .admin-brand img { height: 32px; object-fit:contain; filter: brightness(0) invert(1); }
-        .admin-brand-sep { width:1px; height:28px; background:rgba(255,255,255,0.15); }
-        .admin-brand-text { font-size:0.8125rem; font-weight:700; color:#e2e8f0; letter-spacing:0.04em; white-space:nowrap; }
-        .admin-brand-sub { font-size:0.6rem; font-weight:600; color:#94a3b8; text-transform:uppercase; letter-spacing:0.1em; display:block; }
+
+        .admin-brand {
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+            text-decoration: none;
+            flex-shrink: 0;
+        }
+
+        .admin-brand img {
+            height: 32px;
+            object-fit: contain;
+            filter: brightness(0) invert(1);
+        }
+
+        .admin-brand-sep {
+            width: 1px;
+            height: 28px;
+            background: rgba(255, 255, 255, 0.15);
+        }
+
+        .admin-brand-text {
+            font-size: 0.8125rem;
+            font-weight: 700;
+            color: #e2e8f0;
+            letter-spacing: 0.04em;
+            white-space: nowrap;
+        }
+
+        .admin-brand-sub {
+            font-size: 0.6rem;
+            font-weight: 600;
+            color: #94a3b8;
+            text-transform: uppercase;
+            letter-spacing: 0.1em;
+            display: block;
+        }
 
         /* Desktop Nav */
-        .admin-nav { display:none; align-items:center; gap:2px; }
-        @media (min-width:768px) { .admin-nav { display:flex; } }
+        .admin-nav {
+            display: none;
+            align-items: center;
+            gap: 2px;
+        }
+
+        @media (min-width:768px) {
+            .admin-nav {
+                display: flex;
+            }
+        }
+
         .nav-item-admin {
-            display:flex; align-items:center; gap:5px;
-            padding: 5px 10px; border-radius: 8px;
-            font-size:0.72rem; font-weight:600; color:rgba(203,213,225,0.85);
-            text-decoration:none; white-space:nowrap;
+            display: flex;
+            align-items: center;
+            gap: 5px;
+            padding: 5px 10px;
+            border-radius: 8px;
+            font-size: 0.72rem;
+            font-weight: 600;
+            color: rgba(203, 213, 225, 0.85);
+            text-decoration: none;
+            white-space: nowrap;
             transition: all 0.15s ease;
             border: 1px solid transparent;
         }
+
         .nav-item-admin:hover {
-            color:#fff; background:rgba(255,255,255,0.08);
-            border-color:rgba(255,255,255,0.1);
+            color: #fff;
+            background: rgba(255, 255, 255, 0.08);
+            border-color: rgba(255, 255, 255, 0.1);
         }
+
         .nav-item-admin.active {
-            color:#fff; background:rgba(59,130,246,0.85);
-            border-color:rgba(59,130,246,0.5);
-            box-shadow: 0 0 12px rgba(59,130,246,0.35);
+            color: #fff;
+            background: rgba(59, 130, 246, 0.85);
+            border-color: rgba(59, 130, 246, 0.5);
+            box-shadow: 0 0 12px rgba(59, 130, 246, 0.35);
         }
+
         .nav-item-admin.chat-item {
-            color:#c4b5fd; background:rgba(139,92,246,0.12);
-            border-color:rgba(139,92,246,0.25);
+            color: #c4b5fd;
+            background: rgba(139, 92, 246, 0.12);
+            border-color: rgba(139, 92, 246, 0.25);
         }
+
         .nav-item-admin.chat-item:hover {
-            color:#e9d5ff; background:rgba(139,92,246,0.22);
+            color: #e9d5ff;
+            background: rgba(139, 92, 246, 0.22);
         }
+
         .nav-item-admin.active-chat {
-            color:#fff; background:rgba(139,92,246,0.75);
-            border-color:rgba(139,92,246,0.5);
-            box-shadow:0 0 12px rgba(139,92,246,0.35);
+            color: #fff;
+            background: rgba(139, 92, 246, 0.75);
+            border-color: rgba(139, 92, 246, 0.5);
+            box-shadow: 0 0 12px rgba(139, 92, 246, 0.35);
         }
+
         .chat-badge {
-            background:#ef4444; color:#fff; font-size:0.6rem;
-            font-weight:700; padding:0 5px; border-radius:999px; min-width:16px;
-            text-align:center; line-height:16px; height:16px;
+            background: #ef4444;
+            color: #fff;
+            font-size: 0.6rem;
+            font-weight: 700;
+            padding: 0 5px;
+            border-radius: 999px;
+            min-width: 16px;
+            text-align: center;
+            line-height: 16px;
+            height: 16px;
         }
 
         /* Right Bar */
-        .admin-right { display:flex; align-items:center; gap:0.5rem; flex-shrink:0; }
+        .admin-right {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            flex-shrink: 0;
+        }
+
         .admin-public-link {
-            display:none; align-items:center; gap:5px;
-            font-size:0.68rem; font-weight:600; color:rgba(148,163,184,0.9);
-            background:rgba(255,255,255,0.06); border:1px solid rgba(255,255,255,0.1);
-            padding:4px 10px; border-radius:8px; text-decoration:none;
-            transition:all 0.15s;
+            display: none;
+            align-items: center;
+            gap: 5px;
+            font-size: 0.68rem;
+            font-weight: 600;
+            color: rgba(148, 163, 184, 0.9);
+            background: rgba(255, 255, 255, 0.06);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            padding: 4px 10px;
+            border-radius: 8px;
+            text-decoration: none;
+            transition: all 0.15s;
         }
-        @media (min-width:1024px) { .admin-public-link { display:flex; } }
-        .admin-public-link:hover { color:#fff; background:rgba(255,255,255,0.1); }
-        .admin-sep { width:1px; height:24px; background:rgba(255,255,255,0.12); }
+
+        @media (min-width:1024px) {
+            .admin-public-link {
+                display: flex;
+            }
+        }
+
+        .admin-public-link:hover {
+            color: #fff;
+            background: rgba(255, 255, 255, 0.1);
+        }
+
+        .admin-sep {
+            width: 1px;
+            height: 24px;
+            background: rgba(255, 255, 255, 0.12);
+        }
+
         .admin-avatar {
-            width:32px; height:32px; border-radius:50%;
-            background:linear-gradient(135deg,#3b82f6,#6366f1);
-            color:#fff; font-weight:800; font-size:0.7rem;
-            display:flex; align-items:center; justify-content:center;
-            border:2px solid rgba(255,255,255,0.15);
-            flex-shrink:0;
+            width: 32px;
+            height: 32px;
+            border-radius: 50%;
+            background: linear-gradient(135deg, #3b82f6, #6366f1);
+            color: #fff;
+            font-weight: 800;
+            font-size: 0.7rem;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border: 2px solid rgba(255, 255, 255, 0.15);
+            flex-shrink: 0;
         }
-        .admin-user-info { display:none; flex-direction:column; text-align:left; }
-        @media (min-width:640px) { .admin-user-info { display:flex; } }
-        .admin-user-name { font-size:0.72rem; font-weight:700; color:#e2e8f0; line-height:1.2; }
-        .admin-user-role { font-size:0.6rem; font-weight:700; color:#60a5fa; text-transform:uppercase; letter-spacing:0.08em; }
+
+        .admin-user-info {
+            display: none;
+            flex-direction: column;
+            text-align: left;
+        }
+
+        @media (min-width:640px) {
+            .admin-user-info {
+                display: flex;
+            }
+        }
+
+        .admin-user-name {
+            font-size: 0.72rem;
+            font-weight: 700;
+            color: #e2e8f0;
+            line-height: 1.2;
+        }
+
+        .admin-user-role {
+            font-size: 0.6rem;
+            font-weight: 700;
+            color: #60a5fa;
+            text-transform: uppercase;
+            letter-spacing: 0.08em;
+        }
+
         .admin-logout {
-            color:rgba(148,163,184,0.7); padding:6px; border-radius:8px;
-            text-decoration:none; transition:all 0.15s; font-size:0.8rem;
-            border:1px solid transparent;
+            color: rgba(148, 163, 184, 0.7);
+            padding: 6px;
+            border-radius: 8px;
+            text-decoration: none;
+            transition: all 0.15s;
+            font-size: 0.8rem;
+            border: 1px solid transparent;
         }
-        .admin-logout:hover { color:#f87171; background:rgba(239,68,68,0.1); border-color:rgba(239,68,68,0.2); }
+
+        .admin-logout:hover {
+            color: #f87171;
+            background: rgba(239, 68, 68, 0.1);
+            border-color: rgba(239, 68, 68, 0.2);
+        }
 
         /* Mobile hamburger */
         .admin-hamburger {
-            display:flex; align-items:center; justify-content:center;
-            width:34px; height:34px; border-radius:8px;
-            background:rgba(255,255,255,0.07); border:1px solid rgba(255,255,255,0.12);
-            color:#cbd5e1; cursor:pointer; font-size:0.85rem;
-            transition:all 0.15s;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            width: 34px;
+            height: 34px;
+            border-radius: 8px;
+            background: rgba(255, 255, 255, 0.07);
+            border: 1px solid rgba(255, 255, 255, 0.12);
+            color: #cbd5e1;
+            cursor: pointer;
+            font-size: 0.85rem;
+            transition: all 0.15s;
         }
-        .admin-hamburger:hover { background:rgba(255,255,255,0.12); color:#fff; }
-        @media (min-width:768px) { .admin-hamburger { display:none; } }
+
+        .admin-hamburger:hover {
+            background: rgba(255, 255, 255, 0.12);
+            color: #fff;
+        }
+
+        @media (min-width:768px) {
+            .admin-hamburger {
+                display: none;
+            }
+        }
 
         /* Mobile dropdown */
         #adminMobileNav {
-            display:none; padding: 0.75rem 1rem;
-            background:#1e293b; border-top:1px solid rgba(255,255,255,0.08);
-            max-width:1400px; margin:0 auto;
+            display: none;
+            padding: 0.75rem 1rem;
+            background: #1e293b;
+            border-top: 1px solid rgba(255, 255, 255, 0.08);
+            max-width: 1400px;
+            margin: 0 auto;
         }
-        #adminMobileNav.open { display:block; }
+
+        #adminMobileNav.open {
+            display: block;
+        }
+
         .mobile-nav-item {
-            display:flex; align-items:center; gap:0.6rem;
-            padding:8px 12px; border-radius:8px; margin-bottom:2px;
-            font-size:0.76rem; font-weight:600; color:#cbd5e1;
-            text-decoration:none; transition:all 0.15s;
+            display: flex;
+            align-items: center;
+            gap: 0.6rem;
+            padding: 8px 12px;
+            border-radius: 8px;
+            margin-bottom: 2px;
+            font-size: 0.76rem;
+            font-weight: 600;
+            color: #cbd5e1;
+            text-decoration: none;
+            transition: all 0.15s;
         }
-        .mobile-nav-item:hover { color:#fff; background:rgba(255,255,255,0.08); }
-        .mobile-nav-item.active { color:#fff; background:rgba(59,130,246,0.75); }
-        .mobile-nav-item.chat-item { color:#c4b5fd; }
-        .mobile-nav-item.active-chat { color:#fff; background:rgba(139,92,246,0.75); }
+
+        .mobile-nav-item:hover {
+            color: #fff;
+            background: rgba(255, 255, 255, 0.08);
+        }
+
+        .mobile-nav-item.active {
+            color: #fff;
+            background: rgba(59, 130, 246, 0.75);
+        }
+
+        .mobile-nav-item.chat-item {
+            color: #c4b5fd;
+        }
+
+        .mobile-nav-item.active-chat {
+            color: #fff;
+            background: rgba(139, 92, 246, 0.75);
+        }
     </style>
     <header id="adminHeader">
         <div class="admin-inner">
             <!-- Brand -->
-            <button type="button" class="admin-hamburger" onclick="document.getElementById('adminMobileNav').classList.toggle('open')" aria-label="Menu">
+            <button type="button" class="admin-hamburger"
+                onclick="document.getElementById('adminMobileNav').classList.toggle('open')" aria-label="Menu">
                 <i class="fa-solid fa-bars"></i>
             </button>
             <a href="02-AdminDashboard.html" class="admin-brand">
@@ -153,13 +342,17 @@
 
             <!-- Desktop Nav -->
             <nav class="admin-nav">
-                    <a href="02-AdminDashboard.html" class="nav-item-admin"><i class="fa-solid fa-gauge-high"></i>Dashboard</a>
-                    <a href="03-AuctionList.html" class="nav-item-admin"><i class="fa-solid fa-list-check"></i>Quản lý phiên</a>
-                    <a href="04-CreateAuction.html" class="nav-item-admin"><i class="fa-solid fa-circle-plus"></i>Tạo phiên</a>
-                    <a href="06-AgentList.html" class="nav-item-admin"><i class="fa-solid fa-building-user"></i>Đại lý</a>
-                    <a href="07-Reports.html" class="nav-item-admin"><i class="fa-solid fa-chart-line"></i>Báo cáo</a>
-                    <a href="08-Settings.html" class="nav-item-admin active"><i class="fa-solid fa-gear"></i>Cài đặt</a>
-                    <a href="10-AuditLogs.html" class="nav-item-admin"><i class="fa-solid fa-clock-rotate-left"></i>Nhật ký</a>
+                <a href="02-AdminDashboard.html" class="nav-item-admin"><i
+                        class="fa-solid fa-gauge-high"></i>Dashboard</a>
+                <a href="03-AuctionList.html" class="nav-item-admin"><i class="fa-solid fa-list-check"></i>Quản lý
+                    phiên</a>
+                <a href="04-CreateAuction.html" class="nav-item-admin"><i class="fa-solid fa-circle-plus"></i>Tạo
+                    phiên</a>
+                <a href="06-AgentList.html" class="nav-item-admin"><i class="fa-solid fa-building-user"></i>Đại lý</a>
+                <a href="07-Reports.html" class="nav-item-admin"><i class="fa-solid fa-chart-line"></i>Báo cáo</a>
+                <a href="08-Settings.html" class="nav-item-admin active"><i class="fa-solid fa-gear"></i>Cài đặt</a>
+                <a href="10-AuditLogs.html" class="nav-item-admin"><i class="fa-solid fa-clock-rotate-left"></i>Nhật
+                    ký</a>
             </nav>
 
             <!-- Right Bar -->
@@ -173,7 +366,8 @@
                     <span class="admin-user-name admin-header-name">Quản trị viên</span>
                     <span class="admin-user-role admin-header-role">QUẢN TRỊ VIÊN</span>
                 </div>
-                <a href="01-AdminLogin.html" onclick="if(window.CargoStore) CargoStore.logoutAdmin()" class="admin-logout" title="Đăng xuất">
+                <a href="01-AdminLogin.html" onclick="if(window.CargoStore) CargoStore.logoutAdmin()"
+                    class="admin-logout" title="Đăng xuất">
                     <i class="fa-solid fa-power-off"></i>
                 </a>
             </div>
@@ -181,14 +375,19 @@
 
         <!-- Mobile Dropdown -->
         <div id="adminMobileNav">
-            <a href="02-AdminDashboard.html" class="mobile-nav-item"><i class="fa-solid fa-gauge-high w-4"></i>Dashboard</a>
-            <a href="03-AuctionList.html" class="mobile-nav-item"><i class="fa-solid fa-list-check w-4"></i>Quản lý phiên</a>
-            <a href="04-CreateAuction.html" class="mobile-nav-item"><i class="fa-solid fa-circle-plus w-4"></i>Tạo phiên</a>
+            <a href="02-AdminDashboard.html" class="mobile-nav-item"><i
+                    class="fa-solid fa-gauge-high w-4"></i>Dashboard</a>
+            <a href="03-AuctionList.html" class="mobile-nav-item"><i class="fa-solid fa-list-check w-4"></i>Quản lý
+                phiên</a>
+            <a href="04-CreateAuction.html" class="mobile-nav-item"><i class="fa-solid fa-circle-plus w-4"></i>Tạo
+                phiên</a>
             <a href="06-AgentList.html" class="mobile-nav-item"><i class="fa-solid fa-building-user w-4"></i>Đại lý</a>
             <a href="07-Reports.html" class="mobile-nav-item"><i class="fa-solid fa-chart-line w-4"></i>Báo cáo</a>
             <a href="08-Settings.html" class="mobile-nav-item active"><i class="fa-solid fa-gear w-4"></i>Cài đặt</a>
-            <a href="10-AuditLogs.html" class="mobile-nav-item"><i class="fa-solid fa-clock-rotate-left w-4"></i>Nhật ký</a>
-            <a href="../00-Home.html" target="_blank" class="mobile-nav-item" style="border-top:1px solid rgba(255,255,255,0.08);margin-top:6px;padding-top:10px">
+            <a href="10-AuditLogs.html" class="mobile-nav-item"><i class="fa-solid fa-clock-rotate-left w-4"></i>Nhật
+                ký</a>
+            <a href="../00-Home.html" target="_blank" class="mobile-nav-item"
+                style="border-top:1px solid rgba(255,255,255,0.08);margin-top:6px;padding-top:10px">
                 <i class="fa-solid fa-arrow-up-right-from-square w-4"></i> Xem Sàn công khai
             </a>
         </div>
@@ -200,7 +399,8 @@
             <h1 class="text-2xl font-bold text-slate-900 flex items-center gap-2">
                 <i class="fa-solid fa-sliders text-blue-600"></i> Cấu hình tham số hệ thống (CRUD System Settings)
             </h1>
-            <p class="text-xs text-slate-500 mt-1">Các quy chuẩn đấu giá, bước giá sàn, thời gian cut-off và thông số đồng bộ với CSDL SQL Server</p>
+            <p class="text-xs text-slate-500 mt-1">Các quy chuẩn đấu giá, bước giá sàn, thời gian cut-off và thông số
+                đồng bộ với CSDL SQL Server</p>
         </div>
 
         <div id="staffPermissionNotice"></div>
@@ -215,23 +415,27 @@
 
                 <div class="grid grid-cols-1 sm:grid-cols-2 gap-4 text-xs">
                     <div>
-                        <label class="block font-semibold text-slate-700 mb-1">Bước giá tối thiểu mặc định (VND/Kg)</label>
+                        <label class="block font-semibold text-slate-700 mb-1">Bước giá tối thiểu mặc định
+                            (VND/Kg)</label>
                         <input type="number" id="cfgMinIncrement" value="500" step="100" required
-                               class="w-full border rounded-xl px-3.5 py-2.5 font-bold text-blue-600 focus:ring-2 focus:ring-blue-500 outline-none">
-                        <p class="text-[10px] text-gray-400 mt-1">Đại lý chỉ được đặt giá &ge; Giá hiện tại + Bước giá</p>
+                            class="w-full border rounded-xl px-3.5 py-2.5 font-bold text-blue-600 focus:ring-2 focus:ring-blue-500 outline-none">
+                        <p class="text-[10px] text-gray-400 mt-1">Đại lý chỉ được đặt giá &ge; Giá hiện tại + Bước giá
+                        </p>
                     </div>
 
                     <div>
-                        <label class="block font-semibold text-slate-700 mb-1">Thời hạn thanh toán sau khi thắng thầu (Giờ)</label>
+                        <label class="block font-semibold text-slate-700 mb-1">Thời hạn thanh toán sau khi thắng thầu
+                            (Giờ)</label>
                         <input type="number" id="cfgPaymentWindow" value="24" min="1" max="72" required
-                               class="w-full border rounded-xl px-3.5 py-2.5 font-bold text-red-600 focus:ring-2 focus:ring-blue-500 outline-none">
-                        <p class="text-[10px] text-gray-400 mt-1">Quá thời hạn chưa thanh toán sẽ tự động hủy đơn trúng</p>
+                            class="w-full border rounded-xl px-3.5 py-2.5 font-bold text-red-600 focus:ring-2 focus:ring-blue-500 outline-none">
+                        <p class="text-[10px] text-gray-400 mt-1">Quá thời hạn chưa thanh toán sẽ tự động hủy đơn trúng
+                        </p>
                     </div>
                 </div>
             </div>
 
             <!-- Cài đặt Ẩn nút Chốt thầu (Hide Close Auction Buttons) -->
-            <div class="bg-gradient-to-br from-white to-slate-50/70 rounded-2xl border border-slate-200 shadow-sm p-6 space-y-4 relative overflow-hidden">
+            <!-- <div class="bg-gradient-to-br from-white to-slate-50/70 rounded-2xl border border-slate-200 shadow-sm p-6 space-y-4 relative overflow-hidden">
                 <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-2 border-b border-slate-100 pb-3">
                     <h2 class="font-bold text-sm text-slate-900 flex items-center gap-2">
                         <i class="fa-solid fa-eye-slash text-blue-600 text-base"></i> Cài đặt Ẩn nút Chốt thầu (Hide Close Auction Buttons)
@@ -242,11 +446,11 @@
                 </div>
                 <p class="text-xs text-slate-600 leading-relaxed">
                     Cấu hình cho phép ẩn hoặc hiển thị các nút "Đóng phiên" / "Chốt thầu" thủ công trên toàn bộ hệ thống (danh sách phiên đấu giá và trang chi tiết chuyến bay).
-                </p>
+                </p> -->
 
-                <div class="space-y-3 pt-1">
-                    <!-- Toggle Hide Close Button -->
-                    <label class="flex items-start gap-3 p-4 rounded-xl border border-slate-200 bg-white hover:bg-slate-50 transition cursor-pointer shadow-xs">
+            <!-- <div class="space-y-3 pt-1"> -->
+            <!-- Toggle Hide Close Button -->
+            <!-- <label class="flex items-start gap-3 p-4 rounded-xl border border-slate-200 bg-white hover:bg-slate-50 transition cursor-pointer shadow-xs">
                         <input type="checkbox" id="cfgHideCloseAuctionBtn" class="mt-0.5 w-4 h-4 text-blue-600 rounded border-slate-300 focus:ring-blue-500">
                         <div class="text-xs space-y-1">
                             <span class="font-bold text-slate-900 flex items-center gap-2">
@@ -258,10 +462,10 @@
                                 • <strong>Khi TẮT (Chế độ Test)</strong>: Hiển thị các nút chốt thầu để Quản trị viên có thể bấm chốt sớm và kiểm thử các tính năng sau đấu giá ngay lập tức.
                             </span>
                         </div>
-                    </label>
+                    </label> -->
 
-                    <!-- Instant Action button (Fast Testing) -->
-                    <div class="p-4 rounded-xl border border-amber-200 bg-amber-50/50 flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+            <!-- Instant Action button (Fast Testing) -->
+            <!-- <div class="p-4 rounded-xl border border-amber-200 bg-amber-50/50 flex flex-col sm:flex-row sm:items-center justify-between gap-3">
                         <div class="text-xs space-y-0.5">
                             <span class="font-bold text-slate-900 block flex items-center gap-1.5">
                                 <i class="fa-solid fa-bolt-lightning text-amber-600"></i> Phím tắt kiểm thử: Chốt thầu ngay tất cả các phiên đang mở
@@ -276,7 +480,7 @@
                         </button>
                     </div>
                 </div>
-            </div>
+            </div> -->
 
             <!-- Contact & Operations Info -->
             <div class="bg-white rounded-2xl border shadow-sm p-6 space-y-4">
@@ -288,13 +492,13 @@
                     <div>
                         <label class="block font-semibold text-slate-700 mb-1">Hotline hỗ trợ điều hành</label>
                         <input type="text" id="cfgHotline" value="1900 6868" required
-                               class="w-full border rounded-xl px-3.5 py-2.5 font-medium focus:ring-2 focus:ring-blue-500 outline-none">
+                            class="w-full border rounded-xl px-3.5 py-2.5 font-medium focus:ring-2 focus:ring-blue-500 outline-none">
                     </div>
 
                     <div>
                         <label class="block font-semibold text-slate-700 mb-1">Email tiếp nhận hồ sơ đại lý</label>
                         <input type="email" id="cfgSupportEmail" value="cargo-agent@airline.vn" required
-                               class="w-full border rounded-xl px-3.5 py-2.5 font-medium focus:ring-2 focus:ring-blue-500 outline-none">
+                            class="w-full border rounded-xl px-3.5 py-2.5 font-medium focus:ring-2 focus:ring-blue-500 outline-none">
                     </div>
                 </div>
             </div>
@@ -303,50 +507,56 @@
             <div class="bg-white rounded-2xl border shadow-sm p-6 space-y-4">
                 <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-2 border-b pb-2">
                     <h2 class="font-bold text-sm text-slate-900 flex items-center gap-2">
-                        <i class="fa-solid fa-building-columns text-emerald-600"></i> Cấu hình Tài khoản Ngân hàng Thụ hưởng & Tra soát Thanh toán
+                        <i class="fa-solid fa-building-columns text-emerald-600"></i> Cấu hình Tài khoản Ngân hàng Thụ
+                        hưởng & Tra soát Thanh toán
                     </h2>
-                    <span class="text-[11px] font-semibold text-emerald-700 bg-emerald-50 border border-emerald-200 px-2.5 py-0.5 rounded-full flex items-center gap-1">
+                    <span
+                        class="text-[11px] font-semibold text-emerald-700 bg-emerald-50 border border-emerald-200 px-2.5 py-0.5 rounded-full flex items-center gap-1">
                         <i class="fa-solid fa-qrcode"></i> Tự động tích hợp VietQR 24/7
                     </span>
                 </div>
-                <p class="text-xs text-slate-500">Thông tin này hiển thị trên phiếu thanh toán của đại lý và dùng để sinh mã VietQR chuyển khoản nhanh kèm cú pháp tự động.</p>
+                <p class="text-xs text-slate-500">Thông tin này hiển thị trên phiếu thanh toán của đại lý và dùng để
+                    sinh mã VietQR chuyển khoản nhanh kèm cú pháp tự động.</p>
 
                 <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4 text-xs">
                     <div>
                         <label class="block font-semibold text-slate-700 mb-1">Ngân hàng thụ hưởng</label>
-                        <input type="text" id="bankName" value="Ngân hàng TMCP Ngoại thương Việt Nam (Vietcombank)" required
-                               class="w-full border rounded-xl px-3.5 py-2.5 font-medium focus:ring-2 focus:ring-blue-500 outline-none">
+                        <input type="text" id="bankName" value="Ngân hàng TMCP Ngoại thương Việt Nam (Vietcombank)"
+                            required
+                            class="w-full border rounded-xl px-3.5 py-2.5 font-medium focus:ring-2 focus:ring-blue-500 outline-none">
                     </div>
 
                     <div>
                         <label class="block font-semibold text-slate-700 mb-1">Số tài khoản ngân hàng (STK)</label>
                         <input type="text" id="bankAccNum" value="1029384756" required
-                               class="w-full border rounded-xl px-3.5 py-2.5 font-mono font-bold text-blue-700 focus:ring-2 focus:ring-blue-500 outline-none">
+                            class="w-full border rounded-xl px-3.5 py-2.5 font-mono font-bold text-blue-700 focus:ring-2 focus:ring-blue-500 outline-none">
                     </div>
 
                     <div>
                         <label class="block font-semibold text-slate-700 mb-1">Tên chủ tài khoản (In hoa)</label>
                         <input type="text" id="bankAccName" value="CONG TY CP HANG KHONG VIETRAVEL" required
-                               class="w-full border rounded-xl px-3.5 py-2.5 font-bold uppercase focus:ring-2 focus:ring-blue-500 outline-none">
+                            class="w-full border rounded-xl px-3.5 py-2.5 font-bold uppercase focus:ring-2 focus:ring-blue-500 outline-none">
                     </div>
 
                     <div>
                         <label class="block font-semibold text-slate-700 mb-1">Chi nhánh ngân hàng</label>
                         <input type="text" id="bankBranch" value="Chi nhánh Tân Bình - TP. Hồ Chí Minh" required
-                               class="w-full border rounded-xl px-3.5 py-2.5 font-medium focus:ring-2 focus:ring-blue-500 outline-none">
+                            class="w-full border rounded-xl px-3.5 py-2.5 font-medium focus:ring-2 focus:ring-blue-500 outline-none">
                     </div>
 
                     <div>
                         <label class="block font-semibold text-slate-700 mb-1">Tiền tố cú pháp chuyển khoản</label>
                         <input type="text" id="bankMemoPrefix" value="CARGO" required placeholder="CARGO"
-                               class="w-full border rounded-xl px-3.5 py-2.5 font-mono font-bold text-emerald-700 uppercase focus:ring-2 focus:ring-blue-500 outline-none">
-                        <p class="text-[10px] text-gray-400 mt-1">Cú pháp mẫu: <code class="text-emerald-700 font-bold">CARGO [MÃ_ĐƠN] [MÃ_ĐẠI_LÝ]</code></p>
+                            class="w-full border rounded-xl px-3.5 py-2.5 font-mono font-bold text-emerald-700 uppercase focus:ring-2 focus:ring-blue-500 outline-none">
+                        <p class="text-[10px] text-gray-400 mt-1">Cú pháp mẫu: <code
+                                class="text-emerald-700 font-bold">CARGO [MÃ_ĐƠN] [MÃ_ĐẠI_LÝ]</code></p>
                     </div>
 
                     <div>
-                        <label class="block font-semibold text-slate-700 mb-1">Mã BIN Ngân hàng (Dành cho VietQR)</label>
+                        <label class="block font-semibold text-slate-700 mb-1">Mã BIN Ngân hàng (Dành cho
+                            VietQR)</label>
                         <input type="text" id="bankBin" value="970436" required placeholder="970436 (Vietcombank)"
-                               class="w-full border rounded-xl px-3.5 py-2.5 font-mono focus:ring-2 focus:ring-blue-500 outline-none">
+                            class="w-full border rounded-xl px-3.5 py-2.5 font-mono focus:ring-2 focus:ring-blue-500 outline-none">
                         <p class="text-[10px] text-gray-400 mt-1">970436: VCB, 970422: MB, 970407: Techcombank</p>
                     </div>
                 </div>
@@ -358,18 +568,24 @@
                     <span class="flex items-center gap-2">
                         <i class="fa-solid fa-user-shield text-indigo-600"></i> Cargo Store demo ko hiện mật khẩu
                     </span>
-                    <span class="text-[11px] font-semibold text-emerald-700 bg-emerald-50 border border-emerald-200 px-2.5 py-0.5 rounded-full flex items-center gap-1">
+                    <span
+                        class="text-[11px] font-semibold text-emerald-700 bg-emerald-50 border border-emerald-200 px-2.5 py-0.5 rounded-full flex items-center gap-1">
                         <i class="fa-solid fa-lock"></i> Mặc định Luôn Bật (Always ON)
                     </span>
                 </h2>
 
                 <div class="space-y-3">
-                    <label class="flex items-start gap-3 p-3.5 rounded-xl border border-slate-200 bg-slate-50/50 hover:bg-slate-50 transition cursor-pointer">
-                        <input type="checkbox" id="cfgHideAgentCredentials" checked class="mt-0.5 w-4 h-4 text-indigo-600 rounded border-slate-300 focus:ring-indigo-500">
+                    <label
+                        class="flex items-start gap-3 p-3.5 rounded-xl border border-slate-200 bg-slate-50/50 hover:bg-slate-50 transition cursor-pointer">
+                        <input type="checkbox" id="cfgHideAgentCredentials" checked
+                            class="mt-0.5 w-4 h-4 text-indigo-600 rounded border-slate-300 focus:ring-indigo-500">
                         <div class="text-xs space-y-0.5">
-                            <span class="font-bold text-slate-900 block">Khóa quyền xem Mật khẩu & Mã PIN cá nhân của Đại lý</span>
+                            <span class="font-bold text-slate-900 block">Khóa quyền xem Mật khẩu & Mã PIN cá nhân của
+                                Đại lý</span>
                             <span class="text-slate-500 block leading-relaxed">
-                                Khi tính năng này <strong>BẬT (Mặc định)</strong>, Quản trị viên và Nhân viên hệ thống sẽ <strong>không có quyền xem</strong> hoặc mở khóa Mật khẩu khởi tạo và Mã PIN bảo mật 4 chữ số của Đại lý (đảm bảo an toàn thông tin theo chuẩn ISO/IEC 27001).
+                                Khi tính năng này <strong>BẬT (Mặc định)</strong>, Quản trị viên và Nhân viên hệ thống
+                                sẽ <strong>không có quyền xem</strong> hoặc mở khóa Mật khẩu khởi tạo và Mã PIN bảo mật
+                                4 chữ số của Đại lý (đảm bảo an toàn thông tin theo chuẩn ISO/IEC 27001).
                             </span>
                         </div>
                     </label>
@@ -381,11 +597,14 @@
                 <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-2 border-b pb-3">
                     <div>
                         <h2 class="font-bold text-sm text-slate-900 flex items-center gap-2">
-                            <i class="fa-solid fa-envelope-circle-check text-blue-600"></i> Cấu hình Dịch vụ Gửi Email Tự động (SMTP / Gmail)
+                            <i class="fa-solid fa-envelope-circle-check text-blue-600"></i> Cấu hình Dịch vụ Gửi Email
+                            Tự động (SMTP / Gmail)
                         </h2>
-                        <p class="text-xs text-slate-500 mt-0.5">Tự động gửi email tiếp nhận hồ sơ, cấp Mã Đại lý, mật khẩu và xác nhận trúng thầu</p>
+                        <p class="text-xs text-slate-500 mt-0.5">Tự động gửi email tiếp nhận hồ sơ, cấp Mã Đại lý, mật
+                            khẩu và xác nhận trúng thầu</p>
                     </div>
-                    <div id="smtpStatusBadge" class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-[11px] font-bold bg-amber-50 text-amber-700 border border-amber-200">
+                    <div id="smtpStatusBadge"
+                        class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-[11px] font-bold bg-amber-50 text-amber-700 border border-amber-200">
                         <span class="w-2 h-2 rounded-full bg-amber-500 animate-pulse"></span>
                         <span>Đang dùng Hộp thư ảo Sandbox (Ethereal)</span>
                     </div>
@@ -395,19 +614,31 @@
                 <div class="bg-blue-50/70 border border-blue-200/80 rounded-2xl p-4 text-xs space-y-3">
                     <div class="flex items-center justify-between cursor-pointer" onclick="toggleSmtpGuide()">
                         <span class="font-bold text-blue-900 flex items-center gap-2">
-                            <i class="fa-solid fa-circle-question text-blue-600"></i> Hướng dẫn 4 bước kích hoạt gửi Gmail thật (Google App Password) trong 1 phút
+                            <i class="fa-solid fa-circle-question text-blue-600"></i> Hướng dẫn 4 bước kích hoạt gửi
+                            Gmail thật (Google App Password) trong 1 phút
                         </span>
                         <span id="smtpGuideIcon" class="text-blue-600 text-xs transition-transform duration-200">
                             <i class="fa-solid fa-chevron-down"></i>
                         </span>
                     </div>
-                    <div id="smtpGuideContent" class="space-y-2 pt-2 border-t border-blue-200/60 text-slate-700 leading-relaxed">
-                        <p class="text-[11px] text-slate-600"><strong>Lưu ý:</strong> Google không cho phép dùng mật khẩu đăng nhập Gmail thông thường để gửi qua ứng dụng. Bạn cần tạo <em>Mật khẩu ứng dụng (16 chữ cái)</em> theo các bước sau:</p>
+                    <div id="smtpGuideContent"
+                        class="space-y-2 pt-2 border-t border-blue-200/60 text-slate-700 leading-relaxed">
+                        <p class="text-[11px] text-slate-600"><strong>Lưu ý:</strong> Google không cho phép dùng mật
+                            khẩu đăng nhập Gmail thông thường để gửi qua ứng dụng. Bạn cần tạo <em>Mật khẩu ứng dụng (16
+                                chữ cái)</em> theo các bước sau:</p>
                         <ol class="list-decimal list-inside space-y-1.5 pl-1 text-[11px]">
-                            <li>Truy cập <a href="https://myaccount.google.com/security" target="_blank" class="text-blue-600 underline font-semibold">Cài đặt bảo mật Google (myaccount.google.com/security)</a> và bật <strong>Xác minh 2 bước (2-Step Verification)</strong> nếu chưa bật.</li>
-                            <li>Vào mục <a href="https://myaccount.google.com/apppasswords" target="_blank" class="text-blue-600 underline font-semibold">Mật khẩu ứng dụng (myaccount.google.com/apppasswords)</a>.</li>
-                            <li>Nhập tên ứng dụng là <strong>Cargo Bidding</strong> rồi bấm <strong>Tạo (Create)</strong>.</li>
-                            <li>Google sẽ cấp một mật khẩu gồm <strong>16 ký tự</strong> (ví dụ: <code class="bg-white px-1.5 py-0.5 rounded text-blue-700 font-mono font-bold">abcd efgh ijkl mnop</code>). Copy chuỗi này dán vào ô <strong>Mật khẩu ứng dụng Gmail</strong> bên dưới.</li>
+                            <li>Truy cập <a href="https://myaccount.google.com/security" target="_blank"
+                                    class="text-blue-600 underline font-semibold">Cài đặt bảo mật Google
+                                    (myaccount.google.com/security)</a> và bật <strong>Xác minh 2 bước (2-Step
+                                    Verification)</strong> nếu chưa bật.</li>
+                            <li>Vào mục <a href="https://myaccount.google.com/apppasswords" target="_blank"
+                                    class="text-blue-600 underline font-semibold">Mật khẩu ứng dụng
+                                    (myaccount.google.com/apppasswords)</a>.</li>
+                            <li>Nhập tên ứng dụng là <strong>Cargo Bidding</strong> rồi bấm <strong>Tạo
+                                    (Create)</strong>.</li>
+                            <li>Google sẽ cấp một mật khẩu gồm <strong>16 ký tự</strong> (ví dụ: <code
+                                    class="bg-white px-1.5 py-0.5 rounded text-blue-700 font-mono font-bold">abcd efgh ijkl mnop</code>).
+                                Copy chuỗi này dán vào ô <strong>Mật khẩu ứng dụng Gmail</strong> bên dưới.</li>
                         </ol>
                     </div>
                 </div>
@@ -415,7 +646,8 @@
                 <div class="grid grid-cols-1 sm:grid-cols-3 gap-4 text-xs">
                     <div>
                         <label class="block font-semibold text-slate-700 mb-1">Dịch vụ gửi thư</label>
-                        <select id="smtpProvider" onchange="handleSmtpProviderChange(this.value)" class="w-full border rounded-xl px-3.5 py-2.5 font-medium focus:ring-2 focus:ring-blue-500 outline-none bg-white">
+                        <select id="smtpProvider" onchange="handleSmtpProviderChange(this.value)"
+                            class="w-full border rounded-xl px-3.5 py-2.5 font-medium focus:ring-2 focus:ring-blue-500 outline-none bg-white">
                             <option value="gmail" selected>Google Gmail (smtp.gmail.com)</option>
                             <option value="outlook">Microsoft Outlook / Office 365</option>
                             <option value="custom">Máy chủ SMTP riêng (Custom)</option>
@@ -425,28 +657,32 @@
                     <div>
                         <label class="block font-semibold text-slate-700 mb-1">SMTP Host</label>
                         <input type="text" id="smtpHost" value="smtp.gmail.com" placeholder="smtp.gmail.com"
-                               class="w-full border rounded-xl px-3.5 py-2.5 font-medium focus:ring-2 focus:ring-blue-500 outline-none">
+                            class="w-full border rounded-xl px-3.5 py-2.5 font-medium focus:ring-2 focus:ring-blue-500 outline-none">
                     </div>
 
                     <div>
                         <label class="block font-semibold text-slate-700 mb-1">SMTP Port</label>
                         <input type="number" id="smtpPort" value="465" placeholder="465"
-                               class="w-full border rounded-xl px-3.5 py-2.5 font-medium focus:ring-2 focus:ring-blue-500 outline-none">
+                            class="w-full border rounded-xl px-3.5 py-2.5 font-medium focus:ring-2 focus:ring-blue-500 outline-none">
                         <p class="text-[10px] text-gray-400 mt-1">Gmail dùng 465 (SSL) hoặc 587 (TLS)</p>
                     </div>
 
                     <div>
-                        <label class="block font-semibold text-slate-700 mb-1">Tài khoản Email gửi (User / Gmail)</label>
+                        <label class="block font-semibold text-slate-700 mb-1">Tài khoản Email gửi (User /
+                            Gmail)</label>
                         <input type="email" id="smtpUser" value="jome7093@gmail.com" placeholder="jome7093@gmail.com"
-                               class="w-full border rounded-xl px-3.5 py-2.5 font-medium focus:ring-2 focus:ring-blue-500 outline-none">
+                            class="w-full border rounded-xl px-3.5 py-2.5 font-medium focus:ring-2 focus:ring-blue-500 outline-none">
                     </div>
 
                     <div>
-                        <label class="block font-semibold text-slate-700 mb-1">Mật khẩu ứng dụng Google (App Password 16 ký tự)</label>
+                        <label class="block font-semibold text-slate-700 mb-1">Mật khẩu ứng dụng Google (App Password 16
+                            ký tự)</label>
                         <div class="relative">
-                            <input type="password" id="smtpPass" value="fcju ktvw jqhg ilzb" placeholder="fcju ktvw jqhg ilzb"
-                                   class="w-full border rounded-xl px-3.5 py-2.5 pr-10 font-mono focus:ring-2 focus:ring-blue-500 outline-none">
-                            <button type="button" onclick="toggleSmtpPassVisibility()" class="absolute right-3 top-2.5 text-slate-400 hover:text-slate-600">
+                            <input type="password" id="smtpPass" value="fcju ktvw jqhg ilzb"
+                                placeholder="fcju ktvw jqhg ilzb"
+                                class="w-full border rounded-xl px-3.5 py-2.5 pr-10 font-mono focus:ring-2 focus:ring-blue-500 outline-none">
+                            <button type="button" onclick="toggleSmtpPassVisibility()"
+                                class="absolute right-3 top-2.5 text-slate-400 hover:text-slate-600">
                                 <i id="smtpPassEyeIcon" class="fa-solid fa-eye"></i>
                             </button>
                         </div>
@@ -454,8 +690,9 @@
 
                     <div>
                         <label class="block font-semibold text-slate-700 mb-1">Tên hiển thị người gửi</label>
-                        <input type="text" id="smtpFromName" value="Vietravel Airlines Cargo" placeholder="Vietravel Airlines Cargo"
-                               class="w-full border rounded-xl px-3.5 py-2.5 font-medium focus:ring-2 focus:ring-blue-500 outline-none">
+                        <input type="text" id="smtpFromName" value="Vietravel Airlines Cargo"
+                            placeholder="Vietravel Airlines Cargo"
+                            class="w-full border rounded-xl px-3.5 py-2.5 font-medium focus:ring-2 focus:ring-blue-500 outline-none">
                     </div>
                 </div>
 
@@ -464,15 +701,19 @@
                     <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
                         <div>
                             <span class="font-bold text-slate-800 flex items-center gap-1.5">
-                                <i class="fa-solid fa-paper-plane text-emerald-600"></i> Kiểm tra & Gửi thử nghiệm (Test Email)
+                                <i class="fa-solid fa-paper-plane text-emerald-600"></i> Kiểm tra & Gửi thử nghiệm (Test
+                                Email)
                             </span>
-                            <span class="text-[11px] text-slate-500">Gửi ngay 1 email mẫu để xác nhận hệ thống có gửi vào hộp thư Gmail của bạn không</span>
+                            <span class="text-[11px] text-slate-500">Gửi ngay 1 email mẫu để xác nhận hệ thống có gửi
+                                vào hộp thư Gmail của bạn không</span>
                         </div>
                     </div>
                     <div class="flex flex-col sm:flex-row items-center gap-2">
-                        <input type="email" id="smtpTestRecipient" value="jome7093@gmail.com" placeholder="Nhập email nhận thử nghiệm..."
-                               class="w-full sm:flex-1 border bg-white rounded-xl px-3.5 py-2 text-xs font-medium focus:ring-2 focus:ring-blue-500 outline-none">
-                        <button type="button" id="btnTestSmtp" onclick="handleSendTestEmail()" class="w-full sm:w-auto bg-emerald-600 hover:bg-emerald-700 text-white font-bold px-4 py-2 rounded-xl transition shadow flex items-center justify-center gap-1.5 whitespace-nowrap">
+                        <input type="email" id="smtpTestRecipient" value="jome7093@gmail.com"
+                            placeholder="Nhập email nhận thử nghiệm..."
+                            class="w-full sm:flex-1 border bg-white rounded-xl px-3.5 py-2 text-xs font-medium focus:ring-2 focus:ring-blue-500 outline-none">
+                        <button type="button" id="btnTestSmtp" onclick="handleSendTestEmail()"
+                            class="w-full sm:w-auto bg-emerald-600 hover:bg-emerald-700 text-white font-bold px-4 py-2 rounded-xl transition shadow flex items-center justify-center gap-1.5 whitespace-nowrap">
                             <i class="fa-solid fa-paper-plane"></i> Gửi Email Kiểm tra Ngay
                         </button>
                     </div>
@@ -493,66 +734,78 @@
                     <div>
                         <label class="block font-semibold text-slate-700 mb-1">Mật khẩu hiện tại</label>
                         <input type="password" id="adminOldPwd" placeholder="••••••••"
-                               class="w-full border rounded-xl px-3.5 py-2.5 font-medium focus:ring-2 focus:ring-blue-500 outline-none">
+                            class="w-full border rounded-xl px-3.5 py-2.5 font-medium focus:ring-2 focus:ring-blue-500 outline-none">
                     </div>
                     <div>
                         <label class="block font-semibold text-slate-700 mb-1">Mật khẩu mới</label>
                         <input type="password" id="adminNewPwd" placeholder="•••••••• (tối thiểu 6 ký tự)"
-                               class="w-full border rounded-xl px-3.5 py-2.5 font-medium focus:ring-2 focus:ring-blue-500 outline-none">
+                            class="w-full border rounded-xl px-3.5 py-2.5 font-medium focus:ring-2 focus:ring-blue-500 outline-none">
                     </div>
                     <div>
                         <label class="block font-semibold text-slate-700 mb-1">Xác nhận mật khẩu mới</label>
                         <input type="password" id="adminConfirmPwd" placeholder="••••••••"
-                               class="w-full border rounded-xl px-3.5 py-2.5 font-medium focus:ring-2 focus:ring-blue-500 outline-none">
+                            class="w-full border rounded-xl px-3.5 py-2.5 font-medium focus:ring-2 focus:ring-blue-500 outline-none">
                     </div>
                 </div>
                 <div>
-                    <button type="button" onclick="handleAdminChangePassword()" class="bg-slate-900 hover:bg-slate-800 text-white text-xs font-bold px-4 py-2 rounded-xl transition shadow flex items-center gap-1.5">
+                    <button type="button" onclick="handleAdminChangePassword()"
+                        class="bg-slate-900 hover:bg-slate-800 text-white text-xs font-bold px-4 py-2 rounded-xl transition shadow flex items-center gap-1.5">
                         <i class="fa-solid fa-shield-halved"></i> Cập nhật mật khẩu
                     </button>
                 </div>
             </div>
 
             <div class="flex items-center justify-end gap-3 flex-wrap">
-                <button type="button" id="resetAllDataBtn" onclick="handleResetAllData()" class="bg-rose-600 hover:bg-rose-700 text-white text-xs font-bold px-5 py-2.5 rounded-xl transition shadow flex items-center gap-1.5">
+                <button type="button" id="resetAllDataBtn" onclick="handleResetAllData()"
+                    class="bg-rose-600 hover:bg-rose-700 text-white text-xs font-bold px-5 py-2.5 rounded-xl transition shadow flex items-center gap-1.5">
                     <i class="fa-solid fa-rotate-left"></i> Reset toàn bộ dữ liệu
                 </button>
-                <button type="submit" id="saveSettingsBtn" class="bg-blue-600 hover:bg-blue-700 text-white text-xs font-bold px-6 py-2.5 rounded-xl transition shadow flex items-center gap-1.5">
+                <button type="submit" id="saveSettingsBtn"
+                    class="bg-blue-600 hover:bg-blue-700 text-white text-xs font-bold px-6 py-2.5 rounded-xl transition shadow flex items-center gap-1.5">
                     <i class="fa-solid fa-floppy-disk"></i> Lưu cấu hình hệ thống
                 </button>
             </div>
 
         </form>
 
-    
-    <!-- Beautiful HTML Modal Dialog -->
-    <div id="appCustomModal" class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-xs transition-opacity duration-200 hidden opacity-0 pointer-events-none" onclick="if(event.target === this) closeAppModal()">
-        <div id="appModalBox" class="bg-white rounded-2xl shadow-2xl border border-slate-100 max-w-md w-full overflow-hidden transform scale-95 transition-all duration-200">
-            <div id="appModalHeaderColor" class="h-1.5 w-full bg-blue-600"></div>
-            <div class="p-6">
-                <div class="flex items-start gap-4">
-                    <div id="appModalIconContainer" class="w-12 h-12 rounded-2xl flex items-center justify-center shrink-0 bg-blue-50 text-blue-600 text-xl border border-blue-100 shadow-xs">
-                        <i id="appModalIcon" class="fa-solid fa-circle-info"></i>
+
+        <!-- Beautiful HTML Modal Dialog -->
+        <div id="appCustomModal"
+            class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-xs transition-opacity duration-200 hidden opacity-0 pointer-events-none"
+            onclick="if(event.target === this) closeAppModal()">
+            <div id="appModalBox"
+                class="bg-white rounded-2xl shadow-2xl border border-slate-100 max-w-md w-full overflow-hidden transform scale-95 transition-all duration-200">
+                <div id="appModalHeaderColor" class="h-1.5 w-full bg-blue-600"></div>
+                <div class="p-6">
+                    <div class="flex items-start gap-4">
+                        <div id="appModalIconContainer"
+                            class="w-12 h-12 rounded-2xl flex items-center justify-center shrink-0 bg-blue-50 text-blue-600 text-xl border border-blue-100 shadow-xs">
+                            <i id="appModalIcon" class="fa-solid fa-circle-info"></i>
+                        </div>
+                        <div class="flex-1 min-w-0">
+                            <h3 id="appModalTitle" class="text-base font-bold text-slate-900 leading-snug">Thông báo
+                            </h3>
+                            <p id="appModalSubtitle" class="text-xs text-slate-500 mt-0.5">Cài đặt hệ thống</p>
+                        </div>
+                        <button type="button" onclick="closeAppModal()"
+                            class="w-8 h-8 rounded-lg hover:bg-slate-100 text-slate-400 hover:text-slate-600 flex items-center justify-center transition cursor-pointer">
+                            <i class="fa-solid fa-xmark text-sm"></i>
+                        </button>
                     </div>
-                    <div class="flex-1 min-w-0">
-                        <h3 id="appModalTitle" class="text-base font-bold text-slate-900 leading-snug">Thông báo</h3>
-                        <p id="appModalSubtitle" class="text-xs text-slate-500 mt-0.5">Cài đặt hệ thống</p>
+                    <div id="appModalBody"
+                        class="mt-4 text-xs text-slate-600 leading-relaxed max-h-[60vh] overflow-y-auto">
+                        Nội dung thông báo
                     </div>
-                    <button type="button" onclick="closeAppModal()" class="w-8 h-8 rounded-lg hover:bg-slate-100 text-slate-400 hover:text-slate-600 flex items-center justify-center transition cursor-pointer">
-                        <i class="fa-solid fa-xmark text-sm"></i>
-                    </button>
-                </div>
-                <div id="appModalBody" class="mt-4 text-xs text-slate-600 leading-relaxed max-h-[60vh] overflow-y-auto">
-                    Nội dung thông báo
-                </div>
-                <div id="appModalActions" class="mt-6 flex items-center justify-end gap-2.5 pt-4 border-t border-slate-100">
-                    <button type="button" onclick="closeAppModal()" class="px-4 py-2 bg-slate-900 hover:bg-slate-800 text-white text-xs font-semibold rounded-xl shadow-xs transition cursor-pointer">
-                        Đóng
-                    </button>
+                    <div id="appModalActions"
+                        class="mt-6 flex items-center justify-end gap-2.5 pt-4 border-t border-slate-100">
+                        <button type="button" onclick="closeAppModal()"
+                            class="px-4 py-2 bg-slate-900 hover:bg-slate-800 text-white text-xs font-semibold rounded-xl shadow-xs transition cursor-pointer">
+                            Đóng
+                        </button>
+                    </div>
                 </div>
             </div>
         </div>
-    </div>
 
     </main>
 
@@ -634,7 +887,7 @@
             }, 200);
         }
 
-        window.alert = function(msg) {
+        window.alert = function (msg) {
             showAppModal({
                 title: 'Thông báo cài đặt',
                 message: msg,
@@ -971,11 +1224,11 @@
             document.getElementById('adminConfirmPwd').value = '';
         }
 
-        
+
         function handleInstantCloseAllAuctions() {
             if (!confirm('Bạn có chắc chắn muốn chốt thầu TẤT CẢ các phiên đang mở ngay bây giờ để kiểm thử nhanh?')) return;
-            const res = (window.CargoStore && CargoStore.closeAllOpenAuctions) 
-                ? CargoStore.closeAllOpenAuctions(true) 
+            const res = (window.CargoStore && CargoStore.closeAllOpenAuctions)
+                ? CargoStore.closeAllOpenAuctions(true)
                 : { success: false, message: 'Chức năng chưa sẵn sàng' };
             if (res.success) {
                 alert('✅ ' + res.message + '\n\nĐã chốt xong các phiên đấu giá và sinh đơn trúng thầu thành công.');
@@ -984,11 +1237,11 @@
             }
         }
 
-        document.addEventListener('DOMContentLoaded', function() {
+        document.addEventListener('DOMContentLoaded', function () {
             loadSettings();
             if (window.CargoStore && CargoStore.syncAdminHeaderUI) CargoStore.syncAdminHeaderUI();
         });
     </script>
 </body>
-</html>
 
+</html>

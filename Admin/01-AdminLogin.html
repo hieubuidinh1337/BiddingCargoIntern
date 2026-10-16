@@ -1,5 +1,6 @@
 <!DOCTYPE html>
 <html lang="vi">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -9,24 +10,46 @@
     <script src="../assets/js/cargo-store.js"></script>
     <style>
         @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap');
-        * { font-family: 'Inter', sans-serif; }
+
+        * {
+            font-family: 'Inter', sans-serif;
+        }
+
         .admin-bg {
             background: linear-gradient(135deg, #0b1120 0%, #0f172a 50%, #1e293b 100%);
         }
-        .shake { animation: shake 0.4s ease-in-out; }
+
+        .shake {
+            animation: shake 0.4s ease-in-out;
+        }
+
         @keyframes shake {
-            0%, 100% { transform: translateX(0); }
-            20%, 60% { transform: translateX(-6px); }
-            40%, 80% { transform: translateX(6px); }
+
+            0%,
+            100% {
+                transform: translateX(0);
+            }
+
+            20%,
+            60% {
+                transform: translateX(-6px);
+            }
+
+            40%,
+            80% {
+                transform: translateX(6px);
+            }
         }
     </style>
 </head>
+
 <body class="admin-bg min-h-screen text-slate-100 flex flex-col justify-between">
 
     <!-- Top header -->
     <div class="max-w-7xl w-full mx-auto px-6 py-4 flex items-center justify-between">
         <a href="../00-Home.html" class="flex items-center gap-3">
-            <img src="../assets/images/vietravel-logo-doc-white.png" alt="Vietravel Airlines Logo" class="h-7 sm:h-8 object-contain" />
+            <img src="../assets/images/vietravel-logo-doc-white.png" alt="Vietravel Airlines Logo"
+                class="h-7 sm:h-8 object-contain" />
             <div>
                 <h1 class="font-bold text-base leading-tight text-white">Cargo Bidding</h1>
                 <p class="text-xs text-slate-400">Trung tâm Điều hành & Quản trị Hệ thống</p>
@@ -39,9 +62,11 @@
 
     <!-- Login Box -->
     <main class="w-full max-w-md mx-auto px-4 py-8">
-        <div class="bg-slate-900/90 backdrop-blur border border-slate-800 rounded-3xl p-8 shadow-2xl relative" id="adminLoginCard">
+        <div class="bg-slate-900/90 backdrop-blur border border-slate-800 rounded-3xl p-8 shadow-2xl relative"
+            id="adminLoginCard">
             <div class="text-center mb-6">
-                <div class="w-16 h-16 bg-blue-500/10 border border-blue-500/20 text-blue-400 rounded-2xl flex items-center justify-center text-2xl mx-auto mb-3 shadow-inner">
+                <div
+                    class="w-16 h-16 bg-blue-500/10 border border-blue-500/20 text-blue-400 rounded-2xl flex items-center justify-center text-2xl mx-auto mb-3 shadow-inner">
                     <i class="fa-solid fa-shield-halved"></i>
                 </div>
                 <h2 class="text-2xl font-bold text-white">Cổng Quản Trị Hệ Thống</h2>
@@ -49,7 +74,8 @@
             </div>
 
             <!-- Error Alert Box -->
-            <div id="adminErrorAlert" class="hidden bg-red-950/80 border-l-4 border-red-500 rounded-xl p-3.5 mb-5 text-xs text-red-200 space-y-1">
+            <div id="adminErrorAlert"
+                class="hidden bg-red-950/80 border-l-4 border-red-500 rounded-xl p-3.5 mb-5 text-xs text-red-200 space-y-1">
                 <div class="flex items-center gap-2 font-bold text-red-400 text-sm">
                     <i class="fa-solid fa-triangle-exclamation text-red-500"></i>
                     <span id="adminErrorTitle">Truy cập bị từ chối</span>
@@ -58,7 +84,7 @@
             </div>
 
             <!-- Demo Account Badge -->
-            <div class="bg-blue-900/30 border border-blue-700/40 rounded-xl p-3.5 mb-5 text-xs text-blue-300 space-y-2">
+            <!-- <div class="bg-blue-900/30 border border-blue-700/40 rounded-xl p-3.5 mb-5 text-xs text-blue-300 space-y-2">
                 <p class="font-semibold flex items-center gap-1.5">
                     <i class="fa-solid fa-key text-blue-400"></i> Tài khoản quản trị demo (Click điền):
                 </p>
@@ -72,25 +98,28 @@
                         <span class="text-slate-400">staff01 (staff2026)</span>
                     </button>
                 </div>
-            </div>
+            </div> -->
 
             <form id="adminLoginForm" onsubmit="handleAdminLogin(event)" class="space-y-4">
                 <div>
                     <label class="block text-xs font-semibold text-slate-300 mb-1">Tài khoản hoặc Email quản trị</label>
                     <div class="relative">
-                        <i class="fa-solid fa-user-shield absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-500 text-sm"></i>
+                        <i
+                            class="fa-solid fa-user-shield absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-500 text-sm"></i>
                         <input type="text" id="adminUser" value="admin" required placeholder="Username hoặc Email"
-                               class="w-full bg-slate-800/80 border border-slate-700 rounded-xl pl-10 pr-4 py-3 text-sm text-white focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none transition">
+                            class="w-full bg-slate-800/80 border border-slate-700 rounded-xl pl-10 pr-4 py-3 text-sm text-white focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none transition">
                     </div>
                 </div>
 
                 <div>
                     <label class="block text-xs font-semibold text-slate-300 mb-1">Mật khẩu xác thực</label>
                     <div class="relative">
-                        <i class="fa-solid fa-lock absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-500 text-sm"></i>
+                        <i
+                            class="fa-solid fa-lock absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-500 text-sm"></i>
                         <input type="password" id="adminPass" value="admin2026" required placeholder="••••••••"
-                               class="w-full bg-slate-800/80 border border-slate-700 rounded-xl pl-10 pr-10 py-3 text-sm text-white focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none transition">
-                        <button type="button" onclick="toggleAdminPass()" class="absolute right-3.5 top-1/2 -translate-y-1/2 text-slate-500 hover:text-slate-300">
+                            class="w-full bg-slate-800/80 border border-slate-700 rounded-xl pl-10 pr-10 py-3 text-sm text-white focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none transition">
+                        <button type="button" onclick="toggleAdminPass()"
+                            class="absolute right-3.5 top-1/2 -translate-y-1/2 text-slate-500 hover:text-slate-300">
                             <i class="fa-solid fa-eye" id="adminEye"></i>
                         </button>
                     </div>
@@ -98,14 +127,15 @@
 
                 <div class="flex items-center justify-between text-xs text-slate-400 py-1">
                     <label class="flex items-center gap-2 cursor-pointer">
-                        <input type="checkbox" checked class="w-4 h-4 rounded bg-slate-800 border-slate-700 text-blue-600 focus:ring-blue-500">
+                        <input type="checkbox" checked
+                            class="w-4 h-4 rounded bg-slate-800 border-slate-700 text-blue-600 focus:ring-blue-500">
                         <span>Xác thực thiết bị an toàn</span>
                     </label>
                     <span class="text-emerald-400 font-medium">Bảo mật SSL 256-bit</span>
                 </div>
 
                 <button type="submit" id="adminSubmitBtn"
-                        class="w-full bg-blue-600 hover:bg-blue-500 text-white font-bold py-3.5 rounded-xl transition shadow-lg shadow-blue-600/30 flex items-center justify-center gap-2 text-sm mt-2">
+                    class="w-full bg-blue-600 hover:bg-blue-500 text-white font-bold py-3.5 rounded-xl transition shadow-lg shadow-blue-600/30 flex items-center justify-center gap-2 text-sm mt-2">
                     <i class="fa-solid fa-arrow-right-to-bracket"></i> Đăng nhập Bảng điều khiển Admin
                 </button>
             </form>
@@ -119,74 +149,76 @@
     </main>
 
     <footer class="max-w-7xl w-full mx-auto px-6 py-4 text-center text-xs text-slate-500">
-        © 2026 Cargo Bidding Operations Center · Vietravel Airlines. All administrative actions are strictly audited and logged in SQL Server 2022.
+        © 2026 Cargo Bidding Operations Center · Vietravel Airlines. All administrative actions are strictly audited and
+        logged in SQL Server 2022.
     </footer>
 
     <script>
-    function fillAdminDemo(user, pwd) {
-        document.getElementById('adminUser').value = user;
-        document.getElementById('adminPass').value = pwd;
-        hideAdminError();
-    }
-
-    function toggleAdminPass() {
-        const input = document.getElementById('adminPass');
-        const icon = document.getElementById('adminEye');
-        if (input.type === 'password') {
-            input.type = 'text';
-            icon.className = 'fa-solid fa-eye-slash';
-        } else {
-            input.type = 'password';
-            icon.className = 'fa-solid fa-eye';
-        }
-    }
-
-    function showAdminError(title, msg) {
-        const alertBox = document.getElementById('adminErrorAlert');
-        document.getElementById('adminErrorTitle').textContent = title;
-        document.getElementById('adminErrorMsg').textContent = msg;
-        alertBox.classList.remove('hidden');
-        const card = document.getElementById('adminLoginCard');
-        card.classList.remove('shake');
-        void card.offsetWidth;
-        card.classList.add('shake');
-    }
-
-    function hideAdminError() {
-        document.getElementById('adminErrorAlert').classList.add('hidden');
-    }
-
-    function handleAdminLogin(e) {
-        e.preventDefault();
-        hideAdminError();
-
-        const user = document.getElementById('adminUser').value.trim();
-        const pass = document.getElementById('adminPass').value.trim();
-
-        if (!user) {
-            showAdminError('Thiếu tên tài khoản', 'Vui lòng nhập Tên đăng nhập Admin.');
-            return;
+        function fillAdminDemo(user, pwd) {
+            document.getElementById('adminUser').value = user;
+            document.getElementById('adminPass').value = pwd;
+            hideAdminError();
         }
 
-        if (!pass) {
-            showAdminError('Thiếu mật khẩu', 'Vui lòng nhập mật khẩu xác thực.');
-            return;
+        function toggleAdminPass() {
+            const input = document.getElementById('adminPass');
+            const icon = document.getElementById('adminEye');
+            if (input.type === 'password') {
+                input.type = 'text';
+                icon.className = 'fa-solid fa-eye-slash';
+            } else {
+                input.type = 'password';
+                icon.className = 'fa-solid fa-eye';
+            }
         }
 
-        const res = CargoStore.loginAdmin(user, pass);
-        if (!res.success) {
-            showAdminError('Truy cập bị từ chối', res.message);
-            return;
+        function showAdminError(title, msg) {
+            const alertBox = document.getElementById('adminErrorAlert');
+            document.getElementById('adminErrorTitle').textContent = title;
+            document.getElementById('adminErrorMsg').textContent = msg;
+            alertBox.classList.remove('hidden');
+            const card = document.getElementById('adminLoginCard');
+            card.classList.remove('shake');
+            void card.offsetWidth;
+            card.classList.add('shake');
         }
 
-        const btn = document.getElementById('adminSubmitBtn');
-        btn.disabled = true;
-        btn.innerHTML = '<i class="fa-solid fa-circle-notch fa-spin"></i> Đang xác thực chứng thư SSMS 2022...';
+        function hideAdminError() {
+            document.getElementById('adminErrorAlert').classList.add('hidden');
+        }
 
-        setTimeout(() => {
-            window.location.href = '02-AdminDashboard.html';
-        }, 500);
-    }
+        function handleAdminLogin(e) {
+            e.preventDefault();
+            hideAdminError();
+
+            const user = document.getElementById('adminUser').value.trim();
+            const pass = document.getElementById('adminPass').value.trim();
+
+            if (!user) {
+                showAdminError('Thiếu tên tài khoản', 'Vui lòng nhập Tên đăng nhập Admin.');
+                return;
+            }
+
+            if (!pass) {
+                showAdminError('Thiếu mật khẩu', 'Vui lòng nhập mật khẩu xác thực.');
+                return;
+            }
+
+            const res = CargoStore.loginAdmin(user, pass);
+            if (!res.success) {
+                showAdminError('Truy cập bị từ chối', res.message);
+                return;
+            }
+
+            const btn = document.getElementById('adminSubmitBtn');
+            btn.disabled = true;
+            btn.innerHTML = '<i class="fa-solid fa-circle-notch fa-spin"></i> Đang xác thực chứng thư SSMS 2022...';
+
+            setTimeout(() => {
+                window.location.href = '02-AdminDashboard.html';
+            }, 500);
+        }
     </script>
 </body>
+
 </html>
