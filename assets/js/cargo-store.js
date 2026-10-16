@@ -4382,6 +4382,11 @@ const CargoStore = (function () {
             }
 
             auction.status = 'CLOSED';
+            auction.closedAt = new Date().toISOString();
+            const reviewMins = Number(auction.reviewWindowMinutes) || 15;
+            auction.reviewWindowMinutes = reviewMins;
+            auction.reviewDeadline = new Date(Date.now() + (reviewMins * 60 * 1000)).toISOString();
+            auction.isFinalLocked = false;
 
             // Find highest bid for this auction
             let bids = (data.bids || []).filter(b => b.auctionId == id).sort((a, b) => b.priceKg - a.priceKg);
@@ -4413,6 +4418,7 @@ const CargoStore = (function () {
                 auction.winnerAgentCode = highestBid.agentCode;
                 auction.winnerAgentName = highestBid.agentName;
                 auction.winningPriceKg = highestBid.priceKg;
+                auction.winnerTotalAmountVND = highestBid.priceKg * auction.capacityKg;
 
                 if (!data.wonAuctions) data.wonAuctions = [];
                 let newWonItem = data.wonAuctions.find(w => w.auctionId == auction.id);
@@ -4421,7 +4427,6 @@ const CargoStore = (function () {
                     newWonItem.agentName = highestBid.agentName;
                     newWonItem.flightNumber = auction.flightNumber;
                     newWonItem.route = auction.route;
-                    newWonItem.capacityKg = auction.capacityKg;
                     newWonItem.priceKg = highestBid.priceKg;
                     newWonItem.totalAmountVND = highestBid.priceKg * auction.capacityKg;
                     newWonItem.paymentDeadline = calculatePaymentDeadline(auction, new Date());
@@ -4498,10 +4503,14 @@ const CargoStore = (function () {
                 actionCategory: 'Phiên đấu giá',
                 actionTitle: 'Chốt thầu / Đóng phiên đấu giá',
                 target: auction.flightNumber,
-                details: `Đóng phiên đấu giá chuyến bay ${auction.flightNumber} (${auction.route}). ` +
-                    (highestBid ? `Đại lý trúng thầu: ${highestBid.agentName} (${highestBid.agentCode}), Giá thắng: ${this.formatCurrency(highestBid.priceKg)}/Kg.` : 'Không có đại lý trúng thầu.')
+                details: `Đóng phiên chuyến bay ${auction.flightNumber} (${auction.route}). ` +
+                    (highestBid ? `Tự động Confirm đại lý trúng thầu cao nhất: ${highestBid.agentName} (${highestBid.agentCode}), Giá thắng: ${this.formatCurrency(highestBid.priceKg)}/Kg. Bắt đầu thời gian xem xét cấu hình (${reviewMins} phút).` : 'Không có đại lý trúng thầu.')
             });
-            return { success: true, auction: auction };
+            return {
+                success: true,
+                auction: auction,
+                message: `Đã chốt phiên thành công! Hệ thống tự động Confirm đại lý cao nhất: ${highestBid ? highestBid.agentName : ''} (${this.formatCurrency(highestBid ? highestBid.priceKg : 0)}/Kg). Bắt đầu đếm ngược ${reviewMins} phút xem xét.`
+            };
         },
 
         // Lấy bảng xếp hạng Top đại lý theo thứ tự giá từ cao xuống thấp & thứ tự tiếp nhận dự phòng
@@ -4529,25 +4538,60 @@ const CargoStore = (function () {
                 return (Number(a.timestamp || 0)) - (Number(b.timestamp || 0));
             });
 
-            const wonItem = (data.wonAuctions || []).find(w => w.auctionId == auctionId);
-            const currentWinnerCode = (auction.winnerAgentCode || (wonItem && wonItem.agentCode) || (sortedBids[0] && sortedBids[0].agentCode) || '').toUpperCase();
+            // Cấu hình thời gian xem xét / review window (mặc định 15 phút)
+            const reviewMinutes = Number(auction.reviewWindowMinutes) || 15;
+            auction.reviewWindowMinutes = reviewMinutes;
+
+            if (auction.status === 'CLOSED') {
+                if (!auction.closedAt) {
+                    auction.closedAt = new Date().toISOString();
+                }
+                if (!auction.reviewDeadline) {
+                    auction.reviewDeadline = new Date(new Date(auction.closedAt).getTime() + (reviewMinutes * 60 * 1000)).toISOString();
+                }
+            }
+
+            // Kiểm tra xem đã hết thời gian cấu hình hay chưa
+            const isExpiredByTime = (auction.status === 'CLOSED' && auction.reviewDeadline)
+                ? (Date.now() >= new Date(auction.reviewDeadline).getTime())
+                : false;
+
+            const isFinalLocked = Boolean(auction.isFinalLocked) || isExpiredByTime;
+            if (isExpiredByTime && !auction.isFinalLocked) {
+                auction.isFinalLocked = true;
+                auction.finalLockedAt = new Date().toISOString();
+                saveData(data);
+            }
+
+            // Danh sách các đại lý đã bị từ chối / reject
+            const rejectedCodes = (auction.rejectedAgents || []).map(c => String(c).toUpperCase());
+            if (auction.fallbackTransfers) {
+                auction.fallbackTransfers.forEach(t => {
+                    if (t.fromAgentCode && !rejectedCodes.includes(t.fromAgentCode.toUpperCase())) {
+                        rejectedCodes.push(t.fromAgentCode.toUpperCase());
+                    }
+                });
+            }
+
+            // AUTO-CONFIRM: Tự động chọn đại lý cao nhất chưa bị reject làm người trúng thầu hiện tại
+            let currentWinnerCode = (auction.winnerAgentCode || '').toUpperCase();
+            if (!currentWinnerCode || rejectedCodes.includes(currentWinnerCode)) {
+                const candidate = sortedBids.find(b => !rejectedCodes.includes((b.agentCode || '').toUpperCase()));
+                if (candidate) {
+                    currentWinnerCode = (candidate.agentCode || '').toUpperCase();
+                    auction.winnerAgentCode = candidate.agentCode;
+                    auction.winnerAgentName = candidate.agentName;
+                    auction.winningPriceKg = Number(candidate.priceKg);
+                    auction.winnerTotalAmountVND = Number(candidate.priceKg) * Number(auction.capacityKg);
+                }
+            }
 
             return sortedBids.map((b, idx) => {
                 const code = (b.agentCode || '').toUpperCase();
                 const ag = (data.agentsList || []).find(x => (x.agentCode || '').toUpperCase() === code) || {};
                 
-                const wasCancelledUnpaid = b.status === 'CANCELLED_UNPAID' || 
-                    (wonItem && wonItem.previousWinner && (wonItem.previousWinner.agentCode || '').toUpperCase() === code) ||
-                    (auction.fallbackTransfers && auction.fallbackTransfers.some(t => (t.fromAgentCode || '').toUpperCase() === code));
-
-                const isCurrentWinner = code === currentWinnerCode && !wasCancelledUnpaid;
-
-                let paymentStatus = 'PENDING_PAYMENT';
-                let paidAt = null;
-                if (isCurrentWinner && wonItem) {
-                    paymentStatus = wonItem.paymentStatus || 'UNPAID';
-                    paidAt = wonItem.paidAt || null;
-                }
+                const isRejected = rejectedCodes.includes(code) || b.status === 'REJECTED' || b.status === 'CANCELLED_UNPAID';
+                const isCurrentCandidate = code === currentWinnerCode && !isRejected;
 
                 return {
                     rank: idx + 1,
@@ -4560,160 +4604,260 @@ const CargoStore = (function () {
                     totalAmountVND: Number(b.priceKg) * Number(auction.capacityKg),
                     timestamp: b.timestamp,
                     time: b.time || formatTimeAgo(b.timestamp),
-                    isCurrentWinner: isCurrentWinner,
-                    wasCancelledUnpaid: wasCancelledUnpaid,
-                    paymentStatus: isCurrentWinner ? paymentStatus : null,
-                    paidAt: paidAt,
-                    paymentDeadline: (isCurrentWinner && wonItem) ? wonItem.paymentDeadline : null,
-                    canTransferTo: !isCurrentWinner && !wasCancelledUnpaid
+                    isCurrentCandidate: isCurrentCandidate,
+                    isFinalLocked: isFinalLocked,
+                    isFinalConfirmed: isFinalLocked && isCurrentCandidate,
+                    isRejected: isRejected
                 };
             });
         },
 
-        // Điều hành: Chuyển quyền trúng thầu cho đại lý có giá kế tiếp khi đại lý hiện tại không thanh toán
-        transferAuctionWinner: function (auctionId, targetAgentCode, reason) {
+        // Khóa chốt kết quả chính thức (hết hạn thời gian hoặc chốt ngay) - Ẩn toàn bộ nút Reject
+        lockAuctionReview: function (auctionId) {
+            const data = loadData();
+            const auction = (data.auctions || []).find(a => a.id == auctionId);
+            if (!auction) return { success: false, message: 'Không tìm thấy chuyến bay / phiên đấu giá.' };
+
+            auction.isFinalLocked = true;
+            auction.finalLockedAt = new Date().toISOString();
+
+            saveData(data);
+
+            const currentAdmin = this.getCurrentAdmin ? this.getCurrentAdmin() : data.currentAdmin;
+            const adminActor = (currentAdmin && (currentAdmin.fullName || currentAdmin.username)) || 'Ban Điều Hành COD';
+            const adminRole = (currentAdmin && currentAdmin.role) || 'COD ADMIN';
+
+            this.logActivity({
+                actor: adminActor,
+                username: (currentAdmin && currentAdmin.username) || 'cod_admin',
+                role: adminRole,
+                actionCategory: 'Chốt thầu',
+                actionTitle: 'Khóa kết quả trúng thầu chính thức',
+                target: auction.flightNumber,
+                details: `Đã khóa chính thức kết quả trúng thầu chuyến bay ${auction.flightNumber}. Toàn bộ chức năng Reject và điều chuyển đại lý đã được đóng hoàn tất.`
+            });
+
+            if (typeof window !== 'undefined') {
+                window.dispatchEvent(new CustomEvent('cargostore_updated'));
+            }
+
+            return { 
+                success: true, 
+                message: `Đã khóa kết quả trúng thầu chính thức cho chuyến bay ${auction.flightNumber}! Toàn bộ chức năng Reject đã được đóng.` 
+            };
+        },
+
+        // Cấu hình thời gian xem xét / review window (phút)
+        setAuctionReviewWindow: function (auctionId, minutes) {
+            const data = loadData();
+            const auction = (data.auctions || []).find(a => a.id == auctionId);
+            if (!auction) return { success: false, message: 'Không tìm thấy chuyến bay.' };
+
+            const mins = Math.max(1, Number(minutes) || 15);
+            auction.reviewWindowMinutes = mins;
+            const baseTime = auction.closedAt ? new Date(auction.closedAt).getTime() : Date.now();
+            auction.reviewDeadline = new Date(baseTime + (mins * 60 * 1000)).toISOString();
+            auction.isFinalLocked = false;
+
+            saveData(data);
+
+            if (typeof window !== 'undefined') {
+                window.dispatchEvent(new CustomEvent('cargostore_updated'));
+            }
+
+            return { success: true, message: `Đã cấu hình thời gian xem xét là ${mins} phút!` };
+        },
+
+        // Mở khóa lại xét duyệt (Unlock) nếu cần can thiệp lại
+        unlockFinalWinner: function (auctionId) {
+            const data = loadData();
+            const auction = (data.auctions || []).find(a => a.id == auctionId);
+            if (!auction) return { success: false, message: 'Không tìm thấy chuyến bay.' };
+            
+            auction.isFinalLocked = false;
+            // Gia hạn thêm 15 phút tính từ thời điểm mở khóa
+            const mins = Number(auction.reviewWindowMinutes) || 15;
+            auction.closedAt = new Date().toISOString();
+            auction.reviewDeadline = new Date(Date.now() + (mins * 60 * 1000)).toISOString();
+
+            saveData(data);
+
+            if (typeof window !== 'undefined') {
+                window.dispatchEvent(new CustomEvent('cargostore_updated'));
+            }
+            return { success: true, message: 'Đã mở khóa lại phiên xem xét (gia hạn thêm 15 phút) để Quản trị viên tiếp tục điều chỉnh thao tác.' };
+        },
+
+        // Từ chối đại lý hiện tại (Reject) và tự động chuyển quyền cho đại lý kế tiếp
+        // Phân quyền đặc trách riêng: COD ADMIN (hoặc ITD ADMIN), ghi audit log đầy đủ
+        rejectAndPassToNextAgent: function (auctionId, agentCode, reason, note) {
             const data = loadData();
             const currentAdmin = this.getCurrentAdmin ? this.getCurrentAdmin() : data.currentAdmin;
             const adminRole = (currentAdmin && currentAdmin.role ? currentAdmin.role : '').toUpperCase();
-            if (adminRole === 'STAFF') {
+
+            // KIỂM TRA PHÂN QUYỀN RIÊNG: Chỉ COD ADMIN hoặc ITD ADMIN có thẩm quyền Reject!
+            const isAllowedRole = adminRole === 'COD ADMIN' || adminRole === 'COD_ADMIN' || adminRole === 'ITD ADMIN' || adminRole === 'ADMIN';
+            if (!isAllowedRole || adminRole === 'STAFF') {
                 return { 
                     success: false, 
-                    message: 'Tài khoản Nhân viên (STAFF) không có quyền can thiệp điều chuyển trúng thầu. Thao tác này thuộc thẩm quyền của COD ADMIN hoặc ITD ADMIN.' 
+                    message: 'Quyền bị từ chối: Thao tác Reject đại lý thuộc thẩm quyền độc quyền của Quản trị viên Khai thác (COD ADMIN)!' 
                 };
             }
 
             const auction = (data.auctions || []).find(a => a.id == auctionId);
-            if (!auction) return { success: false, message: 'Không tìm thấy chuyến bay / phiên đấu giá.' };
+            if (!auction) return { success: false, message: 'Không tìm thấy chuyến bay.' };
 
-            const bids = (data.bids || []).filter(b => b.auctionId == auctionId);
-            const targetBid = bids.find(b => (b.agentCode || '').toUpperCase() === (targetAgentCode || '').toUpperCase());
-            if (!targetBid) {
-                return { success: false, message: `Không tìm thấy lượt đặt thầu hợp lệ của đại lý ${targetAgentCode}.` };
+            // Kiểm tra xem đã hết thời gian xem xét cấu hình chưa
+            const isLocked = auction.isFinalLocked || (auction.reviewDeadline && Date.now() >= new Date(auction.reviewDeadline).getTime());
+            if (isLocked) {
+                return {
+                    success: false,
+                    message: 'Phiên đấu giá đã hết thời gian xem xét hoặc đã được khóa chính thức. Chức năng Reject đã bị vô hiệu hóa.'
+                };
             }
 
-            const previousWinnerCode = auction.winnerAgentCode;
-            const previousWinnerName = auction.winnerAgentName || previousWinnerCode;
-            const previousPrice = auction.winningPriceKg;
+            // Ghi nhận agentCode vào danh sách bị Reject
+            auction.rejectedAgents = auction.rejectedAgents || [];
+            if (!auction.rejectedAgents.includes(agentCode)) {
+                auction.rejectedAgents.push(agentCode);
+            }
 
-            // 1. Cập nhật Auction
-            auction.status = 'CLOSED';
-            auction.winnerAgentCode = targetBid.agentCode;
-            auction.winnerAgentName = targetBid.agentName;
-            auction.winningPriceKg = Number(targetBid.priceKg);
-            auction.winnerTotalAmountVND = Number(targetBid.priceKg) * Number(auction.capacityKg);
+            // Lấy danh sách đặt thầu để tìm đại lý kế tiếp
+            const bids = (data.bids || []).filter(b => b.auctionId == auctionId);
+            const agentMap = {};
+            bids.forEach(b => {
+                const c = (b.agentCode || '').toUpperCase();
+                if (!agentMap[c] || Number(b.priceKg) > Number(agentMap[c].priceKg)) {
+                    agentMap[c] = b;
+                }
+            });
+            const sortedBids = Object.values(agentMap).sort((a, b) => Number(b.priceKg) - Number(a.priceKg));
+
+            const rejectedCodes = auction.rejectedAgents.map(c => String(c).toUpperCase());
+            const previousWinnerCode = agentCode;
+            const previousBid = bids.find(b => (b.agentCode || '').toUpperCase() === (agentCode || '').toUpperCase());
+            const previousWinnerName = previousBid ? previousBid.agentName : agentCode;
+            const previousPrice = previousBid ? Number(previousBid.priceKg) : (auction.winningPriceKg || 0);
+
+            // Tìm ứng viên kế tiếp có mức giá cao nhất chưa bị reject
+            const nextCandidate = sortedBids.find(b => !rejectedCodes.includes((b.agentCode || '').toUpperCase()));
+            if (!nextCandidate) {
+                saveData(data);
+                if (typeof window !== 'undefined') {
+                    window.dispatchEvent(new CustomEvent('cargostore_updated'));
+                }
+                return { 
+                    success: false, 
+                    message: `Đã từ chối đại lý ${previousWinnerName}, tuy nhiên không còn đại lý dự phòng nào khác trong danh sách đặt thầu để chuyển tiếp.` 
+                };
+            }
+
+            // Cập nhật Auction sang đại lý mới
+            auction.winnerAgentCode = nextCandidate.agentCode;
+            auction.winnerAgentName = nextCandidate.agentName;
+            auction.winningPriceKg = Number(nextCandidate.priceKg);
+            auction.winnerTotalAmountVND = Number(nextCandidate.priceKg) * Number(auction.capacityKg);
+
+            // 1. GHI AUDIT LOG RIÊNG BIỆT CHO LẦN REJECT (AUDIT TRAIL)
+            const now = new Date();
+            const pad = n => String(n).padStart(2, '0');
+            const timeStr = `${pad(now.getHours())}:${pad(now.getMinutes())}:${pad(now.getSeconds())} ${pad(now.getDate())}/${pad(now.getMonth() + 1)}/${now.getFullYear()}`;
             
+            const logEntry = {
+                id: `REJ-${Date.now()}`,
+                auctionId: auction.id,
+                flightNumber: auction.flightNumber,
+                actorName: currentAdmin.fullName || currentAdmin.username || 'Ban Điều Hành COD',
+                actorUsername: currentAdmin.username || 'cod_admin',
+                actorRole: currentAdmin.role || 'COD ADMIN',
+                fromAgentCode: previousWinnerCode,
+                fromAgentName: previousWinnerName,
+                fromPriceKg: previousPrice,
+                toAgentCode: nextCandidate.agentCode,
+                toAgentName: nextCandidate.agentName,
+                toPriceKg: Number(nextCandidate.priceKg),
+                reason: reason || 'Đại lý không đáp ứng tiến độ yêu cầu',
+                note: note || '',
+                timestamp: now.toISOString(),
+                formattedTime: timeStr,
+                auditHash: 'SEC-COD-' + Math.random().toString(36).substring(2, 9).toUpperCase()
+            };
+
+            auction.rejectAuditLogs = auction.rejectAuditLogs || [];
+            auction.rejectAuditLogs.unshift(logEntry);
+
+            // 2. Ghi nhật ký fallbackTransfers
             auction.fallbackTransfers = auction.fallbackTransfers || [];
             auction.fallbackTransfers.push({
                 fromAgentCode: previousWinnerCode,
                 fromAgentName: previousWinnerName,
-                toAgentCode: targetBid.agentCode,
-                toAgentName: targetBid.agentName,
-                priceKg: Number(targetBid.priceKg),
-                transferredAt: new Date().toISOString(),
-                reason: reason || 'Đại lý trúng thầu trước đó không hoàn tất thanh toán đúng hạn quy định'
+                toAgentCode: nextCandidate.agentCode,
+                toAgentName: nextCandidate.agentName,
+                priceKg: Number(nextCandidate.priceKg),
+                transferredAt: now.toISOString(),
+                reason: reason || 'Từ chối đại lý trước và chuyển sang đại lý kế tiếp',
+                actor: currentAdmin.fullName || 'Ban Điều Hành COD',
+                role: currentAdmin.role || 'COD ADMIN'
             });
 
-            // 2. Cập nhật Bids status
+            // 3. Cập nhật Bids status
             bids.forEach(b => {
                 if ((b.agentCode || '').toUpperCase() === (previousWinnerCode || '').toUpperCase()) {
                     b.status = 'CANCELLED_UNPAID';
                 }
-                if ((b.agentCode || '').toUpperCase() === (targetBid.agentCode || '').toUpperCase()) {
+                if ((b.agentCode || '').toUpperCase() === (nextCandidate.agentCode || '').toUpperCase()) {
                     b.status = 'WON';
                 }
             });
 
-            // 3. Cập nhật WonAuctions
+            // 4. Cập nhật WonAuctions
             if (!data.wonAuctions) data.wonAuctions = [];
             let wonItem = data.wonAuctions.find(w => w.auctionId == auction.id);
-            const now = new Date();
             const dateStr = now.toISOString().slice(0, 10).replace(/-/g, '');
-            const newDeadline = calculatePaymentDeadline ? calculatePaymentDeadline(auction, now) : 'Trước giờ bay 3 giờ';
-
             if (wonItem) {
                 wonItem.previousWinner = {
                     agentCode: previousWinnerCode,
                     agentName: previousWinnerName,
-                    transferredAt: now.toLocaleString('vi-VN'),
-                    reason: reason || 'Không thanh toán theo quy chế'
+                    transferredAt: timeStr,
+                    reason: reason || 'Từ chối đại lý trước và chuyển sang đại lý kế tiếp'
                 };
-                wonItem.agentCode = targetBid.agentCode;
-                wonItem.agentName = targetBid.agentName;
-                wonItem.priceKg = Number(targetBid.priceKg);
-                wonItem.totalAmountVND = Number(targetBid.priceKg) * Number(auction.capacityKg);
+                wonItem.agentCode = nextCandidate.agentCode;
+                wonItem.agentName = nextCandidate.agentName;
+                wonItem.priceKg = Number(nextCandidate.priceKg);
+                wonItem.totalAmountVND = Number(nextCandidate.priceKg) * Number(auction.capacityKg);
                 wonItem.paymentStatus = 'UNPAID';
                 wonItem.paidAt = null;
-                wonItem.paymentProof = null;
-                wonItem.cargoDeclaration = null;
-                wonItem.paymentDeadline = newDeadline;
                 wonItem.isFallbackHandover = true;
             } else {
                 wonItem = {
                     wonId: `WON-${dateStr}-${String(auction.id).padStart(2, '0')}`,
                     auctionId: auction.id,
-                    agentCode: targetBid.agentCode,
-                    agentName: targetBid.agentName,
+                    agentCode: nextCandidate.agentCode,
+                    agentName: nextCandidate.agentName,
                     flightNumber: auction.flightNumber,
                     route: auction.route,
                     capacityKg: auction.capacityKg,
-                    priceKg: Number(targetBid.priceKg),
-                    totalAmountVND: Number(targetBid.priceKg) * Number(auction.capacityKg),
-                    paymentDeadline: newDeadline,
+                    priceKg: Number(nextCandidate.priceKg),
+                    totalAmountVND: Number(nextCandidate.priceKg) * Number(auction.capacityKg),
+                    paymentDeadline: 'Trước giờ bay 3 giờ',
                     paymentStatus: 'UNPAID',
                     paidAt: null,
-                    notifiedAt: null,
-                    awbNumber: `998-${Math.floor(10000000 + Math.random() * 90000000)}`,
-                    cutOffTime: auction.cutOffTime || 'Hôm nay 18:00',
-                    warehouse: 'Kho hàng SCSC / TCS Tân Sơn Nhất (Cửa số 4)',
-                    cargoDeclaration: null,
                     isFallbackHandover: true
                 };
                 data.wonAuctions.unshift(wonItem);
             }
 
-            // 4. Bắn thông báo realtime
-            if (!data.notifications) data.notifications = [];
-            const notifTime = Date.now();
-            
-            // Thông báo cho đại lý kế tiếp được kích hoạt trúng thầu
-            data.notifications.unshift({
-                id: notifTime,
-                timestamp: notifTime,
-                targetAgentCode: targetBid.agentCode,
-                title: `🎉 KÍCH HOẠT TRÚNG THẦU: Chuyến bay ${auction.flightNumber}!`,
-                message: `Quý đại lý ${targetBid.agentName} đã được kích hoạt TRÚNG THẦU chính thức chuyến bay ${auction.flightNumber} (${auction.route}) với mức giá ${formatCurrency(targetBid.priceKg)}/Kg (Tổng giá trị: ${formatCurrency(targetBid.priceKg * auction.capacityKg)}) do đại lý xếp trước không thanh toán. Vui lòng thanh toán trước hạn chót ${newDeadline} để giữ tải trọng.`,
-                time: formatTimeAgo(notifTime),
-                type: 'WON',
-                read: false,
-                link: '07-WonAuction.html'
-            });
-
-            // Thông báo cho đại lý cũ bị hủy quyền
-            if (previousWinnerCode) {
-                data.notifications.unshift({
-                    id: notifTime + 1,
-                    timestamp: notifTime + 1,
-                    targetAgentCode: previousWinnerCode,
-                    title: `⚠️ HỦY QUYỀN TRÚNG THẦU: Chuyến bay ${auction.flightNumber}`,
-                    message: `Quý đại lý đã bị hủy quyền trúng thầu chuyến bay ${auction.flightNumber} (${auction.route}) do quá hạn không hoàn tất thanh toán. Quyền nhận tải trọng đã được điều phối cho đại lý có giá đặt kế tiếp.`,
-                    time: formatTimeAgo(notifTime),
-                    type: 'SYSTEM',
-                    read: false,
-                    link: '06-MyBids.html'
-                });
-            }
-
             saveData(data);
 
-            const adminActor = (currentAdmin && (currentAdmin.fullName || currentAdmin.username)) || 'Điều hành bay COD';
+            // 5. GHI AUDIT LOG HỆ THỐNG TOÀN DIỆN (hiển thị trên trang 10-AuditLogs.html)
             this.logActivity({
-                actor: adminActor,
-                username: (currentAdmin && currentAdmin.username) || 'admin',
-                role: adminRole || 'ADMIN',
-                actionCategory: 'Điều phối trúng thầu',
-                actionTitle: 'Chuyển quyền trúng thầu cho đại lý kế tiếp',
+                actor: currentAdmin.fullName || 'Lê Khai Thác',
+                username: currentAdmin.username || 'cod_admin',
+                role: currentAdmin.role || 'COD ADMIN',
+                actionCategory: 'Điều hành chuyển thầu',
+                actionTitle: 'Reject đại lý & Tự động chuyển thầu dự phòng',
                 target: auction.flightNumber,
-                details: `Chuyển quyền trúng thầu chuyến bay ${auction.flightNumber} (${auction.route}) từ đại lý ${previousWinnerName} sang đại lý ${targetBid.agentName} (${targetBid.agentCode}) mức giá ${this.formatCurrency(targetBid.priceKg)}/Kg. Lý do: ${reason || 'Đại lý trước không thanh toán'}.`
+                details: `[${currentAdmin.role || 'COD ADMIN'}] ${currentAdmin.fullName || 'Quản trị viên'} đã REJECT đại lý ${previousWinnerName} (${previousWinnerCode}, mức giá ${this.formatCurrency(previousPrice)}/Kg). Hệ thống tự động chuyển quyền trúng thầu cho đại lý kế tiếp: ${nextCandidate.agentName} (${nextCandidate.agentCode}, mức giá ${this.formatCurrency(nextCandidate.priceKg)}/Kg). Lý do: ${reason}. Ghi chú kiểm toán: ${note || 'Không có'}.`
             });
 
             if (typeof window !== 'undefined') {
@@ -4722,8 +4866,8 @@ const CargoStore = (function () {
 
             return {
                 success: true,
-                message: `Đã chuyển quyền trúng thầu chuyến bay ${auction.flightNumber} thành công cho đại lý ${targetBid.agentName} (${targetBid.agentCode})!`,
-                newWinner: targetBid
+                message: `Đã REJECT đại lý ${previousWinnerName}. Tự động chuyển quyền trúng thầu sang đại lý kế tiếp: ${nextCandidate.agentName} (${nextCandidate.agentCode}) với mức giá ${this.formatCurrency(nextCandidate.priceKg)}/Kg!`,
+                newWinner: nextCandidate
             };
         },
 
@@ -4744,8 +4888,17 @@ const CargoStore = (function () {
             ];
 
             if (!data.bids) data.bids = [];
-            // Remove previous bids for this auction to have a clean ordered ranking
             data.bids = data.bids.filter(b => b.auctionId != auctionId);
+
+            // Reset auction rejection and confirmed state for fresh demo
+            auction.rejectedAgents = [];
+            auction.fallbackTransfers = [];
+            auction.rejectAuditLogs = [];
+            auction.isFinalLocked = false;
+            auction.isFinalConfirmed = false;
+            auction.reviewWindowMinutes = 15;
+            auction.closedAt = new Date().toISOString();
+            auction.reviewDeadline = new Date(Date.now() + (15 * 60 * 1000)).toISOString();
 
             const now = Date.now();
             demoAgents.forEach((ag, i) => {
@@ -4764,7 +4917,7 @@ const CargoStore = (function () {
                 });
             });
 
-            // Set Top 1 as winner
+            // Set Top 1 as winner (Auto-confirm highest bidder)
             const topBid = data.bids.find(b => b.auctionId == auction.id && b.agentCode === 'AG-0892');
             if (topBid) {
                 auction.currentPriceKg = topBid.priceKg;
@@ -4774,7 +4927,6 @@ const CargoStore = (function () {
                 auction.winnerTotalAmountVND = topBid.priceKg * auction.capacityKg;
                 auction.status = 'CLOSED';
 
-                // Add to wonAuctions as UNPAID (chờ thanh toán để test chuyển thầu)
                 if (!data.wonAuctions) data.wonAuctions = [];
                 let wonItem = data.wonAuctions.find(w => w.auctionId == auction.id);
                 const dateStr = new Date().toISOString().slice(0, 10).replace(/-/g, '');
@@ -4784,27 +4936,7 @@ const CargoStore = (function () {
                     wonItem.priceKg = topBid.priceKg;
                     wonItem.totalAmountVND = topBid.priceKg * auction.capacityKg;
                     wonItem.paymentStatus = 'UNPAID';
-                    wonItem.paidAt = null;
-                } else {
-                    data.wonAuctions.unshift({
-                        wonId: `WON-${dateStr}-${String(auction.id).padStart(2, '0')}`,
-                        auctionId: auction.id,
-                        agentCode: topBid.agentCode,
-                        agentName: topBid.agentName,
-                        flightNumber: auction.flightNumber,
-                        route: auction.route,
-                        capacityKg: auction.capacityKg,
-                        priceKg: topBid.priceKg,
-                        totalAmountVND: topBid.priceKg * auction.capacityKg,
-                        paymentDeadline: 'Trước giờ bay 3 giờ',
-                        paymentStatus: 'UNPAID',
-                        paidAt: null,
-                        notifiedAt: null,
-                        awbNumber: `998-${Math.floor(10000000 + Math.random() * 90000000)}`,
-                        cutOffTime: auction.cutOffTime || 'Hôm nay 18:00',
-                        warehouse: 'Kho hàng SCSC / TCS Tân Sơn Nhất',
-                        cargoDeclaration: null
-                    });
+                    wonItem.isFallbackHandover = false;
                 }
             }
 
@@ -4812,7 +4944,6 @@ const CargoStore = (function () {
             if (typeof window !== 'undefined') {
                 window.dispatchEvent(new CustomEvent('cargostore_updated'));
             }
-            return { success: true, message: 'Đã tạo 4 đại lý đặt thầu mẫu với các mức giá khác nhau. Bạn có thể thử nghiệm chuyển thầu cho đại lý kế tiếp ngay!' };
         },
 
         confirmPayment: function (wonId) {

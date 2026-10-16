@@ -11,9 +11,15 @@
     <script src="../assets/js/cargo-store.js"></script>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Exo:ital,wght@0,100;0,200;0,300;0,400;0,500;0,531;0,600;0,700;0,800;0,900;1,100;1,200;1,300;1,400;1,500;1,531;1,600;1,700;1,800;1,900" rel="stylesheet" />
+    <link
+        href="https://fonts.googleapis.com/css2?family=Exo:ital,wght@0,100;0,200;0,300;0,400;0,500;0,531;0,600;0,700;0,800;0,900;1,100;1,200;1,300;1,400;1,500;1,531;1,600;1,700;1,800;1,900"
+        rel="stylesheet" />
     <style>
-        body, input, select, textarea, button {
+        body,
+        input,
+        select,
+        textarea,
+        button {
             font-family: 'Exo', sans-serif;
         }
     </style>
@@ -470,6 +476,69 @@
         <!-- Declared Cargo Box for Winner (Rendered if closed/winner exists) -->
         <div id="adminDeclaredCargoSection" class="hidden"></div>
 
+        <!-- Bảng Xếp Hạng & Thứ Tự Trúng Thầu (Top Bidders & Tiếp Nhận Dự Phòng) -->
+        <div class="bg-white rounded-2xl border shadow-sm overflow-hidden space-y-3 p-5">
+            <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-2 border-b pb-3">
+                <div>
+                    <h3 class="font-bold text-sm text-slate-900 flex items-center gap-2">
+                        <i class="fa-solid fa-trophy text-amber-500 text-base"></i>
+                        Bảng Tổng Kết Xếp Hạng Đặt Giá & Thứ Tự Trúng Thầu
+                    </h3>
+                    <p class="text-xs text-slate-500 mt-0.5">
+                        Hệ thống tự động xác nhận đại lý có giá cao nhất (Auto Confirm). Trong thời gian xem xét, Quản
+                        trị viên Khai thác (COD ADMIN) có quyền Reject để chuyển sang đại lý kế tiếp. Hết thời gian cấu
+                        hình, toàn bộ chức năng Reject sẽ tự động đóng lại để chốt thầu chính thức.
+                    </p>
+                </div>
+                <div class="flex items-center gap-2 flex-wrap">
+                    <div id="roleSwitcherBadgeContainer" class="flex items-center gap-1.5"></div>
+                    <span
+                        class="text-xs font-semibold text-blue-700 bg-blue-50 border border-blue-200 px-2.5 py-1 rounded-lg"
+                        id="leaderboardSummaryBadge">
+                        0 đại lý tham gia
+                    </span>
+                    <!-- Quick Seed button for testing demo -->
+                    <button type="button" id="btnSeedDemoBids" onclick="handleSeedDemoBids()"
+                        class="text-xs font-bold text-purple-700 bg-purple-50 hover:bg-purple-100 border border-purple-200 px-3 py-1 rounded-lg transition inline-flex items-center gap-1 cursor-pointer"
+                        title="Tạo nhanh 4 đại lý đặt thầu mẫu với thời gian xem xét 15 phút để test xếp hạng & Reject">
+                        <i class="fa-solid fa-wand-magic-sparkles"></i> Tạo 4 đại lý mẫu test
+                    </button>
+                </div>
+            </div>
+
+            <!-- Review Countdown & Status Banner -->
+            <div id="reviewWindowBanner" class="hidden"></div>
+
+            <!-- Fallback handover history alert (if any transfer happened) -->
+            <div id="fallbackHistoryAlert"
+                class="hidden p-3 bg-amber-50 border border-amber-200 rounded-xl text-xs text-amber-900 space-y-1">
+            </div>
+
+            <div class="overflow-x-auto">
+                <table class="w-full text-xs text-left">
+                    <thead class="bg-slate-50 text-slate-600 font-semibold border-b">
+                        <tr>
+                            <th class="py-3 px-3 text-center w-14">Thứ hạng</th>
+                            <th class="py-3 px-4 min-w-[200px]">Đại lý tham gia</th>
+                            <th class="py-3 px-3 min-w-[110px]">Mức giá (đ/Kg)</th>
+                            <th class="py-3 px-3 min-w-[120px]">Tổng giá trị (VND)</th>
+                            <th class="py-3 px-3 min-w-[110px]">Thời gian nộp</th>
+                            <th class="py-3 px-3 min-w-[160px]">Trạng thái xét duyệt</th>
+                            <th class="py-3 px-4 text-center min-w-[200px]">Thao tác điều hành</th>
+                        </tr>
+                    </thead>
+                    <tbody class="divide-y divide-gray-100" id="leaderboardBody">
+                        <tr>
+                            <td colspan="7" class="py-6 text-center text-gray-400">Đang tải bảng xếp hạng...</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+
+            <!-- Audit Trail Table of Rejections and Cascades -->
+            <div id="rejectAuditTrailSection" class="hidden pt-3 border-t"></div>
+        </div>
+
         <!-- Bids Realtime Log Table -->
         <div class="bg-white rounded-2xl border shadow-sm overflow-hidden space-y-3 p-5">
             <div class="flex items-center justify-between border-b pb-3">
@@ -715,17 +784,598 @@
 
         window.handleDetailCloseAuction = async function () {
             if (!currentAuction) return;
-            const ok = window.showConfirm ? await window.showConfirm('Bạn có chắc chắn muốn chốt đóng phiên chuyến bay ' + currentAuction.flightNumber + ' (' + currentAuction.route + ') và công bố kết quả ngay?') : confirm('Bạn có chắc chắn muốn chốt đóng phiên chuyến bay ' + currentAuction.flightNumber + ' (' + currentAuction.route + ') và công bố kết quả ngay?');
+            const flight = currentAuction.flightNumber || 'chuyến bay';
+            const ok = window.Swal ? (await Swal.fire({
+                title: 'Chốt phiên & Tự động Confirm?',
+                html: `
+                    <div class="text-left text-xs space-y-2.5 pt-1">
+                        <div class="p-3 bg-blue-50 border border-blue-200 rounded-xl text-blue-950 leading-relaxed">
+                            <i class="fa-solid fa-circle-info text-blue-600 mr-1"></i>
+                            Bạn có chắc chắn muốn chốt đóng phiên chuyến bay <strong>${flight}</strong> (${currentAuction.route})?
+                        </div>
+                        <div class="p-3 bg-amber-50 border border-amber-200 rounded-xl text-amber-900 space-y-1.5">
+                            <p>✓ <strong>Auto-Confirm:</strong> Hệ thống tự động xác nhận đại lý có mức giá đặt cao nhất trúng thầu.</p>
+                            <p>✓ <strong>Bỏ nút Confirm:</strong> Nút Confirm được bỏ hoàn toàn, chỉ để lại nút <strong>Reject</strong>.</p>
+                            <p>✓ <strong>Thời gian xem xét:</strong> Bắt đầu đếm ngược thời gian cấu hình (15 phút). Hết giờ không đổi sẽ ẩn Reject.</p>
+                            <p>✓ <strong>Phân quyền Reject:</strong> Thẩm quyền dành riêng cho <strong>COD ADMIN</strong> có ghi logs đàng hoàng.</p>
+                        </div>
+                    </div>
+                `,
+                icon: 'question',
+                showCancelButton: true,
+                confirmButtonText: '<i class="fa-solid fa-gavel"></i> Chốt phiên ngay',
+                confirmButtonColor: '#2563eb',
+                cancelButtonText: 'Xem lại'
+            })).isConfirmed : confirm('Bạn có chắc chắn muốn chốt đóng phiên chuyến bay ' + flight + ' và tự động confirm mức giá cao nhất?');
+
             if (ok) {
                 const res = CargoStore.closeAuction(currentAuction.id);
                 if (res.success) {
-                    alert('✅ ' + (res.message || 'Đã chốt phiên thành công!'));
+                    if (window.Swal) {
+                        await Swal.fire({
+                            icon: 'success',
+                            title: 'Chốt phiên thành công!',
+                            text: res.message || 'Đã tự động Confirm đại lý cao nhất!'
+                        });
+                    } else {
+                        alert('✅ ' + (res.message || 'Đã chốt phiên thành công!'));
+                    }
                     loadAdminDetail();
                 } else {
-                    alert(res.message || 'Không thể đóng phiên!');
+                    if (window.Swal) Swal.fire('Thông báo', res.message || 'Không thể đóng phiên!', 'warning');
+                    else alert(res.message || 'Không thể đóng phiên!');
                 }
             }
         };
+
+        let reviewTimerInterval = null;
+
+        // Render Leaderboard & Fallback transfer table
+        function renderLeaderboardTable(auction, isStaff) {
+            const lbody = document.getElementById('leaderboardBody');
+            const summaryBadge = document.getElementById('leaderboardSummaryBadge');
+            const reviewBanner = document.getElementById('reviewWindowBanner');
+            const historyBox = document.getElementById('fallbackHistoryAlert');
+            const auditTrailBox = document.getElementById('rejectAuditTrailSection');
+            const roleContainer = document.getElementById('roleSwitcherBadgeContainer');
+            if (!lbody) return;
+
+            const list = CargoStore.getAuctionLeaderboard ? CargoStore.getAuctionLeaderboard(auction.id) : [];
+            const isLocked = Boolean(auction.isFinalLocked);
+            const currentAdmin = CargoStore.getCurrentAdmin ? CargoStore.getCurrentAdmin() : {};
+            const adminRole = String(currentAdmin.role || '').toUpperCase();
+            const isCodAdmin = adminRole === 'COD ADMIN' || adminRole === 'COD_ADMIN' || adminRole === 'ITD ADMIN' || adminRole === 'ADMIN';
+
+            // Role Switcher for easy testing
+
+            if (summaryBadge) {
+                summaryBadge.textContent = isLocked
+                    ? `${list.length} đại lý · ĐÃ CHỐT CHÍNH THỨC`
+                    : `${list.length} đại lý · Đang trong thời gian xem xét`;
+                summaryBadge.className = isLocked
+                    ? 'text-xs font-bold text-emerald-800 bg-emerald-50 border border-emerald-300 px-3 py-1 rounded-lg flex items-center gap-1.5'
+                    : 'text-xs font-semibold text-amber-800 bg-amber-50 border border-amber-300 px-2.5 py-1 rounded-lg';
+            }
+
+            // Render Review Window Banner
+            if (reviewBanner) {
+                reviewBanner.classList.remove('hidden');
+                if (isLocked) {
+                    if (reviewTimerInterval) { clearInterval(reviewTimerInterval); reviewTimerInterval = null; }
+                    reviewBanner.className = 'p-3.5 bg-emerald-50 border border-emerald-300 rounded-xl text-xs text-emerald-950 flex flex-col sm:flex-row sm:items-center justify-between gap-2 shadow-2xs';
+                    reviewBanner.innerHTML = `
+                        <div class="flex items-center gap-2.5">
+                            <i class="fa-solid fa-shield-check text-emerald-600 text-lg"></i>
+                            <div>
+                                <div class="flex items-center gap-2">
+                                    <span class="font-bold text-sm text-emerald-900 uppercase">HẾT HẠN XEM XÉT (${auction.reviewWindowMinutes || 15} PHÚT) - ĐÃ KHÓA CHỐT TOÀN PHẦN!</span>
+                                    <span class="text-[10px] font-bold bg-emerald-200 text-emerald-900 px-2 py-0.5 rounded-full">FINALIZED</span>
+                                </div>
+                                <p class="text-[11px] text-emerald-800 mt-0.5">
+                                    Đại lý trúng thầu chính thức: <strong>${auction.winnerAgentName || auction.winnerAgentCode}</strong> · Mức giá: <strong>${CargoStore.formatCurrency(auction.winningPriceKg)}/Kg</strong>. Toàn bộ thao tác Reject và chuyển đại lý đã được ẩn vĩnh viễn theo quy định.
+                                </p>
+                            </div>
+                        </div>
+                        <div class="flex items-center gap-2 shrink-0">
+                            <span class="text-xs bg-emerald-100 text-emerald-800 font-bold px-3 py-1.5 rounded-xl border border-emerald-300 inline-flex items-center gap-1.5 shadow-2xs">
+                                <i class="fa-solid fa-lock text-emerald-600"></i> Đã đóng chốt hoàn tất (Ẩn chức năng Reject)
+                            </span>
+                        </div>
+                    `;
+                } else {
+                    reviewBanner.className = 'p-3.5 bg-gradient-to-r from-amber-50 to-orange-50 border border-amber-300 rounded-xl text-xs text-amber-950 flex flex-col md:flex-row md:items-center justify-between gap-3 shadow-2xs';
+                    reviewBanner.innerHTML = `
+                        <div class="flex items-center gap-3">
+                            <div class="w-10 h-10 rounded-xl bg-amber-500 text-white flex items-center justify-center shrink-0 shadow-xs animate-pulse">
+                                <i class="fa-solid fa-stopwatch text-lg"></i>
+                            </div>
+                            <div>
+                                <div class="flex items-center gap-2 flex-wrap">
+                                    <span class="font-bold text-amber-950 text-xs uppercase tracking-wide">Thời gian xem xét & quyền Reject còn lại:</span>
+                                    <span id="reviewCountdownTimer" class="font-mono font-black text-rose-600 bg-white px-2.5 py-0.5 rounded-lg border border-amber-200 text-sm shadow-xs">--:--</span>
+                                    <span class="text-[10px] font-bold bg-amber-200/80 text-amber-900 px-2 py-0.5 rounded-md">Cấu hình: ${auction.reviewWindowMinutes || 15} phút</span>
+                                    <span class="text-[10px] font-bold bg-indigo-100 text-indigo-900 border border-indigo-200 px-2 py-0.5 rounded-md flex items-center gap-1">
+                                        <i class="fa-solid fa-user-shield text-indigo-600"></i> Phân quyền Reject: COD ADMIN
+                                    </span>
+                                </div>
+                                <p class="text-[11px] text-amber-800 mt-1">
+                                    Hệ thống <strong>auto-confirm đại lý cao nhất</strong> (đã bỏ nút confirm, chỉ để Reject). Sau khi hết thời gian trên nếu không có thay đổi, hệ thống tự động ẩn chức năng Reject và chuyển đại lý để chốt thầu chính thức.
+                                </p>
+                            </div>
+                        </div>
+                        <div class="flex items-center gap-2 shrink-0 self-end md:self-center">
+                            ${!isStaff ? `
+                                <div class="flex items-center gap-1.5">
+                                    <select onchange="handleSetReviewMinutes('${auction.id}', this.value)"
+                                        class="text-xs bg-white border border-amber-300 rounded-xl px-2 py-1.5 font-medium outline-none shadow-2xs">
+                                        <option value="5" ${auction.reviewWindowMinutes == 5 ? 'selected' : ''}>Cấu hình: 5 phút</option>
+                                        <option value="15" ${(!auction.reviewWindowMinutes || auction.reviewWindowMinutes == 15) ? 'selected' : ''}>Cấu hình: 15 phút</option>
+                                        <option value="30" ${auction.reviewWindowMinutes == 30 ? 'selected' : ''}>Cấu hình: 30 phút</option>
+                                        <option value="60" ${auction.reviewWindowMinutes == 60 ? 'selected' : ''}>Cấu hình: 60 phút</option>
+                                    </select>
+                                    <button type="button" onclick="handleLockAuctionReview('${auction.id}')"
+                                        class="bg-slate-900 hover:bg-slate-800 text-white font-bold px-3 py-1.5 rounded-xl text-xs transition inline-flex items-center gap-1.5 shadow-xs cursor-pointer">
+                                        <i class="fa-solid fa-lock text-amber-400"></i> Khóa chốt ngay
+                                    </button>
+                                </div>
+                            ` : ''}
+                        </div>
+                    `;
+
+                    // Start/Update live countdown timer
+                    if (reviewTimerInterval) clearInterval(reviewTimerInterval);
+                    const deadlineMs = auction.reviewDeadline ? new Date(auction.reviewDeadline).getTime() : (Date.now() + 15 * 60 * 1000);
+                    function updateTimerDisplay() {
+                        const remaining = deadlineMs - Date.now();
+                        const timerElem = document.getElementById('reviewCountdownTimer');
+                        if (remaining <= 0) {
+                            if (timerElem) timerElem.textContent = '00:00';
+                            clearInterval(reviewTimerInterval);
+                            reviewTimerInterval = null;
+                            CargoStore.lockAuctionReview(auction.id);
+                            loadAdminDetail();
+                            return;
+                        }
+                        const sec = Math.floor(remaining / 1000);
+                        const m = Math.floor(sec / 60);
+                        const s = sec % 60;
+                        if (timerElem) timerElem.textContent = `${String(m).padStart(2, '0')}:${String(s).padStart(2, '0')}`;
+                    }
+                    updateTimerDisplay();
+                    reviewTimerInterval = setInterval(updateTimerDisplay, 1000);
+                }
+            }
+
+            if (historyBox) historyBox.classList.add('hidden');
+
+            if (list.length === 0) {
+                lbody.innerHTML = `
+                    <tr>
+                        <td colspan="7" class="py-8 text-center text-slate-400">
+                            <i class="fa-solid fa-inbox text-3xl mb-2 text-slate-300 block"></i>
+                            Chưa có đại lý nào đặt giá cho chuyến bay này.<br>
+                            <span class="text-[11px] text-slate-500">Bạn có thể bấm nút <strong>"Tạo 4 đại lý mẫu test"</strong> ở góc phải trên để thử nghiệm bảng xếp hạng.</span>
+                        </td>
+                    </tr>
+                `;
+                return;
+            }
+
+            lbody.innerHTML = list.map((item, idx) => {
+                let rankBadge = '';
+                if (item.rank === 1) {
+                    rankBadge = '<span class="w-8 h-8 rounded-xl bg-amber-100 text-amber-800 font-black inline-flex items-center justify-center text-xs shadow-xs border border-amber-300">🥇 #1</span>';
+                } else if (item.rank === 2) {
+                    rankBadge = '<span class="w-8 h-8 rounded-xl bg-slate-100 text-slate-700 font-bold inline-flex items-center justify-center text-xs border border-slate-300">🥈 #2</span>';
+                } else if (item.rank === 3) {
+                    rankBadge = '<span class="w-8 h-8 rounded-xl bg-orange-100 text-orange-800 font-bold inline-flex items-center justify-center text-xs border border-orange-300">🥉 #3</span>';
+                } else {
+                    rankBadge = `<span class="w-8 h-8 rounded-xl bg-slate-50 text-slate-500 font-semibold inline-flex items-center justify-center text-xs border">#${item.rank}</span>`;
+                }
+
+                const displayCode = isStaff ? 'AG-***' : item.agentCode;
+                const displayName = isStaff ? 'Đại lý tham gia (Bảo mật thông tin Staff)' : item.agentName;
+
+                let statusBadge = '';
+                if (item.isFinalLocked && item.isCurrentCandidate) {
+                    statusBadge = '<span class="bg-emerald-100 text-emerald-800 font-bold px-2.5 py-1 rounded-full text-[10px] inline-flex items-center gap-1 border border-emerald-300 shadow-2xs"><i class="fa-solid fa-circle-check text-emerald-600"></i> ĐÃ CHỐT TRÚNG THẦU</span>';
+                } else if (item.isRejected) {
+                    statusBadge = '<span class="bg-rose-50 text-rose-700 font-semibold px-2.5 py-1 rounded-full text-[10px] inline-flex items-center gap-1 border border-rose-200"><i class="fa-solid fa-circle-xmark text-rose-500"></i> ĐÃ TỪ CHỐI (REJECT)</span>';
+                } else if (item.isCurrentCandidate) {
+                    statusBadge = '<span class="bg-amber-100 text-amber-900 font-bold px-2.5 py-1 rounded-full text-[10px] inline-flex items-center gap-1 border border-amber-300 animate-pulse"><i class="fa-solid fa-crown text-amber-600"></i> AUTO-CONFIRM TOP 1</span>';
+                } else {
+                    statusBadge = `<span class="bg-slate-100 text-slate-600 font-medium px-2.5 py-1 rounded-full text-[10px] inline-flex items-center gap-1 border">DỰ PHÒNG #${item.rank}</span>`;
+                }
+
+                // Action Column: BỎ nút confirm, chỉ để Reject; khi hết giờ cấu hình (isLocked) ẩn toàn bộ action!
+                let actionContent = '';
+                if (isLocked) {
+                    if (item.isCurrentCandidate) {
+                        actionContent = `
+                            <span class="inline-flex items-center gap-1.5 text-emerald-700 font-bold text-xs bg-emerald-50 border border-emerald-200 px-3 py-1.5 rounded-xl shadow-2xs">
+                                <i class="fa-solid fa-lock text-emerald-600"></i> Trúng thầu chính thức
+                            </span>
+                        `;
+                    } else {
+                        actionContent = '<span class="text-slate-400 text-xs italic">-</span>';
+                    }
+                } else {
+                    if (item.isCurrentCandidate) {
+                        // CHỈ CÓ NÚT REJECT CHO ĐẠI LÝ ĐANG GIỮ THẦU, PHÂN QUYỀN CHO COD ADMIN
+                        if (!isCodAdmin) {
+                            actionContent = '<span class="text-slate-400 text-[11px] font-semibold bg-slate-100 border border-slate-200 px-2.5 py-1 rounded-lg inline-flex items-center gap-1 cursor-not-allowed" title="Chỉ Quản trị viên Khai thác (COD ADMIN) có thẩm quyền Reject đại lý"><i class="fa-solid fa-lock text-slate-400"></i> Chỉ COD ADMIN</span>';
+                        } else {
+                            actionContent = `
+                                <button type="button" onclick="handleRejectToNextAgent('${auction.id}', '${item.agentCode}', '${item.agentName.replace(/'/g, "\\'")}', ${item.priceKg})"
+                                    class="bg-rose-600 hover:bg-rose-700 text-white font-bold px-3.5 py-1.5 rounded-xl text-xs transition inline-flex items-center gap-1.5 shadow-2xs cursor-pointer group active:scale-95"
+                                    title="Từ chối đại lý này và tự động chuyển sang đại lý kế tiếp (Thẩm quyền COD ADMIN)">
+                                    <i class="fa-solid fa-ban"></i>
+                                    <span>Reject & Chuyển đại lý</span>
+                                </button>
+                            `;
+                        }
+                    } else if (item.isRejected) {
+                        actionContent = '<span class="text-rose-500 text-xs font-semibold inline-flex items-center gap-1"><i class="fa-solid fa-ban text-rose-400"></i> Đã bị Reject</span>';
+                    } else {
+                        actionContent = `<span class="text-slate-400 text-[11px] font-medium">Chờ tiếp nhận dự phòng #${item.rank}</span>`;
+                    }
+                }
+
+                const isHighlight = item.isCurrentCandidate;
+
+                return `
+                    <tr class="${isHighlight ? 'bg-amber-50/40 font-medium' : 'hover:bg-slate-50'} transition">
+                        <td class="py-3 px-3 text-center">${rankBadge}</td>
+                        <td class="py-3 px-4">
+                            <div class="flex items-center gap-2">
+                                <span class="font-mono font-bold text-blue-600">${displayCode}</span>
+                                <strong class="text-slate-900">${displayName}</strong>
+                            </div>
+                            ${(!isStaff && item.phone) ? `<p class="text-[11px] text-slate-500 mt-0.5">LH: ${item.repName} · ${item.phone}</p>` : ''}
+                        </td>
+                        <td class="py-3 px-3 font-bold text-slate-900 font-mono">${CargoStore.formatCurrency(item.priceKg)}</td>
+                        <td class="py-3 px-3 text-slate-700 font-mono font-semibold">${CargoStore.formatCurrency(item.totalAmountVND)}</td>
+                        <td class="py-3 px-3 text-slate-500 text-[11px]">${item.time}</td>
+                        <td class="py-3 px-3">${statusBadge}</td>
+                        <td class="py-3 px-4 text-center">${actionContent}</td>
+                    </tr>
+                `;
+            }).join('');
+
+            // Render Audit Trail Section below the table
+            if (auditTrailBox) {
+                const logs = auction.rejectAuditLogs || [];
+                if (logs.length > 0) {
+                    auditTrailBox.classList.remove('hidden');
+                    auditTrailBox.innerHTML = `
+                        <div class="bg-slate-50/90 border border-slate-200 rounded-2xl p-4 space-y-3 shadow-2xs">
+                            <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-2 border-b border-slate-200 pb-2.5">
+                                <h4 class="font-bold text-xs text-slate-800 flex items-center gap-2">
+                                    <i class="fa-solid fa-clipboard-check text-indigo-600 text-sm"></i>
+                                    Nhật Ký Kiểm Toán (Audit Trail) Reject & Điều Chuyển Đại Lý Trúng Thầu
+                                </h4>
+                                <div class="flex items-center gap-2">
+                                    <span class="text-[10px] font-bold bg-indigo-100 text-indigo-900 border border-indigo-200 px-2.5 py-0.5 rounded-md flex items-center gap-1">
+                                        <i class="fa-solid fa-user-shield text-indigo-600"></i> Phân quyền chuyên trách: COD ADMIN
+                                    </span>
+                                    <span class="text-[10px] font-mono font-bold bg-slate-200 text-slate-800 px-2.5 py-0.5 rounded-md">
+                                        ${logs.length} bản ghi kiểm toán
+                                    </span>
+                                </div>
+                            </div>
+                            <div class="overflow-x-auto">
+                                <table class="w-full text-xs text-left">
+                                    <thead class="bg-white text-slate-600 font-semibold border-b text-[11px]">
+                                        <tr>
+                                            <th class="py-2.5 px-3">Thời gian ghi nhận</th>
+                                            <th class="py-2.5 px-3">Người thực hiện (Role)</th>
+                                            <th class="py-2.5 px-3">Đại lý bị Reject</th>
+                                            <th class="py-2.5 px-3">Đại lý nhận thầu kế tiếp</th>
+                                            <th class="py-2.5 px-3">Lý do chính thức & Giải trình kiểm toán</th>
+                                            <th class="py-2.5 px-3 text-right">Mã Audit Hash</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody class="divide-y divide-slate-100 text-[11px]">
+                                        ${logs.map(log => `
+                                            <tr class="hover:bg-white transition">
+                                                <td class="py-2.5 px-3 font-mono text-slate-700 whitespace-nowrap">
+                                                    <i class="fa-regular fa-clock text-slate-400 mr-1"></i>${log.formattedTime || log.timestamp}
+                                                </td>
+                                                <td class="py-2.5 px-3 whitespace-nowrap">
+                                                    <strong class="text-slate-900 block">${log.actorName || log.actorUsername}</strong>
+                                                    <span class="text-[10px] font-bold text-indigo-800 bg-indigo-50 border border-indigo-200 px-1.5 py-0.5 rounded inline-flex items-center gap-1 mt-0.5">
+                                                        <i class="fa-solid fa-user-shield text-[9px] text-indigo-600"></i> ${log.actorRole || 'COD ADMIN'}
+                                                    </span>
+                                                </td>
+                                                <td class="py-2.5 px-3 text-rose-700 font-medium">
+                                                    <span class="font-mono font-bold text-rose-800">${log.fromAgentCode}</span>
+                                                    <span class="block text-slate-600 text-[10px]">${log.fromAgentName} (${CargoStore.formatCurrency(log.fromPriceKg)}/Kg)</span>
+                                                </td>
+                                                <td class="py-2.5 px-3 text-emerald-700 font-medium">
+                                                    <span class="font-mono font-bold text-emerald-800">${log.toAgentCode}</span>
+                                                    <span class="block text-slate-600 text-[10px]">${log.toAgentName} (${CargoStore.formatCurrency(log.toPriceKg)}/Kg)</span>
+                                                </td>
+                                                <td class="py-2.5 px-3 text-slate-700 max-w-xs">
+                                                    <strong class="text-slate-900 block font-semibold">${log.reason}</strong>
+                                                    ${log.note ? `<span class="block text-slate-500 text-[10px] italic mt-0.5 bg-white p-1 rounded border border-slate-200/60">${log.note}</span>` : ''}
+                                                </td>
+                                                <td class="py-2.5 px-3 text-right font-mono text-[10px] text-slate-500 font-semibold whitespace-nowrap">
+                                                    <span class="bg-slate-100 border border-slate-300 px-2 py-0.5 rounded text-[10px]">
+                                                        <i class="fa-solid fa-fingerprint text-slate-400 mr-0.5"></i> ${log.auditHash || 'SEC-COD-VERIFIED'}
+                                                    </span>
+                                                </td>
+                                            </tr>
+                                        `).join('')}
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+                    `;
+                } else {
+                    auditTrailBox.classList.add('hidden');
+                }
+            }
+        }
+
+        // Quick seed demo bids handler
+        function handleSeedDemoBids() {
+            if (!currentAuction) return;
+            const res = CargoStore.seedDemoBidsForAuction(currentAuction.id);
+            if (res.success) {
+                if (window.Swal) {
+                    Swal.fire({
+                        icon: 'success',
+                        title: 'Đã tạo dữ liệu mẫu!',
+                        text: res.message
+                    });
+                } else {
+                    alert(res.message);
+                }
+                loadAdminDetail();
+            }
+        }
+
+        // Cấu hình thời gian xem xét / Review window (phút)
+        window.handleSetReviewMinutes = function (auctionId, minutes) {
+            const res = CargoStore.setAuctionReviewWindow(auctionId, minutes);
+            if (res.success) {
+                if (window.Swal) Swal.fire({ icon: 'success', title: 'Cấu hình thời gian', text: res.message, timer: 1500, showConfirmButton: false });
+                loadAdminDetail();
+            }
+        };
+
+        // Khóa chốt thầu ngay (kết thúc sớm thời gian xem xét)
+        window.handleLockAuctionReview = async function (auctionId) {
+            const admin = CargoStore.getCurrentAdmin ? CargoStore.getCurrentAdmin() : {};
+            const adminRole = String(admin.role || '').toUpperCase();
+            if (adminRole === 'STAFF') {
+                if (window.Swal) Swal.fire('Thông báo', 'Tài khoản STAFF không có quyền khóa chốt phiên!', 'warning');
+                else alert('Tài khoản STAFF không có quyền khóa chốt phiên!');
+                return;
+            }
+            const ok = window.Swal ? (await Swal.fire({
+                title: 'Khóa chốt thầu ngay?',
+                text: 'Hành động này sẽ kết thúc sớm thời gian xem xét và khóa chính thức kết quả trúng thầu. Toàn bộ thao tác Reject sẽ được ẩn hoàn toàn.',
+                icon: 'question',
+                showCancelButton: true,
+                confirmButtonText: '<i class="fa-solid fa-lock"></i> Khóa chốt ngay',
+                confirmButtonColor: '#0f172a',
+                cancelButtonText: 'Hủy'
+            })).isConfirmed : confirm('Khóa chốt thầu chính thức ngay và ẩn toàn bộ chức năng Reject?');
+
+            if (ok) {
+                const res = CargoStore.lockAuctionReview(auctionId);
+                if (res.success) {
+                    if (window.Swal) Swal.fire({ icon: 'success', title: 'Đã khóa chốt thầu!', text: res.message });
+                    loadAdminDetail();
+                }
+            }
+        };
+
+        // Switch role demo tester for pair testing (COD ADMIN vs STAFF)
+        window.switchAdminRoleDemo = function (roleKey) {
+            const data = CargoStore.getData();
+            if (roleKey === 'COD_ADMIN') {
+                data.currentAdmin = {
+                    id: 98,
+                    username: 'cod_admin',
+                    password: 'admin2026',
+                    role: 'COD ADMIN',
+                    fullName: 'Lê Khai Thác (COD Admin)',
+                    email: 'cod@airline.vn',
+                    department: 'Cargo Operations Directorate (COD)'
+                };
+            } else {
+                data.currentAdmin = {
+                    id: 97,
+                    username: 'staff01',
+                    password: 'staff2026',
+                    role: 'STAFF',
+                    fullName: 'Nguyễn Điều Hành (Staff)',
+                    email: 'staff01@airline.vn',
+                    department: 'Air Cargo Flight Operations'
+                };
+            }
+            CargoStore.saveData(data);
+            if (window.Swal) {
+                Swal.fire({
+                    icon: 'info',
+                    title: `Đã chuyển sang vai trò: ${data.currentAdmin.role}`,
+                    text: roleKey === 'COD_ADMIN' ? 'Bạn hiện có toàn quyền Thẩm định & Reject đại lý trúng thầu.' : 'Vai trò STAFF chỉ được xem và bị vô hiệu hóa quyền Reject.',
+                    timer: 1600,
+                    showConfirmButton: false
+                });
+            }
+            loadAdminDetail();
+        };
+
+        // Action: Reject đại lý hiện tại và tự động chuyển sang đại lý kế tiếp
+        // Phân quyền chuyên trách riêng: COD ADMIN
+        // Ghi nhật ký Audit Trail đầy đủ, bảo mật
+        async function handleRejectToNextAgent(auctionId, targetAgentCode, targetAgentName, priceKg) {
+            const admin = CargoStore.getCurrentAdmin ? CargoStore.getCurrentAdmin() : {};
+            const adminRole = String(admin.role || '').toUpperCase();
+            const isCodAdmin = adminRole === 'COD ADMIN' || adminRole === 'COD_ADMIN' || adminRole === 'ITD ADMIN' || adminRole === 'ADMIN';
+
+            if (!isCodAdmin || adminRole === 'STAFF') {
+                if (window.Swal) {
+                    Swal.fire({
+                        icon: 'error',
+                        title: 'Từ chối quyền truy cập',
+                        html: `
+                            <div class="text-left text-xs space-y-2">
+                                <p class="text-slate-700">Tài khoản hiện tại của bạn có vai trò: <strong class="text-rose-600 font-bold">${admin.role || 'STAFF'}</strong>.</p>
+                                <p class="p-2.5 bg-rose-50 border border-rose-200 rounded-xl text-rose-900 leading-relaxed">
+                                    <i class="fa-solid fa-shield-halved text-rose-600 mr-1"></i>
+                                    Quyền <strong>Reject đại lý & điều chuyển thầu</strong> thuộc thẩm quyền chuyên trách của <strong>Quản trị viên Khai thác (COD ADMIN)</strong>.
+                                </p>
+                                <p class="text-[11px] text-slate-500">Vui lòng sử dụng tài khoản có Role COD ADMIN (hoặc bấm nút "COD ADMIN" ở góc trên) để thực hiện.</p>
+                            </div>
+                        `
+                    });
+                } else {
+                    alert('Quyền bị từ chối: Thao tác Reject đại lý thuộc thẩm quyền độc quyền của Quản trị viên Khai thác (COD ADMIN)!');
+                }
+                return;
+            }
+
+            // Tìm đại lý dự phòng kế tiếp
+            const list = CargoStore.getAuctionLeaderboard ? CargoStore.getAuctionLeaderboard(auctionId) : [];
+            const rejectedCodes = ((currentAuction && currentAuction.rejectedAgents) || []).concat([targetAgentCode]).map(c => String(c).toUpperCase());
+            const nextCandidate = list.find(item => !rejectedCodes.includes(item.agentCode.toUpperCase()) && item.agentCode.toUpperCase() !== targetAgentCode.toUpperCase());
+
+            const nextAgentHtml = nextCandidate ? `
+                <div class="p-3 bg-emerald-50 border border-emerald-200 rounded-xl text-emerald-950 space-y-1">
+                    <span class="text-[10px] font-bold text-emerald-700 uppercase tracking-wide block"><i class="fa-solid fa-arrow-right"></i> Đại lý dự phòng tiếp nhận kế tiếp (Rank #${nextCandidate.rank}):</span>
+                    <div class="flex items-center justify-between">
+                        <div>
+                            <strong class="text-emerald-900">${nextCandidate.agentName}</strong>
+                            <span class="font-mono text-emerald-700 block text-[11px]">${nextCandidate.agentCode}</span>
+                        </div>
+                        <div class="text-right">
+                            <span class="font-bold font-mono text-emerald-700 text-sm">${CargoStore.formatCurrency(nextCandidate.priceKg)}/Kg</span>
+                            <span class="text-[10px] text-slate-500 block">${CargoStore.formatCurrency(nextCandidate.totalAmountVND)}</span>
+                        </div>
+                    </div>
+                </div>
+            ` : `
+                <div class="p-2.5 bg-amber-50 border border-amber-200 rounded-xl text-amber-900 text-xs">
+                    <i class="fa-solid fa-triangle-exclamation text-amber-600 mr-1"></i>
+                    <strong>Lưu ý:</strong> Không còn đại lý dự phòng nào khác trong danh sách đặt thầu.
+                </div>
+            `;
+
+            if (window.Swal) {
+                const { value: formValues } = await Swal.fire({
+                    title: 'Thẩm định Từ chối (Reject) & Chuyển đại lý',
+                    html: `
+                        <div class="text-left text-xs space-y-3 pt-1">
+                            <!-- Role Attribution Header -->
+                            <div class="p-2.5 bg-indigo-50 border border-indigo-200 rounded-xl flex items-center justify-between text-indigo-950">
+                                <div>
+                                    <span class="text-[10px] text-indigo-600 font-semibold block">Cán bộ thực hiện thẩm định:</span>
+                                    <strong class="text-indigo-900">${admin.fullName || admin.username || 'Lê Khai Thác'}</strong>
+                                </div>
+                                <span class="bg-indigo-600 text-white font-mono font-bold text-[10px] px-2.5 py-1 rounded-md shadow-2xs">
+                                    <i class="fa-solid fa-user-shield mr-1"></i>ROLE: COD ADMIN
+                                </span>
+                            </div>
+
+                            <!-- Rejecting Agent Info -->
+                            <div class="p-3 bg-rose-50 border border-rose-200 rounded-xl text-rose-950 space-y-1">
+                                <span class="text-[10px] font-bold text-rose-700 uppercase tracking-wide block"><i class="fa-solid fa-ban"></i> Đại lý bị từ chối (Reject):</span>
+                                <div class="flex items-center justify-between">
+                                    <div>
+                                        <strong class="text-rose-900">${targetAgentName}</strong>
+                                        <span class="font-mono text-rose-700 block text-[11px]">${targetAgentCode}</span>
+                                    </div>
+                                    <div class="text-right">
+                                        <span class="font-bold font-mono text-rose-700 text-sm">${CargoStore.formatCurrency(priceKg)}/Kg</span>
+                                        <span class="text-[10px] text-slate-500 block">Đang giữ thầu #1</span>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- Next Candidate -->
+                            ${nextAgentHtml}
+
+                            <!-- Select Reason -->
+                            <div>
+                                <label class="block font-bold text-slate-700 mb-1">
+                                    Lý do từ chối chính thức <span class="text-rose-600">*</span>:
+                                </label>
+                                <select id="swalRejectReason" class="w-full border border-slate-300 rounded-xl p-2.5 text-xs bg-white outline-none focus:ring-2 focus:ring-rose-500 font-medium">
+                                    <option value="Đại lý không đáp ứng tiêu chuẩn loại hàng hóa hoặc DGR">1. Đại lý không đáp ứng tiêu chuẩn loại hàng hóa hoặc DGR</option>
+                                    <option value="Đại lý không nộp hồ sơ khai báo tải trọng đúng hạn cut-off">2. Đại lý không nộp hồ sơ khai báo tải trọng đúng hạn cut-off</option>
+                                    <option value="Đại lý quá hạn thanh toán tiền cước tạm tính">3. Đại lý quá hạn thanh toán tiền cước tạm tính</option>
+                                    <option value="Đại lý chủ động gửi văn bản từ chối nhận thầu tải bay">4. Đại lý chủ động gửi văn bản từ chối nhận thầu tải bay</option>
+                                    <option value="Quyết định điều chuyển xử lý từ Ban Giám Đốc Khai Thác Cargo (COD)">5. Quyết định điều chuyển xử lý từ Ban Giám Đốc Khai Thác Cargo (COD)</option>
+                                    <option value="Lý do điều chuyển nghiệp vụ khác">6. Lý do điều chuyển nghiệp vụ khác (ghi rõ bên dưới)</option>
+                                </select>
+                            </div>
+
+                            <!-- Detailed Audit Note -->
+                            <div>
+                                <label class="block font-bold text-slate-700 mb-1">
+                                    Ghi chú & Giải trình kiểm toán (Lưu vết Audit Log):
+                                </label>
+                                <textarea id="swalRejectNote" rows="2" placeholder="Nhập chi tiết biên bản, số công văn hoặc giải trình nghiệp vụ của Ban Điều Hành COD..." class="w-full border border-slate-300 rounded-xl p-2.5 text-xs outline-none focus:ring-2 focus:ring-rose-500"></textarea>
+                            </div>
+
+                            <div class="p-2 bg-slate-50 border rounded-xl text-[11px] text-slate-500 flex items-center gap-1.5">
+                                <i class="fa-solid fa-lock text-slate-400"></i>
+                                <span>Thao tác sẽ tự sinh <strong>Mã Audit Hash</strong> bảo mật và lưu vĩnh viễn vào Nhật ký kiểm toán.</span>
+                            </div>
+                        </div>
+                    `,
+                    showCancelButton: true,
+                    confirmButtonText: '<i class="fa-solid fa-arrow-right-arrow-left"></i> Xác nhận Reject & Chuyển tiếp',
+                    confirmButtonColor: '#e11d48',
+                    cancelButtonText: 'Hủy bỏ',
+                    focusCancel: false,
+                    preConfirm: () => {
+                        const reason = document.getElementById('swalRejectReason')?.value || 'Từ chối đại lý trước';
+                        const note = (document.getElementById('swalRejectNote')?.value || '').trim();
+                        return { reason, note };
+                    }
+                });
+
+                if (formValues) {
+                    const res = CargoStore.rejectAndPassToNextAgent(auctionId, targetAgentCode, formValues.reason, formValues.note);
+                    if (res.success) {
+                        await Swal.fire({
+                            icon: 'success',
+                            title: 'Đã hoàn tất thẩm định Reject & Điều chuyển!',
+                            html: `
+                                <div class="text-left text-xs space-y-2 pt-1">
+                                    <p class="text-slate-700">${res.message}</p>
+                                    <div class="p-2.5 bg-slate-50 border rounded-xl font-mono text-[11px] text-slate-600">
+                                        <p><strong>Người thực hiện:</strong> ${admin.fullName} (${admin.role || 'COD ADMIN'})</p>
+                                        <p><strong>Lý do:</strong> ${formValues.reason}</p>
+                                        <p><strong>Thời gian ghi log:</strong> ${new Date().toLocaleTimeString('vi-VN')} · ${new Date().toLocaleDateString('vi-VN')}</p>
+                                    </div>
+                                </div>
+                            `
+                        });
+                        loadAdminDetail();
+                    } else {
+                        Swal.fire({
+                            icon: 'warning',
+                            title: 'Thông báo',
+                            text: res.message
+                        });
+                        loadAdminDetail();
+                    }
+                }
+            } else {
+                const reason = prompt(`Nhập lý do từ chối (Reject) đại lý ${targetAgentName}:`, 'Đại lý không đáp ứng tiến độ');
+                if (reason) {
+                    const res = CargoStore.rejectAndPassToNextAgent(auctionId, targetAgentCode, reason, 'Ghi nhận qua bảng điều hành COD');
+                    alert(res.message);
+                    loadAdminDetail();
+                }
+            }
+        }
 
         function loadAdminDetail() {
             if (typeof CargoStore === 'undefined') return;
@@ -767,6 +1417,9 @@
             document.getElementById('detEta').textContent = auction.eta;
             document.getElementById('detCutOff').textContent = (CargoStore && CargoStore.calculateCutOffTime) ? CargoStore.calculateCutOffTime(auction.etd) : (auction.cutOffTime || 'Trước ETD 3 giờ');
             document.getElementById('detNotes').textContent = auction.specialNotes;
+
+            // Render Leaderboard & Fallback transfer table
+            renderLeaderboardTable(auction, isStaff);
 
             const detAllowedAgentsBadge = document.getElementById('detAllowedAgentsBadge');
             if (detAllowedAgentsBadge) {
@@ -961,20 +1614,10 @@
             const canEdit = isOpen && !hasBids;
 
             btnContainer.innerHTML = `
-                <button onclick="openDetailBroadcastModal()" class="bg-blue-600 hover:bg-blue-700 text-white text-xs font-bold px-3.5 py-2 rounded-xl transition shadow flex items-center gap-1.5">
+                <button onclick="openDetailBroadcastModal()" class="bg-blue-600 hover:bg-blue-700 text-white text-xs font-bold px-3.5 py-2 rounded-xl transition shadow flex items-center gap-1.5 cursor-pointer">
                     <i class="fa-solid fa-bullhorn"></i> Phát thông báo
                 </button>
             `;
-
-            //             ${(isOpen ? (hideCloseBtn ? '' : `
-            //     <button onclick="handleDetailCloseAuction()" class="bg-amber-500 hover:bg-amber-600 active:scale-95 text-slate-950 text-xs font-bold px-3.5 py-2 rounded-xl transition shadow flex items-center gap-1.5 cursor-pointer">
-            //         <i class="fa-solid fa-gavel"></i> Đóng phiên & Chốt thầu ngay
-            //     </button>
-            // `) : `
-            //     <span class="bg-slate-200 text-slate-700 text-xs font-bold px-3 py-2 rounded-xl flex items-center gap-1">
-            //         <i class="fa-solid fa-lock"></i> Đã đóng thầu
-            //     </span>
-            // `)}
             let currentBidsPage = 1;
             let bidsItemsPerPage = 10;
 
