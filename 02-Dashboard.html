@@ -315,7 +315,11 @@
                 // Check PIN status and show reminder banner if missing
                 const pinBanner = document.getElementById('pinReminderBanner');
                 if (pinBanner) {
-                    if (!u.pin) {
+                    const storeData = (typeof CargoStore !== 'undefined' && CargoStore.getData) ? CargoStore.getData() : null;
+                    const agentObj = storeData && storeData.agentsList ? storeData.agentsList.find(a => (a.code || '').toUpperCase() === (u.agentCode || '').toUpperCase()) : null;
+                    const hasPin = Boolean(u.pin || (agentObj && agentObj.pin));
+
+                    if (!hasPin) {
                         pinBanner.classList.remove('hidden');
                     } else {
                         pinBanner.classList.add('hidden');

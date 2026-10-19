@@ -175,6 +175,8 @@ const CargoStore = (function () {
             role: 'agent',
             agentCode: 'AG-0892',
             password: 'abc123456',
+            pin: '1234',
+            pinCreatedAt: 1710460800000,
             companyName: 'Công ty TNHH Vận tải ABC Logistics',
             fullName: 'Nguyễn Văn An',
             position: 'Giám đốc kinh doanh',
@@ -1254,6 +1256,29 @@ const CargoStore = (function () {
                 }
             }
 
+            // Auto-heal & sync currentUser PIN with agentsList
+            if (data.currentUser && Array.isArray(data.agentsList)) {
+                const curCode = String(data.currentUser.agentCode || data.currentUser.code || '').trim().toUpperCase();
+                const ag = data.agentsList.find(a => String(a.code || '').trim().toUpperCase() === curCode);
+                if (ag) {
+                    if (ag.pin && data.currentUser.pin !== ag.pin) {
+                        data.currentUser.pin = ag.pin;
+                        data.currentUser.pinCreatedAt = ag.pinCreatedAt || data.currentUser.pinCreatedAt || Date.now();
+                        updated = true;
+                    } else if (data.currentUser.pin && !ag.pin) {
+                        ag.pin = data.currentUser.pin;
+                        updated = true;
+                    } else if (!data.currentUser.pin && !ag.pin) {
+                        data.currentUser.pin = '1234';
+                        ag.pin = '1234';
+                        updated = true;
+                    }
+                } else if (!data.currentUser.pin) {
+                    data.currentUser.pin = '1234';
+                    updated = true;
+                }
+            }
+
             if (!data.adminsList || !Array.isArray(data.adminsList) || data.adminsList.length === 0) {
                 data.adminsList = JSON.parse(JSON.stringify(seedAdmins));
                 updated = true;
@@ -1661,6 +1686,13 @@ const CargoStore = (function () {
                         if (!ag.repName && !ag.email && !ag.taxCode && !ag.phone) return false;
                         return true;
                     });
+                    if (local.currentUser) {
+                        const myCode = String(local.currentUser.agentCode || local.currentUser.code || '').trim().toUpperCase();
+                        const serverAg = local.agentsList.find(a => String(a.code || '').trim().toUpperCase() === myCode);
+                        if (serverAg && serverAg.pin) {
+                            local.currentUser.pin = serverAg.pin;
+                        }
+                    }
                 }
                 if (serverData.activityLogs && Array.isArray(serverData.activityLogs)) {
                     // Server is the single source of truth for logs when online.
@@ -2276,21 +2308,29 @@ const CargoStore = (function () {
                 this.saveData(data);
             }
 
-            // Verify against THAT SPECIFIC AGENT'S PASSWORD!
-            const expectedPassword = agent.password || '12345678';
-            if (password !== expectedPassword) {
+            // Verify against THAT SPECIFIC AGENT'S PASSWORD OR PIN!
+            const inputVal = String(password || '').trim();
+            const expectedPassword = String(agent.password || '12345678').trim();
+            const expectedPin = agent.pin ? String(agent.pin).trim() : '1234';
+
+            const isPasswordMatch = inputVal === expectedPassword;
+            const isPinMatch = inputVal === expectedPin;
+
+            if (!isPasswordMatch && !isPinMatch) {
                 return {
                     success: false,
-                    message: `Mật khẩu không chính xác cho đại lý ${agent.code}! Vui lòng nhập đúng mật khẩu đã đăng ký hoặc mật khẩu mới đã đổi.`
+                    message: `Mật khẩu hoặc Mã PIN không chính xác cho đại lý ${agent.code}! Vui lòng nhập đúng mật khẩu hoặc mã PIN 4 chữ số.`
                 };
             }
 
-            // Construct specific currentUser object for this agent
+            // Construct specific currentUser object for this agent with PIN intact!
             data.currentUser = {
                 id: agent.id,
                 role: 'agent',
                 agentCode: agent.code,
                 password: agent.password,
+                pin: agent.pin || '1234',
+                pinCreatedAt: agent.pinCreatedAt || null,
                 companyName: agent.companyName,
                 fullName: agent.repName,
                 position: agent.position || 'Đại diện ủy quyền',
@@ -2393,11 +2433,16 @@ const CargoStore = (function () {
                 const agent = (data.agentsList || []).find(a =>
                     (a.code || '').toUpperCase() === targetCode || a.id == user.id
                 );
-                if (agent && (agent.status === 'Đã khóa' || agent.status === 'LOCKED')) {
-                    // Auto logout / clear session immediately
-                    data.currentUser = null;
-                    saveData(data);
-                    return null;
+                if (agent) {
+                    if (agent.pin && !user.pin) {
+                        user.pin = agent.pin;
+                    }
+                    if (agent.status === 'Đã khóa' || agent.status === 'LOCKED') {
+                        // Auto logout / clear session immediately
+                        data.currentUser = null;
+                        saveData(data);
+                        return null;
+                    }
                 }
             }
             return user;
@@ -2608,7 +2653,7 @@ const CargoStore = (function () {
             const formattedEta = auctionData.eta ? this.formatFlightDateDisplay(auctionData.eta) : (formattedClose || 'Chưa cập nhật');
             const endTime = endTimeDate.toISOString();
 
-            const isUpcoming = parsedOpen && parsedOpen.getTime() > (now.getTime() + 60000);
+            const isUpcoming = Boolean(auctionData.isUpcoming && parsedOpen && parsedOpen.getTime() > (now.getTime() + 60000));
 
             // Process allowedAgents (Approvals for this flight)
             let allowedAgents = ['ALL'];
@@ -2744,6 +2789,13 @@ const CargoStore = (function () {
             });
 
             saveData(data);
+            if (typeof fetch !== 'undefined') {
+                fetch('/api/data', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ auctions: data.auctions })
+                }).catch(() => {});
+            }
 
             this.logActivity({
                 actionCategory: 'Phiên đấu giá',

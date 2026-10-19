@@ -790,21 +790,6 @@
             // Find all bids for this agent
             let agentBids = bids.filter(b => (b.agentCode || '').toUpperCase() === currentAgentCode.toUpperCase());
 
-            // If empty, generate simulated bidding records matching historical auctions so table is never empty for demonstration
-            if (agentBids.length === 0 && auctions.length > 0) {
-                agentBids = auctions.slice(0, 3).map((auc, i) => ({
-                    id: Date.now() - (i + 1) * 3600 * 1000,
-                    timestamp: Date.now() - (i + 1) * 3600 * 1000,
-                    auctionId: auc.id,
-                    agentCode: currentAgentCode,
-                    agentName: currentAgent ? currentAgent.companyName : 'Đại lý',
-                    priceKg: auc.startingPriceKg + (i + 1) * (auc.minStep || 500),
-                    weightKg: auc.capacityKg || 3000,
-                    time: `${(i + 1) * 2} giờ trước`,
-                    status: (auc.winnerAgentCode === currentAgentCode) ? 'WON' : 'RECEIVED'
-                }));
-            }
-
             // Map and attach auction metadata
             const enriched = agentBids.map(b => {
                 const auc = auctions.find(a => String(a.id) === String(b.auctionId)) || {};

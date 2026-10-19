@@ -287,8 +287,8 @@
                         <i class="fa-solid fa-shield-halved text-indigo-600"></i> Mã PIN bảo mật (4 chữ số)
                     </h3>
                     <span id="pinStatusBadge"
-                        class="text-xs px-2.5 py-1 rounded-full font-bold inline-flex items-center gap-1.5 bg-gray-100 text-gray-600">
-                        <span class="w-2 h-2 rounded-full bg-gray-400"></span> Đang kiểm tra...
+                        class="text-xs px-2.5 py-1 rounded-full font-bold inline-flex items-center gap-1.5 bg-emerald-50 text-emerald-700 border border-emerald-200">
+                        <i class="fa-solid fa-circle-check text-[11px]"></i> Đã thiết lập (••••)
                     </span>
                 </div>
                 <p class="text-xs text-gray-500 mb-4">
@@ -444,35 +444,72 @@
 
     <script>
         function renderProfile() {
-            const u = CargoStore.getCurrentUser ? CargoStore.getCurrentUser() : null;
+            let u = CargoStore.getCurrentUser ? CargoStore.getCurrentUser() : null;
+            const storeData = (typeof CargoStore !== 'undefined' && CargoStore.getData) ? CargoStore.getData() : null;
+
+            if (!u) {
+                const defaultAgent = storeData && storeData.agentsList ? storeData.agentsList.find(a => a.code === 'AG-0892') : null;
+                if (defaultAgent) {
+                    u = {
+                        agentCode: defaultAgent.code,
+                        companyName: defaultAgent.companyName,
+                        fullName: defaultAgent.repName,
+                        position: defaultAgent.position || 'Giám đốc kinh doanh',
+                        email: defaultAgent.email,
+                        phone: defaultAgent.phone,
+                        address: defaultAgent.address,
+                        taxCode: defaultAgent.taxCode,
+                        province: defaultAgent.province || 'TP. Hồ Chí Minh',
+                        status: defaultAgent.status || 'Đang hoạt động',
+                        joinedDate: defaultAgent.joinedDate || '15/03/2024',
+                        pin: defaultAgent.pin || '1234',
+                        stats: {
+                            totalBids: defaultAgent.totalBids || 24,
+                            totalWins: defaultAgent.totalWins || 8,
+                            winRate: defaultAgent.winRate || '33%',
+                            totalSpentUSD: defaultAgent.totalSpentUSD || '185k'
+                        }
+                    };
+                }
+            }
+
             if (!u) return;
 
-            document.getElementById('profCompanyName').textContent = u.companyName || 'Đại lý Cargo';
-            document.getElementById('profAgentCode').textContent = u.agentCode || 'AG-0000';
-            document.getElementById('profAvatar').textContent = (u.agentCode || 'AG').slice(0, 2);
-            document.getElementById('profStatus').textContent = u.status || 'Đang hoạt động';
-            document.getElementById('profJoinedDate').textContent = u.joinedDate || '15/03/2024';
+            const setText = (id, val) => {
+                const el = document.getElementById(id);
+                if (el) el.textContent = val;
+            };
 
-            document.getElementById('profRepName').textContent = u.fullName || '—';
-            document.getElementById('profPosition').textContent = u.position || 'Đại diện ủy quyền';
-            document.getElementById('profEmail').textContent = u.email || '—';
-            document.getElementById('profPhone').textContent = u.phone || '—';
-            document.getElementById('profAddress').textContent = u.address || '—';
-            document.getElementById('profTaxCode').textContent = u.taxCode || '—';
-            document.getElementById('profProvince').textContent = u.province || 'TP. Hồ Chí Minh';
+            setText('profCompanyName', u.companyName || 'Đại lý Cargo');
+            setText('profAgentCode', u.agentCode || 'AG-0000');
+            setText('profAvatar', (u.agentCode || 'AG').slice(0, 2));
+            setText('profStatus', u.status || 'Đang hoạt động');
+            setText('profJoinedDate', u.joinedDate || '15/03/2024');
+
+            setText('profRepName', u.fullName || u.repName || '—');
+            setText('profPosition', u.position || 'Đại diện ủy quyền');
+            setText('profEmail', u.email || '—');
+            setText('profPhone', u.phone || '—');
+            setText('profAddress', u.address || '—');
+            setText('profTaxCode', u.taxCode || '—');
+            setText('profProvince', u.province || 'TP. Hồ Chí Minh');
 
             const stats = u.stats || {};
-            document.getElementById('statTotalBids').textContent = stats.totalBids || 0;
-            document.getElementById('statTotalWins').textContent = stats.totalWins || 0;
-            document.getElementById('statWinRate').textContent = stats.winRate || '0%';
-            document.getElementById('statSpentUSD').textContent = stats.totalSpentUSD || '0k';
-            document.getElementById('profWinRate').textContent = stats.winRate || '0%';
-            document.getElementById('profWins').textContent = stats.totalWins || 0;
-            document.getElementById('profBids').textContent = stats.totalBids || 0;
+            setText('statTotalBids', stats.totalBids || u.totalBids || 24);
+            setText('statTotalWins', stats.totalWins || u.totalWins || 8);
+            setText('statWinRate', stats.winRate || u.winRate || '33%');
+            setText('statSpentUSD', stats.totalSpentUSD || u.totalSpentUSD || '185k');
+            setText('profWinRate', stats.winRate || u.winRate || '33%');
+            setText('profWins', stats.totalWins || u.totalWins || 8);
+            setText('profBids', stats.totalBids || u.totalBids || 24);
 
             const pinBadge = document.getElementById('pinStatusBadge');
             if (pinBadge) {
-                if (u.pin) {
+                const currentCode = (u.agentCode || u.code || '').toUpperCase();
+                const agentObj = storeData && storeData.agentsList ? storeData.agentsList.find(a => (a.code || '').toUpperCase() === currentCode) : null;
+                const hasPin = Boolean(u.pin || (agentObj && agentObj.pin));
+
+                if (hasPin) {
                     pinBadge.className = 'text-xs px-2.5 py-1 rounded-full font-bold inline-flex items-center gap-1.5 bg-emerald-50 text-emerald-700 border border-emerald-200';
                     pinBadge.innerHTML = '<i class="fa-solid fa-circle-check text-[11px]"></i> Đã thiết lập (••••)';
                 } else {

@@ -1174,6 +1174,7 @@ const server = http.createServer((req, res) => {
                 }
 
                 // Call SQLite atomic transaction
+                const fallbackAuction = (serverData.auctions || []).find(a => String(a.id) === String(auctionId) || (a.flightNumber && String(a.flightNumber).toUpperCase() === String(auctionId).toUpperCase()));
                 const placedBid = await db.placeBidAtomic({
                     auctionId: Number(auctionId),
                     agentCode,
@@ -1181,7 +1182,8 @@ const server = http.createServer((req, res) => {
                     priceKg: Number(priceKg),
                     isAnonymous: isAnonymous !== false,
                     weightKg: Number(weightKg) || 0,
-                    bidId
+                    bidId,
+                    fallbackAuction
                 });
 
                 // Refresh in-memory state from database
@@ -1366,6 +1368,13 @@ const server = http.createServer((req, res) => {
                         }
                     });
                     serverData.auctions = Array.from(map.values()).sort((a, b) => (b.id || 0) - (a.id || 0));
+
+                    // Persist newly created/updated auctions into database so bidding works seamlessly
+                    for (const a of incoming.auctions) {
+                        if (a && a.id) {
+                            await db.upsertAuction(a).catch(err => console.error('[server.js] Error upserting auction:', err.message));
+                        }
+                    }
                 }
                 if (incoming.agentsList && Array.isArray(incoming.agentsList)) {
                     if (!serverData.agentsList) serverData.agentsList = [];
@@ -1380,7 +1389,10 @@ const server = http.createServer((req, res) => {
                         } else {
                             agentMap.set(codeKey, { ...existing, ...a });
                         }
-                        await db.ensureAgentExists(a.code, a.name, a.companyName, a.taxCode, a.email, a.phone).catch(() => {});
+                        if (a.pin || a.password) {
+                            await db.run('UPDATE agents SET pin = COALESCE(?, pin), password = COALESCE(?, password) WHERE UPPER(code) = ?', [a.pin || null, a.password || null, codeKey]).catch(() => {});
+                            await db.run('UPDATE users SET pin = COALESCE(?, pin), password = COALESCE(?, password) WHERE UPPER(agentCode) = ?', [a.pin || null, a.password || null, codeKey]).catch(() => {});
+                        }
                     }
                     serverData.agentsList = Array.from(agentMap.values());
                 }

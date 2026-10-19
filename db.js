@@ -854,7 +854,49 @@ function parseFlightDate(dateStr) {
     return isNaN(d.getTime()) ? null : d;
 }
 
-async function placeBidAtomic({ auctionId, agentCode, agentName, priceKg, isAnonymous = true, weightKg = 0, bidId: clientBidId = null }) {
+async function upsertAuction(a) {
+    if (!a || !a.id) return;
+    await run(`
+        INSERT INTO auctions (
+            id, flightCode, flightNumber, route, origin, destination,
+            originName, destName, etd, eta, etdIso, aircraft,
+            capacityKg, startingPriceKg, currentPriceKg, minStep,
+            endTime, status, leadingAgentCode, leadingAgentName,
+            bidsCount, winnerAgentCode, winnerAgentName, winningPriceKg,
+            specialNotes, cutOffTime
+        )
+        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+        ON CONFLICT(id) DO UPDATE SET
+            flightCode = excluded.flightCode,
+            flightNumber = excluded.flightNumber,
+            route = excluded.route,
+            origin = excluded.origin,
+            destination = excluded.destination,
+            originName = excluded.originName,
+            destName = excluded.destName,
+            etd = excluded.etd,
+            eta = excluded.eta,
+            etdIso = excluded.etdIso,
+            aircraft = excluded.aircraft,
+            capacityKg = excluded.capacityKg,
+            startingPriceKg = excluded.startingPriceKg,
+            minStep = excluded.minStep,
+            endTime = excluded.endTime,
+            status = excluded.status,
+            specialNotes = excluded.specialNotes,
+            cutOffTime = excluded.cutOffTime
+    `, [
+        Number(a.id), a.flightCode || null, a.flightNumber || null, a.route || null, a.origin || null, a.destination || null,
+        a.originName || null, a.destName || null, a.etd || null, a.eta || null, a.etdIso || null, a.aircraft || null,
+        Number(a.capacityKg) || 0, Number(a.startingPriceKg) || 0, Number(a.currentPriceKg || a.startingPriceKg) || 0,
+        Number(a.minStep) || 0, a.endTime || null, a.status || 'OPEN',
+        a.leadingAgentCode || null, a.leadingAgentName || null, Number(a.bidsCount) || 0,
+        a.winnerAgentCode || null, a.winnerAgentName || null, Number(a.winningPriceKg) || 0,
+        a.specialNotes || null, a.cutOffTime || null
+    ]);
+}
+
+async function placeBidAtomic({ auctionId, agentCode, agentName, priceKg, isAnonymous = true, weightKg = 0, bidId: clientBidId = null, fallbackAuction = null }) {
     if (!agentCode || agentCode.trim().toUpperCase() === 'AG-***' || agentCode.trim().toUpperCase() === 'ANONYMOUS') {
         throw new Error('Mã đại lý không hợp lệ hoặc là mã ẩn danh (AG-***)');
     }
@@ -894,7 +936,12 @@ async function placeBidAtomic({ auctionId, agentCode, agentName, priceKg, isAnon
         agent = await get('SELECT * FROM agents WHERE UPPER(code) = ?', [cleanCode]);
     }
 
-    const auction = await get('SELECT * FROM auctions WHERE id = ? OR UPPER(flightCode) = ? OR UPPER(flightNumber) = ?', [auctionId, String(auctionId).toUpperCase(), String(auctionId).toUpperCase()]);
+    let auction = await get('SELECT * FROM auctions WHERE id = ? OR UPPER(flightCode) = ? OR UPPER(flightNumber) = ?', [auctionId, String(auctionId).toUpperCase(), String(auctionId).toUpperCase()]);
+    if (!auction && fallbackAuction) {
+        await upsertAuction(fallbackAuction);
+        auction = await get('SELECT * FROM auctions WHERE id = ? OR UPPER(flightCode) = ? OR UPPER(flightNumber) = ?', [auctionId, String(auctionId).toUpperCase(), String(auctionId).toUpperCase()]);
+    }
+
     if (!auction) {
         throw new Error('Chuyến bay đấu giá không tồn tại');
     }
@@ -1083,6 +1130,7 @@ module.exports = {
     resetAllDataToDefault,
     getFullServerData,
     placeBidAtomic,
+    upsertAuction,
     ensureAgentExists,
     purgeUnregisteredBids,
     checkpointWal,
