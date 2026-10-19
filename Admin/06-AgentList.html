@@ -42,9 +42,15 @@
     </style>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Exo:ital,wght@0,100;0,200;0,300;0,400;0,500;0,531;0,600;0,700;0,800;0,900;1,100;1,200;1,300;1,400;1,500;1,531;1,600;1,700;1,800;1,900" rel="stylesheet" />
+    <link
+        href="https://fonts.googleapis.com/css2?family=Exo:ital,wght@0,100;0,200;0,300;0,400;0,500;0,531;0,600;0,700;0,800;0,900;1,100;1,200;1,300;1,400;1,500;1,531;1,600;1,700;1,800;1,900"
+        rel="stylesheet" />
     <style>
-        body, input, select, textarea, button {
+        body,
+        input,
+        select,
+        textarea,
+        button {
             font-family: 'Exo', sans-serif;
         }
     </style>
@@ -466,6 +472,10 @@
                 class="px-4 py-2 rounded-xl text-xs font-bold bg-white text-slate-600 hover:bg-slate-50 border flex items-center gap-2 transition">
                 <i class="fa-solid fa-user-shield"></i> Nhân sự nội bộ & Quản trị (<span id="staffCountBadge">0</span>)
             </button>
+            <button onclick="switchTab('ROLES_PERMISSIONS')" id="tabRolesBtn"
+                class="px-4 py-2 rounded-xl text-xs font-bold bg-white text-slate-600 hover:bg-slate-50 border flex items-center gap-2 transition">
+                <i class="fa-solid fa-shield-halved"></i> Vai trò & Phân quyền (<span id="rolesCountBadge">0</span>)
+            </button>
         </div>
 
         <!-- Tab 1: Pending Registrations -->
@@ -645,7 +655,332 @@
             </div>
         </div>
 
+        <!-- Tab 4: Roles & Custom Permissions -->
+        <div id="sectionRoles" class="hidden space-y-4">
+            <div
+                class="bg-gradient-to-r from-slate-900 via-indigo-950 to-blue-950 rounded-2xl p-5 text-white shadow-md border border-blue-500/20 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+                <div class="space-y-1">
+                    <h2 class="text-base font-bold flex items-center gap-2">
+                        <i class="fa-solid fa-shield-halved text-blue-400"></i> Quản lý Vai trò & Phân quyền Hệ thống
+                    </h2>
+                    <p class="text-xs text-slate-300">
+                        Admin có thể tự tạo vai trò mới, đặt tên vai trò và tích chọn các quyền hạn cụ thể (Hồ sơ đăng
+                        ký đại lý, Phiên đấu giá, Đại lý ủy quyền, Nhân viên nội bộ).
+                    </p>
+                </div>
+                <button id="addRoleBtn" onclick="openRoleModal()"
+                    class="bg-blue-600 hover:bg-blue-500 text-white text-xs font-bold px-4 py-2.5 rounded-xl transition shadow flex items-center justify-center gap-2 shrink-0">
+                    <i class="fa-solid fa-plus-circle"></i> Tạo vai trò mới
+                </button>
+            </div>
+
+            <!-- Permission Matrix Legend -->
+            <div class="grid grid-cols-2 sm:grid-cols-4 gap-3 text-[11px]">
+                <div class="bg-blue-50/70 border border-blue-200 rounded-xl p-3 flex items-start gap-2.5 shadow-2xs">
+                    <div
+                        class="w-7 h-7 rounded-lg bg-blue-600 text-white flex items-center justify-center shrink-0 text-xs">
+                        <i class="fa-solid fa-address-card"></i>
+                    </div>
+                    <div>
+                        <div class="font-bold text-blue-950">Hồ sơ đăng ký</div>
+                        <div class="text-slate-500 text-[10px]">Xem & Duyệt/Từ chối</div>
+                    </div>
+                </div>
+                <div
+                    class="bg-purple-50/70 border border-purple-200 rounded-xl p-3 flex items-start gap-2.5 shadow-2xs">
+                    <div
+                        class="w-7 h-7 rounded-lg bg-purple-600 text-white flex items-center justify-center shrink-0 text-xs">
+                        <i class="fa-solid fa-plane-departure"></i>
+                    </div>
+                    <div>
+                        <div class="font-bold text-purple-950">Phiên đấu giá</div>
+                        <div class="text-slate-500 text-[10px]">Tạo, Sửa, Xóa, Chốt & Thắng thầu</div>
+                    </div>
+                </div>
+                <div
+                    class="bg-emerald-50/70 border border-emerald-200 rounded-xl p-3 flex items-start gap-2.5 shadow-2xs">
+                    <div
+                        class="w-7 h-7 rounded-lg bg-emerald-600 text-white flex items-center justify-center shrink-0 text-xs">
+                        <i class="fa-solid fa-building-shield"></i>
+                    </div>
+                    <div>
+                        <div class="font-bold text-emerald-950">Đại lý ủy quyền</div>
+                        <div class="text-slate-500 text-[10px]">Xem & Khóa/Mở khóa</div>
+                    </div>
+                </div>
+                <div class="bg-amber-50/70 border border-amber-200 rounded-xl p-3 flex items-start gap-2.5 shadow-2xs">
+                    <div
+                        class="w-7 h-7 rounded-lg bg-amber-600 text-white flex items-center justify-center shrink-0 text-xs">
+                        <i class="fa-solid fa-users-gear"></i>
+                    </div>
+                    <div>
+                        <div class="font-bold text-amber-950">Nhân sự & Vai trò</div>
+                        <div class="text-slate-500 text-[10px]">Tạo, Sửa, Xóa nhân viên & Role</div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Roles Cards List -->
+            <div id="rolesCardsContainer" class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <!-- Rendered dynamically by JS -->
+            </div>
+        </div>
+
     </main>
+
+    <!-- Modal: Tạo / Chỉnh sửa Vai trò (Role Modal) -->
+    <div id="roleModal"
+        class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-50 hidden flex items-center justify-center p-3 sm:p-4 overflow-y-auto">
+        <div
+            class="bg-white rounded-2xl shadow-2xl max-w-2xl w-full overflow-hidden my-auto animate-in fade-in zoom-in-95 duration-200 flex flex-col max-h-[92vh]">
+            <div class="bg-slate-900 text-white px-6 py-4 flex items-center justify-between shrink-0">
+                <h3 class="font-bold text-sm flex items-center gap-2">
+                    <i class="fa-solid fa-shield-halved text-blue-400" id="roleModalIcon"></i>
+                    <span id="roleModalTitle">Tạo vai trò mới</span>
+                </h3>
+                <button type="button" onclick="closeRoleModal()" class="text-slate-400 hover:text-white text-lg"><i
+                        class="fa-solid fa-xmark"></i></button>
+            </div>
+
+            <form id="roleForm" onsubmit="handleSaveRole(event)"
+                class="p-5 sm:p-6 space-y-4 text-xs overflow-y-auto flex-1">
+                <input type="hidden" id="roleEditId" value="">
+
+                <div class="grid grid-cols-1 sm:grid-cols-2 gap-3.5">
+                    <div>
+                        <label class="block font-semibold text-slate-700 mb-1">Tên vai trò <span
+                                class="text-red-500">*</span></label>
+                        <input type="text" id="roleNameInput" required placeholder="VD: Trưởng phòng Khai thác bay"
+                            class="w-full border rounded-xl px-3.5 py-2 text-xs outline-none focus:ring-2 focus:ring-blue-500 font-medium">
+                    </div>
+                    <div>
+                        <label class="block font-semibold text-slate-700 mb-1">Mô tả tóm tắt vai trò</label>
+                        <input type="text" id="roleDescInput"
+                            placeholder="VD: Phụ trách kiểm duyệt phiên và chọn người thắng thầu"
+                            class="w-full border rounded-xl px-3.5 py-2 text-xs outline-none focus:ring-2 focus:ring-blue-500">
+                    </div>
+                </div>
+
+                <div class="border-t pt-3">
+                    <div class="flex items-center justify-between mb-2">
+                        <label class="font-bold text-slate-900 text-xs flex items-center gap-1.5">
+                            <i class="fa-solid fa-list-check text-blue-600"></i> Phân quyền chi tiết (Tích chọn các
+                            quyền vai trò được làm):
+                        </label>
+                        <div class="space-x-1.5">
+                            <button type="button" onclick="toggleAllRolePerms(true)"
+                                class="text-[10px] font-bold text-blue-600 hover:underline">Chọn tất cả</button>
+                            <span class="text-slate-300">|</span>
+                            <button type="button" onclick="toggleAllRolePerms(false)"
+                                class="text-[10px] font-bold text-slate-500 hover:underline">Bỏ chọn hết</button>
+                        </div>
+                    </div>
+
+                    <!-- 4 Categories Permission Boxes -->
+                    <div class="space-y-3">
+                        <!-- Box 1: Registrations -->
+                        <div class="border border-blue-200 bg-blue-50/40 rounded-xl p-3.5 space-y-2">
+                            <div class="flex items-center justify-between border-b border-blue-200/60 pb-1.5">
+                                <span class="font-bold text-blue-950 flex items-center gap-1.5">
+                                    <i class="fa-solid fa-address-card text-blue-600"></i> Hồ sơ đăng ký đại lý
+                                </span>
+                                <span class="text-[10px] text-blue-600 font-medium cursor-pointer hover:underline"
+                                    onclick="toggleCategoryPerms('registrations')"></span>
+                            </div>
+                            <div class="grid grid-cols-1 sm:grid-cols-2 gap-2 text-slate-700">
+                                <label
+                                    class="flex items-start gap-2 p-2 rounded-lg hover:bg-blue-100/50 cursor-pointer transition">
+                                    <input type="checkbox" name="rolePerm" value="registrations.view"
+                                        class="mt-0.5 w-4 h-4 text-blue-600 rounded">
+                                    <div>
+                                        <div class="font-bold text-slate-900">Xem hồ sơ đăng ký</div>
+                                        <div class="text-[10px] text-slate-500">Xem danh sách và chi tiết hồ sơ đại lý
+                                            gửi lên</div>
+                                    </div>
+                                </label>
+                                <label
+                                    class="flex items-start gap-2 p-2 rounded-lg hover:bg-blue-100/50 cursor-pointer transition">
+                                    <input type="checkbox" name="rolePerm" value="registrations.approve_reject"
+                                        class="mt-0.5 w-4 h-4 text-blue-600 rounded">
+                                    <div>
+                                        <div class="font-bold text-slate-900">Duyệt & Từ chối hồ sơ</div>
+                                        <div class="text-[10px] text-slate-500">Phê duyệt cấp mã hoặc từ chối hồ sơ đại
+                                            lý</div>
+                                    </div>
+                                </label>
+                            </div>
+                        </div>
+
+                        <!-- Box 2: Auctions -->
+                        <div class="border border-purple-200 bg-purple-50/40 rounded-xl p-3.5 space-y-2">
+                            <div class="flex items-center justify-between border-b border-purple-200/60 pb-1.5">
+                                <span class="font-bold text-purple-950 flex items-center gap-1.5">
+                                    <i class="fa-solid fa-plane-departure text-purple-600"></i> Phiên đấu giá
+                                </span>
+                                <span class="text-[10px] text-purple-600 font-medium cursor-pointer hover:underline"
+                                    onclick="toggleCategoryPerms('auctions')"></span>
+                            </div>
+                            <div class="grid grid-cols-1 sm:grid-cols-2 gap-2 text-slate-700">
+                                <label
+                                    class="flex items-start gap-2 p-2 rounded-lg hover:bg-purple-100/50 cursor-pointer transition">
+                                    <input type="checkbox" name="rolePerm" value="auctions.view"
+                                        class="mt-0.5 w-4 h-4 text-purple-600 rounded">
+                                    <div>
+                                        <div class="font-bold text-slate-900">Xem phiên đấu giá</div>
+                                        <div class="text-[10px] text-slate-500">Xem danh sách và chi tiết các phiên đấu
+                                            giá</div>
+                                    </div>
+                                </label>
+                                <label
+                                    class="flex items-start gap-2 p-2 rounded-lg hover:bg-purple-100/50 cursor-pointer transition">
+                                    <input type="checkbox" name="rolePerm" value="auctions.create"
+                                        class="mt-0.5 w-4 h-4 text-purple-600 rounded">
+                                    <div>
+                                        <div class="font-bold text-slate-900">Tạo phiên đấu giá</div>
+                                        <div class="text-[10px] text-slate-500">Tạo mới phiên tải trọng chuyến bay</div>
+                                    </div>
+                                </label>
+                                <label
+                                    class="flex items-start gap-2 p-2 rounded-lg hover:bg-purple-100/50 cursor-pointer transition">
+                                    <input type="checkbox" name="rolePerm" value="auctions.edit"
+                                        class="mt-0.5 w-4 h-4 text-purple-600 rounded">
+                                    <div>
+                                        <div class="font-bold text-slate-900">Chỉnh sửa phiên</div>
+                                        <div class="text-[10px] text-slate-500">Cập nhật thông tin chuyến bay, tải
+                                            trọng, giá sàn</div>
+                                    </div>
+                                </label>
+                                <label
+                                    class="flex items-start gap-2 p-2 rounded-lg hover:bg-purple-100/50 cursor-pointer transition">
+                                    <input type="checkbox" name="rolePerm" value="auctions.remove"
+                                        class="mt-0.5 w-4 h-4 text-purple-600 rounded">
+                                    <div>
+                                        <div class="font-bold text-slate-900">Xóa / Hủy phiên</div>
+                                        <div class="text-[10px] text-slate-500">Xóa hoặc hủy bỏ phiên đấu giá tải trọng
+                                        </div>
+                                    </div>
+                                </label>
+                                <label
+                                    class="flex items-start gap-2 p-2 rounded-lg hover:bg-purple-100/50 cursor-pointer transition">
+                                    <input type="checkbox" name="rolePerm" value="auctions.close"
+                                        class="mt-0.5 w-4 h-4 text-purple-600 rounded">
+                                    <div>
+                                        <div class="font-bold text-slate-900">Chốt phiên (Đóng phiên)</div>
+                                        <div class="text-[10px] text-slate-500">Đóng phiên sớm hoặc dừng nhận đặt giá
+                                        </div>
+                                    </div>
+                                </label>
+                                <label
+                                    class="flex items-start gap-2 p-2 rounded-lg hover:bg-purple-100/50 cursor-pointer transition">
+                                    <input type="checkbox" name="rolePerm" value="auctions.settle_select_winner"
+                                        class="mt-0.5 w-4 h-4 text-purple-600 rounded">
+                                    <div>
+                                        <div class="font-bold text-purple-900">Chốt / Chọn đại lý thắng thầu</div>
+                                        <div class="text-[10px] text-purple-700">Thẩm định người thắng, chuyển nhượng
+                                            hoặc chốt thầu</div>
+                                    </div>
+                                </label>
+                            </div>
+                        </div>
+
+                        <!-- Box 3: Agents -->
+                        <div class="border border-emerald-200 bg-emerald-50/40 rounded-xl p-3.5 space-y-2">
+                            <div class="flex items-center justify-between border-b border-emerald-200/60 pb-1.5">
+                                <span class="font-bold text-emerald-950 flex items-center gap-1.5">
+                                    <i class="fa-solid fa-building-shield text-emerald-600"></i> Đại lý ủy quyền
+                                </span>
+                                <span class="text-[10px] text-emerald-600 font-medium cursor-pointer hover:underline"
+                                    onclick="toggleCategoryPerms('agents')"></span>
+                            </div>
+                            <div class="grid grid-cols-1 sm:grid-cols-2 gap-2 text-slate-700">
+                                <label
+                                    class="flex items-start gap-2 p-2 rounded-lg hover:bg-emerald-100/50 cursor-pointer transition">
+                                    <input type="checkbox" name="rolePerm" value="agents.view"
+                                        class="mt-0.5 w-4 h-4 text-emerald-600 rounded">
+                                    <div>
+                                        <div class="font-bold text-slate-900">Xem danh sách đại lý</div>
+                                        <div class="text-[10px] text-slate-500">Xem thông tin đại lý, hạng và lịch sử
+                                            tham gia</div>
+                                    </div>
+                                </label>
+                                <label
+                                    class="flex items-start gap-2 p-2 rounded-lg hover:bg-emerald-100/50 cursor-pointer transition">
+                                    <input type="checkbox" name="rolePerm" value="agents.lock"
+                                        class="mt-0.5 w-4 h-4 text-emerald-600 rounded">
+                                    <div>
+                                        <div class="font-bold text-slate-900">Khóa / Mở khóa đại lý</div>
+                                        <div class="text-[10px] text-slate-500">Khóa tài khoản vi phạm hoặc kích hoạt
+                                            lại đại lý</div>
+                                    </div>
+                                </label>
+                            </div>
+                        </div>
+
+                        <!-- Box 4: Staff -->
+                        <div class="border border-amber-200 bg-amber-50/40 rounded-xl p-3.5 space-y-2">
+                            <div class="flex items-center justify-between border-b border-amber-200/60 pb-1.5">
+                                <span class="font-bold text-amber-950 flex items-center gap-1.5">
+                                    <i class="fa-solid fa-users-gear text-amber-600"></i> Nhân viên nội bộ & Vai trò
+                                </span>
+                                <span class="text-[10px] text-amber-600 font-medium cursor-pointer hover:underline"
+                                    onclick="toggleCategoryPerms('staff')"></span>
+                            </div>
+                            <div class="grid grid-cols-1 sm:grid-cols-2 gap-2 text-slate-700">
+                                <label
+                                    class="flex items-start gap-2 p-2 rounded-lg hover:bg-amber-100/50 cursor-pointer transition">
+                                    <input type="checkbox" name="rolePerm" value="staff.view"
+                                        class="mt-0.5 w-4 h-4 text-amber-600 rounded">
+                                    <div>
+                                        <div class="font-bold text-slate-900">Xem danh sách nhân viên</div>
+                                        <div class="text-[10px] text-slate-500">Xem danh sách tài khoản điều hành và vai
+                                            trò</div>
+                                    </div>
+                                </label>
+                                <label
+                                    class="flex items-start gap-2 p-2 rounded-lg hover:bg-amber-100/50 cursor-pointer transition">
+                                    <input type="checkbox" name="rolePerm" value="staff.create"
+                                        class="mt-0.5 w-4 h-4 text-amber-600 rounded">
+                                    <div>
+                                        <div class="font-bold text-slate-900">Tạo mới nhân viên</div>
+                                        <div class="text-[10px] text-slate-500">Cấp tài khoản nhân sự mới</div>
+                                    </div>
+                                </label>
+                                <label
+                                    class="flex items-start gap-2 p-2 rounded-lg hover:bg-amber-100/50 cursor-pointer transition">
+                                    <input type="checkbox" name="rolePerm" value="staff.edit"
+                                        class="mt-0.5 w-4 h-4 text-amber-600 rounded">
+                                    <div>
+                                        <div class="font-bold text-slate-900">Chỉnh sửa nhân viên & Vai trò</div>
+                                        <div class="text-[10px] text-slate-500">Đổi vai trò nhân viên, tạo và sửa các
+                                            vai trò</div>
+                                    </div>
+                                </label>
+                                <label
+                                    class="flex items-start gap-2 p-2 rounded-lg hover:bg-amber-100/50 cursor-pointer transition">
+                                    <input type="checkbox" name="rolePerm" value="staff.remove"
+                                        class="mt-0.5 w-4 h-4 text-amber-600 rounded">
+                                    <div>
+                                        <div class="font-bold text-slate-900">Xóa nhân viên & Vai trò</div>
+                                        <div class="text-[10px] text-slate-500">Xóa tài khoản nhân viên hoặc xóa vai trò
+                                        </div>
+                                    </div>
+                                </label>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="flex items-center justify-end gap-2.5 pt-3 border-t shrink-0">
+                    <button type="button" onclick="closeRoleModal()"
+                        class="px-4 py-2 border rounded-xl text-slate-600 hover:bg-slate-50 font-medium">Hủy bỏ</button>
+                    <button type="submit"
+                        class="px-5 py-2 bg-blue-600 hover:bg-blue-700 text-white font-bold rounded-xl shadow flex items-center gap-1.5">
+                        <i class="fa-solid fa-check"></i> Lưu vai trò
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
 
     <!-- Modal: Thêm tài khoản nhân viên mới -->
     <div id="addStaffModal"
@@ -685,8 +1020,10 @@
                     <select id="newStaffRole"
                         class="w-full border rounded-xl px-3 py-2 bg-white outline-none focus:ring-2 focus:ring-blue-500">
                         <option value="ITD_ADMIN">QUẢN TRỊ VIÊN HỆ THỐNG (ITD ADMIN) - Full quyền</option>
-                        <option value="COD_ADMIN">ĐIỀU HÀNH KHAI THÁC (COD ADMIN) - Duyệt đại lý / Tạo chuyến bay</option>
-                        <option value="AUCTION_SETTLEMENT">QUẢN TRỊ CHỐT THẦU (AUCTION SETTLEMENT) - Chốt thầu & Reject</option>
+                        <option value="COD_ADMIN">ĐIỀU HÀNH KHAI THÁC (COD ADMIN) - Duyệt đại lý / Tạo chuyến bay
+                        </option>
+                        <option value="AUCTION_SETTLEMENT">QUẢN TRỊ CHỐT THẦU (AUCTION SETTLEMENT) - Chốt thầu & Reject
+                        </option>
                         <option value="STAFF">NHÂN VIÊN ĐIỀU HÀNH (STAFF) - Xuất xem các report</option>
                     </select>
                 </div>
@@ -911,23 +1248,29 @@
             const regBtn = document.getElementById('tabRegBtn');
             const agentBtn = document.getElementById('tabAgentBtn');
             const staffBtn = document.getElementById('tabStaffBtn');
+            const rolesBtn = document.getElementById('tabRolesBtn');
 
             const regSec = document.getElementById('sectionRegistrations');
             const agentSec = document.getElementById('sectionAgents');
             const staffSec = document.getElementById('sectionStaff');
+            const rolesSec = document.getElementById('sectionRoles');
 
-            [regBtn, agentBtn, staffBtn].forEach(b => b.className = 'px-4 py-2 rounded-xl text-xs font-bold bg-white text-slate-600 hover:bg-slate-50 border flex items-center gap-2 transition');
-            [regSec, agentSec, staffSec].forEach(s => s.classList.add('hidden'));
+            [regBtn, agentBtn, staffBtn, rolesBtn].filter(Boolean).forEach(b => b.className = 'px-4 py-2 rounded-xl text-xs font-bold bg-white text-slate-600 hover:bg-slate-50 border flex items-center gap-2 transition');
+            [regSec, agentSec, staffSec, rolesSec].filter(Boolean).forEach(s => s.classList.add('hidden'));
 
             if (tab === 'REGISTRATIONS') {
-                regBtn.className = 'px-4 py-2 rounded-xl text-xs font-bold bg-blue-600 text-white shadow-sm flex items-center gap-2 transition';
-                regSec.classList.remove('hidden');
+                if (regBtn) regBtn.className = 'px-4 py-2 rounded-xl text-xs font-bold bg-blue-600 text-white shadow-sm flex items-center gap-2 transition';
+                if (regSec) regSec.classList.remove('hidden');
             } else if (tab === 'ACTIVE_AGENTS') {
-                agentBtn.className = 'px-4 py-2 rounded-xl text-xs font-bold bg-blue-600 text-white shadow-sm flex items-center gap-2 transition';
-                agentSec.classList.remove('hidden');
+                if (agentBtn) agentBtn.className = 'px-4 py-2 rounded-xl text-xs font-bold bg-blue-600 text-white shadow-sm flex items-center gap-2 transition';
+                if (agentSec) agentSec.classList.remove('hidden');
             } else if (tab === 'STAFF_MEMBERS') {
-                staffBtn.className = 'px-4 py-2 rounded-xl text-xs font-bold bg-blue-600 text-white shadow-sm flex items-center gap-2 transition';
-                staffSec.classList.remove('hidden');
+                if (staffBtn) staffBtn.className = 'px-4 py-2 rounded-xl text-xs font-bold bg-blue-600 text-white shadow-sm flex items-center gap-2 transition';
+                if (staffSec) staffSec.classList.remove('hidden');
+            } else if (tab === 'ROLES_PERMISSIONS') {
+                if (rolesBtn) rolesBtn.className = 'px-4 py-2 rounded-xl text-xs font-bold bg-blue-600 text-white shadow-sm flex items-center gap-2 transition';
+                if (rolesSec) rolesSec.classList.remove('hidden');
+                if (typeof renderRolesList === 'function') renderRolesList();
             }
         }
 
@@ -1008,23 +1351,36 @@
         function renderAgentsList() {
             if (typeof CargoStore === 'undefined') return;
             const data = CargoStore.getData();
-            const currentAdmin = CargoStore.getCurrentAdmin();
-            const currentAdminRole = (currentAdmin && currentAdmin.role ? currentAdmin.role : '').toUpperCase();
-            const isItdAdmin = (currentAdminRole === 'ITD_ADMIN' || currentAdminRole === 'ADMIN');
-            const isStaff = (currentAdminRole === 'STAFF');
+            const currentAdmin = CargoStore.getCurrentAdmin() || {};
+            const currentAdminRole = (currentAdmin.role ? currentAdmin.role : '').toUpperCase();
+            const isItdAdmin = (currentAdminRole === 'ITD_ADMIN' || currentAdminRole === 'SUPER_ADMIN' || currentAdminRole === 'ADMIN' || (currentAdmin.username || '').toLowerCase() === 'admin');
 
-            // Notice Banner for Staff
+            const canViewRegs = CargoStore.hasPermission('registrations.view');
+            const canApproveRejectRegs = CargoStore.hasPermission('registrations.approve_reject');
+            const canViewAgents = CargoStore.hasPermission('agents.view');
+            const canLockAgents = CargoStore.hasPermission('agents.lock');
+            const canViewStaff = CargoStore.hasPermission('staff.view');
+            const canCreateStaff = CargoStore.hasPermission('staff.create');
+            const canEditStaff = CargoStore.hasPermission('staff.edit');
+            const canRemoveStaff = CargoStore.hasPermission('staff.remove');
+
+            const allRoles = (CargoStore.getRoles ? CargoStore.getRoles() : []);
+            const rolesBadgeCount = document.getElementById('rolesCountBadge');
+            if (rolesBadgeCount) rolesBadgeCount.textContent = allRoles.length;
+
+            // Notice Banner for Custom Permissions
             const noticeContainer = document.getElementById('staffListNotice');
             if (noticeContainer) {
-                if (isStaff) {
-                    noticeContainer.className = 'bg-amber-50 border border-amber-200 text-amber-900 rounded-2xl p-4 text-xs font-medium flex items-center gap-3 shadow-sm mb-4';
+                const userPerms = CargoStore.getAdminPermissions ? CargoStore.getAdminPermissions() : [];
+                if (userPerms.length < 14 && !isItdAdmin) {
+                    noticeContainer.className = 'bg-blue-50 border border-blue-200 text-blue-900 rounded-2xl p-4 text-xs font-medium flex items-center gap-3 shadow-xs mb-4';
                     noticeContainer.innerHTML = `
-                        <div class="w-8 h-8 rounded-xl bg-amber-500/20 text-amber-600 flex items-center justify-center text-base flex-shrink-0">
+                        <div class="w-8 h-8 rounded-xl bg-blue-600/10 text-blue-600 flex items-center justify-center text-base flex-shrink-0">
                             <i class="fa-solid fa-user-shield"></i>
                         </div>
-                        <div>
-                            <p class="font-bold text-slate-900">Giới hạn phân quyền Nhân viên (STAFF)</p>
-                            <p class="text-slate-600 mt-0.5">Tài khoản Nhân viên bị giới hạn: Không được <strong>Khóa / Mở khóa tài khoản</strong>, <strong>Phân quyền vai trò / Phân hạng đại lý</strong>, hoặc <strong>Cấp tài khoản nhân viên mới</strong>. Thao tác này dành cho <strong>Quản trị viên (ADMIN)</strong>.</p>
+                        <div class="flex-1">
+                            <p class="font-bold text-slate-900">Tài khoản: <span class="text-blue-700 uppercase font-mono">${currentAdmin.fullName || currentAdmin.username}</span> (${(currentAdmin.roles || [currentAdmin.role || 'STAFF']).join(', ')})</p>
+                            <p class="text-slate-600 mt-0.5">Bạn đang được phân quyền <strong>${userPerms.length}/14 quyền hệ thống</strong>. Các quyền hạn được cấu hình trực tiếp bởi Quản trị viên trong mục "Vai trò & Phân quyền".</p>
                         </div>
                     `;
                 } else {
@@ -1032,13 +1388,13 @@
                 }
             }
 
-            // Disable or hide Add Staff button for Staff
+            // Disable or hide Add Staff button
             const addStaffBtn = document.getElementById('addStaffBtn');
             if (addStaffBtn) {
-                if (!isItdAdmin) {
+                if (!canCreateStaff) {
                     addStaffBtn.disabled = true;
                     addStaffBtn.className = 'bg-slate-200 text-slate-400 text-xs font-bold px-3 py-1.5 rounded-xl cursor-not-allowed flex items-center gap-1.5';
-                    addStaffBtn.title = 'Chỉ Quản trị viên ITD ADMIN (Full quyền) mới có thẩm quyền cấp tài khoản nhân sự mới';
+                    addStaffBtn.title = 'Bạn không có quyền cấp tài khoản nhân sự mới (yêu cầu quyền staff.create)';
                     addStaffBtn.innerHTML = '<i class="fa-solid fa-lock"></i> Giới hạn tạo nhân sự';
                 } else {
                     addStaffBtn.disabled = false;
@@ -1240,11 +1596,11 @@
 
                             ${isPending ? `
                                 <div class="flex flex-col sm:flex-row items-stretch sm:items-center justify-end gap-2 sm:gap-2.5 pt-2 border-t">
-                                    ${isStaff ? `
-                                        <button disabled class="bg-slate-100 text-slate-400 font-bold px-4 py-2.5 rounded-xl text-xs opacity-60 cursor-not-allowed text-center" title="Chỉ ADMIN mới có quyền từ chối hồ sơ đại lý">
+                                    ${!canApproveRejectRegs ? `
+                                        <button disabled class="bg-slate-100 text-slate-400 font-bold px-4 py-2.5 rounded-xl text-xs opacity-60 cursor-not-allowed text-center" title="Tài khoản không có quyền từ chối hồ sơ (yêu cầu quyền registrations.approve_reject)">
                                             Từ chối hồ sơ
                                         </button>
-                                        <button disabled class="bg-slate-100 text-slate-400 font-bold px-5 py-2.5 rounded-xl text-xs opacity-60 cursor-not-allowed flex items-center justify-center gap-1.5 text-center" title="Chỉ ADMIN mới có quyền phê duyệt hồ sơ đại lý">
+                                        <button disabled class="bg-slate-100 text-slate-400 font-bold px-5 py-2.5 rounded-xl text-xs opacity-60 cursor-not-allowed flex items-center justify-center gap-1.5 text-center" title="Tài khoản không có quyền phê duyệt hồ sơ (yêu cầu quyền registrations.approve_reject)">
                                             <i class="fa-solid fa-check"></i> Phê duyệt & Kích hoạt đại lý
                                         </button>
                                     ` : `
@@ -1320,7 +1676,17 @@
             renderAgentsPaginationControls(filteredAgents.length);
 
             const tbody = document.getElementById('agentsTableBody');
-            if (filteredAgents.length === 0) {
+            if (!canViewAgents) {
+                tbody.innerHTML = `
+                    <tr>
+                        <td colspan="7" class="py-10 text-center text-slate-400 font-medium space-y-2">
+                            <i class="fa-solid fa-lock text-3xl mb-1 text-slate-300 block"></i>
+                            <p class="text-sm font-bold text-slate-700">Truy cập bị giới hạn</p>
+                            <p class="text-xs text-slate-500">Tài khoản của bạn không có quyền xem danh sách đại lý (yêu cầu quyền agents.view).</p>
+                        </td>
+                    </tr>
+                `;
+            } else if (filteredAgents.length === 0) {
                 tbody.innerHTML = `
                     <tr>
                         <td colspan="7" class="py-8 text-center text-slate-400 font-medium">
@@ -1363,12 +1729,12 @@
                                 <a href="09-AgentDetail.html?code=${ag.code}" class="inline-flex items-center gap-1 bg-blue-50 hover:bg-blue-600 text-blue-700 hover:text-white font-semibold px-2.5 py-1 rounded-lg transition shadow-2xs" title="Xem hồ sơ & Lịch sử đặt phiên">
                                     <i class="fa-solid fa-id-card text-[10px]"></i> Hồ sơ
                                 </a>
-                                ${isStaff ? `
-                                    <button disabled class="inline-flex items-center gap-1 bg-slate-100 text-slate-400 font-semibold px-2 py-1 rounded-lg opacity-60 cursor-not-allowed" title="Chỉ ADMIN mới có quyền khóa/kích hoạt tài khoản đại lý">
+                                ${!canLockAgents ? `
+                                    <button disabled class="inline-flex items-center gap-1 bg-slate-100 text-slate-400 font-semibold px-2 py-1 rounded-lg opacity-60 cursor-not-allowed" title="Bạn không có quyền khóa/kích hoạt đại lý (yêu cầu quyền agents.lock)">
                                         <i class="fa-solid ${isLocked ? 'fa-lock-open' : 'fa-lock'} text-[10px]"></i> ${isLocked ? 'Kích hoạt' : 'Khóa'}
                                     </button>
                                 ` : `
-                                    <button onclick="handleToggleLock('${ag.code}', 'agent')" class="inline-flex items-center gap-1 ${isLocked ? 'bg-emerald-50 hover:bg-emerald-100 text-emerald-700' : 'bg-red-50 hover:bg-red-100 text-red-600'} font-semibold px-2 py-1 rounded-lg transition" title="${isLocked ? 'Mở khóa / Kích hoạt tài khoản' : 'Khóa tài khoản đại lý'}">
+                                    <button onclick="handleToggleLock('${ag.code}', 'agent')" class="inline-flex items-center gap-1 ${isLocked ? 'bg-emerald-50 hover:bg-emerald-100 text-emerald-700' : 'bg-red-50 hover:bg-red-100 text-red-600'} font-semibold px-2 py-1 rounded-lg transition cursor-pointer" title="${isLocked ? 'Mở khóa / Kích hoạt tài khoản' : 'Khóa tài khoản đại lý'}">
                                         <i class="fa-solid ${isLocked ? 'fa-lock-open' : 'fa-lock'} text-[10px]"></i> ${isLocked ? 'Kích hoạt' : 'Khóa'}
                                     </button>
                                 `}
@@ -1383,59 +1749,80 @@
             document.getElementById('staffCountBadge').textContent = staffList.length;
 
             const staffTbody = document.getElementById('staffTableBody');
-            staffTbody.innerHTML = staffList.map(st => {
-                const isLocked = st.status === 'Đã khóa' || st.status === 'LOCKED';
-                const roles = (Array.isArray(st.roles) && st.roles.length > 0) ? st.roles : [st.role || 'STAFF'];
-                
-                const roleBadgesHtml = roles.map(r => {
-                    const rUpper = String(r || '').toUpperCase();
-                    if (rUpper === 'ITD_ADMIN' || rUpper === 'ADMIN') {
-                        return '<span class="bg-blue-100 text-blue-800 border border-blue-200 font-bold px-2 py-0.5 rounded text-[10px] inline-flex items-center gap-1 shadow-2xs"><i class="fa-solid fa-shield-halved text-[9px]"></i> ITD ADMIN (Full)</span>';
-                    } else if (rUpper === 'COD_ADMIN' || rUpper === 'COD ADMIN') {
-                        return '<span class="bg-amber-100 text-amber-800 border border-amber-200 font-bold px-2 py-0.5 rounded text-[10px] inline-flex items-center gap-1 shadow-2xs"><i class="fa-solid fa-plane-circle-check text-[9px]"></i> COD ADMIN (Khai thác)</span>';
-                    } else if (rUpper === 'AUCTION_SETTLEMENT' || rUpper === 'SETTLEMENT_ADMIN') {
-                        return '<span class="bg-purple-100 text-purple-800 border border-purple-200 font-bold px-2 py-0.5 rounded text-[10px] inline-flex items-center gap-1 shadow-2xs"><i class="fa-solid fa-gavel text-[9px]"></i> CHỐT THẦU & REJECT</span>';
-                    } else {
-                        return '<span class="bg-emerald-100 text-emerald-800 border border-emerald-200 font-bold px-2 py-0.5 rounded text-[10px] inline-flex items-center gap-1 shadow-2xs"><i class="fa-solid fa-file-invoice text-[9px]"></i> STAFF (Report)</span>';
-                    }
-                }).join(' ');
-
-                return `
-                    <tr class="hover:bg-slate-50 transition">
-                        <td class="py-3.5 px-4 font-mono font-bold text-slate-900">${st.username}</td>
-                        <td class="py-3.5 px-4 font-bold text-slate-800">${st.fullName || st.username}</td>
-                        <td class="py-3.5 px-4 text-slate-600 font-medium">${st.department || 'Air Cargo Flight Operations'}</td>
-                        <td class="py-3.5 px-4 text-slate-500 font-mono text-[11px]">${st.email || '-'}</td>
-                        <td class="py-3.5 px-4">
-                            <div class="flex flex-wrap gap-1">
-                                ${roleBadgesHtml}
-                            </div>
-                        </td>
-                        <td class="py-3.5 px-4">
-                            ${isLocked ?
-                        '<span class="bg-red-100 text-red-700 font-bold px-2.5 py-1 rounded-full text-[10px] inline-flex items-center gap-1"><i class="fa-solid fa-ban"></i> ĐÃ KHÓA</span>' :
-                        '<span class="bg-emerald-100 text-emerald-700 font-bold px-2.5 py-1 rounded-full text-[10px] inline-flex items-center gap-1"><i class="fa-solid fa-circle-check"></i> HOẠT ĐỘNG</span>'}
-                        </td>
-                        <td class="py-3.5 px-4 text-right space-x-1.5 whitespace-nowrap">
-                            ${st.username !== 'admin' ? (!isItdAdmin ? `
-                                <button disabled class="inline-flex items-center gap-1 bg-slate-100 text-slate-400 font-semibold px-2 py-1 rounded-lg opacity-60 cursor-not-allowed" title="Chỉ ITD ADMIN mới có quyền phân quyền vai trò">
-                                    <i class="fa-solid fa-id-badge text-[10px]"></i> Đổi quyền
-                                </button>
-                                <button disabled class="inline-flex items-center gap-1 bg-slate-100 text-slate-400 font-semibold px-2 py-1 rounded-lg opacity-60 cursor-not-allowed" title="Chỉ ITD ADMIN mới có quyền khóa/kích hoạt nhân sự">
-                                    <i class="fa-solid ${isLocked ? 'fa-lock-open' : 'fa-lock'} text-[10px]"></i> ${isLocked ? 'Mở khóa' : 'Khóa'}
-                                </button>
-                            ` : `
-                                <button onclick="handleToggleRole('${st.username}')" class="inline-flex items-center gap-1 bg-blue-50 hover:bg-blue-100 text-blue-700 font-semibold px-2.5 py-1 rounded-lg transition" title="Phân quyền nhiều vai trò cho nhân sự">
-                                    <i class="fa-solid fa-id-badge text-[10px]"></i> Đổi quyền
-                                </button>
-                                <button onclick="handleToggleLock('${st.username}', 'staff')" class="inline-flex items-center gap-1 ${isLocked ? 'bg-emerald-50 hover:bg-emerald-100 text-emerald-700' : 'bg-red-50 hover:bg-red-100 text-red-600'} font-semibold px-2 py-1 rounded-lg transition">
-                                    <i class="fa-solid ${isLocked ? 'fa-lock-open' : 'fa-lock'} text-[10px]"></i> ${isLocked ? 'Mở khóa' : 'Khóa'}
-                                </button>
-                            `) : '<span class="text-slate-400 text-[11px] italic">Quản trị tối cao</span>'}
+            if (!canViewStaff) {
+                staffTbody.innerHTML = `
+                    <tr>
+                        <td colspan="7" class="py-10 text-center text-slate-400 font-medium space-y-2">
+                            <i class="fa-solid fa-lock text-3xl mb-1 text-slate-300 block"></i>
+                            <p class="text-sm font-bold text-slate-700">Truy cập bị giới hạn</p>
+                            <p class="text-xs text-slate-500">Tài khoản của bạn không có quyền xem danh sách nhân sự nội bộ (yêu cầu quyền staff.view).</p>
                         </td>
                     </tr>
                 `;
-            }).join('');
+            } else {
+                staffTbody.innerHTML = staffList.map(st => {
+                    const isLocked = st.status === 'Đã khóa' || st.status === 'LOCKED';
+                    const roles = (Array.isArray(st.roles) && st.roles.length > 0) ? st.roles : [st.role || 'OPERATIONS_VIEWER'];
+
+                    const roleBadgesHtml = roles.map(r => {
+                        const rUpper = String(r || '').toUpperCase();
+                        const matchedRole = allRoles.find(ar => String(ar.code || '').toUpperCase() === rUpper || String(ar.id || '').toUpperCase() === rUpper || String(ar.name || '').toUpperCase() === rUpper);
+                        const roleTitle = matchedRole ? matchedRole.name : r;
+
+                        if (rUpper === 'SUPER_ADMIN' || rUpper === 'ITD_ADMIN' || rUpper === 'ADMIN') {
+                            return `<span class="bg-blue-100 text-blue-800 border border-blue-200 font-bold px-2 py-0.5 rounded text-[10px] inline-flex items-center gap-1 shadow-2xs"><i class="fa-solid fa-shield-halved text-[9px]"></i> ${roleTitle}</span>`;
+                        } else if (rUpper === 'COD_MANAGER' || rUpper === 'COD_ADMIN' || rUpper === 'COD ADMIN') {
+                            return `<span class="bg-amber-100 text-amber-800 border border-amber-200 font-bold px-2 py-0.5 rounded text-[10px] inline-flex items-center gap-1 shadow-2xs"><i class="fa-solid fa-plane-circle-check text-[9px]"></i> ${roleTitle}</span>`;
+                        } else if (rUpper === 'SETTLEMENT_OFFICER' || rUpper === 'AUCTION_SETTLEMENT') {
+                            return `<span class="bg-purple-100 text-purple-800 border border-purple-200 font-bold px-2 py-0.5 rounded text-[10px] inline-flex items-center gap-1 shadow-2xs"><i class="fa-solid fa-gavel text-[9px]"></i> ${roleTitle}</span>`;
+                        } else if (rUpper === 'AGENT_AUDITOR') {
+                            return `<span class="bg-teal-100 text-teal-800 border border-teal-200 font-bold px-2 py-0.5 rounded text-[10px] inline-flex items-center gap-1 shadow-2xs"><i class="fa-solid fa-building-shield text-[9px]"></i> ${roleTitle}</span>`;
+                        } else {
+                            return `<span class="bg-emerald-100 text-emerald-800 border border-emerald-200 font-bold px-2 py-0.5 rounded text-[10px] inline-flex items-center gap-1 shadow-2xs"><i class="fa-solid fa-user-tag text-[9px]"></i> ${roleTitle}</span>`;
+                        }
+                    }).join(' ');
+
+                    return `
+                        <tr class="hover:bg-slate-50 transition">
+                            <td class="py-3.5 px-4 font-mono font-bold text-slate-900">${st.username}</td>
+                            <td class="py-3.5 px-4 font-bold text-slate-800">${st.fullName || st.username}</td>
+                            <td class="py-3.5 px-4 text-slate-600 font-medium">${st.department || 'Air Cargo Flight Operations'}</td>
+                            <td class="py-3.5 px-4 text-slate-500 font-mono text-[11px]">${st.email || '-'}</td>
+                            <td class="py-3.5 px-4">
+                                <div class="flex flex-wrap gap-1">
+                                    ${roleBadgesHtml}
+                                </div>
+                            </td>
+                            <td class="py-3.5 px-4">
+                                ${isLocked ?
+                            '<span class="bg-red-100 text-red-700 font-bold px-2.5 py-1 rounded-full text-[10px] inline-flex items-center gap-1"><i class="fa-solid fa-ban"></i> ĐÃ KHÓA</span>' :
+                            '<span class="bg-emerald-100 text-emerald-700 font-bold px-2.5 py-1 rounded-full text-[10px] inline-flex items-center gap-1"><i class="fa-solid fa-circle-check"></i> HOẠT ĐỘNG</span>'}
+                            </td>
+                            <td class="py-3.5 px-4 text-right space-x-1.5 whitespace-nowrap">
+                                ${st.username !== 'admin' ? `
+                                    ${canEditStaff ? `
+                                        <button onclick="handleToggleRole('${st.username}')" class="inline-flex items-center gap-1 bg-blue-50 hover:bg-blue-100 text-blue-700 font-semibold px-2.5 py-1 rounded-lg transition cursor-pointer" title="Phân quyền vai trò cho nhân sự">
+                                            <i class="fa-solid fa-id-badge text-[10px]"></i> Đổi quyền
+                                        </button>
+                                        <button onclick="handleToggleLock('${st.username}', 'staff')" class="inline-flex items-center gap-1 ${isLocked ? 'bg-emerald-50 hover:bg-emerald-100 text-emerald-700' : 'bg-amber-50 hover:bg-amber-100 text-amber-700'} font-semibold px-2 py-1 rounded-lg transition cursor-pointer" title="${isLocked ? 'Mở khóa' : 'Khóa tài khoản'}">
+                                            <i class="fa-solid ${isLocked ? 'fa-lock-open' : 'fa-lock'} text-[10px]"></i> ${isLocked ? 'Mở khóa' : 'Khóa'}
+                                        </button>
+                                    ` : `
+                                        <button disabled class="inline-flex items-center gap-1 bg-slate-100 text-slate-400 font-semibold px-2 py-1 rounded-lg opacity-60 cursor-not-allowed" title="Yêu cầu quyền staff.edit">
+                                            <i class="fa-solid fa-id-badge text-[10px]"></i> Đổi quyền
+                                        </button>
+                                    `}
+                                    ${canRemoveStaff ? `
+                                        <button onclick="handleDeleteStaff('${st.username}')" class="inline-flex items-center gap-1 bg-red-50 hover:bg-red-100 text-red-600 font-semibold px-2 py-1 rounded-lg transition cursor-pointer" title="Xóa tài khoản nhân sự">
+                                            <i class="fa-solid fa-trash-can text-[10px]"></i> Xóa
+                                        </button>
+                                    ` : ''}
+                                ` : '<span class="text-slate-400 text-[11px] italic">Quản trị tối cao</span>'}
+                            </td>
+                        </tr>
+                    `;
+                }).join('');
+            }
         }
 
         async function handleApprove(regId) {
@@ -1583,76 +1970,299 @@
         }
 
 
+        // ════════════════════════════════════════════════════════════════
+        // QUẢN LÝ VAI TRÒ & PHÂN QUYỀN ĐỘNG (ROLES & PERMISSIONS MANAGEMENT)
+        // ════════════════════════════════════════════════════════════════
+
+        function renderRolesList() {
+            if (typeof CargoStore === 'undefined') return;
+            const roles = CargoStore.getRoles();
+            const data = CargoStore.getData();
+            const staffList = data.adminsList || [];
+            const container = document.getElementById('rolesCardsContainer');
+            const badgeCount = document.getElementById('rolesCountBadge');
+            if (badgeCount) badgeCount.textContent = roles.length;
+            if (!container) return;
+
+            const canEditRole = CargoStore.hasPermission('staff.edit');
+            const canRemoveRole = CargoStore.hasPermission('staff.remove');
+            const permDefs = CargoStore.getPermissionDefinitions ? CargoStore.getPermissionDefinitions() : [];
+
+            const permMap = {};
+            permDefs.forEach(cat => {
+                cat.permissions.forEach(p => {
+                    permMap[p.key] = {
+                        ...p,
+                        category: cat.category,
+                        categoryName: cat.categoryName,
+                        color: cat.color,
+                        icon: cat.icon
+                    };
+                });
+            });
+
+            if (roles.length === 0) {
+                container.innerHTML = `
+                    <div class="col-span-1 md:col-span-2 bg-white rounded-2xl border p-12 text-center text-slate-400 font-medium space-y-2">
+                        <i class="fa-solid fa-shield-slash text-4xl text-slate-300"></i>
+                        <p class="text-sm font-semibold text-slate-700">Chưa có vai trò nào trong hệ thống</p>
+                        <p class="text-xs text-slate-500">Bấm "Tạo vai trò mới" để thiết lập vai trò và phân quyền.</p>
+                    </div>
+                `;
+                return;
+            }
+
+            container.innerHTML = roles.map(role => {
+                const assignedStaff = staffList.filter(s => {
+                    const rList = (Array.isArray(s.roles) ? s.roles : [s.role]).map(x => String(x || '').toUpperCase());
+                    return rList.includes(String(role.id).toUpperCase()) || rList.includes(String(role.code).toUpperCase()) || rList.includes(String(role.name).toUpperCase());
+                });
+
+                const perms = role.permissions || [];
+
+                const renderPermBadge = (key) => {
+                    const info = permMap[key];
+                    if (!info) return `<span class="bg-slate-100 text-slate-700 font-mono text-[9px] px-1.5 py-0.5 rounded font-bold">${key}</span>`;
+
+                    let colorCls = 'bg-slate-100 text-slate-700 border-slate-200';
+                    if (info.category === 'registrations') colorCls = 'bg-blue-50 text-blue-700 border-blue-200';
+                    else if (info.category === 'auctions') colorCls = 'bg-purple-50 text-purple-700 border-purple-200';
+                    else if (info.category === 'agents') colorCls = 'bg-emerald-50 text-emerald-700 border-emerald-200';
+                    else if (info.category === 'staff') colorCls = 'bg-amber-50 text-amber-700 border-amber-200';
+
+                    return `<span class="inline-flex items-center gap-1 border ${colorCls} text-[10px] font-semibold px-2 py-0.5 rounded-md" title="${info.description}"><i class="${info.icon} text-[9px]"></i> ${info.name}</span>`;
+                };
+
+                return `
+                    <div class="bg-white rounded-2xl border border-slate-200/90 shadow-xs hover:shadow-md transition p-5 flex flex-col justify-between space-y-4">
+                        <div class="space-y-3">
+                            <div class="flex items-start justify-between gap-2 border-b border-slate-100 pb-3">
+                                <div class="space-y-1">
+                                    <div class="flex items-center gap-2 flex-wrap">
+                                        <h3 class="font-bold text-sm text-slate-900">${role.name}</h3>
+                                        ${role.isSystem ? '<span class="bg-blue-100 text-blue-800 text-[9px] font-bold px-2 py-0.5 rounded-full border border-blue-200"><i class="fa-solid fa-lock text-[8px]"></i> VAI TRÒ HỆ THỐNG</span>' : '<span class="bg-slate-100 text-slate-600 text-[9px] font-bold px-2 py-0.5 rounded-full">TỰ TẠO</span>'}
+                                    </div>
+                                    <p class="text-xs text-slate-500">${role.description || 'Chưa có mô tả'}</p>
+                                </div>
+                                <div class="text-right shrink-0">
+                                    <span class="inline-flex items-center gap-1 bg-slate-100 text-slate-700 font-bold px-2.5 py-1 rounded-xl text-[11px]" title="${assignedStaff.map(s => s.fullName || s.username).join(', ') || 'Chưa gán cho ai'}">
+                                        <i class="fa-solid fa-users text-slate-400 text-xs"></i> ${assignedStaff.length} nhân sự
+                                    </span>
+                                </div>
+                            </div>
+
+                            <div class="space-y-2.5 text-xs">
+                                <div>
+                                    <span class="text-[10px] font-bold uppercase tracking-wider text-slate-400 block mb-1">
+                                        Quyền hạn được cấp (${perms.length}/14 quyền):
+                                    </span>
+                                    <div class="flex flex-wrap gap-1.5">
+                                        ${perms.length > 0 ? perms.map(renderPermBadge).join('') : '<span class="text-slate-400 text-[11px] italic">Không có quyền hạn nào được gán</span>'}
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="flex items-center justify-between border-t border-slate-100 pt-3 text-xs">
+                            <span class="font-mono text-[10px] text-slate-400">Mã: ${role.code || role.id}</span>
+                            <div class="flex items-center gap-2">
+                                ${!role.isSystem && canEditRole ? `
+                                    <button onclick="openRoleModal('${role.id}')" class="inline-flex items-center gap-1 text-blue-600 hover:text-white hover:bg-blue-600 border border-blue-200 hover:border-blue-600 font-bold px-2.5 py-1 rounded-lg transition text-xs shadow-2xs cursor-pointer">
+                                        <i class="fa-solid fa-pen-to-square text-[10px]"></i> Sửa quyền
+                                    </button>
+                                ` : ''}
+                                ${!role.isSystem && canRemoveRole ? `
+                                    <button onclick="handleDeleteRole('${role.id}', '${role.name}')" class="inline-flex items-center gap-1 text-red-600 hover:text-white hover:bg-red-600 border border-red-200 hover:border-red-600 font-bold px-2.5 py-1 rounded-lg transition text-xs shadow-2xs cursor-pointer">
+                                        <i class="fa-solid fa-trash-can text-[10px]"></i> Xóa
+                                    </button>
+                                ` : ''}
+                                ${role.isSystem ? '<span class="text-[11px] text-slate-400 italic">Bảo vệ hệ thống</span>' : ''}
+                            </div>
+                        </div>
+                    </div>
+                `;
+            }).join('');
+        }
+
+        function openRoleModal(roleId) {
+            if (!CargoStore.hasPermission('staff.edit')) {
+                alert('Bạn không có thẩm quyền tạo hoặc chỉnh sửa vai trò (yêu cầu quyền staff.edit).');
+                return;
+            }
+
+            const modal = document.getElementById('roleModal');
+            const titleEl = document.getElementById('roleModalTitle');
+            const idInput = document.getElementById('roleEditId');
+            const nameInput = document.getElementById('roleNameInput');
+            const descInput = document.getElementById('roleDescInput');
+
+            // Reset checkboxes
+            document.querySelectorAll('input[name="rolePerm"]').forEach(cb => cb.checked = false);
+
+            if (roleId) {
+                const role = CargoStore.getRoleById(roleId);
+                if (!role) {
+                    alert('Không tìm thấy vai trò cần chỉnh sửa.');
+                    return;
+                }
+                titleEl.textContent = `Chỉnh sửa vai trò: ${role.name}`;
+                idInput.value = role.id;
+                nameInput.value = role.name;
+                descInput.value = role.description || '';
+
+                const perms = role.permissions || [];
+                document.querySelectorAll('input[name="rolePerm"]').forEach(cb => {
+                    cb.checked = perms.includes(cb.value);
+                });
+            } else {
+                titleEl.textContent = 'Tạo vai trò mới';
+                idInput.value = '';
+                nameInput.value = '';
+                descInput.value = '';
+            }
+
+            modal.classList.remove('hidden');
+        }
+
+        function closeRoleModal() {
+            document.getElementById('roleModal').classList.add('hidden');
+        }
+
+        function toggleAllRolePerms(check) {
+            document.querySelectorAll('input[name="rolePerm"]').forEach(cb => cb.checked = Boolean(check));
+        }
+
+        function toggleCategoryPerms(category) {
+            const prefix = category + '.';
+            const cbs = Array.from(document.querySelectorAll(`input[name="rolePerm"]`)).filter(cb => cb.value.startsWith(prefix));
+            const allChecked = cbs.every(cb => cb.checked);
+            cbs.forEach(cb => cb.checked = !allChecked);
+        }
+
+        function handleSaveRole(e) {
+            e.preventDefault();
+            const editId = document.getElementById('roleEditId').value;
+            const name = document.getElementById('roleNameInput').value.trim();
+            const desc = document.getElementById('roleDescInput').value.trim();
+
+            const checkedPerms = Array.from(document.querySelectorAll('input[name="rolePerm"]:checked')).map(cb => cb.value);
+
+            if (checkedPerms.length === 0) {
+                alert('Vui lòng tích chọn ít nhất 1 quyền hạn cho vai trò này!');
+                return;
+            }
+
+            let res;
+            if (editId) {
+                res = CargoStore.updateRole(editId, {
+                    name: name,
+                    description: desc,
+                    permissions: checkedPerms
+                });
+            } else {
+                res = CargoStore.createRole({
+                    name: name,
+                    description: desc,
+                    permissions: checkedPerms
+                });
+            }
+
+            if (res.success) {
+                if (window.Swal) Swal.fire('Thành công', res.message, 'success');
+                else alert(res.message);
+                closeRoleModal();
+                renderRolesList();
+                renderAgentsList();
+            } else {
+                if (window.Swal) Swal.fire('Lỗi', res.message, 'error');
+                else alert(res.message);
+            }
+        }
+
+        async function handleDeleteRole(roleId, roleName) {
+            const ok = window.showConfirm ? await window.showConfirm(`Bạn có chắc chắn muốn xóa vai trò "${roleName}" khỏi hệ thống không?`) : confirm(`Bạn có chắc chắn muốn xóa vai trò "${roleName}" khỏi hệ thống không?`);
+            if (!ok) return;
+
+            const res = CargoStore.deleteRole(roleId);
+            if (res.success) {
+                if (window.Swal) Swal.fire('Thành công', res.message, 'success');
+                else alert(res.message);
+                renderRolesList();
+                renderAgentsList();
+            } else {
+                if (window.Swal) Swal.fire('Không thể xóa', res.message, 'error');
+                else alert(res.message);
+            }
+        }
+
+        async function handleDeleteStaff(username) {
+            const ok = window.showConfirm ? await window.showConfirm(`Bạn có chắc chắn muốn xóa vĩnh viễn tài khoản nhân sự "@${username}" không?`) : confirm(`Bạn có chắc chắn muốn xóa vĩnh viễn tài khoản nhân sự "@${username}" không?`);
+            if (!ok) return;
+
+            const res = CargoStore.deleteStaffAccount(username);
+            if (res.success) {
+                if (window.Swal) Swal.fire('Thành công', res.message, 'success');
+                else alert(res.message);
+                renderAgentsList();
+                renderRolesList();
+            } else {
+                if (window.Swal) Swal.fire('Không thể xóa', res.message, 'error');
+                else alert(res.message);
+            }
+        }
+
         async function handleToggleRole(username) {
-            const admin = CargoStore.getCurrentAdmin();
-            const currentAdminRole = (admin && admin.role ? admin.role : '').toUpperCase();
-            if (currentAdminRole !== 'ITD_ADMIN' && currentAdminRole !== 'ADMIN') {
-                alert('Chỉ tài khoản ITD ADMIN (Full quyền) mới có thẩm quyền phân quyền vai trò cho nhân sự!');
+            if (!CargoStore.hasPermission('staff.edit')) {
+                alert('Bạn không có thẩm quyền phân quyền vai trò cho nhân sự (yêu cầu quyền staff.edit)!');
                 return;
             }
 
             const data = CargoStore.getData();
             const targetStaff = (data.adminsList || []).find(a => (a.username || '').toLowerCase() === (username || '').toLowerCase());
-            const currentRoles = (targetStaff && Array.isArray(targetStaff.roles) && targetStaff.roles.length > 0) 
-                ? targetStaff.roles.map(r => String(r).toUpperCase()) 
-                : [((targetStaff && targetStaff.role) || 'STAFF').toUpperCase()];
+            if (!targetStaff) {
+                alert('Không tìm thấy tài khoản nhân viên.');
+                return;
+            }
 
-            const isItdChecked = currentRoles.includes('ITD_ADMIN') || currentRoles.includes('ADMIN');
-            const isCodChecked = currentRoles.includes('COD_ADMIN') || currentRoles.includes('COD ADMIN');
-            const isSettleChecked = currentRoles.includes('AUCTION_SETTLEMENT') || currentRoles.includes('SETTLEMENT_ADMIN');
-            const isStaffChecked = currentRoles.includes('STAFF');
+            const currentRoles = (Array.isArray(targetStaff.roles) && targetStaff.roles.length > 0)
+                ? targetStaff.roles.map(r => String(r).toUpperCase())
+                : [String(targetStaff.role || 'OPERATIONS_VIEWER').toUpperCase()];
+
+            const allRoles = CargoStore.getRoles();
+
+            const rolesHtml = allRoles.map(role => {
+                const codeUpper = String(role.code || role.id).toUpperCase();
+                const isChecked = currentRoles.includes(codeUpper) || currentRoles.includes(String(role.id).toUpperCase()) || currentRoles.includes(String(role.name).toUpperCase());
+                const permCount = (role.permissions || []).length;
+
+                return `
+                    <label class="flex items-start gap-3 p-3 rounded-xl border border-slate-200 hover:bg-blue-50/50 cursor-pointer transition">
+                        <input type="checkbox" name="swalRoleChoice" value="${role.code || role.id}" ${isChecked ? 'checked' : ''} class="w-4 h-4 mt-0.5 text-blue-600 rounded">
+                        <div class="flex-1">
+                            <div class="font-bold text-slate-900 flex items-center justify-between">
+                                <span class="flex items-center gap-1.5"><i class="fa-solid fa-shield-halved text-blue-600 text-xs"></i> ${role.name}</span>
+                                <span class="text-[10px] text-slate-400 font-mono">${permCount} quyền</span>
+                            </div>
+                            <div class="text-[11px] text-slate-500 mt-0.5">${role.description || ''}</div>
+                        </div>
+                    </label>
+                `;
+            }).join('');
 
             if (window.Swal) {
                 const { value: selectedRoles } = await Swal.fire({
                     title: 'Phân quyền vai trò tài khoản',
                     html: `
-                        <div class="text-left text-xs space-y-2 pt-2">
-                            <p class="text-slate-600 mb-2">Chọn vai trò cho tài khoản <strong>@${username}</strong> (1 người dùng có thể có nhiều vai trò đồng thời):</p>
-                            
-                            <label class="flex items-start gap-2.5 p-3 rounded-xl border border-slate-200 hover:bg-blue-50/50 cursor-pointer transition">
-                                <input type="checkbox" name="swalRoleChoice" value="ITD_ADMIN" ${isItdChecked ? 'checked' : ''} class="w-4 h-4 mt-0.5 text-blue-600 rounded">
-                                <div>
-                                    <div class="font-bold text-slate-900 flex items-center gap-1.5">
-                                        <i class="fa-solid fa-shield-halved text-blue-600 text-xs"></i> ITD ADMIN
-                                    </div>
-                                    <div class="text-[11px] text-slate-500 mt-0.5">Toàn quyền hệ thống (Full Quyền)</div>
-                                </div>
-                            </label>
-
-                            <label class="flex items-start gap-2.5 p-3 rounded-xl border border-slate-200 hover:bg-amber-50/50 cursor-pointer transition">
-                                <input type="checkbox" name="swalRoleChoice" value="COD_ADMIN" ${isCodChecked ? 'checked' : ''} class="w-4 h-4 mt-0.5 text-amber-600 rounded">
-                                <div>
-                                    <div class="font-bold text-slate-900 flex items-center gap-1.5">
-                                        <i class="fa-solid fa-plane-circle-check text-amber-600 text-xs"></i> COD ADMIN
-                                    </div>
-                                    <div class="text-[11px] text-slate-500 mt-0.5">Duyệt đại lý / Tạo chuyến bay ..</div>
-                                </div>
-                            </label>
-
-                            <label class="flex items-start gap-2.5 p-3 rounded-xl border border-purple-200 bg-purple-50/30 hover:bg-purple-50/70 cursor-pointer transition">
-                                <input type="checkbox" name="swalRoleChoice" value="AUCTION_SETTLEMENT" ${isSettleChecked ? 'checked' : ''} class="w-4 h-4 mt-0.5 text-purple-600 rounded">
-                                <div>
-                                    <div class="font-bold text-purple-900 flex items-center gap-1.5">
-                                        <i class="fa-solid fa-gavel text-purple-600 text-xs"></i> AUCTION SETTLEMENT (CHỐT THẦU & REJECT)
-                                    </div>
-                                    <div class="text-[11px] text-purple-700 mt-0.5">Chốt thầu, auto-confirm, Reject & điều chuyển đại lý, cấu hình thời gian xem xét</div>
-                                </div>
-                            </label>
-
-                            <label class="flex items-start gap-2.5 p-3 rounded-xl border border-slate-200 hover:bg-emerald-50/50 cursor-pointer transition">
-                                <input type="checkbox" name="swalRoleChoice" value="STAFF" ${isStaffChecked ? 'checked' : ''} class="w-4 h-4 mt-0.5 text-emerald-600 rounded">
-                                <div>
-                                    <div class="font-bold text-slate-900 flex items-center gap-1.5">
-                                        <i class="fa-solid fa-file-invoice text-emerald-600 text-xs"></i> STAFF
-                                    </div>
-                                    <div class="text-[11px] text-slate-500 mt-0.5">Xuất xem các report</div>
-                                </div>
-                            </label>
+                        <div class="text-left text-xs space-y-2 pt-2 max-h-[60vh] overflow-y-auto">
+                            <p class="text-slate-600 mb-2">Chọn vai trò cho tài khoản <strong>@${username}</strong> (${targetStaff.fullName || username}):</p>
+                            <div class="space-y-2">
+                                ${rolesHtml}
+                            </div>
                         </div>
                     `,
                     showCancelButton: true,
                     confirmButtonText: 'Lưu phân quyền',
-                    confirmButtonColor: '#4f46e5',
+                    confirmButtonColor: '#2563eb',
                     cancelButtonText: 'Hủy bỏ',
                     preConfirm: () => {
                         const checked = Array.from(document.querySelectorAll('input[name="swalRoleChoice"]:checked')).map(cb => cb.value);
@@ -1669,18 +2279,20 @@
                     if (res.success) {
                         Swal.fire('Thành công', res.message, 'success');
                         renderAgentsList();
+                        renderRolesList();
                     } else {
                         Swal.fire('Thất bại', res.message, 'error');
                     }
                 }
             } else {
-                const choice = prompt(`Nhập các vai trò cho tài khoản "${username}", cách nhau bởi dấu phẩy (ITD_ADMIN, COD_ADMIN, AUCTION_SETTLEMENT, STAFF):`, currentRoles.join(', '));
+                const choice = prompt(`Nhập các mã vai trò cho tài khoản "${username}", cách nhau bởi dấu phẩy:\n(${allRoles.map(r => r.code).join(', ')}):`, currentRoles.join(', '));
                 if (choice) {
-                    const rolesArray = choice.split(',').map(s => s.trim().toUpperCase()).filter(Boolean);
+                    const rolesArray = choice.split(',').map(s => s.trim()).filter(Boolean);
                     if (rolesArray.length > 0) {
                         const res = CargoStore.updateUserRole(username, rolesArray, 'staff');
                         alert(res.message);
                         renderAgentsList();
+                        renderRolesList();
                     }
                 }
             }
@@ -1717,12 +2329,20 @@
         }
 
         function openAddStaffModal() {
-            const admin = CargoStore.getCurrentAdmin();
-            const role = (admin && admin.role ? admin.role : '').toUpperCase();
-            if (role !== 'ITD_ADMIN' && role !== 'ADMIN') {
-                alert('Chỉ tài khoản ITD ADMIN (Full quyền) mới có quyền cấp mới và phân quyền tài khoản nhân sự!');
+            if (!CargoStore.hasPermission('staff.create')) {
+                alert('Bạn không có quyền cấp mới tài khoản nhân sự (yêu cầu quyền staff.create)!');
                 return;
             }
+
+            // Populate dynamic roles in newStaffRole select
+            const roleSelect = document.getElementById('newStaffRole');
+            if (roleSelect) {
+                const roles = CargoStore.getRoles();
+                roleSelect.innerHTML = roles.map(r => `
+                    <option value="${r.code || r.id}">${r.name} (${(r.permissions || []).length} quyền)</option>
+                `).join('');
+            }
+
             document.getElementById('addStaffModal').classList.remove('hidden');
         }
 
@@ -1741,11 +2361,14 @@
             });
 
             if (res.success) {
-                alert(res.message);
+                if (window.Swal) Swal.fire('Thành công', res.message, 'success');
+                else alert(res.message);
                 closeAddStaffModal();
                 renderAgentsList();
+                renderRolesList();
             } else {
-                alert(res.message);
+                if (window.Swal) Swal.fire('Thất bại', res.message, 'error');
+                else alert(res.message);
             }
         }
 

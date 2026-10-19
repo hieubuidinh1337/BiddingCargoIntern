@@ -421,6 +421,9 @@
                     <i class="fa-solid fa-tower-broadcast text-blue-600"></i>
                     Giám sát phiên đấu giá: <span id="adminFlightTitle" class="text-blue-600">VU130</span>
                     <span id="detStatusBadge" class="text-xs px-3 py-1 rounded-full font-bold border">Đang tải...</span>
+                    <span id="detCountdownBadge" class="hidden text-xs px-3 py-1 rounded-full font-mono font-bold bg-amber-50 text-amber-700 border border-amber-300 inline-flex items-center gap-1.5 shadow-2xs">
+                        <i class="fa-solid fa-stopwatch text-amber-600 animate-pulse"></i> Còn lại: <span id="detCountdownText">--:--:--</span>
+                    </span>
                 </h1>
                 <p class="text-xs text-slate-500 mt-0.5" id="adminSubTitle">Mã phiên: FL-VU130-260815 · Tuyến: SGN - HAN
                 </p>
@@ -430,8 +433,8 @@
             </div>
         </div>
 
-        <!-- 3 KPI Specs for Auction -->
-        <div class="grid grid-cols-1 sm:grid-cols-3 gap-4">
+        <!-- 4 KPI Specs for Auction -->
+        <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
             <div class="bg-white rounded-2xl p-4 border shadow-sm">
                 <p class="text-xs text-slate-500 flex items-center justify-between">
                     <span>Mức giá cao nhất / Thắng thầu</span>
@@ -452,6 +455,16 @@
                     <i class="fa-solid fa-tag text-slate-400"></i>
                 </p>
                 <p class="text-xl font-bold text-slate-700 mt-1" id="detStartingPrice">18.000 đ</p>
+            </div>
+            <div class="bg-white rounded-2xl p-4 border shadow-sm" id="detCountdownCard">
+                <p class="text-xs text-slate-500 flex items-center justify-between">
+                    <span>Thời gian đếm ngược</span>
+                    <i class="fa-solid fa-hourglass-half text-amber-500"></i>
+                </p>
+                <div class="mt-1 flex items-baseline gap-1.5">
+                    <p class="text-xl font-bold font-mono text-amber-600 tracking-tight" id="detCountdownCardTime">--:--:--</p>
+                    <span class="text-[11px] font-semibold text-slate-500" id="detCountdownCardLabel">(Đang đếm ngược)</span>
+                </div>
             </div>
         </div>
 
@@ -789,15 +802,17 @@
         window.handleDetailCloseAuction = async function () {
             if (!currentAuction) return;
             const currentAdmin = CargoStore.getCurrentAdmin ? CargoStore.getCurrentAdmin() : {};
-            if (!CargoStore.hasSettlementRole || !CargoStore.hasSettlementRole(currentAdmin)) {
+            const canClose = (CargoStore.hasPermission && CargoStore.hasPermission('auctions.close', currentAdmin)) ||
+                             (CargoStore.hasSettlementRole && CargoStore.hasSettlementRole(currentAdmin));
+            if (!canClose) {
                 if (window.Swal) {
                     Swal.fire({
                         icon: 'error',
                         title: 'Từ chối quyền truy cập',
-                        text: 'Chỉ tài khoản có vai trò AUCTION SETTLEMENT (hoặc ITD ADMIN) mới có quyền Chốt phiên và Auto-confirm trúng thầu!'
+                        text: 'Tài khoản của bạn không có quyền Chốt phiên đấu giá (auctions.close)!'
                     });
                 } else {
-                    alert('Quyền bị từ chối: Thao tác Chốt phiên thuộc thẩm quyền của AUCTION SETTLEMENT hoặc ITD Admin!');
+                    alert('Quyền bị từ chối: Thao tác Chốt phiên cần quyền auctions.close!');
                 }
                 return;
             }
@@ -874,7 +889,8 @@
             const isOpen = auction.status === 'OPEN';
             const isLocked = Boolean(auction.isFinalLocked);
             const currentAdmin = CargoStore.getCurrentAdmin ? CargoStore.getCurrentAdmin() : {};
-            const hasSettlement = Boolean(CargoStore.hasSettlementRole && CargoStore.hasSettlementRole(currentAdmin));
+            const hasSettlement = Boolean((CargoStore.hasPermission && CargoStore.hasPermission('auctions.settle_select_winner', currentAdmin)) ||
+                                          (CargoStore.hasSettlementRole && CargoStore.hasSettlementRole(currentAdmin)));
 
             // Kiểm tra số lượng đại lý thực tế tham gia: nếu chỉ có 1 đại lý thì auto confirm vì chỉ có 1 đại lý
             const uniqueAgents = Array.from(new Set(list.map(b => (b.agentCode || '').toUpperCase()).filter(Boolean)));
@@ -1200,9 +1216,11 @@
         // Chốt thầu chính thức ngay (kết thúc sớm thời gian điều chỉnh)
         window.handleLockAuctionReview = async function (auctionId) {
             const admin = CargoStore.getCurrentAdmin ? CargoStore.getCurrentAdmin() : {};
-            if (!CargoStore.hasSettlementRole || !CargoStore.hasSettlementRole(admin)) {
-                if (window.Swal) Swal.fire('Từ chối quyền', 'Tài khoản của bạn không có vai trò AUCTION SETTLEMENT (hoặc ITD ADMIN) để chốt thầu phiên!', 'warning');
-                else alert('Tài khoản của bạn không có vai trò AUCTION SETTLEMENT (hoặc ITD ADMIN) để chốt thầu phiên!');
+            const canSettle = (CargoStore.hasPermission && CargoStore.hasPermission('auctions.settle_select_winner', admin)) ||
+                              (CargoStore.hasSettlementRole && CargoStore.hasSettlementRole(admin));
+            if (!canSettle) {
+                if (window.Swal) Swal.fire('Từ chối quyền', 'Tài khoản của bạn không có quyền Chốt / Chọn đại lý thắng thầu (auctions.settle_select_winner)!', 'warning');
+                else alert('Tài khoản của bạn không có quyền Chốt / Chọn đại lý thắng thầu (auctions.settle_select_winner)!');
                 return;
             }
             const ok = window.Swal ? (await Swal.fire({
@@ -1229,8 +1247,10 @@
         // Ghi nhật ký Audit Trail đầy đủ, bảo mật
         async function handleRejectToNextAgent(auctionId, targetAgentCode, targetAgentName, priceKg) {
             const admin = CargoStore.getCurrentAdmin ? CargoStore.getCurrentAdmin() : {};
+            const canSettle = (CargoStore.hasPermission && CargoStore.hasPermission('auctions.settle_select_winner', admin)) ||
+                              (CargoStore.hasSettlementRole && CargoStore.hasSettlementRole(admin));
 
-            if (!CargoStore.hasSettlementRole || !CargoStore.hasSettlementRole(admin)) {
+            if (!canSettle) {
                 if (window.Swal) {
                     const currentRolesStr = (Array.isArray(admin.roles) ? admin.roles.join(', ') : admin.role) || 'STAFF';
                     Swal.fire({
@@ -1242,16 +1262,16 @@
                                 <p class="text-slate-600">Vai trò hiện có: <strong class="text-rose-600 font-bold">${currentRolesStr}</strong>.</p>
                                 <div class="p-3 bg-purple-50 border border-purple-200 rounded-xl text-purple-950 leading-relaxed space-y-1">
                                     <div class="font-bold flex items-center gap-1.5 text-purple-900">
-                                        <i class="fa-solid fa-gavel text-purple-600"></i> Thẩm quyền chuyên trách độc lập:
+                                        <i class="fa-solid fa-gavel text-purple-600"></i> Thẩm quyền chuyên trách:
                                     </div>
-                                    <p>Toàn bộ thao tác <strong>Confirm, Reject & điều chuyển thầu dự phòng</strong> đã được phân quyền độc quyền cho vai trò <strong>AUCTION SETTLEMENT (CHỐT THẦU & REJECT)</strong> (hoặc ITD ADMIN).</p>
+                                    <p>Toàn bộ thao tác <strong>Confirm, Reject & điều chuyển thầu dự phòng</strong> đã được phân quyền cho <strong>auctions.settle_select_winner</strong> (hoặc AUCTION SETTLEMENT / SUPER ADMIN).</p>
                                 </div>
-                                <p class="text-[11px] text-slate-500">Vui lòng sử dụng tài khoản có vai trò AUCTION SETTLEMENT (hoặc ITD Admin) để thực hiện.</p>
+                                <p class="text-[11px] text-slate-500">Vui lòng liên hệ Quản trị viên để cấp quyền nếu cần thiết.</p>
                             </div>
                         `
                     });
                 } else {
-                    alert('Quyền bị từ chối: Thao tác Reject đại lý thuộc thẩm quyền độc quyền của Quản trị viên Chốt thầu (AUCTION SETTLEMENT) hoặc ITD Admin!');
+                    alert('Quyền bị từ chối: Cần quyền auctions.settle_select_winner!');
                 }
                 return;
             }
@@ -1456,8 +1476,17 @@
             }
             document.getElementById('detEtd').textContent = auction.etd;
             document.getElementById('detEta').textContent = auction.eta;
-            document.getElementById('detCutOff').textContent = (CargoStore && CargoStore.calculateCutOffTime) ? CargoStore.calculateCutOffTime(auction.etd) : (auction.cutOffTime || 'Trước ETD 3 giờ');
-            document.getElementById('detNotes').textContent = auction.specialNotes;
+            const detCutOffEl = document.getElementById('detCutOff');
+            if (detCutOffEl) {
+                detCutOffEl.textContent = (CargoStore && CargoStore.calculateCutOffTime) ? CargoStore.calculateCutOffTime(auction.etd) : (auction.cutOffTime || 'Trước ETD 3 giờ');
+            }
+            const detNotesEl = document.getElementById('detNotes');
+            if (detNotesEl) {
+                detNotesEl.textContent = auction.specialNotes || 'Không có';
+            }
+
+            // Live Countdown Timer update
+            updateAdminAuctionCountdown(auction);
 
             // Render Leaderboard & Fallback transfer table
             renderLeaderboardTable(auction, isStaff);
@@ -1655,12 +1684,20 @@
             const canEdit = isOpen && !hasBids;
 
             const curAdminForBtn = CargoStore.getCurrentAdmin ? CargoStore.getCurrentAdmin() : {};
-            const hasSettlementBtn = CargoStore.hasSettlementRole ? CargoStore.hasSettlementRole(curAdminForBtn) : false;
+            const canCloseBtn = (CargoStore.hasPermission && CargoStore.hasPermission('auctions.close', curAdminForBtn)) ||
+                                (CargoStore.hasSettlementRole && CargoStore.hasSettlementRole(curAdminForBtn));
+            const canEditBtn = (CargoStore.hasPermission && CargoStore.hasPermission('auctions.edit', curAdminForBtn)) && canEdit;
+            const canRemoveBtn = (CargoStore.hasPermission && CargoStore.hasPermission('auctions.remove', curAdminForBtn)) && (isOpen || auction.status === 'UPCOMING');
 
             btnContainer.innerHTML = `
-                ${(isOpen && !hideCloseBtn && hasSettlementBtn) ? `
+                ${(isOpen && !hideCloseBtn && canCloseBtn) ? `
                     <button onclick="handleDetailCloseAuction()" class="bg-amber-600 hover:bg-amber-700 text-white text-xs font-bold px-3.5 py-2 rounded-xl transition shadow flex items-center gap-1.5 cursor-pointer" title="Chốt đóng phiên và Auto-confirm mức giá cao nhất">
                         <i class="fa-solid fa-gavel"></i> Chốt phiên đấu giá
+                    </button>
+                ` : ''}
+                ${canEditBtn ? `
+                    <button onclick="openDetailEditModal()" class="bg-slate-700 hover:bg-slate-800 text-white text-xs font-bold px-3.5 py-2 rounded-xl transition shadow flex items-center gap-1.5 cursor-pointer" title="Chỉnh sửa thông số chuyến bay">
+                        <i class="fa-solid fa-pen-to-square"></i> Sửa thông số
                     </button>
                 ` : ''}
                 <button onclick="openDetailBroadcastModal()" class="bg-blue-600 hover:bg-blue-700 text-white text-xs font-bold px-3.5 py-2 rounded-xl transition shadow flex items-center gap-1.5 cursor-pointer">
@@ -1810,6 +1847,59 @@
             }
         }
 
+        function openDetailEditModal() {
+            if (window.CargoStore && CargoStore.hasPermission && !CargoStore.hasPermission('auctions.edit')) {
+                alert('Từ chối quyền: Tài khoản không có quyền Sửa thông số phiên (auctions.edit)!');
+                return;
+            }
+            if (!currentAuction) return;
+            const cap = document.getElementById('modalDetCapacity');
+            const start = document.getElementById('modalDetStarting');
+            const air = document.getElementById('modalDetAircraft');
+            const etd = document.getElementById('modalDetEtd');
+            const eta = document.getElementById('modalDetEta');
+            const notes = document.getElementById('modalDetNotes');
+            if (cap) cap.value = currentAuction.capacityKg || 3500;
+            if (start) start.value = currentAuction.startingPriceKg || 0;
+            if (air) air.value = currentAuction.aircraft || '';
+            if (etd) etd.value = currentAuction.etd || '';
+            if (eta) eta.value = currentAuction.eta || '';
+            if (notes) notes.value = currentAuction.specialNotes || '';
+            const modal = document.getElementById('detailEditModal');
+            if (modal) modal.classList.remove('hidden');
+        }
+
+        function closeDetailEditModal() {
+            const modal = document.getElementById('detailEditModal');
+            if (modal) modal.classList.add('hidden');
+        }
+
+        function saveDetailEdit(e) {
+            e.preventDefault();
+            if (window.CargoStore && CargoStore.hasPermission && !CargoStore.hasPermission('auctions.edit')) {
+                alert('Từ chối quyền: Tài khoản không có quyền Sửa thông số phiên (auctions.edit)!');
+                return;
+            }
+            if (!currentAuction) return;
+            const extendMinutes = Number(document.getElementById('modalDetExtendTime')?.value) || 0;
+            const res = CargoStore.updateAuction(currentAuction.id, {
+                capacityKg: document.getElementById('modalDetCapacity')?.value,
+                startingPriceKg: document.getElementById('modalDetStarting')?.value,
+                aircraft: document.getElementById('modalDetAircraft')?.value,
+                etd: document.getElementById('modalDetEtd')?.value,
+                eta: document.getElementById('modalDetEta')?.value,
+                specialNotes: document.getElementById('modalDetNotes')?.value,
+                extendMinutes: extendMinutes
+            });
+            if (res.success) {
+                alert(res.message);
+                closeDetailEditModal();
+                loadAdminDetail();
+            } else {
+                alert(res.message);
+            }
+        }
+
         function openDetailBroadcastModal() {
             if (!currentAuction) return;
             document.getElementById('bcFlightTitle').value = `Thông báo về chuyến bay ${currentAuction.flightNumber} (${currentAuction.route})`;
@@ -1851,6 +1941,56 @@
             }
         }
 
+        function updateAdminAuctionCountdown(auction) {
+            const badgeEl = document.getElementById('detCountdownBadge');
+            const badgeTextEl = document.getElementById('detCountdownText');
+            const cardTimeEl = document.getElementById('detCountdownCardTime');
+            const cardLabelEl = document.getElementById('detCountdownCardLabel');
+
+            if (!auction) return;
+            const isOpen = auction.status === 'OPEN';
+            const timer = (CargoStore && CargoStore.getTimeRemaining) ? CargoStore.getTimeRemaining(auction.endTime) : null;
+
+            if (isOpen && timer && !timer.isEnded && timer.total > 0) {
+                const h = Math.floor(timer.total / (1000 * 60 * 60));
+                const m = Math.floor((timer.total / (1000 * 60)) % 60);
+                const s = Math.floor((timer.total / 1000) % 60);
+                const timeStr = h >= 24 ? 
+                    `${Math.floor(h / 24)}d ${String(h % 24).padStart(2, '0')}:${String(m).padStart(2, '0')}:${String(s).padStart(2, '0')}` :
+                    `${String(h).padStart(2, '0')}:${String(m).padStart(2, '0')}:${String(s).padStart(2, '0')}`;
+
+                if (badgeEl) {
+                    badgeEl.classList.remove('hidden');
+                    if (badgeTextEl) badgeTextEl.textContent = timeStr;
+                }
+                if (cardTimeEl) {
+                    cardTimeEl.textContent = timeStr;
+                    cardTimeEl.className = 'text-xl font-bold font-mono text-amber-600 tracking-tight';
+                }
+                if (cardLabelEl) {
+                    cardLabelEl.textContent = '(Đang đếm ngược)';
+                    cardLabelEl.className = 'text-[11px] font-semibold text-amber-700';
+                }
+            } else {
+                if (badgeEl) {
+                    if (isOpen && timer && timer.isEnded) {
+                        badgeEl.classList.remove('hidden');
+                        if (badgeTextEl) badgeTextEl.textContent = 'Hết giờ';
+                    } else {
+                        badgeEl.classList.add('hidden');
+                    }
+                }
+                if (cardTimeEl) {
+                    cardTimeEl.textContent = auction.status === 'OPEN' ? 'Đã hết giờ' : (auction.status === 'CANCELLED' ? 'Đã hủy' : 'Đã kết thúc');
+                    cardTimeEl.className = 'text-xl font-bold text-slate-500 tracking-tight';
+                }
+                if (cardLabelEl) {
+                    cardLabelEl.textContent = auction.status === 'OPEN' ? '(Hết thời gian đấu)' : '(Phiên đã đóng)';
+                    cardLabelEl.className = 'text-[11px] font-semibold text-slate-400';
+                }
+            }
+        }
+
         async function syncAdminDetailFromServer() {
             if (window.CargoStore && typeof CargoStore.syncWithServer === 'function') {
                 await CargoStore.syncWithServer(true);
@@ -1860,6 +2000,12 @@
 
         document.addEventListener('DOMContentLoaded', async function () {
             await syncAdminDetailFromServer();
+            // Smooth live countdown update every second
+            setInterval(function () {
+                if (typeof currentAuction !== 'undefined' && currentAuction) {
+                    updateAdminAuctionCountdown(currentAuction);
+                }
+            }, 1000);
             setInterval(function () {
                 if (typeof document !== 'undefined' && document.hidden) return;
                 syncAdminDetailFromServer();

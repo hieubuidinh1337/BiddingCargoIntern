@@ -1544,6 +1544,11 @@
         document.getElementById('createAuctionForm').addEventListener('submit', function (e) {
             e.preventDefault();
 
+            if (window.CargoStore && CargoStore.hasPermission && !CargoStore.hasPermission('auctions.create')) {
+                alert('Từ chối quyền: Tài khoản của bạn không có quyền Tạo phiên đấu giá mới (auctions.create)!');
+                return;
+            }
+
             const fn = document.getElementById('flightNumber').value.trim().toUpperCase();
             const origin = document.getElementById('originAirport').value;
             const dest = document.getElementById('destinationAirport').value;

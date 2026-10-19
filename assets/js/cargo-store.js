@@ -116,14 +116,139 @@ const CargoStore = (function () {
         }
     ];
 
+    /**
+     * HỆ THỐNG PHÂN QUYỀN HẠT NHÂN (PERMISSION MATRIX DEFINITIONS)
+     * 4 Phân hệ nghiệp vụ với 14 quyền hạn chi tiết:
+     * - registrations: Hồ sơ đăng ký đại lý (view, approve_reject)
+     * - auctions: Phiên đấu giá (view, create, edit, remove, close, settle_select_winner)
+     * - agents: Đại lý ủy quyền (view, lock)
+     * - staff: Nhân viên nội bộ & phân quyền (view, create, edit, remove)
+     */
+    const PERMISSION_DEFINITIONS = [
+        {
+            category: 'registrations',
+            categoryName: 'Hồ sơ đăng ký đại lý',
+            icon: 'fa-solid fa-address-card',
+            color: 'blue',
+            permissions: [
+                { key: 'registrations.view', name: 'Xem hồ sơ đăng ký', description: 'Xem danh sách và chi tiết các hồ sơ đăng ký đại lý mới' },
+                { key: 'registrations.approve_reject', name: 'Duyệt / Từ chối hồ sơ', description: 'Phê duyệt cấp mã hoặc từ chối hồ sơ đại lý' }
+            ]
+        },
+        {
+            category: 'auctions',
+            categoryName: 'Phiên đấu giá',
+            icon: 'fa-solid fa-plane-departure',
+            color: 'purple',
+            permissions: [
+                { key: 'auctions.view', name: 'Xem phiên đấu giá', description: 'Xem danh sách phiên, thông tin chi tiết và diễn biến đặt giá' },
+                { key: 'auctions.create', name: 'Tạo mới phiên', description: 'Tạo phiên đấu giá tải trọng chuyến bay mới' },
+                { key: 'auctions.edit', name: 'Chỉnh sửa phiên', description: 'Sửa thông tin chuyến bay, tải trọng, giá sàn, thời gian' },
+                { key: 'auctions.remove', name: 'Xóa / Hủy phiên', description: 'Xóa hoặc hủy bỏ phiên đấu giá tải trọng' },
+                { key: 'auctions.close', name: 'Chốt phiên (Đóng phiên)', description: 'Chốt đóng phiên sớm hoặc dừng nhận đặt giá' },
+                { key: 'auctions.settle_select_winner', name: 'Chốt / Chọn đại lý thắng thầu', description: 'Thẩm định và xác nhận đại lý trúng thầu, đổi hoặc hủy chọn người thắng' }
+            ]
+        },
+        {
+            category: 'agents',
+            categoryName: 'Đại lý ủy quyền',
+            icon: 'fa-solid fa-building-shield',
+            color: 'emerald',
+            permissions: [
+                { key: 'agents.view', name: 'Xem danh sách đại lý', description: 'Xem danh sách đại lý hoạt động và hồ sơ chi tiết' },
+                { key: 'agents.lock', name: 'Khóa / Mở khóa đại lý', description: 'Tạm khóa hoặc mở khóa quyền tham gia sàn của đại lý' }
+            ]
+        },
+        {
+            category: 'staff',
+            categoryName: 'Nhân viên nội bộ & Vai trò',
+            icon: 'fa-solid fa-users-gear',
+            color: 'amber',
+            permissions: [
+                { key: 'staff.view', name: 'Xem danh sách nhân viên', description: 'Xem danh sách tài khoản nội bộ và vai trò' },
+                { key: 'staff.create', name: 'Tạo mới nhân viên', description: 'Cấp mới tài khoản nhân sự điều hành' },
+                { key: 'staff.edit', name: 'Chỉnh sửa nhân viên & Vai trò', description: 'Chỉnh sửa thông tin nhân viên, tạo và sửa các vai trò' },
+                { key: 'staff.remove', name: 'Xóa nhân viên & Vai trò', description: 'Xóa tài khoản nhân sự hoặc xóa vai trò khỏi hệ thống' }
+            ]
+        }
+    ];
+
+    const ALL_PERMISSION_KEYS = PERMISSION_DEFINITIONS.flatMap(c => c.permissions.map(p => p.key));
+
+    const seedRoles = [
+        {
+            id: 'role_super_admin',
+            code: 'SUPER_ADMIN',
+            name: 'Quản trị viên Hệ thống (Super Admin)',
+            description: 'Toàn quyền cấu hình, vận hành và quản lý trên toàn bộ hệ thống',
+            isSystem: true,
+            permissions: [...ALL_PERMISSION_KEYS]
+        },
+        {
+            id: 'role_cod_manager',
+            code: 'COD_MANAGER',
+            name: 'Điều hành Khai thác Bay (COD Manager)',
+            description: 'Quản lý phiên đấu giá chuyến bay, duyệt đại lý và chốt người thắng thầu',
+            isSystem: false,
+            permissions: [
+                'registrations.view',
+                'registrations.approve_reject',
+                'auctions.view',
+                'auctions.create',
+                'auctions.edit',
+                'auctions.close',
+                'auctions.settle_select_winner',
+                'agents.view'
+            ]
+        },
+        {
+            id: 'role_settlement',
+            code: 'SETTLEMENT_OFFICER',
+            name: 'Hội đồng Chốt thầu (Settlement Officer)',
+            description: 'Chuyên trách chốt phiên, phê duyệt hoặc lựa chọn đại lý thắng thầu',
+            isSystem: false,
+            permissions: [
+                'auctions.view',
+                'auctions.close',
+                'auctions.settle_select_winner'
+            ]
+        },
+        {
+            id: 'role_agent_auditor',
+            code: 'AGENT_AUDITOR',
+            name: 'Chuyên viên Thẩm định Đại lý (Agent Auditor)',
+            description: 'Chuyên trách kiểm tra, duyệt hồ sơ đại lý và khóa/mở khóa tài khoản đại lý',
+            isSystem: false,
+            permissions: [
+                'registrations.view',
+                'registrations.approve_reject',
+                'agents.view',
+                'agents.lock'
+            ]
+        },
+        {
+            id: 'role_viewer',
+            code: 'OPERATIONS_VIEWER',
+            name: 'Nhân viên Giám sát & Báo cáo (Viewer)',
+            description: 'Chỉ có quyền xem các thông tin phiên đấu giá, đại lý, hồ sơ và nhân sự',
+            isSystem: false,
+            permissions: [
+                'registrations.view',
+                'auctions.view',
+                'agents.view',
+                'staff.view'
+            ]
+        }
+    ];
+
     const seedAdmins = [
         {
             id: 99,
             username: 'admin',
             password: 'admin2026',
-            role: 'ITD_ADMIN',
-            roles: ['ITD_ADMIN', 'COD_ADMIN', 'AUCTION_SETTLEMENT'],
-            fullName: 'Trần Quản Trị (ITD Admin)',
+            role: 'SUPER_ADMIN',
+            roles: ['SUPER_ADMIN', 'ITD_ADMIN'],
+            fullName: 'Trần Quản Trị (Super Admin)',
             email: 'admin@airline.vn',
             department: 'Information Technology Directorate (ITD)'
         },
@@ -131,8 +256,8 @@ const CargoStore = (function () {
             id: 98,
             username: 'cod_admin',
             password: 'admin2026',
-            role: 'COD_ADMIN',
-            roles: ['COD_ADMIN', 'AUCTION_SETTLEMENT'],
+            role: 'COD_MANAGER',
+            roles: ['COD_MANAGER'],
             fullName: 'Lê Khai Thác (COD Admin)',
             email: 'cod@airline.vn',
             department: 'Cargo Operations Directorate (COD)'
@@ -141,8 +266,8 @@ const CargoStore = (function () {
             id: 95,
             username: 'settler01',
             password: 'admin2026',
-            role: 'AUCTION_SETTLEMENT',
-            roles: ['AUCTION_SETTLEMENT'],
+            role: 'SETTLEMENT_OFFICER',
+            roles: ['SETTLEMENT_OFFICER'],
             fullName: 'Vũ Thẩm Định (Settlement Admin)',
             email: 'settler@airline.vn',
             department: 'Cargo Bidding Settlement Board'
@@ -151,8 +276,8 @@ const CargoStore = (function () {
             id: 97,
             username: 'staff01',
             password: 'staff2026',
-            role: 'STAFF',
-            roles: ['STAFF'],
+            role: 'OPERATIONS_VIEWER',
+            roles: ['OPERATIONS_VIEWER'],
             fullName: 'Nguyễn Điều Hành (Staff)',
             email: 'staff01@airline.vn',
             department: 'Air Cargo Flight Operations'
@@ -161,11 +286,11 @@ const CargoStore = (function () {
             id: 96,
             username: 'staff02',
             password: 'staff2026',
-            role: 'STAFF',
-            roles: ['STAFF'],
+            role: 'AGENT_AUDITOR',
+            roles: ['AGENT_AUDITOR'],
             fullName: 'Lê Thị Bích Vân (Staff)',
             email: 'staff02@airline.vn',
-            department: 'Cargo Reporting & Analytics'
+            department: 'Agent Audit & Approval'
         }
     ];
 
@@ -200,11 +325,13 @@ const CargoStore = (function () {
             id: 99,
             username: 'admin',
             password: 'admin2026',
-            role: 'ITD_ADMIN',
-            fullName: 'Trần Quản Trị (ITD Admin)',
+            role: 'SUPER_ADMIN',
+            roles: ['SUPER_ADMIN', 'ITD_ADMIN'],
+            fullName: 'Trần Quản Trị (Super Admin)',
             email: 'admin@airline.vn',
             department: 'Information Technology Directorate (ITD)'
         },
+        rolesList: seedRoles,
         agentsList: seedAgents,
         adminsList: seedAdmins,
         airports: [
@@ -1035,6 +1162,22 @@ const CargoStore = (function () {
                 }
             }
 
+            // Ensure rolesList exists
+            if (!data.rolesList || !Array.isArray(data.rolesList) || data.rolesList.length === 0) {
+                data.rolesList = JSON.parse(JSON.stringify(seedRoles));
+                updated = true;
+            } else {
+                // Ensure SUPER_ADMIN role always has all permission keys
+                const superAdminRole = data.rolesList.find(r => r.code === 'SUPER_ADMIN' || r.id === 'role_super_admin');
+                if (superAdminRole) {
+                    superAdminRole.permissions = [...ALL_PERMISSION_KEYS];
+                    superAdminRole.isSystem = true;
+                } else {
+                    data.rolesList.unshift(JSON.parse(JSON.stringify(seedRoles[0])));
+                    updated = true;
+                }
+            }
+
             if (data.bids && Array.isArray(data.bids)) {
                 const origCount = data.bids.length;
                 data.bids = deduplicateBids(data.bids);
@@ -1563,15 +1706,18 @@ const CargoStore = (function () {
         try {
             isSyncing = true;
             const local = loadData();
-            const isAdminSession = !!(local.currentAdmin || (typeof window !== 'undefined' && window.location && window.location.pathname.toLowerCase().includes('/admin/')));
-            const isStaffSession = !!(local.currentAdmin && String(local.currentAdmin.role).toUpperCase() === 'STAFF');
-            const currentAgentCode = (local.currentUser && local.currentUser.agentCode) ? local.currentUser.agentCode : null;
+            const pathname = (typeof window !== 'undefined' && window.location && window.location.pathname) ? window.location.pathname.toLowerCase() : '';
+            const isAdminPage = pathname.includes('/admin/');
+            const currentAgentCode = (local.currentUser && (local.currentUser.agentCode || local.currentUser.code)) ? String(local.currentUser.agentCode || local.currentUser.code).trim() : null;
 
             let queryParams = [];
-            if (isStaffSession) {
-                queryParams.push('role=staff');
-            } else if (isAdminSession) {
-                queryParams.push('role=admin');
+            if (isAdminPage || (!currentAgentCode && local.currentAdmin)) {
+                const isStaffSession = !!(local.currentAdmin && String(local.currentAdmin.role).toUpperCase() === 'STAFF');
+                if (isStaffSession) {
+                    queryParams.push('role=staff');
+                } else {
+                    queryParams.push('role=admin');
+                }
             } else if (currentAgentCode) {
                 queryParams.push(`agentCode=${encodeURIComponent(currentAgentCode)}`);
             }
@@ -1626,14 +1772,38 @@ const CargoStore = (function () {
                 }
 
                 if (serverData.bids && Array.isArray(serverData.bids)) {
-                    const serverBidIds = new Set(serverData.bids.map(b => String(b.id)));
+                    const myCode = currentAgentCode ? currentAgentCode.toUpperCase() : null;
+                    const localBidMap = new Map();
+                    (local.bids || []).forEach(b => {
+                        if (b && b.id) localBidMap.set(String(b.id), b);
+                    });
+
+                    // Reconcile server bids: never allow masked 'AG-***' to overwrite this agent's own placed bids
+                    const reconciledServerBids = serverData.bids.map(sb => {
+                        if (!sb || !sb.id) return sb;
+                        const lb = localBidMap.get(String(sb.id));
+                        if (lb && lb.agentCode && lb.agentCode !== 'AG-***') {
+                            const lbCode = String(lb.agentCode).trim().toUpperCase();
+                            if (myCode && (lbCode === myCode || sb.agentCode === 'AG-***')) {
+                                return {
+                                    ...sb,
+                                    agentCode: lb.agentCode,
+                                    agentName: lb.agentName || sb.agentName,
+                                    isAnonymous: (sb.isAnonymous !== undefined) ? sb.isAnonymous : lb.isAnonymous
+                                };
+                            }
+                        }
+                        return sb;
+                    });
+
+                    const serverBidIds = new Set(reconciledServerBids.map(b => String(b.id)));
                     const pendingLocalBids = (local.bids || []).filter(b => {
                         if (!b || !b.id) return false;
                         if (serverBidIds.has(String(b.id))) return false;
                         const age = Date.now() - (Number(b.timestamp || b.id) || 0);
                         return age >= 0 && age < 45000;
                     });
-                    local.bids = deduplicateBids([...serverData.bids, ...pendingLocalBids]);
+                    local.bids = deduplicateBids([...reconciledServerBids, ...pendingLocalBids]);
                 }
 
                 if (serverData.notifications && Array.isArray(serverData.notifications)) {
@@ -2419,6 +2589,7 @@ const CargoStore = (function () {
             data.currentUser = {
                 id: agent.id,
                 role: 'agent',
+                code: agent.code,
                 agentCode: agent.code,
                 password: agent.password,
                 pin: agent.pin || '1234',
@@ -2442,6 +2613,8 @@ const CargoStore = (function () {
                     totalSpentVND: agent.totalSpentVND || 0
                 }
             };
+            // Clear currentAdmin to prevent session leakage on agent login
+            data.currentAdmin = null;
 
             saveData(data);
             this.logActivity({
@@ -2497,6 +2670,8 @@ const CargoStore = (function () {
                 email: admin.email,
                 department: admin.department
             };
+            // Clear currentUser to avoid session leakage on admin login
+            data.currentUser = null;
 
             saveData(data);
             this.logActivity({
@@ -2557,11 +2732,69 @@ const CargoStore = (function () {
             return admin;
         },
 
+        getPermissionDefinitions: function () {
+            return PERMISSION_DEFINITIONS;
+        },
+
+        getAllPermissionKeys: function () {
+            return ALL_PERMISSION_KEYS;
+        },
+
+        getAdminPermissions: function (admin) {
+            const data = loadData();
+            const cur = admin || (this.getCurrentAdmin ? this.getCurrentAdmin() : data.currentAdmin);
+            if (!cur) return [];
+
+            const u = (cur.username || '').toLowerCase();
+            const primaryRole = String(cur.role || '').toUpperCase();
+            const rolesList = (Array.isArray(cur.roles) ? cur.roles : [cur.role]).filter(Boolean).map(r => String(r || '').toUpperCase());
+
+            // Super Admin / username === 'admin' / ITD_ADMIN always has ALL permissions
+            if (u === 'admin' || rolesList.includes('SUPER_ADMIN') || rolesList.includes('ITD_ADMIN') || primaryRole === 'SUPER_ADMIN' || primaryRole === 'ITD_ADMIN') {
+                return [...ALL_PERMISSION_KEYS];
+            }
+
+            const allRoles = data.rolesList || seedRoles;
+            const granted = new Set();
+
+            if (Array.isArray(cur.permissions)) {
+                cur.permissions.forEach(p => granted.add(p));
+            }
+
+            const roleIdentifiers = new Set(rolesList.concat([cur.role, cur.roleId].filter(Boolean).map(x => String(x).toUpperCase())));
+
+            // Aliases for compatibility
+            if (roleIdentifiers.has('COD_ADMIN') || roleIdentifiers.has('COD ADMIN')) roleIdentifiers.add('COD_MANAGER');
+            if (roleIdentifiers.has('AUCTION_SETTLEMENT') || roleIdentifiers.has('SETTLEMENT_ADMIN')) roleIdentifiers.add('SETTLEMENT_OFFICER');
+            if (roleIdentifiers.has('STAFF')) roleIdentifiers.add('OPERATIONS_VIEWER');
+
+            allRoles.forEach(r => {
+                const matchCode = r.code && roleIdentifiers.has(String(r.code).toUpperCase());
+                const matchId = r.id && roleIdentifiers.has(String(r.id).toUpperCase());
+                const matchName = r.name && roleIdentifiers.has(String(r.name).toUpperCase());
+                if (matchCode || matchId || matchName) {
+                    (r.permissions || []).forEach(p => granted.add(p));
+                }
+            });
+
+            return Array.from(granted);
+        },
+
+        hasPermission: function (permissionKey, admin) {
+            const perms = this.getAdminPermissions(admin);
+            return perms.includes(permissionKey);
+        },
+
         hasAdminRole: function (roleName, admin) {
             const data = loadData();
             const cur = admin || (this.getCurrentAdmin ? this.getCurrentAdmin() : data.currentAdmin);
             if (!cur) return false;
             const rUpper = String(roleName || '').trim().toUpperCase();
+
+            // Direct mapping to permission if applicable
+            if (rUpper === 'AUCTION_SETTLEMENT' || rUpper === 'SETTLEMENT') {
+                return this.hasPermission('auctions.settle_select_winner', cur);
+            }
 
             let rolesList = [];
             if (Array.isArray(cur.roles)) {
@@ -2571,21 +2804,18 @@ const CargoStore = (function () {
                 rolesList.push(String(cur.role).trim().toUpperCase());
             }
 
-            // ITD ADMIN / ADMIN has supreme access to all features
-            if (rolesList.includes('ITD_ADMIN') || rolesList.includes('ADMIN')) {
+            if (rolesList.includes('SUPER_ADMIN') || rolesList.includes('ITD_ADMIN') || rolesList.includes('ADMIN')) {
                 return true;
             }
 
-            // Settlement & adjustment permissions: AUCTION_SETTLEMENT, COD_ADMIN, COD
-            if (rUpper === 'AUCTION_SETTLEMENT' && (rolesList.includes('COD_ADMIN') || rolesList.includes('COD ADMIN') || rolesList.includes('COD') || rolesList.includes('AUCTION_SETTLEMENT') || rolesList.includes('SETTLEMENT'))) {
-                return true;
-            }
+            if (rUpper === 'COD_ADMIN' && (rolesList.includes('COD_MANAGER') || this.hasPermission('auctions.create', cur))) return true;
+            if (rUpper === 'STAFF' && (rolesList.includes('OPERATIONS_VIEWER') || this.hasPermission('auctions.view', cur))) return true;
 
             return rolesList.includes(rUpper);
         },
 
         hasSettlementRole: function (admin) {
-            return this.hasAdminRole('AUCTION_SETTLEMENT', admin);
+            return this.hasPermission('auctions.settle_select_winner', admin);
         },
 
         parseFlightDate: function (dateInput) {
@@ -3300,8 +3530,8 @@ const CargoStore = (function () {
                     body: JSON.stringify({
                         bidId: sharedBidId,
                         auctionId: Number(auction.id),
-                        agentCode: user.agentCode,
-                        agentName: user.companyName,
+                        agentCode: user.agentCode || user.code,
+                        agentName: user.companyName || user.fullName || user.agentCode || user.code,
                         priceKg: Number(bidPriceKg),
                         isAnonymous: anonFlag,
                         weightKg: auction.capacityKg
@@ -6270,17 +6500,143 @@ const CargoStore = (function () {
             return { success: false, message: 'Không tìm thấy người dùng trong hệ thống.' };
         },
 
+        getRoles: function () {
+            const data = loadData();
+            if (!data.rolesList || !Array.isArray(data.rolesList) || data.rolesList.length === 0) {
+                data.rolesList = JSON.parse(JSON.stringify(seedRoles));
+                saveData(data);
+            }
+            return data.rolesList;
+        },
+
+        getRoleById: function (id) {
+            const roles = this.getRoles();
+            return roles.find(r => r.id === id || r.code === id) || null;
+        },
+
+        createRole: function (roleData) {
+            const data = loadData();
+            if (!this.hasPermission('staff.edit')) {
+                return { success: false, message: 'Bạn không có quyền thẩm quyền tạo vai trò mới (yêu cầu quyền staff.edit).' };
+            }
+            if (!data.rolesList) data.rolesList = JSON.parse(JSON.stringify(seedRoles));
+            const name = (roleData.name || '').trim();
+            if (!name) return { success: false, message: 'Tên vai trò không được để trống.' };
+
+            const code = (roleData.code || name.toUpperCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "").replace(/[^A-Z0-9]/g, "_")).replace(/_+/g, "_");
+            const exists = data.rolesList.some(r => (r.name || '').toLowerCase() === name.toLowerCase() || (r.code || '').toLowerCase() === code.toLowerCase());
+            if (exists) {
+                return { success: false, message: `Vai trò "${name}" hoặc mã "${code}" đã tồn tại trên hệ thống.` };
+            }
+
+            const permissions = Array.isArray(roleData.permissions) ? roleData.permissions.filter(p => ALL_PERMISSION_KEYS.includes(p)) : [];
+
+            const newRole = {
+                id: 'role_' + Date.now(),
+                code: code,
+                name: name,
+                description: (roleData.description || '').trim() || `Vai trò ${name}`,
+                permissions: permissions,
+                isSystem: false,
+                createdAt: new Date().toISOString()
+            };
+
+            data.rolesList.push(newRole);
+            saveData(data);
+            this.logActivity({
+                actionCategory: 'Phân quyền',
+                actionTitle: 'Tạo vai trò mới',
+                target: newRole.name,
+                details: `Đã tạo vai trò mới [${newRole.name}] (${newRole.code}) với ${permissions.length} quyền hạn: [${permissions.join(', ')}]`
+            });
+            if (typeof window !== 'undefined') window.dispatchEvent(new CustomEvent('cargostore_updated'));
+            return { success: true, message: `Đã tạo vai trò mới "${newRole.name}" thành công!`, role: newRole };
+        },
+
+        updateRole: function (id, roleData) {
+            const data = loadData();
+            if (!this.hasPermission('staff.edit')) {
+                return { success: false, message: 'Bạn không có quyền chỉnh sửa vai trò (yêu cầu quyền staff.edit).' };
+            }
+            if (!data.rolesList) data.rolesList = JSON.parse(JSON.stringify(seedRoles));
+            const role = data.rolesList.find(r => r.id === id || r.code === id);
+            if (!role) {
+                return { success: false, message: 'Không tìm thấy vai trò cần cập nhật.' };
+            }
+
+            if (role.isSystem && (role.code === 'SUPER_ADMIN' || role.id === 'role_super_admin')) {
+                return { success: false, message: 'Không thể chỉnh sửa vai trò Super Admin mặc định của hệ thống!' };
+            }
+
+            const name = (roleData.name || '').trim();
+            if (name) role.name = name;
+            if (roleData.description !== undefined) role.description = roleData.description.trim();
+            if (Array.isArray(roleData.permissions)) {
+                role.permissions = roleData.permissions.filter(p => ALL_PERMISSION_KEYS.includes(p));
+            }
+            role.updatedAt = new Date().toISOString();
+
+            saveData(data);
+            this.logActivity({
+                actionCategory: 'Phân quyền',
+                actionTitle: 'Cập nhật vai trò',
+                target: role.name,
+                details: `Cập nhật vai trò [${role.name}] (${role.code}). Tổng số quyền hạn: ${role.permissions.length}`
+            });
+            if (typeof window !== 'undefined') window.dispatchEvent(new CustomEvent('cargostore_updated'));
+            return { success: true, message: `Đã cập nhật vai trò "${role.name}" thành công!`, role: role };
+        },
+
+        deleteRole: function (id) {
+            const data = loadData();
+            if (!this.hasPermission('staff.remove')) {
+                return { success: false, message: 'Bạn không có quyền xóa vai trò (yêu cầu quyền staff.remove).' };
+            }
+            if (!data.rolesList) data.rolesList = JSON.parse(JSON.stringify(seedRoles));
+            const idx = data.rolesList.findIndex(r => r.id === id || r.code === id);
+            if (idx === -1) {
+                return { success: false, message: 'Không tìm thấy vai trò cần xóa.' };
+            }
+            const role = data.rolesList[idx];
+            if (role.isSystem) {
+                return { success: false, message: `Vai trò "${role.name}" là vai trò hệ thống, không thể xóa!` };
+            }
+
+            // Verify if any admin/staff member is currently using this role
+            const inUseBy = (data.adminsList || []).filter(a => {
+                const roles = (Array.isArray(a.roles) ? a.roles : [a.role]).map(r => String(r || '').toUpperCase());
+                return roles.includes(String(role.id).toUpperCase()) || roles.includes(String(role.code).toUpperCase()) || roles.includes(String(role.name).toUpperCase());
+            });
+
+            if (inUseBy.length > 0) {
+                const names = inUseBy.map(a => a.fullName || a.username).join(', ');
+                return {
+                    success: false,
+                    message: `Không thể xóa vai trò "${role.name}" vì đang có ${inUseBy.length} nhân sự đảm nhiệm (${names}). Vui lòng gỡ vai trò này khỏi nhân sự trước khi xóa.`
+                };
+            }
+
+            data.rolesList.splice(idx, 1);
+            saveData(data);
+            this.logActivity({
+                actionCategory: 'Phân quyền',
+                actionTitle: 'Xóa vai trò',
+                target: role.name,
+                details: `Đã xóa vai trò [${role.name}] khỏi hệ thống.`
+            });
+            if (typeof window !== 'undefined') window.dispatchEvent(new CustomEvent('cargostore_updated'));
+            return { success: true, message: `Đã xóa vai trò "${role.name}" thành công!` };
+        },
+
         updateUserRole: function (identifier, newRole, type = 'agent') {
             const data = loadData();
-            const currentAdminRole = (data.currentAdmin && data.currentAdmin.role || '').toUpperCase();
-            const isItdAdmin = (currentAdminRole === 'ITD_ADMIN' || currentAdminRole === 'ADMIN');
 
             if (type === 'staff') {
-                if (!isItdAdmin) {
-                    return { success: false, message: 'Chỉ Quản trị viên ITD ADMIN (Full quyền) mới có thẩm quyền phân quyền vai trò cho nhân sự.' };
+                if (!this.hasPermission('staff.edit')) {
+                    return { success: false, message: 'Bạn không có thẩm quyền phân quyền vai trò cho nhân sự (yêu cầu quyền staff.edit).' };
                 }
-            } else if (currentAdminRole === 'STAFF') {
-                return { success: false, message: 'Nhân viên (STAFF) không có quyền thay đổi phân hạng đại lý. Thao tác này thuộc thẩm quyền của COD ADMIN hoặc ITD ADMIN.' };
+            } else if (!this.hasPermission('agents.lock') && !this.hasPermission('staff.edit')) {
+                return { success: false, message: 'Bạn không có quyền thay đổi phân hạng đại lý.' };
             }
 
             if (type === 'agent') {
@@ -6294,6 +6650,7 @@ const CargoStore = (function () {
                         target: target.code || identifier,
                         details: `Cập nhật phân hạng đại lý ${target.code} (${target.companyName}) thành hạng [${newRole}].`
                     });
+                    if (typeof window !== 'undefined') window.dispatchEvent(new CustomEvent('cargostore_updated'));
                     return { success: true, message: `Đã phân hạng đại lý ${target.code} thành ${newRole}.` };
                 }
             } else {
@@ -6301,13 +6658,13 @@ const CargoStore = (function () {
                 if (target) {
                     let rolesArr = [];
                     if (Array.isArray(newRole)) {
-                        rolesArr = newRole.map(r => String(r).trim().toUpperCase()).filter(Boolean);
+                        rolesArr = newRole.map(r => String(r).trim()).filter(Boolean);
                     } else if (typeof newRole === 'string' && newRole.includes(',')) {
-                        rolesArr = newRole.split(',').map(r => r.trim().toUpperCase()).filter(Boolean);
+                        rolesArr = newRole.split(',').map(r => r.trim()).filter(Boolean);
                     } else if (newRole) {
-                        rolesArr = [String(newRole).trim().toUpperCase()];
+                        rolesArr = [String(newRole).trim()];
                     }
-                    if (rolesArr.length === 0) rolesArr = ['STAFF'];
+                    if (rolesArr.length === 0) rolesArr = ['OPERATIONS_VIEWER'];
 
                     target.roles = rolesArr;
                     target.role = rolesArr[0]; // primary role for backwards compatibility
@@ -6321,27 +6678,22 @@ const CargoStore = (function () {
                     saveData(data);
                     this.logActivity({
                         actionCategory: 'Tài khoản',
-                        actionTitle: 'Phân quyền Nhân viên (Đa vai trò)',
+                        actionTitle: 'Phân quyền Nhân viên',
                         target: target.username || identifier,
                         details: `Cập nhật vai trò nhân viên ${target.username} thành [${rolesArr.join(', ')}].`
                     });
 
-                    if (typeof window !== 'undefined') {
-                        window.dispatchEvent(new CustomEvent('cargostore_updated'));
-                    }
+                    if (typeof window !== 'undefined') window.dispatchEvent(new CustomEvent('cargostore_updated'));
                     return { success: true, message: `Đã cập nhật các vai trò cho "${target.username}" thành: [${rolesArr.join(', ')}].` };
                 }
             }
-            return { success: false, message: 'Không tìm thấy người dùng.' };
+            return { success: false, message: 'Không tìm thấy người dùng trong hệ thống.' };
         },
 
         createStaffAccount: function (staffData) {
             const data = loadData();
-            const currentAdminRole = (data.currentAdmin && data.currentAdmin.role || '').toUpperCase();
-            const isItdAdmin = (currentAdminRole === 'ITD_ADMIN' || currentAdminRole === 'ADMIN');
-
-            if (!isItdAdmin) {
-                return { success: false, message: 'Chỉ Quản trị viên ITD ADMIN (Full quyền) mới có quyền tạo mới tài khoản quản trị và nhân sự.' };
+            if (!this.hasPermission('staff.create')) {
+                return { success: false, message: 'Bạn không có quyền cấp mới tài khoản nhân sự (yêu cầu quyền staff.create).' };
             }
 
             if (!data.adminsList) data.adminsList = seedAdmins;
@@ -6354,14 +6706,11 @@ const CargoStore = (function () {
 
             let rolesArr = [];
             if (Array.isArray(staffData.roles) && staffData.roles.length > 0) {
-                rolesArr = staffData.roles.map(r => String(r).toUpperCase());
+                rolesArr = staffData.roles.map(r => String(r).trim());
             } else if (staffData.role) {
-                const r = String(staffData.role).toUpperCase();
-                if (r === 'ITD_ADMIN' || r === 'ADMIN') rolesArr = ['ITD_ADMIN', 'COD_ADMIN', 'AUCTION_SETTLEMENT'];
-                else if (r === 'COD_ADMIN') rolesArr = ['COD_ADMIN', 'AUCTION_SETTLEMENT'];
-                else rolesArr = [r];
+                rolesArr = [String(staffData.role).trim()];
             } else {
-                rolesArr = ['STAFF'];
+                rolesArr = ['OPERATIONS_VIEWER'];
             }
 
             const newStaff = {
@@ -6382,9 +6731,89 @@ const CargoStore = (function () {
                 actionCategory: 'Tài khoản',
                 actionTitle: 'Tạo mới tài khoản Nhân viên',
                 target: u,
-                details: `Khởi tạo tài khoản nhân viên vận hành mới: ${newStaff.fullName} (@${u}), Phòng ban: ${newStaff.department}, Vai trò: [${rolesArr.join(', ')}].`
+                details: `Khởi tạo tài khoản nhân viên mới: ${newStaff.fullName} (@${u}), Phòng ban: ${newStaff.department}, Vai trò: [${rolesArr.join(', ')}].`
             });
+            if (typeof window !== 'undefined') window.dispatchEvent(new CustomEvent('cargostore_updated'));
             return { success: true, message: `Đã tạo mới tài khoản "${u}" (${newStaff.fullName}) với vai trò [${rolesArr.join(', ')}].`, staff: newStaff };
+        },
+
+        updateStaffAccount: function (idOrUsername, updateData) {
+            const data = loadData();
+            if (!this.hasPermission('staff.edit')) {
+                return { success: false, message: 'Bạn không có quyền chỉnh sửa thông tin nhân viên (yêu cầu quyền staff.edit).' };
+            }
+            if (!data.adminsList) data.adminsList = seedAdmins;
+            const staff = data.adminsList.find(a => 
+                (a.id && String(a.id) === String(idOrUsername)) || 
+                (a.username && a.username.toLowerCase() === String(idOrUsername).toLowerCase())
+            );
+            if (!staff) {
+                return { success: false, message: 'Không tìm thấy tài khoản nhân viên.' };
+            }
+
+            if (updateData.fullName) staff.fullName = updateData.fullName.trim();
+            if (updateData.email) staff.email = updateData.email.trim();
+            if (updateData.department) staff.department = updateData.department.trim();
+            if (updateData.password) staff.password = updateData.password.trim();
+            if (updateData.status) staff.status = updateData.status;
+
+            if (updateData.roles) {
+                staff.roles = Array.isArray(updateData.roles) ? updateData.roles : [updateData.roles];
+                staff.role = staff.roles[0] || 'OPERATIONS_VIEWER';
+            } else if (updateData.role) {
+                staff.role = updateData.role;
+                staff.roles = [updateData.role];
+            }
+
+            if (data.currentAdmin && data.currentAdmin.username.toLowerCase() === staff.username.toLowerCase()) {
+                data.currentAdmin.fullName = staff.fullName;
+                data.currentAdmin.roles = staff.roles;
+                data.currentAdmin.role = staff.role;
+                data.currentAdmin.department = staff.department;
+            }
+
+            saveData(data);
+            this.logActivity({
+                actionCategory: 'Tài khoản',
+                actionTitle: 'Cập nhật tài khoản Nhân viên',
+                target: staff.username,
+                details: `Cập nhật tài khoản ${staff.fullName} (@${staff.username}). Vai trò: [${(staff.roles || []).join(', ')}]`
+            });
+            if (typeof window !== 'undefined') window.dispatchEvent(new CustomEvent('cargostore_updated'));
+            return { success: true, message: `Cập nhật thông tin tài khoản "${staff.username}" thành công!` };
+        },
+
+        deleteStaffAccount: function (idOrUsername) {
+            const data = loadData();
+            if (!this.hasPermission('staff.remove')) {
+                return { success: false, message: 'Bạn không có quyền xóa tài khoản nhân sự (yêu cầu quyền staff.remove).' };
+            }
+            if (!data.adminsList) data.adminsList = seedAdmins;
+            const targetIdx = data.adminsList.findIndex(a => 
+                (a.id && String(a.id) === String(idOrUsername)) || 
+                (a.username && a.username.toLowerCase() === String(idOrUsername).toLowerCase())
+            );
+            if (targetIdx === -1) {
+                return { success: false, message: 'Không tìm thấy tài khoản nhân sự cần xóa.' };
+            }
+            const target = data.adminsList[targetIdx];
+            if (target.username && target.username.toLowerCase() === 'admin') {
+                return { success: false, message: 'Không thể xóa tài khoản Quản trị viên tối cao (admin)!' };
+            }
+            if (data.currentAdmin && data.currentAdmin.username.toLowerCase() === target.username.toLowerCase()) {
+                return { success: false, message: 'Không thể tự xóa tài khoản của chính mình khi đang đăng nhập!' };
+            }
+
+            data.adminsList.splice(targetIdx, 1);
+            saveData(data);
+            this.logActivity({
+                actionCategory: 'Tài khoản',
+                actionTitle: 'Xóa tài khoản Nhân viên',
+                target: target.username,
+                details: `Đã xóa tài khoản nhân sự ${target.fullName} (@${target.username}) khỏi hệ thống.`
+            });
+            if (typeof window !== 'undefined') window.dispatchEvent(new CustomEvent('cargostore_updated'));
+            return { success: true, message: `Đã xóa tài khoản "${target.username}" thành công!` };
         },
 
         updateSystemSettings: function (settingsData) {
@@ -6864,26 +7293,30 @@ const CargoStore = (function () {
             const admin = this.getCurrentAdmin();
             if (!admin) return;
 
-            const role = (admin.role || '').toUpperCase();
-            const isItdAdmin = (role === 'ITD_ADMIN' || role === 'ADMIN');
-            const isCodAdmin = (role === 'COD_ADMIN');
-            const isStaff = (role === 'STAFF');
+            const roleKey = (admin.role || '').toUpperCase();
+            const isSuperAdmin = (admin.username === 'admin' || roleKey === 'SUPER_ADMIN' || roleKey === 'ITD_ADMIN' || roleKey === 'ADMIN');
+            
+            // Resolve dynamic role information
+            const allRoles = (this.getRoles ? this.getRoles() : []);
+            const matchedRole = allRoles.find(r => r.id === admin.role || r.id === roleKey || (r.code && r.code.toUpperCase() === roleKey));
 
-            let roleName = 'QUẢN TRỊ VIÊN HỆ THỐNG (ITD ADMIN)';
-            let roleBadge = 'ITD ADMIN';
+            let roleName = matchedRole ? matchedRole.name : (admin.role || 'QUẢN TRỊ VIÊN');
+            let roleBadge = matchedRole ? (matchedRole.code || matchedRole.name) : (admin.role || 'ADMIN');
             let badgeClass = 'bg-blue-500/20 text-blue-400 border border-blue-500/30';
             let roleIcon = '<i class="fa-solid fa-shield-halved text-[9px]"></i>';
 
-            if (isCodAdmin) {
-                roleName = 'ĐIỀU HÀNH KHAI THÁC (COD ADMIN)';
-                roleBadge = 'COD ADMIN';
-                badgeClass = 'bg-amber-500/20 text-amber-400 border border-amber-500/30';
-                roleIcon = '<i class="fa-solid fa-plane-circle-check text-[9px]"></i>';
-            } else if (isStaff) {
-                roleName = 'NHÂN VIÊN ĐIỀU HÀNH (STAFF)';
-                roleBadge = 'STAFF';
-                badgeClass = 'bg-emerald-500/20 text-emerald-400 border border-emerald-500/30';
-                roleIcon = '<i class="fa-solid fa-file-invoice text-[9px]"></i>';
+            if (isSuperAdmin) {
+                roleName = 'QUẢN TRỊ VIÊN TỐI CAO (SUPER ADMIN)';
+                roleBadge = 'SUPER ADMIN';
+                badgeClass = 'bg-rose-500/20 text-rose-400 border border-rose-500/30';
+                roleIcon = '<i class="fa-solid fa-crown text-[9px]"></i>';
+            } else if (matchedRole) {
+                if (matchedRole.color) {
+                    badgeClass = matchedRole.color;
+                } else {
+                    badgeClass = 'bg-indigo-500/20 text-indigo-400 border border-indigo-500/30';
+                }
+                roleIcon = '<i class="fa-solid fa-user-shield text-[9px]"></i>';
             }
 
             document.querySelectorAll('.admin-header-name').forEach(el => {
@@ -6896,31 +7329,49 @@ const CargoStore = (function () {
                 el.title = roleName;
             });
 
-            // Nav link visibility across headers, mobile menu, and dashboard cards
-            if (isStaff) {
-                // STAFF: Reports only, view auction list and dashboard
-                // Hide: Create Auction, Agent List, Settings, Audit Logs
+            // Nav link visibility across headers, mobile menu, and dashboard cards based on granular permissions
+            const canCreateAuction = this.hasPermission('auctions.create', admin);
+            const canViewAuctions = this.hasPermission('auctions.view', admin);
+            const canAccessAgentPortal = this.hasPermission('registrations.view', admin) ||
+                                         this.hasPermission('agents.view', admin) ||
+                                         this.hasPermission('staff.view', admin);
+
+            if (!canCreateAuction) {
                 document.querySelectorAll(`
-                    a[href*="04-CreateAuction.html"], a[href*="create-auction"],
-                    a[href*="06-AgentList.html"], a[href*="agents"],
-                    a[href*="08-Settings.html"], a[href*="settings"],
-                    a[href*="10-AuditLogs.html"], a[href*="audit-logs"]
-                `).forEach(el => {
-                    el.style.display = 'none';
-                });
-            } else if (isCodAdmin) {
-                // COD ADMIN: Approves agents, creates flights/auctions, views reports
-                // Hide: Settings, Audit Logs (reserved for ITD ADMIN)
-                document.querySelectorAll(`
-                    a[href*="08-Settings.html"], a[href*="settings"],
-                    a[href*="10-AuditLogs.html"], a[href*="audit-logs"]
+                    a[href*="04-CreateAuction.html"], a[href*="create-auction"]
                 `).forEach(el => {
                     el.style.display = 'none';
                 });
             }
 
-            // Block access on 04-CreateAuction.html for STAFF
-            if (isStaff && (pathname.includes('04-createauction') || pathname.endsWith('/create-auction'))) {
+            if (!canViewAuctions) {
+                document.querySelectorAll(`
+                    a[href*="03-AuctionList.html"], a[href*="auction-list"], a[href*="auctions"]
+                `).forEach(el => {
+                    el.style.display = 'none';
+                });
+            }
+
+            if (!canAccessAgentPortal) {
+                document.querySelectorAll(`
+                    a[href*="06-AgentList.html"], a[href*="agents"], a[href*="agent-list"]
+                `).forEach(el => {
+                    el.style.display = 'none';
+                });
+            }
+
+            if (!isSuperAdmin) {
+                // Settings & Audit Logs reserved for Super Admin / System Admin
+                document.querySelectorAll(`
+                    a[href*="08-Settings.html"], a[href*="settings"],
+                    a[href*="10-AuditLogs.html"], a[href*="audit-logs"]
+                `).forEach(el => {
+                    el.style.display = 'none';
+                });
+            }
+
+            // Block access on 04-CreateAuction.html if unauthorized
+            if (!canCreateAuction && (pathname.includes('04-createauction') || pathname.endsWith('/create-auction'))) {
                 const main = document.querySelector('main');
                 if (main) {
                     main.innerHTML = `
@@ -6930,7 +7381,7 @@ const CargoStore = (function () {
                             </div>
                             <h2 class="text-xl font-bold text-slate-900">Truy cập bị từ chối (Access Denied)</h2>
                             <p class="text-xs text-slate-600 leading-relaxed">
-                                Tài khoản <strong>Nhân viên Điều hành (STAFF)</strong> không có quyền tạo chuyến bay mới. Thao tác này thuộc thẩm quyền của <strong>COD ADMIN</strong> hoặc <strong>ITD ADMIN</strong>.
+                                Tài khoản <strong>${admin.fullName || admin.username}</strong> (${roleName}) không có quyền <strong>Tạo phiên đấu giá (auctions.create)</strong>.
                             </p>
                             <a href="02-AdminDashboard.html" class="inline-block bg-blue-600 hover:bg-blue-700 text-white text-xs font-bold px-6 py-3 rounded-xl transition shadow">
                                 Quay lại Admin Dashboard
@@ -6940,8 +7391,8 @@ const CargoStore = (function () {
                 }
             }
 
-            // Block access on 06-AgentList.html for STAFF
-            if (isStaff && (pathname.includes('06-agentlist') || pathname.endsWith('/agents') || pathname.endsWith('/agent-list'))) {
+            // Block access on 06-AgentList.html if no permission to view registrations, agents, or staff
+            if (!canAccessAgentPortal && (pathname.includes('06-agentlist') || pathname.endsWith('/agents') || pathname.endsWith('/agent-list'))) {
                 const main = document.querySelector('main');
                 if (main) {
                     main.innerHTML = `
@@ -6951,7 +7402,7 @@ const CargoStore = (function () {
                             </div>
                             <h2 class="text-xl font-bold text-slate-900">Truy cập bị từ chối (Access Denied)</h2>
                             <p class="text-xs text-slate-600 leading-relaxed">
-                                Tài khoản <strong>Nhân viên Điều hành (STAFF)</strong> không có quyền sử dụng trang Quản lý Đại lý & Phê duyệt hồ sơ. Thao tác này thuộc thẩm quyền của <strong>COD ADMIN</strong> hoặc <strong>ITD ADMIN</strong>.
+                                Tài khoản <strong>${admin.fullName || admin.username}</strong> (${roleName}) không có quyền xem <strong>Hồ sơ đăng ký, Đại lý hoặc Nhân sự</strong>.
                             </p>
                             <a href="02-AdminDashboard.html" class="inline-block bg-blue-600 hover:bg-blue-700 text-white text-xs font-bold px-6 py-3 rounded-xl transition shadow">
                                 Quay lại Admin Dashboard
@@ -6961,8 +7412,8 @@ const CargoStore = (function () {
                 }
             }
 
-            // Block access on 08-Settings.html for non-ITD_ADMIN
-            if (!isItdAdmin && (pathname.includes('08-settings') || pathname.endsWith('/settings') || pathname.endsWith('/setting'))) {
+            // Block access on 08-Settings.html for non-superadmin
+            if (!isSuperAdmin && (pathname.includes('08-settings') || pathname.endsWith('/settings') || pathname.endsWith('/setting'))) {
                 const main = document.querySelector('main');
                 if (main) {
                     main.innerHTML = `
@@ -6972,7 +7423,7 @@ const CargoStore = (function () {
                             </div>
                             <h2 class="text-xl font-bold text-slate-900">Truy cập bị từ chối (Access Denied)</h2>
                             <p class="text-xs text-slate-600 leading-relaxed">
-                                Tài khoản <strong>${roleName}</strong> không có quyền can thiệp Cấu hình kỹ thuật hệ thống. Trang này thuộc thẩm quyền riêng của <strong>Quản trị viên ITD ADMIN</strong>.
+                                Tài khoản <strong>${roleName}</strong> không có quyền can thiệp Cấu hình kỹ thuật hệ thống. Trang này thuộc thẩm quyền riêng của <strong>Quản trị viên SUPER ADMIN</strong>.
                             </p>
                             <a href="02-AdminDashboard.html" class="inline-block bg-blue-600 hover:bg-blue-700 text-white text-xs font-bold px-6 py-3 rounded-xl transition shadow">
                                 Quay lại Admin Dashboard
@@ -6982,8 +7433,8 @@ const CargoStore = (function () {
                 }
             }
 
-            // Block access on 10-AuditLogs.html for non-ITD_ADMIN
-            if (!isItdAdmin && (pathname.includes('10-auditlogs') || pathname.endsWith('/audit-logs') || pathname.endsWith('/logs'))) {
+            // Block access on 10-AuditLogs.html for non-superadmin
+            if (!isSuperAdmin && (pathname.includes('10-auditlogs') || pathname.endsWith('/audit-logs') || pathname.endsWith('/logs'))) {
                 const main = document.querySelector('main');
                 if (main) {
                     main.innerHTML = `
@@ -6993,7 +7444,7 @@ const CargoStore = (function () {
                             </div>
                             <h2 class="text-xl font-bold text-slate-900">Truy cập bị từ chối (Access Denied)</h2>
                             <p class="text-xs text-slate-600 leading-relaxed">
-                                Tài khoản <strong>${roleName}</strong> không có quyền xem <strong>Nhật ký hoạt động & Bảo mật hệ thống</strong>. Thao tác này thuộc thẩm quyền riêng của <strong>Quản trị viên ITD ADMIN</strong>.
+                                Tài khoản <strong>${roleName}</strong> không có quyền xem <strong>Nhật ký hoạt động & Bảo mật hệ thống</strong>. Thao tác này thuộc thẩm quyền riêng của <strong>Quản trị viên SUPER ADMIN</strong>.
                             </p>
                             <a href="02-AdminDashboard.html" class="inline-block bg-blue-600 hover:bg-blue-700 text-white text-xs font-bold px-6 py-3 rounded-xl transition shadow">
                                 Quay lại Admin Dashboard

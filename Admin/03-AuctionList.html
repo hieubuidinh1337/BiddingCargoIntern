@@ -447,7 +447,7 @@
                     class="bg-amber-500 hover:bg-amber-600 text-white text-xs font-semibold px-3 sm:px-4 py-2.5 rounded-xl transition shadow flex items-center justify-center gap-1.5 whitespace-nowrap text-center">
                     <i class="fa-solid fa-bullhorn text-[11px]"></i> Phát thông báo
                 </button>
-                <a href="04-CreateAuction.html"
+                <a href="04-CreateAuction.html" id="btnCreateAuctionHeader"
                     class="bg-blue-600 hover:bg-blue-700 text-white text-xs font-semibold px-3 sm:px-4 py-2.5 rounded-xl transition shadow flex items-center justify-center gap-1.5 whitespace-nowrap text-center">
                     <i class="fa-solid fa-plus text-[11px]"></i> Tạo phiên mới
                 </a>
@@ -1194,6 +1194,23 @@
             const isDeleted = a.status === 'DELETED';
             const canEdit = isOpen && !hasBids;
 
+            // Calculate countdown timer for live sessions
+            const timer = (CargoStore && CargoStore.getTimeRemaining) ? CargoStore.getTimeRemaining(a.endTime) : null;
+            let timerBadge = '';
+            if (isOpen && timer) {
+                if (timer.isEnded) {
+                    timerBadge = `<span class="text-[11px] font-mono font-semibold text-slate-500 bg-slate-100 border border-slate-200 px-2 py-0.5 rounded inline-flex items-center gap-1 shadow-2xs"><i class="fa-regular fa-clock text-[10px] text-slate-400"></i> Đã hết giờ</span>`;
+                } else {
+                    const h = Math.floor(timer.total / (1000 * 60 * 60));
+                    const m = Math.floor((timer.total / (1000 * 60)) % 60);
+                    const s = Math.floor((timer.total / 1000) % 60);
+                    const timeStr = h >= 24 ? 
+                        `${Math.floor(h / 24)}d ${String(h % 24).padStart(2, '0')}:${String(m).padStart(2, '0')}:${String(s).padStart(2, '0')}` :
+                        `${String(h).padStart(2, '0')}:${String(m).padStart(2, '0')}:${String(s).padStart(2, '0')}`;
+                    timerBadge = `<span class="text-[11px] font-mono font-bold text-amber-700 bg-amber-50 border border-amber-200/90 px-2 py-0.5 rounded inline-flex items-center gap-1 shadow-2xs" title="Thời gian còn lại của phiên đấu giá"><i class="fa-regular fa-clock text-[10px] text-amber-600 animate-pulse"></i> ${timeStr}</span>`;
+                }
+            }
+
             return `
                 <tr class="hover:bg-slate-50 transition">
                     <td class="py-3.5 px-4">
@@ -1219,23 +1236,47 @@
                     <td class="py-3.5 px-4 font-bold text-blue-600">
                         ${displayPrice}
                     </td>
-                    <td class="py-3.5 px-4">
-                        <span class="${a.status === 'OPEN' ? 'bg-green-100 text-green-700' :
+                    <td class="py-3.5 px-4 whitespace-nowrap">
+                        <div class="flex flex-col gap-1 items-start">
+                            <span class="${a.status === 'OPEN' ? 'bg-green-100 text-green-700' :
                     a.status === 'CANCELLED' ? 'bg-orange-100 text-orange-700' :
                         a.status === 'DELETED' ? 'bg-slate-100 text-slate-400 line-through' :
                             'bg-gray-100 text-gray-500'
-                } font-bold px-2.5 py-1 rounded-full text-[10px]">
-                            ${a.status === 'OPEN' ? 'ĐANG MỞ' :
+                } font-bold px-2.5 py-0.5 rounded-full text-[10px] inline-flex items-center gap-1">
+                                ${a.status === 'OPEN' ? '<span class="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse"></span> ĐANG MỞ' :
                     a.status === 'CANCELLED' ? '✕ ĐÃ HỦY' :
                         a.status === 'DELETED' ? '🗑 ĐÃ XÓA' :
                             'ĐÃ ĐÓNG'
                 }
-                        </span>
+                            </span>
+                            ${timerBadge}
+                        </div>
                     </td>
                     <td class="py-3.5 px-4 text-right space-x-1.5 whitespace-nowrap">
                         <a href="05-AuctionDetail.html?id=${a.id}" class="inline-flex items-center gap-1.5 bg-blue-50 hover:bg-blue-600 text-blue-700 hover:text-white font-semibold px-3 py-1.5 rounded-lg transition shadow-2xs" title="Xem chi tiết & lịch sử">
                             <i class="fa-solid fa-eye text-xs"></i> Xem chi tiết
                         </a>
+                        ${(typeof CargoStore !== 'undefined' && CargoStore.hasPermission && CargoStore.hasPermission('auctions.close') && isOpen && !hideCloseBtn) ? `
+                            <button type="button" onclick="handleCloseAuction(${a.id})" class="inline-flex items-center gap-1 bg-amber-500 hover:bg-amber-600 text-white font-semibold px-2.5 py-1.5 rounded-lg transition shadow-2xs cursor-pointer" title="Chốt phiên đấu giá ngay">
+                                <i class="fa-solid fa-gavel text-xs"></i> Chốt phiên
+                            </button>
+                        ` : ''}
+                        ${(typeof CargoStore !== 'undefined' && CargoStore.hasPermission && CargoStore.hasPermission('auctions.edit') && canEdit) ? `
+                            <button type="button" onclick="openEditModal(${a.id})" class="inline-flex items-center gap-1 bg-slate-100 hover:bg-slate-200 text-slate-700 font-semibold px-2.5 py-1.5 rounded-lg transition shadow-2xs cursor-pointer" title="Sửa thông số chuyến bay">
+                                <i class="fa-solid fa-pen text-xs"></i> Sửa
+                            </button>
+                        ` : ''}
+                        ${(typeof CargoStore !== 'undefined' && CargoStore.hasPermission && CargoStore.hasPermission('auctions.remove') && (isOpen || a.status === 'UPCOMING')) ? (
+                            !hasBids ? `
+                                <button type="button" onclick="handleDeleteAuction(${a.id}, '${a.flightNumber}')" class="inline-flex items-center gap-1 bg-rose-50 hover:bg-rose-600 text-rose-600 hover:text-white font-semibold px-2.5 py-1.5 rounded-lg transition shadow-2xs cursor-pointer" title="Xóa phiên đấu giá (chưa có đặt giá)">
+                                    <i class="fa-solid fa-trash text-xs"></i> Xóa
+                                </button>
+                            ` : `
+                                <button type="button" onclick="handleCancelAuction(${a.id}, '${a.flightNumber}')" class="inline-flex items-center gap-1 bg-orange-50 hover:bg-orange-600 text-orange-600 hover:text-white font-semibold px-2.5 py-1.5 rounded-lg transition shadow-2xs cursor-pointer" title="Hủy chuyến bay & hoàn tiền">
+                                    <i class="fa-solid fa-plane-circle-xmark text-xs"></i> Hủy chuyến
+                                </button>
+                            `
+                        ) : ''}
                     </td>
                 </tr>
             `;
@@ -1402,6 +1443,10 @@
             const paginatedList = list.slice(startIndex, endIndex);
 
             const tbody = document.getElementById('auctionsTableBody');
+            const btnCreate = document.getElementById('btnCreateAuctionHeader');
+            if (btnCreate) {
+                btnCreate.style.display = (CargoStore.hasPermission && CargoStore.hasPermission('auctions.create')) ? '' : 'none';
+            }
             if (tbody) {
                 if (totalAllItems === 0) {
                     tbody.innerHTML = `<tr><td colspan="7" class="py-12 text-center text-gray-400">Không tìm thấy phiên đấu giá nào</td></tr>`;
@@ -1453,6 +1498,10 @@
         }
 
         async function handleCloseAuction(id) {
+            if (window.CargoStore && CargoStore.hasPermission && !CargoStore.hasPermission('auctions.close')) {
+                alert('Từ chối quyền: Tài khoản của bạn không có quyền Chốt phiên đấu giá (auctions.close)!');
+                return;
+            }
             const ok = window.showConfirm ? await window.showConfirm('Bạn có chắc chắn muốn chốt phiên đấu giá này và công bố đại lý trúng thầu ngay?') : confirm('Bạn có chắc chắn muốn chốt phiên đấu giá này và công bố đại lý trúng thầu ngay?');
             if (ok) {
                 const res = CargoStore.closeAuction(id);
@@ -1470,6 +1519,10 @@
 
         // --- Delete (no bids, simple confirm) ---
         function handleDeleteAuction(id, flightNumber) {
+            if (window.CargoStore && CargoStore.hasPermission && !CargoStore.hasPermission('auctions.remove')) {
+                alert('Từ chối quyền: Tài khoản của bạn không có quyền Xóa phiên đấu giá (auctions.remove)!');
+                return;
+            }
             const data = (typeof CargoStore !== 'undefined' && CargoStore.getData) ? CargoStore.getData() : {};
             const auction = (data.auctions || []).find(a => a.id == id);
             if (!auction) return;
@@ -1486,6 +1539,10 @@
 
         function submitDeleteAuction(e) {
             e.preventDefault();
+            if (window.CargoStore && CargoStore.hasPermission && !CargoStore.hasPermission('auctions.remove')) {
+                alert('Từ chối quyền: Tài khoản của bạn không có quyền Xóa phiên đấu giá (auctions.remove)!');
+                return;
+            }
             const id = document.getElementById('deleteAuctionId').value;
             const res = CargoStore.deleteAuction(id);
             if (res.success) {
@@ -1499,6 +1556,10 @@
 
         // --- Cancel (has bids, with reason + refund) ---
         function handleCancelAuction(id, flightNumber) {
+            if (window.CargoStore && CargoStore.hasPermission && !CargoStore.hasPermission('auctions.remove')) {
+                alert('Từ chối quyền: Tài khoản của bạn không có quyền Hủy phiên đấu giá (auctions.remove)!');
+                return;
+            }
             const data = (typeof CargoStore !== 'undefined' && CargoStore.getData) ? CargoStore.getData() : {};
             const auction = (data.auctions || []).find(a => a.id == id);
             if (!auction) return;
@@ -1533,6 +1594,10 @@
 
         function submitCancelAuction(e) {
             e.preventDefault();
+            if (window.CargoStore && CargoStore.hasPermission && !CargoStore.hasPermission('auctions.remove')) {
+                alert('Từ chối quyền: Tài khoản của bạn không có quyền Hủy phiên đấu giá (auctions.remove)!');
+                return;
+            }
             const id = document.getElementById('cancelAuctionId').value;
             const reason = document.getElementById('cancelReasonInput').value.trim();
             const refundNote = document.getElementById('cancelRefundInput').value.trim();
@@ -1571,6 +1636,10 @@
 
         // --- Edit Modal Handlers ---
         function openEditModal(id) {
+            if (window.CargoStore && CargoStore.hasPermission && !CargoStore.hasPermission('auctions.edit')) {
+                alert('Từ chối quyền: Tài khoản của bạn không có quyền Sửa thông số phiên đấu giá (auctions.edit)!');
+                return;
+            }
             const auction = CargoStore.getAuctionById(id);
             if (!auction) return;
 
@@ -1595,6 +1664,10 @@
 
         function handleSaveEdit(e) {
             e.preventDefault();
+            if (window.CargoStore && CargoStore.hasPermission && !CargoStore.hasPermission('auctions.edit')) {
+                alert('Từ chối quyền: Tài khoản của bạn không có quyền Sửa thông số phiên đấu giá (auctions.edit)!');
+                return;
+            }
             const id = Number(document.getElementById('editAuctionId').value);
             const extend = Number(document.getElementById('editExtendTime').value);
             const reopen = document.getElementById('editReopen').checked;
@@ -1956,39 +2029,52 @@
                             ${item.paidAt ? `<p class="text-[10px] text-slate-400 mt-0.5">Xác nhận: ${item.paidAt}</p>` : ''}
                         </td>
                         <td class="py-3.5 px-4 text-right whitespace-nowrap">
-                            ${(isExpired || isCancelledAfterPayment) ? (() => {
-                        const refundStatus = item.refundStatus || null;
-                        const refundInfo = item.refundBankInfo || null;
-                        if (refundStatus === 'REFUNDED') {
-                            return `<span class="inline-flex items-center gap-1 text-emerald-700 font-bold text-xs bg-emerald-50 px-3 py-1.5 rounded-xl border border-emerald-200">
-                                        <i class="fa-solid fa-check"></i> Đã hoàn tiền
-                                    </span>`;
-                        } else if (refundStatus === 'PENDING' && refundInfo) {
-                            return `<div class="flex flex-col items-end gap-1">
-                                        <button onclick="openAdminRefundModal('${item.wonId}')" class="inline-flex items-center gap-1 bg-indigo-600 hover:bg-indigo-700 text-white font-bold px-2.5 py-1.5 rounded-xl text-xs transition shadow-sm cursor-pointer">
-                                            <i class="fa-solid fa-money-bill-transfer"></i> Xác nhận hoàn tiền
-                                        </button>
-                                        <span class="text-[10px] text-indigo-600 font-semibold">${refundInfo.accountNumber} (${refundInfo.bankName})</span>
-                                    </div>`;
-                        } else {
-                            return `<span class="inline-flex items-center gap-1 text-slate-400 font-bold text-xs bg-slate-100 px-3 py-1.5 rounded-xl border border-slate-200 cursor-not-allowed">
-                                        <i class="fa-solid fa-clock text-slate-400"></i> Chờ đại lý gửi TK hoàn
-                                    </span>`;
-                        }
-                    })() : (isPaid ? `
-                                <span class="inline-flex items-center gap-1 text-emerald-700 font-bold text-xs bg-emerald-50 px-3 py-1.5 rounded-xl border border-emerald-200">
-                                    <i class="fa-solid fa-check"></i> Đã nhận đủ tiền
-                                </span>
-                            ` : `
-                                <div class="flex items-center justify-end gap-1.5">
-                                    <button onclick="handleAdminConfirmPayment('${item.wonId}')" class="inline-flex items-center gap-1 bg-emerald-600 hover:bg-emerald-700 text-white font-bold px-2.5 py-1.5 rounded-xl text-xs transition shadow-sm cursor-pointer" title="Xác nhận nhận đủ tiền">
-                                        <i class="fa-solid fa-receipt"></i> Duyệt tiền
-                                    </button>
-                                    <button onclick="openAdminRejectPaymentModal('${item.wonId}')" class="inline-flex items-center gap-1 bg-rose-600 hover:bg-rose-700 text-white font-bold px-2 py-1.5 rounded-xl text-xs transition shadow-sm cursor-pointer" title="Từ chối biên lai & Yêu cầu nộp lại">
-                                        <i class="fa-solid fa-circle-xmark"></i> Từ chối
-                                    </button>
-                                </div>
-                            `)}
+                            ${(() => {
+                                const canSettle = Boolean(window.CargoStore && (CargoStore.hasPermission ? CargoStore.hasPermission('auctions.settle_select_winner') : CargoStore.hasSettlementRole()));
+                                if (isExpired || isCancelledAfterPayment) {
+                                    const refundStatus = item.refundStatus || null;
+                                    const refundInfo = item.refundBankInfo || null;
+                                    if (refundStatus === 'REFUNDED') {
+                                        return `<span class="inline-flex items-center gap-1 text-emerald-700 font-bold text-xs bg-emerald-50 px-3 py-1.5 rounded-xl border border-emerald-200">
+                                                    <i class="fa-solid fa-check"></i> Đã hoàn tiền
+                                                </span>`;
+                                    } else if (refundStatus === 'PENDING' && refundInfo) {
+                                        if (!canSettle) {
+                                            return `<span class="inline-flex items-center gap-1 text-indigo-700 font-semibold text-xs bg-indigo-50 px-2.5 py-1.5 rounded-xl border border-indigo-200">
+                                                        <i class="fa-solid fa-clock"></i> Chờ duyệt hoàn tiền
+                                                    </span>`;
+                                        }
+                                        return `<div class="flex flex-col items-end gap-1">
+                                                    <button onclick="openAdminRefundModal('${item.wonId}')" class="inline-flex items-center gap-1 bg-indigo-600 hover:bg-indigo-700 text-white font-bold px-2.5 py-1.5 rounded-xl text-xs transition shadow-sm cursor-pointer">
+                                                        <i class="fa-solid fa-money-bill-transfer"></i> Xác nhận hoàn tiền
+                                                    </button>
+                                                    <span class="text-[10px] text-indigo-600 font-semibold">${refundInfo.accountNumber} (${refundInfo.bankName})</span>
+                                                </div>`;
+                                    } else {
+                                        return `<span class="inline-flex items-center gap-1 text-slate-400 font-bold text-xs bg-slate-100 px-3 py-1.5 rounded-xl border border-slate-200 cursor-not-allowed">
+                                                    <i class="fa-solid fa-clock text-slate-400"></i> Chờ đại lý gửi TK hoàn
+                                                </span>`;
+                                    }
+                                } else if (isPaid) {
+                                    return `<span class="inline-flex items-center gap-1 text-emerald-700 font-bold text-xs bg-emerald-50 px-3 py-1.5 rounded-xl border border-emerald-200">
+                                                <i class="fa-solid fa-check"></i> Đã nhận đủ tiền
+                                            </span>`;
+                                } else {
+                                    if (!canSettle) {
+                                        return `<span class="inline-flex items-center gap-1 text-slate-400 font-semibold text-xs bg-slate-100 px-2.5 py-1.5 rounded-xl border border-slate-200">
+                                                    <i class="fa-solid fa-lock text-[10px]"></i> Chờ đối soát
+                                                </span>`;
+                                    }
+                                    return `<div class="flex items-center justify-end gap-1.5">
+                                                <button onclick="handleAdminConfirmPayment('${item.wonId}')" class="inline-flex items-center gap-1 bg-emerald-600 hover:bg-emerald-700 text-white font-bold px-2.5 py-1.5 rounded-xl text-xs transition shadow-sm cursor-pointer" title="Xác nhận nhận đủ tiền">
+                                                    <i class="fa-solid fa-receipt"></i> Duyệt tiền
+                                                </button>
+                                                <button onclick="openAdminRejectPaymentModal('${item.wonId}')" class="inline-flex items-center gap-1 bg-rose-600 hover:bg-rose-700 text-white font-bold px-2 py-1.5 rounded-xl text-xs transition shadow-sm cursor-pointer" title="Từ chối biên lai & Yêu cầu nộp lại">
+                                                    <i class="fa-solid fa-circle-xmark"></i> Từ chối
+                                                </button>
+                                            </div>`;
+                                }
+                            })()}
                         </td>
                     </tr>
                 `;

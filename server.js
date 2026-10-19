@@ -858,10 +858,11 @@ const server = http.createServer((req, res) => {
         }
         if (!Array.isArray(serverData.chats)) serverData.chats = [];
 
-        const agentCode = parsedUrl.searchParams.get('agentCode');
+        const rawAgentCode = parsedUrl.searchParams.get('agentCode');
+        const agentCode = (rawAgentCode && rawAgentCode !== 'null' && rawAgentCode !== 'undefined') ? String(rawAgentCode).trim().toUpperCase() : null;
         const role = String(parsedUrl.searchParams.get('role') || '').toLowerCase();
-        const isAdminPrivileged = role === 'admin';
-        const isStaffRole = role === 'staff';
+        const isAdminPrivileged = role === 'admin' && !agentCode;
+        const isStaffRole = role === 'staff' && !agentCode;
 
         // Deep copy data payload for security sanitization
         let clientPayload = JSON.parse(JSON.stringify(serverData));
@@ -899,7 +900,8 @@ const server = http.createServer((req, res) => {
             // Anonymize competitor identities (agentCode & agentName) for competitors
             // so each agent only sees their own identity, while all competitors are shown as "Đại lý ẩn danh (AG-***)"
             clientPayload.bids = (clientPayload.bids || []).map(b => {
-                const isMine = agentCode && String(b.agentCode || '').trim().toUpperCase() === String(agentCode).trim().toUpperCase();
+                const bCode = String(b.agentCode || '').trim().toUpperCase();
+                const isMine = agentCode && bCode === agentCode;
                 if (isMine) return b;
                 return {
                     ...b,
@@ -912,7 +914,8 @@ const server = http.createServer((req, res) => {
             // Mask leading agent name in OPEN auction summaries for competitors
             (clientPayload.auctions || []).forEach(a => {
                 if (a.status === 'OPEN' && a.isAnonymous !== false) {
-                    if (!agentCode || String(a.leadingAgentCode || '').toUpperCase() !== String(agentCode).toUpperCase()) {
+                    const leadCode = String(a.leadingAgentCode || '').trim().toUpperCase();
+                    if (!agentCode || leadCode !== agentCode) {
                         a.leadingAgentCode = 'AG-***';
                         a.leadingAgentName = 'Đại lý ẩn danh (AG-***)';
                     }

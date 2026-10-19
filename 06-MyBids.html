@@ -385,10 +385,11 @@
         function renderBids() {
             const u = CargoStore.getCurrentUser ? CargoStore.getCurrentUser() : null;
             if (u) {
+                const displayCode = u.agentCode || u.code || 'AG-0892';
                 document.getElementById('hdrCompany').textContent = u.companyName || 'ABC Logistics';
-                document.getElementById('hdrCode').textContent = u.agentCode || 'AG-0892';
-                document.getElementById('hdrAvatar').textContent = (u.agentCode || 'AG').slice(0,2);
-                document.getElementById('myBidsAgentCode').textContent = u.agentCode || 'AG-0892';
+                document.getElementById('hdrCode').textContent = displayCode;
+                document.getElementById('hdrAvatar').textContent = displayCode.slice(0,2);
+                document.getElementById('myBidsAgentCode').textContent = displayCode;
             }
 
             const myBids = CargoStore.getMyBids() || [];

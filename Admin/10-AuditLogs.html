@@ -15,9 +15,15 @@
     </style>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Exo:ital,wght@0,100;0,200;0,300;0,400;0,500;0,531;0,600;0,700;0,800;0,900;1,100;1,200;1,300;1,400;1,500;1,531;1,600;1,700;1,800;1,900" rel="stylesheet" />
+    <link
+        href="https://fonts.googleapis.com/css2?family=Exo:ital,wght@0,100;0,200;0,300;0,400;0,500;0,531;0,600;0,700;0,800;0,900;1,100;1,200;1,300;1,400;1,500;1,531;1,600;1,700;1,800;1,900"
+        rel="stylesheet" />
     <style>
-        body, input, select, textarea, button {
+        body,
+        input,
+        select,
+        textarea,
+        button {
             font-family: 'Exo', sans-serif;
         }
     </style>
@@ -830,27 +836,83 @@
             return false;
         }
 
+        function findAuctionForLog(log) {
+            if (!log) return null;
+            const store = (typeof CargoStore !== 'undefined') ? CargoStore : null;
+            const data = (store && store.getData) ? store.getData() : {};
+            const auctions = (store && store.getAuctions) ? store.getAuctions() : (data.auctions || []);
+
+            const targetStr = String(log.target || '').trim().toUpperCase();
+            const detailsStr = String(log.details || '').toUpperCase();
+
+            // 1. Direct match on target (e.g. flightNumber VU236, flightCode, id)
+            let found = auctions.find(a => {
+                if (!a) return false;
+                const fn = String(a.flightNumber || '').trim().toUpperCase();
+                const fc = String(a.flightCode || '').trim().toUpperCase();
+                const idStr = String(a.id || '');
+                if (targetStr && (targetStr === fn || targetStr === fc || targetStr === idStr || targetStr === `AUC-${idStr}`)) return true;
+                return false;
+            });
+
+            if (found) return found;
+
+            // 2. Search flightNumber in target or details text
+            found = auctions.find(a => {
+                if (!a) return false;
+                const fn = String(a.flightNumber || '').trim().toUpperCase();
+                if (fn && (targetStr.includes(fn) || detailsStr.includes(fn))) return true;
+                return false;
+            });
+
+            return found || null;
+        }
+
+        function isLogAuctionOpen(log) {
+            const auction = findAuctionForLog(log);
+            if (auction) {
+                if (auction.status === 'OPEN') {
+                    const timer = (typeof CargoStore !== 'undefined' && CargoStore.getTimeRemaining) ? CargoStore.getTimeRemaining(auction.endTime) : null;
+                    if (timer && timer.isEnded) {
+                        return false;
+                    }
+                    return true;
+                }
+                return false;
+            }
+            return false;
+        }
+
         function getMaskedLog(log) {
             if (!log) return {};
             if (!isBidLog(log)) return log;
 
             let maskedDetails = log.details || '';
             if (log.actor && log.actor !== 'N/A') {
-                maskedDetails = maskedDetails.split(log.actor).join('Đại lý ẩn danh (Bảo mật)');
+                maskedDetails = maskedDetails.split(log.actor).join('Đại lý ẩn danh');
             }
             if (log.username && log.username !== '-') {
                 maskedDetails = maskedDetails.split(log.username).join('AG-***');
             }
             maskedDetails = maskedDetails
                 .replace(/Đại lý\s+Đại lý ẩn danh/g, 'Đại lý ẩn danh')
-                .replace(/Đại lý ẩn danh \(Bảo mật\)\s*\(\s*AG-\*\*\*\s*\)/g, 'Đại lý ẩn danh (Bảo mật)')
-                .replace(/Đại lý ẩn danh \(Bảo mật\)\s*\(\s*Mã:\s*AG-\*\*\*\s*\)/g, 'Đại lý ẩn danh (Bảo mật)');
+                .replace(/Đại lý ẩn danh \(Bảo mật\)\s*\(\s*AG-\*\*\*\s*\)/g, 'Đại lý ẩn danh')
+                .replace(/Đại lý ẩn danh \(Bảo mật\)\s*\(\s*Mã:\s*AG-\*\*\*\s*\)/g, 'Đại lý ẩn danh');
 
-            maskedDetails = maskedDetails.replace(/^Đại lý\s+.*?\s+đặt thầu/i, 'Đại lý ẩn danh (Bảo mật) đặt thầu');
+            maskedDetails = maskedDetails.replace(/^Đại lý\s+.*?\s+đặt thầu/i, 'Đại lý ẩn danh đặt thầu');
+
+            // 🔒 Ẩn mức giá khi phiên đấu giá ĐANG MỞ, chỉ công bố giá khi phiên ĐÃ ĐÓNG / KẾT THÚC
+            const isOpen = isLogAuctionOpen(log);
+            if (isOpen) {
+                maskedDetails = maskedDetails.replace(
+                    /((?:mức giá|chào giá|giá đặt|đặt giá)\s+)[\d.,]+(?:\s*(?:đ\/Kg|đ\/kg|đ|VND|\/Kg|\/kg))?/gi,
+                    '$1??? đ/Kg'
+                );
+            }
 
             return {
                 ...log,
-                actor: 'Đại lý ẩn danh (Bảo mật)',
+                actor: 'Đại lý ẩn danh',
                 username: 'AG-***',
                 displayActorHtml: '<div class="font-bold text-slate-700 italic flex items-center gap-1.5"><i class="fa-solid fa-user-shield text-slate-400 text-xs"></i>Đại lý ẩn danh (Bảo mật)</div><div class="text-[11px] font-mono text-slate-400">@AG-*** (Bảo mật)</div>',
                 displayDetails: maskedDetails
