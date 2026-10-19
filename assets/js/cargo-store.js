@@ -248,13 +248,13 @@ const CargoStore = (function () {
                 aircraft: 'Airbus A321neo Cargo',
                 capacityKg: 3500,
                 startingPriceKg: 18000,
-                currentPriceKg: 56500,
+                currentPriceKg: 18000,
                 minStep: 500,
                 endTime: new Date(Date.now() + 48 * 60 * 1000).toISOString(),
                 status: 'OPEN',
-                leadingAgentCode: 'AG-0892',
-                leadingAgentName: 'ABC Logistics',
-                bidsCount: 10,
+                leadingAgentCode: null,
+                leadingAgentName: null,
+                bidsCount: 0,
                 specialNotes: 'Hàng tổng hợp, hỗ trợ kho lạnh bảo quản thực phẩm & dược phẩm.',
                 cutOffTime: '17:45 · 15/09/2026',
                 isAnonymous: true
@@ -430,30 +430,6 @@ const CargoStore = (function () {
         ],
         bids: [
             {
-                id: Date.now() - 3 * 60 * 1000,
-                timestamp: Date.now() - 3 * 60 * 1000,
-                auctionId: 1,
-                agentCode: 'AG-0892',
-                agentName: 'ABC Logistics',
-                isAnonymous: true,
-                priceKg: 56500,
-                time: '3 phút trước',
-                status: 'RECEIVED',
-                weightKg: 3500
-            },
-            {
-                id: Date.now() - 6 * 60 * 1000,
-                timestamp: Date.now() - 6 * 60 * 1000,
-                auctionId: 1,
-                agentCode: 'AG-0892',
-                agentName: 'ABC Logistics',
-                isAnonymous: true,
-                priceKg: 56000,
-                time: '6 phút trước',
-                status: 'RECEIVED',
-                weightKg: 3500
-            },
-            {
                 id: Date.now() - 15 * 60 * 1000,
                 timestamp: Date.now() - 15 * 60 * 1000,
                 auctionId: 1,
@@ -510,18 +486,6 @@ const CargoStore = (function () {
                 isAnonymous: true,
                 priceKg: 23000,
                 time: '48 phút trước',
-                status: 'RECEIVED',
-                weightKg: 3500
-            },
-            {
-                id: Date.now() - 52 * 60 * 1000,
-                timestamp: Date.now() - 52 * 60 * 1000,
-                auctionId: 1,
-                agentCode: 'AG-0892',
-                agentName: 'ABC Logistics',
-                isAnonymous: true,
-                priceKg: 21500,
-                time: '52 phút trước',
                 status: 'RECEIVED',
                 weightKg: 3500
             },
@@ -2470,6 +2434,11 @@ const CargoStore = (function () {
 
             // ITD ADMIN / ADMIN has supreme access to all features
             if (rolesList.includes('ITD_ADMIN') || rolesList.includes('ADMIN')) {
+                return true;
+            }
+
+            // Settlement & adjustment permissions: AUCTION_SETTLEMENT, COD_ADMIN, COD
+            if (rUpper === 'AUCTION_SETTLEMENT' && (rolesList.includes('COD_ADMIN') || rolesList.includes('COD ADMIN') || rolesList.includes('COD') || rolesList.includes('AUCTION_SETTLEMENT') || rolesList.includes('SETTLEMENT'))) {
                 return true;
             }
 
@@ -4608,14 +4577,14 @@ const CargoStore = (function () {
                 actionTitle: 'Chốt thầu / Đóng phiên đấu giá',
                 target: auction.flightNumber,
                 details: `Đóng phiên chuyến bay ${auction.flightNumber} (${auction.route}). ` +
-                    (highestBid ? (isSingleAgent ? `Chỉ có 1 đại lý tham gia (${highestBid.agentName}), tự động xác nhận và chốt thầu chính thức.` : `Tự động xác nhận đại lý cao nhất: ${highestBid.agentName} (${highestBid.agentCode}), Giá: ${this.formatCurrency(highestBid.priceKg)}/Kg. Bắt đầu thời gian xem xét (${configReviewMins} phút).`) : 'Không có đại lý trúng thầu.')
+                    (highestBid ? (isSingleAgent ? `Chỉ có 1 đại lý tham gia (${highestBid.agentName}), tự động xác nhận và chốt thầu chính thức.` : `Tự động xác nhận đại lý cao nhất: ${highestBid.agentName} (${highestBid.agentCode}), Giá: ${this.formatCurrency(highestBid.priceKg)}/Kg. Bắt đầu thời gian điều chỉnh (${configReviewMins} phút).`) : 'Không có đại lý trúng thầu.')
             });
             return {
                 success: true,
                 auction: auction,
                 message: isSingleAgent
                     ? `Phiên chỉ có 1 đại lý tham gia (${highestBid ? highestBid.agentName : ''}). Hệ thống đã tự động xác nhận và chốt thầu chính thức!`
-                    : `Đã chốt phiên thành công! Hệ thống tự động xác nhận đại lý cao nhất: ${highestBid ? highestBid.agentName : ''} (${this.formatCurrency(highestBid ? highestBid.priceKg : 0)}/Kg). Bắt đầu thời gian xem xét ${configReviewMins} phút theo cấu hình.`
+                    : `Đã chốt phiên thành công! Hệ thống tự động xác nhận đại lý cao nhất: ${highestBid ? highestBid.agentName : ''} (${this.formatCurrency(highestBid ? highestBid.priceKg : 0)}/Kg). Bắt đầu thời gian điều chỉnh ${configReviewMins} phút theo cấu hình.`
             };
         },
 
@@ -4664,24 +4633,26 @@ const CargoStore = (function () {
             const isSingleAgent = uniqueAgentCodes.length <= 1;
 
             let isFinalLocked = false;
-            if (isSingleAgent) {
-                isFinalLocked = true;
-                if (!auction.isFinalLocked) {
-                    auction.isFinalLocked = true;
-                    auction.finalLockedAt = auction.closedAt || new Date().toISOString();
-                    saveData(data);
-                }
-            } else {
-                // Có từ 2 đại lý trở lên: kiểm tra xem đã hết thời gian xem xét hay chưa
-                const isExpiredByTime = (auction.status === 'CLOSED' && auction.reviewDeadline)
-                    ? (Date.now() >= new Date(auction.reviewDeadline).getTime())
-                    : false;
+            if (auction.status === 'CLOSED') {
+                if (isSingleAgent) {
+                    isFinalLocked = true;
+                    if (!auction.isFinalLocked) {
+                        auction.isFinalLocked = true;
+                        auction.finalLockedAt = auction.closedAt || new Date().toISOString();
+                        saveData(data);
+                    }
+                } else {
+                    // Có từ 2 đại lý trở lên: kiểm tra xem đã hết thời gian điều chỉnh hay chưa
+                    const isExpiredByTime = auction.reviewDeadline
+                        ? (Date.now() >= new Date(auction.reviewDeadline).getTime())
+                        : false;
 
-                isFinalLocked = Boolean(auction.isFinalLocked) || isExpiredByTime;
-                if (isExpiredByTime && !auction.isFinalLocked) {
-                    auction.isFinalLocked = true;
-                    auction.finalLockedAt = new Date().toISOString();
-                    saveData(data);
+                    isFinalLocked = Boolean(auction.isFinalLocked) || isExpiredByTime;
+                    if (isExpiredByTime && !auction.isFinalLocked) {
+                        auction.isFinalLocked = true;
+                        auction.finalLockedAt = new Date().toISOString();
+                        saveData(data);
+                    }
                 }
             }
 
@@ -4839,23 +4810,23 @@ const CargoStore = (function () {
             const data = loadData();
             const currentAdmin = this.getCurrentAdmin ? this.getCurrentAdmin() : data.currentAdmin;
 
-            // KIỂM TRA PHÂN QUYỀN ĐỘC LẬP: Chỉ AUCTION SETTLEMENT hoặc ITD ADMIN có thẩm quyền Reject & Chuyển đại lý!
+            // KIỂM TRA PHÂN QUYỀN: AUCTION SETTLEMENT, COD ADMIN hoặc ITD ADMIN có thẩm quyền thay đổi đại lý thắng thầu!
             if (!this.hasSettlementRole(currentAdmin)) {
                 return { 
                     success: false, 
-                    message: 'Quyền bị từ chối: Thao tác Reject đại lý & điều chuyển thầu thuộc thẩm quyền độc quyền của Quản trị viên Chốt thầu (AUCTION SETTLEMENT) hoặc ITD Admin!' 
+                    message: 'Quyền bị từ chối: Thao tác thay đổi đại lý thắng thầu & điều chuyển thuộc thẩm quyền của Quản trị viên Chốt thầu (AUCTION SETTLEMENT / COD ADMIN) hoặc ITD Admin!' 
                 };
             }
 
             const auction = (data.auctions || []).find(a => a.id == auctionId);
             if (!auction) return { success: false, message: 'Không tìm thấy chuyến bay.' };
 
-            // Kiểm tra xem đã hết thời gian xem xét cấu hình chưa
+            // Kiểm tra xem đã hết thời gian điều chỉnh cấu hình chưa
             const isLocked = auction.isFinalLocked || (auction.reviewDeadline && Date.now() >= new Date(auction.reviewDeadline).getTime());
             if (isLocked) {
                 return {
                     success: false,
-                    message: 'Phiên đấu giá đã hết thời gian xem xét hoặc đã được khóa chính thức. Chức năng Reject đã bị vô hiệu hóa.'
+                    message: 'Phiên đấu giá đã hết thời gian điều chỉnh hoặc đã được chốt thầu chính thức. Chức năng thay đổi đại lý thắng thầu đã được đóng.'
                 };
             }
 
@@ -4995,15 +4966,15 @@ const CargoStore = (function () {
             saveData(data);
 
             // 5. GHI AUDIT LOG HỆ THỐNG TOÀN DIỆN (hiển thị trên trang 10-AuditLogs.html)
-            const executorRoles = (currentAdmin && Array.isArray(currentAdmin.roles)) ? currentAdmin.roles.join(', ') : ((currentAdmin && currentAdmin.role) || 'AUCTION_SETTLEMENT');
+            const executorRoles = (currentAdmin && Array.isArray(currentAdmin.roles)) ? currentAdmin.roles.join(', ') : ((currentAdmin && currentAdmin.role) || 'COD_ADMIN');
             this.logActivity({
                 actor: (currentAdmin && currentAdmin.fullName) || 'Vũ Thẩm Định',
-                username: (currentAdmin && currentAdmin.username) || 'settler01',
+                username: (currentAdmin && currentAdmin.username) || 'cod_admin',
                 role: executorRoles,
                 actionCategory: 'Chốt thầu & Điều chuyển',
-                actionTitle: 'Reject đại lý & Tự động chuyển thầu dự phòng',
+                actionTitle: 'Thay đổi đại lý thắng thầu & Tự động chuyển dự phòng',
                 target: auction.flightNumber,
-                details: `[${executorRoles}] ${(currentAdmin && currentAdmin.fullName) || 'Quản trị viên'} đã REJECT đại lý ${previousWinnerName} (${previousWinnerCode}, mức giá ${this.formatCurrency(previousPrice)}/Kg). Hệ thống tự động chuyển quyền trúng thầu cho đại lý kế tiếp: ${nextCandidate.agentName} (${nextCandidate.agentCode}, mức giá ${this.formatCurrency(nextCandidate.priceKg)}/Kg). Lý do: ${reason}. Ghi chú kiểm toán: ${note || 'Không có'}.`
+                details: `[${executorRoles}] ${(currentAdmin && currentAdmin.fullName) || 'Quản trị viên'} đã hủy tư cách thắng thầu của đại lý ${previousWinnerName} (${previousWinnerCode}, mức giá ${this.formatCurrency(previousPrice)}/Kg). Hệ thống tự động chuyển quyền trúng thầu cho đại lý kế tiếp: ${nextCandidate.agentName} (${nextCandidate.agentCode}, mức giá ${this.formatCurrency(nextCandidate.priceKg)}/Kg). Lý do: ${reason}. Ghi chú kiểm toán: ${note || 'Không có'}.`
             });
 
             if (typeof window !== 'undefined') {
@@ -5012,7 +4983,7 @@ const CargoStore = (function () {
 
             return {
                 success: true,
-                message: `Đã REJECT đại lý ${previousWinnerName}. Tự động chuyển quyền trúng thầu sang đại lý kế tiếp: ${nextCandidate.agentName} (${nextCandidate.agentCode}) với mức giá ${this.formatCurrency(nextCandidate.priceKg)}/Kg!`,
+                message: `Đã thay đổi đại lý thắng thầu. Hủy tư cách của đại lý ${previousWinnerName} và tự động chuyển quyền thắng thầu sang đại lý kế tiếp: ${nextCandidate.agentName} (${nextCandidate.agentCode}) với mức giá ${this.formatCurrency(nextCandidate.priceKg)}/Kg!`,
                 newWinner: nextCandidate
             };
         },
@@ -7321,9 +7292,22 @@ const CargoStore = (function () {
                 if (typeof localStorage !== 'undefined') {
                     // Clear any existing data so loadData() uses fresh defaultData
                     localStorage.removeItem(STORAGE_KEY);
-                    // Run loadData() so all migrations (auctionId remap, lockWaivedByAdmin, etc.)
-                    // are applied immediately, producing a clean and consistent state.
+                    localStorage.removeItem('CARGO_BIDDING_SERVER_VERSION');
                     const fresh = loadData();
+                    fresh.bids = [];
+                    fresh.wonAuctions = [];
+                    (fresh.auctions || []).forEach(a => {
+                        if (a.status === 'OPEN') {
+                            a.bidsCount = 0;
+                            a.currentPriceKg = a.startingPriceKg;
+                            a.leadingAgentCode = null;
+                            a.leadingAgentName = null;
+                            a.winnerAgentCode = null;
+                            a.winnerAgentName = null;
+                            a.winningPriceKg = 0;
+                        }
+                    });
+                    saveData(fresh);
                     window.dispatchEvent(new CustomEvent('cargostore_updated', { detail: fresh }));
                 }
             } catch (e) {

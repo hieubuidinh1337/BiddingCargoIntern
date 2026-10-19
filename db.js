@@ -640,6 +640,25 @@ async function seedFullData(data) {
     }
 }
 
+async function resetAllDataToDefault(seedData) {
+    console.log('[Database] Resetting all bidding data and database tables to default...');
+    await run('DELETE FROM bids;');
+    await run('DELETE FROM won_auctions;');
+    await run('DELETE FROM chat_messages;');
+    await run('DELETE FROM chats;');
+    await run('DELETE FROM notifications;');
+    await run(`
+        UPDATE auctions 
+        SET bidsCount = 0, currentPriceKg = startingPriceKg, 
+            leadingAgentCode = NULL, leadingAgentName = NULL, 
+            winnerAgentCode = NULL, winnerAgentName = NULL, winningPriceKg = 0
+        WHERE status = 'OPEN';
+    `);
+    if (seedData) {
+        await seedFullData(seedData);
+    }
+}
+
 // Assembly function to fetch full state object compatible with existing frontend expectations
 async function getFullServerData() {
     const auctions = await all('SELECT * FROM auctions ORDER BY id DESC');
@@ -1008,6 +1027,7 @@ module.exports = {
     exec,
     initDatabase,
     seedFullData,
+    resetAllDataToDefault,
     getFullServerData,
     placeBidAtomic,
     ensureAgentExists,

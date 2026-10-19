@@ -410,14 +410,19 @@
             let bids = CargoStore.getBidsForAuction(currentAuction.id);
             const topBid = bids.length > 0 ? bids[0] : null;
 
-            const isTopBidMine = !!(topBid && myCode && (topBid.agentCode || '').trim().toUpperCase() === myCode);
+            const rejectedList = ((currentAuction.rejectedAgents || []).concat(
+                (currentAuction.fallbackTransfers || []).map(t => t.fromAgentCode)
+            )).map(c => String(c).trim().toUpperCase());
+            const isMyCodeRejected = rejectedList.includes(myCode);
 
-            const isAuctionWinnerMine = !!(myCode && (
+            const isAuctionWinnerMine = !isMyCodeRejected && !!(myCode && (
                 ((currentAuction.winnerAgentCode || '').trim().toUpperCase() === myCode) ||
                 ((currentAuction.leadingAgentCode || '').trim().toUpperCase() === myCode)
             ));
 
-            const isWinner = isClosed && (isTopBidMine || isAuctionWinnerMine);
+            const isTopBidMine = !isMyCodeRejected && !currentAuction.winnerAgentCode && !!(topBid && myCode && (topBid.agentCode || '').trim().toUpperCase() === myCode);
+
+            const isWinner = isClosed && (isAuctionWinnerMine || isTopBidMine);
 
             // Winner Card vs Standard Bidding Form Box
             const winnerCardBox = document.getElementById('winnerCardBox');

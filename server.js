@@ -43,13 +43,13 @@ const defaultSharedData = {
             aircraft: 'Airbus A321neo Cargo',
             capacityKg: 3500,
             startingPriceKg: 18000,
-            currentPriceKg: 21500,
+            currentPriceKg: 18000,
             minStep: 500,
             endTime: new Date(Date.now() + 45 * 60 * 1000).toISOString(),
             status: 'OPEN',
-            leadingAgentCode: 'AG-0892',
-            leadingAgentName: 'ABC Logistics',
-            bidsCount: 7,
+            leadingAgentCode: null,
+            leadingAgentName: null,
+            bidsCount: 0,
             specialNotes: 'Hàng tổng hợp, hỗ trợ kho lạnh bảo quản thực phẩm & dược phẩm.',
             cutOffTime: '11:30 · 15/08/2026'
         },
@@ -131,30 +131,6 @@ const defaultSharedData = {
     ],
     bids: [
         {
-            id: Date.now() - 3 * 60 * 1000,
-            timestamp: Date.now() - 3 * 60 * 1000,
-            auctionId: 1,
-            agentCode: 'AG-0892',
-            agentName: 'ABC Logistics',
-            isAnonymous: true,
-            priceKg: 56500,
-            time: '3 phút trước',
-            status: 'RECEIVED',
-            weightKg: 3500
-        },
-        {
-            id: Date.now() - 6 * 60 * 1000,
-            timestamp: Date.now() - 6 * 60 * 1000,
-            auctionId: 1,
-            agentCode: 'AG-0892',
-            agentName: 'ABC Logistics',
-            isAnonymous: true,
-            priceKg: 56000,
-            time: '6 phút trước',
-            status: 'RECEIVED',
-            weightKg: 3500
-        },
-        {
             id: Date.now() - 15 * 60 * 1000,
             timestamp: Date.now() - 15 * 60 * 1000,
             auctionId: 1,
@@ -211,18 +187,6 @@ const defaultSharedData = {
             isAnonymous: true,
             priceKg: 23000,
             time: '48 phút trước',
-            status: 'RECEIVED',
-            weightKg: 3500
-        },
-        {
-            id: Date.now() - 52 * 60 * 1000,
-            timestamp: Date.now() - 52 * 60 * 1000,
-            auctionId: 1,
-            agentCode: 'AG-0892',
-            agentName: 'ABC Logistics',
-            isAnonymous: true,
-            priceKg: 21500,
-            time: '52 phút trước',
             status: 'RECEIVED',
             weightKg: 3500
         },
@@ -1993,33 +1957,50 @@ const server = http.createServer((req, res) => {
 
     // --- REST API: POST /api/reset ---
     if (pathname === '/api/reset' && req.method === 'POST') {
-        try {
-            serverData = JSON.parse(JSON.stringify(defaultSharedData));
-            serverData.version = Date.now();
+        (async () => {
+            try {
+                serverData = JSON.parse(JSON.stringify(defaultSharedData));
+                serverData.version = Date.now();
+                serverData.bids = [];
+                serverData.wonAuctions = [];
+                serverData.chats = [];
 
-            // Refresh open auctions end times to future
-            if (serverData.auctions && Array.isArray(serverData.auctions)) {
-                const now = Date.now();
-                serverData.auctions.forEach((a, idx) => {
-                    if (a.status === 'OPEN') {
-                        a.endTime = new Date(now + (idx === 0 ? 45 : (idx === 1 ? 90 : 120)) * 60 * 1000).toISOString();
-                    }
-                });
+                // Refresh open auctions end times to future and reset pricing
+                if (serverData.auctions && Array.isArray(serverData.auctions)) {
+                    const now = Date.now();
+                    serverData.auctions.forEach((a, idx) => {
+                        if (a.status === 'OPEN') {
+                            a.endTime = new Date(now + (idx === 0 ? 45 : (idx === 1 ? 90 : 120)) * 60 * 1000).toISOString();
+                            a.bidsCount = 0;
+                            a.currentPriceKg = a.startingPriceKg;
+                            a.leadingAgentCode = null;
+                            a.leadingAgentName = null;
+                            a.winnerAgentCode = null;
+                            a.winnerAgentName = null;
+                            a.winningPriceKg = 0;
+                        }
+                    });
+                }
+
+                if (db && typeof db.resetAllDataToDefault === 'function') {
+                    await db.resetAllDataToDefault(serverData);
+                } else {
+                    saveServerData();
+                }
+                console.log('[Server] Successfully reset all server data and database tables to default!');
+
+                res.writeHead(200, { 'Content-Type': 'application/json; charset=UTF-8' });
+                res.end(JSON.stringify({
+                    success: true,
+                    message: 'Đã khôi phục toàn bộ dữ liệu máy chủ về trạng thái mặc định ban đầu thành công!',
+                    version: serverData.version
+                }), 'utf-8');
+            } catch (err) {
+                console.error('[Server] Reset error:', err);
+                res.writeHead(500, { 'Content-Type': 'application/json' });
+                res.end(JSON.stringify({ success: false, error: err.message }));
             }
-
-            saveServerData();
-            console.log('[Server] Successfully reset all server data to defaultSharedData!');
-
-            res.writeHead(200, { 'Content-Type': 'application/json; charset=UTF-8' });
-            res.end(JSON.stringify({
-                success: true,
-                message: 'Đã khôi phục toàn bộ dữ liệu máy chủ về trạng thái mặc định ban đầu thành công!',
-                version: serverData.version
-            }), 'utf-8');
-        } catch (err) {
-            res.writeHead(500, { 'Content-Type': 'application/json' });
-            res.end(JSON.stringify({ success: false, error: err.message }));
-        }
+        })();
         return;
     }
 
