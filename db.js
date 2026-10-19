@@ -988,17 +988,10 @@ async function placeBidAtomic({ auctionId, agentCode, agentName, priceKg, isAnon
         endMs = new Date(renewedEndTime).getTime();
     }
 
-    const minStep = Number(auction.minStep) || 500;
-    const currentPrice = Number(auction.currentPriceKg) || Number(auction.startingPriceKg) || 0;
     const minPriceRequired = Number(auction.startingPriceKg) || 0;
 
     if (Number(priceKg) < minPriceRequired) {
         throw new Error(`Giá đặt (${new Intl.NumberFormat('vi-VN').format(priceKg)}đ) phải lớn hơn hoặc bằng giá tối thiểu (${new Intl.NumberFormat('vi-VN').format(minPriceRequired)}đ)`);
-    }
-
-    const diffFromMin = Math.round(Number(priceKg)) - Math.round(minPriceRequired);
-    if (diffFromMin > 0 && diffFromMin < Math.round(minStep)) {
-        throw new Error(`Mức giá đặt thầu (${new Intl.NumberFormat('vi-VN').format(priceKg)}đ) phải tăng tối thiểu +${new Intl.NumberFormat('vi-VN').format(minStep)}đ/Kg so với giá khởi điểm`);
     }
 
     const bidId = (clientBidId && /^BID-\d+-\d+$/.test(String(clientBidId)))

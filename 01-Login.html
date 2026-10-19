@@ -130,18 +130,12 @@
                             <i class="fa-solid fa-eye" id="eyeIcon"></i>
                         </button>
                     </div>
-                    <p class="text-[11px] text-slate-400 mt-1">Đại lý cũng có thể nhập trực tiếp mã PIN 4 số vào ô mật
-                        khẩu này.</p>
                 </div>
 
                 <!-- PIN Login Group -->
                 <div id="pinGroup" class="hidden">
                     <div class="flex items-center justify-between mb-1">
-                        <label class="block text-sm font-medium text-gray-700">Mã PIN bảo mật (4 chữ số)</label>
-                        <span
-                            class="text-[11px] text-indigo-700 font-semibold bg-indigo-50 px-2 py-0.5 rounded-lg border border-indigo-100">
-                            Mặc định: 1234
-                        </span>
+                        <label class="block text-sm font-medium text-gray-700">Mã PIN bảo mật</label>
                     </div>
                     <div class="relative">
                         <i
@@ -511,7 +505,8 @@
                     </div>
                     <div>
                         <h3 class="font-bold text-base text-slate-900 leading-tight">Mở khóa Tài khoản qua Email</h3>
-                        <p class="text-xs text-slate-500 mt-0.5">Xác thực mã OTP gửi về Email để kích hoạt lại tài khoản</p>
+                        <p class="text-xs text-slate-500 mt-0.5">Xác thực mã OTP gửi về Email để kích hoạt lại tài khoản
+                        </p>
                     </div>
                 </div>
                 <button type="button" onclick="closeUnlockAccountModal()"
@@ -522,17 +517,22 @@
 
             <!-- Modal Content -->
             <form onsubmit="handleVerifyUnlockOtp(event)" class="space-y-4 pt-4">
-                <div class="p-3.5 rounded-2xl bg-amber-50/90 border border-amber-200 text-xs text-amber-950 space-y-1.5">
+                <div
+                    class="p-3.5 rounded-2xl bg-amber-50/90 border border-amber-200 text-xs text-amber-950 space-y-1.5">
                     <div class="font-bold flex items-center justify-between text-amber-900">
                         <span class="flex items-center gap-1.5">
-                            <i class="fa-solid fa-triangle-exclamation text-amber-600"></i> Đã tạm khóa do sai 5 lần
+                            <i class="fa-solid fa-triangle-exclamation text-amber-600"></i> Đã tạm khóa do sai nhiều lần
                         </span>
-                        <span id="unlockTargetAgentCode" class="font-mono text-xs bg-white text-blue-700 px-2 py-0.5 rounded font-bold border border-amber-200"></span>
+                        <span id="unlockTargetAgentCode"
+                            class="font-mono text-xs bg-white text-blue-700 px-2 py-0.5 rounded font-bold border border-amber-200"></span>
                     </div>
                     <p class="text-[11px] text-amber-900 leading-relaxed">
-                        Hệ thống đã gửi email kèm mã xác thực OTP đến: <strong id="unlockTargetEmailDisplay" class="text-blue-800"></strong>.
+                        Hệ thống đã gửi email kèm mã xác thực OTP đến: <strong id="unlockTargetEmailDisplay"
+                            class="text-blue-800"></strong>.
                     </p>
-                    <div id="unlockOtpDevHint" class="hidden text-[10px] bg-amber-100/80 px-2 py-1 rounded text-amber-800 font-mono font-semibold"></div>
+                    <div id="unlockOtpDevHint"
+                        class="hidden text-[10px] bg-amber-100/80 px-2 py-1 rounded text-amber-800 font-mono font-semibold">
+                    </div>
                 </div>
 
                 <div>
@@ -908,7 +908,7 @@
             if (!credential) {
                 showError(
                     currentLoginMode === 'pin' ? 'Thiếu mã PIN' : 'Thiếu mật khẩu',
-                    currentLoginMode === 'pin' ? 'Vui lòng nhập mã PIN bảo mật 4 chữ số (Mặc định: 1234).' : 'Vui lòng nhập mật khẩu hoặc mã PIN 4 số.'
+                    currentLoginMode === 'pin' ? 'Vui lòng nhập mã PIN bảo mật.' : 'Vui lòng nhập mật khẩu hoặc mã PIN.'
                 );
                 return;
             }
@@ -937,7 +937,7 @@
                             </div>
                         </div>
                         `;
-                        showError('TÀI KHOẢN ĐÃ BỊ TẠM KHÓA (SAI 5 LẦN)', res.message.replace(/\n\n/g, '<br><br>'), actionBtn);
+                        showError('TÀI KHOẢN ĐÃ BỊ TẠM KHÓA', res.message.replace(/\n\n/g, '<br><br>'), actionBtn);
                     } else {
                         const actionBtn = `
                         <div class="mt-2.5 pt-2 border-t border-red-200 text-xs text-red-900">
@@ -967,7 +967,7 @@
                     const warnNotice = `
                     <div class="mt-2 pt-2 border-t border-amber-200 text-[11px] text-amber-900 flex items-center gap-1.5 font-medium">
                         <i class="fa-solid fa-triangle-exclamation text-amber-600"></i>
-                        <span>Cảnh báo bảo mật: Sai <strong>${res.failedAttempts}/5</strong> lần. Còn <strong>${res.remainingAttempts}</strong> lần thử trước khi tài khoản tự động khóa.</span>
+                        <span>Cảnh báo bảo mật: nhập sai nhiều lần sẽ bị khoá tài khoản.</span>
                     </div>
                     `;
                     showError('Đăng nhập không thành công', res.message.replace(/\n\n/g, '<br>'), warnNotice);
@@ -993,7 +993,7 @@
         function openUnlockAccountModal(agentCode, maskedEmail = '', otpHint = '') {
             currentUnlockTargetCode = (agentCode || document.getElementById('agentCode').value || '').trim();
             document.getElementById('unlockTargetAgentCode').textContent = currentUnlockTargetCode || 'AG-AGENT';
-            
+
             if (!maskedEmail && window.CargoStore) {
                 const data = CargoStore.loadData ? CargoStore.loadData() : null;
                 const ag = (data && data.agentsList || []).find(a => (a.code || '').toUpperCase() === currentUnlockTargetCode.toUpperCase());
@@ -1003,7 +1003,7 @@
                 }
             }
             document.getElementById('unlockTargetEmailDisplay').textContent = maskedEmail || 'email đăng ký';
-            
+
             const hintEl = document.getElementById('unlockOtpDevHint');
             if (otpHint) {
                 hintEl.textContent = `💡 Mã OTP mở khóa gửi về hòm thư: ${otpHint}`;
@@ -1093,7 +1093,7 @@
                     hintEl.textContent = `💡 Mã OTP mở khóa mới: ${res.unlockOtp}`;
                     hintEl.classList.remove('hidden');
                 }
-                
+
                 let countdown = 30;
                 btn.disabled = true;
                 btn.innerHTML = `<i class="fa-solid fa-clock"></i> Gửi lại sau (${countdown}s)`;

@@ -2893,7 +2893,7 @@ const CargoStore = (function () {
                 actionCategory: 'Phiên đấu giá',
                 actionTitle: 'Tạo mới phiên đấu giá',
                 target: flightNumber,
-                details: `Khởi tạo phiên đấu giá ${flightCode} (${origin} - ${dest}), cất cánh ${formattedEtd}. Tải trọng: ${this.formatNumber(capacityKg)} Kg, Giá sàn: ${this.formatCurrency(startingPriceKg)}/Kg, Bước giá: ${this.formatCurrency(minStep)}.`
+                details: `Khởi tạo phiên đấu giá ${flightCode} (${origin} - ${dest}), cất cánh ${formattedEtd}. Tải trọng: ${this.formatNumber(capacityKg)} Kg, Giá sàn: ${this.formatCurrency(startingPriceKg)}/Kg.`
             });
 
             return {
@@ -3154,22 +3154,12 @@ const CargoStore = (function () {
 
             const hasBids = (auction.bidsCount && auction.bidsCount > 0);
             const minAcceptable = auction.startingPriceKg || auction.currentPriceKg || 0;
-            const minStep = Number(auction.minStep) || 500;
 
             if (bidPriceKg < minAcceptable) {
                 return {
                     success: false,
                     message:
                         `Mức giá tối thiểu để đặt thầu là giá khởi điểm ${formatCurrency(minAcceptable)}/Kg`
-                };
-            }
-
-            const diffFromStart = Math.round(Number(bidPriceKg)) - Math.round(Number(minAcceptable));
-            if (diffFromStart > 0 && (diffFromStart < Math.round(minStep) || diffFromStart % Math.round(minStep) !== 0)) {
-                return {
-                    success: false,
-                    message:
-                        `Mức giá đặt thầu (${formatCurrency(bidPriceKg)}/Kg) không hợp lệ. Phải bằng giá sàn (${formatCurrency(minAcceptable)}/Kg) hoặc tăng theo bội số của bước giá +${formatCurrency(minStep)}/Kg.`
                 };
             }
 
@@ -3401,21 +3391,32 @@ const CargoStore = (function () {
             const pathname = (typeof window !== 'undefined' && window.location && window.location.pathname) ? window.location.pathname : '';
             const isAdminPage = pathname.includes('/Admin/') || pathname.includes('/admin/');
 
+            let list = [];
             if (isAdminPage) {
-                return data.bids || [];
+                list = data.bids || [];
+            } else {
+                const user = data.currentUser;
+                if (!user) {
+                    list = (data.bids || []).filter(b => !b.agentCode || String(b.agentCode).trim().toUpperCase() === 'AG-0892');
+                } else if (user.role === 'ADMIN' || user.role === 'STAFF') {
+                    list = data.bids || [];
+                } else {
+                    const code = String(user.agentCode || user.code || '').trim().toUpperCase();
+                    if (!code) list = data.bids || [];
+                    else {
+                        list = (data.bids || []).filter(b => {
+                            const bCode = String(b.agentCode || b.code || b.bidder || '').trim().toUpperCase();
+                            return bCode === code;
+                        });
+                    }
+                }
             }
-            const user = data.currentUser;
-            if (!user) {
-                return (data.bids || []).filter(b => !b.agentCode || String(b.agentCode).trim().toUpperCase() === 'AG-0892');
-            }
-            if (user.role === 'ADMIN' || user.role === 'STAFF') {
-                return data.bids || [];
-            }
-            const code = String(user.agentCode || user.code || '').trim().toUpperCase();
-            if (!code) return data.bids || [];
-            return (data.bids || []).filter(b => {
-                const bCode = String(b.agentCode || b.code || b.bidder || '').trim().toUpperCase();
-                return bCode === code;
+
+            // Return bids sorted descending: most recent first
+            return [...list].sort((a, b) => {
+                const tsA = parseTimestamp(a.timestamp || a.time || a.id);
+                const tsB = parseTimestamp(b.timestamp || b.time || b.id);
+                return tsB - tsA;
             });
         },
 
@@ -6114,15 +6115,20 @@ const CargoStore = (function () {
             const data = loadData();
             if (!data.notifications) data.notifications = [];
 
+            const notifId = Date.now();
             const newNotif = {
-                id: Date.now(),
+                id: notifId,
                 title: notifData.title || 'Thông báo từ Ban Điều hành Cargo',
                 message: notifData.message || '',
+                content: notifData.content || notifData.message || '',
                 time: 'Vừa xong',
                 type: notifData.type || 'SYSTEM',
                 read: false,
-                link: notifData.link || '02-Dashboard.html',
-                targetAgentCode: notifData.targetAgentCode || null
+                auctionId: notifData.auctionId || null,
+                link: `11-NotificationDetail.html?id=${notifId}`,
+                targetAgentCode: notifData.targetAgentCode || null,
+                sender: 'Ban Quản Trị Sàn Đấu Giá Cargo - Vietravel Airlines',
+                createdAt: new Date().toISOString()
             };
 
             data.notifications.unshift(newNotif);

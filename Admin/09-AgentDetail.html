@@ -815,6 +815,13 @@
                 };
             });
 
+            // Sắp xếp lịch sử đặt thầu: Gần đây nhất lên đầu (Mới -> Cũ)
+            enriched.sort((a, b) => {
+                const tsA = Number(a.timestamp || a.id) || 0;
+                const tsB = Number(b.timestamp || b.id) || 0;
+                return tsB - tsA;
+            });
+
             // Filter
             const filtered = enriched.filter(item => {
                 if (filter === 'ALL') return true;

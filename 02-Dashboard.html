@@ -627,17 +627,8 @@
                 const priceKg = input ? Number(input.value) : (dashInputCache[a.id] || startPrice);
                 const capKg = a.capacityKg || 3500;
                 const minAcceptable = a.startingPriceKg || a.currentPriceKg || 0;
-                const minStep = Number(a.minStep) || 500;
-
                 if (!priceKg || priceKg < minAcceptable) {
                     alert(`Mức giá chuyến ${a.flightNumber} tối thiểu phải từ giá sàn: ${CargoStore.formatCurrency(minAcceptable)}/Kg trở lên!`);
-                    if (input) input.focus();
-                    return;
-                }
-
-                const diffFromStart = Math.round(Number(priceKg)) - Math.round(Number(minAcceptable));
-                if (diffFromStart > 0 && (diffFromStart < Math.round(minStep) || diffFromStart % Math.round(minStep) !== 0)) {
-                    alert(`Mức giá chuyến ${a.flightNumber} (${CargoStore.formatCurrency(priceKg)}/Kg) không hợp lệ.\nPhải bằng giá sàn hoặc tăng theo bước giá +${CargoStore.formatCurrency(minStep)}/Kg.`);
                     if (input) input.focus();
                     return;
                 }
@@ -800,13 +791,6 @@
 
             if (!priceKg || priceKg < minAcceptable) {
                 alert(`Mức giá đặt thầu tối thiểu phải từ giá sàn: ${CargoStore.formatCurrency(minAcceptable)}/Kg trở lên!`);
-                if (input) input.focus();
-                return;
-            }
-
-            const diffFromStart = Math.round(Number(priceKg)) - Math.round(Number(minAcceptable));
-            if (diffFromStart > 0 && (diffFromStart < Math.round(minStep) || diffFromStart % Math.round(minStep) !== 0)) {
-                alert(`Mức giá đặt thầu (${CargoStore.formatCurrency(priceKg)}/Kg) không hợp lệ.\nPhải bằng giá sàn hoặc tăng theo bước giá +${CargoStore.formatCurrency(minStep)}/Kg.`);
                 if (input) input.focus();
                 return;
             }

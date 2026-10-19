@@ -296,6 +296,92 @@
             renderBids();
         }
 
+        function parseBidDateTime(val) {
+            if (!val) return 0;
+            if (typeof val === 'number') {
+                return val > 1577836800000 ? val : 0;
+            }
+            const s = String(val).trim();
+            if (!s || s === 'Thắng thầu' || s === 'Vừa xong') return 0;
+
+            // Relative formats: "53 phút trước", "1 giờ trước", "2 ngày trước"
+            const relM = s.match(/^(\d+)\s+phút\s+trước/i);
+            if (relM) return Date.now() - parseInt(relM[1], 10) * 60 * 1000;
+            const relH = s.match(/^(\d+)\s+giờ\s+trước/i);
+            if (relH) return Date.now() - parseInt(relH[1], 10) * 3600 * 1000;
+            const relD = s.match(/^(\d+)\s+ngày\s+trước/i);
+            if (relD) return Date.now() - parseInt(relD[1], 10) * 86400 * 1000;
+
+            // Pattern: DD/MM/YYYY HH:mm:ss or DD/MM/YYYY HH:mm or DD/MM/YYYY
+            const m1 = s.match(/^(\d{1,2})\/(\d{1,2})\/(\d{4})(?:\s+(\d{1,2}):(\d{2})(?::(\d{2}))?)?$/);
+            if (m1) {
+                const day = parseInt(m1[1], 10);
+                const month = parseInt(m1[2], 10) - 1;
+                const year = parseInt(m1[3], 10);
+                const hour = m1[4] ? parseInt(m1[4], 10) : 0;
+                const min = m1[5] ? parseInt(m1[5], 10) : 0;
+                const sec = m1[6] ? parseInt(m1[6], 10) : 0;
+                return new Date(year, month, day, hour, min, sec).getTime();
+            }
+
+            // Pattern: HH:mm DD/MM/YYYY
+            const m2 = s.match(/^(\d{1,2}):(\d{2})(?::(\d{2}))?\s+(\d{1,2})\/(\d{1,2})\/(\d{4})$/);
+            if (m2) {
+                const hour = parseInt(m2[1], 10);
+                const min = parseInt(m2[2], 10);
+                const sec = m2[3] ? parseInt(m2[3], 10) : 0;
+                const day = parseInt(m2[4], 10);
+                const month = parseInt(m2[5], 10) - 1;
+                const year = parseInt(m2[6], 10);
+                return new Date(year, month, day, hour, min, sec).getTime();
+            }
+
+            const parsed = Date.parse(s);
+            return (!isNaN(parsed) && parsed > 1577836800000) ? parsed : 0;
+        }
+
+        function getBidTimestamp(b) {
+            if (!b) return 0;
+            // 1. Numeric timestamp
+            if (typeof b.timestamp === 'number' && b.timestamp > 1577836800000) {
+                return b.timestamp;
+            }
+            // 2. Parse from timestamp if string
+            if (b.timestamp) {
+                const t = parseBidDateTime(b.timestamp);
+                if (t > 0) return t;
+            }
+            // 3. Parse from createdAt
+            if (b.createdAt) {
+                const t = parseBidDateTime(b.createdAt);
+                if (t > 0) return t;
+            }
+            // 4. Parse from paidAt
+            if (b.paidAt) {
+                const t = parseBidDateTime(b.paidAt);
+                if (t > 0) return t;
+            }
+            // 5. Parse from time string
+            if (b.time) {
+                const t = parseBidDateTime(b.time);
+                if (t > 0) return t;
+            }
+            // 6. Parse from paymentDeadline
+            if (b.paymentDeadline) {
+                const t = parseBidDateTime(b.paymentDeadline);
+                if (t > 0) return t;
+            }
+            // 7. Fallback to numeric id if epoch
+            if (typeof b.id === 'number' && b.id > 1577836800000) {
+                return b.id;
+            }
+            const numId = Number(String(b.id || '').replace(/\D/g, ''));
+            if (numId > 1577836800000) {
+                return numId;
+            }
+            return 0;
+        }
+
         function renderBids() {
             const u = CargoStore.getCurrentUser ? CargoStore.getCurrentUser() : null;
             if (u) {
@@ -320,7 +406,12 @@
                     if (existingBid) {
                         existingBid.status = 'WON';
                     } else {
-                        allBids.unshift({
+                        const ts = parseBidDateTime(w.paidAt) ||
+                                   parseBidDateTime(w.createdAt) ||
+                                   parseBidDateTime(w.wonAt) ||
+                                   parseBidDateTime(w.paymentDeadline) ||
+                                   (Number(w.timestamp) > 1577836800000 ? Number(w.timestamp) : 0);
+                        allBids.push({
                             id: 'WON-BID-' + w.wonId,
                             auctionId: w.auctionId,
                             flightNumber: w.flightNumber,
@@ -330,7 +421,7 @@
                             capacityKg: w.capacityKg,
                             totalAmountVND: w.totalAmountVND,
                             time: w.paidAt || 'Thắng thầu',
-                            timestamp: new Date(w.paymentDeadline || Date.now()).getTime(),
+                            timestamp: ts || 0,
                             status: 'WON',
                             agentCode: w.agentCode
                         });
@@ -363,6 +454,13 @@
                     b._statusKey = 'PARTICIPATING';
                     b._statusBadge = '<span class="bg-blue-100 text-blue-800 font-bold px-2.5 py-1 rounded-full text-[10px] inline-flex items-center gap-1"><i class="fa-solid fa-gavel text-[9px] text-blue-600"></i> Đang tham gia</span>';
                 }
+            });
+
+            // SẮP XẾP LỊCH SỬ ĐẶT THẦU: Mới nhất / gần đây nhất lên đầu (Descending by timestamp)
+            allBids.sort((a, b) => {
+                const tsA = getBidTimestamp(a);
+                const tsB = getBidTimestamp(b);
+                return tsB - tsA;
             });
 
             let filtered = allBids;
@@ -422,7 +520,7 @@
                             ${CargoStore.formatCurrency(b.totalAmountVND || (b.priceKg * weightVal))}
                         </td>
                         <td class="py-3.5 px-5 text-gray-400 text-[11px]">
-                            ${CargoStore.formatTimeAgo(b.timestamp, b.time)}
+                            ${CargoStore.formatTimeAgo(getBidTimestamp(b), b.time)}
                         </td>
                         <td class="py-3.5 px-5">
                             ${statusBadge}

@@ -685,17 +685,12 @@
                     </div>
                     <div>
                         <label class="block font-semibold text-slate-700 mb-1">Giá khởi điểm sàn (đ/Kg)</label>
-                        <input type="number" id="editStartingPrice" required step="500"
+                        <input type="number" id="editStartingPrice" required step="any"
                             class="w-full border rounded-xl px-3 py-2 font-bold text-blue-600 outline-none focus:ring-2 focus:ring-blue-500">
                     </div>
                 </div>
 
-                <div class="grid grid-cols-2 gap-3">
-                    <div>
-                        <label class="block font-semibold text-slate-700 mb-1">Bước giá tối thiểu (đ/Kg)</label>
-                        <input type="number" id="editMinStep" required step="100"
-                            class="w-full border rounded-xl px-3 py-2 outline-none focus:ring-2 focus:ring-blue-500">
-                    </div>
+                <div class="grid grid-cols-1 gap-3">
                     <div>
                         <label class="block font-semibold text-slate-700 mb-1">Loại tàu bay</label>
                         <input type="text" id="editAircraft" required
@@ -1584,7 +1579,6 @@
             document.getElementById('editModalSub').textContent = `Chặng ${auction.route} · Mã ${auction.flightCode}`;
             document.getElementById('editCapacity').value = auction.capacityKg;
             document.getElementById('editStartingPrice').value = auction.startingPriceKg;
-            document.getElementById('editMinStep').value = auction.minStep;
             document.getElementById('editAircraft').value = auction.aircraft;
             document.getElementById('editEtd').value = auction.etd;
             document.getElementById('editEta').value = auction.eta;
@@ -1608,7 +1602,6 @@
             const res = CargoStore.updateAuction(id, {
                 capacityKg: document.getElementById('editCapacity').value,
                 startingPriceKg: document.getElementById('editStartingPrice').value,
-                minStep: document.getElementById('editMinStep').value,
                 aircraft: document.getElementById('editAircraft').value,
                 etd: document.getElementById('editEtd').value,
                 eta: document.getElementById('editEta').value,
@@ -1661,7 +1654,7 @@
                 message: message,
                 type: type,
                 targetAgentCode: targetAgent || null,
-                link: auctionId ? `04-Detail.html?id=${auctionId}` : '02-Dashboard.html'
+                auctionId: auctionId || null
             });
 
             if (res.success) {

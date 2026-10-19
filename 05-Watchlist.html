@@ -554,10 +554,9 @@
         if (!a) return;
         currentBidAuction = a;
         modalMinPrice = a.startingPriceKg || a.currentPriceKg || 0;
-        const step = Number(a.minStep) || 500;
         document.getElementById('modalFlightLabel').textContent = a.flightNumber + ' · ' + a.route;
         document.getElementById('modalCurrentPrice').textContent = (a.status === 'CLOSED') ? (CargoStore.formatCurrency(a.currentPriceKg) + '/Kg') : '??? (Ẩn)';
-        document.getElementById('modalMinPrice').textContent = CargoStore.formatCurrency(modalMinPrice) + '/Kg (Bước giá: +' + CargoStore.formatCurrency(step) + ')';
+        document.getElementById('modalMinPrice').textContent = CargoStore.formatCurrency(modalMinPrice) + '/Kg';
         const input = document.getElementById('quickBidInput');
         input.value = modalMinPrice;
         input.step = "any";
@@ -567,8 +566,8 @@
         if (container) {
             container.innerHTML = `
                 <button type="button" onclick="setQuickBid('min')" class="flex-1 text-xs border-2 border-blue-200 text-blue-600 font-semibold py-1.5 rounded-lg hover:bg-blue-50 transition">Khởi điểm</button>
-                <button type="button" onclick="setQuickBid('mid')" class="flex-1 text-xs border-2 border-indigo-200 text-indigo-600 font-semibold py-1.5 rounded-lg hover:bg-indigo-50 transition">+${step.toLocaleString('vi-VN')}đ</button>
-                <button type="button" onclick="setQuickBid('high')" class="flex-1 text-xs border-2 border-violet-200 text-violet-600 font-semibold py-1.5 rounded-lg hover:bg-violet-50 transition">+${(step * 2).toLocaleString('vi-VN')}đ</button>
+                <button type="button" onclick="setQuickBid('mid')" class="flex-1 text-xs border-2 border-indigo-200 text-indigo-600 font-semibold py-1.5 rounded-lg hover:bg-indigo-50 transition">+500 đ</button>
+                <button type="button" onclick="setQuickBid('high')" class="flex-1 text-xs border-2 border-violet-200 text-violet-600 font-semibold py-1.5 rounded-lg hover:bg-violet-50 transition">+1.000 đ</button>
             `;
         }
         document.getElementById('quickBidModal').classList.remove('hidden');
@@ -580,10 +579,9 @@
     }
 
     function setQuickBid(level) {
-        const step = Number(currentBidAuction?.minStep) || 500;
         let val = modalMinPrice;
-        if (level === 'mid') val = modalMinPrice + step;
-        if (level === 'high') val = modalMinPrice + step * 2;
+        if (level === 'mid') val = modalMinPrice + 500;
+        if (level === 'high') val = modalMinPrice + 1000;
         document.getElementById('quickBidInput').value = val;
     }
 
@@ -591,12 +589,6 @@
         const val = parseInt(document.getElementById('quickBidInput').value);
         if (!val || val < modalMinPrice) {
             showToast('Mức giá phải lớn hơn hoặc bằng giá khởi điểm ' + modalMinPrice.toLocaleString('vi-VN') + ' đ/Kg', 'error');
-            return;
-        }
-        const step = Number(currentBidAuction?.minStep) || 500;
-        const diff = val - modalMinPrice;
-        if (diff > 0 && diff < step) {
-            showToast(`Mức giá phải tăng tối thiểu từ +${step.toLocaleString('vi-VN')} đ/Kg trở lên`, 'error');
             return;
         }
         if (currentBidAuction) {
