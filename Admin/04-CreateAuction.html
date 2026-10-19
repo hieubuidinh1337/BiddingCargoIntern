@@ -827,8 +827,8 @@
     <script>
         document.addEventListener('DOMContentLoaded', function () {
             const admin = (window.CargoStore && CargoStore.getCurrentAdmin) ? CargoStore.getCurrentAdmin() : null;
-            const role = (admin && admin.role ? admin.role : '').toUpperCase();
-            if (role === 'STAFF') {
+            const canCreateAuction = (window.CargoStore && CargoStore.hasPermission) ? CargoStore.hasPermission('auctions.create', admin) : true;
+            if (!canCreateAuction) {
                 const main = document.querySelector('main');
                 if (main) {
                     main.innerHTML = `
@@ -838,7 +838,7 @@
                             </div>
                             <h2 class="text-xl font-bold text-slate-900">Truy cập bị từ chối (Access Denied)</h2>
                             <p class="text-xs text-slate-600 leading-relaxed">
-                                Tài khoản <strong>Nhân viên Điều hành (STAFF)</strong> không có quyền tạo chuyến bay mới. Thao tác này thuộc thẩm quyền của <strong>COD ADMIN</strong> hoặc <strong>ITD ADMIN</strong>.
+                                Tài khoản <strong>${admin ? (admin.fullName || admin.username) : 'Hiện tại'}</strong> không có quyền tạo chuyến bay / phiên đấu giá mới (yêu cầu quyền <code>auctions.create</code>). Thao tác này thuộc thẩm quyền của <strong>COD Manager</strong> hoặc <strong>Super Admin</strong>.
                             </p>
                             <a href="02-AdminDashboard.html" class="inline-block bg-blue-600 hover:bg-blue-700 text-white text-xs font-bold px-6 py-3 rounded-xl transition shadow">
                                 Quay lại Admin Dashboard

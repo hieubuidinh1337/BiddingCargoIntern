@@ -967,7 +967,8 @@
         document.addEventListener('DOMContentLoaded', function () {
             const adminUser = CargoStore.getCurrentAdmin();
             const currentRole = (adminUser && adminUser.role ? adminUser.role : '').toUpperCase();
-            if (currentRole !== 'ITD_ADMIN' && currentRole !== 'ADMIN') {
+            const isSuperAdmin = (currentRole === 'SUPER_ADMIN' || currentRole === 'ITD_ADMIN' || currentRole === 'ADMIN' || (adminUser && (adminUser.username || '').toLowerCase() === 'admin'));
+            if (!isSuperAdmin) {
                 const main = document.querySelector('main');
                 if (main) {
                     main.innerHTML = `
@@ -977,7 +978,7 @@
                             </div>
                             <h2 class="text-xl font-bold text-slate-900">Truy cập bị từ chối (Access Denied)</h2>
                             <p class="text-xs text-slate-600 leading-relaxed">
-                                Tài khoản <strong>${currentRole === 'COD_ADMIN' ? 'Điều hành Khai thác (COD ADMIN)' : 'Nhân viên Điều hành (STAFF)'}</strong> không có quyền xem <strong>Nhật ký hoạt động & Bảo mật hệ thống</strong>. Trang này thuộc thẩm quyền riêng của <strong>Quản trị viên ITD ADMIN</strong>.
+                                Tài khoản <strong>${adminUser ? (adminUser.fullName || adminUser.username) : 'Nhân sự'}</strong> không có quyền xem <strong>Nhật ký hoạt động & Bảo mật hệ thống</strong>. Trang này thuộc thẩm quyền riêng của <strong>Quản trị viên Super Admin</strong>.
                             </p>
                             <a href="02-AdminDashboard.html" class="inline-block bg-blue-600 hover:bg-blue-700 text-white text-xs font-bold px-6 py-3 rounded-xl transition shadow">
                                 Quay lại Admin Dashboard

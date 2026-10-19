@@ -247,7 +247,7 @@ const CargoStore = (function () {
             username: 'admin',
             password: 'admin2026',
             role: 'SUPER_ADMIN',
-            roles: ['SUPER_ADMIN', 'ITD_ADMIN'],
+            roles: ['SUPER_ADMIN'],
             fullName: 'Trần Quản Trị (Super Admin)',
             email: 'admin@airline.vn',
             department: 'Information Technology Directorate (ITD)'
@@ -258,7 +258,7 @@ const CargoStore = (function () {
             password: 'admin2026',
             role: 'COD_MANAGER',
             roles: ['COD_MANAGER'],
-            fullName: 'Lê Khai Thác (COD Admin)',
+            fullName: 'Lê Khai Thác (COD Manager)',
             email: 'cod@airline.vn',
             department: 'Cargo Operations Directorate (COD)'
         },
@@ -268,7 +268,7 @@ const CargoStore = (function () {
             password: 'admin2026',
             role: 'SETTLEMENT_OFFICER',
             roles: ['SETTLEMENT_OFFICER'],
-            fullName: 'Vũ Thẩm Định (Settlement Admin)',
+            fullName: 'Vũ Thẩm Định (Settlement Officer)',
             email: 'settler@airline.vn',
             department: 'Cargo Bidding Settlement Board'
         },
@@ -278,7 +278,7 @@ const CargoStore = (function () {
             password: 'staff2026',
             role: 'OPERATIONS_VIEWER',
             roles: ['OPERATIONS_VIEWER'],
-            fullName: 'Nguyễn Điều Hành (Staff)',
+            fullName: 'Nguyễn Điều Hành (Operations Staff)',
             email: 'staff01@airline.vn',
             department: 'Air Cargo Flight Operations'
         },
@@ -288,7 +288,7 @@ const CargoStore = (function () {
             password: 'staff2026',
             role: 'AGENT_AUDITOR',
             roles: ['AGENT_AUDITOR'],
-            fullName: 'Lê Thị Bích Vân (Staff)',
+            fullName: 'Lê Thị Bích Vân (Agent Auditor)',
             email: 'staff02@airline.vn',
             department: 'Agent Audit & Approval'
         }
@@ -326,7 +326,7 @@ const CargoStore = (function () {
             username: 'admin',
             password: 'admin2026',
             role: 'SUPER_ADMIN',
-            roles: ['SUPER_ADMIN', 'ITD_ADMIN'],
+            roles: ['SUPER_ADMIN'],
             fullName: 'Trần Quản Trị (Super Admin)',
             email: 'admin@airline.vn',
             department: 'Information Technology Directorate (ITD)'
@@ -1094,88 +1094,116 @@ const CargoStore = (function () {
                 data.adminsList = JSON.parse(JSON.stringify(seedAdmins));
                 updated = true;
             } else {
-                const adminRec = data.adminsList.find(a => (a.username || '').toLowerCase() === 'admin');
-                if (adminRec && (adminRec.role === 'ADMIN' || !adminRec.role)) {
-                    adminRec.role = 'ITD_ADMIN';
-                    adminRec.fullName = 'Trần Quản Trị (ITD Admin)';
-                    updated = true;
-                }
-                const hasCod = data.adminsList.some(a => (a.username || '').toLowerCase() === 'cod_admin');
-                if (!hasCod) {
-                    data.adminsList.push({
-                        id: 98,
-                        username: 'cod_admin',
-                        password: 'admin2026',
-                        role: 'COD_ADMIN',
-                        roles: ['COD_ADMIN', 'AUCTION_SETTLEMENT'],
-                        fullName: 'Lê Khai Thác (COD Admin)',
-                        email: 'cod@airline.vn',
-                        department: 'Cargo Operations Directorate (COD)',
-                        status: 'Đang hoạt động'
-                    });
-                    updated = true;
-                }
-                const hasSettler = data.adminsList.some(a => (a.username || '').toLowerCase() === 'settler01');
-                if (!hasSettler) {
-                    data.adminsList.push({
-                        id: 95,
-                        username: 'settler01',
-                        password: 'admin2026',
-                        role: 'AUCTION_SETTLEMENT',
-                        roles: ['AUCTION_SETTLEMENT'],
-                        fullName: 'Vũ Thẩm Định (Settlement Admin)',
-                        email: 'settler@airline.vn',
-                        department: 'Cargo Bidding Settlement Board',
-                        status: 'Đang hoạt động'
-                    });
-                    updated = true;
-                }
-
-                // Ensure every account has a valid roles array
-                data.adminsList.forEach(a => {
-                    if (!Array.isArray(a.roles) || a.roles.length === 0) {
-                        const r = String(a.role || '').toUpperCase();
-                        if (r === 'ITD_ADMIN' || r === 'ADMIN') {
-                            a.roles = ['ITD_ADMIN', 'COD_ADMIN', 'AUCTION_SETTLEMENT'];
-                        } else if (r === 'COD_ADMIN' || r === 'COD ADMIN') {
-                            a.roles = ['COD_ADMIN', 'AUCTION_SETTLEMENT'];
-                        } else if (r === 'AUCTION_SETTLEMENT' || r === 'SETTLEMENT_ADMIN') {
-                            a.roles = ['AUCTION_SETTLEMENT'];
-                        } else {
-                            a.roles = [a.role || 'STAFF'];
-                        }
+                // Ensure default accounts exist
+                seedAdmins.forEach(sAcc => {
+                    const found = data.adminsList.find(a => (a.username || '').toLowerCase() === (sAcc.username || '').toLowerCase());
+                    if (!found) {
+                        data.adminsList.push(JSON.parse(JSON.stringify(sAcc)));
                         updated = true;
+                    }
+                });
+
+                // Migrate legacy roles for all accounts in adminsList
+                data.adminsList.forEach(a => {
+                    const u = (a.username || '').toLowerCase();
+                    const r = String(a.role || '').toUpperCase();
+
+                    // Migrate standard user details & names
+                    if (u === 'admin') {
+                        a.role = 'SUPER_ADMIN';
+                        a.roles = ['SUPER_ADMIN'];
+                        a.fullName = 'Trần Quản Trị (Super Admin)';
+                        updated = true;
+                    } else if (u === 'cod_admin') {
+                        if (r === 'COD_ADMIN' || r === 'COD ADMIN' || !a.role) {
+                            a.role = 'COD_MANAGER';
+                            updated = true;
+                        }
+                        a.fullName = 'Lê Khai Thác (COD Manager)';
+                    } else if (u === 'settler01') {
+                        if (r === 'AUCTION_SETTLEMENT' || r === 'SETTLEMENT_ADMIN' || !a.role) {
+                            a.role = 'SETTLEMENT_OFFICER';
+                            updated = true;
+                        }
+                        a.fullName = 'Vũ Thẩm Định (Settlement Officer)';
+                    } else if (u === 'staff01') {
+                        if (r === 'STAFF' || !a.role) {
+                            a.role = 'OPERATIONS_VIEWER';
+                            updated = true;
+                        }
+                        a.fullName = 'Nguyễn Điều Hành (Operations Staff)';
+                    } else if (u === 'staff02') {
+                        if (!a.role) a.role = 'AGENT_AUDITOR';
+                        a.fullName = 'Lê Thị Bích Vân (Agent Auditor)';
+                    }
+
+                    // Map legacy roles in roles array
+                    if (!Array.isArray(a.roles) || a.roles.length === 0) {
+                        a.roles = [a.role || 'OPERATIONS_VIEWER'];
+                        updated = true;
+                    } else {
+                        const originalRolesStr = JSON.stringify(a.roles);
+                        a.roles = a.roles.map(item => {
+                            const itUpper = String(item || '').toUpperCase();
+                            if (itUpper === 'ITD_ADMIN' || itUpper === 'ADMIN') return 'SUPER_ADMIN';
+                            if (itUpper === 'COD_ADMIN' || itUpper === 'COD ADMIN') return 'COD_MANAGER';
+                            if (itUpper === 'AUCTION_SETTLEMENT' || itUpper === 'SETTLEMENT_ADMIN') return 'SETTLEMENT_OFFICER';
+                            if (itUpper === 'STAFF') return 'OPERATIONS_VIEWER';
+                            return item;
+                        });
+                        a.roles = Array.from(new Set(a.roles));
+                        if (JSON.stringify(a.roles) !== originalRolesStr) {
+                            updated = true;
+                        }
                     }
                 });
 
                 if (data.currentAdmin) {
                     const matchedStaff = data.adminsList.find(a => (a.username || '').toLowerCase() === (data.currentAdmin.username || '').toLowerCase());
-                    if (matchedStaff && matchedStaff.roles) {
+                    if (matchedStaff) {
+                        data.currentAdmin.role = matchedStaff.role;
                         data.currentAdmin.roles = matchedStaff.roles;
-                    } else if (!Array.isArray(data.currentAdmin.roles) || data.currentAdmin.roles.length === 0) {
+                        data.currentAdmin.fullName = matchedStaff.fullName;
+                        data.currentAdmin.department = matchedStaff.department;
+                        updated = true;
+                    } else {
                         const cr = String(data.currentAdmin.role || '').toUpperCase();
-                        if (cr === 'ITD_ADMIN' || cr === 'ADMIN') data.currentAdmin.roles = ['ITD_ADMIN', 'COD_ADMIN', 'AUCTION_SETTLEMENT'];
-                        else if (cr === 'COD_ADMIN' || cr === 'COD ADMIN') data.currentAdmin.roles = ['COD_ADMIN', 'AUCTION_SETTLEMENT'];
-                        else if (cr === 'AUCTION_SETTLEMENT') data.currentAdmin.roles = ['AUCTION_SETTLEMENT'];
-                        else data.currentAdmin.roles = [data.currentAdmin.role || 'STAFF'];
+                        if (cr === 'ITD_ADMIN' || cr === 'ADMIN') {
+                            data.currentAdmin.role = 'SUPER_ADMIN';
+                            data.currentAdmin.roles = ['SUPER_ADMIN'];
+                            updated = true;
+                        } else if (cr === 'COD_ADMIN' || cr === 'COD ADMIN') {
+                            data.currentAdmin.role = 'COD_MANAGER';
+                            data.currentAdmin.roles = ['COD_MANAGER'];
+                            updated = true;
+                        } else if (cr === 'AUCTION_SETTLEMENT' || cr === 'SETTLEMENT_ADMIN') {
+                            data.currentAdmin.role = 'SETTLEMENT_OFFICER';
+                            data.currentAdmin.roles = ['SETTLEMENT_OFFICER'];
+                            updated = true;
+                        } else if (cr === 'STAFF') {
+                            data.currentAdmin.role = 'OPERATIONS_VIEWER';
+                            data.currentAdmin.roles = ['OPERATIONS_VIEWER'];
+                            updated = true;
+                        }
                     }
                 }
             }
 
-            // Ensure rolesList exists
+            // Ensure rolesList exists and standard seed roles are up-to-date
             if (!data.rolesList || !Array.isArray(data.rolesList) || data.rolesList.length === 0) {
                 data.rolesList = JSON.parse(JSON.stringify(seedRoles));
                 updated = true;
             } else {
-                // Ensure SUPER_ADMIN role always has all permission keys
-                const superAdminRole = data.rolesList.find(r => r.code === 'SUPER_ADMIN' || r.id === 'role_super_admin');
-                if (superAdminRole) {
-                    superAdminRole.permissions = [...ALL_PERMISSION_KEYS];
-                    superAdminRole.isSystem = true;
-                } else {
-                    data.rolesList.unshift(JSON.parse(JSON.stringify(seedRoles[0])));
-                    updated = true;
-                }
+                seedRoles.forEach(sRole => {
+                    const existing = data.rolesList.find(r => r.code === sRole.code || r.id === sRole.id);
+                    if (!existing) {
+                        data.rolesList.push(JSON.parse(JSON.stringify(sRole)));
+                        updated = true;
+                    } else if (sRole.isSystem) {
+                        existing.permissions = [...ALL_PERMISSION_KEYS];
+                        existing.isSystem = true;
+                    }
+                });
             }
 
             if (data.bids && Array.isArray(data.bids)) {
@@ -2666,6 +2694,7 @@ const CargoStore = (function () {
                 username: admin.username,
                 password: admin.password,
                 role: admin.role,
+                roles: Array.isArray(admin.roles) ? [...admin.roles] : [admin.role],
                 fullName: admin.fullName,
                 email: admin.email,
                 department: admin.department
@@ -6819,10 +6848,10 @@ const CargoStore = (function () {
         updateSystemSettings: function (settingsData) {
             const data = loadData();
             const currentAdminRole = (data.currentAdmin && data.currentAdmin.role || '').toUpperCase();
-            const isItdAdmin = (currentAdminRole === 'ITD_ADMIN' || currentAdminRole === 'ADMIN');
+            const isSuperAdmin = (currentAdminRole === 'SUPER_ADMIN' || currentAdminRole === 'ITD_ADMIN' || currentAdminRole === 'ADMIN' || (data.currentAdmin && (data.currentAdmin.username || '').toLowerCase() === 'admin'));
 
-            if (!isItdAdmin) {
-                return { success: false, message: 'Chỉ Quản trị viên ITD ADMIN (Full quyền) mới có quyền thay đổi Cấu hình hệ thống (Settings).' };
+            if (!isSuperAdmin) {
+                return { success: false, message: 'Chỉ Quản trị viên Super Admin mới có quyền thay đổi Cấu hình hệ thống (Settings).' };
             }
 
             if (!data.settings) data.settings = {};
@@ -7130,8 +7159,9 @@ const CargoStore = (function () {
         clearActivityLogs: function () {
             const data = loadData();
             const currentAdminRole = (data.currentAdmin && data.currentAdmin.role || '').toUpperCase();
-            if (currentAdminRole !== 'ITD_ADMIN' && currentAdminRole !== 'ADMIN') {
-                return { success: false, message: 'Chỉ Quản trị viên ITD ADMIN mới có quyền xóa nhật ký hệ thống.' };
+            const isSuperAdmin = (currentAdminRole === 'SUPER_ADMIN' || currentAdminRole === 'ITD_ADMIN' || currentAdminRole === 'ADMIN' || (data.currentAdmin && (data.currentAdmin.username || '').toLowerCase() === 'admin'));
+            if (!isSuperAdmin) {
+                return { success: false, message: 'Chỉ Quản trị viên Super Admin mới có quyền xóa nhật ký hệ thống.' };
             }
             data.activityLogs = [];
             saveData(data);
