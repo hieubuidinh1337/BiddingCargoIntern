@@ -135,6 +135,7 @@ async function initDatabase() {
             winningPriceKg INTEGER,
             specialNotes TEXT,
             cutOffTime TEXT,
+            closedAt TEXT,
             FOREIGN KEY(leadingAgentCode) REFERENCES agents(code) ON DELETE SET NULL ON UPDATE CASCADE,
             FOREIGN KEY(winnerAgentCode) REFERENCES agents(code) ON DELETE SET NULL ON UPDATE CASCADE
         );
@@ -182,6 +183,13 @@ async function initDatabase() {
             momoPaidAt TEXT,
             momoCreatedAt TEXT,
             momoExpiresAt TEXT,
+            refundStatus TEXT DEFAULT 'NONE',
+            refundBankInfo_json TEXT,
+            refundConfirmedAt TEXT,
+            refundConfirmedBy TEXT,
+            refundNote TEXT,
+            paymentProof_json TEXT,
+            rejectionReason TEXT,
             FOREIGN KEY(auctionId) REFERENCES auctions(id) ON DELETE SET NULL ON UPDATE CASCADE,
             FOREIGN KEY(agentCode) REFERENCES agents(code) ON DELETE CASCADE ON UPDATE CASCADE
         );
@@ -195,6 +203,7 @@ async function initDatabase() {
             time TEXT,
             type TEXT,
             read INTEGER DEFAULT 0,
+            unread INTEGER DEFAULT 1,
             link TEXT,
             FOREIGN KEY(targetAgentCode) REFERENCES agents(code) ON DELETE SET NULL ON UPDATE CASCADE
         );
@@ -212,7 +221,9 @@ async function initDatabase() {
             documents TEXT,
             status TEXT,
             submittedAt TEXT,
-            rejectionReason TEXT
+            rejectionReason TEXT,
+            agentCode TEXT,
+            approvedAt TEXT
         );
 
         CREATE TABLE IF NOT EXISTS chats (

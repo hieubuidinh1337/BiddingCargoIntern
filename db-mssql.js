@@ -273,7 +273,7 @@ const SCHEMA = [
         etd NVARCHAR(100), eta NVARCHAR(100), etdIso NVARCHAR(100), aircraft NVARCHAR(255), capacityKg INT,
         startingPriceKg INT, currentPriceKg INT, minStep INT, endTime NVARCHAR(100), status NVARCHAR(50),
         leadingAgentCode ${KEY}, leadingAgentName ${TEXT}, bidsCount INT DEFAULT 0, winnerAgentCode ${KEY},
-        winnerAgentName ${TEXT}, winningPriceKg INT, specialNotes ${TEXT}, cutOffTime NVARCHAR(100))`,
+        winnerAgentName ${TEXT}, winningPriceKg INT, specialNotes ${TEXT}, cutOffTime NVARCHAR(100), closedAt NVARCHAR(100))`,
     `CREATE TABLE bids (
         id ${KEY} NOT NULL PRIMARY KEY, [timestamp] BIGINT, auctionId INT, agentCode ${KEY}, agentName ${TEXT},
         isAnonymous INT DEFAULT 1, priceKg INT, [time] NVARCHAR(100), status NVARCHAR(50), weightKg INT,

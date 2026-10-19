@@ -66,6 +66,7 @@ CREATE TABLE IF NOT EXISTS auctions (
     winningPriceKg INTEGER,
     specialNotes TEXT,
     cutOffTime TEXT,
+    closedAt TEXT,
     FOREIGN KEY(leadingAgentCode) REFERENCES agents(code) ON DELETE SET NULL ON UPDATE CASCADE,
     FOREIGN KEY(winnerAgentCode) REFERENCES agents(code) ON DELETE SET NULL ON UPDATE CASCADE
 );
@@ -115,6 +116,13 @@ CREATE TABLE IF NOT EXISTS won_auctions (
     momoPaidAt TEXT,
     momoCreatedAt TEXT,
     momoExpiresAt TEXT,
+    refundStatus TEXT DEFAULT 'NONE',
+    refundBankInfo_json TEXT,
+    refundConfirmedAt TEXT,
+    refundConfirmedBy TEXT,
+    refundNote TEXT,
+    paymentProof_json TEXT,
+    rejectionReason TEXT,
     FOREIGN KEY(auctionId) REFERENCES auctions(id) ON DELETE SET NULL ON UPDATE CASCADE,
     FOREIGN KEY(agentCode) REFERENCES agents(code) ON DELETE CASCADE ON UPDATE CASCADE
 );
@@ -129,6 +137,7 @@ CREATE TABLE IF NOT EXISTS notifications (
     time TEXT,
     type TEXT DEFAULT 'INFO',
     read INTEGER DEFAULT 0,
+    unread INTEGER DEFAULT 1,
     link TEXT,
     FOREIGN KEY(targetAgentCode) REFERENCES agents(code) ON DELETE SET NULL ON UPDATE CASCADE
 );
@@ -147,7 +156,9 @@ CREATE TABLE IF NOT EXISTS registrations (
     documents TEXT,
     status TEXT DEFAULT 'PENDING',
     submittedAt TEXT,
-    rejectionReason TEXT
+    rejectionReason TEXT,
+    agentCode TEXT,
+    approvedAt TEXT
 );
 
 -- 8. CHATS TABLE (Live Customer Support Sessions)
@@ -241,4 +252,16 @@ INSERT OR IGNORE INTO users (id, username, agentCode, password, pin, role, fullN
 ('USR-005', 'AG-0556', 'AG-0556', 'star123456', '1234', 'AGENT', 'Phạm Thu Thảo', 'thao.pham@dhlvietnam.com', 'Công ty TNHH Tiếp vận Toàn Cầu Golden Star', 'ACTIVE'),
 ('USR-006', 'AG-0341', 'AG-0341', 'sky123456', '1234', 'AGENT', 'Hoàng Văn Dũng', 'dung.hoang@saigonair.vn', 'Công ty TNHH SkyFreight Logistics Việt Nam', 'ACTIVE'),
 ('USR-007', 'AG-0789', 'AG-0789', 'viet123456', '1234', 'AGENT', 'Nguyễn Thị Hoa', 'hoa.nt@vietfreight.vn', 'Công ty CP Vận chuyển Hàng không Việt Freight', 'ACTIVE');
+
+-- 11. DEFAULT SETTINGS SEED DATA
+INSERT OR IGNORE INTO settings (key, value) VALUES
+('minIncrement', '500'),
+('cutoffHours', '3'),
+('paymentWindowHours', '24'),
+('platformFee', '50'),
+('hotline', '1900 6868'),
+('supportEmail', 'cargo-agent@vietravelairlines.vn'),
+('hideAgentCredentials', 'true'),
+('bankConfig', '{"bankName":"Ngân hàng TMCP Ngoại Thương Việt Nam (Vietcombank)","accountNumber":"1029384756","accountName":"CONG TY CP HANG KHONG VIETRAVEL","branch":"Chi nhánh Tân Bình - TP. Hồ Chí Minh","memoPrefix":"CARGO","bankBin":"970436"}');
+
 
