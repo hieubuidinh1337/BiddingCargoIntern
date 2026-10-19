@@ -623,8 +623,9 @@
             <div class="p-4 bg-slate-50/70 border-b flex items-center justify-between">
                 <span class="text-xs text-slate-600 font-semibold">Danh sách tài khoản Nhân viên Điều hành & Quản trị
                     viên sàn</span>
+                <!-- Chức năng tạm ẩn theo yêu cầu -->
                 <button id="addStaffBtn" onclick="openAddStaffModal()"
-                    class="bg-blue-600 hover:bg-blue-700 text-white text-xs font-bold px-3 py-1.5 rounded-xl transition shadow flex items-center gap-1.5">
+                    class="hidden bg-blue-600 hover:bg-blue-700 text-white text-xs font-bold px-3 py-1.5 rounded-xl transition shadow items-center gap-1.5">
                     <i class="fa-solid fa-user-plus"></i> Thêm tài khoản nhân viên mới
                 </button>
             </div>
@@ -1387,20 +1388,11 @@
                 }
             }
 
-            // Disable or hide Add Staff button
+            // Chức năng cấp tài khoản nhân sự mới tạm ẩn theo yêu cầu
             const addStaffBtn = document.getElementById('addStaffBtn');
             if (addStaffBtn) {
-                if (!canCreateStaff) {
-                    addStaffBtn.disabled = true;
-                    addStaffBtn.className = 'bg-slate-200 text-slate-400 text-xs font-bold px-3 py-1.5 rounded-xl cursor-not-allowed flex items-center gap-1.5';
-                    addStaffBtn.title = 'Bạn không có quyền cấp tài khoản nhân sự mới (yêu cầu quyền staff.create)';
-                    addStaffBtn.innerHTML = '<i class="fa-solid fa-lock"></i> Giới hạn tạo nhân sự';
-                } else {
-                    addStaffBtn.disabled = false;
-                    addStaffBtn.className = 'bg-blue-600 hover:bg-blue-700 text-white text-xs font-bold px-3 py-1.5 rounded-xl transition shadow flex items-center gap-1.5';
-                    addStaffBtn.title = '';
-                    addStaffBtn.innerHTML = '<i class="fa-solid fa-user-plus"></i> Thêm tài khoản nhân viên mới';
-                }
+                addStaffBtn.classList.add('hidden');
+                addStaffBtn.style.display = 'none';
             }
 
             // 1. Render Registrations
@@ -2328,21 +2320,8 @@
         }
 
         function openAddStaffModal() {
-            if (!CargoStore.hasPermission('staff.create')) {
-                alert('Bạn không có quyền cấp mới tài khoản nhân sự (yêu cầu quyền staff.create)!');
-                return;
-            }
-
-            // Populate dynamic roles in newStaffRole select
-            const roleSelect = document.getElementById('newStaffRole');
-            if (roleSelect) {
-                const roles = CargoStore.getRoles();
-                roleSelect.innerHTML = roles.map(r => `
-                    <option value="${r.code || r.id}">${r.name} (${(r.permissions || []).length} quyền)</option>
-                `).join('');
-            }
-
-            document.getElementById('addStaffModal').classList.remove('hidden');
+            alert('Chức năng cấp tài khoản nhân viên mới tạm thời ẩn để bảo trì.');
+            return;
         }
 
         function closeAddStaffModal() {

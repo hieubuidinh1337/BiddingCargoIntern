@@ -685,47 +685,48 @@
                 <div class="grid grid-cols-2 gap-3">
                     <div>
                         <label class="block font-semibold text-slate-700 mb-1">Tải trọng thầu (Kg)</label>
-                        <input type="number" id="editCapacity" required min="100" max="50000" step="100"
-                            class="w-full border rounded-xl px-3 py-2 font-bold outline-none focus:ring-2 focus:ring-blue-500">
-                        <p class="text-[10px] text-slate-400 mt-0.5">Giới hạn: 100 đến 50.000 Kg (Tối đa 50 tấn)</p>
+                        <input type="number" id="editCapacity" required readonly
+                            class="w-full border rounded-xl px-3 py-2 font-bold outline-none bg-slate-100 text-slate-500 cursor-not-allowed" title="Thông số cố định (chỉ xem)">
+                        <p class="text-[10px] text-slate-400 mt-0.5">Thông số cấu hình chuyến bay (chỉ đọc)</p>
                     </div>
                     <div>
                         <label class="block font-semibold text-slate-700 mb-1">Giá khởi điểm sàn (đ/Kg)</label>
-                        <input type="number" id="editStartingPrice" required step="any"
-                            class="w-full border rounded-xl px-3 py-2 font-bold text-blue-600 outline-none focus:ring-2 focus:ring-blue-500">
+                        <input type="number" id="editStartingPrice" required readonly
+                            class="w-full border rounded-xl px-3 py-2 font-bold outline-none bg-slate-100 text-slate-500 cursor-not-allowed" title="Thông số cố định (chỉ xem)">
                     </div>
                 </div>
 
                 <div class="grid grid-cols-1 gap-3">
                     <div>
                         <label class="block font-semibold text-slate-700 mb-1">Loại tàu bay</label>
-                        <input type="text" id="editAircraft" required
-                            class="w-full border rounded-xl px-3 py-2 outline-none focus:ring-2 focus:ring-blue-500">
+                        <input type="text" id="editAircraft" required readonly
+                            class="w-full border rounded-xl px-3 py-2 outline-none bg-slate-100 text-slate-500 cursor-not-allowed" title="Thông số cố định (chỉ xem)">
                     </div>
                 </div>
 
                 <div class="grid grid-cols-2 gap-3">
                     <div>
                         <label class="block font-semibold text-slate-700 mb-1">Giờ cất cánh (ETD)</label>
-                        <input type="text" id="editEtd" required
-                            class="w-full border rounded-xl px-3 py-2 outline-none focus:ring-2 focus:ring-blue-500">
+                        <input type="text" id="editEtd" required readonly
+                            class="w-full border rounded-xl px-3 py-2 outline-none bg-slate-100 text-slate-500 cursor-not-allowed" title="Thông số cố định (chỉ xem)">
                     </div>
                     <div>
                         <label class="block font-semibold text-slate-700 mb-1">Giờ hạ cánh (ETA)</label>
-                        <input type="text" id="editEta" required
-                            class="w-full border rounded-xl px-3 py-2 outline-none focus:ring-2 focus:ring-blue-500">
+                        <input type="text" id="editEta" required readonly
+                            class="w-full border rounded-xl px-3 py-2 outline-none bg-slate-100 text-slate-500 cursor-not-allowed" title="Thông số cố định (chỉ xem)">
                     </div>
                 </div>
 
-                <div class="bg-blue-50/60 p-3.5 rounded-xl border border-blue-100 space-y-2">
-                    <p class="font-bold text-blue-900 flex items-center gap-1.5">
-                        <i class="fa-regular fa-clock text-blue-600"></i> Điều chỉnh thời gian mở thầu:
+                <div class="bg-blue-50/80 p-3.5 rounded-xl border border-blue-200 space-y-2">
+                    <p class="font-bold text-blue-900 flex items-center gap-1.5 text-xs">
+                        <i class="fa-solid fa-clock-rotate-left text-blue-600"></i> Gia hạn thời gian mở thầu: <span class="text-rose-500">*</span>
                     </p>
                     <div class="flex items-center gap-2">
                         <select id="editExtendTime"
-                            class="flex-1 border rounded-lg px-2.5 py-1.5 bg-white text-xs outline-none">
-                            <option value="0">Giữ nguyên thời gian hiện tại</option>
-                            <option value="30">Gia hạn thêm 30 phút</option>
+                            class="flex-1 border border-blue-300 rounded-lg px-2.5 py-2 bg-white text-xs outline-none focus:ring-2 focus:ring-blue-500 font-bold text-blue-800">
+                            <option value="0">-- Chọn thời gian gia hạn --</option>
+                            <option value="15">Gia hạn thêm 15 phút</option>
+                            <option value="30" selected>Gia hạn thêm 30 phút</option>
                             <option value="60">Gia hạn thêm 60 phút</option>
                             <option value="120">Gia hạn thêm 2 giờ</option>
                         </select>
@@ -734,12 +735,13 @@
                             <span>Mở lại nếu đang đóng</span>
                         </label>
                     </div>
+                    <p class="text-[10px] text-blue-700 font-medium">Lưu ý: Các trường thông số ở chế độ chỉ đọc, chỉ cho phép thao tác gia hạn thời gian.</p>
                 </div>
 
                 <div>
                     <label class="block font-semibold text-slate-700 mb-1">Ghi chú & Yêu cầu loại hàng</label>
-                    <textarea id="editNotes" rows="2"
-                        class="w-full border rounded-xl px-3 py-2 outline-none focus:ring-2 focus:ring-blue-500"></textarea>
+                    <textarea id="editNotes" rows="2" readonly
+                        class="w-full border rounded-xl px-3 py-2 outline-none bg-slate-100 text-slate-500 cursor-not-allowed" title="Thông số cố định (chỉ xem)"></textarea>
                 </div>
 
                 <div class="flex items-center justify-end gap-2.5 pt-2 border-t">
@@ -747,8 +749,8 @@
                         class="px-4 py-2 border rounded-xl text-slate-600 hover:bg-slate-50 font-medium transition">Hủy
                         bỏ</button>
                     <button type="submit"
-                        class="px-5 py-2 bg-blue-600 hover:bg-blue-700 text-white font-bold rounded-xl transition shadow flex items-center gap-1.5">
-                        <i class="fa-solid fa-check"></i> Lưu cập nhật thông số
+                        class="px-5 py-2 bg-blue-600 hover:bg-blue-700 text-white font-bold rounded-xl transition shadow flex items-center gap-1.5 cursor-pointer">
+                        <i class="fa-solid fa-clock-rotate-left"></i> Xác nhận gia hạn thời gian
                     </button>
                 </div>
             </form>
@@ -1220,7 +1222,7 @@
             return `
                 <tr class="hover:bg-slate-50 transition">
                     <td class="py-3.5 px-4">
-                        <div class="flex items-center gap-2">
+                        <div class="flex flex-col items-start gap-1">
                             <span class="bg-blue-600 text-white font-bold px-2 py-0.5 rounded text-[11px]">${a.flightNumber}</span>
                             <span class="font-mono text-gray-400 text-[11px]">${a.flightCode}</span>
                         </div>
@@ -1244,17 +1246,10 @@
                     </td>
                     <td class="py-3.5 px-4 whitespace-nowrap">
                         <div class="flex flex-col gap-1 items-start">
-                            <span class="${a.status === 'OPEN' ? 'bg-green-100 text-green-700' :
-                    a.status === 'CANCELLED' ? 'bg-orange-100 text-orange-700' :
-                        a.status === 'DELETED' ? 'bg-slate-100 text-slate-400 line-through' :
-                            'bg-gray-100 text-gray-500'
-                } font-bold px-2.5 py-0.5 rounded-full text-[10px] inline-flex items-center gap-1">
-                                ${a.status === 'OPEN' ? '<span class="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse"></span> ĐANG MỞ' :
-                    a.status === 'CANCELLED' ? '✕ ĐÃ HỦY' :
-                        a.status === 'DELETED' ? '🗑 ĐÃ XÓA' :
-                            'ĐÃ ĐÓNG'
-                }
-                            </span>
+                            ${(() => {
+                                const sInfo = (CargoStore && CargoStore.getAuctionStatusInfo) ? CargoStore.getAuctionStatusInfo(a) : { shortText: (a.status === 'OPEN' ? 'ĐANG MỞ' : 'ĐÃ ĐÓNG'), badgeClass: (a.status === 'OPEN' ? 'bg-green-100 text-green-700' : 'bg-gray-100 text-gray-500') };
+                                return `<span class="${sInfo.badgeClass} font-bold px-2.5 py-0.5 rounded-full text-[10px] inline-flex items-center gap-1 border">${sInfo.key === 'OPEN' ? '<span class="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse"></span> ' : ''}${sInfo.shortText || sInfo.text}</span>`;
+                            })()}
                             ${timerBadge}
                         </div>
                     </td>
@@ -1637,7 +1632,7 @@
             document.getElementById('editEtd').value = auction.etd;
             document.getElementById('editEta').value = auction.eta;
             document.getElementById('editNotes').value = auction.specialNotes || '';
-            document.getElementById('editExtendTime').value = '0';
+            document.getElementById('editExtendTime').value = '30';
             document.getElementById('editReopen').checked = auction.status === 'CLOSED';
 
             document.getElementById('editAuctionModal').classList.remove('hidden');
@@ -1656,6 +1651,11 @@
             const id = Number(document.getElementById('editAuctionId').value);
             const extend = Number(document.getElementById('editExtendTime').value);
             const reopen = document.getElementById('editReopen').checked;
+
+            if (extend <= 0 && !reopen) {
+                alert('Vui lòng chọn thời gian muốn gia hạn thêm (15 phút, 30 phút, 1 giờ...) trước khi bấm xác nhận!');
+                return;
+            }
 
             const res = CargoStore.updateAuction(id, {
                 capacityKg: document.getElementById('editCapacity').value,

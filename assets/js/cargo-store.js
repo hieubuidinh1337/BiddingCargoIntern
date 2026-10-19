@@ -5171,6 +5171,104 @@ const CargoStore = (function () {
             };
         },
 
+        // Kiểm tra xem phiên đấu giá có đang trong thời gian điều chỉnh hay không
+        // Quy tắc: Chỉ khi phiên đã ĐÓNG, có từ 2 đại lý trở lên tham gia, chưa khóa chốt và thời hạn review còn hiệu lực
+        isReviewPeriodActive: function (auction) {
+            if (!auction || auction.status !== 'CLOSED') return false;
+            if (auction.isFinalLocked === true) return false;
+
+            const bids = this.getBidsForAuction ? this.getBidsForAuction(auction.id) : [];
+            const uniqueAgentCodes = Array.from(new Set(bids.map(b => (b.agentCode || '').toUpperCase()).filter(Boolean)));
+            // Chỉ có thể thực hiện điều chỉnh nếu có từ 2 đại lý trở lên tham gia
+            if (uniqueAgentCodes.length < 2) return false;
+
+            // Kiểm tra thời hạn điều chỉnh (mặc định 15 phút)
+            const sysSettings = this.getSystemSettings ? this.getSystemSettings() : {};
+            const reviewMins = Number(auction.reviewWindowMinutes || sysSettings.reviewWindowMinutes) || 15;
+
+            let deadlineMs = 0;
+            if (auction.reviewDeadline) {
+                deadlineMs = new Date(auction.reviewDeadline).getTime();
+            } else {
+                const baseTime = auction.closedAt || auction.endTime;
+                if (baseTime) {
+                    deadlineMs = new Date(baseTime).getTime() + (reviewMins * 60 * 1000);
+                }
+            }
+
+            if (!deadlineMs || isNaN(deadlineMs)) return false;
+            return Date.now() < deadlineMs;
+        },
+
+        // Lấy thông tin trạng thái hiển thị chuẩn hóa cho phiên đấu giá
+        getAuctionStatusInfo: function (auction) {
+            if (!auction) return { key: 'UNKNOWN', text: 'KHÔNG XÁC ĐỊNH', shortText: 'KHÔNG RÕ', badgeClass: 'bg-slate-100 text-slate-500 border-slate-300', icon: 'fa-circle', canReview: false };
+
+            if (auction.status === 'OPEN') {
+                return {
+                    key: 'OPEN',
+                    text: 'ĐANG MỞ ĐẤU GIÁ',
+                    shortText: 'ĐANG MỞ',
+                    badgeClass: 'bg-blue-50 text-blue-700 border-blue-200',
+                    icon: 'fa-signal',
+                    canReview: false
+                };
+            }
+            if (auction.status === 'UPCOMING') {
+                return {
+                    key: 'UPCOMING',
+                    text: 'SẮP DIỄN RA',
+                    shortText: 'SẮP DIỄN RA',
+                    badgeClass: 'bg-amber-50 text-amber-700 border-amber-200',
+                    icon: 'fa-clock',
+                    canReview: false
+                };
+            }
+            if (auction.status === 'CANCELLED') {
+                return {
+                    key: 'CANCELLED',
+                    text: 'ĐÃ HỦY',
+                    shortText: 'ĐÃ HỦY',
+                    badgeClass: 'bg-orange-50 text-orange-700 border-orange-200',
+                    icon: 'fa-xmark',
+                    canReview: false
+                };
+            }
+            if (auction.status === 'DELETED') {
+                return {
+                    key: 'DELETED',
+                    text: 'ĐÃ XÓA',
+                    shortText: 'ĐÃ XÓA',
+                    badgeClass: 'bg-slate-100 text-slate-400 line-through border-slate-200',
+                    icon: 'fa-trash-can',
+                    canReview: false
+                };
+            }
+
+            // Xử lý status CLOSED:
+            const canReview = this.isReviewPeriodActive(auction);
+            if (canReview) {
+                return {
+                    key: 'REVIEW',
+                    text: 'THỜI GIAN ĐIỀU CHỈNH',
+                    shortText: 'ĐIỀU CHỈNH',
+                    badgeClass: 'bg-purple-50 text-purple-800 border-purple-300',
+                    icon: 'fa-stopwatch',
+                    canReview: true
+                };
+            }
+
+            // Quy tắc: Cái nào không còn thời gian điều chỉnh thì status là ĐÃ ĐÓNG, nếu có thể thực hiện điều chỉnh thì mới để status THỜI GIAN ĐIỀU CHỈNH
+            return {
+                key: 'CLOSED',
+                text: 'ĐÃ ĐÓNG',
+                shortText: 'ĐÃ ĐÓNG',
+                badgeClass: 'bg-slate-100 text-slate-700 border-slate-300',
+                icon: 'fa-lock',
+                canReview: false
+            };
+        },
+
         // Lấy bảng xếp hạng Top đại lý theo thứ tự giá từ cao xuống thấp & thứ tự tiếp nhận dự phòng
         getAuctionLeaderboard: function (auctionId) {
             const data = loadData();
@@ -5178,7 +5276,14 @@ const CargoStore = (function () {
             if (!auction) return [];
 
             const bids = (data.bids || []).filter(b => b.auctionId == auctionId);
-            if (bids.length === 0) return [];
+            if (bids.length === 0) {
+                if (auction.status === 'CLOSED' && !auction.isFinalLocked) {
+                    auction.isFinalLocked = true;
+                    auction.finalLockedAt = auction.closedAt || auction.endTime || new Date().toISOString();
+                    saveData(data);
+                }
+                return [];
+            }
 
             // Group by agentCode, lấy mức giá cao nhất mà mỗi đại lý đã đặt
             const agentMap = {};
@@ -5203,11 +5308,12 @@ const CargoStore = (function () {
             auction.reviewWindowMinutes = reviewMinutes;
 
             if (auction.status === 'CLOSED') {
-                if (!auction.closedAt) {
-                    auction.closedAt = new Date().toISOString();
+                const baseTimeStr = auction.closedAt || auction.endTime;
+                if (!auction.closedAt && baseTimeStr) {
+                    auction.closedAt = baseTimeStr;
                 }
-                if (!auction.reviewDeadline) {
-                    auction.reviewDeadline = new Date(new Date(auction.closedAt).getTime() + (reviewMinutes * 60 * 1000)).toISOString();
+                if (!auction.reviewDeadline && baseTimeStr) {
+                    auction.reviewDeadline = new Date(new Date(baseTimeStr).getTime() + (reviewMinutes * 60 * 1000)).toISOString();
                 }
             }
 
@@ -5221,14 +5327,14 @@ const CargoStore = (function () {
                     isFinalLocked = true;
                     if (!auction.isFinalLocked) {
                         auction.isFinalLocked = true;
-                        auction.finalLockedAt = auction.closedAt || new Date().toISOString();
+                        auction.finalLockedAt = auction.closedAt || auction.endTime || new Date().toISOString();
                         saveData(data);
                     }
                 } else {
                     // Có từ 2 đại lý trở lên: kiểm tra xem đã hết thời gian điều chỉnh hay chưa
                     const isExpiredByTime = auction.reviewDeadline
                         ? (Date.now() >= new Date(auction.reviewDeadline).getTime())
-                        : false;
+                        : true;
 
                     isFinalLocked = Boolean(auction.isFinalLocked) || isExpiredByTime;
                     if (isExpiredByTime && !auction.isFinalLocked) {
@@ -6136,54 +6242,69 @@ const CargoStore = (function () {
                 };
             }
 
-            // Only allow editing if no agent has placed a bid yet
+            // Cho phép gia hạn thời gian đóng thầu ngay cả khi phiên đã có đại lý đặt giá
+            const isOnlyExtending = Boolean(updateData.extendMinutes && Number(updateData.extendMinutes) > 0);
             const hasBids = (auction.bidsCount && auction.bidsCount > 0) ||
                 (data.bids || []).some(b => b.auctionId == id);
-            if (hasBids && !updateData.reopen) {
+            if (hasBids && !updateData.reopen && !isOnlyExtending) {
                 return {
                     success: false,
-                    message: `Không thể chỉnh sửa chuyến bay ${auction.flightNumber} (${auction.route}) vì đã có đại lý đặt giá (${auction.bidsCount || 0} lượt đấu giá). Chỉ được sửa thông số khi chưa có đại lý nào tham gia đấu giá.`
+                    message: `Không thể chỉnh sửa thông số chuyến bay ${auction.flightNumber} (${auction.route}) vì đã có đại lý đặt giá (${auction.bidsCount || 0} lượt đấu giá). Chỉ được phép gia hạn thêm thời gian đấu giá.`
                 };
             }
 
-            if (updateData.capacityKg) {
-                const cap = Number(updateData.capacityKg);
-                if (isNaN(cap) || cap < 100 || cap > 50000) {
-                    return {
-                        success: false,
-                        message: `Tải trọng chào thầu (${cap ? cap.toLocaleString('vi-VN') : 0} Kg) không hợp lệ! Tải trọng một chuyến bay vận tải hàng không cho phép từ 100 Kg đến tối đa 50.000 Kg (50 tấn).`
-                    };
+            if (!isOnlyExtending) {
+                if (updateData.capacityKg) {
+                    const cap = Number(updateData.capacityKg);
+                    if (isNaN(cap) || cap < 100 || cap > 50000) {
+                        return {
+                            success: false,
+                            message: `Tải trọng chào thầu (${cap ? cap.toLocaleString('vi-VN') : 0} Kg) không hợp lệ! Tải trọng một chuyến bay vận tải hàng không cho phép từ 100 Kg đến tối đa 50.000 Kg (50 tấn).`
+                        };
+                    }
+                    auction.capacityKg = cap;
                 }
-                auction.capacityKg = cap;
-            }
-            if (updateData.startingPriceKg) {
-                auction.startingPriceKg = Number(updateData.startingPriceKg);
-                // If currentPriceKg is at or below new startingPriceKg, update it
-                if (!auction.currentPriceKg || auction.currentPriceKg < auction.startingPriceKg) {
-                    auction.currentPriceKg = auction.startingPriceKg;
+                if (updateData.startingPriceKg) {
+                    auction.startingPriceKg = Number(updateData.startingPriceKg);
+                    if (!auction.currentPriceKg || auction.currentPriceKg < auction.startingPriceKg) {
+                        auction.currentPriceKg = auction.startingPriceKg;
+                    }
                 }
+                if (updateData.minStep) auction.minStep = Number(updateData.minStep);
+                if (updateData.etd) auction.etd = updateData.etd;
+                if (updateData.eta) auction.eta = updateData.eta;
+                if (updateData.aircraft) auction.aircraft = updateData.aircraft;
+                if (updateData.specialNotes !== undefined) auction.specialNotes = updateData.specialNotes;
+                if (updateData.cutOffTime) auction.cutOffTime = updateData.cutOffTime;
+                if (updateData.status) auction.status = updateData.status;
             }
-            if (updateData.minStep) auction.minStep = Number(updateData.minStep);
-            if (updateData.etd) auction.etd = updateData.etd;
-            if (updateData.eta) auction.eta = updateData.eta;
-            if (updateData.aircraft) auction.aircraft = updateData.aircraft;
-            if (updateData.specialNotes !== undefined) auction.specialNotes = updateData.specialNotes;
-            if (updateData.cutOffTime) auction.cutOffTime = updateData.cutOffTime;
-            if (updateData.status) auction.status = updateData.status;
 
-            if (updateData.extendMinutes) {
-                auction.endTime = new Date(Date.now() + Number(updateData.extendMinutes) * 60 * 1000).toISOString();
+            if (updateData.extendMinutes && Number(updateData.extendMinutes) > 0) {
+                const nowMs = Date.now();
+                const curEndMs = auction.endTime ? Date.parse(auction.endTime) : 0;
+                const baseMs = (curEndMs && curEndMs > nowMs) ? curEndMs : nowMs;
+                auction.endTime = new Date(baseMs + Number(updateData.extendMinutes) * 60 * 1000).toISOString();
+                auction.isExtended = true;
+                auction.extendedTimes = (auction.extendedTimes || 0) + 1;
                 if (updateData.reopen) auction.status = 'OPEN';
             }
 
             saveData(data);
             this.logActivity({
                 actionCategory: 'Phiên đấu giá',
-                actionTitle: 'Cập nhật phiên đấu giá',
+                actionTitle: isOnlyExtending ? 'Gia hạn thời gian đấu giá' : 'Cập nhật phiên đấu giá',
                 target: auction.flightNumber,
-                details: `Chỉnh sửa thông số chuyến ${auction.flightNumber} (${auction.route || 'Vietravel Airlines'}).`
+                details: isOnlyExtending
+                    ? `Gia hạn thêm ${updateData.extendMinutes} phút cho chuyến bay ${auction.flightNumber} (${auction.route || 'Vietravel Airlines'}).`
+                    : `Chỉnh sửa thông số chuyến ${auction.flightNumber} (${auction.route || 'Vietravel Airlines'}).`
             });
-            return { success: true, message: `Cập nhật thông số chuyến bay ${auction.flightNumber} thành công!`, auction: auction };
+            return {
+                success: true,
+                message: isOnlyExtending
+                    ? `Gia hạn thêm ${updateData.extendMinutes} phút cho chuyến bay ${auction.flightNumber} thành công!`
+                    : `Cập nhật thông số chuyến bay ${auction.flightNumber} thành công!`,
+                auction: auction
+            };
         },
 
         deleteAuction: function (id) {
