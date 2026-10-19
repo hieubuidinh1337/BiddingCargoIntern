@@ -1606,7 +1606,7 @@ const CargoStore = (function () {
                         if (!b || !b.id) return false;
                         if (serverBidIds.has(String(b.id))) return false;
                         const age = Date.now() - (Number(b.timestamp || b.id) || 0);
-                        return age >= 0 && age < 15000;
+                        return age >= 0 && age < 45000;
                     });
                     local.bids = deduplicateBids([...serverData.bids, ...pendingLocalBids]);
                 }
@@ -2033,9 +2033,11 @@ const CargoStore = (function () {
 
         if (etdDate && !isNaN(etdDate.getTime())) {
             const cutOffMs = etdDate.getTime() - 3 * 3600 * 1000;
-            // The effective payment deadline is Cut-off time (or 24h from close if earlier)
-            const effectiveMs = Math.min(cutOffMs, default24hMs);
-            return new Date(effectiveMs).toISOString();
+            // Ensure payment deadline is never already in the past upon creation (minimum 2 hours grace)
+            if (cutOffMs > baseMs + 2 * 3600 * 1000) {
+                const effectiveMs = Math.min(cutOffMs, default24hMs);
+                return new Date(effectiveMs).toISOString();
+            }
         }
 
         return new Date(default24hMs).toISOString();
@@ -3163,19 +3165,40 @@ const CargoStore = (function () {
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify({
                         bidId: sharedBidId,
-                        auctionId: Number(auctionId),
+                        auctionId: Number(auction.id),
                         agentCode: user.agentCode,
                         agentName: user.companyName,
                         priceKg: Number(bidPriceKg),
                         isAnonymous: anonFlag,
                         weightKg: auction.capacityKg
                     })
-                }).then(r => r.json()).then(res => {
+                }).then(r => r.json().catch(() => ({}))).then(res => {
                     if (res && res.success && res.bid) {
                         // Server confirmed — safe to sync now
                         lastLocalSaveTimestamp = 0;
                         if (typeof syncWithServer === 'function') {
                             syncWithServer();
+                        }
+                    } else if (res && res.success === false) {
+                        // Server rejected bid -> rollback local phantom bid immediately
+                        console.error('[CargoStore] Server rejected bid:', res.error);
+                        const curData = loadData();
+                        curData.bids = (curData.bids || []).filter(b => b && b.id !== sharedBidId);
+                        reconcileAuctionSummaries(curData);
+                        saveData(curData, true);
+                        if (typeof window !== 'undefined') {
+                            window.dispatchEvent(new CustomEvent('cargostore_updated', { detail: curData }));
+                            const errMsg = res.error || 'Phiên đấu giá đã kết thúc hoặc không thể đặt giá.';
+                            if (typeof Swal !== 'undefined') {
+                                Swal.fire({
+                                    icon: 'error',
+                                    title: 'Không thể ghi nhận giá thầu',
+                                    text: errMsg,
+                                    confirmButtonText: 'Đóng'
+                                });
+                            } else {
+                                alert('❌ Không thể ghi nhận giá thầu: ' + errMsg);
+                            }
                         }
                     }
                 }).catch(() => { });

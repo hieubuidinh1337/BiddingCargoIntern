@@ -833,6 +833,27 @@ async function purgeUnregisteredBids() {
     return invalidIds.length;
 }
 
+function parseFlightDate(dateStr) {
+    if (!dateStr) return null;
+    if (dateStr instanceof Date) return isNaN(dateStr.getTime()) ? null : dateStr;
+    const cleanStr = String(dateStr).replace(/·|-/g, ' ').replace(/\s+/g, ' ').trim();
+
+    const p1 = cleanStr.match(/^(\d{1,2}):(\d{2})\s+(\d{1,2})\/(\d{1,2})\/(\d{4})$/);
+    const p2 = cleanStr.match(/^(\d{1,2})\/(\d{1,2})\/(\d{4})\s+(\d{1,2}):(\d{2})$/);
+    const p3 = cleanStr.match(/^(\d{4})-(\d{2})-(\d{2})T(\d{2}):(\d{2})/);
+
+    if (p1) {
+        return new Date(parseInt(p1[5], 10), parseInt(p1[4], 10) - 1, parseInt(p1[3], 10), parseInt(p1[1], 10), parseInt(p1[2], 10));
+    } else if (p2) {
+        return new Date(parseInt(p2[3], 10), parseInt(p2[2], 10) - 1, parseInt(p2[1], 10), parseInt(p2[4], 10), parseInt(p2[5], 10));
+    } else if (p3) {
+        const d = new Date(dateStr);
+        return isNaN(d.getTime()) ? null : d;
+    }
+    const d = new Date(dateStr);
+    return isNaN(d.getTime()) ? null : d;
+}
+
 async function placeBidAtomic({ auctionId, agentCode, agentName, priceKg, isAnonymous = true, weightKg = 0, bidId: clientBidId = null }) {
     if (!agentCode || agentCode.trim().toUpperCase() === 'AG-***' || agentCode.trim().toUpperCase() === 'ANONYMOUS') {
         throw new Error('Mã đại lý không hợp lệ hoặc là mã ẩn danh (AG-***)');
@@ -873,19 +894,51 @@ async function placeBidAtomic({ auctionId, agentCode, agentName, priceKg, isAnon
         agent = await get('SELECT * FROM agents WHERE UPPER(code) = ?', [cleanCode]);
     }
 
-    const auction = await get('SELECT * FROM auctions WHERE id = ?', [auctionId]);
+    const auction = await get('SELECT * FROM auctions WHERE id = ? OR UPPER(flightCode) = ? OR UPPER(flightNumber) = ?', [auctionId, String(auctionId).toUpperCase(), String(auctionId).toUpperCase()]);
     if (!auction) {
         throw new Error('Chuyến bay đấu giá không tồn tại');
     }
-    if (auction.status !== 'OPEN') {
-        throw new Error('Phiên đấu giá đã đóng hoặc chưa mở');
+    auctionId = auction.id;
+
+    if (auction.status === 'CANCELLED' || auction.status === 'DELETED') {
+        throw new Error('Chuyến bay đấu giá đã bị hủy');
+    }
+    if (auction.winnerAgentCode) {
+        throw new Error('Phiên đấu giá đã kết thúc và đã chốt đại lý trúng thầu');
+    }
+
+    let etdMs = NaN;
+    if (auction.etdIso) {
+        const parsed = new Date(auction.etdIso).getTime();
+        if (!isNaN(parsed)) etdMs = parsed;
+    }
+    if (isNaN(etdMs) && auction.etd) {
+        const parsed = parseFlightDate(auction.etd);
+        if (parsed) etdMs = parsed.getTime();
     }
 
     const now = Date.now();
-    const endMs = new Date(auction.endTime).getTime();
-    if (!isNaN(endMs) && now > endMs) {
-        await run('UPDATE auctions SET status = "CLOSED" WHERE id = ?', [auctionId]);
-        throw new Error('Phiên đấu giá đã hết giờ');
+    let endMs = auction.endTime ? new Date(auction.endTime).getTime() : NaN;
+
+    // Tự động gia hạn phiên đấu giá nếu chưa có người thắng nhưng ngày/giờ cũ đã qua
+    if (auction.status !== 'OPEN' || isNaN(endMs) || now > endMs || isNaN(etdMs) || etdMs <= now) {
+        const renewedEndTime = new Date(now + 120 * 60 * 1000).toISOString();
+        const nextEtd = new Date(now + 6 * 3600 * 1000);
+        const renewedEtdIso = nextEtd.toISOString();
+        const pad = n => String(n).padStart(2, '0');
+        const renewedEtd = `${pad(nextEtd.getHours())}:${pad(nextEtd.getMinutes())} · ${pad(nextEtd.getDate())}/${pad(nextEtd.getMonth() + 1)}/${nextEtd.getFullYear()}`;
+
+        await run('UPDATE auctions SET endTime = ?, etd = ?, etdIso = ?, status = "OPEN" WHERE id = ?', [
+            renewedEndTime,
+            renewedEtd,
+            renewedEtdIso,
+            auction.id
+        ]);
+        auction.endTime = renewedEndTime;
+        auction.etd = renewedEtd;
+        auction.etdIso = renewedEtdIso;
+        auction.status = 'OPEN';
+        endMs = new Date(renewedEndTime).getTime();
     }
 
     const minStep = Number(auction.minStep) || 500;

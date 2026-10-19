@@ -490,34 +490,8 @@ async function loadServerDataAsync() {
         }
     }
 
-    // Auto renew open auctions if ETD is in future, or close them if ETD passed
-    const now = Date.now();
-    if (serverData.auctions) {
-        serverData.auctions.forEach((a, idx) => {
-            if (a.status === 'OPEN') {
-                const endMs = Date.parse(a.endTime);
-                if (isNaN(endMs) || endMs <= now) {
-                    if (a.etdIso) {
-                        const etdMs = Date.parse(a.etdIso);
-                        if (!isNaN(etdMs) && etdMs > now) {
-                            a.endTime = new Date(Math.max(now + 120 * 60 * 1000, etdMs - 3 * 3600 * 1000)).toISOString();
-                            changed = true;
-                            return;
-                        }
-                    }
-                    const etdDate = a.etd ? parseFlightDate(a.etd) : null;
-                    if (etdDate && !isNaN(etdDate.getTime()) && etdDate.getTime() > now) {
-                        a.endTime = new Date(Math.max(now + 120 * 60 * 1000, etdDate.getTime() - 3 * 3600 * 1000)).toISOString();
-                        changed = true;
-                        return;
-                    }
-                    // Flight ETD has passed -> CLOSE auction
-                    a.status = 'CLOSED';
-                    a.specialNotes = (a.specialNotes ? a.specialNotes + ' ' : '') + '(Phiên đã tự động đóng do chuyến bay đã cất cánh).';
-                    changed = true;
-                }
-            }
-        });
+    if (reconcileAuctionStatuses(serverData)) {
+        changed = true;
     }
 
     if (reconcileAuctionSummaries(serverData)) {
@@ -528,7 +502,51 @@ async function loadServerDataAsync() {
         changed = true;
     }
 
-    if (changed) saveServerData();
+    if (changed) await saveServerData();
+}
+
+function reconcileAuctionStatuses(data) {
+    if (!data || !Array.isArray(data.auctions)) return false;
+    let changed = false;
+    const now = Date.now();
+    data.auctions.forEach((a) => {
+        // Chuyến bay đã chốt kết quả thắng hoặc bị hủy/xóa thì giữ nguyên
+        if (a.winnerAgentCode || a.status === 'CANCELLED' || a.status === 'DELETED') {
+            return;
+        }
+
+        let etdMs = NaN;
+        if (a.etdIso) {
+            const parsed = new Date(a.etdIso).getTime();
+            if (!isNaN(parsed)) etdMs = parsed;
+        }
+        if (isNaN(etdMs) && a.etd) {
+            const parsed = parseFlightDate(a.etd);
+            if (parsed) etdMs = parsed.getTime();
+        }
+
+        const endMs = Date.parse(a.endTime);
+
+        // Đối với các chuyến bay đang mở / demo chưa chốt winner: nếu ngày ETD hoặc endTime đã trôi qua trong quá khứ thì tự động gia hạn
+        if (isNaN(etdMs) || etdMs <= now) {
+            const nextEtd = new Date(now + 6 * 3600 * 1000);
+            a.etdIso = nextEtd.toISOString();
+            const pad = n => String(n).padStart(2, '0');
+            a.etd = `${pad(nextEtd.getHours())}:${pad(nextEtd.getMinutes())} · ${pad(nextEtd.getDate())}/${pad(nextEtd.getMonth() + 1)}/${nextEtd.getFullYear()}`;
+            changed = true;
+        }
+
+        if (a.status !== 'OPEN') {
+            a.status = 'OPEN';
+            changed = true;
+        }
+
+        if (isNaN(endMs) || endMs <= now) {
+            a.endTime = new Date(now + 120 * 60 * 1000).toISOString();
+            changed = true;
+        }
+    });
+    return changed;
 }
 
 function parseFlightDate(dateStr) {
@@ -826,6 +844,9 @@ const server = http.createServer((req, res) => {
 
     // --- REST API: GET /api/data ---
     if (pathname === '/api/data' && req.method === 'GET') {
+        if (reconcileAuctionStatuses(serverData)) {
+            saveServerData();
+        }
         if (reconcileAuctionSummaries(serverData)) {
             saveServerData();
         }
@@ -1517,6 +1538,7 @@ const server = http.createServer((req, res) => {
                 if (incoming.routeSubscriptions) serverData.routeSubscriptions = incoming.routeSubscriptions;
                 if (incoming.chats) serverData.chats = incoming.chats;
 
+                reconcileAuctionStatuses(serverData);
                 reconcileAuctionSummaries(serverData);
                 checkAndAutoLockExpiredWonAuctions(serverData);
                 await reconcileBidActivityLogs(serverData);
