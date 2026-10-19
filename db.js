@@ -67,8 +67,10 @@ function exec(sql) {
 async function initDatabase() {
     if (USE_MSSQL) {
         await mssqlDriver.init(); // connects (Windows Auth) + creates DB/schema if missing
+        console.log('[Database] SQL Server initialized successfully.');
+        return;
     }
-    console.log('[Database] Initializing ' + (USE_MSSQL ? 'SQL Server' : 'SQLite database: ' + DB_FILE));
+    console.log('[Database] Initializing SQLite database: ' + DB_FILE);
     
     // Enable WAL mode & foreign keys for maximum concurrency & integrity
     await run('PRAGMA journal_mode = WAL;');

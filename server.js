@@ -510,44 +510,38 @@ function reconcileAuctionStatuses(data) {
     let changed = false;
     const now = Date.now();
     data.auctions.forEach((a) => {
-        // Chuyến bay đã chốt kết quả thắng hoặc bị hủy/xóa thì giữ nguyên
-        if (a.winnerAgentCode || a.status === 'CANCELLED' || a.status === 'DELETED') {
+        if (a.status === 'CANCELLED' || a.status === 'DELETED') {
             return;
-        }
-
-        let etdMs = NaN;
-        if (a.etdIso) {
-            const parsed = new Date(a.etdIso).getTime();
-            if (!isNaN(parsed)) etdMs = parsed;
-        }
-        if (isNaN(etdMs) && a.etd) {
-            const parsed = parseFlightDate(a.etd);
-            if (parsed) etdMs = parsed.getTime();
         }
 
         const endMs = Date.parse(a.endTime);
 
-        // Đối với các chuyến bay đang mở / demo chưa chốt winner: nếu ngày ETD hoặc endTime đã trôi qua trong quá khứ thì tự động gia hạn
-        if (isNaN(etdMs) || etdMs <= now) {
-            const nextEtd = new Date(now + 6 * 3600 * 1000);
-            a.etdIso = nextEtd.toISOString();
-            const pad = n => String(n).padStart(2, '0');
-            a.etd = `${pad(nextEtd.getHours())}:${pad(nextEtd.getMinutes())} · ${pad(nextEtd.getDate())}/${pad(nextEtd.getMonth() + 1)}/${nextEtd.getFullYear()}`;
+        // Quy tắc: Khi phiên hết thời gian (endTime <= now), phiên tự động ĐÓNG (CLOSED)
+        if (a.status === 'OPEN' && !isNaN(endMs) && endMs <= now) {
+            a.status = 'CLOSED';
+            a.closedAt = a.closedAt || new Date(endMs).toISOString();
             changed = true;
         }
 
-        if (a.status !== 'OPEN') {
-            a.status = 'OPEN';
-            changed = true;
-        }
-
-        if (isNaN(endMs) || endMs <= now) {
-            a.endTime = new Date(now + 120 * 60 * 1000).toISOString();
-            changed = true;
+        // Quy tắc: Phiên đã đóng mà không có đại lý nào tham gia đặt giá thì không có winner và giá thắng cuộc là 0
+        if (a.status === 'CLOSED') {
+            const bids = (data.bids || []).filter(b => b.auctionId == a.id);
+            if (bids.length === 0) {
+                if (a.winnerAgentCode || a.winnerAgentName || a.winningPriceKg) {
+                    a.winnerAgentCode = null;
+                    a.winnerAgentName = null;
+                    a.winningPriceKg = 0;
+                    a.leadingAgentCode = null;
+                    a.leadingAgentName = null;
+                    a.bidsCount = 0;
+                    changed = true;
+                }
+            }
         }
     });
     return changed;
 }
+
 
 function parseFlightDate(dateStr) {
     if (!dateStr) return null;

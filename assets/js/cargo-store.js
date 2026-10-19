@@ -2082,25 +2082,35 @@ const CargoStore = (function () {
             const timer = getTimeRemaining(auction.endTime);
             const isTimerEnded = timer.isEnded;
 
-            // QUY TẮC NGHIỆP VỤ: Phiên đấu giá hết thời gian KHÔNG chốt mà tự động gia hạn thêm thời gian để đại lý đặt tiếp
+            // QUY TẮC NGHIỆP VỤ: Khi phiên hết thời gian (isTimerEnded), phiên tự động ĐÓNG (status = 'CLOSED')
             if (auction.status === 'OPEN' && isTimerEnded) {
-                const extensionMs = 30 * 60 * 1000; // Gia hạn thêm 30 phút
-                auction.endTime = new Date(Date.now() + extensionMs).toISOString();
-                auction.isExtended = true;
-                auction.extendedTimes = (auction.extendedTimes || 0) + 1;
+                auction.status = 'CLOSED';
+                auction.closedAt = auction.closedAt || new Date().toISOString();
                 modified = true;
             }
 
-            // Chỉ xử lý chốt kết quả và người trúng thầu đối với phiên đã được chuyển sang trạng thái CLOSED (do Quản trị viên chốt)
+            // Xử lý chốt kết quả và người trúng thầu đối với phiên đã CLOSED
             if (auction.status === 'CLOSED') {
-                if (!data.wonAuctions) data.wonAuctions = [];
-                let existingWon = data.wonAuctions.find(w => w.auctionId == auction.id);
+                const bids = (data.bids || []).filter(b => b.auctionId == auction.id).sort((a, b) => b.priceKg - a.priceKg);
+                const highestBid = bids.length > 0 ? bids[0] : null;
 
-                if (!existingWon) {
-                    const bids = (data.bids || []).filter(b => b.auctionId == auction.id).sort((a, b) => b.priceKg - a.priceKg);
-                    const highestBid = bids.length > 0 ? bids[0] : null;
+                if (!highestBid) {
+                    // Phiên không có đại lý nào tham gia đặt giá: xóa thông tin người thắng và giá thắng
+                    if (auction.winnerAgentCode || auction.winnerAgentName || auction.winningPriceKg) {
+                        auction.winnerAgentCode = null;
+                        auction.winnerAgentName = null;
+                        auction.winningPriceKg = 0;
+                        auction.leadingAgentCode = null;
+                        auction.leadingAgentName = null;
+                        auction.bidsCount = 0;
+                        modified = true;
+                    }
+                    auction.isFinalLocked = true;
+                } else {
+                    if (!data.wonAuctions) data.wonAuctions = [];
+                    let existingWon = data.wonAuctions.find(w => w.auctionId == auction.id);
 
-                    if (highestBid) {
+                    if (!existingWon) {
                         highestBid.status = 'WON';
                         auction.winnerAgentCode = highestBid.agentCode;
                         auction.winnerAgentName = highestBid.agentName;

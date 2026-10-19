@@ -439,7 +439,7 @@
         <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
             <div class="bg-white rounded-2xl p-4 border shadow-sm">
                 <p class="text-xs text-slate-500 flex items-center justify-between">
-                    <span>Mức giá cao nhất / Thắng thầu</span>
+                    <span>Mức giá cao nhất</span>
                     <i class="fa-solid fa-chart-line text-blue-500"></i>
                 </p>
                 <p class="text-xl font-bold text-blue-600 mt-1" id="detCurrentPrice">---</p>
@@ -509,11 +509,11 @@
                         sau khi trúng thầu.
                     </p>
                 </div>
-                <div class="flex items-center gap-2 flex-wrap">
+                <div class="flex items-center gap-2 shrink-0">
                     <span
-                        class="text-xs font-semibold text-blue-700 bg-blue-50 border border-blue-200 px-2.5 py-1 rounded-lg"
+                        class="text-xs font-semibold text-slate-600 bg-slate-100 border border-slate-200 px-3 py-1 rounded-full inline-flex items-center gap-1.5 whitespace-nowrap shadow-2xs"
                         id="leaderboardSummaryBadge">
-                        0 đại lý tham gia
+                        <i class="fa-solid fa-users text-[11px] text-slate-400"></i> 0 đại lý tham gia
                     </span>
                 </div>
             </div>
@@ -628,50 +628,59 @@
                     <div>
                         <label class="block font-semibold text-slate-700 mb-1">Tải trọng (Kg)</label>
                         <input type="number" id="modalDetCapacity" required readonly
-                            class="w-full border rounded-xl px-3 py-2 font-bold outline-none bg-slate-100 text-slate-500 cursor-not-allowed" title="Thông số cố định (chỉ xem)">
+                            class="w-full border rounded-xl px-3 py-2 font-bold outline-none bg-slate-100 text-slate-500 cursor-not-allowed"
+                            title="Thông số cố định (chỉ xem)">
                     </div>
                     <div>
                         <label class="block font-semibold text-slate-700 mb-1">Giá khởi điểm (đ/Kg)</label>
                         <input type="number" id="modalDetStarting" required readonly
-                            class="w-full border rounded-xl px-3 py-2 font-bold outline-none bg-slate-100 text-slate-500 cursor-not-allowed" title="Thông số cố định (chỉ xem)">
+                            class="w-full border rounded-xl px-3 py-2 font-bold outline-none bg-slate-100 text-slate-500 cursor-not-allowed"
+                            title="Thông số cố định (chỉ xem)">
                     </div>
                 </div>
                 <div class="grid grid-cols-1 gap-3">
                     <div>
                         <label class="block font-semibold text-slate-700 mb-1">Tàu bay</label>
                         <input type="text" id="modalDetAircraft" required readonly
-                            class="w-full border rounded-xl px-3 py-2 outline-none bg-slate-100 text-slate-500 cursor-not-allowed" title="Thông số cố định (chỉ xem)">
+                            class="w-full border rounded-xl px-3 py-2 outline-none bg-slate-100 text-slate-500 cursor-not-allowed"
+                            title="Thông số cố định (chỉ xem)">
                     </div>
                 </div>
                 <div class="grid grid-cols-2 gap-3">
                     <div>
                         <label class="block font-semibold text-slate-700 mb-1">ETD</label>
                         <input type="text" id="modalDetEtd" required readonly
-                            class="w-full border rounded-xl px-3 py-2 outline-none bg-slate-100 text-slate-500 cursor-not-allowed" title="Thông số cố định (chỉ xem)">
+                            class="w-full border rounded-xl px-3 py-2 outline-none bg-slate-100 text-slate-500 cursor-not-allowed"
+                            title="Thông số cố định (chỉ xem)">
                     </div>
                     <div>
                         <label class="block font-semibold text-slate-700 mb-1">ETA</label>
                         <input type="text" id="modalDetEta" required readonly
-                            class="w-full border rounded-xl px-3 py-2 outline-none bg-slate-100 text-slate-500 cursor-not-allowed" title="Thông số cố định (chỉ xem)">
+                            class="w-full border rounded-xl px-3 py-2 outline-none bg-slate-100 text-slate-500 cursor-not-allowed"
+                            title="Thông số cố định (chỉ xem)">
                     </div>
                 </div>
                 <div class="p-3 bg-blue-50/80 border border-blue-200 rounded-xl space-y-1.5">
                     <label class="block font-bold text-blue-900 mb-1 flex items-center gap-1.5 text-xs">
-                        <i class="fa-solid fa-clock-rotate-left text-blue-600"></i> Gia hạn thời gian đóng thầu: <span class="text-rose-500">*</span>
+                        <i class="fa-solid fa-clock-rotate-left text-blue-600"></i> Gia hạn thời gian đóng thầu: <span
+                            class="text-rose-500">*</span>
                     </label>
-                    <select id="modalDetExtendTime" class="w-full border border-blue-300 rounded-xl px-3 py-2.5 bg-white outline-none focus:ring-2 focus:ring-blue-500 font-bold text-blue-800 text-xs shadow-2xs">
+                    <select id="modalDetExtendTime"
+                        class="w-full border border-blue-300 rounded-xl px-3 py-2.5 bg-white outline-none focus:ring-2 focus:ring-blue-500 font-bold text-blue-800 text-xs shadow-2xs">
                         <option value="0">-- Chọn thời gian gia hạn thêm --</option>
                         <option value="15">Gia hạn thêm 15 phút</option>
                         <option value="30" selected>Gia hạn thêm 30 phút</option>
                         <option value="60">Gia hạn thêm 1 giờ</option>
                         <option value="120">Gia hạn thêm 2 giờ</option>
                     </select>
-                    <p class="text-[11px] text-blue-700 font-medium">Lưu ý: Các thông số chuyến bay ở chế độ chỉ đọc, chỉ cho phép thao tác gia hạn thời gian đóng thầu.</p>
+                    <p class="text-[11px] text-blue-700 font-medium">Lưu ý: Các thông số chuyến bay ở chế độ chỉ đọc,
+                        chỉ cho phép thao tác gia hạn thời gian đóng thầu.</p>
                 </div>
                 <div>
                     <label class="block font-semibold text-slate-700 mb-1">Ghi chú hàng hóa</label>
                     <textarea id="modalDetNotes" rows="2" readonly
-                        class="w-full border rounded-xl px-3 py-2 outline-none bg-slate-100 text-slate-500 cursor-not-allowed" title="Thông số cố định (chỉ xem)"></textarea>
+                        class="w-full border rounded-xl px-3 py-2 outline-none bg-slate-100 text-slate-500 cursor-not-allowed"
+                        title="Thông số cố định (chỉ xem)"></textarea>
                 </div>
                 <div class="flex items-center justify-end gap-2.5 pt-2 border-t">
                     <button type="button" onclick="closeDetailEditModal()"
@@ -910,7 +919,8 @@
             // Quy tắc: Khi trong quá trình đấu giá thì Admin không xem được, ẩn hết
             if (isOpen) {
                 if (summaryBadge) {
-                    summaryBadge.innerHTML = '<span class="inline-flex items-center gap-1.5 text-blue-800 bg-blue-50 border border-blue-300 px-2.5 py-1 rounded-lg text-xs font-semibold"><i class="fa-solid fa-lock text-blue-600"></i> Đang bảo mật trong phiên</span>';
+                    summaryBadge.className = 'text-xs font-semibold text-blue-700 bg-blue-50 border border-blue-200 px-3 py-1 rounded-full inline-flex items-center gap-1.5 whitespace-nowrap shadow-2xs';
+                    summaryBadge.innerHTML = '<i class="fa-solid fa-lock text-[11px] text-blue-500"></i> Đang bảo mật trong phiên';
                 }
                 if (reviewBanner) reviewBanner.classList.add('hidden');
                 if (historyBox) historyBox.classList.add('hidden');
@@ -943,7 +953,8 @@
             // Quy tắc: Phiên nào đóng rồi mà không có đại lý đặt giá thì bảng tổng kết xếp hạng ẩn
             if (list.length === 0) {
                 if (summaryBadge) {
-                    summaryBadge.innerHTML = '<span class="inline-flex items-center gap-1.5 text-slate-600 bg-slate-100 border border-slate-300 px-2.5 py-1 rounded-lg text-xs font-semibold">0 đại lý tham gia</span>';
+                    summaryBadge.className = 'text-xs font-semibold text-slate-600 bg-slate-100 border border-slate-200 px-3 py-1 rounded-full inline-flex items-center gap-1.5 whitespace-nowrap shadow-2xs';
+                    summaryBadge.innerHTML = '<i class="fa-solid fa-users text-[11px] text-slate-400"></i> 0 đại lý tham gia';
                 }
                 if (reviewBanner) reviewBanner.classList.add('hidden');
                 if (historyBox) historyBox.classList.add('hidden');
@@ -978,14 +989,14 @@
 
             if (summaryBadge) {
                 if (isSingleAgent && list.length > 0) {
-                    summaryBadge.textContent = '1 đại lý · Đã tự động chốt thầu';
-                    summaryBadge.className = 'text-xs font-bold text-emerald-800 bg-emerald-50 border border-emerald-300 px-3 py-1 rounded-lg flex items-center gap-1.5';
+                    summaryBadge.className = 'text-xs font-bold text-emerald-800 bg-emerald-50 border border-emerald-300 px-3 py-1 rounded-full inline-flex items-center gap-1.5 whitespace-nowrap shadow-2xs';
+                    summaryBadge.innerHTML = '<i class="fa-solid fa-circle-check text-[11px] text-emerald-600"></i> 1 đại lý · Đã tự động chốt thầu';
                 } else if (isLocked) {
-                    summaryBadge.textContent = `${list.length} đại lý · Đã chốt chính thức`;
-                    summaryBadge.className = 'text-xs font-bold text-emerald-800 bg-emerald-50 border border-emerald-300 px-3 py-1 rounded-lg flex items-center gap-1.5';
+                    summaryBadge.className = 'text-xs font-bold text-emerald-800 bg-emerald-50 border border-emerald-300 px-3 py-1 rounded-full inline-flex items-center gap-1.5 whitespace-nowrap shadow-2xs';
+                    summaryBadge.innerHTML = `<i class="fa-solid fa-circle-check text-[11px] text-emerald-600"></i> ${list.length} đại lý · Đã chốt chính thức`;
                 } else {
-                    summaryBadge.textContent = `${list.length} đại lý · Trong thời gian điều chỉnh`;
-                    summaryBadge.className = 'text-xs font-semibold text-amber-800 bg-amber-50 border border-amber-300 px-2.5 py-1 rounded-lg flex items-center gap-1.5';
+                    summaryBadge.className = 'text-xs font-semibold text-amber-800 bg-amber-50 border border-amber-300 px-3 py-1 rounded-full inline-flex items-center gap-1.5 whitespace-nowrap shadow-2xs';
+                    summaryBadge.innerHTML = `<i class="fa-regular fa-clock text-[11px] text-amber-600 animate-pulse"></i> ${list.length} đại lý · Trong thời gian điều chỉnh`;
                 }
             }
 
@@ -1499,16 +1510,19 @@
 
             const auctionBids = CargoStore.getBidsForAuction(auction.id);
             const highestBidPrice = auctionBids.length > 0 ? Math.max(...auctionBids.map(b => Number(b.priceKg) || 0)) : 0;
-            const effectiveCurrentPrice = Math.max(Number(auction.currentPriceKg) || 0, Number(auction.startingPriceKg) || 0, highestBidPrice);
+            const hasActualBids = auctionBids.length > 0;
 
             // DEMO RULE: no bid information for Admin/Staff while the session is live
             const detPriceEl = document.getElementById('detCurrentPrice');
             if (detPriceEl) {
-                detPriceEl.innerHTML = isOpen ?
-                    '<span class="text-slate-400 font-medium italic text-base"><i class="fa-solid fa-lock text-xs mr-1 text-slate-300"></i> Bảo mật trong phiên</span>' :
-                    (auctionBids.length === 0 && (!auction.winningPriceKg || auction.winningPriceKg === 0) ?
-                        '<span class="text-slate-400 font-medium italic text-base">Không có người đặt giá</span>' :
-                        CargoStore.formatCurrency(effectiveCurrentPrice) + '/Kg');
+                if (isOpen) {
+                    detPriceEl.innerHTML = '<span class="text-slate-400 font-medium italic text-base"><i class="fa-solid fa-lock text-xs mr-1 text-slate-300"></i> Bảo mật trong phiên</span>';
+                } else if (!hasActualBids) {
+                    detPriceEl.innerHTML = '<span class="text-slate-400 font-normal italic text-lg">---</span>';
+                } else {
+                    const finalWinPrice = auction.winningPriceKg || highestBidPrice;
+                    detPriceEl.textContent = CargoStore.formatCurrency(finalWinPrice) + '/Kg';
+                }
             }
 
             document.getElementById('detAircraft').textContent = auction.aircraft;
@@ -1730,9 +1744,7 @@
 
             btnContainer.innerHTML = `
                 ${canEditBtn ? `
-                    <button onclick="openDetailEditModal()" class="bg-amber-600 hover:bg-amber-700 text-white text-xs font-bold px-3.5 py-2 rounded-xl transition shadow flex items-center gap-1.5 cursor-pointer" title="Gia hạn thời gian đóng thầu cho phiên">
-                        <i class="fa-solid fa-clock-rotate-left"></i> Gia hạn thời gian
-                    </button>
+
                 ` : ''}
                 <button onclick="openDetailBroadcastModal()" class="bg-blue-600 hover:bg-blue-700 text-white text-xs font-bold px-3.5 py-2 rounded-xl transition shadow flex items-center gap-1.5 cursor-pointer">
                     <i class="fa-solid fa-bullhorn"></i> Phát thông báo

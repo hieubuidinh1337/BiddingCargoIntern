@@ -1185,18 +1185,21 @@
             const isOpen = a.status === 'OPEN';
             const isAdmin = data.currentAdmin && data.currentAdmin.role === 'ADMIN';
             const isStaffRole = Boolean(data.currentAdmin && String(data.currentAdmin.role).toUpperCase() === 'STAFF');
-            // DEMO RULE: Admin AND Staff can never see bid prices of a live auction.
-            // The winning price is only revealed once the session is CLOSED.
-            const displayPrice = (a.status === 'CLOSED') ?
-                CargoStore.formatCurrency(a.winningPriceKg || a.currentPriceKg) :
-                '<span class="text-gray-500 font-normal">' + (isOpen ? '???' : '-') + '</span>';
-
             const allBids = data.bids || [];
             const bidsForThis = allBids.filter(b => b.auctionId == a.id);
             const bidsCount = (a.bidsCount !== undefined && a.bidsCount !== null && a.bidsCount > 0)
                 ? Math.max(a.bidsCount, bidsForThis.length)
                 : bidsForThis.length;
             const hasBids = bidsCount > 0;
+
+            // DEMO RULE: Admin AND Staff can never see bid prices of a live auction.
+            // The winning price is only revealed once the session is CLOSED and has participants.
+            const displayPrice = (a.status === 'CLOSED') ?
+                (hasBids && (a.winningPriceKg || bidsForThis.length > 0) ?
+                    CargoStore.formatCurrency(a.winningPriceKg || (bidsForThis[0] ? bidsForThis[0].priceKg : a.currentPriceKg)) :
+                    '<span class="text-gray-400 font-normal italic">-</span>'
+                ) :
+                '<span class="text-gray-500 font-normal">' + (isOpen ? '???' : '-') + '</span>';
 
             const isCancelled = a.status === 'CANCELLED';
             const isDeleted = a.status === 'DELETED';

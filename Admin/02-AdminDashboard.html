@@ -629,7 +629,8 @@
                 totalRevenue = wonList.reduce((sum, item) => sum + (item.totalAmountVND || ((item.priceKg || 0) * (item.capacityKg || 0))), 0);
             } else {
                 totalRevenue = closedAuctions.reduce((sum, a) => {
-                    const price = a.winningPriceKg || a.currentPriceKg || 0;
+                    if (!a.winnerAgentCode || !a.winningPriceKg) return sum;
+                    const price = a.winningPriceKg || 0;
                     const weight = a.capacityKg || 0;
                     return sum + (price * weight);
                 }, 0);
