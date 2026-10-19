@@ -98,7 +98,7 @@
                 </button>
                 <button type="button" id="tabLoginPin" onclick="switchLoginMode('pin')"
                     class="flex-1 py-2.5 rounded-xl text-slate-600 hover:text-blue-600 transition flex items-center justify-center gap-1.5 cursor-pointer">
-                    <i class="fa-solid fa-shield-halved"></i> Đăng nhập Mã PIN (4 số)
+                    <i class="fa-solid fa-shield-halved"></i> Đăng nhập Mã PIN
                 </button>
             </div>
 
@@ -107,8 +107,7 @@
                     <label class="block text-sm font-medium text-gray-700 mb-1">Mã đại lý / Email đăng ký / MST</label>
                     <div class="relative">
                         <i class="fa-solid fa-id-card absolute left-3.5 top-1/2 -translate-y-1/2 text-gray-400"></i>
-                        <input type="text" id="agentCode" value="" required
-                            placeholder="Nhập mã đại lý (VD: AG-1024, AG-0892, AG-0556...)"
+                        <input type="text" id="agentCode" value="" required placeholder="Nhập mã đại lý"
                             class="w-full border border-gray-300 rounded-xl pl-10 pr-4 py-3 text-sm focus:ring-2 focus:ring-blue-500 outline-none transition font-medium">
                     </div>
                 </div>
@@ -131,20 +130,24 @@
                             <i class="fa-solid fa-eye" id="eyeIcon"></i>
                         </button>
                     </div>
-                    <p class="text-[11px] text-slate-400 mt-1">Đại lý cũng có thể nhập trực tiếp mã PIN 4 số vào ô mật khẩu này.</p>
+                    <p class="text-[11px] text-slate-400 mt-1">Đại lý cũng có thể nhập trực tiếp mã PIN 4 số vào ô mật
+                        khẩu này.</p>
                 </div>
 
                 <!-- PIN Login Group -->
                 <div id="pinGroup" class="hidden">
                     <div class="flex items-center justify-between mb-1">
                         <label class="block text-sm font-medium text-gray-700">Mã PIN bảo mật (4 chữ số)</label>
-                        <span class="text-[11px] text-indigo-700 font-semibold bg-indigo-50 px-2 py-0.5 rounded-lg border border-indigo-100">
+                        <span
+                            class="text-[11px] text-indigo-700 font-semibold bg-indigo-50 px-2 py-0.5 rounded-lg border border-indigo-100">
                             Mặc định: 1234
                         </span>
                     </div>
                     <div class="relative">
-                        <i class="fa-solid fa-shield-halved absolute left-3.5 top-1/2 -translate-y-1/2 text-indigo-500"></i>
-                        <input type="password" id="agentPin" maxlength="4" pattern="[0-9]{4}" inputmode="numeric" placeholder="••••"
+                        <i
+                            class="fa-solid fa-shield-halved absolute left-3.5 top-1/2 -translate-y-1/2 text-indigo-500"></i>
+                        <input type="password" id="agentPin" maxlength="4" pattern="[0-9]{4}" inputmode="numeric"
+                            placeholder="••••"
                             class="w-full border border-indigo-200 rounded-xl pl-10 pr-10 py-3 text-lg font-mono tracking-[0.4em] text-center font-bold focus:ring-2 focus:ring-indigo-500 outline-none transition bg-indigo-50/30 focus:bg-white text-indigo-900">
                         <button type="button" onclick="togglePinInput()"
                             class="absolute right-3.5 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600">
@@ -152,8 +155,10 @@
                         </button>
                     </div>
                     <p class="text-[11px] text-slate-400 mt-1.5 flex items-center justify-between">
-                        <span><i class="fa-solid fa-circle-info text-blue-500 mr-0.5"></i> Đăng nhập nhanh bằng mã PIN 4 số an toàn.</span>
-                        <a href="javascript:void(0)" onclick="openForgotPasswordModal()" class="text-blue-600 hover:underline">Quên mã PIN?</a>
+                        <span><i class="fa-solid fa-circle-info text-blue-500 mr-0.5"></i> Đăng nhập nhanh bằng mã PIN 4
+                            số an toàn.</span>
+                        <a href="javascript:void(0)" onclick="openForgotPasswordModal()"
+                            class="text-blue-600 hover:underline">Quên mã PIN?</a>
                     </p>
                 </div>
 
@@ -489,6 +494,79 @@
                         class="text-blue-600 font-semibold hover:underline ml-0.5">Liên hệ bộ phận CSKH 1900.6686</a>
                 </p>
             </div>
+        </div>
+    </div>
+
+    <!-- Modal: Mở khóa tài khoản qua Email (Khi sai mật khẩu 5 lần) -->
+    <div id="unlockAccountModal"
+        class="fixed inset-0 bg-slate-950/65 backdrop-blur-sm z-50 hidden items-center justify-center p-4">
+        <div
+            class="bg-white rounded-3xl shadow-2xl w-full max-w-md p-6 sm:p-7 border border-slate-100 animate-in fade-in zoom-in-95 duration-200">
+            <!-- Modal Header -->
+            <div class="flex items-start justify-between pb-4 border-b border-slate-100">
+                <div class="flex items-center gap-3">
+                    <div
+                        class="w-11 h-11 rounded-2xl bg-amber-50 text-amber-600 flex items-center justify-center text-lg font-bold shadow-inner shrink-0">
+                        <i class="fa-solid fa-shield-halved"></i>
+                    </div>
+                    <div>
+                        <h3 class="font-bold text-base text-slate-900 leading-tight">Mở khóa Tài khoản qua Email</h3>
+                        <p class="text-xs text-slate-500 mt-0.5">Xác thực mã OTP gửi về Email để kích hoạt lại tài khoản</p>
+                    </div>
+                </div>
+                <button type="button" onclick="closeUnlockAccountModal()"
+                    class="text-slate-400 hover:text-slate-600 w-8 h-8 rounded-full hover:bg-slate-100 flex items-center justify-center transition">
+                    <i class="fa-solid fa-xmark text-lg"></i>
+                </button>
+            </div>
+
+            <!-- Modal Content -->
+            <form onsubmit="handleVerifyUnlockOtp(event)" class="space-y-4 pt-4">
+                <div class="p-3.5 rounded-2xl bg-amber-50/90 border border-amber-200 text-xs text-amber-950 space-y-1.5">
+                    <div class="font-bold flex items-center justify-between text-amber-900">
+                        <span class="flex items-center gap-1.5">
+                            <i class="fa-solid fa-triangle-exclamation text-amber-600"></i> Đã tạm khóa do sai 5 lần
+                        </span>
+                        <span id="unlockTargetAgentCode" class="font-mono text-xs bg-white text-blue-700 px-2 py-0.5 rounded font-bold border border-amber-200"></span>
+                    </div>
+                    <p class="text-[11px] text-amber-900 leading-relaxed">
+                        Hệ thống đã gửi email kèm mã xác thực OTP đến: <strong id="unlockTargetEmailDisplay" class="text-blue-800"></strong>.
+                    </p>
+                    <div id="unlockOtpDevHint" class="hidden text-[10px] bg-amber-100/80 px-2 py-1 rounded text-amber-800 font-mono font-semibold"></div>
+                </div>
+
+                <div>
+                    <label class="block text-xs font-semibold text-slate-700 mb-1.5 flex items-center justify-between">
+                        <span><i class="fa-solid fa-key text-amber-600 mr-1"></i> Mã OTP mở khóa (6 số)</span>
+                        <span class="text-[10px] text-slate-400">Hiệu lực trong 24 giờ</span>
+                    </label>
+                    <input type="text" id="unlockOtpInput" required maxlength="6" pattern="[0-9]{6}" inputmode="numeric"
+                        placeholder="••••••"
+                        class="w-full border border-slate-300 rounded-xl px-3.5 py-3 text-lg font-mono font-bold tracking-[0.3em] text-center focus:ring-2 focus:ring-amber-500 focus:border-amber-500 outline-none transition bg-slate-50 focus:bg-white text-slate-800">
+                </div>
+
+                <div id="unlockModalError"
+                    class="hidden p-3 rounded-xl text-xs bg-red-50 border border-red-200 text-red-700"></div>
+
+                <div class="flex items-center justify-between text-xs pt-1">
+                    <span class="text-slate-400">Chưa nhận được email?</span>
+                    <button type="button" id="btnResendUnlockEmail" onclick="handleResendUnlockEmailModal()"
+                        class="text-blue-600 hover:text-blue-700 font-semibold hover:underline flex items-center gap-1 cursor-pointer">
+                        <i class="fa-solid fa-rotate-right"></i> Gửi lại email mở khóa
+                    </button>
+                </div>
+
+                <div class="flex gap-2.5 pt-2">
+                    <button type="button" onclick="closeUnlockAccountModal()"
+                        class="flex-1 py-2.5 border border-slate-300 rounded-xl text-xs font-semibold text-slate-700 hover:bg-slate-50 transition cursor-pointer">
+                        Đóng
+                    </button>
+                    <button type="submit" id="btnSubmitUnlock"
+                        class="flex-1 py-2.5 bg-amber-600 hover:bg-amber-700 text-white rounded-xl text-xs font-bold shadow-md shadow-amber-600/20 transition flex items-center justify-center gap-1.5 cursor-pointer">
+                        <i class="fa-solid fa-lock-open"></i> Mở khóa ngay
+                    </button>
+                </div>
+            </form>
         </div>
     </div>
 
@@ -838,18 +916,42 @@
             const res = CargoStore.loginAgent(code, credential);
             if (!res.success) {
                 if (res.isLocked) {
-                    const actionBtn = `
-                    <div class="mt-2.5 pt-2 border-t border-red-200 text-xs text-red-900">
-                        <div class="font-bold mb-1 flex items-center gap-1.5">
-                            <i class="fa-solid fa-triangle-exclamation text-red-600"></i> Hướng dẫn xử lý mở khóa:
+                    if (res.lockReason === 'FAILED_LOGIN_ATTEMPTS') {
+                        const actionBtn = `
+                        <div class="mt-2.5 pt-2 border-t border-red-200 text-xs text-red-900">
+                            <div class="font-bold mb-1 flex items-center gap-1.5 text-red-700">
+                                <i class="fa-solid fa-shield-halved text-red-600"></i> Hướng dẫn mở khóa qua Email:
+                            </div>
+                            <p class="text-[11px] text-red-800 leading-relaxed mb-2.5">
+                                Hệ thống đã tự động gửi email chứa <strong>mã OTP</strong> và liên kết mở khóa an toàn đến hộp thư của Quý đại lý.
+                            </p>
+                            <div class="flex flex-wrap items-center gap-2">
+                                <button type="button" onclick="openUnlockAccountModal('${res.agentCode || code}', '${res.maskedEmail || res.email || ''}', '${res.unlockOtp || ''}')"
+                                    class="inline-flex items-center gap-1.5 bg-red-600 hover:bg-red-700 text-white px-3 py-1.5 rounded-lg text-xs font-bold transition shadow-xs cursor-pointer">
+                                    <i class="fa-solid fa-key"></i> Nhập mã OTP mở khóa ngay
+                                </button>
+                                <button type="button" onclick="resendUnlockEmail('${res.agentCode || code}')"
+                                    class="inline-flex items-center gap-1.5 bg-white border border-red-300 hover:bg-red-50 text-red-700 px-3 py-1.5 rounded-lg text-xs font-semibold transition cursor-pointer">
+                                    <i class="fa-solid fa-paper-plane"></i> Gửi lại email
+                                </button>
+                            </div>
                         </div>
-                        <ul class="list-disc pl-4 space-y-0.5 text-[11px] text-red-800 leading-relaxed">
-                            <li>Hoàn tất chuyển khoản thanh toán các đơn hàng thắng thầu đã quá hạn.</li>
-                            <li>Liên hệ Ban Điều hành Cargo qua Hotline <strong>1900.6686</strong> hoặc Email: <strong>customercare@vietravelairlines.vn</strong> để được xác minh sao kê và mở khóa tài khoản.</li>
-                        </ul>
-                    </div>
-                `;
-                    showError('TÀI KHOẢN ĐÃ BỊ KHÓA', res.message.replace(/\n\n/g, '<br><br>'), actionBtn);
+                        `;
+                        showError('TÀI KHOẢN ĐÃ BỊ TẠM KHÓA (SAI 5 LẦN)', res.message.replace(/\n\n/g, '<br><br>'), actionBtn);
+                    } else {
+                        const actionBtn = `
+                        <div class="mt-2.5 pt-2 border-t border-red-200 text-xs text-red-900">
+                            <div class="font-bold mb-1 flex items-center gap-1.5">
+                                <i class="fa-solid fa-triangle-exclamation text-red-600"></i> Hướng dẫn xử lý mở khóa:
+                            </div>
+                            <ul class="list-disc pl-4 space-y-0.5 text-[11px] text-red-800 leading-relaxed">
+                                <li>Hoàn tất chuyển khoản thanh toán các đơn hàng thắng thầu đã quá hạn.</li>
+                                <li>Liên hệ Ban Điều hành Cargo qua Hotline <strong>1900.6686</strong> hoặc Email: <strong>customercare@vietravelairlines.vn</strong> để được xác minh sao kê và mở khóa tài khoản.</li>
+                            </ul>
+                        </div>
+                        `;
+                        showError('TÀI KHOẢN ĐÃ BỊ KHÓA', res.message.replace(/\n\n/g, '<br><br>'), actionBtn);
+                    }
                 } else if (res.isRejected) {
                     const actionBtn = `
                     <div class="mt-2 pt-2 border-t border-red-200 flex items-center justify-between gap-2">
@@ -859,8 +961,16 @@
                             <i class="fa-solid fa-pen-to-square"></i> Chỉnh sửa & Nộp lại hồ sơ
                         </a>
                     </div>
-                `;
+                    `;
                     showError('Hồ sơ đăng ký bị từ chối / Cần bổ sung', res.message, actionBtn);
+                } else if (res.failedAttempts) {
+                    const warnNotice = `
+                    <div class="mt-2 pt-2 border-t border-amber-200 text-[11px] text-amber-900 flex items-center gap-1.5 font-medium">
+                        <i class="fa-solid fa-triangle-exclamation text-amber-600"></i>
+                        <span>Cảnh báo bảo mật: Sai <strong>${res.failedAttempts}/5</strong> lần. Còn <strong>${res.remainingAttempts}</strong> lần thử trước khi tài khoản tự động khóa.</span>
+                    </div>
+                    `;
+                    showError('Đăng nhập không thành công', res.message.replace(/\n\n/g, '<br>'), warnNotice);
                 } else {
                     showError('Đăng nhập thất bại', res.message);
                 }
@@ -875,6 +985,167 @@
                 window.location.href = '02-Dashboard.html';
             }, 500);
         }
+
+        // === Unlock Account Modal & Actions ===
+        let currentUnlockTargetCode = '';
+        let unlockResendCooldownTimer = null;
+
+        function openUnlockAccountModal(agentCode, maskedEmail = '', otpHint = '') {
+            currentUnlockTargetCode = (agentCode || document.getElementById('agentCode').value || '').trim();
+            document.getElementById('unlockTargetAgentCode').textContent = currentUnlockTargetCode || 'AG-AGENT';
+            
+            if (!maskedEmail && window.CargoStore) {
+                const data = CargoStore.loadData ? CargoStore.loadData() : null;
+                const ag = (data && data.agentsList || []).find(a => (a.code || '').toUpperCase() === currentUnlockTargetCode.toUpperCase());
+                if (ag) {
+                    maskedEmail = CargoStore.maskEmail ? CargoStore.maskEmail(ag.email) : ag.email;
+                    if (!otpHint && ag.unlockOtp) otpHint = ag.unlockOtp;
+                }
+            }
+            document.getElementById('unlockTargetEmailDisplay').textContent = maskedEmail || 'email đăng ký';
+            
+            const hintEl = document.getElementById('unlockOtpDevHint');
+            if (otpHint) {
+                hintEl.textContent = `💡 Mã OTP mở khóa gửi về hòm thư: ${otpHint}`;
+                hintEl.classList.remove('hidden');
+            } else {
+                hintEl.classList.add('hidden');
+            }
+
+            document.getElementById('unlockOtpInput').value = '';
+            document.getElementById('unlockModalError').classList.add('hidden');
+            const modal = document.getElementById('unlockAccountModal');
+            modal.classList.remove('hidden');
+            modal.classList.add('flex');
+            setTimeout(() => document.getElementById('unlockOtpInput').focus(), 150);
+        }
+
+        function closeUnlockAccountModal() {
+            const modal = document.getElementById('unlockAccountModal');
+            modal.classList.add('hidden');
+            modal.classList.remove('flex');
+            if (unlockResendCooldownTimer) {
+                clearInterval(unlockResendCooldownTimer);
+                unlockResendCooldownTimer = null;
+            }
+        }
+
+        function handleVerifyUnlockOtp(e) {
+            e.preventDefault();
+            const otp = document.getElementById('unlockOtpInput').value.trim();
+            const errEl = document.getElementById('unlockModalError');
+            errEl.classList.add('hidden');
+
+            if (!otp || otp.length !== 6) {
+                errEl.textContent = 'Vui lòng nhập đầy đủ 6 chữ số mã OTP xác nhận.';
+                errEl.classList.remove('hidden');
+                return;
+            }
+
+            const btn = document.getElementById('btnSubmitUnlock');
+            btn.disabled = true;
+            btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Đang xác thực mở khóa...';
+
+            setTimeout(() => {
+                btn.disabled = false;
+                btn.innerHTML = '<i class="fa-solid fa-lock-open"></i> Mở khóa ngay';
+
+                const res = CargoStore.unlockAccountWithOtp(currentUnlockTargetCode, otp);
+                if (res.success) {
+                    closeUnlockAccountModal();
+                    hideError();
+                    document.getElementById('agentCode').value = currentUnlockTargetCode;
+                    document.getElementById('agentPassword').value = '';
+                    document.getElementById('agentPin').value = '';
+
+                    // Show success banner
+                    showUnlockSuccessBanner(`🎉 Mở khóa tài khoản <strong>${currentUnlockTargetCode}</strong> thành công qua Email! Quý khách có thể đăng nhập lại ngay.`);
+                } else {
+                    errEl.textContent = res.message || 'Mã OTP không đúng hoặc đã hết hạn.';
+                    errEl.classList.remove('hidden');
+                }
+            }, 300);
+        }
+
+        function resendUnlockEmail(agentCode) {
+            const target = agentCode || document.getElementById('agentCode').value.trim();
+            if (!target) {
+                alert('Vui lòng nhập mã đại lý.');
+                return;
+            }
+            const res = CargoStore.requestAccountUnlockEmail(target);
+            if (res.success) {
+                alert(`✅ ${res.message}\n(Mã OTP gửi đến email: ${res.unlockOtp})`);
+                openUnlockAccountModal(target, res.maskedEmail, res.unlockOtp);
+            } else {
+                alert(`❌ ${res.message}`);
+            }
+        }
+
+        function handleResendUnlockEmailModal() {
+            if (!currentUnlockTargetCode) return;
+            const res = CargoStore.requestAccountUnlockEmail(currentUnlockTargetCode);
+            const btn = document.getElementById('btnResendUnlockEmail');
+            if (res.success) {
+                document.getElementById('unlockTargetEmailDisplay').textContent = res.maskedEmail;
+                const hintEl = document.getElementById('unlockOtpDevHint');
+                if (res.unlockOtp) {
+                    hintEl.textContent = `💡 Mã OTP mở khóa mới: ${res.unlockOtp}`;
+                    hintEl.classList.remove('hidden');
+                }
+                
+                let countdown = 30;
+                btn.disabled = true;
+                btn.innerHTML = `<i class="fa-solid fa-clock"></i> Gửi lại sau (${countdown}s)`;
+                if (unlockResendCooldownTimer) clearInterval(unlockResendCooldownTimer);
+                unlockResendCooldownTimer = setInterval(() => {
+                    countdown--;
+                    if (countdown <= 0) {
+                        clearInterval(unlockResendCooldownTimer);
+                        unlockResendCooldownTimer = null;
+                        btn.disabled = false;
+                        btn.innerHTML = '<i class="fa-solid fa-rotate-right"></i> Gửi lại email mở khóa';
+                    } else {
+                        btn.innerHTML = `<i class="fa-solid fa-clock"></i> Gửi lại sau (${countdown}s)`;
+                    }
+                }, 1000);
+            } else {
+                alert(res.message);
+            }
+        }
+
+        function showUnlockSuccessBanner(htmlMsg) {
+            let banner = document.getElementById('unlockSuccessBanner');
+            if (!banner) {
+                banner = document.createElement('div');
+                banner.id = 'unlockSuccessBanner';
+                banner.className = 'mb-4 p-3.5 bg-emerald-50 border border-emerald-300 rounded-2xl text-xs text-emerald-900 flex items-start gap-2.5 shadow-sm animate-in fade-in zoom-in-95';
+                const form = document.querySelector('form');
+                form.parentNode.insertBefore(banner, form);
+            }
+            banner.innerHTML = `
+                <i class="fa-solid fa-circle-check text-emerald-600 text-base mt-0.5 shrink-0"></i>
+                <div class="flex-1">${htmlMsg}</div>
+                <button type="button" onclick="this.parentElement.remove()" class="text-emerald-500 hover:text-emerald-700 font-bold ml-1 cursor-pointer">&times;</button>
+            `;
+        }
+
+        // Check for 1-click URL unlock token: ?action=unlock&code=AG-XXXX&token=ULK-XXXX
+        document.addEventListener('DOMContentLoaded', function () {
+            const params = new URLSearchParams(window.location.search);
+            if (params.get('action') === 'unlock' && params.get('token') && params.get('code')) {
+                const uCode = params.get('code');
+                const uToken = params.get('token');
+                const uRes = CargoStore.unlockAccountWithToken(uCode, uToken);
+                if (uRes.success) {
+                    document.getElementById('agentCode').value = uCode;
+                    showUnlockSuccessBanner(`🎉 ${uRes.message}`);
+                    window.history.replaceState({}, document.title, window.location.pathname);
+                } else {
+                    showError('Mở khóa tài khoản không thành công', uRes.message);
+                }
+            }
+        });
     </script>
 </body>
 

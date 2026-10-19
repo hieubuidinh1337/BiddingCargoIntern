@@ -2369,20 +2369,42 @@ const server = http.createServer((req, res) => {
                             <p style="font-size:13px;color:#555;line-height:1.6;">Nếu Quý đại lý không thực hiện yêu cầu này, vui lòng bỏ qua email hoặc liên hệ ngay với Hotline <strong>1900.6686</strong> để bảo vệ tài khoản.</p>
                         `
                     });
-                } else if (type === 'PASSWORD_RESET_SUCCESS') {
+                } else if (type === 'ACCOUNT_LOCKED_5_FAILS') {
                     const agentName = reqData.agentName || 'Quý đại lý';
                     const agentCode = reqData.agentCode || '';
-                    subject = `[Vietravel Airlines Cargo] Mật khẩu tài khoản đã được thay đổi thành công`;
+                    const unlockOtp = reqData.unlockOtp || '000000';
+                    const unlockToken = reqData.unlockToken || '';
+                    const lockedAt = reqData.lockedAt || new Date().toLocaleString('vi-VN');
+                    const unlockUrl = `http://localhost:8085/01-Login.html?action=unlock&code=${encodeURIComponent(agentCode)}&token=${encodeURIComponent(unlockToken)}`;
+
+                    subject = `[Vietravel Airlines Cargo] ⚠️ TÀI KHOẢN ${agentCode} BỊ TẠM KHÓA DO NHẬP SAI MẬT KHẨU 5 LẦN`;
                     html = buildEmailHtml({
-                        title: 'Mật khẩu Tài khoản Đã Được Đặt Lại',
-                        subtitle: `Mã đại lý: ${agentCode}`,
+                        title: 'Cảnh Báo Bảo Mật: Tài Khoản Bị Tạm Khóa',
+                        subtitle: `Mã đại lý: ${agentCode} &middot; Thời gian: ${lockedAt}`,
                         contentHtml: `
                             <p>Kính gửi <strong>${agentName}</strong> (${agentCode}),</p>
-                            <p style="color:#2e7d32;font-weight:bold;">Mật khẩu tài khoản của Quý đại lý đã được đặt lại thành công qua xác minh Email OTP.</p>
-                            <p>Quý vị hiện có thể đăng nhập vào Sàn Đấu giá Cargo bằng mật khẩu mới vừa thiết lập.</p>
+                            <p style="color:#d32f2f;font-weight:bold;">Hệ thống Vietravel Airlines Cargo phát hiện có 05 lần đăng nhập không thành công liên tiếp vào tài khoản của Quý vị.</p>
+                            <p>Để đảm bảo an toàn thông tin và bảo vệ các phiên đấu giá của Quý doanh nghiệp, hệ thống đã <strong>TẠM KHÓA</strong> tài khoản.</p>
+                            
+                            <table role="presentation" width="100%" cellpadding="8" cellspacing="0" style="background:#fff3e0;border:1px solid #ffe0b2;border-radius:6px;margin:16px 0;">
+                                <tr><td style="color:#555;border-bottom:1px solid #e0e0e0;width:35%;">Tài khoản đại lý:</td><td style="font-weight:bold;color:#1e3a5f;font-family:monospace;">${agentCode}</td></tr>
+                                <tr><td style="color:#555;border-bottom:1px solid #e0e0e0;">Thời điểm khóa:</td><td style="font-weight:bold;color:#333;">${lockedAt}</td></tr>
+                                <tr><td style="color:#555;border-bottom:1px solid #e0e0e0;">Nguyên nhân:</td><td style="color:#d32f2f;font-weight:bold;">Nhập sai mật khẩu / mã PIN 5 lần liên tiếp</td></tr>
+                                <tr><td style="color:#555;">Tình trạng:</td><td style="font-weight:bold;color:#d32f2f;">ĐÃ TẠM KHÓA AN TOÀN</td></tr>
+                            </table>
+
+                            <div style="background:#f0f7ff;border:2px dashed #0284c7;border-radius:12px;padding:20px;text-align:center;margin:24px 0;">
+                                <p style="font-size:13px;color:#555;margin:0 0 8px 0;font-weight:600;">MÃ XÁC NHẬN (OTP) MỞ KHÓA TÀI KHOẢN (6 SỐ):</p>
+                                <div style="font-family:monospace;font-size:32px;font-weight:900;letter-spacing:8px;color:#0369a1;">${unlockOtp}</div>
+                                <p style="font-size:12px;color:#888;margin:8px 0 0 0;">(Mã này có hiệu lực trong vòng 24 giờ. Tuyệt đối không chia sẻ mã này cho người lạ)</p>
+                            </div>
+
                             <p style="text-align:center;margin:24px 0;">
-                                <a href="http://localhost:8085/01-Login.html" style="display:inline-block;background-color:#1565c0;color:#ffffff;font-weight:bold;padding:12px 28px;border-radius:6px;text-decoration:none;">ĐĂNG NHẬP VÀO SÀN NGAY</a>
+                                <a href="${unlockUrl}" style="display:inline-block;background-color:#0284c7;color:#ffffff;font-weight:bold;padding:12px 28px;border-radius:6px;text-decoration:none;box-shadow:0 2px 4px rgba(0,0,0,0.15);">BẤM VÀO ĐÂY ĐỂ MỞ KHÓA TÀI KHOẢN NGAY</a>
                             </p>
+
+                            <p style="font-size:12px;color:#666;line-height:1.6;">Quý đại lý cũng có thể vào trang đăng nhập của Sàn Cargo và nhập trực tiếp mã OTP 6 số ở trên vào mục "Mở khóa tài khoản qua Email".</p>
+                            <p style="font-size:12px;color:#888;">Nếu không phải Quý vị thực hiện các lần đăng nhập sai này, vui lòng liên hệ ngay với Hotline <strong>1900.6686</strong> hoặc Email <strong>cargo@vietravelairlines.vn</strong> để được hỗ trợ kiểm tra an toàn tài khoản.</p>
                         `
                     });
                 }

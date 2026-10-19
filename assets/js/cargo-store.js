@@ -2236,8 +2236,12 @@ const CargoStore = (function () {
             }
             const identifier = (agentCodeOrEmail || '').trim().toLowerCase();
 
+            if (!data.agentsList) {
+                data.agentsList = JSON.parse(JSON.stringify(seedAgents));
+            }
+
             // Search agent in list by Agent Code, Tax Code, or Email
-            let agent = (data.agentsList || seedAgents).find(a =>
+            let agent = data.agentsList.find(a =>
                 (a.code || '').toLowerCase() === identifier ||
                 (a.taxCode || '').toLowerCase() === identifier ||
                 (a.email || '').toLowerCase() === identifier
@@ -2292,20 +2296,32 @@ const CargoStore = (function () {
                         totalWins: 0,
                         winRate: '0%',
                         totalSpentUSD: '0',
-                        totalSpentVND: 0
+                        totalSpentVND: 0,
+                        failedLoginAttempts: 0
                     };
+                    data.agentsList.push(agent);
                 } else {
                     return { success: false, message: `Mã đại lý hoặc Email "${agentCodeOrEmail}" không tồn tại trong CSDL.` };
                 }
             }
 
-            // Branch policy: No invoice/payment account lock - Auto-unlock agent if locked
-            if (agent.status === 'Đã khóa' || agent.status === 'LOCKED' || agent.isLocked || agent.lockedReason) {
-                agent.status = 'Đang hoạt động';
-                agent.isLocked = false;
-                delete agent.lockedReason;
-                delete agent.lockedAt;
-                this.saveData(data);
+            // Check if agent is currently locked due to failed login attempts
+            if (agent.status === 'Đã khóa' || agent.status === 'LOCKED' || agent.isLocked) {
+                if (agent.lockedReason === 'FAILED_LOGIN_ATTEMPTS' || (agent.failedLoginAttempts || 0) >= 5) {
+                    const masked = this.maskEmail ? this.maskEmail(agent.email) : agent.email;
+                    return {
+                        success: false,
+                        isLocked: true,
+                        lockReason: 'FAILED_LOGIN_ATTEMPTS',
+                        agentCode: agent.code,
+                        email: agent.email,
+                        maskedEmail: masked,
+                        failedAttempts: agent.failedLoginAttempts || 5,
+                        unlockOtp: agent.unlockOtp || '',
+                        unlockToken: agent.unlockToken || '',
+                        message: `Tài khoản ${agent.code} đang bị TẠM KHÓA do nhập sai mật khẩu quá 5 lần liên tiếp.\n\nVui lòng kiểm tra email (${masked}) để mở khóa tài khoản, hoặc bấm nút "Mở khóa tài khoản qua Email" bên dưới.`
+                    };
+                }
             }
 
             // Verify against THAT SPECIFIC AGENT'S PASSWORD OR PIN!
@@ -2317,11 +2333,87 @@ const CargoStore = (function () {
             const isPinMatch = inputVal === expectedPin;
 
             if (!isPasswordMatch && !isPinMatch) {
+                agent.failedLoginAttempts = (agent.failedLoginAttempts || 0) + 1;
+
+                if (agent.failedLoginAttempts >= 5) {
+                    // Lock account and generate unlock token & OTP
+                    agent.isLocked = true;
+                    agent.status = 'Đã khóa';
+                    agent.lockedReason = 'FAILED_LOGIN_ATTEMPTS';
+                    agent.lockedAt = new Date().toISOString();
+                    const unlockToken = 'ULK-' + Math.random().toString(36).substring(2, 10).toUpperCase();
+                    const unlockOtp = String(Math.floor(100000 + Math.random() * 900000));
+                    agent.unlockToken = unlockToken;
+                    agent.unlockOtp = unlockOtp;
+                    agent.unlockExpiresAt = Date.now() + 24 * 3600 * 1000;
+                    saveData(data);
+
+                    // Log activity
+                    this.logActivity({
+                        actor: agent.companyName || agent.code,
+                        username: agent.code,
+                        role: 'AGENT',
+                        actionCategory: 'Bảo mật',
+                        actionTitle: 'Tài khoản bị khóa do sai mật khẩu 5 lần',
+                        target: 'Tài khoản Agent',
+                        details: `Đại lý ${agent.code} (${agent.companyName}) đã bị tạm khóa do nhập sai mật khẩu/mã PIN 5 lần liên tiếp. Hệ thống đã tự động gửi email hướng dẫn mở khóa.`
+                    });
+
+                    // Add Notification
+                    if (!data.notifications) data.notifications = [];
+                    data.notifications.unshift({
+                        id: Date.now(),
+                        timestamp: Date.now(),
+                        targetAgentCode: agent.code,
+                        targetEmail: agent.email,
+                        title: 'Tài khoản bị tạm khóa do nhập sai mật khẩu 5 lần',
+                        message: `Tài khoản ${agent.code} đã bị khóa lúc ${new Date().toLocaleTimeString('vi-VN')}. Vui lòng dùng mã OTP: ${unlockOtp} hoặc bấm link mở khóa trong email để tiếp tục.`,
+                        type: 'SECURITY_ALERT',
+                        read: false
+                    });
+
+                    // Send email notification
+                    this.sendEmailNotification({
+                        type: 'ACCOUNT_LOCKED_5_FAILS',
+                        to: agent.email,
+                        agentCode: agent.code,
+                        agentName: agent.companyName || agent.repName || agent.code,
+                        unlockToken: unlockToken,
+                        unlockOtp: unlockOtp,
+                        lockedAt: new Date().toLocaleString('vi-VN')
+                    });
+
+                    const masked = this.maskEmail ? this.maskEmail(agent.email) : agent.email;
+                    return {
+                        success: false,
+                        isLocked: true,
+                        lockReason: 'FAILED_LOGIN_ATTEMPTS',
+                        agentCode: agent.code,
+                        email: agent.email,
+                        maskedEmail: masked,
+                        failedAttempts: 5,
+                        unlockOtp: unlockOtp,
+                        unlockToken: unlockToken,
+                        message: `TÀI KHOẢN ĐÃ BỊ TẠM KHÓA do nhập sai mật khẩu quá 5 lần!\n\nHệ thống đã gửi email hướng dẫn mở khóa kèm mã OTP đến địa chỉ ${masked}.`
+                    };
+                }
+
+                saveData(data);
+                const remain = 5 - agent.failedLoginAttempts;
                 return {
                     success: false,
-                    message: `Mật khẩu hoặc Mã PIN không chính xác cho đại lý ${agent.code}! Vui lòng nhập đúng mật khẩu hoặc mã PIN 4 chữ số.`
+                    failedAttempts: agent.failedLoginAttempts,
+                    remainingAttempts: remain,
+                    agentCode: agent.code,
+                    message: `Mật khẩu hoặc Mã PIN không chính xác cho đại lý ${agent.code}!\nQuý khách đã đăng nhập sai ${agent.failedLoginAttempts}/5 lần (còn ${remain} lần thử trước khi tài khoản bị khóa an toàn).`
                 };
             }
+
+            // Successful login: reset failed attempts counter & unlock tokens
+            agent.failedLoginAttempts = 0;
+            delete agent.unlockOtp;
+            delete agent.unlockToken;
+            delete agent.unlockExpiresAt;
 
             // Construct specific currentUser object for this agent with PIN intact!
             data.currentUser = {
@@ -4424,6 +4516,166 @@ const CargoStore = (function () {
                 success: true,
                 message: `Đã từ chối hồ sơ ${regId} và gửi email thông báo lý do đến đại lý (${reg.email}) thành công!`,
                 reg: reg
+            };
+        },
+
+        maskEmail: function (email) {
+            if (!email) return '';
+            const parts = String(email).split('@');
+            if (parts.length !== 2) return email;
+            const namePart = parts[0];
+            const visibleLen = Math.min(2, namePart.length);
+            return namePart.substring(0, visibleLen) + '••••@' + parts[1];
+        },
+
+        requestAccountUnlockEmail: function (agentCodeOrEmail) {
+            const data = loadData();
+            const identifier = (agentCodeOrEmail || '').trim().toLowerCase();
+            const agent = (data.agentsList || []).find(a =>
+                (a.code || '').toLowerCase() === identifier ||
+                (a.email || '').toLowerCase() === identifier ||
+                (a.taxCode || '').toLowerCase() === identifier
+            );
+            if (!agent) {
+                return { success: false, message: 'Không tìm thấy tài khoản đại lý trong hệ thống.' };
+            }
+            if (!agent.isLocked && agent.status !== 'Đã khóa') {
+                return { success: false, message: `Tài khoản ${agent.code} hiện tại không bị khóa.` };
+            }
+
+            const unlockToken = 'ULK-' + Math.random().toString(36).substring(2, 10).toUpperCase();
+            const unlockOtp = String(Math.floor(100000 + Math.random() * 900000));
+            agent.unlockToken = unlockToken;
+            agent.unlockOtp = unlockOtp;
+            agent.unlockExpiresAt = Date.now() + 24 * 3600 * 1000;
+            saveData(data);
+
+            this.logActivity({
+                actor: agent.companyName || agent.code,
+                username: agent.code,
+                role: 'AGENT',
+                actionCategory: 'Bảo mật',
+                actionTitle: 'Yêu cầu gửi lại email mở khóa tài khoản',
+                target: 'Tài khoản Agent',
+                details: `Đại lý ${agent.code} (${agent.companyName}) đã yêu cầu gửi lại email/OTP mở khóa tài khoản đến ${agent.email}.`
+            });
+
+            this.sendEmailNotification({
+                type: 'ACCOUNT_LOCKED_5_FAILS',
+                to: agent.email,
+                agentCode: agent.code,
+                agentName: agent.companyName || agent.repName || agent.code,
+                unlockToken: unlockToken,
+                unlockOtp: unlockOtp,
+                lockedAt: new Date().toLocaleString('vi-VN')
+            });
+
+            const masked = this.maskEmail(agent.email);
+            return {
+                success: true,
+                agentCode: agent.code,
+                email: agent.email,
+                maskedEmail: masked,
+                unlockOtp: unlockOtp,
+                unlockToken: unlockToken,
+                message: `Đã gửi lại email hướng dẫn mở khóa đến hộp thư ${masked}.`
+            };
+        },
+
+        unlockAccountWithOtp: function (agentCodeOrEmail, otpInput) {
+            const data = loadData();
+            const identifier = (agentCodeOrEmail || '').trim().toLowerCase();
+            const agent = (data.agentsList || []).find(a =>
+                (a.code || '').toLowerCase() === identifier ||
+                (a.email || '').toLowerCase() === identifier ||
+                (a.taxCode || '').toLowerCase() === identifier
+            );
+            if (!agent) {
+                return { success: false, message: 'Không tìm thấy tài khoản đại lý.' };
+            }
+            if (!agent.unlockOtp) {
+                return { success: false, message: 'Mã mở khóa chưa được tạo hoặc đã hết hạn. Vui lòng bấm "Gửi lại email mở khóa".' };
+            }
+            if (agent.unlockExpiresAt && Date.now() > agent.unlockExpiresAt) {
+                return { success: false, message: 'Mã mở khóa đã hết hạn. Vui lòng yêu cầu gửi lại email mới.' };
+            }
+            if (String(otpInput || '').trim() !== String(agent.unlockOtp).trim()) {
+                return { success: false, message: 'Mã OTP mở khóa không chính xác. Vui lòng kiểm tra lại hòm thư email.' };
+            }
+
+            // Success: Unlock account
+            agent.isLocked = false;
+            agent.status = 'Đang hoạt động';
+            agent.failedLoginAttempts = 0;
+            delete agent.lockedReason;
+            delete agent.lockedAt;
+            delete agent.unlockOtp;
+            delete agent.unlockToken;
+            delete agent.unlockExpiresAt;
+            saveData(data);
+
+            this.logActivity({
+                actor: agent.companyName || agent.code,
+                username: agent.code,
+                role: 'AGENT',
+                actionCategory: 'Bảo mật',
+                actionTitle: 'Mở khóa tài khoản thành công qua OTP',
+                target: 'Tài khoản Agent',
+                details: `Đại lý ${agent.code} (${agent.companyName}) đã mở khóa tài khoản thành công bằng mã OTP nhận qua Email.`
+            });
+
+            return {
+                success: true,
+                agentCode: agent.code,
+                companyName: agent.companyName,
+                message: `Mở khóa tài khoản ${agent.code} thành công! Quý đại lý có thể đăng nhập ngay.`
+            };
+        },
+
+        unlockAccountWithToken: function (agentCode, tokenInput) {
+            const data = loadData();
+            const code = (agentCode || '').trim().toUpperCase();
+            const token = (tokenInput || '').trim().toUpperCase();
+            const agent = (data.agentsList || []).find(a => (a.code || '').toUpperCase() === code);
+            if (!agent) {
+                return { success: false, message: 'Không tìm thấy tài khoản đại lý.' };
+            }
+            if (!agent.unlockToken) {
+                return { success: false, message: 'Liên kết mở khóa không hợp lệ hoặc tài khoản đã được mở khóa trước đó.' };
+            }
+            if (agent.unlockExpiresAt && Date.now() > agent.unlockExpiresAt) {
+                return { success: false, message: 'Liên kết mở khóa đã hết hạn (quá 24 giờ). Vui lòng yêu cầu gửi lại email mới.' };
+            }
+            if (String(agent.unlockToken).toUpperCase() !== token) {
+                return { success: false, message: 'Mã xác thực mở khóa không chính xác.' };
+            }
+
+            // Success: Unlock account
+            agent.isLocked = false;
+            agent.status = 'Đang hoạt động';
+            agent.failedLoginAttempts = 0;
+            delete agent.lockedReason;
+            delete agent.lockedAt;
+            delete agent.unlockOtp;
+            delete agent.unlockToken;
+            delete agent.unlockExpiresAt;
+            saveData(data);
+
+            this.logActivity({
+                actor: agent.companyName || agent.code,
+                username: agent.code,
+                role: 'AGENT',
+                actionCategory: 'Bảo mật',
+                actionTitle: 'Mở khóa tài khoản thành công qua Link Email',
+                target: 'Tài khoản Agent',
+                details: `Đại lý ${agent.code} (${agent.companyName}) đã mở khóa tài khoản thành công qua đường dẫn xác thực gửi về Email.`
+            });
+
+            return {
+                success: true,
+                agentCode: agent.code,
+                companyName: agent.companyName,
+                message: `Tài khoản đại lý ${agent.code} đã được mở khóa thành công! Quý khách có thể đăng nhập ngay.`
             };
         },
 
