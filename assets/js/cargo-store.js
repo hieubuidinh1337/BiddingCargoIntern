@@ -2080,14 +2080,19 @@ const CargoStore = (function () {
 
         (data.auctions || []).forEach(auction => {
             const timer = getTimeRemaining(auction.endTime);
-            const isExpired = timer.isEnded || auction.status === 'CLOSED';
+            const isTimerEnded = timer.isEnded;
 
-            if (isExpired) {
-                if (auction.status !== 'CLOSED') {
-                    auction.status = 'CLOSED';
-                    modified = true;
-                }
+            // QUY TẮC NGHIỆP VỤ: Phiên đấu giá hết thời gian KHÔNG chốt mà tự động gia hạn thêm thời gian để đại lý đặt tiếp
+            if (auction.status === 'OPEN' && isTimerEnded) {
+                const extensionMs = 30 * 60 * 1000; // Gia hạn thêm 30 phút
+                auction.endTime = new Date(Date.now() + extensionMs).toISOString();
+                auction.isExtended = true;
+                auction.extendedTimes = (auction.extendedTimes || 0) + 1;
+                modified = true;
+            }
 
+            // Chỉ xử lý chốt kết quả và người trúng thầu đối với phiên đã được chuyển sang trạng thái CLOSED (do Quản trị viên chốt)
+            if (auction.status === 'CLOSED') {
                 if (!data.wonAuctions) data.wonAuctions = [];
                 let existingWon = data.wonAuctions.find(w => w.auctionId == auction.id);
 
@@ -3401,14 +3406,18 @@ const CargoStore = (function () {
             );
             if (!auction) return { success: false, message: 'Phiên đấu giá không tồn tại' };
 
-            // Check if auction is CLOSED or timer has expired
-            const timer = getTimeRemaining(auction.endTime);
-            if (auction.status === 'CLOSED' || timer.isEnded) {
-                if (auction.status !== 'CLOSED') {
-                    auction.status = 'CLOSED';
-                    saveData(data);
-                }
+            // Check if auction is CLOSED (chỉ chặn khi phiên đã thực sự đóng/chốt bởi Admin)
+            if (auction.status === 'CLOSED') {
                 return { success: false, message: 'Phiên đấu giá này đã đóng thầu, không thể đặt thêm giá.' };
+            }
+
+            // Phiên hết thời gian nhưng chưa chốt: tự động gia hạn thêm thời gian để đại lý đặt tiếp
+            const timer = getTimeRemaining(auction.endTime);
+            if (timer.isEnded) {
+                auction.endTime = new Date(Date.now() + 30 * 60 * 1000).toISOString();
+                auction.isExtended = true;
+                auction.extendedTimes = (auction.extendedTimes || 0) + 1;
+                saveData(data);
             }
 
             const hasBids = (auction.bidsCount && auction.bidsCount > 0);
@@ -5052,25 +5061,12 @@ const CargoStore = (function () {
                 auction.reviewDeadline = new Date(Date.now() + (configReviewMins * 60 * 1000)).toISOString();
             }
 
-            // If empty, auto-seed a winning bid for AG-0892 so won order is immediately available for testing
+            // Khi đóng phiên mà không có đại lý nào đặt giá: không tự tạo bid giả, ghi nhận không có người trúng thầu
             if (!highestBid) {
-                const now = Date.now();
-                const u = data.currentUser || defaultData.currentUser;
-                const seedBid = {
-                    id: 'BID-' + now + '-AUTO',
-                    timestamp: now,
-                    auctionId: auction.id,
-                    flightCode: auction.flightCode,
-                    agentCode: u.agentCode || 'AG-0892',
-                    agentName: u.companyName || 'Công ty TNHH Vận tải ABC Logistics',
-                    isAnonymous: false,
-                    priceKg: Number(auction.startingPriceKg || 25000),
-                    time: 'Vừa xong',
-                    status: 'WON'
-                };
-                if (!data.bids) data.bids = [];
-                data.bids.unshift(seedBid);
-                highestBid = seedBid;
+                auction.winnerAgentCode = null;
+                auction.winnerAgentName = null;
+                auction.winningPriceKg = null;
+                auction.winnerTotalAmountVND = 0;
             }
 
             if (highestBid) {

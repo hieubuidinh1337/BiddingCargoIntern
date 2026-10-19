@@ -889,7 +889,37 @@ const server = http.createServer((req, res) => {
                 w.agentCode = 'AG-***';
                 w.agentName = 'Đại lý ẩn danh (AG-***)';
             });
-        } else if (!isAdminPrivileged) {
+        } else if (isAdminPrivileged) {
+            // 🔒 SEC-ADMIN: SEALED-BID POLICY FOR ADMIN DURING LIVE SESSIONS
+            // Quy tắc: Khi trong quá trình đấu giá thì Admin không xem được, ẩn hết
+            const openAuctionIds = new Set(
+                (clientPayload.auctions || [])
+                    .filter(a => a.status === 'OPEN')
+                    .map(a => Number(a.id))
+            );
+
+            clientPayload.bids = (clientPayload.bids || []).map(b => {
+                if (openAuctionIds.has(Number(b.auctionId))) {
+                    return {
+                        ...b,
+                        agentCode: 'AG-***',
+                        agentName: 'Đại lý ẩn danh (Bảo mật)',
+                        priceKg: null,
+                        weightKg: null,
+                        isAnonymous: true
+                    };
+                }
+                return b;
+            });
+
+            (clientPayload.auctions || []).forEach(a => {
+                if (a.status === 'OPEN') {
+                    a.leadingAgentCode = 'AG-***';
+                    a.leadingAgentName = 'Bảo mật trong phiên';
+                    a.currentPriceKg = a.startingPriceKg;
+                }
+            });
+        } else {
             // 🔒 SEC-02: SEALED-BID PRIVACY GUARD (Strict Sealed-Bid Rule for Agents & Guests)
             const openAuctionIds = new Set(
                 (clientPayload.auctions || [])
@@ -3149,6 +3179,16 @@ server.on('error', (err) => {
         console.error('Server error:', err);
     }
 });
+
+process.on('unhandledRejection', (reason, promise) => {
+    console.warn('[Warning] Unhandled Promise Rejection:', reason && reason.message ? reason.message : reason);
+});
+
+process.on('uncaughtException', (err) => {
+    console.error('[Error] Uncaught Exception:', err && err.message ? err.message : err);
+});
+
+
 
 // Export server + startup for programmatic use in tests
 async function startServer(port) {

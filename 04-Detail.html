@@ -399,7 +399,14 @@
             if (specMinStepEl) specMinStepEl.textContent = '+' + CargoStore.formatCurrency(currentAuction.minStep || 0) + '/Kg';
             
             const timer = CargoStore.getTimeRemaining(currentAuction.endTime);
-            const isClosed = currentAuction.status === 'CLOSED' || timer.isEnded;
+            // Quy tắc: Phiên đấu giá hết thời gian ko chốt mà thêm thời gian đại lý đặt tiếp
+            if (currentAuction.status === 'OPEN' && timer.isEnded) {
+                if (CargoStore && CargoStore.autoCloseExpiredAuctions) {
+                    CargoStore.autoCloseExpiredAuctions(CargoStore.getData());
+                    currentAuction = CargoStore.getAuctionById(currentAuction.id);
+                }
+            }
+            const isClosed = currentAuction.status === 'CLOSED';
 
             const u = (CargoStore.getCurrentUser ? CargoStore.getCurrentUser() : null) || {};
             const myCode = (u.agentCode || u.code || '').trim().toUpperCase();
@@ -457,7 +464,7 @@
                 if (standardBiddingBox) standardBiddingBox.classList.remove('hidden');
             }
 
-            const isClosedOrEnded = (currentAuction.status === 'CLOSED' || CargoStore.getTimeRemaining(currentAuction.endTime).isEnded);
+            const isClosedOrEnded = (currentAuction.status === 'CLOSED');
             const specPriceBox = document.getElementById('specCurrentPriceBox');
             const specPriceLabelEl = document.getElementById('specCurrentPriceLabel');
             const specGrid = document.getElementById('specGridCols');
@@ -660,7 +667,9 @@
             }
             const tbody = document.getElementById('bidsTableBody');
             if (bids.length === 0) {
-                tbody.innerHTML = `<tr><td colspan="5" class="py-6 text-center text-gray-400">Chưa có lượt đặt giá nào cho chuyến bay này</td></tr>`;
+                tbody.innerHTML = isClosed ?
+                    `<tr><td colspan="5" class="py-6 text-center text-slate-500 font-medium"><i class="fa-solid fa-inbox text-2xl text-slate-300 block mb-1"></i>Phiên đấu giá đã đóng nhưng không có đại lý nào tham gia đặt giá.</td></tr>` :
+                    `<tr><td colspan="5" class="py-6 text-center text-gray-400">Chưa có lượt đặt giá nào cho chuyến bay này</td></tr>`;
                 return;
             }
 
@@ -791,12 +800,15 @@
             const timer = CargoStore.getTimeRemaining(currentAuction.endTime);
             const clock = document.getElementById('countdownClock');
             if (clock) {
-                if (timer.isEnded || currentAuction.status === 'CLOSED') {
+                if (currentAuction.status === 'CLOSED') {
                     clock.textContent = '00:00:00 - ĐÃ ĐÓNG';
-                    const submitBtn = document.getElementById('submitBidBtn');
-                    if (submitBtn && !submitBtn.disabled) {
-                        loadAuctionDetail();
+                } else if (timer.isEnded) {
+                    // Quy tắc: Phiên đấu giá hết thời gian ko chốt mà thêm thời gian đại lý đặt tiếp
+                    if (CargoStore && CargoStore.autoCloseExpiredAuctions) {
+                        CargoStore.autoCloseExpiredAuctions(CargoStore.getData());
                     }
+                    currentAuction = CargoStore.getAuctionById(currentAuction.id);
+                    loadAuctionDetail();
                 } else {
                     const pad = n => String(n).padStart(2, '0');
                     clock.textContent = `${pad(timer.hours)}:${pad(timer.minutes)}:${pad(timer.seconds)}`;

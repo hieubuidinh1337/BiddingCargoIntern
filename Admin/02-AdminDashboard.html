@@ -549,19 +549,21 @@
                 <div id="adminOpenPagination"></div>
             </div>
 
-            <!-- Pending Registrations Queue (1 col) -->
+            <!-- Mini Audit Log Widget (1 col) -->
             <div class="bg-white rounded-2xl border shadow-sm p-6 space-y-4">
-                <div class="flex items-center justify-between">
+                <div class="flex items-center justify-between border-b pb-3">
                     <div>
                         <h2 class="text-base font-bold text-slate-900 flex items-center gap-2">
-                            <i class="fa-solid fa-id-card-clip text-amber-500"></i> Hồ sơ đại lý mới
+                            <i class="fa-solid fa-clock-rotate-left text-blue-600"></i> Nhật ký hoạt động
                         </h2>
-                        <p class="text-xs text-slate-500 mt-0.5">Đơn đăng ký trực tuyến chờ duyệt</p>
+                        <p class="text-xs text-slate-500 mt-0.5">Sự kiện & thao tác mới nhất</p>
                     </div>
-                    <a href="06-AgentList.html?tab=REGISTRATIONS&status=PENDING" class="text-xs font-semibold text-blue-600 hover:underline">Tất cả</a>
+                    <a href="10-AuditLogs.html" class="text-xs font-semibold text-blue-600 hover:text-blue-800 transition inline-flex items-center gap-1">
+                        Tất cả <i class="fa-solid fa-chevron-right text-[10px]"></i>
+                    </a>
                 </div>
 
-                <div class="space-y-3" id="adminPendingRegistrations">
+                <div class="space-y-2.5 max-h-[460px] overflow-y-auto pr-0.5" id="adminMiniAuditLogs">
                     <!-- Populated by JS -->
                 </div>
             </div>
@@ -679,9 +681,11 @@
                 tbody.innerHTML = paginatedOpen.map(a => {
                     const timer = CargoStore.getTimeRemaining(a.endTime);
                     const isOpen = a.status === 'OPEN';
-                    const displayPrice = CargoStore.formatCurrency(a.startingPriceKg);
+                    const displayPrice = isOpen ?
+                        '<span class="text-slate-400 font-medium italic text-xs"><i class="fa-solid fa-lock text-[10px] mr-1 text-slate-300"></i>Bảo mật</span>' :
+                        CargoStore.formatCurrency(a.currentPriceKg || a.startingPriceKg);
                     const displayLeader = isOpen ?
-                        '<span class="text-slate-400 font-medium italic"><i class="fa-solid fa-user-shield text-slate-400 mr-1"></i>Đại lý ẩn danh (Bảo mật)</span>' :
+                        '<span class="text-slate-400 font-medium italic text-xs"><i class="fa-solid fa-user-secret text-[10px] mr-1 text-slate-300"></i>Bảo mật trong phiên</span>' :
                         `<span class="font-semibold text-slate-900 block">${a.leadingAgentName}</span><span class="text-[10px] text-slate-400 font-mono">${a.leadingAgentCode || '-'}</span>`;
 
                     return `
@@ -760,27 +764,52 @@
                 }
             }
 
-            // 6. Pending Registrations queue
-            const regBox = document.getElementById('adminPendingRegistrations');
-            if (regBox) {
-                if (pendings.length === 0) {
-                    regBox.innerHTML = `<p class="text-xs text-gray-400 text-center py-6">Không có hồ sơ nào chờ duyệt</p>`;
+            // 6. Mini Activity Audit Log widget (thay thế hồ sơ đại lý mới)
+            const logBox = document.getElementById('adminMiniAuditLogs');
+            if (logBox) {
+                const logs = (CargoStore.getActivityLogs ? CargoStore.getActivityLogs() : (data.activityLogs || [])).filter(Boolean);
+                if (!logs || logs.length === 0) {
+                    logBox.innerHTML = `<p class="text-xs text-gray-400 text-center py-6">Chưa có nhật ký hoạt động nào</p>`;
                 } else {
-                    regBox.innerHTML = pendings.slice(0, 3).map(r => `
-                        <div class="p-3.5 rounded-xl border border-slate-200 bg-slate-50 hover:bg-white transition text-xs space-y-2">
-                            <div class="flex items-center justify-between">
-                                <span class="font-mono font-bold text-blue-600">${r.regId}</span>
-                                <span class="text-[10px] text-gray-400">${r.submittedAt}</span>
+                    logBox.innerHTML = logs.slice(0, 5).map(l => {
+                        let iconClass = 'fa-solid fa-bell text-blue-600';
+                        let bgClass = 'bg-blue-50 border-blue-200';
+                        const cat = String(l.actionCategory || '').toLowerCase();
+                        if (cat.includes('đấu giá') || cat.includes('bid')) {
+                            iconClass = 'fa-solid fa-gavel text-indigo-600';
+                            bgClass = 'bg-indigo-50 border-indigo-200';
+                        } else if (cat.includes('đại lý') || cat.includes('đăng ký') || cat.includes('hồ sơ')) {
+                            iconClass = 'fa-solid fa-user-check text-amber-600';
+                            bgClass = 'bg-amber-50 border-amber-200';
+                        } else if (cat.includes('thanh toán') || cat.includes('payment')) {
+                            iconClass = 'fa-solid fa-file-invoice-dollar text-emerald-600';
+                            bgClass = 'bg-emerald-50 border-emerald-200';
+                        } else if (cat.includes('hệ thống') || cat.includes('system') || cat.includes('bảo mật')) {
+                            iconClass = 'fa-solid fa-shield-halved text-purple-600';
+                            bgClass = 'bg-purple-50 border-purple-200';
+                        }
+
+                        const timeText = CargoStore.formatTimeAgo ? CargoStore.formatTimeAgo(l.rawTime || l.timestamp, l.timestamp) : (l.timestamp || 'Vừa xong');
+
+                        return `
+                            <div class="p-2.5 rounded-xl border border-slate-100 bg-slate-50/70 hover:bg-white hover:border-slate-200 transition text-xs space-y-1">
+                                <div class="flex items-center justify-between gap-2">
+                                    <div class="flex items-center gap-1.5 min-w-0">
+                                        <div class="w-5 h-5 rounded-md ${bgClass} border flex items-center justify-center text-[10px] shrink-0">
+                                            <i class="${iconClass}"></i>
+                                        </div>
+                                        <span class="font-bold text-slate-800 truncate text-[11px]">${l.actionTitle || l.actionCategory}</span>
+                                    </div>
+                                    <span class="text-[10px] text-slate-400 shrink-0 font-medium">${timeText}</span>
+                                </div>
+                                <p class="text-[11px] text-slate-600 line-clamp-1 pl-6 leading-tight">${l.details || ''}</p>
+                                <div class="flex items-center justify-between text-[10px] text-slate-400 pl-6 pt-0.5">
+                                    <span>Tác nhân: <strong class="text-slate-700">${l.actor || l.username}</strong></span>
+                                    ${l.target ? `<span class="font-mono text-blue-600 font-semibold">${l.target}</span>` : ''}
+                                </div>
                             </div>
-                            <div>
-                                <p class="font-bold text-slate-800">${r.companyName}</p>
-                                <p class="text-[11px] text-gray-500">Người đại diện: ${r.repName} · ${r.phone}</p>
-                            </div>
-                            <div class="flex items-center justify-end gap-2 pt-1 border-t border-slate-200/60">
-                                <a href="06-AgentList.html?tab=REGISTRATIONS&status=PENDING&regId=${r.regId}" class="px-2.5 py-1 bg-blue-600 text-white rounded-lg font-semibold hover:bg-blue-700 transition">Xét duyệt</a>
-                            </div>
-                        </div>
-                    `).join('');
+                        `;
+                    }).join('');
                 }
             }
         }
