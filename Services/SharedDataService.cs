@@ -43,6 +43,17 @@ public class SharedDataService
         s.Value = value?.ToJsonString();
     }
 
+    /// <summary>Định danh "thế hệ dữ liệu" của máy chủ. Trình duyệt mang dữ liệu thuộc thế hệ khác sẽ bị dọn sạch và không được ghi đè lên DB.</summary>
+    public async Task<string> GetEpochAsync()
+    {
+        var s = await _db.Settings.FindAsync("dataEpoch");
+        if (s != null && !string.IsNullOrEmpty(s.Value)) return s.Value;
+        if (s == null) { s = new Setting { Key = "dataEpoch" }; _db.Settings.Add(s); }
+        s.Value = Guid.NewGuid().ToString("N");
+        await _db.SaveChangesAsync();
+        return s.Value;
+    }
+
     public async Task<long> GetVersionAsync()
     {
         var s = await _db.Settings.FindAsync("version");
@@ -261,6 +272,7 @@ public class SharedDataService
         return new JsonObject
         {
             ["version"] = await GetVersionAsync(),
+            ["dataEpoch"] = await GetEpochAsync(),
             ["auctions"] = ToArray(auctions),
             ["bids"] = ToArray(bids),
             ["wonAuctions"] = ToArray(wons),

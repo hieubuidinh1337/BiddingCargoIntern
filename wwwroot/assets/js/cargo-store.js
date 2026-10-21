@@ -885,7 +885,40 @@ const CargoStore = (function () {
     let saveServerTimeout = null;
     let lastLocalSaveTimestamp = 0;
 
+    // ---- Data epoch: khi DB máy chủ bị dọn sạch/đổi thế hệ, dữ liệu cũ trong localStorage phải bị xóa
+    // (nếu không, client sẽ đẩy ngược phiên/đại lý/nhật ký cũ lên DB).
+    const EPOCH_KEY = 'CARGO_BIDDING_DATA_EPOCH';
+    let epochWiping = false;
+
+    function getLocalEpoch() {
+        try { return localStorage.getItem(EPOCH_KEY) || ''; } catch (e) { return ''; }
+    }
+
+    // Trả về true nếu được phép tiếp tục; false nếu đang dọn dữ liệu và tải lại trang.
+    function applyServerEpoch(serverEpoch) {
+        if (!serverEpoch || getLocalEpoch() === serverEpoch) return true;
+        let hadData = false;
+        try {
+            hadData = !!localStorage.getItem(STORAGE_KEY);
+            if (hadData) epochWiping = true;
+            localStorage.removeItem(STORAGE_KEY);
+            localStorage.removeItem('CARGO_BIDDING_SERVER_VERSION');
+            localStorage.setItem(EPOCH_KEY, serverEpoch);
+        } catch (e) { }
+        lastServerVersion = 0;
+        if (hadData && typeof location !== 'undefined') {
+            location.reload();
+            return false;
+        }
+        return true;
+    }
+
+    const epochReady = (typeof window !== 'undefined' && typeof fetch !== 'undefined')
+        ? fetch('/api/epoch', { cache: 'no-store' }).then(r => r.json()).then(j => applyServerEpoch(j && j.dataEpoch)).catch(() => true)
+        : Promise.resolve(true);
+
     function saveData(data, skipServerSync = false) {
+        if (epochWiping) return;
         try {
             localStorage.setItem(STORAGE_KEY, JSON.stringify(data));
         } catch (e) {
@@ -924,13 +957,15 @@ const CargoStore = (function () {
             lastLocalSaveTimestamp = Date.now();
             if (saveServerTimeout) clearTimeout(saveServerTimeout);
 
-            saveServerTimeout = setTimeout(() => {
+            saveServerTimeout = setTimeout(async () => {
+                if (!(await epochReady) || epochWiping) return;
                 const apiUrl = '/api/data';
 
                 fetch(apiUrl, {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify({
+                        dataEpoch: getLocalEpoch(),
                         auctions: data.auctions,
                         bids: data.bids,
                         wonAuctions: data.wonAuctions,
@@ -946,6 +981,7 @@ const CargoStore = (function () {
                         activityLogs: data.activityLogs
                     })
                 }).then(r => r.json()).then(res => {
+                    if (res && res.stale) { applyServerEpoch(res.dataEpoch); return; }
                     if (res && res.version) {
                         lastServerVersion = res.version;
                         try { localStorage.setItem('CARGO_BIDDING_SERVER_VERSION', String(res.version)); } catch (e) { }
@@ -989,6 +1025,7 @@ const CargoStore = (function () {
             const res = await fetch(apiUrl);
             if (!res.ok) return;
             const serverData = await res.json();
+            if (serverData && serverData.dataEpoch && !applyServerEpoch(serverData.dataEpoch)) return;
             const shouldSync = force || !lastServerVersion || (serverData && serverData.version && serverData.version !== lastServerVersion) || (serverData.bids && serverData.bids.length !== (local.bids || []).length);
             if (serverData && shouldSync) {
                 lastServerVersion = serverData.version || Date.now();
@@ -2391,7 +2428,7 @@ const CargoStore = (function () {
                 fetch('/api/data', {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ auctions: data.auctions })
+                    body: JSON.stringify({ dataEpoch: getLocalEpoch(), auctions: data.auctions })
                 }).catch(() => {});
             }
 

@@ -57,9 +57,19 @@ public static class ApiEndpoints
             return J(snap);
         });
 
+        api.MapGet("/epoch", (HttpContext ctx, SharedDataService svc) => Guard(async () =>
+        {
+            ctx.Response.Headers.CacheControl = "no-cache, no-store, must-revalidate";
+            return J(new JsonObject { ["dataEpoch"] = await svc.GetEpochAsync() });
+        }, log));
+
         api.MapPost("/data", (HttpContext ctx, SharedDataService svc) => Guard(async () =>
         {
-            var v = await svc.MergeAsync(await BodyAsync(ctx.Request));
+            var body = await BodyAsync(ctx.Request);
+            var epoch = await svc.GetEpochAsync();
+            if (EntityJson.Str(body, "dataEpoch") != epoch)
+                return J(new JsonObject { ["success"] = false, ["stale"] = true, ["dataEpoch"] = epoch }, 409);
+            var v = await svc.MergeAsync(body);
             return J(new JsonObject { ["success"] = true, ["version"] = v });
         }, log));
 
