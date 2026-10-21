@@ -98,7 +98,7 @@ public class SharedDataService
     {
         if (string.IsNullOrWhiteSpace(code)) return null;
         var key = code.Trim().ToUpperInvariant();
-        if (Util.IsAnonCode(key)) return null;
+        if (Util.IsAnonCode(key) || PseudoAgentCodes.Contains(key)) return null;
         var agents = await AgentsAsync();
         if (agents.TryGetValue(key, out var ex)) return ex;
 
@@ -252,10 +252,12 @@ public class SharedDataService
         var agentsList = new JsonArray();
         foreach (var ag in agentEnt)
         {
-            if (PseudoAgentCodes.Contains(ag.Code)) continue;
+            if (string.IsNullOrWhiteSpace(ag.Code)) continue;
+            var key = ag.Code.Trim().ToUpperInvariant();
+            if (PseudoAgentCodes.Contains(key)) continue;
             var n = EntityJson.ToNode(ag);
             if (string.IsNullOrEmpty(EntityJson.Str(n, "repName")) && string.IsNullOrEmpty(ag.Email)
-                && string.IsNullOrEmpty(ag.TaxCode) && string.IsNullOrEmpty(ag.Phone)) continue;
+                && string.IsNullOrEmpty(ag.TaxCode) && string.IsNullOrEmpty(ag.Phone) && string.IsNullOrEmpty(ag.CompanyName)) continue;
             if (string.IsNullOrEmpty(ag.Password)) n["password"] = "12345678";
             if (string.IsNullOrEmpty(ag.Pin)) n["pin"] = "1234";
             agentsList.Add(n);

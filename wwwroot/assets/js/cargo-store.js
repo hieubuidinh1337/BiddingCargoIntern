@@ -144,11 +144,7 @@ const CargoStore = (function () {
     ];
 
     const defaultData = {
-        currentUser: {
-            id: null, role: 'agent', agentCode: '', password: '', pin: '', companyName: '', fullName: '',
-            position: '', email: '', phone: '', taxCode: '', address: '', province: '', tier: 'TIER1', status: '', joinedDate: '',
-            stats: { totalBids: 0, totalWins: 0, winRate: '0%', totalSpentUSD: '0', totalSpentVND: 0 }
-        },
+        currentUser: null,
         currentAdmin: {
             id: 99, username: 'admin', password: 'admin2026', role: 'SUPER_ADMIN', roles: ['SUPER_ADMIN'],
             fullName: 'Quản trị hệ thống', email: '', department: ''
@@ -649,9 +645,12 @@ const CargoStore = (function () {
                 const initialCount = data.agentsList.length;
                 data.agentsList = data.agentsList.filter(ag => {
                     if (!ag) return false;
-                    const codeUpper = String(ag.code || '').toUpperCase();
+                    const code = String(ag.code || '').trim();
+                    if (!code || code === 'undefined' || code === 'null') return false;
+                    const codeUpper = code.toUpperCase();
                     if (['ALL', 'STAFF', 'SYSTEM', 'ADMIN', 'VU-ADMIN-01', 'VU-OPS-88'].includes(codeUpper)) return false;
-                    if (!ag.repName && !ag.email && !ag.taxCode && !ag.phone) return false;
+                    const name = String(ag.companyName || ag.name || '').trim();
+                    if (!ag.repName && !ag.email && !ag.taxCode && !ag.phone && !name) return false;
                     return true;
                 });
                 if (data.agentsList.length !== initialCount) {
@@ -660,25 +659,30 @@ const CargoStore = (function () {
             }
 
             // Auto-heal & sync currentUser PIN with agentsList
-            if (data.currentUser && Array.isArray(data.agentsList)) {
+            if (data.currentUser) {
                 const curCode = String(data.currentUser.agentCode || data.currentUser.code || '').trim().toUpperCase();
-                const ag = data.agentsList.find(a => String(a.code || '').trim().toUpperCase() === curCode);
-                if (ag) {
-                    if (ag.pin && data.currentUser.pin !== ag.pin) {
-                        data.currentUser.pin = ag.pin;
-                        data.currentUser.pinCreatedAt = ag.pinCreatedAt || data.currentUser.pinCreatedAt || Date.now();
-                        updated = true;
-                    } else if (data.currentUser.pin && !ag.pin) {
-                        ag.pin = data.currentUser.pin;
-                        updated = true;
-                    } else if (!data.currentUser.pin && !ag.pin) {
+                if (!curCode) {
+                    data.currentUser = null;
+                    updated = true;
+                } else if (Array.isArray(data.agentsList)) {
+                    const ag = data.agentsList.find(a => String(a.code || '').trim().toUpperCase() === curCode);
+                    if (ag) {
+                        if (ag.pin && data.currentUser.pin !== ag.pin) {
+                            data.currentUser.pin = ag.pin;
+                            data.currentUser.pinCreatedAt = ag.pinCreatedAt || data.currentUser.pinCreatedAt || Date.now();
+                            updated = true;
+                        } else if (data.currentUser.pin && !ag.pin) {
+                            ag.pin = data.currentUser.pin;
+                            updated = true;
+                        } else if (!data.currentUser.pin && !ag.pin) {
+                            data.currentUser.pin = '1234';
+                            ag.pin = '1234';
+                            updated = true;
+                        }
+                    } else if (!data.currentUser.pin) {
                         data.currentUser.pin = '1234';
-                        ag.pin = '1234';
                         updated = true;
                     }
-                } else if (!data.currentUser.pin) {
-                    data.currentUser.pin = '1234';
-                    updated = true;
                 }
             }
 
@@ -1148,9 +1152,12 @@ const CargoStore = (function () {
                 if (serverData.agentsList && Array.isArray(serverData.agentsList)) {
                     local.agentsList = serverData.agentsList.filter(ag => {
                         if (!ag) return false;
-                        const codeUpper = String(ag.code || '').toUpperCase();
+                        const code = String(ag.code || '').trim();
+                        if (!code || code === 'undefined' || code === 'null') return false;
+                        const codeUpper = code.toUpperCase();
                         if (['ALL', 'STAFF', 'SYSTEM', 'ADMIN', 'VU-ADMIN-01', 'VU-OPS-88'].includes(codeUpper)) return false;
-                        if (!ag.repName && !ag.email && !ag.taxCode && !ag.phone) return false;
+                        const name = String(ag.companyName || ag.name || '').trim();
+                        if (!ag.repName && !ag.email && !ag.taxCode && !ag.phone && !name) return false;
                         return true;
                     });
                     if (local.currentUser) {
@@ -1756,35 +1763,7 @@ const CargoStore = (function () {
                     }
                 }
 
-                // If newly approved agent code format AG-xxxx
-                if (identifier.startsWith('ag-')) {
-                    const code = identifier.toUpperCase();
-                    agent = {
-                        id: Date.now(),
-                        code: code,
-                        password: '12345678',
-                        companyName: `Đại lý ${code}`,
-                        repName: `Đại diện ${code}`,
-                        position: 'Giám đốc Điều hành',
-                        phone: '0909 000 999',
-                        email: `${code.toLowerCase()}@cargoagent.vn`,
-                        taxCode: '0399' + Math.floor(100000 + Math.random() * 900000),
-                        address: 'TP. Hồ Chí Minh',
-                        province: 'TP. Hồ Chí Minh',
-                        tier: 'TIER2',
-                        status: 'Đang hoạt động',
-                        joinedDate: new Date().toLocaleDateString('vi-VN'),
-                        totalBids: 0,
-                        totalWins: 0,
-                        winRate: '0%',
-                        totalSpentUSD: '0',
-                        totalSpentVND: 0,
-                        failedLoginAttempts: 0
-                    };
-                    data.agentsList.push(agent);
-                } else {
-                    return { success: false, message: `Mã đại lý hoặc Email "${agentCodeOrEmail}" không tồn tại trong CSDL.` };
-                }
+                return { success: false, message: `Mã đại lý hoặc Email "${agentCodeOrEmail}" không tồn tại trong CSDL.` };
             }
 
             // Check if agent is currently locked due to failed login attempts
@@ -2006,10 +1985,12 @@ const CargoStore = (function () {
             }
             const user = data.currentUser;
             if (!user) return null;
+            const userCode = String(user.agentCode || user.code || '').trim();
+            if (!userCode) return null;
 
             // Verify if current agent account status is locked in agentsList
             if (user.role === 'agent' || user.agentCode || user.code) {
-                const targetCode = (user.agentCode || user.code || '').toUpperCase();
+                const targetCode = userCode.toUpperCase();
                 const agent = (data.agentsList || []).find(a =>
                     (a.code || '').toUpperCase() === targetCode || a.id == user.id
                 );

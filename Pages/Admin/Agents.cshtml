@@ -1625,14 +1625,16 @@
 
             let filteredAgents = agents.filter(ag => {
                 if (!ag) return false;
-                const codeUpper = (ag.code || '').toUpperCase();
-                const nameUpper = (ag.companyName || '').toUpperCase();
+                const code = String(ag.code || '').trim();
+                if (!code || code === 'undefined' || code === 'null') return false;
+                const codeUpper = code.toUpperCase();
+                const nameUpper = String(ag.companyName || ag.name || '').trim().toUpperCase();
 
                 // Exclude pseudo system accounts and empty records
                 if (['ALL', 'STAFF', 'SYSTEM', 'ADMIN', 'VU-ADMIN-01', 'VU-OPS-88'].includes(codeUpper)) {
                     return false;
                 }
-                if (!ag.repName && !ag.email && !ag.taxCode && !ag.phone) {
+                if (!ag.repName && !ag.email && !ag.taxCode && !ag.phone && !nameUpper) {
                     return false;
                 }
 
