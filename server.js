@@ -1387,6 +1387,19 @@ const server = http.createServer((req, res) => {
             try {
                 const incoming = JSON.parse(body);
                 if (incoming.auctions && Array.isArray(incoming.auctions)) {
+                    // Guard against ghost sessions: a client (stale localStorage / seed data) may push
+                    // auctions the server has never seen. Only accept NEW auctions that are genuinely live.
+                    const knownIds = new Set((serverData.auctions || []).map(a => String(a.id)));
+                    const nowMs = Date.now();
+                    incoming.auctions = incoming.auctions.filter(a => {
+                        if (!a || a.id === undefined || a.id === null) return false;
+                        if (knownIds.has(String(a.id))) return true;
+                        const endMs = Date.parse(a.endTime);
+                        const live = (a.status === 'OPEN' || a.status === 'UPCOMING') && !isNaN(endMs) && endMs > nowMs;
+                        if (!live) console.warn(`[api/data] Ignored unknown/stale auction from client: id=${a.id} flight=${a.flightNumber} status=${a.status}`);
+                        return live;
+                    });
+
                     const map = new Map();
                     (serverData.auctions || []).forEach(a => {
                         if (a && a.origin && a.destination && a.flightNumber && a.flightNumber !== 'VU-HIST') {

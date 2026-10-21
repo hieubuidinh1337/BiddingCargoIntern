@@ -1772,7 +1772,11 @@ const CargoStore = (function () {
                         if (!a || !a.origin || !a.destination || !a.flightNumber || a.flightNumber === 'VU-HIST' || !a.originName || !a.destName || (a.capacityKg || 0) <= 0) return;
                         const serverItem = auctionMap.get(a.id);
                         if (!serverItem) {
-                            auctionMap.set(a.id, a);
+                            // Only keep a local-only auction if it was just created locally (push pending)
+                            const justSaved = (Date.now() - lastLocalSaveTimestamp) < 60000;
+                            const endMs = Date.parse(a.endTime);
+                            const live = (a.status === 'OPEN' || a.status === 'UPCOMING') && !isNaN(endMs) && endMs > Date.now();
+                            if (justSaved && live) auctionMap.set(a.id, a);
                         } else {
                             // Final states (CANCELLED, DELETED) must NEVER be overwritten by server's older status
                             const FINAL_STATES = ['CANCELLED', 'DELETED'];
@@ -3235,7 +3239,8 @@ const CargoStore = (function () {
             });
 
             wonList.forEach(w => {
-                const exists = auctions.some(a => String(a.id) === String(w.auctionId));
+                const hasValidId = w.auctionId !== null && w.auctionId !== undefined && w.auctionId !== '' && !isNaN(Number(w.auctionId));
+                const exists = !hasValidId || auctions.some(a => String(a.id) === String(w.auctionId));
                 if (!exists) {
                     auctions.push({
                         id: w.auctionId,
