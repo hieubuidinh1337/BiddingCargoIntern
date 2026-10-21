@@ -1,6 +1,3 @@
-using System.Net.Http.Json;
-using System.Security.Cryptography;
-using System.Text;
 using System.Text.Json.Nodes;
 using System.Text.RegularExpressions;
 using BiddingCargo.Web.Data;
@@ -14,17 +11,14 @@ public class ApiException : Exception
     public ApiException(string message, int status = 400) : base(message) { Status = status; }
 }
 
-/// <summary>Hoàn tiền đơn thắng thầu, duyệt hồ sơ đại lý, thông báo, MoMo.</summary>
+/// <summary>Hoàn tiền đơn thắng thầu, duyệt hồ sơ đại lý, thông báo.</summary>
 public class WonAuctionService
 {
     private readonly AppDbContext _db;
     private readonly SharedDataService _shared;
-    private readonly IConfiguration _cfg;
-    private readonly IHttpClientFactory _http;
-    private readonly ILogger<WonAuctionService> _log;
 
-    public WonAuctionService(AppDbContext db, SharedDataService shared, IConfiguration cfg, IHttpClientFactory http, ILogger<WonAuctionService> log)
-    { _db = db; _shared = shared; _cfg = cfg; _http = http; _log = log; }
+    public WonAuctionService(AppDbContext db, SharedDataService shared)
+    { _db = db; _shared = shared; }
 
     private async Task<WonAuction> FindWonAsync(string? wonId)
     {
@@ -172,116 +166,5 @@ public class WonAuctionService
         foreach (var i in list)
             if (long.TryParse(i, out var id) && await _db.Notifications.FindAsync(id) is Notification n) _db.Notifications.Remove(n);
         await _db.SaveChangesAsync();
-    }
-
-    // ------------------------------------------------ MoMo
-
-    private (string Partner, string Access, string Secret, string Endpoint, string Ipn, string Redirect) Momo(string baseUrl) => (
-        _cfg["Momo:PartnerCode"] ?? "", _cfg["Momo:AccessKey"] ?? "", _cfg["Momo:SecretKey"] ?? "",
-        Util.NullIfEmpty(_cfg["Momo:Endpoint"]) ?? "https://test-payment.momo.vn",
-        Util.NullIfEmpty(_cfg["Momo:IpnUrl"]) ?? baseUrl + "/api/momo/ipn",
-        Util.NullIfEmpty(_cfg["Momo:RedirectUrl"]) ?? baseUrl + "/won-auction");
-
-    private static string Hmac(string secret, string data) =>
-        Convert.ToHexString(new HMACSHA256(Encoding.UTF8.GetBytes(secret)).ComputeHash(Encoding.UTF8.GetBytes(data))).ToLowerInvariant();
-
-    public static string MomoOrderInfo(string? agentCode, string? auctionId, DateTime d)
-    {
-        static string Clean(string? s) => Regex.Replace((s ?? "").ToUpperInvariant(), "[^A-Z0-9]", "");
-        return $"{Clean(agentCode)}-{Clean(auctionId)}-{d:ddMMyyyy}";
-    }
-
-    public async Task<JsonObject> CreateMomoAsync(string? wonId, string baseUrl)
-    {
-        var cfg = Momo(baseUrl);
-        if (cfg.Access == "" || cfg.Secret == "" || cfg.Partner == "")
-            throw new ApiException("MoMo chưa được cấu hình (Momo:PartnerCode/AccessKey/SecretKey).", 503);
-        var won = await FindWonAsync(wonId);
-        if (won.PaymentStatus is "PAID" or "PAID_LATE") throw new ApiException("Order already paid");
-        var amount = won.TotalAmountVND;
-        if (amount <= 0) throw new ApiException("Invalid amount");
-        if (cfg.Partner == "MOMOBKUN20180529" && amount > 50_000_000) amount = 50_000_000; // giới hạn sandbox
-
-        var orderInfo = MomoOrderInfo(won.AgentCode, Util.NullIfEmpty(won.FlightNumber) ?? won.AuctionId?.ToString(), DateTime.Now);
-        var clean = Regex.Replace(wonId!, "[^A-Za-z0-9]", "");
-        var ts = Util.NowMs();
-        var orderId = $"{clean}_{ts}"; var requestId = $"{clean}_REQ_{ts}";
-        const string requestType = "captureWallet";
-        var raw = string.Join("&", $"accessKey={cfg.Access}", $"amount={amount}", "extraData=", $"ipnUrl={cfg.Ipn}", $"orderId={orderId}",
-            $"orderInfo={orderInfo}", $"partnerCode={cfg.Partner}", $"redirectUrl={cfg.Redirect}", $"requestId={requestId}", $"requestType={requestType}");
-        var payload = new JsonObject
-        {
-            ["partnerCode"] = cfg.Partner, ["requestType"] = requestType, ["ipnUrl"] = cfg.Ipn, ["redirectUrl"] = cfg.Redirect,
-            ["orderId"] = orderId, ["amount"] = amount, ["orderInfo"] = orderInfo, ["requestId"] = requestId, ["extraData"] = "",
-            ["signature"] = Hmac(cfg.Secret, raw), ["lang"] = "vi"
-        };
-
-        JsonObject result;
-        try
-        {
-            var client = _http.CreateClient(); client.Timeout = TimeSpan.FromSeconds(30);
-            var resp = await client.PostAsync(new Uri(new Uri(cfg.Endpoint), "/v2/gateway/api/create"),
-                new StringContent(payload.ToJsonString(), Encoding.UTF8, "application/json"));
-            result = JsonNode.Parse(await resp.Content.ReadAsStringAsync()) as JsonObject ?? new JsonObject();
-        }
-        catch (TaskCanceledException) { throw new ApiException("MoMo request timeout (30s)", 504); }
-        catch (HttpRequestException e) { throw new ApiException("Failed to connect to MoMo: " + e.Message, 500); }
-
-        if (EntityJson.Lng(result, "resultCode") == 0)
-        {
-            won.MomoOrderId = orderId; won.MomoRequestId = requestId; won.MomoOrderInfo = orderInfo;
-            won.MomoPayUrl = EntityJson.Str(result, "payUrl"); won.MomoQrCodeUrl = EntityJson.Str(result, "qrCodeUrl");
-            won.MomoDeeplink = EntityJson.Str(result, "deeplink");
-            won.MomoCreatedAt = Util.IsoNow(); won.MomoExpiresAt = Util.ToIso(DateTimeOffset.UtcNow.AddMinutes(15));
-            await SaveAsync();
-        }
-        else if (!string.IsNullOrEmpty(won.MomoQrCodeUrl) && Util.ParseIso(won.MomoExpiresAt) > DateTimeOffset.UtcNow)
-        {
-            // MoMo từ chối tạo mới nhưng mã QR cũ vẫn còn hạn → dùng lại
-        }
-        else throw new ApiException(EntityJson.Str(result, "message") ?? "MoMo payment creation failed");
-
-        return new JsonObject
-        {
-            ["success"] = true, ["orderId"] = won.MomoOrderId, ["orderInfo"] = won.MomoOrderInfo ?? orderInfo, ["amount"] = amount,
-            ["payUrl"] = won.MomoPayUrl, ["qrCodeUrl"] = won.MomoQrCodeUrl, ["deeplink"] = won.MomoDeeplink, ["expiresAt"] = won.MomoExpiresAt
-        };
-    }
-
-    public async Task<bool> HandleMomoIpnAsync(JsonObject ipn, string baseUrl)
-    {
-        var cfg = Momo(baseUrl);
-        string S(string k) => EntityJson.Str(ipn, k) ?? "";
-        var raw = string.Join("&", $"accessKey={cfg.Access}", $"amount={S("amount")}", $"extraData={S("extraData")}", $"message={S("message")}",
-            $"orderId={S("orderId")}", $"orderInfo={S("orderInfo")}", $"orderType={S("orderType")}", $"partnerCode={S("partnerCode")}",
-            $"payType={S("payType")}", $"requestId={S("requestId")}", $"responseTime={S("responseTime")}", $"resultCode={S("resultCode")}", $"transId={S("transId")}");
-        var expected = Hmac(cfg.Secret, raw);
-        if (cfg.Secret == "" || !CryptographicOperations.FixedTimeEquals(Encoding.UTF8.GetBytes(S("signature")), Encoding.UTF8.GetBytes(expected)))
-        { _log.LogWarning("[MoMo IPN] Sai chữ ký"); return false; }
-
-        var orderId = S("orderId");
-        var won = await _db.WonAuctions.FirstOrDefaultAsync(w => w.MomoOrderId == orderId);
-        if (won != null && EntityJson.Lng(ipn, "resultCode") == 0)
-        {
-            won.PaymentStatus = "PAID";
-            won.PaidAt = DateTime.Now.ToString("HH:mm dd/MM/yyyy");
-            won.MomoTransId = S("transId");
-            won.MomoPaidAt = Util.IsoNow();
-            EntityJson.SetExtra(won, "momoPayType", JsonValue.Create(Util.NullIfEmpty(S("payType")) ?? "qr"));
-            var ag = await _db.Agents.FirstOrDefaultAsync(a => a.Code.ToUpper() == (won.AgentCode ?? "").ToUpper());
-            if (ag is { IsLocked: true }) { ag.IsLocked = false; ag.LockedReason = null; }
-            await SaveAsync();
-        }
-        return true;
-    }
-
-    public async Task<JsonObject> MomoStatusAsync(string? wonId)
-    {
-        var w = await FindWonAsync(wonId);
-        return new JsonObject
-        {
-            ["success"] = true, ["wonId"] = w.WonId, ["paymentStatus"] = w.PaymentStatus, ["paidAt"] = w.PaidAt,
-            ["momoTransId"] = w.MomoTransId, ["momoOrderId"] = w.MomoOrderId, ["momoOrderInfo"] = w.MomoOrderInfo
-        };
     }
 }

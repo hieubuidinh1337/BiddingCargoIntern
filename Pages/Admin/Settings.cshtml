@@ -549,7 +549,7 @@
 
                     <div>
                         <label class="block font-semibold text-slate-700 mb-1">Số tài khoản ngân hàng (STK)</label>
-                        <input type="text" id="bankAccNum" value="1029384756" required
+                        <input type="text" id="bankAccNum" value="" required
                             class="w-full border rounded-xl px-3.5 py-2.5 font-mono font-bold text-blue-700 focus:ring-2 focus:ring-blue-500 outline-none">
                     </div>
 
@@ -691,7 +691,7 @@
                     <div>
                         <label class="block font-semibold text-slate-700 mb-1">Tài khoản Email gửi (User /
                             Gmail)</label>
-                        <input type="email" id="smtpUser" value="jome7093@@gmail.com" placeholder="jome7093@@gmail.com"
+                        <input type="email" id="smtpUser" value="" placeholder=""
                             class="w-full border rounded-xl px-3.5 py-2.5 font-medium focus:ring-2 focus:ring-blue-500 outline-none">
                     </div>
 
@@ -730,7 +730,7 @@
                         </div>
                     </div>
                     <div class="flex flex-col sm:flex-row items-center gap-2">
-                        <input type="email" id="smtpTestRecipient" value="jome7093@@gmail.com"
+                        <input type="email" id="smtpTestRecipient" value=""
                             placeholder="Nhập email nhận thử nghiệm..."
                             class="w-full sm:flex-1 border bg-white rounded-xl px-3.5 py-2 text-xs font-medium focus:ring-2 focus:ring-blue-500 outline-none">
                         <button type="button" id="btnTestSmtp" onclick="handleSendTestEmail()"
@@ -1429,16 +1429,16 @@
                 if (s.smtp) {
                     document.getElementById('smtpHost').value = s.smtp.host || 'smtp.gmail.com';
                     document.getElementById('smtpPort').value = s.smtp.port || 465;
-                    document.getElementById('smtpUser').value = s.smtp.user || 'jome7093@@gmail.com';
+                    document.getElementById('smtpUser').value = s.smtp.user || '';
                     document.getElementById('smtpPass').value = s.smtp.pass || 'fcju ktvw jqhg ilzb';
                     if (s.smtp.fromName) document.getElementById('smtpFromName').value = s.smtp.fromName;
                     updateSmtpStatusBadge(s.smtp);
                 } else {
                     document.getElementById('smtpHost').value = 'smtp.gmail.com';
                     document.getElementById('smtpPort').value = 465;
-                    document.getElementById('smtpUser').value = 'jome7093@@gmail.com';
+                    document.getElementById('smtpUser').value = '';
                     document.getElementById('smtpPass').value = 'fcju ktvw jqhg ilzb';
-                    updateSmtpStatusBadge({ host: 'smtp.gmail.com', port: 465, user: 'jome7093@@gmail.com', pass: 'fcjuktvwjqhgilzb' });
+                    updateSmtpStatusBadge({ host: 'smtp.gmail.com', port: 465, user: '', pass: 'fcjuktvwjqhgilzb' });
                 }
             }
 

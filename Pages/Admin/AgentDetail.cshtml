@@ -689,7 +689,7 @@
                 return;
             }
 
-            currentAgentCode = currentAgent ? (currentAgent.code || 'AG-0892') : (currentReg.assignedCode || 'CHỜ CẤP MÃ');
+            currentAgentCode = currentAgent ? (currentAgent.code || '') : (currentReg.assignedCode || 'CHỜ CẤP MÃ');
 
             // Find matching registration object for extra business details
             if (!currentReg && currentAgent) {

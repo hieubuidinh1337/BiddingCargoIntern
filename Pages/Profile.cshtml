@@ -91,7 +91,7 @@
                         <h2 id="profCompanyName" class="text-xl font-bold text-slate-900">Công ty TNHH Vận tải ABC
                             Logistics</h2>
                         <p class="text-sm text-gray-500 mt-0.5">
-                            Mã đại lý: <span id="profAgentCode" class="font-bold text-blue-600 font-mono">AG-0892</span>
+                            Mã đại lý: <span id="profAgentCode" class="font-bold text-blue-600 font-mono"></span>
                         </p>
                         <div class="mt-1.5 flex items-center gap-2">
                             <span
@@ -453,7 +453,7 @@
             const storeData = (typeof CargoStore !== 'undefined' && CargoStore.getData) ? CargoStore.getData() : null;
 
             if (!u) {
-                const defaultAgent = storeData && storeData.agentsList ? storeData.agentsList.find(a => a.code === 'AG-0892') : null;
+                const defaultAgent = storeData && storeData.agentsList ? storeData.agentsList.find(a => false) : null;
                 if (defaultAgent) {
                     u = {
                         agentCode: defaultAgent.code,

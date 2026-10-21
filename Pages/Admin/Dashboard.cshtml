@@ -577,33 +577,55 @@
     </main>
 
     <script>
-        async function openDocumentInNewTab(docUrl, docName) {
-            let finalUrl = String(docUrl || '').trim();
-            if (!finalUrl || finalUrl === '#' || finalUrl === 'undefined') {
-                finalUrl = '/uploads/sample_document.pdf';
-            }
-            const name = docName || 'chung_tu';
-            try {
-                if (finalUrl.startsWith('data:')) {
-                    const response = await fetch(finalUrl);
-                    const blob = await response.blob();
-                    finalUrl = URL.createObjectURL(blob);
-                }
-                const w = window.open();
-                if (w) {
-                    const ext = (name.split('.').pop() || '').toLowerCase();
-                    if (['jpg','jpeg','png','webp','gif'].includes(ext)) {
-                        w.document.write(`<html><head><title>${name}</title><style>body{margin:0;background:#111;display:flex;justify-content:center;align-items:flex-start;min-height:100vh;}img{max-width:100%;height:auto;margin:auto;display:block;}</style></head><body><img src="${finalUrl}" alt="${name}"/></body></html>`);
-                    } else {
-                        w.document.write(`<html><head><title>${name}</title><style>body,html{margin:0;padding:0;height:100%;}embed{width:100%;height:100%;}</style></head><body><embed src="${finalUrl}" type="application/pdf" width="100%" height="100%"/></body></html>`);
-                    }
-                    w.document.close();
-                    if (finalUrl.startsWith('blob:')) setTimeout(() => URL.revokeObjectURL(finalUrl), 30000);
-                }
-            } catch (err) {
-                console.error('openDocumentInNewTab error:', err);
-            }
-        }
+         async function openDocumentInNewTab(docUrl, docName) {
+               let finalUrl = String(docUrl || '').trim();
+               if (!finalUrl || finalUrl === '#' || finalUrl === 'undefined') {
+                   finalUrl = '/uploads/sample_document.pdf';
+               }
+               const name = docName || 'chung_tu';
+
+               try {
+                   if (finalUrl.startsWith('data:')) {
+                       const response = await fetch(finalUrl);
+                       const blob = await response.blob();
+                       finalUrl = URL.createObjectURL(blob);
+                   }
+
+                   const w = window.open('', '_blank');
+                   if (!w) return;
+
+                   const ext = (name.split('.').pop() || '').toLowerCase();
+                   const isImage = ['jpg', 'jpeg', 'png', 'webp', 'gif'].includes(ext);
+
+                   w.document.title = name;
+                   w.document.body.innerHTML = ''; // clear
+
+                   if (isImage) {
+                       w.document.body.style.cssText = 'margin:0;background:#111;display:flex;justify-content:center;align-items:flex-start;min-height:100vh;';
+
+                       const img = w.document.createElement('img');
+                       img.src = finalUrl;
+                       img.alt = name;
+                       img.style.cssText = 'max-width:100%;height:auto;margin:auto;display:block;';
+                       w.document.body.appendChild(img);
+                   } else {
+                       // PDF
+                       w.document.body.style.cssText = 'margin:0;padding:0;height:100%;overflow:hidden;';
+
+                       const embed = w.document.createElement('embed');
+                       embed.src = finalUrl;
+                       embed.type = 'application/pdf';
+                       embed.style.cssText = 'width:100%;height:100%;border:none;';
+                       w.document.body.appendChild(embed);
+                   }
+
+                   if (finalUrl.startsWith('blob:')) {
+                       setTimeout(() => URL.revokeObjectURL(finalUrl), 30000);
+                   }
+               } catch (err) {
+                   console.error('openDocumentInNewTab error:', err);
+               }
+           }
 
         function toggleAdminMobileNav() {
             const nav = document.getElementById('adminMobileNav');

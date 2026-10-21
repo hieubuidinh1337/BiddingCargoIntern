@@ -8,113 +8,7 @@ const CargoStore = (function () {
 
     // Seed Data matching T-SQL SQL Server 2022 (CargoBiddingDB)
     // Each agent/admin account has its OWN unique, distinct password
-    const seedAgents = [
-        {
-            id: 1,
-            code: 'AG-0892',
-            password: 'abc123456',
-            companyName: 'Công ty TNHH Vận tải ABC Logistics',
-            repName: 'Nguyễn Văn An',
-            position: 'Giám đốc kinh doanh',
-            phone: '0901 234 567',
-            email: 'an.nguyen@abccargo.vn',
-            taxCode: '0312345678',
-            address: '123 Nguyễn Huệ, Quận 1, TP. Hồ Chí Minh',
-            province: 'TP. Hồ Chí Minh',
-            tier: 'TIER1',
-            status: 'Đang hoạt động',
-            joinedDate: '15/03/2024',
-            totalBids: 24,
-            totalWins: 8,
-            winRate: '33%',
-            totalSpentUSD: '12.4k',
-            totalSpentVND: 1600000000
-        },
-        {
-            id: 2,
-            code: 'AG-1024',
-            password: 'vina123456',
-            companyName: 'Công ty CP Giao nhận Kho vận Vinatrans',
-            repName: 'Lê Minh Khang',
-            position: 'Trưởng phòng Air Freight',
-            phone: '0908 765 432',
-            email: 'khang.le@vinatrans.com.vn',
-            taxCode: '0300456789',
-            address: '406 Nguyễn Tất Thành, Quận 4, TP. Hồ Chí Minh',
-            province: 'TP. Hồ Chí Minh',
-            tier: 'TIER1',
-            status: 'Đang hoạt động',
-            joinedDate: '10/01/2024',
-            totalBids: 45,
-            totalWins: 16,
-            winRate: '36%',
-            totalSpentUSD: '28.2k',
-            totalSpentVND: 3640000000
-        },
-        {
-            id: 3,
-            code: 'AG-0556',
-            password: 'star123456',
-            companyName: 'Công ty TNHH Tiếp vận Toàn Cầu Golden Star',
-            repName: 'Phạm Thu Thảo',
-            position: 'Phó Tổng Giám Đốc',
-            phone: '0912 348 899',
-            email: 'thao.pham@dhlvietnam.com',
-            taxCode: '0105678901',
-            address: '88 Láng Hạ, Đống Đa, Hà Nội',
-            province: 'Hà Nội',
-            tier: 'TIER1',
-            status: 'Đang hoạt động',
-            joinedDate: '22/05/2024',
-            totalBids: 18,
-            totalWins: 5,
-            winRate: '28%',
-            totalSpentUSD: '8.0k',
-            totalSpentVND: 1030000000
-        },
-        {
-            id: 4,
-            code: 'AG-0341',
-            password: 'sky123456',
-            companyName: 'Công ty TNHH SkyFreight Logistics Việt Nam',
-            repName: 'Hoàng Văn Dũng',
-            position: 'Giám đốc Điều hành',
-            phone: '0903 567 890',
-            email: 'dung.hoang@saigonair.vn',
-            taxCode: '0700111234',
-            address: '12B Trường Sơn, Q. Tân Bình, TP. HCM',
-            province: 'TP. Hồ Chí Minh',
-            tier: 'TIER2',
-            status: 'Đang hoạt động',
-            joinedDate: '01/07/2024',
-            totalBids: 10,
-            totalWins: 3,
-            winRate: '30%',
-            totalSpentUSD: '3.0k',
-            totalSpentVND: 380000000
-        },
-        {
-            id: 5,
-            code: 'AG-0789',
-            password: 'viet123456',
-            companyName: 'Công ty CP Vận chuyển Hàng không Việt Freight',
-            repName: 'Nguyễn Thị Hoa',
-            position: 'Trưởng phòng Sales Air',
-            phone: '0919 123 456',
-            email: 'hoa.nt@vietfreight.vn',
-            taxCode: '0401990211',
-            address: '29 Đinh Tiên Hoàng, Q. Bình Thạnh, TP. HCM',
-            province: 'TP. Hồ Chí Minh',
-            tier: 'TIER2',
-            status: 'Đang hoạt động',
-            joinedDate: '15/08/2024',
-            totalBids: 7,
-            totalWins: 2,
-            winRate: '29%',
-            totalSpentUSD: '1.6k',
-            totalSpentVND: 210000000
-        }
-    ];
+    const seedAgents = [];
 
     /**
      * HỆ THỐNG PHÂN QUYỀN HẠT NHÂN (PERMISSION MATRIX DEFINITIONS)
@@ -241,95 +135,23 @@ const CargoStore = (function () {
         }
     ];
 
+    // Tài khoản khởi tạo duy nhất để đăng nhập lần đầu - hãy đổi mật khẩu ngay sau khi vào hệ thống.
     const seedAdmins = [
         {
-            id: 99,
-            username: 'admin',
-            password: 'admin2026',
-            role: 'SUPER_ADMIN',
-            roles: ['SUPER_ADMIN'],
-            fullName: 'Trần Quản Trị (Super Admin)',
-            email: 'admin@airline.vn',
-            department: 'Information Technology Directorate (ITD)'
-        },
-        {
-            id: 98,
-            username: 'cod_admin',
-            password: 'admin2026',
-            role: 'COD_MANAGER',
-            roles: ['COD_MANAGER'],
-            fullName: 'Lê Khai Thác (COD Manager)',
-            email: 'cod@airline.vn',
-            department: 'Cargo Operations Directorate (COD)'
-        },
-        {
-            id: 95,
-            username: 'settler01',
-            password: 'admin2026',
-            role: 'SETTLEMENT_OFFICER',
-            roles: ['SETTLEMENT_OFFICER'],
-            fullName: 'Vũ Thẩm Định (Settlement Officer)',
-            email: 'settler@airline.vn',
-            department: 'Cargo Bidding Settlement Board'
-        },
-        {
-            id: 97,
-            username: 'staff01',
-            password: 'staff2026',
-            role: 'OPERATIONS_VIEWER',
-            roles: ['OPERATIONS_VIEWER'],
-            fullName: 'Nguyễn Điều Hành (Operations Staff)',
-            email: 'staff01@airline.vn',
-            department: 'Air Cargo Flight Operations'
-        },
-        {
-            id: 96,
-            username: 'staff02',
-            password: 'staff2026',
-            role: 'AGENT_AUDITOR',
-            roles: ['AGENT_AUDITOR'],
-            fullName: 'Lê Thị Bích Vân (Agent Auditor)',
-            email: 'staff02@airline.vn',
-            department: 'Agent Audit & Approval'
+            id: 99, username: 'admin', password: 'admin2026', role: 'SUPER_ADMIN', roles: ['SUPER_ADMIN'],
+            fullName: 'Quản trị hệ thống', email: '', department: ''
         }
     ];
 
     const defaultData = {
         currentUser: {
-            id: 1,
-            role: 'agent',
-            agentCode: 'AG-0892',
-            password: 'abc123456',
-            pin: '1234',
-            pinCreatedAt: 1710460800000,
-            companyName: 'Công ty TNHH Vận tải ABC Logistics',
-            fullName: 'Nguyễn Văn An',
-            position: 'Giám đốc kinh doanh',
-            email: 'an.nguyen@abccargo.vn',
-            phone: '0901 234 567',
-            taxCode: '0312345678',
-            address: '123 Nguyễn Huệ, Quận 1, TP. Hồ Chí Minh',
-            province: 'TP. Hồ Chí Minh',
-            tier: 'TIER1',
-            status: 'Đang hoạt động',
-            joinedDate: '15/03/2024',
-            stats: {
-                totalBids: 24,
-                totalWins: 8,
-                winRate: '33%',
-                totalSpentUSD: '12.4k',
-                totalSpentVND: 1600000000
-            }
+            id: null, role: 'agent', agentCode: '', password: '', pin: '', companyName: '', fullName: '',
+            position: '', email: '', phone: '', taxCode: '', address: '', province: '', tier: 'TIER1', status: '', joinedDate: '',
+            stats: { totalBids: 0, totalWins: 0, winRate: '0%', totalSpentUSD: '0', totalSpentVND: 0 }
         },
         currentAdmin: {
-            id: 99,
-            username: 'admin',
-            password: 'admin2026',
-            role: 'SUPER_ADMIN',
-            roles: ['SUPER_ADMIN'],
-            fullName: 'Trần Quản Trị (Super Admin)',
-            email: 'admin@airline.vn',
-            department: 'Information Technology Directorate (ITD)'
+            id: 99, username: 'admin', password: 'admin2026', role: 'SUPER_ADMIN', roles: ['SUPER_ADMIN'],
+            fullName: 'Quản trị hệ thống', email: '', department: ''
         },
         rolesList: seedRoles,
         agentsList: seedAgents,
@@ -361,610 +183,20 @@ const CargoStore = (function () {
             { code: '320', name: 'A320' },
             { code: '321', name: 'A321' }
         ],
-        auctions: [
-            {
-                id: 1,
-                flightCode: 'FL-VU130-260915',
-                flightNumber: 'VU130',
-                route: 'SGN - HAN',
-                origin: 'SGN',
-                destination: 'HAN',
-                originName: 'TP. Hồ Chí Minh',
-                destName: 'Hà Nội',
-                etd: '20:45 · 15/09/2026',
-                eta: '23:00 · 15/09/2026',
-                etdIso: new Date(Date.now() + 3 * 3600 * 1000 + 48 * 60 * 1000).toISOString(),
-                aircraft: 'Airbus A321neo Cargo',
-                capacityKg: 3500,
-                startingPriceKg: 18000,
-                currentPriceKg: 18000,
-                minStep: 500,
-                endTime: new Date(Date.now() + 48 * 60 * 1000).toISOString(),
-                status: 'OPEN',
-                leadingAgentCode: null,
-                leadingAgentName: null,
-                bidsCount: 0,
-                specialNotes: 'Hàng tổng hợp, hỗ trợ kho lạnh bảo quản thực phẩm & dược phẩm.',
-                cutOffTime: '17:45 · 15/09/2026',
-                isAnonymous: true
-            },
-            {
-                id: 2,
-                flightCode: 'FL-VU224-260915',
-                flightNumber: 'VU224',
-                route: 'SGN - DAD',
-                origin: 'SGN',
-                destination: 'DAD',
-                originName: 'TP. Hồ Chí Minh',
-                destName: 'Đà Nẵng',
-                etd: '21:30 · 15/09/2026',
-                eta: '22:50 · 15/09/2026',
-                etdIso: new Date(Date.now() + 4 * 3600 * 1000 + 35 * 60 * 1000).toISOString(),
-                aircraft: 'Airbus A320-200',
-                capacityKg: 2000,
-                startingPriceKg: 12000,
-                currentPriceKg: 14500,
-                minStep: 500,
-                endTime: new Date(Date.now() + 95 * 60 * 1000).toISOString(),
-                status: 'OPEN',
-                leadingAgentCode: 'AG-1024',
-                leadingAgentName: 'Vinatrans',
-                bidsCount: 4,
-                specialNotes: 'Ưu tiên bưu kiện bưu phẩm thương mại điện tử chuyển phát nhanh.',
-                cutOffTime: '18:30 · 15/09/2026',
-                isAnonymous: true
-            },
-            {
-                id: 3,
-                flightCode: 'FL-VU340-260915',
-                flightNumber: 'VU340',
-                route: 'HAN - PQC',
-                origin: 'HAN',
-                destination: 'PQC',
-                originName: 'Hà Nội',
-                destName: 'Phú Quốc',
-                etd: '22:45 · 15/09/2026',
-                eta: '01:00 · 16/09/2026',
-                etdIso: new Date(Date.now() + 5 * 3600 * 1000 + 50 * 60 * 1000).toISOString(),
-                aircraft: 'Airbus A321neo Cargo',
-                capacityKg: 4000,
-                startingPriceKg: 22000,
-                currentPriceKg: 30000,
-                minStep: 1000,
-                endTime: new Date(Date.now() + 170 * 60 * 1000).toISOString(),
-                status: 'OPEN',
-                leadingAgentCode: 'AG-0556',
-                leadingAgentName: 'Golden Star',
-                bidsCount: 6,
-                specialNotes: 'Hàng hải sản đông lạnh tươi sống đóng thùng xốp tiêu chuẩn IATA.',
-                cutOffTime: '19:45 · 15/09/2026',
-                isAnonymous: true
-            },
-            {
-                id: 4,
-                flightCode: 'FL-VU132-260908',
-                flightNumber: 'VU132',
-                route: 'SGN - HAN',
-                origin: 'SGN',
-                destination: 'HAN',
-                originName: 'TP. Hồ Chí Minh',
-                destName: 'Hà Nội',
-                etd: '10:00 · 08/09/2026',
-                eta: '12:15 · 08/09/2026',
-                etdIso: '2026-09-08T03:00:00.000Z',
-                aircraft: 'Airbus A321-200',
-                capacityKg: 3000,
-                startingPriceKg: 18000,
-                currentPriceKg: 22000,
-                minStep: 500,
-                endTime: new Date(Date.now() - 6 * 60 * 60 * 1000).toISOString(),
-                status: 'CLOSED',
-                leadingAgentCode: 'AG-0892',
-                leadingAgentName: 'ABC Logistics',
-                bidsCount: 12,
-                winnerAgentCode: 'AG-0892',
-                winnerAgentName: 'ABC Logistics',
-                winningPriceKg: 22000,
-                specialNotes: 'Phiên đã đóng thầu, chờ hoàn tất thủ tục thanh toán.',
-                cutOffTime: '07:00 · 08/09/2026',
-                isAnonymous: true
-            },
-            {
-                id: 5,
-                flightCode: 'FL-VU226-260909',
-                flightNumber: 'VU226',
-                route: 'SGN - DAD',
-                origin: 'SGN',
-                destination: 'DAD',
-                originName: 'TP. Hồ Chí Minh',
-                destName: 'Đà Nẵng',
-                etd: '21:00 · 09/09/2026',
-                eta: '22:15 · 09/09/2026',
-                etdIso: '2026-09-09T14:00:00.000Z',
-                aircraft: 'Airbus A321neo Cargo',
-                capacityKg: 2500,
-                startingPriceKg: 15000,
-                currentPriceKg: 18500,
-                minStep: 500,
-                endTime: '2026-09-09T09:00:00.000Z',
-                status: 'CLOSED',
-                leadingAgentCode: 'AG-0892',
-                leadingAgentName: 'Công ty TNHH Vận tải ABC Logistics',
-                bidsCount: 6,
-                winnerAgentCode: 'AG-0892',
-                winnerAgentName: 'Công ty TNHH Vận tải ABC Logistics',
-                winningPriceKg: 18500,
-                specialNotes: 'Phiên đã hoàn tất thanh toán, lô hàng đã phát hành AWB.',
-                cutOffTime: '18:00 · 09/09/2026',
-                isAnonymous: true
-            },
-            {
-                id: 6,
-                flightCode: 'FL-VU198-260908',
-                flightNumber: 'VU198',
-                route: 'SGN - HAN',
-                origin: 'SGN',
-                destination: 'HAN',
-                originName: 'TP. Hồ Chí Minh',
-                destName: 'Hà Nội',
-                etd: '17:00 · 08/09/2026',
-                eta: '19:15 · 08/09/2026',
-                etdIso: '2026-09-08T10:00:00.000Z',
-                aircraft: 'Airbus A321neo Cargo',
-                capacityKg: 2000,
-                startingPriceKg: 12000,
-                currentPriceKg: 14500,
-                minStep: 500,
-                endTime: '2026-09-08T05:00:00.000Z',
-                status: 'CLOSED',
-                leadingAgentCode: 'AG-0892',
-                leadingAgentName: 'Công ty TNHH Vận tải ABC Logistics',
-                bidsCount: 8,
-                winnerAgentCode: 'AG-0892',
-                winnerAgentName: 'Công ty TNHH Vận tải ABC Logistics',
-                winningPriceKg: 14500,
-                specialNotes: 'Lô hàng đã thanh toán thành công, phiếu bàn giao cut-off hợp lệ.',
-                cutOffTime: 'Trước ETD 3 giờ',
-                isAnonymous: true
-            },
-            {
-                id: 7,
-                flightCode: 'FL-VU450-260909',
-                flightNumber: 'VU450',
-                route: 'SGN - PQC',
-                origin: 'SGN',
-                destination: 'PQC',
-                originName: 'TP. Hồ Chí Minh',
-                destName: 'Phú Quốc',
-                etd: '12:10 · 09/09/2026',
-                eta: '13:20 · 09/09/2026',
-                etdIso: '2026-09-09T05:10:00.000Z',
-                aircraft: 'Airbus A320-200',
-                capacityKg: 3000,
-                startingPriceKg: 18000,
-                currentPriceKg: 22500,
-                minStep: 500,
-                endTime: '2026-09-09T00:10:00.000Z',
-                status: 'CLOSED',
-                leadingAgentCode: 'AG-0556',
-                leadingAgentName: 'Công ty TNHH Tiếp vận Toàn Cầu Golden Star',
-                bidsCount: 4,
-                winnerAgentCode: 'AG-0556',
-                winnerAgentName: 'Công ty TNHH Tiếp vận Toàn Cầu Golden Star',
-                winningPriceKg: 22500,
-                specialNotes: 'Quá hạn thanh toán 24h, slot đã được hoàn về cho hệ thống.',
-                cutOffTime: '09:10 · 09/09/2026',
-                isAnonymous: true
-            }
-        ],
-        bids: [
-            {
-                id: Date.now() - 15 * 60 * 1000,
-                timestamp: Date.now() - 15 * 60 * 1000,
-                auctionId: 1,
-                agentCode: 'AG-0556',
-                agentName: 'Golden Star Forwarding',
-                isAnonymous: true,
-                priceKg: 41500,
-                time: '15 phút trước',
-                status: 'RECEIVED',
-                weightKg: 3500
-            },
-            {
-                id: Date.now() - 25 * 60 * 1000,
-                timestamp: Date.now() - 25 * 60 * 1000,
-                auctionId: 1,
-                agentCode: 'AG-1024',
-                agentName: 'Vinatrans Express',
-                isAnonymous: true,
-                priceKg: 39000,
-                time: '25 phút trước',
-                status: 'RECEIVED',
-                weightKg: 3500
-            },
-            {
-                id: Date.now() - 35 * 60 * 1000,
-                timestamp: Date.now() - 35 * 60 * 1000,
-                auctionId: 1,
-                agentCode: 'AG-0556',
-                agentName: 'Golden Star Forwarding',
-                isAnonymous: true,
-                priceKg: 25000,
-                time: '35 phút trước',
-                status: 'RECEIVED',
-                weightKg: 3500
-            },
-            {
-                id: Date.now() - 42 * 60 * 1000,
-                timestamp: Date.now() - 42 * 60 * 1000,
-                auctionId: 1,
-                agentCode: 'AG-1024',
-                agentName: 'Vinatrans Express',
-                isAnonymous: true,
-                priceKg: 24500,
-                time: '42 phút trước',
-                status: 'RECEIVED',
-                weightKg: 3500
-            },
-            {
-                id: Date.now() - 48 * 60 * 1000,
-                timestamp: Date.now() - 48 * 60 * 1000,
-                auctionId: 1,
-                agentCode: 'AG-0556',
-                agentName: 'Golden Star Forwarding',
-                isAnonymous: true,
-                priceKg: 23000,
-                time: '48 phút trước',
-                status: 'RECEIVED',
-                weightKg: 3500
-            },
-            {
-                id: Date.now() - 56 * 60 * 1000,
-                timestamp: Date.now() - 56 * 60 * 1000,
-                auctionId: 1,
-                agentCode: 'AG-0556',
-                agentName: 'Golden Star Forwarding',
-                isAnonymous: true,
-                priceKg: 20000,
-                time: '56 phút trước',
-                status: 'RECEIVED',
-                weightKg: 3500
-            },
-            {
-                id: Date.now() - 60 * 60 * 1000,
-                timestamp: Date.now() - 60 * 60 * 1000,
-                auctionId: 1,
-                agentCode: 'AG-1024',
-                agentName: 'Vinatrans Express',
-                isAnonymous: true,
-                priceKg: 19000,
-                time: '1 giờ trước',
-                status: 'RECEIVED',
-                weightKg: 3500
-            }
-        ],
+        auctions: [],
+        bids: [],
         watchlist: [],
-        wonAuctions: [
-            {
-                wonId: 'WON-2026-0814-01',
-                auctionId: 4,
-                agentCode: 'AG-0892',
-                agentName: 'ABC Logistics',
-                flightNumber: 'VU132',
-                route: 'SGN - HAN',
-                capacityKg: 3000,
-                priceKg: 22000,
-                totalAmountVND: 66000000,
-                paymentDeadline: '2026-09-08T00:00:00.000Z',
-                paymentStatus: 'PAID',
-                paidAt: '08/09/2026 08:30',
-                awbNumber: '998-12345678',
-                cutOffTime: '07:00 · 08/09/2026',
-                warehouse: 'Kho hàng TCS Tân Sơn Nhất (Cửa số 4)',
-                cargoDeclaration: null
-            },
-            {
-                // Historical - chuyến 15/08, auctionId 102 (không trùng với phiên VU224 hiện tại id=2)
-                wonId: 'WON-2026-0815-02',
-                auctionId: 102,
-                agentCode: 'AG-1024',
-                agentName: 'Vinatrans Express',
-                flightNumber: 'VU224',
-                route: 'SGN - DAD',
-                capacityKg: 2000,
-                priceKg: 14500,
-                totalAmountVND: 29000000,
-                paymentDeadline: '2026-09-09T06:00:00.000Z',
-                paymentStatus: 'PAID',
-                paidAt: '15/08/2026 14:00',
-                awbNumber: '998-22409811',
-                cutOffTime: '13:00 · 09/09/2026',
-                warehouse: 'Kho hàng TCS Tân Sơn Nhất (Cửa số 2)',
-                cargoDeclaration: null,
-                lockPenaltyHandled: true,
-                lockWaivedByAdmin: true  // Admin đã miễn trừ, không lock lại
-            },
-            {
-                // Historical - chuyến 15/08, auctionId 101 (không trùng với phiên VU130 hiện tại id=1)
-                wonId: 'WON-2026-0815-03',
-                auctionId: 101,
-                agentCode: 'AG-0892',
-                agentName: 'ABC Logistics',
-                flightNumber: 'VU130',
-                route: 'SGN - HAN',
-                capacityKg: 3500,
-                priceKg: 56000,
-                totalAmountVND: 196000000,
-                paymentDeadline: '2026-09-09T04:30:00.000Z',
-                paymentStatus: 'PAID',
-                paidAt: '08/09/2026 14:15',
-                awbNumber: '998-13098722',
-                cutOffTime: '11:30 · 09/09/2026',
-                warehouse: 'Kho hàng SCSC Tân Sơn Nhất',
-                cargoDeclaration: null,
-                lockPenaltyHandled: true,
-                lockWaivedByAdmin: true
-            },
-            {
-                // Historical - chuyến 15/08, auctionId 103 (không trùng với phiên VU340 hiện tại id=3)
-                wonId: 'WON-2026-0815-04',
-                auctionId: 103,
-                agentCode: 'AG-0556',
-                agentName: 'Golden Star Logistics',
-                flightNumber: 'VU340',
-                route: 'HAN - PQC',
-                capacityKg: 4000,
-                priceKg: 25000,
-                totalAmountVND: 100000000,
-                paymentDeadline: '2026-09-09T09:15:00.000Z',
-                paymentStatus: 'PAID',
-                paidAt: '09/09/2026 10:07',
-                notifiedAt: null,
-                awbNumber: '998-34077611',
-                cutOffTime: '16:15 · 09/09/2026',
-                warehouse: 'Kho hàng Cargo Nội Bài (Cửa số 1)',
-                cargoDeclaration: null,
-                lockPenaltyHandled: true,
-                lockWaivedByAdmin: true
-            },
-            {
-                wonId: 'WON-2026-0816-05',
-                auctionId: 5,
-                agentCode: 'AG-0892',
-                agentName: 'ABC Logistics',
-                flightNumber: 'VU226',
-                route: 'SGN - DAD',
-                capacityKg: 2500,
-                priceKg: 18500,
-                totalAmountVND: 46250000,
-                paymentDeadline: '2026-09-09T11:00:00.000Z',
-                paymentStatus: 'PAID',
-                paidAt: '08/09/2026 15:45',
-                awbNumber: '998-22688192',
-                cutOffTime: '18:00 · 09/09/2026',
-                warehouse: 'Kho hàng TCS Tân Sơn Nhất (Cửa số 3)',
-                cargoDeclaration: null
-            },
-            {
-                wonId: 'WON-20260908-06',
-                auctionId: 6,
-                agentCode: 'AG-0892',
-                agentName: 'ABC Logistics',
-                flightNumber: 'VU32453',
-                route: 'SGN - HAN',
-                capacityKg: 3000,
-                priceKg: 25000,
-                totalAmountVND: 75000000,
-                paymentDeadline: '2026-09-08T06:00:00.000Z',
-                paymentStatus: 'PAID',
-                paidAt: '08/09/2026 14:00',
-                awbNumber: '998-18929204',
-                cutOffTime: 'Trước ETD 3 giờ',
-                warehouse: 'Kho hàng SCSC / TCS Tân Sơn Nhất (Cửa số 4)',
-                cargoDeclaration: null,
-                lockPenaltyHandled: true
-            },
-            {
-                wonId: 'WON-20260909-07',
-                auctionId: 7,
-                agentCode: 'AG-0556',
-                agentName: 'Công ty TNHH Tiếp vận Toàn Cầu Golden Star',
-                flightNumber: 'VU450',
-                route: 'SGN - PQC',
-                capacityKg: 3000,
-                priceKg: 22500,
-                totalAmountVND: 67500000,
-                paymentDeadline: '2026-09-09T02:10:00.000Z',
-                paymentStatus: 'EXPIRED',
-                paidAt: null,
-                notifiedAt: null,
-                awbNumber: '998-49350322',
-                cutOffTime: '09:10 · 09/09/2026',
-                warehouse: 'Kho hàng SCSC / TCS Tân Sơn Nhất (Cửa số 4)',
-                cargoDeclaration: null,
-                lockPenaltyHandled: true
-            }
-        ],
-        notifications: [
-            {
-                id: 1,
-                timestamp: Date.now() - 720000,
-                targetAgentCode: 'AG-0892',
-                title: 'Đặt giá thành công chuyến VU130 (SGN-HAN)',
-                message: 'Hệ thống đã ghi nhận mức giá 21.500 đ/Kg của bạn cho chuyến bay VU130 (SGN - HAN).',
-                time: '12 phút trước',
-                type: 'BID_RECEIVED',
-                read: false,
-                link: '04-Detail.html?id=1'
-            },
-            {
-                id: 2,
-                timestamp: Date.now() - 1800000,
-                targetAgentCode: 'AG-0892',
-                title: 'Đặt giá thành công chuyến VU224 (SGN-DAD)',
-                message: 'Hệ thống đã ghi nhận mức giá 18.000 đ/Kg của bạn cho chuyến bay VU224 (SGN - DAD).',
-                time: '30 phút trước',
-                type: 'BID_RECEIVED',
-                read: false,
-                link: '04-Detail.html?id=2'
-            },
-            {
-                id: 3,
-                timestamp: Date.now() - 86400000,
-                targetAgentCode: 'AG-0556',
-                title: '🏆 CHÚC MỪNG! Bạn đã thắng thầu chuyến bay VU450',
-                message: 'Đại lý Công ty TNHH Tiếp vận Toàn Cầu Golden Star (AG-0556) đã trúng thầu chuyến bay VU450 (SGN - PQC) với giá 22.500 đ/Kg. Phiên đấu giá đã hoàn tất thành công và ghi nhận bạn là người trúng thầu.',
-                time: '1 ngày trước',
-                type: 'WON',
-                read: false,
-                link: '07-WonAuction.html'
-            },
-            {
-                id: 4,
-                timestamp: Date.now() - 2700000,
-                targetAgentCode: 'AG-0892',
-                title: '⏳ Cảnh báo sắp đóng thầu: Chuyến VU130',
-                message: 'Phiên đấu giá chỉ còn dưới 30 phút. Đừng bỏ lỡ tải trọng tốt!',
-                time: '45 phút trước',
-                type: 'CLOSING_SOON',
-                read: false,
-                link: '04-Detail.html?id=1'
-            }
-        ],
-        registrations: [
-            {
-                regId: 'REG-2026-0805-01',
-                companyName: 'Công ty TNHH Giao nhận Sao Mai Express',
-                taxCode: '0315998877',
-                address: '77 Bạch Đằng, Phường 2, Quận Tân Bình, TP.HCM',
-                field: 'Cargo Agent',
-                repName: 'Hoàng Đức Trọng',
-                repPosition: 'Giám đốc điều hành',
-                email: 'trong.hoang@saomaiexpress.vn',
-                phone: '0933 887 766',
-                documents: [
-                    { name: 'GPKD_SaoMai_Scan.pdf', dataUrl: null, type: 'application/pdf' },
-                    { name: 'UyQuyen_Cargo_SaoMai.pdf', dataUrl: null, type: 'application/pdf' },
-                    { name: 'CCCD_HoangDucTrong.pdf', dataUrl: null, type: 'application/pdf' }
-                ],
-                status: 'PENDING',
-                submittedAt: '05/08/2026 10:15'
-            }
-        ],
+        wonAuctions: [],
+        notifications: [],
+        registrations: [],
         settings: {
-            minIncrement: 500,
-            cutoffHours: 3,
-            paymentWindowHours: 24,
-            reviewWindowMinutes: 15,
-            hotline: '1900.6686',
-            supportEmail: 'customercare@vietravelairlines.vn',
-            hideAgentCredentials: true,
-            autoCloseOnBid: false,
-            hideCloseAuctionBtn: false,
-            smtp: {
-                host: 'smtp.gmail.com',
-                port: 465,
-                user: 'jome7093@gmail.com',
-                pass: 'fcjuktvwjqhgilzb',
-                fromName: 'Vietravel Airlines Cargo'
-            }
+            minIncrement: 500, cutoffHours: 3, paymentWindowHours: 24, reviewWindowMinutes: 15,
+            hotline: '', supportEmail: '', hideAgentCredentials: true, autoCloseOnBid: false, hideCloseAuctionBtn: false,
+            smtp: { host: '', port: 465, user: '', pass: '', fromName: '' }
         },
-        bankConfig: {
-            bankName: 'Ngân hàng TMCP Ngoại thương Việt Nam (Vietcombank)',
-            bankCode: 'VCB',
-            bankBin: '970436',
-            accountNumber: '1029384756',
-            accountName: 'CONG TY CP HANG KHONG VIETRAVEL',
-            branch: 'Chi nhánh Tân Bình - TP. Hồ Chí Minh',
-            memoPrefix: 'CARGO'
-        },
+        bankConfig: { bankName: '', bankCode: '', bankBin: '', accountNumber: '', accountName: '', branch: '', memoPrefix: 'CARGO' },
         routeSubscriptions: {},
-        activityLogs: [
-            {
-                id: 101,
-                timestamp: '17/09/2026 14:45:10',
-                rawTime: 1789631110000,
-                actor: 'Trần Quản Trị',
-                username: 'admin',
-                role: 'ADMIN',
-                actionCategory: 'Thanh toán',
-                actionTitle: 'Từ chối biên lai thanh toán',
-                target: 'WON-VU198-001',
-                details: 'Từ chối biên lai thanh toán đơn WON-VU198-001 của đại lý AG-0892. Lý do: Mã giao dịch ngân hàng không tồn tại trên hệ thống sao kê.',
-                ip: '113.161.42.12',
-                device: 'Chrome 128 / Windows 11'
-            },
-            {
-                id: 102,
-                timestamp: '17/09/2026 14:10:22',
-                rawTime: 1789629022000,
-                actor: 'Nguyễn Văn Đạt',
-                username: 'dat.nguyen',
-                role: 'STAFF',
-                actionCategory: 'Phiên đấu giá',
-                actionTitle: 'Tạo mới phiên đấu giá',
-                target: 'VU134',
-                details: 'Khởi tạo phiên đấu giá VU134 (SGN - HAN) cất cánh 18/09/2026 08:30. Tải trọng: 3,500 Kg, Giá sàn: 18,000đ/Kg, Bước giá: 300đ.',
-                ip: '113.161.42.15',
-                device: 'Edge 127 / Windows 11'
-            },
-            {
-                id: 103,
-                timestamp: '17/09/2026 11:30:05',
-                rawTime: 1789619405000,
-                actor: 'Trần Quản Trị',
-                username: 'admin',
-                role: 'ADMIN',
-                actionCategory: 'Quản lý Đại lý',
-                actionTitle: 'Mở khóa tài khoản đại lý',
-                target: 'AG-0512',
-                details: 'Phê duyệt mở khóa tài khoản cho đại lý AG-0512 (Công ty Vận chuyển Sao Mai Express). Lý do: Đại lý đã hoàn tất bổ sung nộp tiền phạt quá hạn.',
-                ip: '113.161.42.12',
-                device: 'Chrome 128 / Windows 11'
-            },
-            {
-                id: 104,
-                timestamp: '17/09/2026 09:15:40',
-                rawTime: 1789611340000,
-                actor: 'Lê Minh Thuận',
-                username: 'thuan.le',
-                role: 'STAFF',
-                actionCategory: 'Thanh toán',
-                actionTitle: 'Phê duyệt xác nhận thanh toán',
-                target: 'WON-VU220-003',
-                details: 'Duyệt xác nhận thanh toán thành công số tiền 35.400.000 VNĐ cho đơn thầu WON-VU220-003 của đại lý AG-0892.',
-                ip: '113.161.42.18',
-                device: 'Firefox 129 / macOS'
-            },
-            {
-                id: 105,
-                timestamp: '16/09/2026 16:50:12',
-                rawTime: 1789552212000,
-                actor: 'Trần Quản Trị',
-                username: 'admin',
-                role: 'ADMIN',
-                actionCategory: 'Cấu hình hệ thống',
-                actionTitle: 'Cập nhật tham số hệ thống',
-                target: 'System Settings',
-                details: 'Điều chỉnh Bước giá tối thiểu mặc định từ 500đ -> 300đ/Kg và Hạn chốt thầu trước ETD thành 5 giờ.',
-                ip: '113.161.42.12',
-                device: 'Chrome 128 / Windows 11'
-            },
-            {
-                id: 106,
-                timestamp: '16/09/2026 08:00:01',
-                rawTime: 1789520401000,
-                actor: 'Trần Quản Trị',
-                username: 'admin',
-                role: 'ADMIN',
-                actionCategory: 'Tài khoản',
-                actionTitle: 'Tạo tài khoản nhân viên mới',
-                target: 'dat.nguyen',
-                details: 'Cấp mới tài khoản Nhân viên điều hành (STAFF) cho Nguyễn Văn Đạt (Phòng Điều hành Bay Cargo).',
-                ip: '113.161.42.12',
-                device: 'Chrome 128 / Windows 11'
-            }
-        ]
+        activityLogs: [],
     };
 
     function deduplicateBids(bidsList) {
@@ -3138,7 +2370,7 @@ const CargoStore = (function () {
                         // 2. Dispatch automated Email notification if agent enabled emailAlert
                         if (sub.emailAlert !== false) {
                             const agentAcc = (data.agentsList || []).find(a => (a.code || '').toUpperCase() === agentCode.toUpperCase());
-                            const defaultTargetEmail = (data.currentUser && data.currentUser.email) ? data.currentUser.email : 'jome7093@gmail.com';
+                            const defaultTargetEmail = (data.currentUser && data.currentUser.email) ? data.currentUser.email : '';
                             const targetEmail = (agentAcc && agentAcc.email) ? agentAcc.email : defaultTargetEmail;
 
                             CargoStore.sendEmailNotification({
@@ -5127,7 +4359,7 @@ const CargoStore = (function () {
                 }
 
                 // Dispatch automated AUCTION_WON email notification to winner
-                const defaultTargetEmail = (data.currentUser && data.currentUser.email) ? data.currentUser.email : 'jome7093@gmail.com';
+                const defaultTargetEmail = (data.currentUser && data.currentUser.email) ? data.currentUser.email : '';
                 const winningAgentAccount = (data.agentsList || []).find(a => (a.code || '').toUpperCase() === (highestBid.agentCode || '').toUpperCase());
                 const winnerEmail = (winningAgentAccount && winningAgentAccount.email) ? winningAgentAccount.email : defaultTargetEmail;
 
@@ -5689,6 +4921,7 @@ const CargoStore = (function () {
 
         // Tiện ích: Tạo 3-4 đại lý đặt thầu mẫu cho chuyến bay để kiểm thử xếp hạng & chuyển thầu
         seedDemoBidsForAuction: function (auctionId) {
+            return { success: false, message: 'Chức năng tạo dữ liệu mẫu đã được gỡ bỏ' };
             const data = loadData();
             const auction = (data.auctions || []).find(a => a.id == auctionId);
             if (!auction) return { success: false, message: 'Chuyến bay không tồn tại' };
@@ -5794,7 +5027,7 @@ const CargoStore = (function () {
             }
 
             // Find agent email to dispatch PAYMENT_CONFIRMED email
-            const defaultTargetEmail = (data.currentUser && data.currentUser.email) ? data.currentUser.email : 'jome7093@gmail.com';
+            const defaultTargetEmail = (data.currentUser && data.currentUser.email) ? data.currentUser.email : '';
             const targetEmail = (agentAccount && agentAccount.email) ? agentAccount.email : defaultTargetEmail;
 
             CargoStore.sendEmailNotification({
@@ -5847,7 +5080,7 @@ const CargoStore = (function () {
             // Find agent email to dispatch PAYMENT_REJECTED email
             const targetCode = (item.agentCode || '').toUpperCase();
             const agentAccount = (data.agentsList || []).find(a => (a.code || '').toUpperCase() === targetCode);
-            const defaultTargetEmail = (data.currentUser && data.currentUser.email) ? data.currentUser.email : 'jome7093@gmail.com';
+            const defaultTargetEmail = (data.currentUser && data.currentUser.email) ? data.currentUser.email : '';
             const targetEmail = (agentAccount && agentAccount.email) ? agentAccount.email : defaultTargetEmail;
 
             CargoStore.sendEmailNotification({
@@ -8121,7 +7354,7 @@ const CargoStore = (function () {
         generateVietQRUrl: function (amount, memo) {
             const cfg = this.getBankConfig();
             const bin = cfg.bankBin || '970436';
-            const acc = cfg.accountNumber || '1029384756';
+            const acc = cfg.accountNumber || '';
             const amt = Math.round(Number(amount) || 0);
             const desc = encodeURIComponent(memo || '');
             const accName = encodeURIComponent(cfg.accountName || 'CONG TY CP HANG KHONG VIETRAVEL');
@@ -8148,7 +7381,7 @@ const CargoStore = (function () {
         getRouteSubscriptions: function (agentCode) {
             const data = loadData();
             if (!data.routeSubscriptions) data.routeSubscriptions = {};
-            const code = (agentCode || (data.currentUser ? data.currentUser.agentCode : 'AG-0892') || 'AG-0892').trim().toUpperCase();
+            const code = (agentCode || (data.currentUser ? data.currentUser.agentCode : '') || '').trim().toUpperCase();
             if (!data.routeSubscriptions[code]) {
                 data.routeSubscriptions[code] = {
                     routes: [],
@@ -8167,7 +7400,7 @@ const CargoStore = (function () {
         saveRouteSubscriptions: function (agentCode, settings) {
             const data = loadData();
             if (!data.routeSubscriptions) data.routeSubscriptions = {};
-            const code = (agentCode || (data.currentUser ? data.currentUser.agentCode : 'AG-0892') || 'AG-0892').trim().toUpperCase();
+            const code = (agentCode || (data.currentUser ? data.currentUser.agentCode : '') || '').trim().toUpperCase();
             data.routeSubscriptions[code] = {
                 ...(data.routeSubscriptions[code] || {}),
                 ...settings
@@ -8182,7 +7415,7 @@ const CargoStore = (function () {
 
         toggleRouteSubscription: function (agentCode, routePair) {
             const data = loadData();
-            const code = (agentCode || (data.currentUser ? data.currentUser.agentCode : 'AG-0892') || 'AG-0892').trim().toUpperCase();
+            const code = (agentCode || (data.currentUser ? data.currentUser.agentCode : '') || '').trim().toUpperCase();
             const subs = this.getRouteSubscriptions(code);
             const pair = (routePair || '').trim().toUpperCase().replace(/\s+/g, '');
             let routes = (subs.routes || []).map(r => String(r).replace(/\s+/g, '').toUpperCase());

@@ -16,12 +16,6 @@ public class SharedDataService
     private static readonly HashSet<string> PseudoAgentCodes =
         new(StringComparer.OrdinalIgnoreCase) { "ALL", "STAFF", "SYSTEM", "ADMIN", "VU-ADMIN-01", "VU-OPS-88" };
 
-    private static readonly Dictionary<string, string> DefaultPwd = new(StringComparer.OrdinalIgnoreCase)
-    {
-        ["AG-0892"] = "abc123456", ["AG-1024"] = "vina123456", ["AG-0556"] = "star123456",
-        ["AG-0341"] = "sky123456", ["AG-0789"] = "viet123456"
-    };
-
     private readonly AppDbContext _db;
     private readonly IConfiguration _cfg;
     private readonly ILogger<SharedDataService> _log;
@@ -251,7 +245,7 @@ public class SharedDataService
             var n = EntityJson.ToNode(ag);
             if (string.IsNullOrEmpty(EntityJson.Str(n, "repName")) && string.IsNullOrEmpty(ag.Email)
                 && string.IsNullOrEmpty(ag.TaxCode) && string.IsNullOrEmpty(ag.Phone)) continue;
-            if (string.IsNullOrEmpty(ag.Password)) n["password"] = DefaultPwd.TryGetValue(ag.Code, out var dp) ? dp : "abc123456";
+            if (string.IsNullOrEmpty(ag.Password)) n["password"] = "12345678";
             if (string.IsNullOrEmpty(ag.Pin)) n["pin"] = "1234";
             agentsList.Add(n);
         }
@@ -322,14 +316,14 @@ public class SharedDataService
                 var key = code.ToUpperInvariant();
                 if (!agents.TryGetValue(key, out var ag))
                 {
-                    ag = new Agent { Code = code, Status = "Hoạt động", Password = DefaultPwd.GetValueOrDefault(key, "abc123456"), Pin = "1234" };
+                    ag = new Agent { Code = code, Status = "Hoạt động", Password = "12345678", Pin = "1234" };
                     _db.Agents.Add(ag);
                     agents[key] = ag;
                 }
                 var prevPwd = ag.Password; var prevPin = ag.Pin;
                 EntityJson.Apply(ag, n);
                 ag.Code = ag.Code.Trim();
-                if (string.IsNullOrEmpty(ag.Password)) ag.Password = prevPwd ?? DefaultPwd.GetValueOrDefault(key, "abc123456");
+                if (string.IsNullOrEmpty(ag.Password)) ag.Password = prevPwd ?? "12345678";
                 if (string.IsNullOrEmpty(ag.Pin)) ag.Pin = prevPin ?? "1234";
                 if (string.IsNullOrEmpty(ag.Name)) ag.Name = ag.CompanyName;
 
@@ -596,6 +590,7 @@ public class SharedDataService
 
     // ---------------------------------------------------------------- reset (POST /api/reset)
 
+    /// <summary>Xóa dữ liệu giao dịch (thầu, đơn thắng, chat, thông báo) và đưa các phiên đang mở về trạng thái chưa có thầu.</summary>
     public async Task<long> ResetAsync()
     {
         await Gate.WaitAsync();
@@ -606,27 +601,13 @@ public class SharedDataService
             _db.ChatMessages.RemoveRange(await _db.ChatMessages.ToListAsync());
             _db.Chats.RemoveRange(await _db.Chats.ToListAsync());
             _db.Notifications.RemoveRange(await _db.Notifications.ToListAsync());
-            await _db.SaveChangesAsync();
 
-            // Giữ lại mật khẩu SMTP đã cấu hình khi khôi phục cài đặt mặc định
-            var oldSmtp = ((await GetSettingAsync("settings")) as JsonObject)?["smtp"]?.DeepClone();
-
-            foreach (var a in await _db.Auctions.ToListAsync())
+            foreach (var a in await _db.Auctions.Where(a => a.Status == "OPEN").ToListAsync())
             {
-                if (a.Status != "OPEN") continue;
                 a.BidsCount = 0; a.CurrentPriceKg = a.StartingPriceKg;
                 a.LeadingAgentCode = null; a.LeadingAgentName = null;
                 a.WinnerAgentCode = null; a.WinnerAgentName = null; a.WinningPriceKg = 0;
             }
-            await _db.SaveChangesAsync();
-
-            await DbInitializer.ApplySeedDocumentAsync(_db, includeBidsAndWon: false);
-            // Phiên mở: gia hạn lại giờ kết thúc như bản gốc (45 / 90 / 120 phút)
-            var openOnes = await _db.Auctions.Where(a => a.Status == "OPEN").OrderBy(a => a.Id).ToListAsync();
-            for (var i = 0; i < openOnes.Count; i++)
-                openOnes[i].EndTime = Util.ToIso(DateTimeOffset.UtcNow.AddMinutes(i == 0 ? 45 : i == 1 ? 90 : 120));
-
-            if (oldSmtp != null && await GetSettingAsync("settings") is JsonObject ns) { ns["smtp"] = oldSmtp; await SetSettingAsync("settings", ns); }
             var v = await BumpVersionAsync();
             await _db.SaveChangesAsync();
             return v;

@@ -216,21 +216,6 @@ public static class ApiEndpoints
                 ["message"] = $"Đã xác nhận hoàn tiền cho đơn hàng {w.WonId}. Hệ thống đã gửi thông báo đến đại lý {w.AgentCode}."
             });
         }, log));
-
-        // ---- MoMo
-        api.MapPost("/momo/create", (HttpContext ctx, WonAuctionService svc, IConfiguration cfg) => Guard(async () =>
-            J(await svc.CreateMomoAsync(EntityJson.Str(await BodyAsync(ctx.Request), "wonId"), BaseUrl(ctx, cfg))), log));
-        api.MapPost("/momo/ipn", async (HttpContext ctx, WonAuctionService svc, IConfiguration cfg) =>
-        {
-            try
-            {
-                var ok = await svc.HandleMomoIpnAsync(await BodyAsync(ctx.Request), BaseUrl(ctx, cfg));
-                return ok ? Results.NoContent() : Err("Invalid signature");
-            }
-            catch (Exception e) { log.LogError(e, "MoMo IPN"); return Results.StatusCode(500); }
-        });
-        api.MapGet("/momo/status", (HttpContext ctx, WonAuctionService svc) => Guard(async () =>
-            J(await svc.MomoStatusAsync(ctx.Request.Query["wonId"])), log));
     }
 
     private static IEnumerable<string> Ids(JsonObject body) =>

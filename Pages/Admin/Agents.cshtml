@@ -2590,7 +2590,7 @@
             }
         }
 
-        function openInNewBrowserTab() {
+               function openInNewBrowserTab() {
             if (!activeDocObj) return;
 
             const docNameLower = (activeDocObj.name || '').toLowerCase();
@@ -2612,40 +2612,55 @@
                 if (blob) {
                     const tempBlobUrl = URL.createObjectURL(blob);
                     window.open(tempBlobUrl, '_blank');
+                    // Có thể revoke sau vài giây nếu muốn
+                    setTimeout(() => URL.revokeObjectURL(tempBlobUrl), 30000);
                     return;
                 }
                 window.open(activeDocObj.dataUrl, '_blank');
                 return;
             }
 
-            // For demo mock paper, open full view in new tab
+            // Trường hợp demo mock paper
             const paperEl = document.getElementById('mockDocPaper');
             if (paperEl) {
                 const w = window.open('', '_blank');
                 if (w) {
-                    w.document.write(`
-                        <!DOCTYPE html>
-                        <html lang="vi">
-                        <head>
-                            <meta charset="UTF-8">
-                            <title>${activeDocObj.name} - Xem trực tiếp</title>
-                            <script src="https://cdn.tailwindcss.com"><\/script>
-                            <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
-                        </head>
-                        <body class="bg-slate-100 p-6 flex justify-center min-h-screen">
-                            <div class="w-full max-w-3xl">
-                                <div class="mb-4 flex justify-between items-center bg-white p-3 rounded-xl shadow-xs border">
-                                    <span class="font-bold text-sm text-slate-800"><i class="fa-solid fa-file-pdf text-red-500 mr-2"></i>${activeDocObj.name}</span>
-                                    <button onclick="window.print()" class="px-3 py-1.5 bg-blue-600 text-white rounded-lg text-xs font-bold hover:bg-blue-700 transition">
-                                        <i class="fa-solid fa-print mr-1"></i> In / Xuất PDF
-                                    </button>
-                                </div>
-                                ${paperEl.outerHTML}
-                            </div>
-                            </body>
-                        </html>
-                    `);
-                    w.document.close();
+                    // Dùng DOM API thay vì document.write → an toàn tuyệt đối
+                    w.document.title = (activeDocObj.name || 'Tài liệu') + ' - Xem trực tiếp';
+
+                    // Load Tailwind + FontAwesome
+                    const tailwind = w.document.createElement('script');
+                    tailwind.src = 'https://cdn.tailwindcss.com';
+                    w.document.head.appendChild(tailwind);
+
+                    const fa = w.document.createElement('link');
+                    fa.rel = 'stylesheet';
+                    fa.href = 'https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css';
+                    w.document.head.appendChild(fa);
+
+                    w.document.body.className = 'bg-slate-100 p-6 flex justify-center min-h-screen';
+
+                    const wrapper = w.document.createElement('div');
+                    wrapper.className = 'w-full max-w-3xl';
+
+                    // Header nút In
+                    const header = w.document.createElement('div');
+                    header.className = 'mb-4 flex justify-between items-center bg-white p-3 rounded-xl shadow-xs border';
+                    header.innerHTML = `
+                        <span class="font-bold text-sm text-slate-800">
+                            <i class="fa-solid fa-file-pdf text-red-500 mr-2"></i>${activeDocObj.name || 'Tài liệu'}
+                        </span>
+                        <button onclick="window.print()" class="px-3 py-1.5 bg-blue-600 text-white rounded-lg text-xs font-bold hover:bg-blue-700 transition">
+                            <i class="fa-solid fa-print mr-1"></i> In / Xuất PDF
+                        </button>
+                    `;
+
+                    // Clone nội dung giấy tờ
+                    const paperClone = paperEl.cloneNode(true);
+
+                    wrapper.appendChild(header);
+                    wrapper.appendChild(paperClone);
+                    w.document.body.appendChild(wrapper);
                 }
             }
         }

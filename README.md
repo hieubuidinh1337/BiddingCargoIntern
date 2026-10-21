@@ -1,35 +1,22 @@
-# BiddingCargo.Web — ASP.NET Core 8 Razor Pages
-
-Bản chuyển đổi của dự án Node.js (`server.js`, HTML tĩnh) sang **.NET 8 + Razor Pages + EF Core**.
+# BiddingCargo.Web — ASP.NET Core 8 Razor Pages + SQL Server
 
 ## Chạy
-```bash
-dotnet restore
-dotnet run            # http://localhost:8085
-```
-- Database mặc định: SQLite `database.sqlite` (tự tạo + nạp dữ liệu mẫu). Dùng lại được file `database.sqlite` của bản Node (tự thêm cột `extra_json`).
-- Đổi sang SQL Server: `Database:Provider = SqlServer` và `Database:SqlServer` trong `appsettings.json`.
-- Tài khoản mẫu như cũ: `admin/admin2026`, `staff01/staff2026`, `AG-0892/abc123456`...
+1. Cài .NET 8 SDK và SQL Server (LocalDB / Express / Developer đều được).
+2. Sửa chuỗi kết nối trong `appsettings.json` → `ConnectionStrings:DefaultConnection`.
+3. `dotnet restore && dotnet run` → http://localhost:8085
+   Lần đầu chạy, ứng dụng tự tạo database và các bảng (`EnsureCreated`). **Không có dữ liệu mẫu nào** trong database.
 
-## Cấu hình bí mật (KHÔNG ghi vào git)
-```bash
-dotnet user-secrets init
-dotnet user-secrets set "Smtp:User" "you@gmail.com"
-dotnet user-secrets set "Smtp:Pass" "<app password>"
-dotnet user-secrets set "Momo:PartnerCode" "..."; dotnet user-secrets set "Momo:AccessKey" "..."; dotnet user-secrets set "Momo:SecretKey" "..."
-```
-Chưa cấu hình SMTP → email được lưu vào `App_Data/outbox/*.eml`.
+## Đăng nhập lần đầu
+Trang quản trị `/admin` dùng tài khoản khởi tạo duy nhất `admin` / `admin2026` (khai báo trong `wwwroot/assets/js/cargo-store.js`, hằng `seedAdmins`).
+Hãy đổi mật khẩu ngay, rồi tạo các tài khoản khác. Đại lý tự đăng ký tại `/register` và Admin duyệt.
+
+## Không còn kết nối ra ngoài
+- Không SQLite, không MoMo, không SMTP. `/api/send-email` chỉ dựng nội dung và ghi bảng `email_logs`
+  (muốn gửi thật: override `EmailService.DeliverAsync`).
+- Giao diện thanh toán chỉ còn chuyển khoản ngân hàng (VietQR). Cần nhập thông tin ngân hàng ở Admin → Cài đặt.
 
 ## Cấu trúc
-| Node.js | .NET |
-|---|---|
-| `server.js` routes `/api/*` | `Endpoints/ApiEndpoints.cs` (giữ nguyên URL + JSON) |
-| `db.js`, `schema.sql` | `Data/*` (EF Core, cùng tên bảng/cột) |
-| reconcile*/isWonAuctionExpired | `Services/AuctionRules.cs` |
-| `/api/data` GET/POST | `Services/SharedDataService.cs` |
-| `placeBidAtomic` | `Services/BidService.cs` |
-| chat, nodemailer, MoMo, hoàn tiền | `ChatService`, `EmailService`+`EmailTemplates`, `WonAuctionService` |
-| `*.html` (23 trang) | `Pages/*.cshtml`, `Pages/Admin/*.cshtml` (URL sạch: `/login`, `/admin/dashboard`…; `.html` cũ tự redirect) |
-| `assets/`, `style.css`, `uploads/` | `wwwroot/` |
-
-JavaScript phía client (`cargo-store.js`, `chat-bubble.js`, script trong trang) giữ nguyên, chỉ bỏ URL `localhost:8085`.
+- `Data/Entities/*.cs` — mỗi entity một file; `Data/AppDbContext.cs`, `Data/DbInitializer.cs`
+- `Services/` — SharedDataService, BidService, ChatService, LogService, WonAuctionService, EmailService, AuctionRules
+- `Endpoints/ApiEndpoints.cs` — REST `/api/*`
+- `Pages/` — 23 trang Razor (URL sạch như `/login`, `/admin/dashboard`; `.html` cũ tự redirect)

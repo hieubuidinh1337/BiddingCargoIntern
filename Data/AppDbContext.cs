@@ -21,7 +21,6 @@ public class AppDbContext : DbContext
 
     protected override void OnModelCreating(ModelBuilder b)
     {
-        // Giữ nguyên tên bảng/cột như schema.sql của bản Node.js để dùng lại được file database.sqlite cũ.
         b.Entity<Agent>().ToTable("agents");
         b.Entity<AppUser>().ToTable("users");
         b.Entity<Auction>().ToTable("auctions");
@@ -35,7 +34,6 @@ public class AppDbContext : DbContext
         b.Entity<Setting>().ToTable("settings");
         b.Entity<ActivityLog>().ToTable("activity_logs");
 
-        // Cột theo camelCase (code, companyName, taxCode...) trừ những cột đã đặt [Column] tường minh
         foreach (var et in b.Model.GetEntityTypes())
         {
             foreach (var p in et.GetProperties())

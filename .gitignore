@@ -7,4 +7,3 @@ database.sqlite*
 App_Data/
 wwwroot/uploads/*
 !wwwroot/uploads/.gitkeep
-

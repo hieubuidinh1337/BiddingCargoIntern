@@ -53,7 +53,7 @@
                     <div id="hdrAvatar" class="w-7 h-7 sm:w-8 sm:h-8 rounded-lg bg-blue-100 text-blue-700 flex items-center justify-center font-bold text-xs">AG</div>
                     <div class="hidden sm:block text-left">
                         <p id="hdrCompany" class="text-xs font-bold text-slate-800 leading-tight">ABC Logistics</p>
-                        <p class="text-[11px] text-gray-500 leading-none">Mã: <span id="hdrCode" class="text-blue-600 font-semibold font-mono">AG-0892</span></p>
+                        <p class="text-[11px] text-gray-500 leading-none">Mã: <span id="hdrCode" class="text-blue-600 font-semibold font-mono"></span></p>
                     </div>
                 </a>
                 <a href="01-Login.html" onclick="if(window.CargoStore) CargoStore.logoutAgent()" title="Đăng xuất" class="text-gray-400 hover:text-red-600 p-1.5 sm:p-2 transition">
@@ -95,7 +95,7 @@
                 <p class="text-sm text-gray-500 mt-1">Toàn bộ danh sách các lượt đặt giá mà doanh nghiệp đã tham gia trên hệ thống</p>
             </div>
             <div class="flex items-center gap-2">
-                <span class="bg-blue-100 text-blue-700 text-xs font-bold px-3 py-1.5 rounded-xl">Mã đại lý: <span id="myBidsAgentCode">AG-0892</span></span>
+                <span class="bg-blue-100 text-blue-700 text-xs font-bold px-3 py-1.5 rounded-xl">Mã đại lý: <span id="myBidsAgentCode"></span></span>
             </div>
         </div>
 
@@ -390,7 +390,7 @@
         function renderBids() {
             const u = CargoStore.getCurrentUser ? CargoStore.getCurrentUser() : null;
             if (u) {
-                const displayCode = u.agentCode || u.code || 'AG-0892';
+                const displayCode = u.agentCode || u.code || '';
                 document.getElementById('hdrCompany').textContent = u.companyName || 'ABC Logistics';
                 document.getElementById('hdrCode').textContent = displayCode;
                 document.getElementById('hdrAvatar').textContent = displayCode.slice(0,2);
@@ -401,7 +401,7 @@
             const auctions = CargoStore.getAuctions() || [];
             const wonAuctions = CargoStore.getWonAuctions ? CargoStore.getWonAuctions() : [];
 
-            const userCode = u ? String(u.agentCode || u.code || '').trim().toUpperCase() : 'AG-0892';
+            const userCode = u ? String(u.agentCode || u.code || '').trim().toUpperCase() : '';
             const allBids = myBids.map(b => ({ ...b }));
 
             // Synchronize wonAuctions into bidding history list
@@ -438,7 +438,7 @@
             // Precompute 4 standardized statuses for each bid
             allBids.forEach(b => {
                 const auction = auctions.find(a => String(a.id) === String(b.auctionId)) || {};
-                const bidAgentCode = String(b.agentCode || userCode || 'AG-0892').trim().toUpperCase();
+                const bidAgentCode = String(b.agentCode || userCode || '').trim().toUpperCase();
                 const wonAuction = wonAuctions.find(w => (String(w.auctionId) === String(b.auctionId) || w.wonId === b.id || ('WON-BID-' + w.wonId) === b.id) && (!w.agentCode || String(w.agentCode).trim().toUpperCase() === bidAgentCode)) || null;
                 const isActualWinner = b.status === 'WON' || !!wonAuction || (auction.winnerAgentCode && String(auction.winnerAgentCode).trim().toUpperCase() === userCode);
 
@@ -543,7 +543,7 @@
             const wonItem = wonAuctions.find(w => String(w.auctionId) === String(auctionId)) || null;
 
             const u = CargoStore.getCurrentUser ? CargoStore.getCurrentUser() : null;
-            const myAgentCode = u ? String(u.agentCode || u.code || 'AG-0892').trim().toUpperCase() : 'AG-0892';
+            const myAgentCode = u ? String(u.agentCode || u.code || '').trim().toUpperCase() : '';
 
             const flightNo = auction.flightNumber || (wonItem ? wonItem.flightNumber : 'VU130');
             const routeStr = auction.route || (wonItem ? wonItem.route : 'SGN - HAN');

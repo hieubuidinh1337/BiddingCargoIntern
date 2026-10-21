@@ -6,15 +6,9 @@ using Microsoft.EntityFrameworkCore;
 
 var builder = WebApplication.CreateBuilder(args);
 
-// ---- Cơ sở dữ liệu: Sqlite (mặc định, tương thích database.sqlite cũ) hoặc SqlServer
-var provider = builder.Configuration["Database:Provider"] ?? "Sqlite";
+// ---- Cơ sở dữ liệu: SQL Server
 builder.Services.AddDbContext<AppDbContext>(o =>
-{
-    if (provider.Equals("SqlServer", StringComparison.OrdinalIgnoreCase))
-        o.UseSqlServer(builder.Configuration["Database:SqlServer"]);
-    else
-        o.UseSqlite(builder.Configuration["Database:Sqlite"] ?? "Data Source=database.sqlite");
-});
+    o.UseSqlServer(builder.Configuration.GetConnectionString("DefaultConnection")));
 
 builder.Services.AddScoped<SharedDataService>();
 builder.Services.AddScoped<BidService>();
@@ -22,25 +16,22 @@ builder.Services.AddScoped<ChatService>();
 builder.Services.AddScoped<LogService>();
 builder.Services.AddScoped<EmailService>();
 builder.Services.AddScoped<WonAuctionService>();
-builder.Services.AddHttpClient();
 
 builder.Services.Configure<FormOptions>(o => o.MultipartBodyLengthLimit = 50 * 1024 * 1024);
 builder.WebHost.ConfigureKestrel(o => o.Limits.MaxRequestBodySize = 50 * 1024 * 1024);
 
-builder.Services.Configure<RouteOptions>(o => o.LowercaseUrls = true);
-
 // ---- Razor Pages với URL "sạch" giống CLEAN_ROUTES của server.js
-builder.Services.AddRazorPages(o =>
+
+builder.Services.AddRazorPages(options =>
 {
     foreach (var (page, routes) in PageRoutes.Map)
     {
-        foreach (var r in routes)
+        foreach (var route in routes)
         {
-            // Chỉ thêm route nếu khác với route mặc định của Razor Page để tránh AmbiguousMatchException
-            if (!string.Equals(r.TrimStart('/'), page.TrimStart('/'), StringComparison.OrdinalIgnoreCase))
-            {
-                o.Conventions.AddPageRoute(page, r);
-            }
+            if (route.Equals(page, StringComparison.OrdinalIgnoreCase))
+                continue;
+
+            options.Conventions.AddPageRoute(page, route);
         }
     }
 });
