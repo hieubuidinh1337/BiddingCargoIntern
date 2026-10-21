@@ -458,9 +458,13 @@ async function loadServerDataAsync() {
             reconcileAuctionSummaries(serverData);
             await db.seedFullData(serverData);
         }
-        console.log('[Database] 100% data loaded successfully from SQLite RDBMS.');
+        console.log('[Database] 100% data loaded successfully from the database (' + (process.env.DB_TYPE || 'mssql') + ').');
     } catch (e) {
-        console.error('[Database] Failed to load data from SQLite database:', e);
+        console.error('[Database] Failed to load data from database:', e);
+        if (process.env.ALLOW_JSON_FALLBACK !== '1' && !process.env.JEST_WORKER_ID) {
+            // Refuse to run on JSON defaults: nothing would be persisted to the database.
+            throw new Error('Database connection/initialization failed (DB_TYPE=' + (process.env.DB_TYPE || 'mssql') + '). Check .env (MSSQL_SERVER / MSSQL_DATABASE / ODBC driver) or set DB_TYPE=sqlite. Set ALLOW_JSON_FALLBACK=1 to run on in-memory JSON data.');
+        }
         serverData = JSON.parse(JSON.stringify(defaultSharedData));
     }
 
@@ -3206,6 +3210,7 @@ if (require.main === module) {
             await startServer();
         } catch (err) {
             console.error('[Fatal] Database initialization error:', err);
+            process.exit(1);
         }
     })();
 }

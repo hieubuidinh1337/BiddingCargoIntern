@@ -297,6 +297,9 @@ async function initDatabase() {
     try { await exec('ALTER TABLE won_auctions ADD COLUMN paymentProof_json TEXT;'); } catch (e) {}
     try { await exec('ALTER TABLE won_auctions ADD COLUMN rejectionReason TEXT;'); } catch (e) {}
     try { await exec('ALTER TABLE notifications ADD COLUMN unread INTEGER DEFAULT 1;'); } catch (e) {}
+    for (const col of ['openDate', 'closeDate', 'openDateIso', 'closeDateIso', 'allowedAgents_json', 'flightStartDate', 'flightEndDate', 'flightPeriod']) {
+        try { await exec(`ALTER TABLE auctions ADD COLUMN ${col} TEXT;`); } catch (e) {}
+    }
 
     // Indexes for high performance
     await exec(`
@@ -480,6 +483,7 @@ async function seedFullData(data) {
                     a.status || 'OPEN', a.leadingAgentCode || null, a.leadingAgentName || null, a.bidsCount || 0,
                     a.winnerAgentCode || null, a.winnerAgentName || null, a.winningPriceKg || 0, a.specialNotes || null, a.cutOffTime || null
                 ]);
+                await saveAuctionMeta(a);
             }
         }
 
@@ -726,15 +730,30 @@ async function getFullServerData() {
 
     return {
         version: Date.now(),
-        auctions: auctions.map(a => ({
-            ...a,
-            capacityKg: Number(a.capacityKg),
-            startingPriceKg: Number(a.startingPriceKg),
-            currentPriceKg: Number(a.currentPriceKg),
-            minStep: Number(a.minStep),
-            bidsCount: Number(a.bidsCount),
-            winningPriceKg: Number(a.winningPriceKg)
-        })),
+        auctions: auctions.map(a => {
+            let allowedAgents = ['ALL'];
+            try { if (a.allowedAgents_json) allowedAgents = JSON.parse(a.allowedAgents_json); } catch (e) {}
+            const out = {
+                ...a,
+                allowedAgents,
+                capacityKg: Number(a.capacityKg),
+                startingPriceKg: Number(a.startingPriceKg),
+                currentPriceKg: Number(a.currentPriceKg),
+                minStep: Number(a.minStep),
+                bidsCount: Number(a.bidsCount),
+                winningPriceKg: Number(a.winningPriceKg)
+            };
+            delete out.allowedAgents_json;
+            // Phiên UPCOMING đã tới giờ mở -> tự chuyển OPEN
+            if (out.status === 'UPCOMING' && out.openDateIso) {
+                const openMs = new Date(out.openDateIso).getTime();
+                if (!isNaN(openMs) && openMs <= Date.now()) {
+                    out.status = 'OPEN';
+                    run("UPDATE auctions SET status = 'OPEN' WHERE id = ? AND status = 'UPCOMING'", [out.id]).catch(() => {});
+                }
+            }
+            return out;
+        }),
         bids: bids.map(b => ({
             ...b,
             id: isNaN(Number(b.id)) ? b.id : Number(b.id),
@@ -867,6 +886,16 @@ function parseFlightDate(dateStr) {
     return isNaN(d.getTime()) ? null : d;
 }
 
+async function saveAuctionMeta(a) {
+    if (!a || !a.id) return;
+    await run(`UPDATE auctions SET openDate = COALESCE(?, openDate), closeDate = COALESCE(?, closeDate), openDateIso = COALESCE(?, openDateIso), closeDateIso = COALESCE(?, closeDateIso), allowedAgents_json = COALESCE(?, allowedAgents_json), flightStartDate = COALESCE(?, flightStartDate), flightEndDate = COALESCE(?, flightEndDate), flightPeriod = COALESCE(?, flightPeriod) WHERE id = ?`, [
+        a.openDate || null, a.closeDate || null, a.openDateIso || null, a.closeDateIso || null,
+        Array.isArray(a.allowedAgents) ? JSON.stringify(a.allowedAgents) : null,
+        a.flightStartDate || null, a.flightEndDate || null, a.flightPeriod || null,
+        Number(a.id)
+    ]);
+}
+
 async function upsertAuction(a) {
     if (!a || !a.id) return;
     await run(`
@@ -907,6 +936,7 @@ async function upsertAuction(a) {
         a.winnerAgentCode || null, a.winnerAgentName || null, Number(a.winningPriceKg) || 0,
         a.specialNotes || null, a.cutOffTime || null
     ]);
+    await saveAuctionMeta(a);
 }
 
 async function placeBidAtomic({ auctionId, agentCode, agentName, priceKg, isAnonymous = true, weightKg = 0, bidId: clientBidId = null, fallbackAuction = null }) {
@@ -965,6 +995,14 @@ async function placeBidAtomic({ auctionId, agentCode, agentName, priceKg, isAnon
     }
     if (auction.winnerAgentCode) {
         throw new Error('Phiên đấu giá đã kết thúc và đã chốt đại lý trúng thầu');
+    }
+    if (auction.status === 'UPCOMING') {
+        const openMs = auction.openDateIso ? new Date(auction.openDateIso).getTime() : NaN;
+        if (!isNaN(openMs) && openMs > Date.now()) {
+            throw new Error(`Phiên đấu giá chưa đến giờ mở (${auction.openDate || auction.openDateIso}).`);
+        }
+        await run("UPDATE auctions SET status = 'OPEN' WHERE id = ?", [auction.id]);
+        auction.status = 'OPEN';
     }
 
     let etdMs = NaN;

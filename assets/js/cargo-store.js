@@ -3019,7 +3019,7 @@ const CargoStore = (function () {
             const formattedEta = auctionData.eta ? this.formatFlightDateDisplay(auctionData.eta) : (formattedClose || 'Chưa cập nhật');
             const endTime = endTimeDate.toISOString();
 
-            const isUpcoming = Boolean(auctionData.isUpcoming && parsedOpen && parsedOpen.getTime() > (now.getTime() + 60000));
+            const isUpcoming = Boolean(parsedOpen && parsedOpen.getTime() > (now.getTime() + 60000));
 
             // Process allowedAgents (Approvals for this flight)
             let allowedAgents = ['ALL'];
@@ -3419,6 +3419,16 @@ const CargoStore = (function () {
             // Check if auction is CLOSED (chỉ chặn khi phiên đã thực sự đóng/chốt bởi Admin)
             if (auction.status === 'CLOSED') {
                 return { success: false, message: 'Phiên đấu giá này đã đóng thầu, không thể đặt thêm giá.' };
+            }
+
+            // Phiên chưa tới giờ mở: không cho đặt giá; tới giờ thì tự chuyển sang OPEN
+            if (auction.status === 'UPCOMING') {
+                const openMs = auction.openDateIso ? new Date(auction.openDateIso).getTime() : NaN;
+                if (!isNaN(openMs) && openMs > Date.now()) {
+                    return { success: false, message: `Phiên đấu giá chưa đến giờ mở (${auction.openDate || auction.openDateIso}). Vui lòng quay lại sau.` };
+                }
+                auction.status = 'OPEN';
+                saveData(data);
             }
 
             // Phiên hết thời gian nhưng chưa chốt: tự động gia hạn thêm thời gian để đại lý đặt tiếp

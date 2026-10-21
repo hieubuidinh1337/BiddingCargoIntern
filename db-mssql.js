@@ -385,6 +385,11 @@ async function init() {
         const name = /CREATE TABLE (\w+)/.exec(ddl)[1];
         await pool.request().query(`IF OBJECT_ID(N'dbo.${name}', N'U') IS NULL BEGIN ${ddl} END`);
     }
+    // Idempotent column migrations (db.js ALTER TABLE statements are no-ops on SQL Server)
+    for (const col of ['openDate', 'closeDate', 'openDateIso', 'closeDateIso', 'allowedAgents_json', 'flightStartDate', 'flightEndDate', 'flightPeriod']) {
+        await pool.request().query(
+            `IF COL_LENGTH(N'dbo.auctions', N'${col}') IS NULL ALTER TABLE dbo.auctions ADD ${col} ${TEXT} NULL`);
+    }
     for (const [idx, table, col] of INDEXES) {
         await pool.request().query(
             `IF NOT EXISTS (SELECT 1 FROM sys.indexes WHERE name = N'${idx}' AND object_id = OBJECT_ID(N'dbo.${table}')) CREATE INDEX ${idx} ON ${table}(${col})`);
