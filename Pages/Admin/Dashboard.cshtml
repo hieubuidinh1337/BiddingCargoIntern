@@ -1,0 +1,881 @@
+@page
+@model BiddingCargo.Web.Pages.Admin.DashboardModel
+@{
+    Layout = null;
+}
+<!DOCTYPE html>
+<html lang="vi">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Admin Dashboard - Cargo Bidding</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+    <script src="../assets/js/cargo-store.js"></script>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Exo:ital,wght@@0,100;0,200;0,300;0,400;0,500;0,531;0,600;0,700;0,800;0,900;1,100;1,200;1,300;1,400;1,500;1,531;1,600;1,700;1,800;1,900" rel="stylesheet" />
+    <style>
+        body, input, select, textarea, button {
+            font-family: 'Exo', sans-serif;
+        }
+    </style>
+</head>
+
+<body class="bg-slate-100 text-slate-800">
+
+    <!-- Admin Topbar --> <!-- ═══════════════════════════════════════════
+         ADMIN HEADER — VU Cargo Admin Portal
+         Premium dark navigation — DO NOT EDIT MANUALLY
+         ═══════════════════════════════════════════ -->
+    <style>
+        /* ── Admin Header ── */
+        #adminHeader {
+            background: linear-gradient(135deg, #0f172a 0%, #1e293b 60%, #0f172a 100%);
+            border-bottom: 1px solid rgba(59, 130, 246, 0.18);
+            position: sticky;
+            top: 0;
+            z-index: 50;
+            box-shadow: 0 2px 20px rgba(0, 0, 0, 0.35);
+        }
+
+        #adminHeader::after {
+            content: '';
+            display: block;
+            height: 2px;
+            background: linear-gradient(90deg, transparent 0%, #3b82f6 30%, #6366f1 65%, transparent 100%);
+        }
+
+        .admin-inner {
+            max-width: 1400px;
+            margin: 0 auto;
+            padding: 0 1rem;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            height: 58px;
+            gap: 0.75rem;
+        }
+
+        .admin-brand {
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+            text-decoration: none;
+            flex-shrink: 0;
+        }
+
+        .admin-brand img {
+            height: 32px;
+            object-fit: contain;
+            filter: brightness(0) invert(1);
+        }
+
+        .admin-brand-sep {
+            width: 1px;
+            height: 28px;
+            background: rgba(255, 255, 255, 0.15);
+        }
+
+        .admin-brand-text {
+            font-size: 0.8125rem;
+            font-weight: 700;
+            color: #e2e8f0;
+            letter-spacing: 0.04em;
+            white-space: nowrap;
+        }
+
+        .admin-brand-sub {
+            font-size: 0.6rem;
+            font-weight: 600;
+            color: #94a3b8;
+            text-transform: uppercase;
+            letter-spacing: 0.1em;
+            display: block;
+        }
+
+        /* Desktop Nav */
+        .admin-nav {
+            display: none;
+            align-items: center;
+            gap: 2px;
+        }
+
+        @@media (min-width:768px) {
+            .admin-nav {
+                display: flex;
+            }
+        }
+
+        .nav-item-admin {
+            display: flex;
+            align-items: center;
+            gap: 5px;
+            padding: 5px 10px;
+            border-radius: 8px;
+            font-size: 0.72rem;
+            font-weight: 600;
+            color: rgba(203, 213, 225, 0.85);
+            text-decoration: none;
+            white-space: nowrap;
+            transition: all 0.15s ease;
+            border: 1px solid transparent;
+        }
+
+        .nav-item-admin:hover {
+            color: #fff;
+            background: rgba(255, 255, 255, 0.08);
+            border-color: rgba(255, 255, 255, 0.1);
+        }
+
+        .nav-item-admin.active {
+            color: #fff;
+            background: rgba(59, 130, 246, 0.85);
+            border-color: rgba(59, 130, 246, 0.5);
+            box-shadow: 0 0 12px rgba(59, 130, 246, 0.35);
+        }
+
+        .nav-item-admin.chat-item {
+            color: #c4b5fd;
+            background: rgba(139, 92, 246, 0.12);
+            border-color: rgba(139, 92, 246, 0.25);
+        }
+
+        .nav-item-admin.chat-item:hover {
+            color: #e9d5ff;
+            background: rgba(139, 92, 246, 0.22);
+        }
+
+        .nav-item-admin.active-chat {
+            color: #fff;
+            background: rgba(139, 92, 246, 0.75);
+            border-color: rgba(139, 92, 246, 0.5);
+            box-shadow: 0 0 12px rgba(139, 92, 246, 0.35);
+        }
+
+        .chat-badge {
+            background: #ef4444;
+            color: #fff;
+            font-size: 0.6rem;
+            font-weight: 700;
+            padding: 0 5px;
+            border-radius: 999px;
+            min-width: 16px;
+            text-align: center;
+            line-height: 16px;
+            height: 16px;
+        }
+
+        /* Right Bar */
+        .admin-right {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            flex-shrink: 0;
+        }
+
+        .admin-public-link {
+            display: none;
+            align-items: center;
+            gap: 5px;
+            font-size: 0.68rem;
+            font-weight: 600;
+            color: rgba(148, 163, 184, 0.9);
+            background: rgba(255, 255, 255, 0.06);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            padding: 4px 10px;
+            border-radius: 8px;
+            text-decoration: none;
+            transition: all 0.15s;
+        }
+
+        @@media (min-width:1024px) {
+            .admin-public-link {
+                display: flex;
+            }
+        }
+
+        .admin-public-link:hover {
+            color: #fff;
+            background: rgba(255, 255, 255, 0.1);
+        }
+
+        .admin-sep {
+            width: 1px;
+            height: 24px;
+            background: rgba(255, 255, 255, 0.12);
+        }
+
+        .admin-avatar {
+            width: 32px;
+            height: 32px;
+            border-radius: 50%;
+            background: linear-gradient(135deg, #3b82f6, #6366f1);
+            color: #fff;
+            font-weight: 800;
+            font-size: 0.7rem;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border: 2px solid rgba(255, 255, 255, 0.15);
+            flex-shrink: 0;
+        }
+
+        .admin-user-info {
+            display: none;
+            flex-direction: column;
+            text-align: left;
+        }
+
+        @@media (min-width:640px) {
+            .admin-user-info {
+                display: flex;
+            }
+        }
+
+        .admin-user-name {
+            font-size: 0.72rem;
+            font-weight: 700;
+            color: #e2e8f0;
+            line-height: 1.2;
+        }
+
+        .admin-user-role {
+            font-size: 0.6rem;
+            font-weight: 700;
+            color: #60a5fa;
+            text-transform: uppercase;
+            letter-spacing: 0.08em;
+        }
+
+        .admin-logout {
+            color: rgba(148, 163, 184, 0.7);
+            padding: 6px;
+            border-radius: 8px;
+            text-decoration: none;
+            transition: all 0.15s;
+            font-size: 0.8rem;
+            border: 1px solid transparent;
+        }
+
+        .admin-logout:hover {
+            color: #f87171;
+            background: rgba(239, 68, 68, 0.1);
+            border-color: rgba(239, 68, 68, 0.2);
+        }
+
+        /* Mobile hamburger */
+        .admin-hamburger {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            width: 34px;
+            height: 34px;
+            border-radius: 8px;
+            background: rgba(255, 255, 255, 0.07);
+            border: 1px solid rgba(255, 255, 255, 0.12);
+            color: #cbd5e1;
+            cursor: pointer;
+            font-size: 0.85rem;
+            transition: all 0.15s;
+        }
+
+        .admin-hamburger:hover {
+            background: rgba(255, 255, 255, 0.12);
+            color: #fff;
+        }
+
+        @@media (min-width:768px) {
+            .admin-hamburger {
+                display: none;
+            }
+        }
+
+        /* Mobile dropdown */
+        #adminMobileNav {
+            display: none;
+            padding: 0.75rem 1rem;
+            background: #1e293b;
+            border-top: 1px solid rgba(255, 255, 255, 0.08);
+            max-width: 1400px;
+            margin: 0 auto;
+        }
+
+        #adminMobileNav.open {
+            display: block;
+        }
+
+        .mobile-nav-item {
+            display: flex;
+            align-items: center;
+            gap: 0.6rem;
+            padding: 8px 12px;
+            border-radius: 8px;
+            margin-bottom: 2px;
+            font-size: 0.76rem;
+            font-weight: 600;
+            color: #cbd5e1;
+            text-decoration: none;
+            transition: all 0.15s;
+        }
+
+        .mobile-nav-item:hover {
+            color: #fff;
+            background: rgba(255, 255, 255, 0.08);
+        }
+
+        .mobile-nav-item.active {
+            color: #fff;
+            background: rgba(59, 130, 246, 0.75);
+        }
+
+        .mobile-nav-item.chat-item {
+            color: #c4b5fd;
+        }
+
+        .mobile-nav-item.active-chat {
+            color: #fff;
+            background: rgba(139, 92, 246, 0.75);
+        }
+    </style>
+    <header id="adminHeader">
+        <div class="admin-inner">
+            <!-- Brand -->
+            <button type="button" class="admin-hamburger"
+                onclick="document.getElementById('adminMobileNav').classList.toggle('open')" aria-label="Menu">
+                <i class="fa-solid fa-bars"></i>
+            </button>
+            <a href="02-AdminDashboard.html" class="admin-brand">
+                <img src="../assets/images/vietravel-logo-doc.png" alt="Vietravel Airlines" />
+                <div class="admin-brand-sep"></div>
+                <div>
+                    <span class="admin-brand-sub">Portal Quản Trị</span>
+                    <span class="admin-brand-text">Cargo Admin</span>
+                </div>
+            </a>
+
+            <!-- Desktop Nav -->
+            <nav class="admin-nav">
+                <a href="02-AdminDashboard.html" class="nav-item-admin active"><i
+                        class="fa-solid fa-gauge-high"></i>Dashboard</a>
+                <a href="03-AuctionList.html" class="nav-item-admin"><i class="fa-solid fa-list-check"></i>Quản lý
+                    phiên</a>
+                <a href="04-CreateAuction.html" class="nav-item-admin"><i class="fa-solid fa-circle-plus"></i>Tạo
+                    phiên</a>
+                <a href="06-AgentList.html" class="nav-item-admin"><i class="fa-solid fa-building-user"></i>Đại lý</a>
+                <a href="07-Reports.html" class="nav-item-admin"><i class="fa-solid fa-chart-line"></i>Báo cáo</a>
+                <a href="08-Settings.html" class="nav-item-admin"><i class="fa-solid fa-gear"></i>Cài đặt</a>
+                <a href="10-AuditLogs.html" class="nav-item-admin"><i class="fa-solid fa-clock-rotate-left"></i>Nhật
+                    ký</a>
+            </nav>
+
+            <!-- Right Bar -->
+            <div class="admin-right">
+                <a href="../00-Home.html" target="_blank" class="admin-public-link">
+                    <i class="fa-solid fa-arrow-up-right-from-square text-[9px]"></i> Sàn công khai
+                </a>
+                <div class="admin-sep"></div>
+                <div class="admin-avatar admin-header-avatar">AD</div>
+                <div class="admin-user-info">
+                    <span class="admin-user-name admin-header-name">Quản trị viên</span>
+                    <span class="admin-user-role admin-header-role">QUẢN TRỊ VIÊN</span>
+                </div>
+                <a href="01-AdminLogin.html" onclick="if(window.CargoStore) CargoStore.logoutAdmin()"
+                    class="admin-logout" title="Đăng xuất">
+                    <i class="fa-solid fa-power-off"></i>
+                </a>
+            </div>
+        </div>
+
+        <!-- Mobile Dropdown -->
+        <div id="adminMobileNav">
+            <a href="02-AdminDashboard.html" class="mobile-nav-item active"><i
+                    class="fa-solid fa-gauge-high w-4"></i>Dashboard</a>
+            <a href="03-AuctionList.html" class="mobile-nav-item"><i class="fa-solid fa-list-check w-4"></i>Quản lý
+                phiên</a>
+            <a href="04-CreateAuction.html" class="mobile-nav-item"><i class="fa-solid fa-circle-plus w-4"></i>Tạo
+                phiên</a>
+            <a href="06-AgentList.html" class="mobile-nav-item"><i class="fa-solid fa-building-user w-4"></i>Đại lý</a>
+            <a href="07-Reports.html" class="mobile-nav-item"><i class="fa-solid fa-chart-line w-4"></i>Báo cáo</a>
+            <a href="08-Settings.html" class="mobile-nav-item"><i class="fa-solid fa-gear w-4"></i>Cài đặt</a>
+            <a href="10-AuditLogs.html" class="mobile-nav-item"><i class="fa-solid fa-clock-rotate-left w-4"></i>Nhật
+                ký</a>
+            <a href="../00-Home.html" target="_blank" class="mobile-nav-item"
+                style="border-top:1px solid rgba(255,255,255,0.08);margin-top:6px;padding-top:10px">
+                <i class="fa-solid fa-arrow-up-right-from-square w-4"></i> Xem Sàn công khai
+            </a>
+        </div>
+    </header>
+
+    <main class="max-w-7xl mx-auto px-3 sm:px-4 py-4 sm:py-6 space-y-4 sm:space-y-6">
+
+        <!-- Header Controls -->
+        <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3 sm:gap-4">
+            <div>
+                <h1 class="text-lg sm:text-2xl font-bold text-slate-900 flex items-center gap-2">
+                    <i class="fa-solid fa-gauge text-blue-600 text-base sm:text-xl"></i> Bảng điều khiển Quản trị <span
+                        class="hidden sm:inline text-slate-400 font-normal text-base sm:text-lg">(Admin
+                        Dashboard)</span>
+                </h1>
+                <p class="text-[11px] sm:text-xs text-slate-500 mt-0.5 sm:mt-1">Giám sát hoạt động đấu giá slot cargo,
+                    thẩm định đại lý và điều phối vận tải</p>
+            </div>
+            <div class="grid grid-cols-2 sm:flex items-center gap-2 w-full sm:w-auto">
+                <a href="04-CreateAuction.html"
+                    class="bg-blue-600 hover:bg-blue-700 text-white text-xs font-semibold px-3 sm:px-4 py-2.5 rounded-xl transition shadow flex items-center justify-center gap-1.5 whitespace-nowrap text-center">
+                    <i class="fa-solid fa-plus text-[10px]"></i> Tạo phiên mới
+                </a>
+                <a href="06-AgentList.html?tab=REGISTRATIONS&status=PENDING"
+                    class="bg-white hover:bg-slate-50 text-slate-700 text-xs font-semibold px-3 sm:px-4 py-2.5 rounded-xl border transition shadow-sm flex items-center justify-center gap-1.5 whitespace-nowrap text-center">
+                    <i class="fa-solid fa-user-check text-blue-600 text-[10px]"></i> Duyệt hồ sơ <span
+                        class="bg-amber-100 text-amber-800 text-[10px] font-bold px-1.5 py-0.2 rounded-full ml-0.5 inline-flex items-center justify-center min-w-[18px]"
+                        id="pendingBadge">2</span>
+                </a>
+            </div>
+        </div>
+
+        <!-- Pending Payment Verification Alert Banner -->
+        <div id="dashPendingPaymentBanner"
+            class="hidden bg-gradient-to-r from-amber-500 to-amber-600 text-white rounded-xl sm:rounded-2xl p-3.5 sm:p-4 shadow-md flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-3">
+            <div class="flex items-center gap-3">
+                <div
+                    class="w-9 h-9 sm:w-10 sm:h-10 bg-white/20 rounded-xl flex items-center justify-center text-lg sm:text-xl flex-shrink-0 animate-bounce">
+                    <i class="fa-solid fa-credit-card"></i>
+                </div>
+                <div>
+                    <h3 class="font-bold text-xs sm:text-sm flex items-center gap-1.5">
+                        Đại lý nộp xác nhận thanh toán (<span id="dashPendingPayCount">0</span> đơn)
+                    </h3>
+                    <p class="text-[11px] sm:text-xs text-amber-100 mt-0.5">Đơn hàng thắng thầu đang chờ Quản trị / Kế
+                        toán đối soát sao kê.</p>
+                </div>
+            </div>
+            <a href="03-AuctionList.html?tab=won&payFilter=PENDING"
+                class="bg-white hover:bg-amber-50 text-amber-900 font-bold text-xs px-4 py-2 rounded-xl transition shadow-xs whitespace-nowrap flex items-center justify-center gap-1.5 text-center">
+                <i class="fa-solid fa-magnifying-glass-dollar"></i> Đối soát & Duyệt ngay
+            </a>
+        </div>
+
+        <!-- KPI Summary Cards (2 cols on mobile, 4 cols on desktop) -->
+        <div class="grid grid-cols-2 sm:grid-cols-2 lg:grid-cols-4 gap-2.5 sm:gap-4">
+            <div
+                class="bg-white rounded-xl sm:rounded-2xl p-3.5 sm:p-5 border shadow-sm flex flex-col sm:flex-row items-start sm:items-center gap-2 sm:gap-4">
+                <div
+                    class="w-9 h-9 sm:w-12 sm:h-12 bg-blue-50 text-blue-600 rounded-xl flex items-center justify-center text-base sm:text-xl flex-shrink-0">
+                    <i class="fa-solid fa-money-bill-wave"></i>
+                </div>
+                <div class="min-w-0 flex-1">
+                    <p class="text-[10px] sm:text-xs text-slate-500 font-medium truncate">Doanh thu thầu chốt</p>
+                    <p class="text-sm sm:text-xl font-bold text-slate-900 mt-0.5 truncate" id="kpiClosedRevenue">0 đ</p>
+                    <span class="text-[9px] sm:text-[11px] text-emerald-600 font-semibold block truncate"
+                        id="kpiClosedSubtext"><i class="fa-solid fa-circle-check"></i> Đã chốt thầu</span>
+                </div>
+            </div>
+
+            <div
+                class="bg-white rounded-xl sm:rounded-2xl p-3.5 sm:p-5 border shadow-sm flex flex-col sm:flex-row items-start sm:items-center gap-2 sm:gap-4">
+                <div
+                    class="w-9 h-9 sm:w-12 sm:h-12 bg-emerald-50 text-emerald-600 rounded-xl flex items-center justify-center text-base sm:text-xl flex-shrink-0">
+                    <i class="fa-solid fa-plane-circle-check"></i>
+                </div>
+                <div class="min-w-0 flex-1">
+                    <p class="text-[10px] sm:text-xs text-slate-500 font-medium truncate">Phiên đang mở</p>
+                    <p class="text-lg sm:text-2xl font-bold text-emerald-600 mt-0.5" id="kpiOpenAuctions">0</p>
+                    <span class="text-[9px] sm:text-[11px] text-slate-400 block truncate">Đang nhận giá đặt</span>
+                </div>
+            </div>
+
+            <a href="06-AgentList.html?tab=REGISTRATIONS&status=PENDING"
+                class="bg-white hover:bg-amber-50/40 rounded-xl sm:rounded-2xl p-3.5 sm:p-5 border shadow-sm flex flex-col sm:flex-row items-start sm:items-center gap-2 sm:gap-4 transition cursor-pointer group"
+                title="Bấm để xem danh sách hồ sơ đại lý chờ duyệt">
+                <div
+                    class="w-9 h-9 sm:w-12 sm:h-12 bg-amber-50 group-hover:bg-amber-100 text-amber-600 rounded-xl flex items-center justify-center text-base sm:text-xl flex-shrink-0 transition">
+                    <i class="fa-solid fa-clock-rotate-left"></i>
+                </div>
+                <div class="min-w-0 flex-1">
+                    <p class="text-[10px] sm:text-xs text-slate-500 font-medium truncate">Hồ sơ chờ duyệt</p>
+                    <p class="text-lg sm:text-2xl font-bold text-amber-600 mt-0.5" id="kpiPendingRegistrations">0</p>
+                    <span class="text-[9px] sm:text-[11px] text-amber-700 font-semibold block truncate">Đại lý mới &rarr;</span>
+                </div>
+            </a>
+
+            <div
+                class="bg-white rounded-xl sm:rounded-2xl p-3.5 sm:p-5 border shadow-sm flex flex-col sm:flex-row items-start sm:items-center gap-2 sm:gap-4">
+                <div
+                    class="w-9 h-9 sm:w-12 sm:h-12 bg-purple-50 text-purple-600 rounded-xl flex items-center justify-center text-base sm:text-xl flex-shrink-0">
+                    <i class="fa-solid fa-weight-hanging"></i>
+                </div>
+                <div class="min-w-0 flex-1">
+                    <p class="text-[10px] sm:text-xs text-slate-500 font-medium truncate">Tổng tải trọng chào</p>
+                    <p class="text-sm sm:text-xl font-bold text-purple-600 mt-0.5 truncate" id="kpiTotalCapacity">0 Kg
+                    </p>
+                    <span class="text-[9px] sm:text-[11px] text-slate-400 block truncate">Toàn mạng bay</span>
+                </div>
+            </div>
+        </div>
+
+        <!-- Tables Section -->
+        <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+
+            <!-- Active Flight Auctions Monitoring (2 cols) -->
+            <div class="lg:col-span-2 bg-white rounded-2xl border shadow-sm p-6 space-y-4">
+                <div class="flex items-center justify-between">
+                    <div>
+                        <h2 class="text-base font-bold text-slate-900 flex items-center gap-2">
+                            <i class="fa-solid fa-tower-broadcast text-blue-600"></i> Giám sát các phiên đấu giá đang mở
+                        </h2>
+                        <p class="text-xs text-slate-500 mt-0.5">Theo dõi thời gian thực các phiên đấu giá đang mở
+                        </p>
+                    </div>
+                    <a href="03-AuctionList.html" class="text-xs font-semibold text-blue-600 hover:underline">
+                        Quản lý tất cả phiên →
+                    </a>
+                </div>
+
+                <div class="overflow-x-auto">
+                    <table class="w-full text-left text-xs">
+                        <thead class="bg-slate-50 text-slate-500 font-semibold border-b">
+                            <tr>
+                                <th class="py-3 px-3">Chuyến bay</th>
+                                <th class="py-3 px-3">Tải trọng</th>
+                                <th class="py-3 px-3">Giá khởi điểm</th>
+                                <th class="py-3 px-3">Đại lý dẫn đầu</th>
+                                <th class="py-3 px-3">Đếm ngược</th>
+                                <th class="py-3 px-3 text-right">Thao tác</th>
+                            </tr>
+                        </thead>
+                        <tbody class="divide-y divide-gray-100" id="adminAuctionsTable">
+                            <!-- Populated by JS -->
+                        </tbody>
+                    </table>
+                </div>
+                <!-- Pagination for Live Open Auctions -->
+                <div id="adminOpenPagination"></div>
+            </div>
+
+            <!-- Mini Audit Log Widget (1 col) -->
+            <div class="bg-white rounded-2xl border shadow-sm p-6 space-y-4">
+                <div class="flex items-center justify-between border-b pb-3">
+                    <div>
+                        <h2 class="text-base font-bold text-slate-900 flex items-center gap-2">
+                            <i class="fa-solid fa-clock-rotate-left text-blue-600"></i> Nhật ký hoạt động
+                        </h2>
+                        <p class="text-xs text-slate-500 mt-0.5">Sự kiện & thao tác mới nhất</p>
+                    </div>
+                    <a href="10-AuditLogs.html" class="text-xs font-semibold text-blue-600 hover:text-blue-800 transition inline-flex items-center gap-1">
+                        Tất cả <i class="fa-solid fa-chevron-right text-[10px]"></i>
+                    </a>
+                </div>
+
+                <div class="space-y-2.5 max-h-[460px] overflow-y-auto pr-0.5" id="adminMiniAuditLogs">
+                    <!-- Populated by JS -->
+                </div>
+            </div>
+        </div>
+
+    </main>
+
+    <script>
+        async function openDocumentInNewTab(docUrl, docName) {
+            let finalUrl = String(docUrl || '').trim();
+            if (!finalUrl || finalUrl === '#' || finalUrl === 'undefined') {
+                finalUrl = '/uploads/sample_document.pdf';
+            }
+            const name = docName || 'chung_tu';
+            try {
+                if (finalUrl.startsWith('data:')) {
+                    const response = await fetch(finalUrl);
+                    const blob = await response.blob();
+                    finalUrl = URL.createObjectURL(blob);
+                }
+                const w = window.open();
+                if (w) {
+                    const ext = (name.split('.').pop() || '').toLowerCase();
+                    if (['jpg','jpeg','png','webp','gif'].includes(ext)) {
+                        w.document.write(`<html><head><title>${name}</title><style>body{margin:0;background:#111;display:flex;justify-content:center;align-items:flex-start;min-height:100vh;}img{max-width:100%;height:auto;margin:auto;display:block;}</style></head><body><img src="${finalUrl}" alt="${name}"/></body></html>`);
+                    } else {
+                        w.document.write(`<html><head><title>${name}</title><style>body,html{margin:0;padding:0;height:100%;}embed{width:100%;height:100%;}</style></head><body><embed src="${finalUrl}" type="application/pdf" width="100%" height="100%"/></body></html>`);
+                    }
+                    w.document.close();
+                    if (finalUrl.startsWith('blob:')) setTimeout(() => URL.revokeObjectURL(finalUrl), 30000);
+                }
+            } catch (err) {
+                console.error('openDocumentInNewTab error:', err);
+            }
+        }
+
+        function toggleAdminMobileNav() {
+            const nav = document.getElementById('adminMobileNav');
+            if (nav) nav.classList.toggle('hidden');
+        }
+
+        let adminOpenCurrentPage = 1;
+        let adminOpenPageSize = 5;
+
+
+
+        function loadDashboard(force = false) {
+            if (typeof CargoStore === 'undefined') return;
+
+            const data = CargoStore.getData();
+            const auctions = CargoStore.getAuctions ? CargoStore.getAuctions() : (data.auctions || []);
+
+            // 1. Open Auctions
+            const openAuctions = auctions.filter(a => a.status === 'OPEN');
+            document.getElementById('kpiOpenAuctions').textContent = openAuctions.length;
+
+            // 2. Closed Revenue
+            const closedAuctions = auctions.filter(a => a.status === 'CLOSED');
+            const wonList = CargoStore.getWonAuctions ? CargoStore.getWonAuctions() : (data.wonAuctions || []);
+
+            let totalRevenue = 0;
+            if (wonList && wonList.length > 0) {
+                totalRevenue = wonList.reduce((sum, item) => sum + (item.totalAmountVND || ((item.priceKg || 0) * (item.capacityKg || 0))), 0);
+            } else {
+                totalRevenue = closedAuctions.reduce((sum, a) => {
+                    if (!a.winnerAgentCode || !a.winningPriceKg) return sum;
+                    const price = a.winningPriceKg || 0;
+                    const weight = a.capacityKg || 0;
+                    return sum + (price * weight);
+                }, 0);
+            }
+
+            document.getElementById('kpiClosedRevenue').textContent = CargoStore.formatCurrency(totalRevenue);
+            document.getElementById('kpiClosedSubtext').innerHTML = `<i class="fa-solid fa-circle-check text-emerald-600"></i> Tổng từ ${closedAuctions.length} phiên đã chốt thầu`;
+
+            // 3. Pending Registrations
+            const pendings = (data.registrations || []).filter(r => r.status === 'PENDING');
+            document.getElementById('kpiPendingRegistrations').textContent = pendings.length;
+            document.getElementById('pendingBadge').textContent = pendings.length;
+
+            // 4. Total Capacity
+            const totalCapacity = auctions.reduce((sum, a) => sum + (a.capacityKg || 0), 0);
+            document.getElementById('kpiTotalCapacity').textContent = CargoStore.formatNumber(totalCapacity) + ' Kg';
+
+            // 4b. Pending Payments Verification Alert
+            const pendingPayments = wonList.filter(w => w.paymentStatus === 'PENDING_VERIFICATION');
+            const payBanner = document.getElementById('dashPendingPaymentBanner');
+            const payCountEl = document.getElementById('dashPendingPayCount');
+            if (payBanner && payCountEl) {
+                if (pendingPayments.length > 0) {
+                    payCountEl.textContent = pendingPayments.length;
+                    payBanner.classList.remove('hidden');
+                } else {
+                    payBanner.classList.add('hidden');
+                }
+            }
+
+            // 5. Open Auctions table (Paginated)
+            const totalOpen = openAuctions.length;
+            const totalOpenPages = Math.max(1, Math.ceil(totalOpen / adminOpenPageSize));
+            if (adminOpenCurrentPage > totalOpenPages) adminOpenCurrentPage = totalOpenPages;
+            if (adminOpenCurrentPage < 1) adminOpenCurrentPage = 1;
+
+            const openStartIndex = (adminOpenCurrentPage - 1) * adminOpenPageSize;
+            const openEndIndex = Math.min(openStartIndex + adminOpenPageSize, totalOpen);
+            const paginatedOpen = openAuctions.slice(openStartIndex, openEndIndex);
+
+            const currentAdmin = (CargoStore && CargoStore.getCurrentAdmin) ? CargoStore.getCurrentAdmin() : data.currentAdmin;
+            const isStaff = Boolean(currentAdmin && String(currentAdmin.role).toUpperCase() === 'STAFF');
+            const isAdmin = Boolean(currentAdmin && String(currentAdmin.role).toUpperCase() === 'ADMIN');
+
+            const tbody = document.getElementById('adminAuctionsTable');
+            if (openAuctions.length === 0) {
+                tbody.innerHTML = `<tr><td colspan="6" class="py-8 text-center text-gray-400">Không có phiên nào đang mở</td></tr>`;
+            } else {
+                tbody.innerHTML = paginatedOpen.map(a => {
+                    const timer = CargoStore.getTimeRemaining(a.endTime);
+                    const isOpen = a.status === 'OPEN';
+                    const displayPrice = isOpen ?
+                        '<span class="text-slate-400 font-medium italic text-xs"><i class="fa-solid fa-lock text-[10px] mr-1 text-slate-300"></i>Bảo mật</span>' :
+                        CargoStore.formatCurrency(a.currentPriceKg || a.startingPriceKg);
+                    const displayLeader = isOpen ?
+                        '<span class="text-slate-400 font-medium italic text-xs"><i class="fa-solid fa-user-secret text-[10px] mr-1 text-slate-300"></i>Bảo mật trong phiên</span>' :
+                        `<span class="font-semibold text-slate-900 block">${a.leadingAgentName}</span><span class="text-[10px] text-slate-400 font-mono">${a.leadingAgentCode || '-'}</span>`;
+
+                    return `
+                        <tr class="hover:bg-slate-50 transition">
+                            <td class="py-3 px-3">
+                                <span class="bg-blue-600 text-white font-bold px-2 py-0.5 rounded text-[11px]">${a.flightNumber}</span>
+                                <span class="font-bold text-slate-800 ml-1">${a.route}</span>
+                            </td>
+                            <td class="py-3 px-3 font-medium text-slate-700">
+                                ${CargoStore.formatNumber(a.capacityKg)} Kg
+                            </td>
+                            <td class="py-3 px-3 font-bold text-blue-600">
+                                ${displayPrice}
+                            </td>
+                            <td class="py-3 px-3">
+                                ${displayLeader}
+                            </td>
+                            <td class="py-3 px-3 text-orange-600 font-semibold text-[11px] admin-timer-cell" data-endtime="${a.endTime}">
+                                <span class="timer-val">${timer.isEnded ? 'Đã hết giờ' : `${timer.hours > 0 ? timer.hours + 'h ' : ''}${timer.minutes}m ${timer.seconds}s`}</span>
+                            </td>
+                            <td class="py-3 px-3 text-right">
+                                <a href="05-AuctionDetail.html?id=${a.id}" class="bg-slate-100 hover:bg-blue-50 text-blue-700 font-medium px-2.5 py-1.5 rounded-lg text-xs transition inline-flex items-center gap-1">
+                                    <i class="fa-solid fa-eye"></i> Giám sát
+                                </a>
+                            </td>
+                        </tr>
+                    `;
+                }).join('');
+            }
+
+            const openPagEl = document.getElementById('adminOpenPagination');
+            if (openPagEl) {
+                if (totalOpen === 0) {
+                    openPagEl.innerHTML = '';
+                } else {
+                    const pages = [];
+                    for (let i = 1; i <= totalOpenPages; i++) pages.push(i);
+                    const btns = pages.map(p => {
+                        if (p === adminOpenCurrentPage) {
+                            return `<button type="button" class="w-6 h-6 rounded bg-blue-600 text-white font-bold text-xs flex items-center justify-center shadow-xs cursor-default">${p}</button>`;
+                        }
+                        return `<button type="button" onclick="goToAdminOpenPage(${p})" class="w-6 h-6 rounded border border-slate-200 bg-white hover:bg-slate-100 text-slate-700 font-semibold text-xs flex items-center justify-center transition cursor-pointer">${p}</button>`;
+                    }).join('');
+
+                    const activeOpenEl = document.activeElement;
+                    if (force || !activeOpenEl || !openPagEl.contains(activeOpenEl) || (activeOpenEl.tagName !== 'SELECT' && activeOpenEl.tagName !== 'INPUT')) {
+                        openPagEl.innerHTML = `
+                        <div class="border-t pt-3 flex flex-col sm:flex-row items-center justify-between gap-3 text-xs text-slate-500">
+                            <div class="flex items-center gap-3">
+                                <span>Hiển thị <strong>${openStartIndex + 1} - ${openEndIndex}</strong> trên tổng số <strong>${totalOpen}</strong> phiên</span>
+                                <div class="flex items-center gap-1">
+                                    <span class="text-[11px] text-slate-400">Dòng/Trang:</span>
+                                    <select onchange="setAdminOpenPageSize(this.value)" class="border rounded-lg px-2 py-0.5 text-xs bg-white text-slate-700 font-semibold outline-none focus:ring-1 focus:ring-blue-500 cursor-pointer">
+                                        <option value="5" ${adminOpenPageSize === 5 ? 'selected' : ''}>5</option>
+                                        <option value="10" ${adminOpenPageSize === 10 ? 'selected' : ''}>10</option>
+                                        <option value="20" ${adminOpenPageSize === 20 ? 'selected' : ''}>20</option>
+                                    </select>
+                                </div>
+                            </div>
+                            <div class="inline-flex items-center gap-1 bg-white border border-slate-200 rounded-xl p-1 shadow-2xs">
+                                <button type="button" ${adminOpenCurrentPage <= 1 ? 'disabled' : `onclick="goToAdminOpenPage(${adminOpenCurrentPage - 1})"`} 
+                                        class="px-2 py-0.5 text-slate-600 hover:text-blue-600 disabled:opacity-30 font-bold transition flex items-center gap-1 cursor-pointer disabled:cursor-not-allowed" title="Trang trước">
+                                    <i class="fa-solid fa-arrow-left text-[10px]"></i>
+                                </button>
+                                <div class="flex items-center gap-1 px-1">
+                                    ${btns}
+                                </div>
+                                <button type="button" ${adminOpenCurrentPage >= totalOpenPages ? 'disabled' : `onclick="goToAdminOpenPage(${adminOpenCurrentPage + 1})"`} 
+                                        class="px-2 py-0.5 text-slate-600 hover:text-blue-600 disabled:opacity-30 font-bold transition flex items-center gap-1 cursor-pointer disabled:cursor-not-allowed" title="Trang sau">
+                                    <i class="fa-solid fa-arrow-right text-[10px]"></i>
+                                </button>
+                            </div>
+                        </div>
+                    `;
+                    }
+                }
+            }
+
+            // 6. Mini Activity Audit Log widget (thay thế hồ sơ đại lý mới)
+            const logBox = document.getElementById('adminMiniAuditLogs');
+            if (logBox) {
+                const logs = (CargoStore.getActivityLogs ? CargoStore.getActivityLogs() : (data.activityLogs || [])).filter(Boolean);
+                if (!logs || logs.length === 0) {
+                    logBox.innerHTML = `<p class="text-xs text-gray-400 text-center py-6">Chưa có nhật ký hoạt động nào</p>`;
+                } else {
+                    logBox.innerHTML = logs.slice(0, 5).map(l => {
+                        let iconClass = 'fa-solid fa-bell text-blue-600';
+                        let bgClass = 'bg-blue-50 border-blue-200';
+                        const cat = String(l.actionCategory || '').toLowerCase();
+                        if (cat.includes('đấu giá') || cat.includes('bid')) {
+                            iconClass = 'fa-solid fa-gavel text-indigo-600';
+                            bgClass = 'bg-indigo-50 border-indigo-200';
+                        } else if (cat.includes('đại lý') || cat.includes('đăng ký') || cat.includes('hồ sơ')) {
+                            iconClass = 'fa-solid fa-user-check text-amber-600';
+                            bgClass = 'bg-amber-50 border-amber-200';
+                        } else if (cat.includes('thanh toán') || cat.includes('payment')) {
+                            iconClass = 'fa-solid fa-file-invoice-dollar text-emerald-600';
+                            bgClass = 'bg-emerald-50 border-emerald-200';
+                        } else if (cat.includes('hệ thống') || cat.includes('system') || cat.includes('bảo mật')) {
+                            iconClass = 'fa-solid fa-shield-halved text-purple-600';
+                            bgClass = 'bg-purple-50 border-purple-200';
+                        }
+
+                        const timeText = CargoStore.formatTimeAgo ? CargoStore.formatTimeAgo(l.rawTime || l.timestamp, l.timestamp) : (l.timestamp || 'Vừa xong');
+
+                        return `
+                            <div class="p-2.5 rounded-xl border border-slate-100 bg-slate-50/70 hover:bg-white hover:border-slate-200 transition text-xs space-y-1">
+                                <div class="flex items-center justify-between gap-2">
+                                    <div class="flex items-center gap-1.5 min-w-0">
+                                        <div class="w-5 h-5 rounded-md ${bgClass} border flex items-center justify-center text-[10px] shrink-0">
+                                            <i class="${iconClass}"></i>
+                                        </div>
+                                        <span class="font-bold text-slate-800 truncate text-[11px]">${l.actionTitle || l.actionCategory}</span>
+                                    </div>
+                                    <span class="text-[10px] text-slate-400 shrink-0 font-medium">${timeText}</span>
+                                </div>
+                                <p class="text-[11px] text-slate-600 line-clamp-1 pl-6 leading-tight">${l.details || ''}</p>
+                                <div class="flex items-center justify-between text-[10px] text-slate-400 pl-6 pt-0.5">
+                                    <span>Tác nhân: <strong class="text-slate-700">${l.actor || l.username}</strong></span>
+                                    ${l.target ? `<span class="font-mono text-blue-600 font-semibold">${l.target}</span>` : ''}
+                                </div>
+                            </div>
+                        `;
+                    }).join('');
+                }
+            }
+        }
+
+
+
+        let isAdminDashRendering = false;
+        function safeLoadDashboard() {
+            if (isAdminDashRendering || (typeof document !== 'undefined' && document.hidden)) return;
+            isAdminDashRendering = true;
+            try {
+                loadDashboard();
+            } finally {
+                isAdminDashRendering = false;
+            }
+        }
+
+        function updateAdminDashCountdowns() {
+            if (typeof document !== 'undefined' && document.hidden) return;
+            const timerEls = document.querySelectorAll('.admin-timer-cell');
+            let needsRefresh = false;
+
+            timerEls.forEach(el => {
+                const endTime = el.getAttribute('data-endtime');
+                if (!endTime) return;
+                const timer = CargoStore.getTimeRemaining(endTime);
+                const valEl = el.querySelector('.timer-val');
+                if (valEl) {
+                    if (timer.total <= 0) {
+                        valEl.textContent = 'Đã hết giờ';
+                        needsRefresh = true;
+                    } else {
+                        valEl.textContent = `${timer.hours > 0 ? timer.hours + 'h ' : ''}${timer.minutes}m ${timer.seconds}s`;
+                    }
+                }
+            });
+
+            if (needsRefresh) {
+                safeLoadDashboard();
+            }
+        }
+
+        document.addEventListener('DOMContentLoaded', function () {
+            safeLoadDashboard();
+            setInterval(updateAdminDashCountdowns, 1000);
+            if (window.CargoStore && CargoStore.syncAdminHeaderUI) CargoStore.syncAdminHeaderUI();
+        });
+
+        // Cross-tab sync
+        let adminDashUpdateTimeout = null;
+        function onAdminStoreUpdate() {
+            if (adminDashUpdateTimeout) clearTimeout(adminDashUpdateTimeout);
+            adminDashUpdateTimeout = setTimeout(safeLoadDashboard, 100);
+        }
+
+        window.addEventListener('storage', function (e) {
+            if (e.key === 'CARGO_BIDDING_DATA_V3') onAdminStoreUpdate();
+        });
+        window.addEventListener('cargostore_updated', onAdminStoreUpdate);
+    </script>
+</body>
+
+</html>

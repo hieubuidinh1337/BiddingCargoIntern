@@ -1,0 +1,757 @@
+@page
+@model BiddingCargo.Web.Pages.ProfileModel
+@{
+    Layout = null;
+}
+<!DOCTYPE html>
+<html lang="vi">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Hồ sơ đại lý - Cargo Bidding | Vietravel Airlines</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+    <script src="assets/js/cargo-store.js"></script>
+    <style>
+        @@import url('https://fonts.googleapis.com/css2?family=Exo:ital,wght@@0,100;0,200;0,300;0,400;0,500;0,531;0,600;0,700;0,800;0,900;1,100;1,200;1,300;1,400;1,500;1,531;1,600;1,700;1,800;1,900&display=swap');
+
+        * {
+            font-family: 'Exo', sans-serif;
+        }
+    </style>
+</head>
+
+<body class="bg-gray-50 text-gray-800">
+
+    <!-- HEADER NAVIGATION -->
+    <header class="bg-white border-b shadow-sm sticky top-0 z-50">
+        <div class="max-w-7xl mx-auto px-3 sm:px-4 py-2.5 sm:py-3 flex items-center justify-between">
+            <div class="flex items-center gap-2 sm:gap-3">
+                <button type="button" onclick="toggleAgentMobileNav()"
+                    class="md:hidden text-gray-600 hover:text-blue-600 p-1.5 rounded-xl hover:bg-gray-100 transition focus:outline-none"
+                    aria-label="Menu">
+                    <i class="fa-solid fa-bars text-base"></i>
+                </button>
+                <a href="02-Dashboard.html"
+                    class="w-8 h-8 sm:w-9 sm:h-9 rounded-xl bg-gray-100 hover:bg-gray-200 flex items-center justify-center text-gray-600 hover:text-blue-600 transition">
+                    <i class="fa-solid fa-arrow-left text-xs sm:text-sm"></i>
+                </a>
+                <div>
+                    <h1 class="font-bold text-sm sm:text-lg text-slate-900 leading-tight">Hồ sơ đại lý ủy quyền</h1>
+                    <p class="text-[10px] sm:text-xs text-gray-400">Thông tin tài khoản & an toàn bảo mật</p>
+                </div>
+            </div>
+            <a href="02-Dashboard.html"
+                class="text-xs text-gray-500 hover:text-blue-600 font-medium flex items-center gap-1">
+                <i class="fa-solid fa-house text-xs"></i> <span class="hidden sm:inline">Dashboard</span>
+            </a>
+        </div>
+        <!-- Mobile Drawer -->
+        <div id="agentMobileNav"
+            class="hidden md:hidden bg-white border-t px-4 py-2.5 space-y-1 text-xs font-medium shadow-lg">
+            <a href="02-Dashboard.html"
+                class="flex items-center gap-2 px-3 py-2 rounded-lg text-gray-700 hover:bg-gray-50 hover:text-blue-600 transition">
+                <i class="fa-solid fa-gavel w-4"></i> Sàn đấu giá trực tuyến
+            </a>
+            <a href="06-MyBids.html"
+                class="flex items-center gap-2 px-3 py-2 rounded-lg text-gray-700 hover:bg-gray-50 hover:text-blue-600 transition">
+                <i class="fa-solid fa-clock-rotate-left w-4"></i> Lịch sử đặt thầu
+            </a>
+            <a href="07-WonAuction.html"
+                class="flex items-center gap-2 px-3 py-2 rounded-lg text-gray-700 hover:bg-gray-50 hover:text-blue-600 transition">
+                <i class="fa-solid fa-trophy w-4"></i> Đơn hàng thắng thầu
+            </a>
+            <a href="08-Notifications.html"
+                class="flex items-center gap-2 px-3 py-2 rounded-lg text-gray-700 hover:bg-gray-50 hover:text-blue-600 transition">
+                <i class="fa-solid fa-bell w-4"></i> Trung tâm thông báo
+            </a>
+            <a href="09-Profile.html"
+                class="flex items-center gap-2 px-3 py-2 rounded-lg bg-blue-50 text-blue-600 font-semibold transition">
+                <i class="fa-solid fa-user-shield w-4"></i> Hồ sơ đại lý & Mã PIN
+            </a>
+            <a href="10-Terms.html"
+                class="flex items-center gap-2 px-3 py-2 rounded-lg text-gray-500 hover:bg-gray-50 hover:text-gray-800 transition border-t pt-2 mt-1">
+                <i class="fa-solid fa-file-contract w-4"></i> Quy chế & Điều khoản
+            </a>
+        </div>
+    </header>
+
+    <main class="max-w-7xl mx-auto px-3 sm:px-4 py-4 sm:py-6 space-y-4 sm:space-y-6">
+
+        <!-- Main Profile Card -->
+        <div class="bg-white rounded-2xl border shadow-sm p-4 sm:p-6 space-y-4 sm:space-y-6">
+            <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b pb-6">
+                <div class="flex items-center gap-4">
+                    <div id="profAvatar"
+                        class="w-16 h-16 bg-gradient-to-br from-blue-600 to-indigo-700 text-white rounded-2xl flex items-center justify-center text-2xl font-bold shadow-md flex-shrink-0">
+                        AG
+                    </div>
+                    <div>
+                        <h2 id="profCompanyName" class="text-xl font-bold text-slate-900">Công ty TNHH Vận tải ABC
+                            Logistics</h2>
+                        <p class="text-sm text-gray-500 mt-0.5">
+                            Mã đại lý: <span id="profAgentCode" class="font-bold text-blue-600 font-mono">AG-0892</span>
+                        </p>
+                        <div class="mt-1.5 flex items-center gap-2">
+                            <span
+                                class="inline-flex items-center gap-1.5 bg-emerald-50 text-emerald-700 text-xs font-semibold px-2.5 py-0.5 rounded-full border border-emerald-200">
+                                <span class="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></span>
+                                <span id="profStatus">Đang hoạt động</span>
+                            </span>
+                            <span class="text-xs text-gray-400">Tham gia: <span
+                                    id="profJoinedDate">15/03/2024</span></span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- <div class="text-right sm:border-l sm:pl-6">
+                    <p class="text-xs text-gray-400">Tỷ lệ thắng thầu</p>
+                    <p id="profWinRate" class="text-2xl font-bold text-emerald-600">33%</p>
+                    <p class="text-[11px] text-gray-400 mt-0.5"><span id="profWins">8</span> thắng / <span id="profBids">24</span> lượt thầu</p>
+                </div> -->
+            </div>
+
+            <!-- Profile Details Grid -->
+            <div>
+                <h3 class="font-bold text-sm text-slate-900 mb-3 flex items-center gap-2">
+                    <i class="fa-solid fa-building text-blue-600"></i> Thông tin pháp lý Doanh nghiệp
+                </h3>
+                <div
+                    class="grid grid-cols-1 md:grid-cols-2 gap-4 sm:gap-5 text-sm bg-gray-50 rounded-xl p-3.5 sm:p-4 border">
+                    <div class="min-w-0">
+                        <p class="text-gray-400 text-xs font-medium mb-0.5">Người đại diện pháp luật</p>
+                        <p id="profRepName" class="font-semibold text-slate-900 break-words">Nguyễn Văn An</p>
+                    </div>
+                    <div class="min-w-0">
+                        <p class="text-gray-400 text-xs font-medium mb-0.5">Chức vụ đại diện</p>
+                        <p id="profPosition" class="font-semibold text-slate-900 break-words">Giám đốc kinh doanh</p>
+                    </div>
+                    <div class="min-w-0">
+                        <p class="text-gray-400 text-xs font-medium mb-0.5">Email nhận thông báo</p>
+                        <p id="profEmail" class="font-semibold text-slate-900 break-words">an.nguyen@@abccargo.vn</p>
+                    </div>
+                    <div class="min-w-0">
+                        <p class="text-gray-400 text-xs font-medium mb-0.5">Số điện thoại liên hệ</p>
+                        <p id="profPhone" class="font-semibold text-slate-900 break-words">0901 234 567</p>
+                    </div>
+                    <div class="col-span-1 md:col-span-2 min-w-0">
+                        <p class="text-gray-400 text-xs font-medium mb-0.5">Địa chỉ trụ sở chính</p>
+                        <p id="profAddress" class="font-semibold text-slate-900 break-words">123 Nguyễn Huệ, Quận 1, TP.
+                            Hồ Chí Minh</p>
+                    </div>
+                    <div class="min-w-0">
+                        <p class="text-gray-400 text-xs font-medium mb-0.5">Mã số thuế (MST)</p>
+                        <p id="profTaxCode" class="font-semibold text-slate-900 font-mono break-words">0312345678</p>
+                    </div>
+                    <div class="min-w-0">
+                        <p class="text-gray-400 text-xs font-medium mb-0.5">Tỉnh / Thành phố</p>
+                        <p id="profProvince" class="font-semibold text-slate-900 break-words">TP. Hồ Chí Minh</p>
+                    </div>
+                </div>
+            </div>
+
+            <div class="pt-2 flex items-center gap-3">
+                <button onclick="openEditProfileModal()"
+                    class="text-white bg-blue-600 hover:bg-blue-700 text-xs font-bold flex items-center gap-1.5 px-4 py-2.5 rounded-xl transition shadow">
+                    <i class="fa-solid fa-user-pen"></i> Cập nhật, thay đổi thông tin tài khoản
+                </button>
+            </div>
+
+            <!-- Profile Documents Section (E-KYC Verification) -->
+            <div class="border-t pt-5">
+                <div class="flex items-center justify-between mb-3.5">
+                    <div class="flex items-center gap-2.5">
+                        <span class="w-7 h-7 bg-blue-100 text-blue-700 rounded-lg flex items-center justify-center text-xs font-bold">
+                            <i class="fa-solid fa-folder-closed"></i>
+                        </span>
+                        <div>
+                            <h3 class="font-bold text-sm text-slate-900">Hồ sơ & Giấy tờ Minh chứng Đính kèm</h3>
+                            <p class="text-[11px] text-slate-400">Giấy tờ pháp lý lưu trữ trên hệ thống phục vụ thẩm định năng lực đấu thầu</p>
+                        </div>
+                    </div>
+                    <span class="text-xs bg-emerald-50 text-emerald-800 border border-emerald-200 px-2.5 py-1 rounded-lg font-semibold flex items-center gap-1">
+                        <i class="fa-solid fa-shield-check text-emerald-600"></i> Đã số hóa E-KYC
+                    </span>
+                </div>
+
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-3 text-xs">
+                    <!-- GPKD -->
+                    <div class="border rounded-xl p-3.5 flex items-center justify-between gap-3 bg-slate-50/70 hover:bg-slate-50 transition">
+                        <div class="flex items-center gap-3">
+                            <div class="w-10 h-10 rounded-xl bg-red-100 text-red-600 flex items-center justify-center text-lg shrink-0">
+                                <i class="fa-solid fa-file-pdf"></i>
+                            </div>
+                            <div>
+                                <p class="font-bold text-slate-900">Giấy phép kinh doanh / ĐKKD</p>
+                                <p class="text-[11px] text-slate-400">GPKD_Doanh_Nghiep.pdf · 1.1 MB</p>
+                            </div>
+                        </div>
+                        <a href="uploads/GPKD_Doanh_Nghiep.pdf" target="_blank"
+                            class="px-3 py-1.5 bg-white border hover:bg-blue-50 text-blue-700 hover:border-blue-300 font-bold rounded-lg text-xs transition shadow-2xs inline-flex items-center gap-1">
+                            <i class="fa-solid fa-eye text-xs"></i> Xem PDF
+                        </a>
+                    </div>
+
+                    <!-- Giấy ủy quyền Cargo / IATA -->
+                    <div class="border rounded-xl p-3.5 flex items-center justify-between gap-3 bg-slate-50/70 hover:bg-slate-50 transition">
+                        <div class="flex items-center gap-3">
+                            <div class="w-10 h-10 rounded-xl bg-red-100 text-red-600 flex items-center justify-center text-lg shrink-0">
+                                <i class="fa-solid fa-file-pdf"></i>
+                            </div>
+                            <div>
+                                <p class="font-bold text-slate-900">Giấy ủy quyền Đại lý Cargo / IATA</p>
+                                <p class="text-[11px] text-slate-400">IATA_Cargo_Authorization.pdf · 1.1 MB</p>
+                            </div>
+                        </div>
+                        <a href="uploads/IATA_Cargo_Authorization.pdf" target="_blank"
+                            class="px-3 py-1.5 bg-white border hover:bg-blue-50 text-blue-700 hover:border-blue-300 font-bold rounded-lg text-xs transition shadow-2xs inline-flex items-center gap-1">
+                            <i class="fa-solid fa-eye text-xs"></i> Xem PDF
+                        </a>
+                    </div>
+
+                    <!-- CCCD người đại diện -->
+                    <div class="border rounded-xl p-3.5 flex items-center justify-between gap-3 bg-slate-50/70 hover:bg-slate-50 transition">
+                        <div class="flex items-center gap-3">
+                            <div class="w-10 h-10 rounded-xl bg-red-100 text-red-600 flex items-center justify-center text-lg shrink-0">
+                                <i class="fa-solid fa-file-pdf"></i>
+                            </div>
+                            <div>
+                                <p class="font-bold text-slate-900">Bản chụp CCCD / Hộ chiếu Người đại diện</p>
+                                <p class="text-[11px] text-slate-400">CCCD_NguoiDaiDien.pdf · 1.1 MB</p>
+                            </div>
+                        </div>
+                        <a href="uploads/CCCD_NguoiDaiDien.pdf" target="_blank"
+                            class="px-3 py-1.5 bg-white border hover:bg-blue-50 text-blue-700 hover:border-blue-300 font-bold rounded-lg text-xs transition shadow-2xs inline-flex items-center gap-1">
+                            <i class="fa-solid fa-eye text-xs"></i> Xem PDF
+                        </a>
+                    </div>
+
+                    <!-- Quy chế / Năng lực logistics -->
+                    <div class="border rounded-xl p-3.5 flex items-center justify-between gap-3 bg-slate-50/70 hover:bg-slate-50 transition">
+                        <div class="flex items-center gap-3">
+                            <div class="w-10 h-10 rounded-xl bg-red-100 text-red-600 flex items-center justify-center text-lg shrink-0">
+                                <i class="fa-solid fa-file-pdf"></i>
+                            </div>
+                            <div>
+                                <p class="font-bold text-slate-900">Quy chế & Cam kết Đấu thầu Tải trọng</p>
+                                <p class="text-[11px] text-slate-400">Quy_che_dau_gia_tai_trong_Vietravel_Cargo.pdf · 1.1 MB</p>
+                            </div>
+                        </div>
+                        <a href="uploads/Quy_che_dau_gia_tai_trong_Vietravel_Cargo.pdf" target="_blank"
+                            class="px-3 py-1.5 bg-white border hover:bg-blue-50 text-blue-700 hover:border-blue-300 font-bold rounded-lg text-xs transition shadow-2xs inline-flex items-center gap-1">
+                            <i class="fa-solid fa-eye text-xs"></i> Xem PDF
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+
+
+        <!-- Security Settings Grid (Password & PIN) -->
+        <div class="grid grid-cols-1 lg:grid-cols-2 gap-4 sm:gap-6">
+            <!-- Password Change Card -->
+            <div class="bg-white rounded-2xl border shadow-sm p-6">
+                <h3 class="font-bold text-slate-900 text-base mb-2 flex items-center gap-2">
+                    <i class="fa-solid fa-key text-blue-600"></i> Đổi mật khẩu tài khoản
+                </h3>
+                <p class="text-xs text-gray-500 mb-4">Sau khi đổi thành công, mật khẩu mặc định ban đầu sẽ không còn
+                    hiệu lực sử dụng.</p>
+
+                <div id="pwdAlert" class="hidden mb-4 p-3 rounded-xl text-xs font-semibold"></div>
+
+                <form id="changePwdForm" class="space-y-4" onsubmit="handlePasswordChange(event)">
+                    <div>
+                        <label class="block text-xs font-semibold text-gray-700 mb-1">Mật khẩu hiện tại</label>
+                        <input type="password" id="oldPwd" required placeholder="••••••••"
+                            class="w-full border rounded-xl px-4 py-2.5 text-sm focus:ring-2 focus:ring-blue-500 outline-none">
+                    </div>
+                    <div>
+                        <label class="block text-xs font-semibold text-gray-700 mb-1">Mật khẩu mới (tối thiểu 6 ký
+                            tự)</label>
+                        <input type="password" id="newPwd" required placeholder="••••••••"
+                            class="w-full border rounded-xl px-4 py-2.5 text-sm focus:ring-2 focus:ring-blue-500 outline-none">
+                    </div>
+                    <div>
+                        <label class="block text-xs font-semibold text-gray-700 mb-1">Xác nhận mật khẩu mới</label>
+                        <input type="password" id="confirmPwd" required placeholder="••••••••"
+                            class="w-full border rounded-xl px-4 py-2.5 text-sm focus:ring-2 focus:ring-blue-500 outline-none">
+                    </div>
+                    <button type="submit"
+                        class="bg-blue-600 hover:bg-blue-700 text-white text-xs font-bold px-5 py-2.5 rounded-xl transition shadow flex items-center gap-1.5">
+                        <i class="fa-solid fa-floppy-disk"></i> Cập nhật mật khẩu mới
+                    </button>
+                </form>
+            </div>
+
+            <!-- PIN Security Card -->
+            <div id="pinSecurityCard" class="bg-white rounded-2xl border shadow-sm p-6">
+                <div class="flex items-center justify-between mb-2">
+                    <h3 class="font-bold text-slate-900 text-base flex items-center gap-2">
+                        <i class="fa-solid fa-shield-halved text-indigo-600"></i> Mã PIN bảo mật (4 chữ số)
+                    </h3>
+                    <span id="pinStatusBadge"
+                        class="text-xs px-2.5 py-1 rounded-full font-bold inline-flex items-center gap-1.5 bg-emerald-50 text-emerald-700 border border-emerald-200">
+                        <i class="fa-solid fa-circle-check text-[11px]"></i> Đã thiết lập (••••)
+                    </span>
+                </div>
+                <p class="text-xs text-gray-500 mb-4">
+                    Mã PIN gồm chính xác <strong>4 chữ số</strong> được dùng để xác thực bảo mật tài khoản và ủy quyền
+                    các giao dịch quan trọng trong hệ thống.
+                </p>
+
+                <div id="pinAlert" class="hidden mb-4 p-3 rounded-xl text-xs font-semibold"></div>
+
+                <form id="changePinForm" class="space-y-4" onsubmit="handlePinChange(event)">
+                    <div>
+                        <label class="block text-xs font-semibold text-gray-700 mb-1">Mã PIN mới (chính xác 4 chữ
+                            số)</label>
+                        <div class="relative">
+                            <input type="password" id="newPinCode" maxlength="4" pattern="[0-9]{4}" inputmode="numeric"
+                                required placeholder="Ví dụ: 1234"
+                                class="w-full border rounded-xl px-4 py-2.5 text-sm font-mono tracking-widest focus:ring-2 focus:ring-indigo-500 outline-none">
+                            <button type="button" onclick="togglePinVisibility('newPinCode', this)"
+                                class="absolute right-3.5 top-2.5 text-gray-400 hover:text-gray-600 text-xs">
+                                <i class="fa-solid fa-eye"></i>
+                            </button>
+                        </div>
+                    </div>
+                    <div>
+                        <label class="block text-xs font-semibold text-gray-700 mb-1">Xác nhận mã PIN mới</label>
+                        <div class="relative">
+                            <input type="password" id="confirmPinCode" maxlength="4" pattern="[0-9]{4}"
+                                inputmode="numeric" required placeholder="Nhập lại 4 chữ số PIN"
+                                class="w-full border rounded-xl px-4 py-2.5 text-sm font-mono tracking-widest focus:ring-2 focus:ring-indigo-500 outline-none">
+                            <button type="button" onclick="togglePinVisibility('confirmPinCode', this)"
+                                class="absolute right-3.5 top-2.5 text-gray-400 hover:text-gray-600 text-xs">
+                                <i class="fa-solid fa-eye"></i>
+                            </button>
+                        </div>
+                    </div>
+                    <div>
+                        <label class="block text-xs font-semibold text-gray-700 mb-1">Mật khẩu tài khoản hiện tại (để
+                            xác thực bảo mật)</label>
+                        <input type="password" id="pinAuthPassword" required placeholder="••••••••"
+                            class="w-full border rounded-xl px-4 py-2.5 text-sm focus:ring-2 focus:ring-indigo-500 outline-none">
+                    </div>
+                    <button type="submit"
+                        class="bg-indigo-600 hover:bg-indigo-700 text-white text-xs font-bold px-5 py-2.5 rounded-xl transition shadow flex items-center gap-1.5">
+                        <i class="fa-solid fa-shield-check"></i> Lưu & Thiết lập Mã PIN
+                    </button>
+                </form>
+            </div>
+
+        </div>
+
+        <!-- Activity Stats Card -->
+        <div class="bg-white rounded-2xl border shadow-sm p-6">
+            <h3 class="font-bold text-slate-900 text-base mb-4 flex items-center gap-2">
+                <i class="fa-solid fa-chart-pie text-blue-600"></i> Thống kê hoạt động đại lý
+            </h3>
+            <div class="grid grid-cols-2 md:grid-cols-4 gap-4">
+                <div class="text-center p-4 bg-gray-50 rounded-xl border">
+                    <p id="statTotalBids" class="text-2xl font-bold text-blue-600">24</p>
+                    <p class="text-xs text-gray-500 mt-1">Tổng lượt thầu</p>
+                </div>
+                <div class="text-center p-4 bg-gray-50 rounded-xl border">
+                    <p id="statTotalWins" class="text-2xl font-bold text-emerald-600">8</p>
+                    <p class="text-xs text-gray-500 mt-1">Đã thắng thầu</p>
+                </div>
+                <div class="text-center p-4 bg-gray-50 rounded-xl border">
+                    <p id="statWinRate" class="text-2xl font-bold text-amber-500">33%</p>
+                    <p class="text-xs text-gray-500 mt-1">Tỷ lệ thắng</p>
+                </div>
+                <div class="text-center p-4 bg-gray-50 rounded-xl border">
+                    <p id="statSpentUSD" class="text-2xl font-bold text-slate-700">12.4k</p>
+                    <p class="text-xs text-gray-500 mt-1">USD tổng trúng</p>
+                </div>
+            </div>
+        </div>
+
+        <!-- Logout Action -->
+        <div class="bg-white rounded-2xl border shadow-sm p-6 flex items-center justify-between">
+            <div>
+                <p class="font-bold text-slate-900 text-sm">Đăng xuất khỏi thiết bị</p>
+                <p class="text-xs text-gray-400">Kết thúc phiên làm việc an toàn trên hệ thống Cargo Bidding</p>
+            </div>
+            <button onclick="handleLogout()"
+                class="inline-flex items-center gap-2 text-red-600 hover:bg-red-50 border border-red-200 px-5 py-2.5 rounded-xl text-xs font-bold transition">
+                <i class="fa-solid fa-right-from-bracket"></i> Đăng xuất
+            </button>
+        </div>
+
+    </main>
+
+    <!-- Modal: Cập nhật thông tin tài khoản đại lý -->
+    <div id="editProfileModal"
+        class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-50 hidden flex items-center justify-center p-4">
+        <div
+            class="bg-white rounded-2xl shadow-xl max-w-lg w-full overflow-hidden animate-in fade-in zoom-in-95 duration-200">
+            <div class="bg-blue-600 text-white px-6 py-4 flex items-center justify-between">
+                <h3 class="font-bold text-sm flex items-center gap-2">
+                    <i class="fa-solid fa-id-card"></i> Cập nhật thông tin tài khoản Đại lý
+                </h3>
+                <button onclick="closeEditProfileModal()" class="text-white/80 hover:text-white text-lg"><i
+                        class="fa-solid fa-xmark"></i></button>
+            </div>
+            <form onsubmit="handleSaveProfile(event)" class="p-6 space-y-3.5 text-xs">
+                <div>
+                    <label class="block font-semibold text-slate-700 mb-1">Tên doanh nghiệp / Đại lý</label>
+                    <input type="text" id="editProfCompanyName" required
+                        class="w-full border rounded-xl px-3.5 py-2 font-bold outline-none focus:ring-2 focus:ring-blue-500">
+                </div>
+                <div class="grid grid-cols-2 gap-3">
+                    <div>
+                        <label class="block font-semibold text-slate-700 mb-1">Người đại diện pháp luật <span
+                                class="text-red-500">*</span></label>
+                        <input type="text" id="editProfRepName" required
+                            class="w-full border rounded-xl px-3.5 py-2 font-medium outline-none focus:ring-2 focus:ring-blue-500">
+                    </div>
+                    <div>
+                        <label class="block font-semibold text-slate-700 mb-1">Chức vụ đại diện</label>
+                        <input type="text" id="editProfPosition" required
+                            class="w-full border rounded-xl px-3.5 py-2 font-medium outline-none focus:ring-2 focus:ring-blue-500">
+                    </div>
+                </div>
+                <div class="grid grid-cols-2 gap-3">
+                    <div>
+                        <label class="block font-semibold text-slate-700 mb-1">Email nhận thông báo <span
+                                class="text-red-500">*</span></label>
+                        <input type="email" id="editProfEmail" required
+                            class="w-full border rounded-xl px-3.5 py-2 font-medium outline-none focus:ring-2 focus:ring-blue-500">
+                    </div>
+                    <div>
+                        <label class="block font-semibold text-slate-700 mb-1">Số điện thoại liên hệ <span
+                                class="text-red-500">*</span></label>
+                        <input type="text" id="editProfPhone" required
+                            class="w-full border rounded-xl px-3.5 py-2 font-medium outline-none focus:ring-2 focus:ring-blue-500">
+                    </div>
+                </div>
+                <div>
+                    <label class="block font-semibold text-slate-700 mb-1">Địa chỉ trụ sở chính</label>
+                    <textarea id="editProfAddress" rows="2" required
+                        class="w-full border rounded-xl px-3.5 py-2 font-medium outline-none focus:ring-2 focus:ring-blue-500"></textarea>
+                </div>
+                <div class="flex items-center justify-end gap-2.5 pt-2 border-t">
+                    <button type="button" onclick="closeEditProfileModal()"
+                        class="px-4 py-2 border rounded-xl text-slate-600 hover:bg-slate-50 font-medium">Hủy bỏ</button>
+                    <button type="submit"
+                        class="px-5 py-2 bg-blue-600 hover:bg-blue-700 text-white font-bold rounded-xl shadow flex items-center gap-1.5">
+                        <i class="fa-solid fa-floppy-disk"></i> Lưu thay đổi
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+
+
+    <script>
+        function renderProfile() {
+            let u = CargoStore.getCurrentUser ? CargoStore.getCurrentUser() : null;
+            const storeData = (typeof CargoStore !== 'undefined' && CargoStore.getData) ? CargoStore.getData() : null;
+
+            if (!u) {
+                const defaultAgent = storeData && storeData.agentsList ? storeData.agentsList.find(a => a.code === 'AG-0892') : null;
+                if (defaultAgent) {
+                    u = {
+                        agentCode: defaultAgent.code,
+                        companyName: defaultAgent.companyName,
+                        fullName: defaultAgent.repName,
+                        position: defaultAgent.position || 'Giám đốc kinh doanh',
+                        email: defaultAgent.email,
+                        phone: defaultAgent.phone,
+                        address: defaultAgent.address,
+                        taxCode: defaultAgent.taxCode,
+                        province: defaultAgent.province || 'TP. Hồ Chí Minh',
+                        status: defaultAgent.status || 'Đang hoạt động',
+                        joinedDate: defaultAgent.joinedDate || '15/03/2024',
+                        pin: defaultAgent.pin || '1234',
+                        stats: {
+                            totalBids: defaultAgent.totalBids || 24,
+                            totalWins: defaultAgent.totalWins || 8,
+                            winRate: defaultAgent.winRate || '33%',
+                            totalSpentUSD: defaultAgent.totalSpentUSD || '185k'
+                        }
+                    };
+                }
+            }
+
+            if (!u) return;
+
+            const setText = (id, val) => {
+                const el = document.getElementById(id);
+                if (el) el.textContent = val;
+            };
+
+            setText('profCompanyName', u.companyName || 'Đại lý Cargo');
+            setText('profAgentCode', u.agentCode || 'AG-0000');
+            setText('profAvatar', (u.agentCode || 'AG').slice(0, 2));
+            setText('profStatus', u.status || 'Đang hoạt động');
+            setText('profJoinedDate', u.joinedDate || '15/03/2024');
+
+            setText('profRepName', u.fullName || u.repName || '—');
+            setText('profPosition', u.position || 'Đại diện ủy quyền');
+            setText('profEmail', u.email || '—');
+            setText('profPhone', u.phone || '—');
+            setText('profAddress', u.address || '—');
+            setText('profTaxCode', u.taxCode || '—');
+            setText('profProvince', u.province || 'TP. Hồ Chí Minh');
+
+            const stats = u.stats || {};
+            setText('statTotalBids', stats.totalBids || u.totalBids || 24);
+            setText('statTotalWins', stats.totalWins || u.totalWins || 8);
+            setText('statWinRate', stats.winRate || u.winRate || '33%');
+            setText('statSpentUSD', stats.totalSpentUSD || u.totalSpentUSD || '185k');
+            setText('profWinRate', stats.winRate || u.winRate || '33%');
+            setText('profWins', stats.totalWins || u.totalWins || 8);
+            setText('profBids', stats.totalBids || u.totalBids || 24);
+
+            const pinBadge = document.getElementById('pinStatusBadge');
+            if (pinBadge) {
+                const currentCode = (u.agentCode || u.code || '').toUpperCase();
+                const agentObj = storeData && storeData.agentsList ? storeData.agentsList.find(a => (a.code || '').toUpperCase() === currentCode) : null;
+                const hasPin = Boolean(u.pin || (agentObj && agentObj.pin));
+
+                if (hasPin) {
+                    pinBadge.className = 'text-xs px-2.5 py-1 rounded-full font-bold inline-flex items-center gap-1.5 bg-emerald-50 text-emerald-700 border border-emerald-200';
+                    pinBadge.innerHTML = '<i class="fa-solid fa-circle-check text-[11px]"></i> Đã thiết lập (••••)';
+                } else {
+                    pinBadge.className = 'text-xs px-2.5 py-1 rounded-full font-bold inline-flex items-center gap-1.5 bg-amber-50 text-amber-700 border border-amber-200 animate-pulse';
+                    pinBadge.innerHTML = '<i class="fa-solid fa-triangle-exclamation text-[11px]"></i> Chưa thiết lập (Cần tạo ngay)';
+                }
+            }
+
+            renderProfileRouteBadges();
+        }
+
+        function renderProfileRouteBadges() {
+            const container = document.getElementById('profRouteBadges');
+            if (!container || typeof CargoStore === 'undefined') return;
+
+            const subs = CargoStore.getRouteSubscriptions ? CargoStore.getRouteSubscriptions() : { routes: [] };
+            const routes = subs.routes || [];
+
+            if (routes.length === 0) {
+                container.innerHTML = `<span class="text-slate-400 italic text-xs">Chưa cài đặt tuyến nào. Bấm "Tùy chỉnh danh sách tuyến" để bắt đầu theo dõi.</span>`;
+                return;
+            }
+
+            container.innerHTML = routes.map(r => `
+            <span class="inline-flex items-center gap-1.5 bg-indigo-50 border border-indigo-200 text-indigo-900 font-bold px-3 py-1 rounded-xl text-xs shadow-2xs">
+                <span class="w-2 h-2 rounded-full bg-indigo-500 animate-pulse"></span>
+                <span>${r}</span>
+            </span>
+        `).join('');
+        }
+
+        function openProfileRouteModal() {
+            if (typeof CargoStore === 'undefined') return;
+
+            const subs = CargoStore.getRouteSubscriptions ? CargoStore.getRouteSubscriptions() : { routes: [] };
+            const availableRoutes = CargoStore.getAvailableRoutes ? CargoStore.getAvailableRoutes() : [];
+            const curRoutes = (subs.routes || []).map(r => r.replace(/\s+/g, '').toUpperCase());
+
+            const grid = document.getElementById('profRouteCheckboxesGrid');
+            if (grid) {
+                grid.innerHTML = availableRoutes.map(r => {
+                    const cleanPair = r.pair.replace(/\s+/g, '').toUpperCase();
+                    const isChecked = curRoutes.includes(cleanPair);
+                    return `
+                    <label class="flex items-center justify-between p-3 rounded-xl border ${isChecked ? 'border-indigo-500 bg-indigo-50/60' : 'border-slate-200 bg-white hover:bg-slate-50'} transition cursor-pointer select-none">
+                        <div class="flex items-center gap-2">
+                            <i class="fa-solid fa-plane-departure ${isChecked ? 'text-indigo-600' : 'text-slate-400'} text-xs"></i>
+                            <span class="font-bold text-slate-900 text-xs">${r.pair}</span>
+                            <span class="text-[10px] text-slate-500 hidden sm:inline">(${r.origin} ➔ ${r.dest})</span>
+                        </div>
+                        <input type="checkbox" name="profRouteSubCheckbox" value="${r.pair}" ${isChecked ? 'checked' : ''} class="w-4 h-4 text-indigo-600 rounded border-slate-300 focus:ring-indigo-500">
+                    </label>
+                `;
+                }).join('');
+            }
+
+            document.getElementById('profSubNotifyNewAuction').checked = subs.notifyOnNewAuction !== false;
+            document.getElementById('profSubNotifyOutbid').checked = subs.notifyOnOutbid !== false;
+            document.getElementById('profSubNotifyClosingSoon').checked = subs.notifyOnClosingSoon !== false;
+            document.getElementById('profSubEmailAlert').checked = subs.emailAlert !== false;
+
+            document.getElementById('profileRouteAlertModal').classList.remove('hidden');
+        }
+
+        function closeProfileRouteModal() {
+            document.getElementById('profileRouteAlertModal').classList.add('hidden');
+        }
+
+        function handleSaveProfileRouteAlertForm(e) {
+            e.preventDefault();
+            if (typeof CargoStore === 'undefined' || !CargoStore.saveRouteSubscriptions) return;
+
+            const checkedBoxes = Array.from(document.querySelectorAll('input[name="profRouteSubCheckbox"]:checked')).map(cb => cb.value);
+            const notifyNew = document.getElementById('profSubNotifyNewAuction').checked;
+            const notifyOutbid = document.getElementById('profSubNotifyOutbid').checked;
+            const notifyClosing = document.getElementById('profSubNotifyClosingSoon').checked;
+            const emailAlert = document.getElementById('profSubEmailAlert').checked;
+
+            const res = CargoStore.saveRouteSubscriptions(null, {
+                routes: checkedBoxes,
+                notifyOnNewAuction: notifyNew,
+                notifyOnOutbid: notifyOutbid,
+                notifyOnClosingSoon: notifyClosing,
+                emailAlert: emailAlert,
+                soundAlert: true
+            });
+
+            if (res.success) {
+                alert(res.message);
+                closeProfileRouteModal();
+                renderProfileRouteBadges();
+            }
+        }
+
+        function openEditProfileModal() {
+            const u = CargoStore.getCurrentUser ? CargoStore.getCurrentUser() : null;
+            if (!u) return;
+
+            document.getElementById('editProfCompanyName').value = u.companyName || '';
+            document.getElementById('editProfRepName').value = u.fullName || '';
+            document.getElementById('editProfPosition').value = u.position || '';
+            document.getElementById('editProfEmail').value = u.email || '';
+            document.getElementById('editProfPhone').value = u.phone || '';
+            document.getElementById('editProfAddress').value = u.address || '';
+
+            document.getElementById('editProfileModal').classList.remove('hidden');
+        }
+
+        function closeEditProfileModal() {
+            document.getElementById('editProfileModal').classList.add('hidden');
+        }
+
+        function handleSaveProfile(e) {
+            e.preventDefault();
+            const res = CargoStore.updateAgentProfile({
+                companyName: document.getElementById('editProfCompanyName').value.trim(),
+                repName: document.getElementById('editProfRepName').value.trim(),
+                position: document.getElementById('editProfPosition').value.trim(),
+                email: document.getElementById('editProfEmail').value.trim(),
+                phone: document.getElementById('editProfPhone').value.trim(),
+                address: document.getElementById('editProfAddress').value.trim()
+            });
+
+            if (res.success) {
+                alert(res.message);
+                closeEditProfileModal();
+                renderProfile();
+                if (CargoStore.syncHeaderUI) CargoStore.syncHeaderUI();
+            } else {
+                alert(res.message);
+            }
+        }
+
+        function handlePasswordChange(e) {
+            e.preventDefault();
+            const alertEl = document.getElementById('pwdAlert');
+            alertEl.className = 'hidden mb-4 p-3 rounded-xl text-xs font-semibold';
+
+            const oldPwd = document.getElementById('oldPwd').value;
+            const newPwd = document.getElementById('newPwd').value;
+            const confirmPwd = document.getElementById('confirmPwd').value;
+
+            if (newPwd !== confirmPwd) {
+                alertEl.textContent = 'Mật khẩu mới và xác nhận mật khẩu không trùng khớp!';
+                alertEl.className = 'mb-4 p-3 rounded-xl text-xs font-semibold bg-red-50 text-red-700 border border-red-200 block';
+                return;
+            }
+
+            const res = CargoStore.changePassword(oldPwd, newPwd);
+            if (!res.success) {
+                alertEl.textContent = res.message;
+                alertEl.className = 'mb-4 p-3 rounded-xl text-xs font-semibold bg-red-50 text-red-700 border border-red-200 block';
+                return;
+            }
+
+            alertEl.textContent = res.message;
+            alertEl.className = 'mb-4 p-3 rounded-xl text-xs font-semibold bg-green-50 text-green-700 border border-green-200 block';
+            document.getElementById('changePwdForm').reset();
+        }
+
+        function togglePinVisibility(id, btn) {
+            const input = document.getElementById(id);
+            if (!input) return;
+            const icon = btn.querySelector('i');
+            if (input.type === 'password') {
+                input.type = 'text';
+                if (icon) { icon.classList.remove('fa-eye'); icon.classList.add('fa-eye-slash'); }
+            } else {
+                input.type = 'password';
+                if (icon) { icon.classList.remove('fa-eye-slash'); icon.classList.add('fa-eye'); }
+            }
+        }
+
+        function handlePinChange(e) {
+            e.preventDefault();
+            const alertEl = document.getElementById('pinAlert');
+            alertEl.className = 'hidden mb-4 p-3 rounded-xl text-xs font-semibold';
+
+            const u = CargoStore.getCurrentUser ? CargoStore.getCurrentUser() : null;
+            if (!u) {
+                alertEl.textContent = 'Phiên đăng nhập đã hết hạn. Vui lòng đăng nhập lại!';
+                alertEl.className = 'mb-4 p-3 rounded-xl text-xs font-semibold bg-red-50 text-red-700 border border-red-200 block';
+                return;
+            }
+
+            const newPin = document.getElementById('newPinCode').value.trim();
+            const confirmPin = document.getElementById('confirmPinCode').value.trim();
+            const pwd = document.getElementById('pinAuthPassword').value;
+
+            if (newPin !== confirmPin) {
+                alertEl.textContent = 'Mã PIN mới và xác nhận mã PIN không trùng khớp!';
+                alertEl.className = 'mb-4 p-3 rounded-xl text-xs font-semibold bg-red-50 text-red-700 border border-red-200 block';
+                return;
+            }
+
+            if (!/^[0-9]{4}$/.test(newPin)) {
+                alertEl.textContent = 'Mã PIN phải bao gồm chính xác 4 chữ số (0-9)!';
+                alertEl.className = 'mb-4 p-3 rounded-xl text-xs font-semibold bg-red-50 text-red-700 border border-red-200 block';
+                return;
+            }
+
+            const res = CargoStore.createOrUpdatePin(u.agentCode, newPin, pwd);
+            if (!res.success) {
+                alertEl.textContent = res.message;
+                alertEl.className = 'mb-4 p-3 rounded-xl text-xs font-semibold bg-red-50 text-red-700 border border-red-200 block';
+                return;
+            }
+
+            alertEl.textContent = res.message;
+            alertEl.className = 'mb-4 p-3 rounded-xl text-xs font-semibold bg-emerald-50 text-emerald-700 border border-emerald-200 block';
+            document.getElementById('changePinForm').reset();
+            renderProfile();
+        }
+
+        // Mobile Nav Toggle
+        function toggleAgentMobileNav() {
+            const nav = document.getElementById('agentMobileNav');
+            if (nav) nav.classList.toggle('hidden');
+        }
+
+        document.addEventListener('DOMContentLoaded', renderProfile);
+
+        function handleLogout() {
+            if (typeof CargoStore !== 'undefined' && CargoStore.logoutAgent) {
+                CargoStore.logoutAgent();
+            } else {
+                // Fallback: clear currentUser manually
+                const data = CargoStore.getData ? CargoStore.getData() : null;
+                if (data) {
+                    data.currentUser = null;
+                    if (CargoStore.saveData) CargoStore.saveData(data);
+                }
+            }
+            window.location.href = '01-Login.html';
+        }
+    </script>
+
+</body>
+
+</html>

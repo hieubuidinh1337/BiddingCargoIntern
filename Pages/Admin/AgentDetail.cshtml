@@ -1,0 +1,917 @@
+@page
+@model BiddingCargo.Web.Pages.Admin.AgentDetailModel
+@{
+    Layout = null;
+}
+<!DOCTYPE html>
+<html lang="vi">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Hồ sơ Đại lý & Lịch sử Đặt phiên - Cargo Bidding Admin</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+    <script src="../assets/js/cargo-store.js"></script>
+    <style>
+        .custom-scrollbar {
+            overflow-y: auto !important;
+            overflow-x: hidden !important;
+            -webkit-overflow-scrolling: touch;
+            scrollbar-width: thin;
+            scrollbar-color: #3b82f6 #e2e8f0;
+        }
+
+        .custom-scrollbar::-webkit-scrollbar {
+            width: 8px;
+            height: 8px;
+            display: block;
+        }
+
+        .custom-scrollbar::-webkit-scrollbar-track {
+            background: #f1f5f9;
+            border-radius: 6px;
+        }
+
+        .custom-scrollbar::-webkit-scrollbar-thumb {
+            background: #94a3b8;
+            border-radius: 6px;
+            border: 2px solid #f1f5f9;
+        }
+
+        .custom-scrollbar::-webkit-scrollbar-thumb:hover {
+            background: #3b82f6;
+        }
+
+        #adminHeader {
+            background: linear-gradient(135deg, #0f172a 0%, #1e293b 60%, #0f172a 100%);
+            border-bottom: 1px solid rgba(59, 130, 246, 0.18);
+            position: sticky;
+            top: 0;
+            z-index: 50;
+            box-shadow: 0 2px 20px rgba(0, 0, 0, 0.35);
+        }
+
+        .admin-nav-inner {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            height: 60px;
+            padding: 0 1rem;
+            max-width: 1280px;
+            margin: 0 auto;
+        }
+
+        .admin-brand {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            text-decoration: none;
+        }
+
+        .admin-brand img {
+            height: 32px;
+            object-fit: contain;
+        }
+
+        .admin-brand-sep {
+            width: 1px;
+            height: 22px;
+            background: rgba(255, 255, 255, 0.15);
+        }
+
+        .admin-brand-sub {
+            display: block;
+            font-size: 9px;
+            text-transform: uppercase;
+            letter-spacing: 0.12em;
+            color: #94a3b8;
+            font-weight: 700;
+            line-height: 1;
+        }
+
+        .admin-brand-text {
+            display: block;
+            font-size: 13px;
+            font-weight: 800;
+            color: #38bdf8;
+            letter-spacing: -0.01em;
+            line-height: 1.2;
+        }
+
+        .admin-nav {
+            display: none;
+            align-items: center;
+            gap: 2px;
+        }
+
+        @@media (min-width: 900px) {
+            .admin-nav {
+                display: flex;
+            }
+        }
+
+        .nav-item-admin {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            padding: 6px 12px;
+            border-radius: 8px;
+            font-size: 12px;
+            font-weight: 600;
+            color: #94a3b8;
+            text-decoration: none;
+            transition: all 0.18s ease;
+        }
+
+        .nav-item-admin:hover {
+            color: #f1f5f9;
+            background: rgba(255, 255, 255, 0.07);
+        }
+
+        .nav-item-admin.active {
+            color: #fff;
+            background: #2563eb;
+            box-shadow: 0 0 12px rgba(37, 99, 235, 0.45);
+        }
+
+        .admin-right {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .admin-avatar {
+            width: 32px;
+            height: 32px;
+            border-radius: 50%;
+            background: linear-gradient(135deg, #f59e0b, #d97706);
+            color: #fff;
+            font-weight: 800;
+            font-size: 11px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .admin-user-info {
+            display: none;
+            flex-direction: column;
+            line-height: 1.2;
+        }
+
+        @@media (min-width: 640px) {
+            .admin-user-info {
+                display: flex;
+            }
+        }
+
+        .admin-user-name {
+            font-size: 12px;
+            font-weight: 700;
+            color: #f1f5f9;
+        }
+
+        .admin-user-role {
+            font-size: 10px;
+            font-weight: 600;
+            color: #fbbf24;
+            letter-spacing: 0.05em;
+        }
+
+        .admin-logout {
+            width: 32px;
+            height: 32px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border-radius: 8px;
+            background: rgba(239, 68, 68, 0.12);
+            color: #f87171;
+            text-decoration: none;
+            transition: all 0.18s ease;
+        }
+
+        .admin-logout:hover {
+            background: #dc2626;
+            color: #fff;
+        }
+
+        #adminMobileNav {
+            display: none;
+            flex-direction: column;
+            gap: 4px;
+            padding: 8px 16px 12px;
+            border-top: 1px solid rgba(255, 255, 255, 0.08);
+            background: #0f172a;
+        }
+
+        #adminMobileNav.open {
+            display: flex;
+        }
+
+        .mobile-nav-item {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            padding: 8px 12px;
+            border-radius: 8px;
+            font-size: 12px;
+            font-weight: 600;
+            color: #94a3b8;
+            text-decoration: none;
+        }
+
+        .mobile-nav-item:hover,
+        .mobile-nav-item.active {
+            color: #fff;
+            background: rgba(37, 99, 235, 0.25);
+        }
+    </style>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Exo:ital,wght@@0,100;0,200;0,300;0,400;0,500;0,531;0,600;0,700;0,800;0,900;1,100;1,200;1,300;1,400;1,500;1,531;1,600;1,700;1,800;1,900" rel="stylesheet" />
+    <style>
+        body, input, select, textarea, button {
+            font-family: 'Exo', sans-serif;
+        }
+    </style>
+</head>
+
+<body class="bg-slate-100 text-slate-800 antialiased min-h-screen flex flex-col">
+
+    <!-- Admin Header -->
+    <header id="adminHeader">
+        <div class="admin-nav-inner">
+            <div class="flex items-center gap-3">
+                <button type="button" class="sm:hidden text-slate-300 hover:text-white p-1"
+                    onclick="document.getElementById('adminMobileNav').classList.toggle('open')" aria-label="Menu">
+                    <i class="fa-solid fa-bars"></i>
+                </button>
+                <a href="02-AdminDashboard.html" class="admin-brand">
+                    <img src="../assets/images/vietravel-logo-doc.png" alt="Vietravel Airlines Logo" />
+                    <div class="admin-brand-sep"></div>
+                    <div>
+                        <span class="admin-brand-sub">Portal Quản Trị</span>
+                        <span class="admin-brand-text">Cargo Admin</span>
+                    </div>
+                </a>
+            </div>
+
+            <nav class="admin-nav">
+                <a href="02-AdminDashboard.html" class="nav-item-admin"><i
+                        class="fa-solid fa-gauge-high"></i>Dashboard</a>
+                <a href="03-AuctionList.html" class="nav-item-admin"><i class="fa-solid fa-list-check"></i>Quản lý
+                    phiên</a>
+                <a href="04-CreateAuction.html" class="nav-item-admin"><i class="fa-solid fa-circle-plus"></i>Tạo
+                    phiên</a>
+                <a href="06-AgentList.html" class="nav-item-admin active"><i class="fa-solid fa-building-user"></i>Đại
+                    lý</a>
+                <a href="07-Reports.html" class="nav-item-admin"><i class="fa-solid fa-chart-line"></i>Báo cáo</a>
+                <a href="08-Settings.html" class="nav-item-admin"><i class="fa-solid fa-gear"></i>Cài đặt</a>
+                <a href="10-AuditLogs.html" class="nav-item-admin"><i class="fa-solid fa-clock-rotate-left"></i>Nhật
+                    ký</a>
+            </nav>
+
+            <div class="admin-right">
+                <a href="../00-Home.html" target="_blank"
+                    class="hidden sm:inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg text-slate-300 hover:text-white bg-white/5 border border-white/10 text-xs font-semibold">
+                    <i class="fa-solid fa-arrow-up-right-from-square text-[9px]"></i> Sàn công khai
+                </a>
+                <div class="admin-avatar admin-header-avatar">AD</div>
+                <div class="admin-user-info">
+                    <span class="admin-user-name admin-header-name">Quản trị viên</span>
+                    <span class="admin-user-role admin-header-role">QUẢN TRỊ VIÊN</span>
+                </div>
+                <a href="01-AdminLogin.html" onclick="if(window.CargoStore) CargoStore.logoutAdmin()"
+                    class="admin-logout" title="Đăng xuất">
+                    <i class="fa-solid fa-power-off"></i>
+                </a>
+            </div>
+        </div>
+
+        <div id="adminMobileNav">
+            <a href="02-AdminDashboard.html" class="mobile-nav-item"><i
+                    class="fa-solid fa-gauge-high w-4"></i>Dashboard</a>
+            <a href="03-AuctionList.html" class="mobile-nav-item"><i class="fa-solid fa-list-check w-4"></i>Quản lý
+                phiên</a>
+            <a href="04-CreateAuction.html" class="mobile-nav-item"><i class="fa-solid fa-circle-plus w-4"></i>Tạo
+                phiên</a>
+            <a href="06-AgentList.html" class="mobile-nav-item active"><i class="fa-solid fa-building-user w-4"></i>Đại
+                lý</a>
+            <a href="07-Reports.html" class="mobile-nav-item"><i class="fa-solid fa-chart-line w-4"></i>Báo cáo</a>
+            <a href="08-Settings.html" class="mobile-nav-item"><i class="fa-solid fa-gear w-4"></i>Cài đặt</a>
+            <a href="10-AuditLogs.html" class="mobile-nav-item"><i class="fa-solid fa-clock-rotate-left w-4"></i>Nhật
+                ký</a>
+        </div>
+    </header>
+
+    <!-- Main Container -->
+    <main class="max-w-7xl mx-auto px-3 sm:px-4 py-4 sm:py-6 space-y-5 flex-1 w-full">
+
+        <!-- Top Breadcrumbs & Actions -->
+        <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b pb-4">
+            <div>
+                <a href="06-AgentList.html"
+                    class="text-xs text-slate-500 hover:text-blue-600 flex items-center gap-1.5 mb-1.5 font-medium transition">
+                    <i class="fa-solid fa-arrow-left"></i> Quay lại Danh sách Đại lý
+                </a>
+                <div class="flex items-center gap-3 flex-wrap">
+                    <h1 class="text-xl sm:text-2xl font-bold text-slate-900 flex items-center gap-2">
+                        <i class="fa-solid fa-id-card-clip text-blue-600"></i>
+                        Hồ sơ Đại lý: <span id="headerAgentName" class="text-blue-700">Đang tải...</span>
+                    </h1>
+                    <span id="headerAgentCodeBadge"
+                        class="bg-blue-600 text-white font-mono font-bold text-xs px-2.5 py-1 rounded-lg shadow-2xs">AG-0000</span>
+                    <span id="headerAgentStatusBadge"
+                        class="bg-emerald-100 text-emerald-800 text-xs font-bold px-2.5 py-1 rounded-full">HOẠT
+                        ĐỘNG</span>
+                </div>
+                <p class="text-xs text-slate-500 mt-1" id="headerSubText">
+                    Thông tin đăng ký pháp lý và lịch sử nộp giá thầu của đại lý
+                </p>
+            </div>
+
+            <!-- Top Actions -->
+            <div class="flex items-center gap-2 flex-wrap" id="headerActionButtons">
+                <button type="button" id="btnToggleLock" onclick="toggleCurrentAgentLock()"
+                    class="inline-flex items-center gap-1.5 bg-red-50 hover:bg-red-100 text-red-700 font-bold px-3 py-2 rounded-xl text-xs transition shadow-2xs cursor-pointer">
+                    <i class="fa-solid fa-lock"></i>
+                    <span id="btnToggleLockText">Khóa tài khoản</span>
+                </button>
+            </div>
+        </div>
+
+        <!-- 4 KPI Metrics Cards -->
+        <div class="grid grid-cols-2 md:grid-cols-4 gap-3 sm:gap-4">
+            <div class="bg-white rounded-2xl border p-4 shadow-xs">
+                <div class="flex items-center justify-between text-slate-400 text-xs">
+                    <span>Tổng lượt đặt giá</span>
+                    <i class="fa-solid fa-gavel text-blue-500"></i>
+                </div>
+                <p class="text-xl sm:text-2xl font-black text-slate-900 mt-1.5" id="kpiTotalBids">0</p>
+                <span class="text-[11px] text-slate-400">Tất cả các phiên đã nộp</span>
+            </div>
+            <div class="bg-white rounded-2xl border p-4 shadow-xs">
+                <div class="flex items-center justify-between text-slate-400 text-xs">
+                    <span>Số phiên trúng thầu</span>
+                    <i class="fa-solid fa-trophy text-amber-500"></i>
+                </div>
+                <p class="text-xl sm:text-2xl font-black text-emerald-600 mt-1.5" id="kpiTotalWins">0</p>
+                <span class="text-[11px] text-slate-400">Đơn đã thắng chính thức</span>
+            </div>
+            <div class="bg-white rounded-2xl border p-4 shadow-xs">
+                <div class="flex items-center justify-between text-slate-400 text-xs">
+                    <span>Tỷ lệ trúng thầu</span>
+                    <i class="fa-solid fa-percent text-indigo-500"></i>
+                </div>
+                <p class="text-xl sm:text-2xl font-black text-indigo-600 mt-1.5" id="kpiWinRate">0%</p>
+                <span class="text-[11px] text-slate-400">Hiệu suất đấu thầu</span>
+            </div>
+            <div class="bg-white rounded-2xl border p-4 shadow-xs">
+                <div class="flex items-center justify-between text-slate-400 text-xs">
+                    <span>Tổng giá trị giao dịch</span>
+                    <i class="fa-solid fa-coins text-emerald-500"></i>
+                </div>
+                <p class="text-xl sm:text-2xl font-black text-slate-900 mt-1.5" id="kpiTotalSpent">0 đ</p>
+                <span class="text-[11px] text-slate-400">Sản lượng đã cam kết</span>
+            </div>
+        </div>
+
+        <!-- SECTION 1: Cấu trúc biểu mẫu giống trang Register bên đại lý -->
+        <div class="space-y-4">
+            <div class="flex items-center justify-between">
+                <h2 class="text-base font-bold text-slate-900 flex items-center gap-2">
+                    <i class="fa-solid fa-building-circle-check text-blue-600"></i>
+                    Thông tin Hồ sơ Doanh nghiệp (Đăng ký Đại lý)
+                </h2>
+                <span class="text-xs text-slate-500">Được đồng bộ tự động từ hệ thống xét duyệt</span>
+            </div>
+
+            <!-- Block 1: Thông tin công ty (Phù hợp cấu trúc Register) -->
+            <div class="bg-white rounded-2xl border shadow-xs p-5 space-y-4">
+                <div class="flex items-center gap-2.5 border-b pb-3">
+                    <span
+                        class="w-7 h-7 bg-blue-100 text-blue-700 rounded-lg flex items-center justify-center text-xs font-bold">1</span>
+                    <div>
+                        <h3 class="font-bold text-sm text-slate-900">Thông tin Công ty / Doanh nghiệp</h3>
+                        <p class="text-[11px] text-slate-400">Thông tin pháp lý của đơn vị tham gia sàn đấu giá</p>
+                    </div>
+                </div>
+
+                <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 text-xs">
+                    <div class="lg:col-span-2">
+                        <label class="block text-slate-400 font-medium mb-1">Tên công ty / Doanh nghiệp</label>
+                        <div class="p-2.5 bg-slate-50 border rounded-xl font-bold text-slate-900 text-sm"
+                            id="profCompanyName">-</div>
+                    </div>
+                    <div>
+                        <label class="block text-slate-400 font-medium mb-1">Mã số thuế (MST)</label>
+                        <div class="p-2.5 bg-slate-50 border rounded-xl font-mono font-bold text-blue-700"
+                            id="profTaxCode">-</div>
+                    </div>
+                    <div>
+                        <label class="block text-slate-400 font-medium mb-1">Giấy phép kinh doanh (GPKD) số</label>
+                        <div class="p-2.5 bg-slate-50 border rounded-xl font-mono font-medium text-slate-800"
+                            id="profBusinessLicense">-</div>
+                    </div>
+                    <div>
+                        <label class="block text-slate-400 font-medium mb-1">Lĩnh vực hoạt động</label>
+                        <div class="p-2.5 bg-slate-50 border rounded-xl font-semibold text-slate-800"
+                            id="profBusinessField">-</div>
+                    </div>
+                    <div>
+                        <label class="block text-slate-400 font-medium mb-1">Website doanh nghiệp</label>
+                        <div class="p-2.5 bg-slate-50 border rounded-xl text-blue-600 font-medium" id="profWebsite">-
+                        </div>
+                    </div>
+                    <div class="lg:col-span-3">
+                        <label class="block text-slate-400 font-medium mb-1">Địa chỉ trụ sở chính</label>
+                        <div class="p-2.5 bg-slate-50 border rounded-xl font-medium text-slate-800" id="profAddress">-
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Block 2: Người đại diện & Liên hệ chính (Cấu trúc Register) -->
+            <div class="bg-white rounded-2xl border shadow-xs p-5 space-y-4">
+                <div class="flex items-center gap-2.5 border-b pb-3">
+                    <span
+                        class="w-7 h-7 bg-blue-100 text-blue-700 rounded-lg flex items-center justify-center text-xs font-bold">2</span>
+                    <div>
+                        <h3 class="font-bold text-sm text-slate-900">Người đại diện / Liên hệ chính</h3>
+                        <p class="text-[11px] text-slate-400">Người trực tiếp sử dụng tài khoản đại lý và tiếp nhận
+                            thông báo đấu thầu</p>
+                    </div>
+                </div>
+
+                <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 text-xs">
+                    <div>
+                        <label class="block text-slate-400 font-medium mb-1">Họ và tên người đại diện</label>
+                        <div class="p-2.5 bg-slate-50 border rounded-xl font-bold text-slate-900" id="profRepName">-
+                        </div>
+                    </div>
+                    <div>
+                        <label class="block text-slate-400 font-medium mb-1">Chức vụ</label>
+                        <div class="p-2.5 bg-slate-50 border rounded-xl font-medium text-slate-800" id="profPosition">-
+                        </div>
+                    </div>
+                    <div>
+                        <label class="block text-slate-400 font-medium mb-1">Số điện thoại di động</label>
+                        <div class="p-2.5 bg-slate-50 border rounded-xl font-mono font-bold text-slate-800"
+                            id="profPhone">-</div>
+                    </div>
+                    <div>
+                        <label class="block text-slate-400 font-medium mb-1">Email nhận mã & hợp đồng</label>
+                        <div class="p-2.5 bg-slate-50 border rounded-xl font-mono text-blue-700" id="profEmail">-</div>
+                    </div>
+                    <div>
+                        <label class="block text-slate-400 font-medium mb-1">Số CCCD / Hộ chiếu</label>
+                        <div class="p-2.5 bg-slate-50 border rounded-xl font-mono text-slate-800" id="profCitizenId">-
+                        </div>
+                    </div>
+                    <div>
+                        <label class="block text-slate-400 font-medium mb-1">Email nhận thông báo đấu giá</label>
+                        <div class="p-2.5 bg-slate-50 border rounded-xl font-mono text-slate-800" id="profNotifEmail">-
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Block 3: Hồ sơ đính kèm & Minh chứng KYC (Cấu trúc Register) -->
+            <div class="bg-white rounded-2xl border shadow-xs p-5 space-y-4">
+                <div class="flex items-center justify-between border-b pb-3">
+                    <div class="flex items-center gap-2.5">
+                        <span
+                            class="w-7 h-7 bg-blue-100 text-blue-700 rounded-lg flex items-center justify-center text-xs font-bold">3</span>
+                        <div>
+                            <h3 class="font-bold text-sm text-slate-900">Hồ sơ & Giấy tờ Minh chứng Đính kèm</h3>
+                            <p class="text-[11px] text-slate-400">Giấy tờ pháp lý lưu trữ trên hệ thống phục vụ thẩm
+                                định năng lực</p>
+                        </div>
+                    </div>
+                    <span
+                        class="text-xs bg-emerald-50 text-emerald-800 border border-emerald-200 px-2.5 py-1 rounded-lg font-semibold flex items-center gap-1">
+                        <i class="fa-solid fa-shield-check text-emerald-600"></i> Đã số hóa E-KYC
+                    </span>
+                </div>
+
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-3 text-xs">
+                    <!-- GPKD -->
+                    <div
+                        class="border rounded-xl p-3.5 flex items-center justify-between gap-3 bg-slate-50/70 hover:bg-slate-50 transition">
+                        <div class="flex items-center gap-3">
+                            <div
+                                class="w-10 h-10 rounded-xl bg-red-100 text-red-600 flex items-center justify-center text-lg shrink-0">
+                                <i class="fa-solid fa-file-pdf"></i>
+                            </div>
+                            <div>
+                                <p class="font-bold text-slate-900">Giấy phép kinh doanh / ĐKKD</p>
+                                <p class="text-[11px] text-slate-400">GPKD_Doanh_Nghiep.pdf · 2.4 MB</p>
+                            </div>
+                        </div>
+                        <a href="../uploads/GPKD_Doanh_Nghiep.pdf" target="_blank"
+                            class="px-3 py-1.5 bg-white border hover:bg-blue-50 text-blue-700 hover:border-blue-300 font-bold rounded-lg text-xs transition shadow-2xs inline-flex items-center gap-1">
+                            <i class="fa-solid fa-eye text-xs"></i> Xem PDF
+                        </a>
+                    </div>
+
+                    <!-- Giấy ủy quyền Cargo / IATA -->
+                    <div
+                        class="border rounded-xl p-3.5 flex items-center justify-between gap-3 bg-slate-50/70 hover:bg-slate-50 transition">
+                        <div class="flex items-center gap-3">
+                            <div
+                                class="w-10 h-10 rounded-xl bg-red-100 text-red-600 flex items-center justify-center text-lg shrink-0">
+                                <i class="fa-solid fa-file-pdf"></i>
+                            </div>
+                            <div>
+                                <p class="font-bold text-slate-900">Giấy ủy quyền Đại lý Cargo / IATA</p>
+                                <p class="text-[11px] text-slate-400">IATA_Cargo_Authorization.pdf · 1.8 MB</p>
+                            </div>
+                        </div>
+                        <a href="../uploads/IATA_Cargo_Authorization.pdf" target="_blank"
+                            class="px-3 py-1.5 bg-white border hover:bg-blue-50 text-blue-700 hover:border-blue-300 font-bold rounded-lg text-xs transition shadow-2xs inline-flex items-center gap-1">
+                            <i class="fa-solid fa-eye text-xs"></i> Xem PDF
+                        </a>
+                    </div>
+
+                    <!-- CCCD người đại diện -->
+                    <div
+                        class="border rounded-xl p-3.5 flex items-center justify-between gap-3 bg-slate-50/70 hover:bg-slate-50 transition">
+                        <div class="flex items-center gap-3">
+                            <div
+                                class="w-10 h-10 rounded-xl bg-red-100 text-red-600 flex items-center justify-center text-lg shrink-0">
+                                <i class="fa-solid fa-file-pdf"></i>
+                            </div>
+                            <div>
+                                <p class="font-bold text-slate-900">Bản chụp CCCD / Hộ chiếu Người đại diện</p>
+                                <p class="text-[11px] text-slate-400">CCCD_NguoiDaiDien.pdf · 1.1 MB</p>
+                            </div>
+                        </div>
+                        <a href="../uploads/CCCD_NguoiDaiDien.pdf" target="_blank"
+                            class="px-3 py-1.5 bg-white border hover:bg-blue-50 text-blue-700 hover:border-blue-300 font-bold rounded-lg text-xs transition shadow-2xs inline-flex items-center gap-1">
+                            <i class="fa-solid fa-eye text-xs"></i> Xem PDF
+                        </a>
+                    </div>
+
+                    <!-- Quy chế / Năng lực logistics -->
+                    <div
+                        class="border rounded-xl p-3.5 flex items-center justify-between gap-3 bg-slate-50/70 hover:bg-slate-50 transition">
+                        <div class="flex items-center gap-3">
+                            <div
+                                class="w-10 h-10 rounded-xl bg-red-100 text-red-600 flex items-center justify-center text-lg shrink-0">
+                                <i class="fa-solid fa-file-pdf"></i>
+                            </div>
+                            <div>
+                                <p class="font-bold text-slate-900">Quy chế & Cam kết Đấu thầu Tải trọng</p>
+                                <p class="text-[11px] text-slate-400">Quy_che_dau_gia_tai_trong_Vietravel_Cargo.pdf</p>
+                            </div>
+                        </div>
+                        <a href="../uploads/Quy_che_dau_gia_tai_trong_Vietravel_Cargo.pdf" target="_blank"
+                            class="px-3 py-1.5 bg-white border hover:bg-blue-50 text-blue-700 hover:border-blue-300 font-bold rounded-lg text-xs transition shadow-2xs inline-flex items-center gap-1">
+                            <i class="fa-solid fa-eye text-xs"></i> Xem PDF
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- SECTION 2: LỊCH SỬ ĐẶT PHIÊN CỦA ĐẠI LÝ -->
+        <div class="bg-white rounded-2xl border shadow-sm overflow-hidden space-y-4 p-5">
+            <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b pb-3.5">
+                <div>
+                    <h2 class="text-base font-bold text-slate-900 flex items-center gap-2">
+                        <i class="fa-solid fa-clock-rotate-left text-blue-600"></i>
+                        Lịch sử Đặt phiên & Kết quả Đấu giá của Đại lý
+                    </h2>
+                    <p class="text-xs text-slate-500 mt-0.5">
+                        Tổng hợp toàn bộ các chuyến bay đại lý này đã tham gia nộp giá thầu và kết quả phân định
+                    </p>
+                </div>
+                <div class="flex items-center gap-2 text-xs">
+                    <span class="text-slate-500 font-medium">Bộ lọc:</span>
+                    <select id="bidStatusFilter" onchange="renderAgentBidsHistory()"
+                        class="border rounded-lg px-2.5 py-1.5 bg-white text-slate-700 font-medium outline-none focus:ring-2 focus:ring-blue-500">
+                        <option value="ALL">Tất cả kết quả</option>
+                        <option value="WON">Trúng thầu (Winner)</option>
+                        <option value="LOST">Không trúng thầu</option>
+                        <option value="ACTIVE">Phiên đang mở</option>
+                    </select>
+                </div>
+            </div>
+
+            <!-- Bids Table -->
+            <div class="overflow-x-auto">
+                <table class="w-full text-xs text-left min-w-[760px] whitespace-nowrap">
+                    <thead class="bg-slate-50 text-slate-600 font-bold border-b text-[11px] uppercase">
+                        <tr>
+                            <th class="py-3 px-3.5">Chuyến bay</th>
+                            <th class="py-3 px-3.5">Hành trình & ETD</th>
+                            <th class="py-3 px-3.5">Tải trọng (Kg)</th>
+                            <th class="py-3 px-3.5">Mức giá đặt (đ/Kg)</th>
+                            <th class="py-3 px-3.5">Tổng tiền đặt (VNĐ)</th>
+                            <th class="py-3 px-3.5">Thời gian nộp</th>
+                            <th class="py-3 px-3.5">Kết quả</th>
+                            <th class="py-3 px-3.5 text-right">Thao tác</th>
+                        </tr>
+                    </thead>
+                    <tbody class="divide-y divide-slate-100" id="agentBidsTableBody">
+                        <!-- Populated by JS -->
+                    </tbody>
+                </table>
+            </div>
+
+            <!-- Empty Notice & Pagination Note -->
+            <div id="bidsHistoryEmpty" class="hidden text-center py-8 text-slate-400">
+                <i class="fa-solid fa-inbox text-3xl mb-2 text-slate-300 block"></i>
+                <p class="font-medium text-xs">Đại lý chưa tham gia đặt giá thầu cho chuyến bay nào.</p>
+            </div>
+            <div class="text-[11px] text-slate-400 flex items-center justify-between pt-2 border-t">
+                <span id="agentBidsCountSummary">Hiển thị 0 lượt đặt giá</span>
+                <span>Dữ liệu lưu vết kiểm toán thời gian thực</span>
+            </div>
+        </div>
+
+    </main>
+
+    <footer class="bg-white border-t py-4 text-center text-xs text-slate-400 mt-auto">
+        <p>Hệ thống Đấu giá Tải trọng Hàng không (Cargo Bidding Platform) · Vietravel Airlines</p>
+    </footer>
+
+    <script>
+        let currentAgent = null;
+        let currentAgentCode = '';
+        let currentReg = null;
+
+        document.addEventListener('DOMContentLoaded', () => {
+            loadAgentDetail();
+        });
+
+        function getUrlParam(name) {
+            const urlParams = new URLSearchParams(window.location.search);
+            return urlParams.get(name);
+        }
+
+        function loadAgentDetail() {
+            if (!window.CargoStore) return;
+            const data = CargoStore.getData();
+            const agentsList = data.agentsList || [];
+            const regsList = data.registrations || [];
+
+            const codeParam = (getUrlParam('code') || '').trim().toUpperCase();
+            const regIdParam = (getUrlParam('regId') || '').trim();
+            const idParam = getUrlParam('id');
+
+            // Find agent
+            if (codeParam) {
+                currentAgent = agentsList.find(a => (a.code || '').toUpperCase() === codeParam);
+            } else if (idParam) {
+                currentAgent = agentsList.find(a => String(a.id) === String(idParam));
+            } else if (regIdParam) {
+                currentReg = regsList.find(r => r.regId === regIdParam);
+                if (currentReg) {
+                    currentAgent = agentsList.find(a =>
+                        (a.taxCode && a.taxCode === currentReg.taxCode) ||
+                        (a.email && a.email.toLowerCase() === currentReg.email.toLowerCase()) ||
+                        (a.code && currentReg.assignedCode && a.code === currentReg.assignedCode)
+                    );
+                }
+            }
+
+            // Fallback to first available agent if not specified
+            if (!currentAgent && agentsList.length > 0) {
+                currentAgent = agentsList[0];
+            }
+
+            if (!currentAgent && !currentReg) {
+                alert('Không tìm thấy thông tin đại lý!');
+                window.location.href = '06-AgentList.html';
+                return;
+            }
+
+            currentAgentCode = currentAgent ? (currentAgent.code || 'AG-0892') : (currentReg.assignedCode || 'CHỜ CẤP MÃ');
+
+            // Find matching registration object for extra business details
+            if (!currentReg && currentAgent) {
+                currentReg = regsList.find(r =>
+                    (r.taxCode && r.taxCode === currentAgent.taxCode) ||
+                    (r.email && r.email.toLowerCase() === (currentAgent.email || '').toLowerCase()) ||
+                    (r.companyName && r.companyName === currentAgent.companyName)
+                );
+            }
+
+            renderAgentHeader();
+            renderProfileFields();
+            renderAgentKpis();
+            renderAgentBidsHistory();
+        }
+
+        function renderAgentHeader() {
+            const companyName = currentAgent ? currentAgent.companyName : (currentReg ? currentReg.companyName : 'Đại lý');
+            const isLocked = currentAgent ? (currentAgent.status === 'Đã khóa' || currentAgent.status === 'LOCKED') : false;
+
+            document.getElementById('headerAgentName').textContent = companyName;
+            document.getElementById('headerAgentCodeBadge').textContent = currentAgentCode;
+
+            const statusBadge = document.getElementById('headerAgentStatusBadge');
+            if (isLocked) {
+                statusBadge.className = 'bg-red-100 text-red-700 text-xs font-bold px-2.5 py-1 rounded-full flex items-center gap-1';
+                statusBadge.innerHTML = '<i class="fa-solid fa-ban text-[10px]"></i> TÀI KHOẢN ĐÃ KHÓA';
+            } else {
+                statusBadge.className = 'bg-emerald-100 text-emerald-800 text-xs font-bold px-2.5 py-1 rounded-full flex items-center gap-1';
+                statusBadge.innerHTML = '<i class="fa-solid fa-circle-check text-[10px]"></i> ĐANG HOẠT ĐỘNG';
+            }
+
+            const btnLockText = document.getElementById('btnToggleLockText');
+            const btnLock = document.getElementById('btnToggleLock');
+            if (isLocked) {
+                btnLockText.textContent = 'Mở khóa / Kích hoạt tài khoản';
+                btnLock.className = 'inline-flex items-center gap-1.5 bg-emerald-50 hover:bg-emerald-100 text-emerald-800 font-bold px-3 py-2 rounded-xl text-xs transition shadow-2xs cursor-pointer';
+                btnLock.querySelector('i').className = 'fa-solid fa-lock-open';
+            } else {
+                btnLockText.textContent = 'Khóa tài khoản đại lý';
+                btnLock.className = 'inline-flex items-center gap-1.5 bg-red-50 hover:bg-red-100 text-red-700 font-bold px-3 py-2 rounded-xl text-xs transition shadow-2xs cursor-pointer';
+                btnLock.querySelector('i').className = 'fa-solid fa-lock';
+            }
+        }
+
+        function renderProfileFields() {
+            const ag = currentAgent || {};
+            const reg = currentReg || {};
+
+            document.getElementById('profCompanyName').textContent = ag.companyName || reg.companyName || '-';
+            document.getElementById('profTaxCode').textContent = ag.taxCode || reg.taxCode || '-';
+            document.getElementById('profBusinessLicense').textContent = reg.businessLicense || ag.taxCode || 'Theo MST';
+            document.getElementById('profBusinessField').textContent = reg.businessField || reg.field || 'Freight Forwarder (Giao nhận vận tải hàng không)';
+
+            const webEl = document.getElementById('profWebsite');
+            const website = reg.website || 'https://vietravelairlines.vn';
+            webEl.innerHTML = `<a href="${website}" target="_blank" class="hover:underline flex items-center gap-1"><i class="fa-solid fa-globe text-slate-400"></i> ${website}</a>`;
+
+            document.getElementById('profAddress').textContent = ag.address || reg.address || 'Chưa cập nhật địa chỉ trụ sở';
+
+            document.getElementById('profRepName').textContent = ag.repName || reg.repName || '-';
+            document.getElementById('profPosition').textContent = ag.position || reg.repPosition || 'Người đại diện theo pháp luật';
+            document.getElementById('profPhone').textContent = ag.phone || reg.phone || '-';
+            document.getElementById('profEmail').textContent = ag.email || reg.email || '-';
+            document.getElementById('profCitizenId').textContent = reg.citizenId || '079090001234';
+            document.getElementById('profNotifEmail').textContent = reg.notifEmail || ag.email || reg.email || '-';
+        }
+
+        function renderAgentKpis() {
+            if (!window.CargoStore) return;
+            const data = CargoStore.getData();
+            const bids = data.bids || [];
+            const wonList = data.wonAuctions || [];
+
+            const agentBids = bids.filter(b => (b.agentCode || '').toUpperCase() === currentAgentCode.toUpperCase());
+            const agentWins = wonList.filter(w => (w.agentCode || '').toUpperCase() === currentAgentCode.toUpperCase());
+
+            const totalBidsCount = (currentAgent && currentAgent.totalBids) ? Math.max(currentAgent.totalBids, agentBids.length) : agentBids.length;
+            const totalWinsCount = (currentAgent && currentAgent.totalWins) ? Math.max(currentAgent.totalWins, agentWins.length) : agentWins.length;
+            const winRate = totalBidsCount > 0 ? Math.round((totalWinsCount / totalBidsCount) * 100) + '%' : '0%';
+
+            let totalSpent = 0;
+            if (currentAgent && currentAgent.totalSpentVND) {
+                totalSpent = currentAgent.totalSpentVND;
+            } else {
+                totalSpent = agentWins.reduce((sum, w) => sum + (Number(w.totalAmountVND) || 0), 0);
+            }
+
+            document.getElementById('kpiTotalBids').textContent = totalBidsCount;
+            document.getElementById('kpiTotalWins').textContent = totalWinsCount;
+            document.getElementById('kpiWinRate').textContent = winRate;
+            document.getElementById('kpiTotalSpent').textContent = CargoStore.formatCurrency(totalSpent);
+        }
+
+        function renderAgentBidsHistory() {
+            if (!window.CargoStore) return;
+            const data = CargoStore.getData();
+            const bids = data.bids || [];
+            const auctions = data.auctions || [];
+            const wonList = data.wonAuctions || [];
+            const filter = document.getElementById('bidStatusFilter')?.value || 'ALL';
+
+            // Find all bids for this agent
+            let agentBids = bids.filter(b => (b.agentCode || '').toUpperCase() === currentAgentCode.toUpperCase());
+
+            // Map and attach auction metadata
+            const enriched = agentBids.map(b => {
+                const auc = auctions.find(a => String(a.id) === String(b.auctionId)) || {};
+                const isWon = wonList.some(w => String(w.auctionId) === String(b.auctionId) && (w.agentCode || '').toUpperCase() === currentAgentCode.toUpperCase()) ||
+                    auc.winnerAgentCode === currentAgentCode || b.status === 'WON';
+                const isOpen = auc.status === 'OPEN';
+
+                let resultStatus = 'RECEIVED';
+                if (isWon) resultStatus = 'WON';
+                else if (isOpen) resultStatus = 'ACTIVE';
+                else resultStatus = 'LOST';
+
+                return {
+                    ...b,
+                    auction: auc,
+                    flightNumber: auc.flightNumber || 'VU-CARGO',
+                    route: auc.route || 'SGN - HAN',
+                    aircraft: auc.aircraft || 'Airbus A321neo',
+                    etd: auc.etd || '14:30 · 15/08/2026',
+                    capacityKg: b.weightKg || auc.capacityKg || 3000,
+                    totalVND: (Number(b.priceKg) || 0) * (Number(b.weightKg) || Number(auc.capacityKg) || 0),
+                    resultStatus: resultStatus
+                };
+            });
+
+            // Sắp xếp lịch sử đặt thầu: Gần đây nhất lên đầu (Mới -> Cũ)
+            enriched.sort((a, b) => {
+                const tsA = Number(a.timestamp || a.id) || 0;
+                const tsB = Number(b.timestamp || b.id) || 0;
+                return tsB - tsA;
+            });
+
+            // Filter
+            const filtered = enriched.filter(item => {
+                if (filter === 'ALL') return true;
+                return item.resultStatus === filter;
+            });
+
+            const tbody = document.getElementById('agentBidsTableBody');
+            const emptyEl = document.getElementById('bidsHistoryEmpty');
+            const summaryEl = document.getElementById('agentBidsCountSummary');
+
+            summaryEl.textContent = `Hiển thị ${filtered.length} trên tổng số ${enriched.length} lượt nộp giá`;
+
+            if (filtered.length === 0) {
+                tbody.innerHTML = '';
+                emptyEl.classList.remove('hidden');
+                return;
+            }
+
+            emptyEl.classList.add('hidden');
+            tbody.innerHTML = filtered.map(item => {
+                let badgeHtml = '';
+                if (item.resultStatus === 'WON') {
+                    badgeHtml = `<span class="bg-emerald-100 text-emerald-800 font-bold px-2.5 py-1 rounded-full text-[10px] inline-flex items-center gap-1 shadow-2xs">
+                        <i class="fa-solid fa-trophy text-amber-500"></i> TRÚNG THẦU
+                    </span>`;
+                } else if (item.resultStatus === 'ACTIVE') {
+                    badgeHtml = `<span class="bg-blue-100 text-blue-800 font-bold px-2.5 py-1 rounded-full text-[10px] inline-flex items-center gap-1">
+                        <i class="fa-solid fa-spinner fa-spin text-blue-600"></i> ĐANG ĐẤU
+                    </span>`;
+                } else {
+                    badgeHtml = `<span class="bg-slate-100 text-slate-500 font-medium px-2 py-0.5 rounded text-[10px]">
+                        KHÔNG TRÚNG
+                    </span>`;
+                }
+
+                return `
+                    <tr class="hover:bg-slate-50 transition">
+                        <td class="py-3 px-3.5 font-bold">
+                            <span class="bg-blue-600 text-white font-mono px-2 py-0.5 rounded text-[11px]">${item.flightNumber}</span>
+                        </td>
+                        <td class="py-3 px-3.5">
+                            <span class="font-bold text-slate-800 block">${item.route}</span>
+                            <span class="text-[10px] text-slate-400">${item.etd}</span>
+                        </td>
+                        <td class="py-3 px-3.5 font-medium text-slate-700">
+                            ${CargoStore.formatNumber(item.capacityKg)} Kg
+                        </td>
+                        <td class="py-3 px-3.5 font-bold text-blue-700">
+                            ${CargoStore.formatCurrency(item.priceKg)}
+                        </td>
+                        <td class="py-3 px-3.5 font-bold text-slate-900">
+                            ${CargoStore.formatCurrency(item.totalVND)}
+                        </td>
+                        <td class="py-3 px-3.5 text-slate-500 text-[11px]">
+                            ${CargoStore.formatTimeAgo(item.timestamp, item.time)}
+                        </td>
+                        <td class="py-3 px-3.5">
+                            ${badgeHtml}
+                        </td>
+                        <td class="py-3 px-3.5 text-right">
+                            <a href="05-AuctionDetail.html?id=${item.auctionId || 1}" class="bg-slate-100 hover:bg-blue-600 text-slate-700 hover:text-white font-semibold px-2.5 py-1 rounded-lg text-xs transition inline-flex items-center gap-1">
+                                <i class="fa-solid fa-arrow-up-right-from-square text-[10px]"></i> Xem phiên
+                            </a>
+                        </td>
+                    </tr>
+                `;
+            }).join('');
+        }
+
+        function toggleCurrentAgentLock() {
+            if (!currentAgent) return;
+            const isLocked = currentAgent.status === 'Đã khóa' || currentAgent.status === 'LOCKED';
+            const actionText = isLocked ? 'MỞ KHÓA / KÍCH HOẠT' : 'KHÓA';
+            const reason = prompt(`Nhập lý do ${actionText} tài khoản đại lý ${currentAgentCode}:`, isLocked ? 'Đại lý đã hoàn tất đối soát và nộp bổ sung hồ sơ hợp lệ' : 'Tạm khóa để rà soát chứng từ pháp lý');
+            if (reason === null) return; // User cancelled
+
+            const res = CargoStore.toggleUserLock(currentAgentCode, 'agent', reason);
+            if (res.success) {
+                alert(res.message);
+                loadAgentDetail();
+            } else {
+                alert(res.message);
+            }
+        }
+    </script>
+</body>
+
+</html>

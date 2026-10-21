@@ -1,0 +1,155 @@
+@page
+@model BiddingCargo.Web.Pages.TermsModel
+@{
+    Layout = null;
+}
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Điều khoản & Quy định - Cargo Bidding</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Exo:ital,wght@@0,100;0,200;0,300;0,400;0,500;0,531;0,600;0,700;0,800;0,900;1,100;1,200;1,300;1,400;1,500;1,531;1,600;1,700;1,800;1,900" rel="stylesheet" />
+    <style>
+        body, input, select, textarea, button {
+            font-family: 'Exo', sans-serif;
+        }
+    </style>
+</head>
+<body class="bg-gray-100 text-gray-800">
+
+    <header class="bg-white border-b shadow-sm sticky top-0 z-50">
+        <div class="max-w-7xl mx-auto px-3 sm:px-4 py-2.5 sm:py-3 flex items-center justify-between">
+            <div class="flex items-center gap-2.5 sm:gap-3">
+                <button type="button" onclick="toggleAgentMobileNav()" class="md:hidden text-gray-600 hover:text-blue-600 p-1.5 rounded-xl hover:bg-gray-100 transition focus:outline-none" aria-label="Menu">
+                    <i class="fa-solid fa-bars text-base"></i>
+                </button>
+                <a href="02-Dashboard.html" class="text-gray-500 hover:text-blue-600 p-1.5 rounded-xl hover:bg-gray-100 transition"><i class="fa-solid fa-arrow-left text-sm"></i></a>
+                <div>
+                    <h1 class="font-bold text-sm sm:text-lg text-slate-900 leading-tight">Điều khoản & Quy định</h1>
+                    <p class="text-[10px] sm:text-xs text-gray-500">Sàn đấu giá trực tuyến Cargo Bidding</p>
+                </div>
+            </div>
+            <a href="02-Dashboard.html" class="text-xs text-gray-500 hover:text-blue-600 font-medium flex items-center gap-1">
+                <i class="fa-solid fa-house text-xs"></i> <span class="hidden sm:inline">Dashboard</span>
+            </a>
+        </div>
+        <!-- Mobile Drawer -->
+        <div id="agentMobileNav" class="hidden md:hidden bg-white border-t px-4 py-2.5 space-y-1 text-xs font-medium shadow-lg">
+            <a href="02-Dashboard.html" class="flex items-center gap-2 px-3 py-2 rounded-lg text-gray-700 hover:bg-gray-50 hover:text-blue-600 transition">
+                <i class="fa-solid fa-gauge-high w-4"></i> Tổng quan Dashboard
+            </a>
+            <a href="06-MyBids.html" class="flex items-center gap-2 px-3 py-2 rounded-lg text-gray-700 hover:bg-gray-50 hover:text-blue-600 transition">
+                <i class="fa-solid fa-clock-rotate-left w-4"></i> Lịch sử đặt thầu
+            </a>
+            <a href="07-WonAuction.html" class="flex items-center gap-2 px-3 py-2 rounded-lg text-gray-700 hover:bg-gray-50 hover:text-blue-600 transition">
+                <i class="fa-solid fa-trophy w-4"></i> Đơn hàng thắng thầu
+            </a>
+            <a href="08-Notifications.html" class="flex items-center gap-2 px-3 py-2 rounded-lg text-gray-700 hover:bg-gray-50 hover:text-blue-600 transition">
+                <i class="fa-solid fa-bell w-4"></i> Trung tâm thông báo
+            </a>
+            <a href="09-Profile.html" class="flex items-center gap-2 px-3 py-2 rounded-lg text-gray-700 hover:bg-gray-50 hover:text-blue-600 transition">
+                <i class="fa-solid fa-user-shield w-4"></i> Hồ sơ đại lý & Mã PIN
+            </a>
+            <a href="10-Terms.html" class="flex items-center gap-2 px-3 py-2 rounded-lg bg-blue-50 text-blue-600 font-semibold transition border-t pt-2 mt-1">
+                <i class="fa-solid fa-file-contract w-4"></i> Quy chế & Điều khoản
+            </a>
+        </div>
+    </header>
+
+    <main class="max-w-7xl mx-auto px-3 sm:px-4 py-4 sm:py-8">
+
+        <div class="bg-white rounded-2xl border shadow-sm p-4 sm:p-8 space-y-6 sm:space-y-8">
+
+            <section>
+                <h2 class="text-lg font-bold mb-3 flex items-center gap-2 text-slate-900">
+                    <span class="w-7 h-7 bg-blue-100 text-blue-700 rounded-lg flex items-center justify-center text-sm font-bold">1</span>
+                    Quy định chung
+                </h2>
+                <div class="text-sm text-gray-600 space-y-2 leading-relaxed pl-9">
+                    <p>Hệ thống Cargo Bidding là nền tảng đấu giá slot hàng hóa hàng không dành riêng cho các đại lý được ủy quyền chính thức.</p>
+                    <p>Mọi hành vi tham gia đấu giá đồng nghĩa với việc đại lý đã đọc, hiểu và đồng ý vô điều kiện với toàn bộ các điều khoản trong văn bản này.</p>
+                    <p>Hãng hàng không có toàn quyền từ chối hoặc hủy bỏ kết quả đấu giá nếu phát hiện có bất kỳ dấu hiệu thông đồng gian lận, phá hoại hoặc vi phạm quy định vận hành.</p>
+                </div>
+            </section>
+
+            <section>
+                <h2 class="text-lg font-bold mb-3 flex items-center gap-2 text-slate-900">
+                    <span class="w-7 h-7 bg-blue-100 text-blue-700 rounded-lg flex items-center justify-center text-sm font-bold">2</span>
+                    Cách thức đấu giá
+                </h2>
+                <div class="text-sm text-gray-600 space-y-2 leading-relaxed pl-9">
+                    <p>• Mỗi chuyến bay có mức giá khởi điểm sàn được công bố rõ ràng trên hệ thống.</p>
+                    <p>• <strong>Mức giá đặt thầu:</strong> Đại lý chủ động tự nhập mức giá chào thầu mong muốn (chỉ cần &ge; Giá khởi điểm sàn). Hệ thống không áp dụng giới hạn bước giá để đại lý linh hoạt đưa ra mức giá cạnh tranh nhất.</p>
+
+                    <p>• Phiên đấu giá kết thúc đúng thời điểm đã công bố (thường trước giờ cất cánh dự kiến ETD 2–4 giờ).</p>
+                    <p>• Người đặt giá cao nhất hợp lệ tại thời điểm đóng thầu sẽ là người chiến thắng chính thức.</p>
+                </div>
+            </section>
+
+            <section>
+                <h2 class="text-lg font-bold mb-3 flex items-center gap-2 text-slate-900">
+                    <span class="w-7 h-7 bg-blue-100 text-blue-700 rounded-lg flex items-center justify-center text-sm font-bold">3</span>
+                    Nghĩa vụ của bên thắng thầu & Thời hạn thanh toán
+                </h2>
+                <div class="text-sm text-gray-600 space-y-2 leading-relaxed pl-9">
+                    <p>• <strong>Thời hạn thanh toán:</strong> Đại lý thắng thầu có nghĩa vụ hoàn tất thanh toán trước hạn chót quy định (trước giờ Cut-off kho tiếp nhận hàng / ETD - 3 giờ, hoặc tối đa 24 giờ đối với chuyến bay tiêu chuẩn).</p>
+                    <p>• <strong>Chế tài khóa tài khoản tự động:</strong> Trường hợp quá hạn thanh toán mà chưa hoàn tất nghĩa vụ tài chính, hệ thống sẽ <strong>TỰ ĐỘNG KHÓA TÀI KHOẢN ĐẠI LÝ</strong>, hủy quyền giữ slot và tạm dừng mọi quyền tham gia đấu giá trên sàn Vietravel Airlines Cargo.</p>
+                    <p>• <strong>Khai báo hàng hóa:</strong> Phải hoàn tất khai báo thông tin hàng hóa (Tên hàng, quy cách đóng gói, HAWB, Shipper/Consignee) trước giờ Cut-off kho để phục vụ lập Manifest và cân bằng tải trọng bay.</p>
+                    <p>• Phải tuân thủ nghiêm ngặt quy định về thời gian cut-off chứng từ và thủ tục giao nhận hàng tại nhà ga kho hàng sân bay (TCS, SCSC, NCTS, ACS...).</p>
+                </div>
+            </section>
+
+            <section>
+                <h2 class="text-lg font-bold mb-3 flex items-center gap-2 text-slate-900">
+                    <span class="w-7 h-7 bg-blue-100 text-blue-700 rounded-lg flex items-center justify-center text-sm font-bold">4</span>
+                    Hủy thầu & Xử lý vi phạm
+                </h2>
+                <div class="text-sm text-gray-600 space-y-2 leading-relaxed pl-9">
+                    <p>• Đại lý không được tự ý hủy bỏ lượt đặt thầu sau khi đã được xác nhận là người chiến thắng.</p>
+                    <p>• Các hành vi thông đồng giá, sử dụng tài khoản ảo hoặc can thiệp kỹ thuật vào sàn đấu giá sẽ bị thu hồi tư cách đại lý và khóa tài khoản vĩnh viễn.</p>
+                    <p>• Hãng có quyền phong tỏa tài khoản tạm thời để thẩm tra nếu phát hiện giao dịch bất thường.</p>
+                </div>
+            </section>
+
+            <section>
+                <h2 class="text-lg font-bold mb-3 flex items-center gap-2 text-slate-900">
+                    <span class="w-7 h-7 bg-blue-100 text-blue-700 rounded-lg flex items-center justify-center text-sm font-bold">5</span>
+                    Trách nhiệm & Miễn trừ
+                </h2>
+                <div class="text-sm text-gray-600 space-y-2 leading-relaxed pl-9">
+                    <p>Hãng hàng không không chịu trách nhiệm đối với các thiệt hại phát sinh do đại lý không theo dõi thông báo, trễ hạn thanh toán trước giờ Cut-off hoặc không đến giao nhận hàng đúng quy trình sân bay.</p>
+                    <p>Hệ thống có thể tạm ngưng hoạt động để bảo trì nâng cấp mà không cần thông báo trước trong các tình huống khẩn cấp vì lý do an toàn bay.</p>
+                </div>
+            </section>
+
+            <section>
+                <h2 class="text-lg font-bold mb-3 flex items-center gap-2 text-slate-900">
+                    <span class="w-7 h-7 bg-blue-100 text-blue-700 rounded-lg flex items-center justify-center text-sm font-bold">6</span>
+                    Liên hệ hỗ trợ
+                </h2>
+                <div class="text-sm text-gray-600 space-y-2 leading-relaxed pl-9">
+                    <p>Tổng đài điều hành Cargo: <strong>1900.6686</strong></p>
+                    <p>Hòm thư điện tử chính thức: <strong>cargo@@vietravelairlines.vn</strong></p>
+                    <p>Khung giờ tiếp nhận hỗ trợ: <strong>24/7</strong> tất cả các ngày trong tuần</p>
+                </div>
+            </section>
+
+            <div class="pt-6 border-t text-center text-xs text-gray-400">
+                Phiên bản điều khoản: 2.2 · Cập nhật lần cuối: 08/09/2026
+            </div>
+        </div>
+    </main>
+
+    <script>
+    function toggleAgentMobileNav() {
+        const nav = document.getElementById('agentMobileNav');
+        if (nav) nav.classList.toggle('hidden');
+    }
+    </script>
+</body>
+</html>

@@ -1,0 +1,996 @@
+@page
+@model BiddingCargo.Web.Pages.DashboardModel
+@{
+    Layout = null;
+}
+<!DOCTYPE html>
+<html lang="vi">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Sàn Đấu Giá Trực Tuyến - Cargo Bidding | Vietravel Airlines</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+    <script src="assets/js/sweetalert2.all.min.js"></script>
+    <script src="assets/js/cargo-store.js?v=20261014_01"></script>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link
+        href="https://fonts.googleapis.com/css2?family=Exo:ital,wght@@0,100;0,200;0,300;0,400;0,500;0,531;0,600;0,700;0,800;0,900;1,100;1,200;1,300;1,400;1,500;1,531;1,600;1,700;1,800;1,900"
+        rel="stylesheet" />
+    <style>
+        body,
+        input,
+        select,
+        textarea,
+        button {
+            font-family: 'Exo', sans-serif;
+        }
+    </style>
+</head>
+
+<body class="bg-gray-50 text-gray-800">
+
+    <!-- Top Navigation Bar for Agent -->
+    <header class="bg-white border-b shadow-sm sticky top-0 z-50">
+        <div class="max-w-7xl mx-auto px-3 sm:px-4 py-2.5 sm:py-3 flex items-center justify-between">
+            <div class="flex items-center gap-2.5 sm:gap-6">
+                <!-- Mobile Menu Toggle Button -->
+                <button type="button" onclick="toggleAgentMobileNav()"
+                    class="md:hidden text-gray-600 hover:text-blue-600 p-1.5 rounded-xl hover:bg-gray-100 transition focus:outline-none"
+                    aria-label="Menu">
+                    <i class="fa-solid fa-bars text-base"></i>
+                </button>
+
+                <a href="02-Dashboard.html" class="flex items-center gap-2.5 shrink-0">
+                    <img src="assets/images/vietravel-logo-doc.png" alt="Vietravel Airlines"
+                        class="h-8 sm:h-9 object-contain" />
+                    <span
+                        class="font-bold text-sm sm:text-base text-slate-900 tracking-tight border-l border-slate-200 pl-2.5">Cargo
+                        Bidding</span>
+                </a>
+                <nav class="hidden md:flex items-center gap-1 text-sm font-medium">
+                    <a href="02-Dashboard.html"
+                        class="px-3 py-1.5 rounded-lg bg-blue-50 text-blue-600 font-semibold flex items-center gap-1.5">
+                        <i class="fa-solid fa-gavel text-xs"></i> Sàn đấu giá trực tuyến
+                    </a>
+                    <a href="06-MyBids.html"
+                        class="px-3 py-1.5 rounded-lg text-gray-600 hover:text-blue-600 hover:bg-gray-50 transition flex items-center gap-1.5">
+                        <i class="fa-solid fa-clock-rotate-left text-xs"></i> Lịch sử thầu
+                    </a>
+                    <a href="07-WonAuction.html"
+                        class="px-3 py-1.5 rounded-lg text-gray-600 hover:text-blue-600 hover:bg-gray-50 transition flex items-center gap-1.5">
+                        <i class="fa-solid fa-trophy text-xs"></i> Thắng thầu
+                    </a>
+                </nav>
+            </div>
+
+            <!-- Right Actions: Notifications & Profile -->
+            <div class="flex items-center gap-1.5 sm:gap-3">
+                <a href="08-Notifications.html"
+                    class="relative p-1.5 sm:p-2 text-gray-500 hover:text-blue-600 rounded-xl hover:bg-gray-100 transition"
+                    title="Thông báo">
+                    <i class="fa-solid fa-bell text-base sm:text-lg"></i>
+                    <span id="headerNotifDot"
+                        class="absolute top-1 sm:top-1.5 right-1 sm:right-1.5 w-2.5 h-2.5 bg-red-500 rounded-full border-2 border-white animate-pulse"></span>
+                </a>
+
+                <div class="h-6 w-px bg-gray-200 hidden sm:block"></div>
+
+                <a href="09-Profile.html"
+                    class="flex items-center gap-2 hover:bg-gray-50 p-1 sm:p-1.5 rounded-xl transition">
+                    <div id="hdrAvatar"
+                        class="w-7 h-7 sm:w-8 sm:h-8 rounded-lg bg-blue-100 text-blue-700 flex items-center justify-center font-bold text-xs">
+                        AG
+                    </div>
+                    <div class="hidden sm:block text-left">
+                        <p id="hdrCompany"
+                            class="text-xs font-bold text-slate-800 leading-tight truncate max-w-[120px]">ABC Logistics
+                        </p>
+                        <p class="text-[11px] text-gray-500 leading-none">Mã: <span id="hdrCode"
+                                class="text-blue-600 font-semibold font-mono">AG-0892</span></p>
+                    </div>
+                </a>
+
+                <a href="01-Login.html" onclick="if(window.CargoStore) CargoStore.logoutAgent()" title="Đăng xuất"
+                    class="text-gray-400 hover:text-red-600 p-1.5 sm:p-2 transition">
+                    <i class="fa-solid fa-right-from-bracket text-sm sm:text-base"></i>
+                </a>
+            </div>
+        </div>
+
+        <!-- Mobile Navigation Menu Dropdown -->
+        <div id="agentMobileNav"
+            class="hidden md:hidden bg-white border-t px-4 py-2.5 space-y-1 text-xs font-medium shadow-lg">
+            <a href="02-Dashboard.html"
+                class="flex items-center gap-2 px-3 py-2 rounded-lg bg-blue-50 text-blue-600 font-semibold">
+                <i class="fa-solid fa-gavel w-4"></i> Sàn đấu giá trực tuyến
+            </a>
+            <a href="06-MyBids.html"
+                class="flex items-center gap-2 px-3 py-2 rounded-lg text-gray-700 hover:bg-gray-50 hover:text-blue-600 transition">
+                <i class="fa-solid fa-clock-rotate-left w-4"></i> Lịch sử đặt thầu
+            </a>
+            <a href="07-WonAuction.html"
+                class="flex items-center gap-2 px-3 py-2 rounded-lg text-gray-700 hover:bg-gray-50 hover:text-blue-600 transition">
+                <i class="fa-solid fa-trophy w-4"></i> Đơn hàng thắng thầu
+            </a>
+            <a href="08-Notifications.html"
+                class="flex items-center gap-2 px-3 py-2 rounded-lg text-gray-700 hover:bg-gray-50 hover:text-blue-600 transition">
+                <i class="fa-solid fa-bell w-4"></i> Trung tâm thông báo
+            </a>
+            <a href="09-Profile.html"
+                class="flex items-center gap-2 px-3 py-2 rounded-lg text-gray-700 hover:bg-gray-50 hover:text-blue-600 transition">
+                <i class="fa-solid fa-user-shield w-4"></i> Hồ sơ đại lý & Mã PIN
+            </a>
+            <a href="10-Terms.html"
+                class="flex items-center gap-2 px-3 py-2 rounded-lg text-gray-500 hover:bg-gray-50 hover:text-gray-800 transition border-t pt-2 mt-1">
+                <i class="fa-solid fa-file-contract w-4"></i> Quy chế & Điều khoản
+            </a>
+        </div>
+    </header>
+
+    <!-- Main Content -->
+    <main class="max-w-7xl mx-auto px-3 sm:px-4 py-4 sm:py-6 space-y-4 sm:space-y-6">
+
+        <!-- PIN Setup Reminder Banner (only shown if agent has no PIN) -->
+        <div id="pinReminderBanner"
+            class="hidden bg-gradient-to-r from-amber-500/10 via-amber-50 to-orange-50 border border-amber-200 rounded-2xl p-4 sm:p-5 flex flex-col sm:flex-row sm:items-center justify-between gap-3 shadow-xs">
+            <div class="flex items-start sm:items-center gap-3">
+                <div
+                    class="w-10 h-10 rounded-xl bg-amber-500 text-white flex items-center justify-center shrink-0 text-base shadow-sm">
+                    <i class="fa-solid fa-shield-halved"></i>
+                </div>
+                <div>
+                    <h4 class="font-bold text-slate-900 text-xs sm:text-sm flex items-center gap-2">
+                        Thiết lập Mã PIN bảo mật (4 chữ số)
+                        <span class="text-[10px] font-bold px-2 py-0.5 rounded-full bg-amber-100 text-amber-800">Khuyến
+                            nghị bảo mật</span>
+                    </h4>
+                    <p class="text-xs text-slate-600 mt-0.5">
+                        Tài khoản của bạn chưa tạo mã PIN. Hãy thiết lập ngay để tăng cường bảo mật và ủy quyền giao
+                        dịch đấu giá nhanh chóng.
+                    </p>
+                </div>
+            </div>
+            <a href="09-Profile.html#pinSecurityCard"
+                class="shrink-0 bg-amber-600 hover:bg-amber-700 text-white font-bold text-xs px-4 py-2.5 rounded-xl transition shadow flex items-center justify-center gap-1.5">
+                <i class="fa-solid fa-key"></i> Thiết lập PIN ngay
+            </a>
+        </div>
+
+        <!-- 3 KPI Cards -->
+        <div class="grid grid-cols-1 sm:grid-cols-3 gap-3 sm:gap-4">
+            <div
+                class="bg-white rounded-xl sm:rounded-2xl p-4 sm:p-5 border shadow-sm flex items-center gap-3.5 sm:gap-4">
+                <div
+                    class="w-11 h-11 sm:w-12 sm:h-12 rounded-xl bg-blue-50 text-blue-600 flex items-center justify-center text-lg sm:text-xl shrink-0">
+                    <i class="fa-solid fa-plane-departure"></i>
+                </div>
+                <div class="min-w-0 flex-1">
+                    <p class="text-xs text-gray-500 font-medium">Phiên đang mở thầu</p>
+                    <p id="kpiOpenSessions" class="text-xl sm:text-2xl font-bold text-slate-900 mt-0.5">0</p>
+                    <span class="text-[11px] text-green-600 font-semibold block truncate">Hôm nay sẵn sàng đấu
+                        giá</span>
+                </div>
+            </div>
+
+            <div
+                class="bg-white rounded-xl sm:rounded-2xl p-4 sm:p-5 border shadow-sm flex items-center gap-3.5 sm:gap-4">
+                <div
+                    class="w-11 h-11 sm:w-12 sm:h-12 rounded-xl bg-blue-50 text-blue-600 flex items-center justify-center text-lg sm:text-xl shrink-0">
+                    <i class="fa-solid fa-gavel"></i>
+                </div>
+                <div class="min-w-0 flex-1">
+                    <p class="text-xs text-gray-500 font-medium">Gói thầu đã tham gia</p>
+                    <p id="kpiLeading" class="text-xl sm:text-2xl font-bold text-blue-600 mt-0.5 truncate">0 <span
+                            class="text-xs text-gray-400 font-normal">chuyến</span></p>
+                </div>
+            </div>
+
+            <div
+                class="bg-white rounded-xl sm:rounded-2xl p-4 sm:p-5 border shadow-sm flex items-center gap-3.5 sm:gap-4">
+                <div
+                    class="w-11 h-11 sm:w-12 sm:h-12 rounded-xl bg-emerald-50 text-emerald-600 flex items-center justify-center text-lg sm:text-xl shrink-0">
+                    <i class="fa-solid fa-trophy"></i>
+                </div>
+                <div class="min-w-0 flex-1">
+                    <p class="text-xs text-gray-500 font-medium">Đã trúng thầu</p>
+                    <p id="kpiWon" class="text-xl sm:text-2xl font-bold text-emerald-600 mt-0.5 truncate">0 <span
+                            class="text-xs text-gray-400 font-normal">đơn</span></p>
+                </div>
+            </div>
+        </div>
+
+        <!-- Main Auctions Section (Full Width, Excel Layout) -->
+        <div class="space-y-4">
+            <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pb-1">
+                <!-- <div>
+                    <h3 class="font-bold text-lg text-slate-900 flex items-center gap-2">
+                        <i class="fa-solid fa-file-excel text-emerald-600"></i> Danh sách gói thầu tải trọng đang mở
+                    </h3>
+                    <p class="text-xs text-slate-500 mt-0.5">
+                        Bảng thông tin đăng ký gói thầu theo mẫu biểu: Cam kết sản lượng tối thiểu & Đơn giá
+                        cước vận chuyển.
+                    </p>
+                </div> -->
+
+                <!-- Bộ lọc theo giai đoạn bay: Từ ngày -> Đến ngày -->
+                <div
+                    class="flex items-center gap-2 bg-white px-3 py-1.5 rounded-xl border border-slate-200 shadow-2xs text-xs flex-wrap">
+                    <span class="text-slate-600 font-semibold flex items-center gap-1">
+                        <i class="fa-regular fa-calendar-days text-blue-600"></i> Giai đoạn bay:
+                    </span>
+                    <div class="flex items-center gap-1.5">
+                        <input type="date" id="dashFilterFromDate" onchange="applyDashDateFilter()"
+                            class="border border-slate-200 rounded-lg px-2 py-1 text-xs font-medium outline-none focus:border-blue-500 bg-slate-50 focus:bg-white text-slate-700"
+                            title="Từ ngày">
+                        <span class="text-slate-400 font-bold">➔</span>
+                        <input type="date" id="dashFilterToDate" onchange="applyDashDateFilter()"
+                            class="border border-slate-200 rounded-lg px-2 py-1 text-xs font-medium outline-none focus:border-blue-500 bg-slate-50 focus:bg-white text-slate-700"
+                            title="Đến ngày">
+                        <button type="button" onclick="clearDashDateFilter()" title="Xóa bộ lọc ngày"
+                            class="text-slate-400 hover:text-slate-700 px-1.5 py-1 text-xs cursor-pointer">
+                            <i class="fa-solid fa-rotate-left"></i>
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- List of Excel-style Auction Cards -->
+            <div id="dashboardAuctionList" class="space-y-4">
+                <!-- Rendered by JS -->
+            </div>
+            <div id="dashAuctionPagination"></div>
+        </div>
+
+    </main>
+
+    <script>
+        function toggleAgentMobileNav() {
+            const nav = document.getElementById('agentMobileNav');
+            if (nav) nav.classList.toggle('hidden');
+        }
+
+        let dashAuctionCurrentPage = 1;
+        const dashAuctionPageSize = 20;
+        const dashInputCache = {};
+        const dashCheckCache = {};
+        let dashFilterFrom = '';
+        let dashFilterTo = '';
+
+        function applyDashDateFilter() {
+            dashFilterFrom = document.getElementById('dashFilterFromDate')?.value || '';
+            dashFilterTo = document.getElementById('dashFilterToDate')?.value || '';
+            dashAuctionCurrentPage = 1;
+            renderDashboard();
+        }
+
+        function clearDashDateFilter() {
+            dashFilterFrom = '';
+            dashFilterTo = '';
+            const f1 = document.getElementById('dashFilterFromDate');
+            const f2 = document.getElementById('dashFilterToDate');
+            if (f1) f1.value = '';
+            if (f2) f2.value = '';
+            dashAuctionCurrentPage = 1;
+            renderDashboard();
+        }
+
+        function goToDashAuctionPage(page) {
+            dashAuctionCurrentPage = page;
+            renderDashboard();
+        }
+
+        function renderDashboard() {
+            if (typeof CargoStore === 'undefined') return;
+
+            const u = CargoStore.getCurrentUser();
+            const myCode = u ? (u.agentCode || '') : '';
+            const allAuctions = CargoStore.getAuctions();
+            let openAuctions = allAuctions.filter(a => a.status === 'OPEN' && CargoStore.isAgentAllowedForAuction(a, myCode));
+
+            // Filter by date range (Giai đoạn bay)
+            if (dashFilterFrom) {
+                openAuctions = openAuctions.filter(a => {
+                    const fStart = a.flightStartDate || (a.etdIso ? a.etdIso.slice(0, 10) : '');
+                    const fEnd = a.flightEndDate || fStart;
+                    return !fEnd || fEnd >= dashFilterFrom;
+                });
+            }
+            if (dashFilterTo) {
+                openAuctions = openAuctions.filter(a => {
+                    const fStart = a.flightStartDate || (a.etdIso ? a.etdIso.slice(0, 10) : '');
+                    return !fStart || fStart <= dashFilterTo;
+                });
+            }
+
+            // === Update Header Profile ===
+            if (u) {
+                const hdrCompany = document.getElementById('hdrCompany');
+                const hdrCode = document.getElementById('hdrCode');
+                const hdrAvatar = document.getElementById('hdrAvatar');
+                if (hdrCompany) hdrCompany.textContent = u.companyName || 'Đại lý';
+                if (hdrCode) hdrCode.textContent = u.agentCode || 'AG-xxxx';
+                if (hdrAvatar) hdrAvatar.textContent = (u.agentCode || 'AG').slice(0, 2);
+                if (document.getElementById('dashWelcomeName')) document.getElementById('dashWelcomeName').textContent = `Xin chào, ${u.fullName || 'Đại lý'}`;
+                if (document.getElementById('dashCompanyInfo')) document.getElementById('dashCompanyInfo').innerHTML = `${u.companyName} (${u.agentCode}) · Hôm nay có <strong>${openAuctions.length} chuyến bay</strong> mở thầu tải trọng cargo.`;
+                if (document.getElementById('dashTierLabel')) document.getElementById('dashTierLabel').textContent = 'Đại lý ủy quyền chính thức';
+
+                // Check PIN status and show reminder banner if missing
+                const pinBanner = document.getElementById('pinReminderBanner');
+                if (pinBanner) {
+                    const storeData = (typeof CargoStore !== 'undefined' && CargoStore.getData) ? CargoStore.getData() : null;
+                    const agentObj = storeData && storeData.agentsList ? storeData.agentsList.find(a => (a.code || '').toUpperCase() === (u.agentCode || '').toUpperCase()) : null;
+                    const hasPin = Boolean(u.pin || (agentObj && agentObj.pin));
+
+                    if (!hasPin) {
+                        pinBanner.classList.remove('hidden');
+                    } else {
+                        pinBanner.classList.add('hidden');
+                    }
+                }
+            }
+
+            // === Update Notification Dot (Bell Badge) ===
+            const notifDot = document.getElementById('headerNotifDot');
+            if (notifDot) {
+                const allNotifs = (CargoStore.getNotifications ? CargoStore.getNotifications() : []).filter(n => {
+                    if (!n) return false;
+                    const t = (n.title || '').toUpperCase();
+                    const m = (n.message || '').toUpperCase();
+                    return !(t.includes('THANH TOÁN') || t.includes('CHUYỂN KHOẢN') || m.includes('THANH TOÁN') || m.includes('CHUYỂN KHOẢN') || n.type === 'PAYMENT_REMINDER' || n.type === 'PAYMENT');
+                });
+                const unreadCount = allNotifs.filter(n => !n.read).length;
+                notifDot.style.display = unreadCount > 0 ? 'block' : 'none';
+            }
+
+            // === KPI 1: Phiên đang mở ===
+            const kpiOpen = document.getElementById('kpiOpenSessions');
+            if (kpiOpen) kpiOpen.textContent = openAuctions.length;
+
+            // === KPI 2: Đã đặt thầu (Đang tham gia) ===
+            const myBids = CargoStore.getMyBids ? CargoStore.getMyBids() : [];
+            const openAuctionIds = new Set(openAuctions.map(a => String(a.id)));
+            const myParticipatingAuctionIds = new Set(
+                myBids.filter(b => openAuctionIds.has(String(b.auctionId))).map(b => String(b.auctionId))
+            );
+            const participatingCount = myParticipatingAuctionIds.size;
+            const kpiLeading = document.getElementById('kpiLeading');
+            if (kpiLeading) kpiLeading.innerHTML = `${participatingCount} <span class="text-xs text-gray-400 font-normal">chuyến</span>`;
+
+            // === KPI 3: Thắng thầu (tính từ dữ liệu thực) ===
+            const wonAuctions = CargoStore.getWonAuctions ? CargoStore.getWonAuctions() : [];
+            const kpiWon = document.getElementById('kpiWon');
+            if (kpiWon) kpiWon.innerHTML = `${wonAuctions.length} <span class="text-xs text-gray-400 font-normal">đơn</span>`;
+
+            // === Render Featured Open Auctions (Unified Excel Bidding Sheet) ===
+            const totalOpen = openAuctions.length;
+            const container = document.getElementById('dashboardAuctionList');
+            const pagContainer = document.getElementById('dashAuctionPagination');
+            if (pagContainer) pagContainer.innerHTML = '';
+
+            if (container) {
+                if (totalOpen === 0) {
+                    container.innerHTML = `<div class="p-8 text-center text-gray-400 text-sm bg-white rounded-2xl border">Hiện chưa có phiên đấu giá nào đang mở.</div>`;
+                } else {
+                    let endStr = '15/10/2026';
+                    let startStr = '13/10/2026';
+                    try {
+                        const firstWithEnd = openAuctions.find(a => a.endTime);
+                        if (firstWithEnd) {
+                            const ed = new Date(firstWithEnd.endTime);
+                            endStr = ed.toLocaleDateString('vi-VN');
+                            const sd = firstWithEnd.createdAt ? new Date(firstWithEnd.createdAt) : new Date(ed.getTime() - 2 * 86400000);
+                            startStr = sd.toLocaleDateString('vi-VN');
+                        }
+                    } catch (err) { }
+
+                    const tableRowsHtml = openAuctions.map(a => {
+                        const timer = CargoStore.getTimeRemaining(a.endTime);
+                        const auctionMyBids = (myBids || []).filter(b => String(b.auctionId) === String(a.id));
+                        const myHighestBid = auctionMyBids.length > 0
+                            ? auctionMyBids.sort((x, y) => (Number(y.priceKg) || 0) - (Number(x.priceKg) || 0))[0]
+                            : null;
+
+                        const capKg = a.capacityKg || 3500;
+                        const startPrice = a.startingPriceKg || 18000;
+                        const isSubmitted = !!myHighestBid;
+                        const currentPrice = isSubmitted
+                            ? myHighestBid.priceKg
+                            : (dashInputCache[a.id] !== undefined ? dashInputCache[a.id] : startPrice);
+                        const rowTotal = capKg * currentPrice;
+
+                        return `
+                            <tr class="hover:bg-blue-50/30 transition">
+                                <td class="py-3.5 px-4 border-r border-slate-200">
+                                    <div class="flex items-start gap-2.5">
+                                        ${isSubmitted ? `
+                                            <span class="mt-0.5 text-emerald-600 text-sm shrink-0" title="Đã xác nhận đặt giá"><i class="fa-solid fa-circle-check"></i></span>
+                                        ` : `
+                                            <span class="mt-0.5 text-slate-400 text-xs shrink-0" title="Chưa xác nhận đặt giá"><i class="fa-solid fa-plane-departure"></i></span>
+                                        `}
+                                        <div>
+                                            <div class="flex items-center gap-2">
+                                                <span class="font-bold text-slate-900 text-sm font-mono bg-blue-50 text-blue-800 px-2 py-0.5 rounded border border-blue-200">${a.flightNumber}</span>
+                                                <span class="text-slate-600 font-semibold text-xs">(${a.route})</span>
+                                            </div>
+                                            <div class="text-[11px] text-slate-500 mt-1 space-y-0.5">
+                                                <p>${a.originName || a.origin} ➔ ${a.destName || a.destination}</p>
+                                                ${a.flightPeriod ? `
+                                                    <div class="flex items-center gap-1.5 text-blue-700 font-semibold py-0.5">
+                                                        <i class="fa-regular fa-calendar-days text-blue-600"></i>
+                                                        <span>Giai đoạn bay: <strong>${a.flightPeriod}</strong></span>
+                                                    </div>
+                                                ` : ''}
+                                                <div class="flex items-center gap-2 flex-wrap">
+                                                    <span>ETD: <strong>${a.etd}</strong></span>
+                                                    <span>·</span>
+                                                    <span class="dash-timer-text text-amber-600 font-semibold" data-endtime="${a.endTime}">
+                                                        <i class="fa-regular fa-clock mr-0.5"></i><span class="timer-val">Còn ${timer.hours > 0 ? timer.hours + 'h ' : ''}${timer.minutes}m ${timer.seconds}s</span>
+                                                    </span>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </td>
+                                <td class="py-3.5 px-4 border-r border-slate-200">
+                                    <span class="font-bold text-slate-900 text-sm">${CargoStore.formatNumber(capKg)} KG</span>  
+                                </td>
+                                <td class="py-3.5 px-4 border-r border-slate-200">
+                                    ${isSubmitted ? `
+                                        <div class="flex items-center gap-1.5">
+                                            <span class="font-bold text-blue-700 text-base">${CargoStore.formatCurrency(myHighestBid.priceKg)}</span>
+                                        </div>                                        
+                                    ` : `
+                                        <div class="flex items-center gap-1.5">
+                                            <input type="number" 
+                                                   id="dashBidInput_${a.id}" 
+                                                   value="${currentPrice}" 
+                                                   min="${startPrice}" 
+                                                   step="${a.minStep || 500}" 
+                                                   oninput="onDashPriceInput(${a.id}, ${capKg})" 
+                                                   class="w-36 px-3 py-1.5 border-2 border-blue-400 focus:border-blue-600 focus:ring-2 focus:ring-blue-100 rounded-lg text-sm font-bold text-blue-800 bg-white outline-none shadow-2xs">
+                                            <span class="text-xs font-semibold text-slate-600">VNĐ</span>
+                                        </div>
+                                    `}
+                                </td>
+                                <td class="py-3.5 px-4">
+                                    <div class="flex items-center justify-between gap-3">
+                                        <div>
+                                            <span id="dashRowTotal_${a.id}" class="font-bold ${isSubmitted ? 'text-emerald-700' : 'text-slate-900'} text-base">
+                                                ${CargoStore.formatCurrency(rowTotal)}
+                                            </span>
+                                            <p id="dashRowFormula_${a.id}" class="text-[11px] text-slate-400 mt-0.5">=${CargoStore.formatNumber(capKg)} × ${CargoStore.formatNumber(currentPrice)}</p>
+                                        </div>
+                                        ${isSubmitted ? `
+                                            <span class="inline-flex items-center gap-1 bg-emerald-50 text-emerald-800 border border-emerald-300 text-xs font-bold px-2.5 py-1 rounded-lg shadow-2xs shrink-0">
+                                                <i class="fa-solid fa-circle-check text-emerald-600"></i> Đã đặt
+                                            </span>
+                                        ` : `
+                                            <button type="button" 
+                                                    onclick="submitBidSingle(${a.id}, ${capKg}, '${a.flightNumber}', '${a.route}')" 
+                                                    class="bg-blue-50 hover:bg-blue-600 text-blue-700 hover:text-white border border-blue-200 hover:border-blue-600 text-[11px] font-bold px-2.5 py-1.5 rounded-lg transition shadow-2xs flex items-center gap-1 shrink-0 cursor-pointer"
+                                                    title="Nộp riêng giá thầu cho chuyến bay này">
+                                                <i class="fa-solid fa-paper-plane text-[9px]"></i> Xác nhận
+                                            </button>
+                                        `}
+                                    </div>
+                                </td>
+                            </tr>
+                        `;
+                    }).join('');
+
+                    container.innerHTML = `
+                        <div class="bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden hover:border-blue-300 transition">
+                            <!-- Card Header Banner -->
+                            <div class="bg-gradient-to-r from-slate-900 via-blue-950 to-slate-900 text-white px-5 py-3.5 flex flex-col sm:flex-row sm:items-center justify-between gap-2.5">
+                                <div class="flex items-center gap-2.5 flex-wrap">
+                                    <h4 class="font-bold text-sm sm:text-base tracking-tight">Danh sách các chuyến bay đang mở đấu giá  </h4>
+                                </div>
+                                <div class="flex items-center gap-2 text-xs">
+                                    <span class="bg-emerald-500/20 text-emerald-300 border border-emerald-400/30 px-2.5 py-1 rounded-lg font-semibold text-[11px]">
+                                        <i class="fa-solid fa-signal mr-1"></i>Đang mở (${totalOpen} chuyến bay)
+                                    </span>
+                                </div>
+                            </div>
+
+                            <!-- Body: Meta Info & Single Excel Grid -->
+                            <div class="p-4 sm:p-5 space-y-4">
+                                <!-- Meta Info Row (Excel Heading Format) -->
+                                <div class="bg-slate-50 p-3.5 rounded-xl border border-slate-200 text-xs space-y-2.5">
+                                    <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-2 border-b border-slate-200/80 pb-2">
+                                        <div class="flex items-center gap-2 flex-wrap">
+                                            <span class="font-bold text-slate-700 uppercase tracking-wide text-[11px]">TÊN ĐƠN VỊ ĐẤU THẦU:</span>
+                                            <span class="font-bold text-blue-900 bg-white px-3 py-1 rounded-lg border border-slate-300 text-xs shadow-2xs">${u ? (u.companyName || u.fullName) + ' (' + (u.agentCode || 'AG-0892') + ')' : 'Đại lý'}</span>
+                                        </div>
+                                    </div>
+                                    <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-2 text-slate-600 text-xs">
+                                        <div>
+                                            <span class="text-slate-400 text-[11px]">Quy chế đấu giá:</span>
+                                            <span class="font-semibold text-slate-800 ml-1">Mỗi đại lý nộp giá <strong>1 lần duy nhất</strong> cho mỗi chuyến bay.</span>
+                                            <p>• Giá mua là giá cước vận chuyển (Phụ phí nhiên liệu & an ninh: 0 VNĐ, chưa gồm VAT và phí lao vụ).</p>
+                                            <p>• Phí vận đơn: 60.000 VNĐ/AWB. Trả kết quả theo công thức: <strong>Tổng giá mua = Tổng sản lượng (kg) × Giá mua (VNĐ/kg)</strong></p>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <!-- Excel Table Structure -->
+                                <div class="border border-slate-300 rounded-xl overflow-hidden shadow-2xs">
+                                    <div class="overflow-x-auto">
+                                        <table class="w-full text-xs text-left">
+                                            <thead class="bg-slate-100 border-b border-slate-300 font-bold text-slate-700 uppercase text-[11px]">
+                                                <tr>
+                                                    <th class="py-2.5 px-4 border-r border-slate-200">CHUYẾN BAY</th>
+                                                    <th class="py-2.5 px-4 border-r border-slate-200">SẢN LƯỢNG CAM KẾT</th>
+                                                    <th class="py-2.5 px-4 border-r border-slate-200">GIÁ MUA (VNĐ/KG)</th>
+                                                    <th class="py-2.5 px-4">THÀNH TIỀN (VNĐ)</th>
+                                                </tr>
+                                            </thead>
+                                            <tbody class="divide-y divide-slate-200 bg-white font-medium">
+                                                ${tableRowsHtml}
+                                            </tbody>
+                                            <tfoot class="bg-slate-50/90 border-t-2 border-slate-300 font-bold">
+                                                <tr>
+                                                    <td colspan="3" class="py-3 px-4 text-right uppercase text-xs text-slate-700 border-r border-slate-200">
+                                                        <div class="font-extrabold text-slate-900 text-xs tracking-wide flex items-center justify-end gap-1.5">
+                                                            <i class="fa-solid fa-receipt text-blue-600"></i>
+                                                            <span>TỔNG GIÁ ĐÃ ĐẶT (VNĐ):</span>
+                                                        </div>
+                                                        <div class="text-[10px] text-slate-400 font-normal mt-0.5 normal-case">(Chỉ tính các chuyến bay đã bấm Xác nhận đặt giá)</div>
+                                                    </td>
+                                                    <td class="py-3 px-4 text-emerald-700 text-lg sm:text-xl font-extrabold bg-emerald-50/70">
+                                                        <span id="dashGrandTotal">0 đ</span>
+                                                    </td>
+                                                </tr>
+                                            </tfoot>
+                                        </table>
+                                    </div>
+                                </div>
+
+                                <!-- Footer & Action Row -->
+                                
+                            </div>
+                        </div>
+                    `;
+
+                    updateDashAllTotals();
+                }
+            }
+        }
+
+        function onDashPriceInput(auctionId, capKg) {
+            const input = document.getElementById('dashBidInput_' + auctionId);
+            if (!input) return;
+            const price = Math.max(0, Number(input.value) || 0);
+            dashInputCache[auctionId] = price;
+
+            const rowTotal = capKg * price;
+            const rowEl = document.getElementById('dashRowTotal_' + auctionId);
+            const formulaEl = document.getElementById('dashRowFormula_' + auctionId);
+            if (rowEl) rowEl.textContent = CargoStore.formatCurrency(rowTotal);
+            if (formulaEl) formulaEl.textContent = `=${CargoStore.formatNumber(capKg)} × ${CargoStore.formatNumber(price)}`;
+
+            // Đang điền chưa xác nhận thì không cộng vào tổng giá đã đặt
+            updateDashAllTotals();
+        }
+
+        // Tính tổng giá đã đặt: CHỈ cộng những chuyến bay đã bấm Xác nhận đặt giá
+        function updateDashAllTotals() {
+            const u = CargoStore.getCurrentUser();
+            const myCode = u ? (u.agentCode || '') : '';
+            const allAuctions = CargoStore.getAuctions();
+            const openAuctions = allAuctions.filter(a => a.status === 'OPEN' && CargoStore.isAgentAllowedForAuction(a, myCode));
+            const myBids = CargoStore.getMyBids ? CargoStore.getMyBids() : [];
+
+            let grandTotal = 0;
+            let confirmedCount = 0;
+
+            openAuctions.forEach(a => {
+                const auctionMyBids = (myBids || []).filter(b => String(b.auctionId) === String(a.id));
+                const myHighestBid = auctionMyBids.length > 0
+                    ? auctionMyBids.sort((x, y) => (Number(y.priceKg) || 0) - (Number(x.priceKg) || 0))[0]
+                    : null;
+
+                // Chỉ tính tổng cho các chuyến bay đã bấm Xác nhận nộp giá thầu
+                if (myHighestBid) {
+                    const capKg = a.capacityKg || 3500;
+                    const price = Number(myHighestBid.priceKg) || 0;
+                    grandTotal += (capKg * price);
+                    confirmedCount++;
+                }
+            });
+
+            const grandTotalEl = document.getElementById('dashGrandTotal');
+            if (grandTotalEl) {
+                grandTotalEl.textContent = CargoStore.formatCurrency(grandTotal);
+            }
+        }
+
+        // Submit Bids for All Prepared (Selected) Sessions
+        async function submitAllPreparedBids() {
+            const u = CargoStore.getCurrentUser();
+            if (!u) {
+                alert('Vui lòng đăng nhập trước khi nộp giá thầu!');
+                window.location.href = '01-Login.html';
+                return;
+            }
+
+            const myCode = u ? (u.agentCode || '') : '';
+            const allAuctions = CargoStore.getAuctions();
+            const openAuctions = allAuctions.filter(a => a.status === 'OPEN' && CargoStore.isAgentAllowedForAuction(a, myCode));
+            const myBids = CargoStore.getMyBids ? CargoStore.getMyBids() : [];
+
+            const preparedList = [];
+            for (const a of openAuctions) {
+                const isSubmitted = (myBids || []).some(b => String(b.auctionId) === String(a.id));
+                if (isSubmitted) continue;
+
+                const input = document.getElementById('dashBidInput_' + a.id);
+                if (!input || !input.value) continue;
+                const startPrice = a.startingPriceKg || 18000;
+                const priceKg = input ? Number(input.value) : (dashInputCache[a.id] || startPrice);
+                const capKg = a.capacityKg || 3500;
+                const minAcceptable = a.startingPriceKg || a.currentPriceKg || 0;
+                if (!priceKg || priceKg < minAcceptable) {
+                    alert(`Mức giá chuyến ${a.flightNumber} tối thiểu phải từ giá sàn: ${CargoStore.formatCurrency(minAcceptable)}/Kg trở lên!`);
+                    if (input) input.focus();
+                    return;
+                }
+
+                preparedList.push({
+                    auction: a,
+                    priceKg: priceKg,
+                    capKg: capKg,
+                    total: capKg * priceKg
+                });
+            }
+
+            if (preparedList.length === 0) {
+                alert('Vui lòng tích chọn ít nhất 1 chuyến bay chuẩn bị đặt giá thầu!');
+                return;
+            }
+
+            const grandTotal = preparedList.reduce((sum, item) => sum + item.total, 0);
+            const breakdownHtml = preparedList.map(item => `
+                <div style="display: flex; justify-content: space-between; align-items: center; padding: 7px 8px; border-bottom: 1px solid #f1f5f9; font-size: 12px;">
+                    <div>
+                        <span style="font-weight: 700; color: #1e3a8a;">✈️ ${item.auction.flightNumber}</span>
+                        <span style="color: #64748b; font-size: 11px; margin-left: 4px;">(${item.auction.route})</span>
+                        <div style="color: #64748b; font-size: 11px;">${CargoStore.formatNumber(item.capKg)} KG × ${CargoStore.formatCurrency(item.priceKg)}/Kg</div>
+                    </div>
+                    <div style="font-weight: 700; color: #059669;">
+                        ${CargoStore.formatCurrency(item.total)}
+                    </div>
+                </div>
+            `).join('');
+
+            const bulkModalHtml = `
+                <div style="text-align: left; font-family: inherit;">
+                    <div style="background: linear-gradient(135deg, #1e3a8a 0%, #2563eb 100%); color: #ffffff; padding: 12px 16px; border-radius: 12px; margin-bottom: 12px; display: flex; justify-content: space-between; align-items: center; box-shadow: 0 4px 12px rgba(37,99,235,0.25);">
+                        <div>
+                            <span style="font-size: 11px; text-transform: uppercase; letter-spacing: 0.5px; opacity: 0.85; font-weight: 600;">Đơn vị dự thầu</span>
+                            <div style="font-size: 14px; font-weight: 700; margin-top: 1px;">${u.companyName || u.fullName}</div>
+                        </div>
+                        <div style="text-align: right;">
+                            <span style="font-size: 11px; opacity: 0.85; font-weight: 500;">Số lượng</span>
+                            <div style="font-size: 15px; font-weight: 800; background: rgba(255,255,255,0.2); padding: 3px 10px; border-radius: 6px; margin-top: 2px;">${preparedList.length} chuyến</div>
+                        </div>
+                    </div>
+
+                    <div style="background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 10px; max-height: 180px; overflow-y: auto; margin-bottom: 12px; padding: 4px 6px;">
+                        ${breakdownHtml}
+                    </div>
+
+                    <div style="background: linear-gradient(135deg, #059669 0%, #047857 100%); color: #ffffff; border-radius: 12px; padding: 12px 16px; margin-bottom: 12px; display: flex; justify-content: space-between; align-items: center; box-shadow: 0 4px 12px rgba(5, 150, 105, 0.25);">
+                        <div>
+                            <div style="font-size: 11px; text-transform: uppercase; letter-spacing: 0.5px; opacity: 0.9; font-weight: 600;">Tổng giá mua dự kiến (${preparedList.length} chuyến)</div>
+                            <div style="font-size: 20px; font-weight: 800; letter-spacing: 0.5px; margin-top: 1px;">${CargoStore.formatCurrency(grandTotal)}</div>
+                        </div>
+                        <div style="font-size: 24px;">💰</div>
+                    </div>
+
+                    <div style="background: #fffbeb; border: 1px solid #fef3c7; border-left: 4px solid #f59e0b; border-radius: 8px; padding: 9px 12px; font-size: 11.5px; color: #92400e; line-height: 1.45; margin-bottom: 12px;">
+                        <strong>⚠️ LƯU Ý QUY CHẾ:</strong> Mỗi đại lý chỉ được nộp giá <strong>1 LẦN DUY NHẤT</strong> cho mỗi gói thầu. Phiếu giá sau khi gửi sẽ được ghi nhận ngay và <strong>KHÔNG THỂ</strong> thay đổi hay hủy bỏ.
+                    </div>
+
+                    <div style="text-align: center; font-size: 13px; font-weight: 600; color: #1e293b;">
+                        Bạn có chắc chắn muốn nộp giá cho ${preparedList.length} chuyến bay này?
+                    </div>
+                </div>
+            `;
+
+            let isOk = false;
+            if (window.showConfirm) {
+                isOk = await window.showConfirm({
+                    title: 'Xác nhận nộp phiếu thầu nhiều chuyến',
+                    html: bulkModalHtml,
+                    confirmText: 'Nộp tất cả phiếu giá',
+                    cancelText: 'Kiểm tra lại',
+                    icon: 'info'
+                });
+            } else {
+                isOk = confirm(`Xác nhận nộp giá thầu cho ${preparedList.length} chuyến bay với tổng giá trị ${CargoStore.formatCurrency(grandTotal)}?`);
+            }
+            if (!isOk) return;
+
+            let successCount = 0;
+            let failedList = [];
+
+            for (const item of preparedList) {
+                const res = CargoStore.placeBid(item.auction.id, item.priceKg, true);
+                if (res.success) {
+                    successCount++;
+                    delete dashInputCache[item.auction.id];
+                    delete dashCheckCache[item.auction.id];
+                } else {
+                    failedList.push(`${item.auction.flightNumber}: ${res.message || 'Lỗi nộp giá'}`);
+                }
+            }
+
+            if (failedList.length === 0) {
+                if (typeof Swal !== 'undefined') {
+                    await Swal.fire({
+                        icon: 'success',
+                        title: 'Nộp phiếu thầu thành công!',
+                        html: `
+                            <div style="text-align: left; font-family: inherit;">
+                                <div style="background: #ecfdf5; border: 1px solid #a7f3d0; border-radius: 12px; padding: 14px; margin-bottom: 12px;">
+                                    <div style="display: flex; justify-content: space-between; font-size: 13px; margin-bottom: 6px;">
+                                        <span style="color: #065f46; font-weight: 600;">Số chuyến đã nộp:</span>
+                                        <span style="color: #047857; font-weight: 700;">${successCount} chuyến bay</span>
+                                    </div>
+                                    <div style="display: flex; justify-content: space-between; font-size: 14px; border-top: 1px dashed #6ee7b7; padding-top: 8px; margin-top: 2px;">
+                                        <span style="color: #065f46; font-weight: 700;">Tổng giá trị đã nộp:</span>
+                                        <span style="color: #047857; font-weight: 800; font-size: 17px;">${CargoStore.formatCurrency(grandTotal)}</span>
+                                    </div>
+                                </div>
+                                <div style="font-size: 12px; color: #64748b; text-align: center;">
+                                    🔒 Tất cả phiếu giá đã được mã hóa an toàn trong hệ thống.
+                                </div>
+                            </div>
+                        `,
+                        confirmButtonText: 'Đã hoàn tất',
+                        buttonsStyling: false,
+                        customClass: {
+                            popup: 'cargo-swal-popup',
+                            confirmButton: 'cargo-swal-confirm-btn'
+                        }
+                    });
+                } else {
+                    alert(`✅ ĐÃ NỘP GIÁ THẦU THÀNH CÔNG CHO ${successCount} CHUYẾN BAY!\n\nTổng giá mua: ${CargoStore.formatCurrency(grandTotal)}\n\nPhiếu giá đã được hệ thống ghi nhận an toàn.`);
+                }
+            } else {
+                alert(`Đã nộp thành công ${successCount}/${preparedList.length} chuyến bay.\nCác chuyến gặp lỗi:\n${failedList.join('\n')}`);
+            }
+
+            renderDashboard();
+        }
+
+        // Submit Bid for a Single Flight
+        async function submitBidSingle(auctionId, capKg, flightNumber, route) {
+            const u = CargoStore.getCurrentUser();
+            if (!u) {
+                alert('Vui lòng đăng nhập trước khi nộp giá thầu!');
+                window.location.href = '01-Login.html';
+                return;
+            }
+
+            const allAuctions = CargoStore.getAuctions();
+            const auction = allAuctions.find(a => String(a.id) === String(auctionId));
+            if (!auction) {
+                alert('Không tìm thấy thông tin gói thầu!');
+                return;
+            }
+
+            if (!CargoStore.isAgentAllowedForAuction(auction, u.agentCode)) {
+                alert('Đại lý của bạn không nằm trong danh sách đại lý được phê duyệt tham gia phiên đấu giá chuyến bay này!');
+                return;
+            }
+
+            const input = document.getElementById('dashBidInput_' + auctionId);
+            const startPrice = auction.startingPriceKg || 18000;
+            const priceKg = input ? Number(input.value) : (dashInputCache[auctionId] || startPrice);
+            const minAcceptable = auction.startingPriceKg || auction.currentPriceKg || 0;
+            const minStep = Number(auction.minStep) || 500;
+
+            if (!priceKg || priceKg < minAcceptable) {
+                alert(`Mức giá đặt thầu tối thiểu phải từ giá sàn: ${CargoStore.formatCurrency(minAcceptable)}/Kg trở lên!`);
+                if (input) input.focus();
+                return;
+            }
+
+            const totalVnd = capKg * priceKg;
+            const flCode = flightNumber || auction.flightNumber || 'VU232';
+            const rtCode = route || auction.route || '';
+            const companyDisplay = u.companyName || u.fullName || 'Đại lý hàng hóa';
+            const agentCodeDisplay = u.agentCode || 'AG-0892';
+
+            const singleModalHtml = `
+                <div style="text-align: left; font-family: inherit;">
+                    <!-- Flight Tag Header -->
+                    <div style="background: linear-gradient(135deg, #1e3a8a 0%, #2563eb 100%); color: #ffffff; padding: 12px 16px; border-radius: 12px; margin-bottom: 12px; display: flex; justify-content: space-between; align-items: center; box-shadow: 0 4px 12px rgba(37,99,235,0.25);">
+                        <div>
+                            <span style="font-size: 11px; text-transform: uppercase; letter-spacing: 0.5px; opacity: 0.85; font-weight: 600;">Chuyến bay dự thầu</span>
+                            <div style="font-size: 19px; font-weight: 800; letter-spacing: 0.5px; margin-top: 1px;">✈️ ${flCode}</div>
+                        </div>
+                        <div style="text-align: right;">
+                            <span style="font-size: 11px; opacity: 0.85; font-weight: 500;">Chặng bay</span>
+                            <div style="font-size: 13.5px; font-weight: 700; background: rgba(255,255,255,0.2); padding: 3px 10px; border-radius: 6px; margin-top: 2px;">${rtCode}</div>
+                        </div>
+                    </div>
+
+                    <!-- Bidder Info -->
+                    <div style="background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 10px; padding: 10px 14px; margin-bottom: 12px;">
+                        <div style="display: flex; justify-content: space-between; align-items: center;">
+                            <span style="font-size: 12px; color: #64748b; font-weight: 500;">Đơn vị dự thầu:</span>
+                            <span style="font-size: 12.5px; font-weight: 700; color: #0f172a;">${companyDisplay}</span>
+                        </div>
+                        <div style="display: flex; justify-content: space-between; align-items: center; margin-top: 5px;">
+                            <span style="font-size: 12px; color: #64748b; font-weight: 500;">Mã định danh đại lý:</span>
+                            <span style="font-size: 11.5px; font-weight: 700; color: #2563eb; background: #eff6ff; padding: 2px 8px; border-radius: 4px; border: 1px solid #dbeafe;">${agentCodeDisplay}</span>
+                        </div>
+                    </div>
+
+                    <!-- Metrics 2 cols -->
+                    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 12px;">
+                        <div style="background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 10px; padding: 10px 12px;">
+                            <div style="font-size: 11px; color: #64748b; text-transform: uppercase; font-weight: 600;">Tải trọng cam kết</div>
+                            <div style="font-size: 16px; font-weight: 800; color: #0f172a; margin-top: 2px;">
+                                ${CargoStore.formatNumber(capKg)} <span style="font-size: 12px; font-weight: 500; color: #64748b;">KG</span>
+                            </div>
+                            <span style="display: inline-block; font-size: 10px; font-weight: 600; color: #0284c7; background: #e0f2fe; padding: 1px 6px; border-radius: 4px; margin-top: 3px;">Hardblock</span>
+                        </div>
+                        <div style="background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 10px; padding: 10px 12px;">
+                            <div style="font-size: 11px; color: #64748b; text-transform: uppercase; font-weight: 600;">Đơn giá đề xuất</div>
+                            <div style="font-size: 16px; font-weight: 800; color: #2563eb; margin-top: 2px;">
+                                ${CargoStore.formatCurrency(priceKg)}<span style="font-size: 12px; font-weight: 500; color: #64748b;">/Kg</span>
+                            </div>
+                            <span style="display: inline-block; font-size: 10px; font-weight: 600; color: #059669; background: #d1fae5; padding: 1px 6px; border-radius: 4px; margin-top: 3px;">Hợp lệ</span>
+                        </div>
+                    </div>
+
+                    <!-- Total Banner -->
+                    <div style="background: linear-gradient(135deg, #059669 0%, #047857 100%); color: #ffffff; border-radius: 12px; padding: 12px 16px; margin-bottom: 12px; display: flex; justify-content: space-between; align-items: center; box-shadow: 0 4px 12px rgba(5, 150, 105, 0.25);">
+                        <div>
+                            <div style="font-size: 11px; text-transform: uppercase; letter-spacing: 0.5px; opacity: 0.9; font-weight: 600;">Tổng giá mua dự kiến</div>
+                            <div style="font-size: 21px; font-weight: 800; letter-spacing: 0.5px; margin-top: 1px;">${CargoStore.formatCurrency(totalVnd)}</div>
+                        </div>
+                        <div style="font-size: 26px;">💰</div>
+                    </div>
+
+                    <!-- Rule Callout -->
+                    <div style="background: #fffbeb; border: 1px solid #fef3c7; border-left: 4px solid #f59e0b; border-radius: 8px; padding: 10px 12px; font-size: 11.5px; color: #92400e; line-height: 1.5; margin-bottom: 12px;">
+                        <strong>⚠️ LƯU Ý QUY CHẾ:</strong> Mỗi đại lý chỉ được nộp giá <strong>1 LẦN DUY NHẤT</strong> cho mỗi gói thầu. Phiếu giá sau khi gửi sẽ được ghi nhận ngay và <strong>KHÔNG THỂ</strong> thay đổi hay hủy bỏ.
+                    </div>
+
+                    <div style="text-align: center; font-size: 13px; font-weight: 600; color: #1e293b;">
+                        Bạn có chắc chắn muốn nộp mức giá này?
+                    </div>
+                </div>
+            `;
+
+            let isOk = false;
+            if (window.showConfirm) {
+                isOk = await window.showConfirm({
+                    title: 'Xác nhận nộp phiếu thầu',
+                    html: singleModalHtml,
+                    confirmText: 'Nộp giá thầu ngay',
+                    cancelText: 'Kiểm tra lại',
+                    icon: 'info'
+                });
+            } else {
+                isOk = confirm(`Xác nhận nộp giá thầu cho chuyến ${flCode} với đơn giá ${CargoStore.formatCurrency(priceKg)}/Kg (Tổng: ${CargoStore.formatCurrency(totalVnd)})?`);
+            }
+            if (!isOk) return;
+
+            const res = CargoStore.placeBid(auctionId, priceKg, true);
+            if (res.success) {
+                if (typeof Swal !== 'undefined') {
+                    await Swal.fire({
+                        icon: 'success',
+                        title: 'Nộp phiếu thầu thành công!',
+                        html: `
+                            <div style="text-align: left; font-family: inherit; margin-top: 4px;">
+                                <div style="background: #ecfdf5; border: 1px solid #a7f3d0; border-radius: 12px; padding: 14px; margin-bottom: 12px;">
+                                    <div style="display: flex; justify-content: space-between; font-size: 13px; margin-bottom: 6px;">
+                                        <span style="color: #065f46; font-weight: 600;">Chuyến bay:</span>
+                                        <span style="color: #047857; font-weight: 700;">✈️ ${flCode} (${rtCode})</span>
+                                    </div>
+                                    <div style="display: flex; justify-content: space-between; font-size: 13px; margin-bottom: 6px;">
+                                        <span style="color: #065f46; font-weight: 600;">Đơn giá nộp:</span>
+                                        <span style="color: #047857; font-weight: 700;">${CargoStore.formatCurrency(priceKg)}/Kg</span>
+                                    </div>
+                                    <div style="display: flex; justify-content: space-between; font-size: 14px; border-top: 1px dashed #6ee7b7; padding-top: 8px; margin-top: 2px;">
+                                        <span style="color: #065f46; font-weight: 700;">Tổng thành tiền:</span>
+                                        <span style="color: #047857; font-weight: 800; font-size: 17px;">${CargoStore.formatCurrency(totalVnd)}</span>
+                                    </div>
+                                </div>
+                                <div style="font-size: 12px; color: #64748b; text-align: center; display: flex; align-items: center; justify-content: center; gap: 4px;">
+                                    <span>🔒</span> Phiếu giá đã được hệ thống mã hóa và lưu trữ an toàn.
+                                </div>
+                            </div>
+                        `,
+                        confirmButtonText: 'Đã hoàn tất',
+                        buttonsStyling: false,
+                        customClass: {
+                            popup: 'cargo-swal-popup',
+                            confirmButton: 'cargo-swal-confirm-btn'
+                        }
+                    });
+                } else {
+                    alert(`✅ Đã nộp giá thầu thành công!\n\nChuyến bay: ${flCode}\nMức giá: ${CargoStore.formatCurrency(priceKg)}/Kg\nTổng thành tiền: ${CargoStore.formatCurrency(totalVnd)}\n\nPhiếu giá đã được lưu trữ an toàn.`);
+                }
+                delete dashInputCache[auctionId];
+                delete dashCheckCache[auctionId];
+                renderDashboard();
+            } else {
+                alert(res.message || 'Không thể gửi giá thầu!');
+            }
+        }
+
+        // Backward compatibility
+        window.submitBidDirect = submitBidSingle;
+        window.updateDashCardTotal = onDashPriceInput;
+
+        let isRenderingDashboard = false;
+        function safeRenderDashboard() {
+            if (isRenderingDashboard || (typeof document !== 'undefined' && document.hidden)) return;
+            // Prevent auto-refresh from interrupting typing
+            const activeEl = document.activeElement;
+            if (activeEl && (activeEl.tagName === 'INPUT' || activeEl.tagName === 'TEXTAREA' || activeEl.tagName === 'SELECT')) {
+                return;
+            }
+            isRenderingDashboard = true;
+            try {
+                renderDashboard();
+            } finally {
+                isRenderingDashboard = false;
+            }
+        }
+
+        function updateDashCountdowns() {
+            if (typeof document !== 'undefined' && document.hidden) return;
+            const timerEls = document.querySelectorAll('.dash-timer-text');
+            let needsRefresh = false;
+
+            timerEls.forEach(el => {
+                const endTime = el.getAttribute('data-endtime');
+                if (!endTime) return;
+                const timer = CargoStore.getTimeRemaining(endTime);
+                const valEl = el.querySelector('.timer-val');
+                if (valEl) {
+                    if (timer.total <= 0) {
+                        valEl.textContent = 'Đã đóng thầu';
+                        needsRefresh = true;
+                    } else {
+                        valEl.textContent = `Còn ${timer.hours > 0 ? timer.hours + 'h ' : ''}${timer.minutes}m ${timer.seconds}s`;
+                    }
+                }
+            });
+
+            if (needsRefresh) {
+                safeRenderDashboard();
+            }
+        }
+
+        document.addEventListener('DOMContentLoaded', function () {
+            safeRenderDashboard();
+            setInterval(updateDashCountdowns, 1000);
+        });
+
+        // Cross-browser & Cross-tab sync: when store updates, re-render safely
+        let dashUpdateTimeout = null;
+        function onStoreUpdate() {
+            if (dashUpdateTimeout) clearTimeout(dashUpdateTimeout);
+            dashUpdateTimeout = setTimeout(safeRenderDashboard, 100);
+        }
+
+        window.addEventListener('storage', function (e) {
+            if (e.key === 'CARGO_BIDDING_DATA_V3') onStoreUpdate();
+        });
+        window.addEventListener('cargostore_updated', onStoreUpdate);
+    </script>
+</body>
+
+</html>

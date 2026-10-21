@@ -1,0 +1,1708 @@
+@page
+@model BiddingCargo.Web.Pages.Admin.CreateAuctionModel
+@{
+    Layout = null;
+}
+<!DOCTYPE html>
+<html lang="vi">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Tạo phiên đấu giá mới - Cargo Bidding Admin</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+    <script src="../assets/js/sweetalert2.all.min.js"></script>
+    <script src="../assets/js/cargo-store.js"></script>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link
+        href="https://fonts.googleapis.com/css2?family=Exo:ital,wght@@0,100;0,200;0,300;0,400;0,500;0,531;0,600;0,700;0,800;0,900;1,100;1,200;1,300;1,400;1,500;1,531;1,600;1,700;1,800;1,900"
+        rel="stylesheet" />
+    <style>
+        body,
+        input,
+        select,
+        textarea,
+        button {
+            font-family: 'Exo', sans-serif;
+        }
+    </style>
+</head>
+
+<body class="bg-slate-100 text-slate-800"> <!-- ═══════════════════════════════════════════
+         ADMIN HEADER — VU Cargo Admin Portal
+         Premium dark navigation — DO NOT EDIT MANUALLY
+         ═══════════════════════════════════════════ -->
+    <style>
+        /* ── Admin Header ── */
+        #adminHeader {
+            background: linear-gradient(135deg, #0f172a 0%, #1e293b 60%, #0f172a 100%);
+            border-bottom: 1px solid rgba(59, 130, 246, 0.18);
+            position: sticky;
+            top: 0;
+            z-index: 50;
+            box-shadow: 0 2px 20px rgba(0, 0, 0, 0.35);
+        }
+
+        #adminHeader::after {
+            content: '';
+            display: block;
+            height: 2px;
+            background: linear-gradient(90deg, transparent 0%, #3b82f6 30%, #6366f1 65%, transparent 100%);
+        }
+
+        .admin-inner {
+            max-width: 1400px;
+            margin: 0 auto;
+            padding: 0 1rem;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            height: 58px;
+            gap: 0.75rem;
+        }
+
+        .admin-brand {
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+            text-decoration: none;
+            flex-shrink: 0;
+        }
+
+        .admin-brand img {
+            height: 32px;
+            object-fit: contain;
+            filter: brightness(0) invert(1);
+        }
+
+        .admin-brand-sep {
+            width: 1px;
+            height: 28px;
+            background: rgba(255, 255, 255, 0.15);
+        }
+
+        .admin-brand-text {
+            font-size: 0.8125rem;
+            font-weight: 700;
+            color: #e2e8f0;
+            letter-spacing: 0.04em;
+            white-space: nowrap;
+        }
+
+        .admin-brand-sub {
+            font-size: 0.6rem;
+            font-weight: 600;
+            color: #94a3b8;
+            text-transform: uppercase;
+            letter-spacing: 0.1em;
+            display: block;
+        }
+
+        /* Desktop Nav */
+        .admin-nav {
+            display: none;
+            align-items: center;
+            gap: 2px;
+        }
+
+        @@media (min-width:768px) {
+            .admin-nav {
+                display: flex;
+            }
+        }
+
+        .nav-item-admin {
+            display: flex;
+            align-items: center;
+            gap: 5px;
+            padding: 5px 10px;
+            border-radius: 8px;
+            font-size: 0.72rem;
+            font-weight: 600;
+            color: rgba(203, 213, 225, 0.85);
+            text-decoration: none;
+            white-space: nowrap;
+            transition: all 0.15s ease;
+            border: 1px solid transparent;
+        }
+
+        .nav-item-admin:hover {
+            color: #fff;
+            background: rgba(255, 255, 255, 0.08);
+            border-color: rgba(255, 255, 255, 0.1);
+        }
+
+        .nav-item-admin.active {
+            color: #fff;
+            background: rgba(59, 130, 246, 0.85);
+            border-color: rgba(59, 130, 246, 0.5);
+            box-shadow: 0 0 12px rgba(59, 130, 246, 0.35);
+        }
+
+        .nav-item-admin.chat-item {
+            color: #c4b5fd;
+            background: rgba(139, 92, 246, 0.12);
+            border-color: rgba(139, 92, 246, 0.25);
+        }
+
+        .nav-item-admin.chat-item:hover {
+            color: #e9d5ff;
+            background: rgba(139, 92, 246, 0.22);
+        }
+
+        .nav-item-admin.active-chat {
+            color: #fff;
+            background: rgba(139, 92, 246, 0.75);
+            border-color: rgba(139, 92, 246, 0.5);
+            box-shadow: 0 0 12px rgba(139, 92, 246, 0.35);
+        }
+
+        .chat-badge {
+            background: #ef4444;
+            color: #fff;
+            font-size: 0.6rem;
+            font-weight: 700;
+            padding: 0 5px;
+            border-radius: 999px;
+            min-width: 16px;
+            text-align: center;
+            line-height: 16px;
+            height: 16px;
+        }
+
+        /* Right Bar */
+        .admin-right {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            flex-shrink: 0;
+        }
+
+        .admin-public-link {
+            display: none;
+            align-items: center;
+            gap: 5px;
+            font-size: 0.68rem;
+            font-weight: 600;
+            color: rgba(148, 163, 184, 0.9);
+            background: rgba(255, 255, 255, 0.06);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            padding: 4px 10px;
+            border-radius: 8px;
+            text-decoration: none;
+            transition: all 0.15s;
+        }
+
+        @@media (min-width:1024px) {
+            .admin-public-link {
+                display: flex;
+            }
+        }
+
+        .admin-public-link:hover {
+            color: #fff;
+            background: rgba(255, 255, 255, 0.1);
+        }
+
+        .admin-sep {
+            width: 1px;
+            height: 24px;
+            background: rgba(255, 255, 255, 0.12);
+        }
+
+        .admin-avatar {
+            width: 32px;
+            height: 32px;
+            border-radius: 50%;
+            background: linear-gradient(135deg, #3b82f6, #6366f1);
+            color: #fff;
+            font-weight: 800;
+            font-size: 0.7rem;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border: 2px solid rgba(255, 255, 255, 0.15);
+            flex-shrink: 0;
+        }
+
+        .admin-user-info {
+            display: none;
+            flex-direction: column;
+            text-align: left;
+        }
+
+        @@media (min-width:640px) {
+            .admin-user-info {
+                display: flex;
+            }
+        }
+
+        .admin-user-name {
+            font-size: 0.72rem;
+            font-weight: 700;
+            color: #e2e8f0;
+            line-height: 1.2;
+        }
+
+        .admin-user-role {
+            font-size: 0.6rem;
+            font-weight: 700;
+            color: #60a5fa;
+            text-transform: uppercase;
+            letter-spacing: 0.08em;
+        }
+
+        .admin-logout {
+            color: rgba(148, 163, 184, 0.7);
+            padding: 6px;
+            border-radius: 8px;
+            text-decoration: none;
+            transition: all 0.15s;
+            font-size: 0.8rem;
+            border: 1px solid transparent;
+        }
+
+        .admin-logout:hover {
+            color: #f87171;
+            background: rgba(239, 68, 68, 0.1);
+            border-color: rgba(239, 68, 68, 0.2);
+        }
+
+        /* Mobile hamburger */
+        .admin-hamburger {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            width: 34px;
+            height: 34px;
+            border-radius: 8px;
+            background: rgba(255, 255, 255, 0.07);
+            border: 1px solid rgba(255, 255, 255, 0.12);
+            color: #cbd5e1;
+            cursor: pointer;
+            font-size: 0.85rem;
+            transition: all 0.15s;
+        }
+
+        .admin-hamburger:hover {
+            background: rgba(255, 255, 255, 0.12);
+            color: #fff;
+        }
+
+        @@media (min-width:768px) {
+            .admin-hamburger {
+                display: none;
+            }
+        }
+
+        /* Mobile dropdown */
+        #adminMobileNav {
+            display: none;
+            padding: 0.75rem 1rem;
+            background: #1e293b;
+            border-top: 1px solid rgba(255, 255, 255, 0.08);
+            max-width: 1400px;
+            margin: 0 auto;
+        }
+
+        #adminMobileNav.open {
+            display: block;
+        }
+
+        .mobile-nav-item {
+            display: flex;
+            align-items: center;
+            gap: 0.6rem;
+            padding: 8px 12px;
+            border-radius: 8px;
+            margin-bottom: 2px;
+            font-size: 0.76rem;
+            font-weight: 600;
+            color: #cbd5e1;
+            text-decoration: none;
+            transition: all 0.15s;
+        }
+
+        .mobile-nav-item:hover {
+            color: #fff;
+            background: rgba(255, 255, 255, 0.08);
+        }
+
+        .mobile-nav-item.active {
+            color: #fff;
+            background: rgba(59, 130, 246, 0.75);
+        }
+
+        .mobile-nav-item.chat-item {
+            color: #c4b5fd;
+        }
+
+        .mobile-nav-item.active-chat {
+            color: #fff;
+            background: rgba(139, 92, 246, 0.75);
+        }
+    </style>
+    <header id="adminHeader">
+        <div class="admin-inner">
+            <!-- Brand -->
+            <button type="button" class="admin-hamburger"
+                onclick="document.getElementById('adminMobileNav').classList.toggle('open')" aria-label="Menu">
+                <i class="fa-solid fa-bars"></i>
+            </button>
+            <a href="02-AdminDashboard.html" class="admin-brand">
+                <img src="../assets/images/vietravel-logo-doc.png" alt="Vietravel Airlines" />
+                <div class="admin-brand-sep"></div>
+                <div>
+                    <span class="admin-brand-sub">Portal Quản Trị</span>
+                    <span class="admin-brand-text">Cargo Admin</span>
+                </div>
+            </a>
+
+            <!-- Desktop Nav -->
+            <nav class="admin-nav">
+                <a href="02-AdminDashboard.html" class="nav-item-admin"><i
+                        class="fa-solid fa-gauge-high"></i>Dashboard</a>
+                <a href="03-AuctionList.html" class="nav-item-admin"><i class="fa-solid fa-list-check"></i>Quản lý
+                    phiên</a>
+                <a href="04-CreateAuction.html" class="nav-item-admin active"><i class="fa-solid fa-circle-plus"></i>Tạo
+                    phiên</a>
+                <a href="06-AgentList.html" class="nav-item-admin"><i class="fa-solid fa-building-user"></i>Đại lý</a>
+                <a href="07-Reports.html" class="nav-item-admin"><i class="fa-solid fa-chart-line"></i>Báo cáo</a>
+                <a href="08-Settings.html" class="nav-item-admin"><i class="fa-solid fa-gear"></i>Cài đặt</a>
+                <a href="10-AuditLogs.html" class="nav-item-admin"><i class="fa-solid fa-clock-rotate-left"></i>Nhật
+                    ký</a>
+            </nav>
+
+            <!-- Right Bar -->
+            <div class="admin-right">
+                <a href="../00-Home.html" target="_blank" class="admin-public-link">
+                    <i class="fa-solid fa-arrow-up-right-from-square text-[9px]"></i> Sàn công khai
+                </a>
+                <div class="admin-sep"></div>
+                <div class="admin-avatar admin-header-avatar">AD</div>
+                <div class="admin-user-info">
+                    <span class="admin-user-name admin-header-name">Quản trị viên</span>
+                    <span class="admin-user-role admin-header-role">QUẢN TRỊ VIÊN</span>
+                </div>
+                <a href="01-AdminLogin.html" onclick="if(window.CargoStore) CargoStore.logoutAdmin()"
+                    class="admin-logout" title="Đăng xuất">
+                    <i class="fa-solid fa-power-off"></i>
+                </a>
+            </div>
+        </div>
+
+        <!-- Mobile Dropdown -->
+        <div id="adminMobileNav">
+            <a href="02-AdminDashboard.html" class="mobile-nav-item"><i
+                    class="fa-solid fa-gauge-high w-4"></i>Dashboard</a>
+            <a href="03-AuctionList.html" class="mobile-nav-item"><i class="fa-solid fa-list-check w-4"></i>Quản lý
+                phiên</a>
+            <a href="04-CreateAuction.html" class="mobile-nav-item active"><i
+                    class="fa-solid fa-circle-plus w-4"></i>Tạo phiên</a>
+            <a href="06-AgentList.html" class="mobile-nav-item"><i class="fa-solid fa-building-user w-4"></i>Đại lý</a>
+            <a href="07-Reports.html" class="mobile-nav-item"><i class="fa-solid fa-chart-line w-4"></i>Báo cáo</a>
+            <a href="08-Settings.html" class="mobile-nav-item"><i class="fa-solid fa-gear w-4"></i>Cài đặt</a>
+            <a href="10-AuditLogs.html" class="mobile-nav-item"><i class="fa-solid fa-clock-rotate-left w-4"></i>Nhật
+                ký</a>
+            <a href="../00-Home.html" target="_blank" class="mobile-nav-item"
+                style="border-top:1px solid rgba(255,255,255,0.08);margin-top:6px;padding-top:10px">
+                <i class="fa-solid fa-arrow-up-right-from-square w-4"></i> Xem Sàn công khai
+            </a>
+        </div>
+    </header>
+
+    <main class="max-w-4xl mx-auto px-3 sm:px-4 py-4 sm:py-8">
+
+        <div class="flex items-center justify-between mb-6">
+            <div>
+                <a href="03-AuctionList.html"
+                    class="text-xs text-slate-500 hover:text-blue-600 flex items-center gap-1 mb-1">
+                    <i class="fa-solid fa-arrow-left"></i> Trở lại danh sách
+                </a>
+                <h1 class="text-2xl font-bold text-slate-900 flex items-center gap-2">
+                    <i class="fa-solid fa-circle-plus text-blue-600"></i> Thiết lập phiên đấu giá mới
+                </h1>
+                <p class="text-xs text-slate-500 mt-0.5">Khai báo chuyến bay, tải trọng khả dụng và thông số giá sàn</p>
+            </div>
+        </div>
+
+        <form id="createAuctionForm" class="space-y-6">
+
+            <!-- 1. Thông tin hành trình bay -->
+            <div class="bg-white rounded-2xl border shadow-sm p-6 space-y-4">
+                <h2 class="font-bold text-sm text-slate-900 border-b pb-2 flex items-center gap-2">
+                    <i class="fa-solid fa-plane-departure text-blue-600"></i> 1. Thông tin chuyến bay & Hành trình
+                </h2>
+
+                <div class="grid grid-cols-1 sm:grid-cols-3 gap-4">
+                    <div>
+                        <label
+                            class="block text-xs font-semibold text-slate-700 mb-1 flex items-center justify-between">
+                            <span>Số hiệu chuyến bay</span>
+                            <!-- <button type="button" onclick="regenerateFlightNumber()" title="Đổi số hiệu khác"
+                                class="text-[10px] text-blue-600 hover:underline flex items-center gap-1 font-normal">
+                                <i class="fa-solid fa-rotate text-[9px]"></i> Đổi số hiệu khác
+                            </button> -->
+                        </label>
+                        <div class="relative">
+                            <input type="text" id="flightNumber" required placeholder="VD: VU130"
+                                oninput="validateFlightNumberRealtime()"
+                                class="w-full border rounded-xl px-3.5 py-2.5 text-xs font-bold uppercase text-slate-800 bg-white focus:ring-2 focus:ring-blue-500 outline-none border-slate-300">
+                            <i class="fa-solid fa-wand-magic-sparkles text-blue-500 absolute right-3 top-3 text-xs"
+                                title="Tự động tính theo chặng bay"></i>
+                        </div>
+                        <p id="flightNumberHint" class="text-[10px] text-blue-600 font-medium mt-1">
+                            <i class="fa-solid fa-circle-check text-[9px]"></i> Tự động cấp theo chặng bay, có thể chỉnh
+                            sửa
+                        </p>
+                    </div>
+                    <div>
+                        <label
+                            class="block text-xs font-semibold text-slate-700 mb-1 flex items-center justify-between">
+                            <span>Sân bay đi (Origin) <span class="text-red-500">*</span></span>
+                            <a href="08-Settings.html" target="_blank"
+                                class="text-[10px] text-blue-600 hover:underline">
+                                <i class="fa-solid fa-gear text-[9px]"></i> Cấu hình sân bay
+                            </a>
+                        </label>
+                        <select id="originAirport" onchange="onOriginAirportChanged()"
+                            class="w-full border rounded-xl px-3 py-2.5 text-xs font-bold text-slate-800 focus:ring-2 focus:ring-blue-500 outline-none bg-white">
+                            <!-- Populated dynamically -->
+                        </select>
+                    </div>
+                    <div>
+                        <label class="block text-xs font-semibold text-slate-700 mb-1">Sân bay đến (Destination) <span
+                                class="text-red-500">*</span></label>
+                        <select id="destinationAirport" onchange="onDestinationAirportChanged()"
+                            class="w-full border rounded-xl px-3 py-2.5 text-xs font-bold text-slate-800 focus:ring-2 focus:ring-blue-500 outline-none bg-white">
+                            <!-- Populated dynamically -->
+                        </select>
+                    </div>
+                </div>
+
+                <!-- Giai đoạn khai thác chuyến bay: Từ ngày -> Đến ngày -->
+                <div class="bg-blue-50/50 border border-blue-200/90 rounded-2xl p-4 sm:p-5 space-y-3.5 shadow-2xs">
+                    <div class="flex items-center justify-between flex-wrap gap-2">
+                        <div>
+                            <label class="text-xs font-bold text-slate-900 flex items-center gap-1.5">
+                                <i class="fa-regular fa-calendar-days text-blue-600 text-sm"></i>
+                                Giai đoạn khai thác chuyến bay<span class="text-red-500">*</span>
+                            </label>
+                            <p class="text-[11px] text-slate-500 mt-0.5">Khoảng thời gian tàu bay thực hiện vận chuyển
+                                hàng hóa cho gói thầu này</p>
+                        </div>
+                        <div class="flex items-center gap-1.5 text-[11px] flex-wrap">
+                            <span class="text-slate-400 font-medium mr-0.5">Chọn nhanh:</span>
+                            <button type="button" onclick="setFlightDateQuick('1_month')"
+                                class="px-2.5 py-1 rounded-lg bg-white border border-slate-200 hover:border-blue-400 hover:text-blue-600 font-semibold text-slate-600 shadow-2xs transition cursor-pointer">1
+                                Tháng</button>
+                            <button type="button" onclick="setFlightDateQuick('6_months')"
+                                class="px-2.5 py-1 rounded-lg bg-white border border-slate-200 hover:border-blue-400 hover:text-blue-600 font-semibold text-slate-600 shadow-2xs transition cursor-pointer">6
+                                Tháng</button>
+                            <button type="button" onclick="setFlightDateQuick('12_months')"
+                                class="px-2.5 py-1 rounded-lg bg-white border border-slate-200 hover:border-blue-400 hover:text-blue-600 font-semibold text-slate-600 shadow-2xs transition cursor-pointer">12
+                                Tháng</button>
+                        </div>
+                    </div>
+
+                    <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                        <div>
+                            <label class="block text-[11px] font-semibold text-slate-700 mb-1">
+                                <i class="fa-solid fa-plane-departure text-blue-500 mr-1"></i> Từ ngày
+                                <span class="text-red-500">*</span>
+                            </label>
+                            <input type="date" id="flightStartDate" required onchange="onFlightDateRangeChanged()"
+                                class="w-full border rounded-xl px-3.5 py-2.5 text-xs font-bold text-slate-800 bg-white focus:ring-2 focus:ring-blue-500 outline-none border-slate-300">
+                        </div>
+                        <div>
+                            <label class="block text-[11px] font-semibold text-slate-700 mb-1">
+                                <i class="fa-solid fa-plane-arrival text-emerald-500 mr-1"></i> Đến ngày<span
+                                    class="text-red-500">*</span>
+                            </label>
+                            <input type="date" id="flightEndDate" required onchange="onFlightDateRangeChanged()"
+                                class="w-full border rounded-xl px-3.5 py-2.5 text-xs font-bold text-slate-800 bg-white focus:ring-2 focus:ring-blue-500 outline-none border-slate-300">
+                        </div>
+                    </div>
+
+                    <div
+                        class="flex items-center justify-between flex-wrap gap-2 pt-1 border-t border-blue-100 text-[11px]">
+                        <span class="text-blue-800 font-semibold flex items-center gap-1.5"
+                            id="flightPeriodSummaryText">
+                            <i class="fa-solid fa-calendar-check text-blue-600"></i>
+                            Giai đoạn khai thác: <strong class="text-blue-900" id="flightPeriodVal">Chưa chọn</strong>
+                        </span>
+                        <span class="text-slate-500 text-[10px] font-medium" id="flightPeriodDaysCount">Tổng số: 7
+                            ngày</span>
+                    </div>
+                </div>
+
+                <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                    <div>
+                        <div class="flex items-center justify-between mb-1">
+                            <label class="block text-xs font-semibold text-slate-700">
+                                <i class="fa-regular fa-calendar-check text-blue-600 mr-1"></i> Ngày & Giờ mở phiên
+                                <span class="text-red-500">*</span>
+                            </label>
+                        </div>
+                        <div class="grid grid-cols-5 gap-2">
+                            <div class="col-span-3">
+                                <input type="date" id="openDate" required
+                                    class="w-full border rounded-xl px-3 py-2.5 text-xs font-semibold focus:ring-2 focus:ring-blue-500 outline-none">
+                            </div>
+                            <div class="col-span-2">
+                                <div
+                                    class="flex items-center justify-between bg-slate-50 border border-slate-300 rounded-xl px-2.5 py-2 focus-within:ring-2 focus-within:ring-blue-500 focus-within:bg-white focus-within:border-blue-500 transition shadow-xs">
+                                    <i class="fa-regular fa-clock text-blue-600 text-xs shrink-0 mr-1"></i>
+                                    <div
+                                        class="flex items-center gap-1 font-mono font-bold text-xs text-slate-800 flex-1 justify-center">
+                                        <select id="openHour" onchange="sync24hTime('open')"
+                                            class="bg-transparent text-xs font-bold text-slate-800 outline-none cursor-pointer text-center"
+                                            title="Chọn giờ mở (00 - 23h)">
+                                        </select>
+                                        <span class="text-slate-400 font-bold select-none">:</span>
+                                        <select id="openMinute" onchange="sync24hTime('open')"
+                                            class="bg-transparent text-xs font-bold text-slate-800 outline-none cursor-pointer text-center"
+                                            title="Chọn phút mở (00 - 59p)">
+                                        </select>
+                                    </div>
+                                    <span
+                                        class="text-[9px] font-bold text-blue-600 bg-blue-100/70 px-1 py-0.5 rounded shrink-0">24h</span>
+                                </div>
+                                <input type="hidden" id="openTime" value="08:00">
+                            </div>
+                        </div>
+                        <div class="flex items-center justify-between mt-1.5 text-[10px]">
+                            <span class="text-slate-400 font-medium">Giờ mở gợi ý:</span>
+                            <div class="flex gap-1">
+                                <button type="button" onclick="set24hPreset('open', '08:00')"
+                                    class="px-1.5 py-0.5 rounded bg-slate-100 hover:bg-blue-100 hover:text-blue-700 font-semibold text-slate-600 transition">08:00</button>
+                                <button type="button" onclick="set24hPreset('open', '09:00')"
+                                    class="px-1.5 py-0.5 rounded bg-slate-100 hover:bg-blue-100 hover:text-blue-700 font-semibold text-slate-600 transition">09:00</button>
+                                <button type="button" onclick="set24hPreset('open', '12:00')"
+                                    class="px-1.5 py-0.5 rounded bg-slate-100 hover:bg-blue-100 hover:text-blue-700 font-semibold text-slate-600 transition">12:00</button>
+                                <button type="button" onclick="set24hPreset('open', '14:00')"
+                                    class="px-1.5 py-0.5 rounded bg-slate-100 hover:bg-blue-100 hover:text-blue-700 font-semibold text-slate-600 transition">14:00</button>
+                            </div>
+                        </div>
+                    </div>
+                    <div>
+                        <div class="flex items-center justify-between mb-1">
+                            <label class="block text-xs font-semibold text-slate-700">
+                                <i class="fa-regular fa-calendar-xmark text-red-500 mr-1"></i> Ngày & Giờ đóng phiên
+                                <span class="text-red-500">*</span>
+                            </label>
+                        </div>
+                        <div class="grid grid-cols-5 gap-2">
+                            <div class="col-span-3">
+                                <input type="date" id="closeDate" required
+                                    class="w-full border rounded-xl px-3 py-2.5 text-xs font-semibold focus:ring-2 focus:ring-blue-500 outline-none">
+                            </div>
+                            <div class="col-span-2">
+                                <div
+                                    class="flex items-center justify-between bg-slate-50 border border-slate-300 rounded-xl px-2.5 py-2 focus-within:ring-2 focus-within:ring-red-500 focus-within:bg-white focus-within:border-red-500 transition shadow-xs">
+                                    <i class="fa-regular fa-clock text-red-500 text-xs shrink-0 mr-1"></i>
+                                    <div
+                                        class="flex items-center gap-1 font-mono font-bold text-xs text-slate-800 flex-1 justify-center">
+                                        <select id="closeHour" onchange="sync24hTime('close')"
+                                            class="bg-transparent text-xs font-bold text-slate-800 outline-none cursor-pointer text-center"
+                                            title="Chọn giờ đóng (00 - 23h)">
+                                        </select>
+                                        <span class="text-slate-400 font-bold select-none">:</span>
+                                        <select id="closeMinute" onchange="sync24hTime('close')"
+                                            class="bg-transparent text-xs font-bold text-slate-800 outline-none cursor-pointer text-center"
+                                            title="Chọn phút đóng (00 - 59p)">
+                                        </select>
+                                    </div>
+                                    <span
+                                        class="text-[9px] font-bold text-red-600 bg-red-100/70 px-1 py-0.5 rounded shrink-0">24h</span>
+                                </div>
+                                <input type="hidden" id="closeTime" value="23:59">
+                            </div>
+                        </div>
+                        <div class="flex items-center justify-between mt-1.5 text-[10px]">
+                            <span class="text-slate-400 font-medium">Giờ đóng gợi ý:</span>
+                            <div class="flex gap-1">
+                                <button type="button" onclick="set24hPreset('close', '18:00')"
+                                    class="px-1.5 py-0.5 rounded bg-slate-100 hover:bg-red-100 hover:text-red-700 font-semibold text-slate-600 transition">18:00</button>
+                                <button type="button" onclick="set24hPreset('close', '20:00')"
+                                    class="px-1.5 py-0.5 rounded bg-slate-100 hover:bg-red-100 hover:text-red-700 font-semibold text-slate-600 transition">20:00</button>
+                                <button type="button" onclick="set24hPreset('close', '22:00')"
+                                    class="px-1.5 py-0.5 rounded bg-slate-100 hover:bg-red-100 hover:text-red-700 font-semibold text-slate-600 transition">22:00</button>
+                                <button type="button" onclick="set24hPreset('close', '23:59')"
+                                    class="px-1.5 py-0.5 rounded bg-red-100 text-red-700 hover:bg-red-200 font-bold transition">23:59</button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Live auction duration info preview -->
+                <div id="auctionDurationPreviewBox"
+                    class="p-3.5 rounded-xl border border-blue-100 bg-blue-50/60 text-xs text-slate-700">
+                    <div class="flex items-start gap-2.5">
+                        <i class="fa-solid fa-clock-rotate-left text-blue-600 mt-0.5 text-sm"></i>
+                        <div class="space-y-1">
+                            <div class="font-semibold text-slate-900">Thời gian diễn ra phiên đấu giá:</div>
+                            <div id="auctionDurationContent" class="text-slate-600">Đang tính toán theo ngày mở và ngày
+                                đóng...</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 2. Cấu hình tải trọng & Giá sàn -->
+            <div class="bg-white rounded-2xl border shadow-sm p-6 space-y-4">
+                <h2 class="font-bold text-sm text-slate-900 border-b pb-2 flex items-center gap-2">
+                    <i class="fa-solid fa-coins text-amber-500"></i> 2. Tải trọng & Tham số đấu giá
+                </h2>
+
+                <!-- Tải trọng chào thầu (Tự nhập, mặc định 3500 Kg) & Thể tích tối đa -->
+                <div class="space-y-3">
+                    <label class="block text-xs font-semibold text-slate-700">
+                        Tải trọng chào thầu (Kg) & Thể tích chứa tối đa (CBM - m³) <span class="text-red-500">*</span>
+                    </label>
+
+                    <!-- Input Khối lượng Kg tự nhập + Live calculation preview -->
+                    <div class="grid grid-cols-1 sm:grid-cols-3 gap-4">
+                        <div class="sm:col-span-1">
+                            <label class="block text-xs font-semibold text-slate-700 mb-1">Số Kg chào thầu (Tự nhập)
+                                <span class="text-red-500">*</span></label>
+                            <input type="number" id="capacityKg" required value="3500" min="100" max="50000" step="100"
+                                placeholder="Nhập số Kg (VD: 3500)" oninput="updateVolumePreview()"
+                                class="w-full border rounded-xl px-3.5 py-2.5 text-xs font-bold text-slate-900 focus:ring-2 focus:ring-blue-500 outline-none">
+                            <p class="text-[10px] text-slate-400 mt-1">Có thể tự nhập bất kỳ từ
+                                100 đến 50.000 Kg.</p>
+                        </div>
+                        <div class="sm:col-span-2 flex items-center">
+                            <div
+                                class="w-full bg-slate-50 border border-slate-200 rounded-xl p-3 flex items-center justify-between">
+                                <div class="flex items-center gap-2.5">
+                                    <div
+                                        class="w-9 h-9 rounded-lg bg-emerald-100 text-emerald-700 flex items-center justify-center font-bold text-sm shadow-xs">
+                                        <i class="fa-solid fa-cube"></i>
+                                    </div>
+                                    <div>
+                                        <span class="text-[11px] text-slate-500 block">Thể tích chứa tối đa cho
+                                            phép</span>
+                                        <span id="maxVolumeDisplay" class="text-sm font-black text-emerald-700">175
+                                            m³</span>
+                                    </div>
+                                </div>
+                                <span
+                                    class="text-[10px] font-medium text-slate-500 bg-white border border-slate-200 px-2 py-1 rounded-md shadow-xs">IATA:
+                                    20 Kg/m³</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                    <div>
+                        <label class="block text-xs font-semibold text-slate-700 mb-1">Giá khởi điểm sàn (VND/Kg) <span
+                                class="text-red-500">*</span></label>
+                        <input type="number" id="startingPriceKg" required value="18000" step="any"
+                            class="w-full border rounded-xl px-3.5 py-2.5 text-xs font-bold focus:ring-2 focus:ring-blue-500 outline-none">
+                    </div>
+                    <div>
+                        <label
+                            class="block text-xs font-semibold text-slate-700 mb-1 flex items-center justify-between">
+                            <span>Loại tàu bay khai thác <span class="text-red-500">*</span></span>
+                            <a href="08-Settings.html" target="_blank"
+                                class="text-[10px] text-blue-600 hover:underline">
+                                <i class="fa-solid fa-gear text-[9px]"></i> Quản lý loại tàu bay
+                            </a>
+                        </label>
+                        <select id="aircraftType" required
+                            class="w-full border rounded-xl px-3.5 py-2.5 text-xs font-bold text-slate-800 bg-white focus:ring-2 focus:ring-blue-500 outline-none">
+                            <!-- Populated dynamically -->
+                        </select>
+                    </div>
+                </div>
+
+                <div>
+                    <label class="block text-xs font-semibold text-slate-700 mb-1">Quy định giao nhận & Cut-off
+                        kho</label>
+                    <div
+                        class="w-full border rounded-xl px-3.5 py-2.5 text-xs bg-slate-50 text-slate-700 font-medium flex items-center gap-2">
+                        <i class="fa-solid fa-warehouse text-blue-600"></i> Đóng nhận giá theo Ngày đóng phiên
+                    </div>
+                </div>
+
+                <div>
+                    <label class="block text-xs font-semibold text-slate-700 mb-1">Ghi chú</label>
+                    <textarea id="specialNotes" rows="2"
+                        placeholder="Hàng bưu phẩm, hàng tươi sống, vắc-xin bảo quản lạnh..."
+                        class="w-full border rounded-xl px-3.5 py-2 text-xs focus:ring-2 focus:ring-blue-500 outline-none">Tải trọng tổng hợp tiêu chuẩn IATA. Có hỗ trợ xe nâng hàng pallet tại sân bay.</textarea>
+                </div>
+            </div>
+
+            <!-- 3. Phân quyền đại lý tham gia đấu giá -->
+            <div class="bg-white rounded-2xl border shadow-sm p-6 space-y-5">
+                <div class="border-b pb-3 flex flex-col sm:flex-row sm:items-center justify-between gap-2">
+                    <div>
+                        <h2 class="font-bold text-sm text-slate-900 flex items-center gap-2">
+                            <i class="fa-solid fa-users-viewfinder text-blue-600"></i> 3. Phân quyền đại lý tham gia đấu
+                            giá
+                        </h2>
+                        <p class="text-xs text-slate-500 mt-0.5">Chỉ định các đại lý đã được phê duyệt được phép xem và
+                            đặt giá thầu cho chuyến bay này</p>
+                    </div>
+                    <span id="agentSelectionCountSummary"
+                        class="text-xs font-bold px-3 py-1 bg-blue-50 text-blue-700 rounded-full border border-blue-200">
+                        Tất cả đại lý
+                    </span>
+                </div>
+
+                <!-- Scope selection: All vs Specific -->
+                <div class="grid grid-cols-1 sm:grid-cols-2 gap-3.5">
+                    <label
+                        class="relative flex items-start gap-3 p-3.5 rounded-xl border-2 border-blue-500 bg-blue-50/70 cursor-pointer transition"
+                        id="scopeAllLabel">
+                        <input type="radio" name="agentScope" value="ALL" checked onchange="onAgentScopeChange()"
+                            class="mt-0.5 w-4 h-4 text-blue-600 focus:ring-blue-500">
+                        <div class="text-xs">
+                            <span class="font-bold text-slate-900 flex items-center gap-1.5">
+                                <i class="fa-solid fa-earth-americas text-blue-600"></i> Tất cả đại lý
+                            </span>
+                            <span class="text-slate-500 text-[11px] block mt-0.5">Tất cả các đại lý đều sẽ thấy chuyến
+                                bay này trên Dashboard của họ</span>
+                        </div>
+                    </label>
+
+                    <label
+                        class="relative flex items-start gap-3 p-3.5 rounded-xl border border-slate-200 bg-white cursor-pointer hover:border-blue-300 transition"
+                        id="scopeSpecificLabel">
+                        <input type="radio" name="agentScope" value="SPECIFIC" onchange="onAgentScopeChange()"
+                            class="mt-0.5 w-4 h-4 text-blue-600 focus:ring-blue-500">
+                        <div class="text-xs">
+                            <span class="font-bold text-slate-900 flex items-center gap-1.5">
+                                <i class="fa-solid fa-user-check text-emerald-600"></i> Chỉ định đại lý cụ thể
+                            </span>
+                            <span class="text-slate-500 text-[11px] block mt-0.5">Chỉ những đại lý được tích chọn bên
+                                dưới mới thấy chuyến bay này để tham gia nộp giá thầu</span>
+                        </div>
+                    </label>
+                </div>
+
+                <!-- Agent List Container (shown when SPECIFIC is active) -->
+                <div id="specificAgentsContainer" class="hidden space-y-3 pt-1">
+                    <!-- Toolbar: Search & Quick actions -->
+                    <div class="flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-2.5">
+                        <div class="relative flex-1">
+                            <i class="fa-solid fa-magnifying-glass absolute left-3 top-2.5 text-slate-400 text-xs"></i>
+                            <input type="text" id="agentSearchInput" oninput="filterAgentsList()"
+                                placeholder="Tìm kiếm theo mã AG, tên doanh nghiệp, MST..."
+                                class="w-full border rounded-xl pl-8 pr-3 py-2 text-xs outline-none focus:ring-2 focus:ring-blue-500 border-slate-300">
+                        </div>
+                        <div class="flex items-center gap-2">
+                            <button type="button" onclick="selectAllAgents()"
+                                class="px-3 py-1.5 rounded-lg border border-slate-200 bg-slate-50 hover:bg-slate-100 text-xs font-semibold text-slate-700 transition">
+                                <i class="fa-solid fa-check-double text-blue-600"></i> Chọn tất cả
+                            </button>
+                            <button type="button" onclick="deselectAllAgents()"
+                                class="px-3 py-1.5 rounded-lg border border-slate-200 bg-slate-50 hover:bg-slate-100 text-xs font-semibold text-slate-700 transition">
+                                <i class="fa-solid fa-xmark text-slate-500"></i> Bỏ chọn
+                            </button>
+                        </div>
+                    </div>
+
+                    <!-- Scrollable table of agents -->
+                    <div
+                        class="border border-slate-200 rounded-xl overflow-hidden max-h-72 overflow-y-auto bg-white shadow-2xs">
+                        <table class="w-full text-xs text-left">
+                            <thead
+                                class="bg-slate-100 text-slate-700 font-bold border-b border-slate-200 sticky top-0 z-10">
+                                <tr>
+                                    <th class="py-2.5 px-3 w-10 text-center">
+                                        <input type="checkbox" id="masterAgentChk" onchange="toggleMasterAgentChk(this)"
+                                            class="w-3.5 h-3.5 rounded text-blue-600 focus:ring-blue-500">
+                                    </th>
+                                    <th class="py-2.5 px-3">Mã Đại lý</th>
+                                    <th class="py-2.5 px-3">Tên Doanh nghiệp</th>
+                                    <th class="py-2.5 px-3">Người đại diện</th>
+                                    <th class="py-2.5 px-3">Trạng thái</th>
+                                </tr>
+                            </thead>
+                            <tbody id="approvedAgentsTableBody" class="divide-y divide-slate-100">
+                                <!-- Populated dynamically -->
+                            </tbody>
+                        </table>
+                    </div>
+                    <div class="text-[11px] text-slate-500 flex items-center justify-between">
+                        <span><i class="fa-solid fa-circle-info text-blue-500"></i> Danh sách gồm các đại lý đã được phê
+                            duyệt hồ sơ và đang hoạt động.</span>
+                        <span id="agentSelectedCounter" class="font-bold text-blue-600">Đã chọn 0 đại lý</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Action buttons -->
+            <div class="flex items-center justify-end gap-3 pt-2">
+                <a href="03-AuctionList.html"
+                    class="px-5 py-2.5 border rounded-xl text-xs font-medium hover:bg-slate-50 transition">
+                    Hủy bỏ
+                </a>
+                <button type="submit"
+                    class="bg-blue-600 hover:bg-blue-700 text-white text-xs font-bold px-6 py-2.5 rounded-xl transition shadow flex items-center gap-1.5">
+                    <i class="fa-solid fa-paper-plane"></i> Xuất bản phiên đấu giá lên Sàn
+                </button>
+            </div>
+
+        </form>
+
+    </main>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', function () {
+            const admin = (window.CargoStore && CargoStore.getCurrentAdmin) ? CargoStore.getCurrentAdmin() : null;
+            const canCreateAuction = (window.CargoStore && CargoStore.hasPermission) ? CargoStore.hasPermission('auctions.create', admin) : true;
+            if (!canCreateAuction) {
+                const main = document.querySelector('main');
+                if (main) {
+                    main.innerHTML = `
+                        <div class="max-w-xl mx-auto my-12 bg-white rounded-3xl p-8 border shadow-xl text-center space-y-4">
+                            <div class="w-16 h-16 bg-red-100 text-red-600 rounded-2xl mx-auto flex items-center justify-center text-3xl shadow-sm">
+                                <i class="fa-solid fa-ban"></i>
+                            </div>
+                            <h2 class="text-xl font-bold text-slate-900">Truy cập bị từ chối (Access Denied)</h2>
+                            <p class="text-xs text-slate-600 leading-relaxed">
+                                Tài khoản <strong>${admin ? (admin.fullName || admin.username) : 'Hiện tại'}</strong> không có quyền tạo chuyến bay / phiên đấu giá mới (yêu cầu quyền <code>auctions.create</code>). Thao tác này thuộc thẩm quyền của <strong>COD Manager</strong> hoặc <strong>Super Admin</strong>.
+                            </p>
+                            <a href="02-AdminDashboard.html" class="inline-block bg-blue-600 hover:bg-blue-700 text-white text-xs font-bold px-6 py-3 rounded-xl transition shadow">
+                                Quay lại Admin Dashboard
+                            </a>
+                        </div>
+                    `;
+                }
+                if (window.CargoStore && CargoStore.syncAdminHeaderUI) CargoStore.syncAdminHeaderUI();
+                return;
+            }
+        });
+
+        function toggleAdminMobileNav() {
+            const nav = document.getElementById('adminMobileNav');
+            if (nav) nav.classList.toggle('hidden');
+        }
+
+        function formatToDatetimeLocal(date) {
+            if (!date || isNaN(date.getTime())) return '';
+            const pad = n => String(n).padStart(2, '0');
+            const y = date.getFullYear();
+            const m = pad(date.getMonth() + 1);
+            const d = pad(date.getDate());
+            const h = pad(date.getHours());
+            const min = pad(date.getMinutes());
+            return `${y}-${m}-${d}T${h}:${min}`;
+        }
+
+        function parseDatetimeLocal(str) {
+            if (!str) return null;
+            const parts = str.split('T');
+            if (parts.length < 2) return new Date(str);
+            const dateParts = parts[0].split('-').map(Number);
+            const timeParts = parts[1].split(':').map(Number);
+            if (dateParts.length < 3 || timeParts.length < 2) return new Date(str);
+            return new Date(dateParts[0], dateParts[1] - 1, dateParts[2], timeParts[0], timeParts[1], 0, 0);
+        }
+
+        function getFlightDuration(origin, dest) {
+            if (window.CargoStore && CargoStore.getFlightDurationMinutes) {
+                return CargoStore.getFlightDurationMinutes(origin, dest);
+            }
+            const pair = `${(origin || '').toUpperCase()}-${(dest || '').toUpperCase()}`;
+            const map = {
+                'SGN-HAN': 135, 'HAN-SGN': 135,
+                'SGN-DAD': 80, 'DAD-SGN': 80,
+                'HAN-DAD': 80, 'DAD-HAN': 80,
+                'HAN-PQC': 135, 'PQC-HAN': 135,
+                'SGN-PQC': 60, 'PQC-SGN': 60,
+                'DAD-PQC': 105, 'PQC-DAD': 105
+            };
+            return map[pair] || 120;
+        }
+
+        function getNextFlightNum(origin, dest, skip = 0) {
+            if (window.CargoStore && CargoStore.generateNextFlightNumber) {
+                return CargoStore.generateNextFlightNumber(origin, dest, skip);
+            }
+            const pair = `${(origin || '').toUpperCase()}-${(dest || '').toUpperCase()}`;
+            const map = {
+                'SGN-HAN': ['VU130', 'VU132', 'VU134', 'VU136', 'VU138'],
+                'HAN-SGN': ['VU131', 'VU133', 'VU135', 'VU137', 'VU139'],
+                'SGN-DAD': ['VU220', 'VU222', 'VU224', 'VU226', 'VU228'],
+                'DAD-SGN': ['VU221', 'VU223', 'VU225', 'VU227', 'VU229'],
+                'HAN-DAD': ['VU240', 'VU242', 'VU244', 'VU246'],
+                'DAD-HAN': ['VU241', 'VU243', 'VU245', 'VU247'],
+                'HAN-PQC': ['VU340', 'VU342', 'VU344', 'VU346'],
+                'PQC-HAN': ['VU341', 'VU343', 'VU345', 'VU347'],
+                'SGN-PQC': ['VU450', 'VU452', 'VU454', 'VU456'],
+                'PQC-SGN': ['VU451', 'VU453', 'VU455', 'VU457'],
+                'DAD-PQC': ['VU510', 'VU512', 'VU514', 'VU516'],
+                'PQC-DAD': ['VU511', 'VU513', 'VU515', 'VU517']
+            };
+            const list = map[pair] || ['VU500', 'VU502', 'VU504'];
+            return list[Math.max(0, skip) % list.length];
+        }
+
+        function updateVolumePreview() {
+            const input = document.getElementById('capacityKg');
+            const display = document.getElementById('maxVolumeDisplay');
+            if (!input || !display) return;
+            const kg = Number(input.value) || 0;
+            if (kg > 0) {
+                const maxVol = (kg / 20).toFixed(1);
+                display.textContent = `${Number(maxVol).toLocaleString('vi-VN')} m³`;
+            } else {
+                display.textContent = '- m³';
+            }
+        }
+
+        function updateAuctionDurationPreview() {
+            const openDateInput = document.getElementById('openDate');
+            const openTimeInput = document.getElementById('openTime');
+            const closeDateInput = document.getElementById('closeDate');
+            const closeTimeInput = document.getElementById('closeTime');
+            const previewEl = document.getElementById('auctionDurationContent');
+            const previewBox = document.getElementById('auctionDurationPreviewBox');
+            if (!previewEl || !openDateInput || !closeDateInput) return;
+
+            const openDateVal = openDateInput.value;
+            const closeDateVal = closeDateInput.value;
+            if (!openDateVal || !closeDateVal) {
+                previewEl.innerHTML = '<span class="text-slate-400">Vui lòng chọn ngày mở và ngày đóng phiên để xem thời lượng đấu giá.</span>';
+                if (previewBox) previewBox.className = 'p-3.5 rounded-xl border border-slate-200 bg-slate-50 text-xs text-slate-700';
+                return;
+            }
+
+            const openTimeVal = openTimeInput?.value || '08:00';
+            const closeTimeVal = closeTimeInput?.value || '23:59';
+            const openDt = new Date(`${openDateVal}T${openTimeVal}`);
+            const closeDt = new Date(`${closeDateVal}T${closeTimeVal}`);
+
+            const pad = n => String(n).padStart(2, '0');
+            const formatVN = d => `${pad(d.getHours())}:${pad(d.getMinutes())} · ${pad(d.getDate())}/${pad(d.getMonth() + 1)}/${d.getFullYear()}`;
+
+            if (isNaN(openDt.getTime()) || isNaN(closeDt.getTime())) {
+                previewEl.innerHTML = '<span class="text-red-500 font-medium">Ngày hoặc giờ không hợp lệ.</span>';
+                return;
+            }
+
+            if (closeDt.getTime() <= openDt.getTime()) {
+                if (previewBox) previewBox.className = 'p-3.5 rounded-xl border border-red-300 bg-red-50 text-xs text-red-900 shadow-xs';
+                previewEl.innerHTML = `
+                    <div class="font-bold text-red-700 mb-0.5 flex items-center gap-1.5">
+                        <i class="fa-solid fa-triangle-exclamation"></i> Ngày/giờ đóng phiên phải sau ngày/giờ mở phiên!
+                    </div>
+                    <p class="text-[11px] text-red-700">Mở: <strong>${formatVN(openDt)}</strong> ➔ Đóng: <strong>${formatVN(closeDt)}</strong></p>
+                `;
+                return;
+            }
+
+            const diffMs = closeDt.getTime() - openDt.getTime();
+            const totalHours = Math.floor(diffMs / (3600 * 1000));
+            const days = Math.floor(totalHours / 24);
+            const remainHours = totalHours % 24;
+            let durationText = '';
+            if (days > 0) {
+                durationText = `${days} ngày${remainHours > 0 ? ' ' + remainHours + ' giờ' : ''}`;
+            } else {
+                durationText = `${totalHours} giờ`;
+            }
+
+            const hasCustomOpenTime = openTimeInput?.value ? ` (${openTimeInput.value})` : ' ';
+            const hasCustomCloseTime = closeTimeInput?.value ? ` (${closeTimeInput.value})` : '';
+
+            if (previewBox) previewBox.className = 'p-3.5 rounded-xl border border-blue-200 bg-blue-50/60 text-xs text-slate-800 shadow-xs';
+            previewEl.innerHTML = `
+                <div class="space-y-1 text-slate-700">
+                    <p>• <strong>Mở phiên:</strong> <span class="font-bold text-blue-700">${formatVN(openDt)}</span><span class="text-[10px] text-slate-400 ml-1">${hasCustomOpenTime}</span></p>
+                    <p>• <strong>Đóng phiên:</strong> <span class="font-bold text-red-600">${formatVN(closeDt)}</span><span class="text-[10px] text-slate-400 ml-1">${hasCustomCloseTime}</span></p>
+                    <p>• <strong>Tổng thời lượng nhận giá:</strong> <span class="font-bold text-emerald-700">${durationText}</span></p>
+                </div>
+            `;
+        }
+
+        let flightNumberSkipCount = 0;
+
+        function validateFlightNumberRealtime() {
+            const fnInput = document.getElementById('flightNumber');
+            const hint = document.getElementById('flightNumberHint');
+            if (!fnInput || !hint) return true;
+
+            const fn = fnInput.value.trim().toUpperCase();
+            if (!fn) {
+                hint.className = 'text-[10px] text-slate-400 font-medium mt-1';
+                hint.innerHTML = 'Vui lòng nhập số hiệu chuyến bay.';
+                return false;
+            }
+
+            if (window.CargoStore && CargoStore.checkDuplicateFlightNumber) {
+                const check = CargoStore.checkDuplicateFlightNumber(fn);
+                if (check.isDuplicate) {
+                    fnInput.classList.add('border-red-500', 'bg-red-50');
+                    hint.className = 'text-[10px] text-red-600 font-bold mt-1 flex items-center gap-1';
+                    hint.innerHTML = `<i class="fa-solid fa-triangle-exclamation"></i> ${check.message} <button type="button" onclick="regenerateFlightNumber()" class="text-blue-700 underline font-semibold ml-1 cursor-pointer">Lấy số hiệu khác</button>`;
+                    return false;
+                }
+            }
+
+            fnInput.classList.remove('border-red-500', 'bg-red-50');
+            hint.className = 'text-[10px] text-emerald-600 font-medium mt-1 flex items-center gap-1';
+            hint.innerHTML = `<i class="fa-solid fa-circle-check text-[9px]"></i> Số hiệu hợp lệ.`;
+            return true;
+        }
+
+        function updateAutoGeneratedFlightNumber(resetSkip = true) {
+            if (resetSkip) flightNumberSkipCount = 0;
+            const origin = document.getElementById('originAirport')?.value || 'SGN';
+            const dest = document.getElementById('destinationAirport')?.value || 'HAN';
+            const fnInput = document.getElementById('flightNumber');
+            if (fnInput) {
+                fnInput.value = getNextFlightNum(origin, dest, flightNumberSkipCount);
+                validateFlightNumberRealtime();
+            }
+        }
+
+        function regenerateFlightNumber() {
+            flightNumberSkipCount++;
+            updateAutoGeneratedFlightNumber(false);
+        }
+
+        function getAvailableAirports() {
+            if (window.CargoStore && CargoStore.getAirports) {
+                const list = CargoStore.getAirports();
+                if (list && list.length > 0) {
+                    return list.map(a => ({ code: a.code, name: `${a.code} - ${a.name}` }));
+                }
+            }
+            return [
+                { code: 'DAD', name: 'DAD - Da Nang International Airport' },
+                { code: 'DLI', name: 'DLI - Lien Khuong Airport' },
+                { code: 'HAN', name: 'HAN - Noi Bai International Airport' },
+                { code: 'HPH', name: 'HPH - Cat Bi International Airport' },
+                { code: 'HUI', name: 'HUI - Phu Bai International Airport' },
+                { code: 'SGN', name: 'SGN - Tan Son Nhat International Airport' },
+                { code: 'UIH', name: 'UIH - Phu Cat Airport' },
+                { code: 'PQC', name: 'PQC - Phu Quoc International Airport' },
+                { code: 'VCA', name: 'VCA - Can Tho International Airport' },
+                { code: 'CXR', name: 'CXR - Cam Ranh International Airport' }
+            ];
+        }
+
+        function initAirportAndAircraftDropdowns() {
+            const airports = getAvailableAirports();
+            const originSelect = document.getElementById('originAirport');
+            if (originSelect) {
+                const currVal = originSelect.value || 'SGN';
+                originSelect.innerHTML = airports.map(a => `<option value="${a.code}">${a.name}</option>`).join('');
+                if (airports.some(a => a.code === currVal)) {
+                    originSelect.value = currVal;
+                } else if (airports.length > 0) {
+                    originSelect.value = airports[0].code;
+                }
+            }
+            updateDestinationOptions();
+
+            // Populate Aircraft Type select
+            const acSelect = document.getElementById('aircraftType');
+            if (acSelect) {
+                const acTypes = (window.CargoStore && CargoStore.getAircraftTypes) ? CargoStore.getAircraftTypes() : [];
+                if (acTypes.length > 0) {
+                    acSelect.innerHTML = acTypes.map(ac => `<option value="${ac.name} (${ac.code})">${ac.code} - ${ac.name}</option>`).join('');
+                } else {
+                    acSelect.innerHTML = `
+                        <option value="A320 (32V)">32V - A320</option>
+                        <option value="A321 (32I)">32I - A321</option>
+                        <option value="A321 (321)">321 - A321</option>
+                    `;
+                }
+            }
+        }
+
+        function updateDestinationOptions() {
+            const originSelect = document.getElementById('originAirport');
+            const destSelect = document.getElementById('destinationAirport');
+            if (!originSelect || !destSelect) return;
+
+            const currentOrigin = originSelect.value;
+            const currentDest = destSelect.value;
+            const airports = getAvailableAirports();
+
+            // Exclude current origin airport from destination options
+            const availableDests = airports.filter(a => a.code !== currentOrigin);
+
+            destSelect.innerHTML = availableDests.map(a => `
+                <option value="${a.code}">${a.name}</option>
+            `).join('');
+
+            // Restore previously selected destination if still available and valid
+            if (currentDest && currentDest !== currentOrigin && availableDests.some(a => a.code === currentDest)) {
+                destSelect.value = currentDest;
+            } else if (availableDests.length > 0) {
+                destSelect.value = availableDests[0].code;
+            }
+        }
+
+        function onOriginAirportChanged() {
+            updateDestinationOptions();
+            updateAutoGeneratedFlightNumber(true);
+        }
+
+        function onDestinationAirportChanged() {
+            updateAutoGeneratedFlightNumber(true);
+        }
+
+        function onRouteOrDateChanged() {
+            updateDestinationOptions();
+            updateAutoGeneratedFlightNumber(true);
+        }
+
+        function formatDateVN(dateStr) {
+            if (!dateStr) return '';
+            const parts = dateStr.split('-');
+            if (parts.length === 3) {
+                return `${parts[2]}/${parts[1]}/${parts[0]}`;
+            }
+            return dateStr;
+        }
+
+        function setFlightDateQuick(mode) {
+            const now = new Date();
+            const pad = n => String(n).padStart(2, '0');
+            const fmt = d => `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}`;
+
+            // Start date default: tomorrow
+            const startDt = new Date(now.getTime() + 24 * 3600 * 1000);
+            let endDt = new Date(startDt.getTime());
+
+            if (mode === '1_month' || mode === 'month' || mode === '1m') {
+                endDt.setMonth(endDt.getMonth() + 1);
+                endDt.setDate(endDt.getDate() - 1);
+            } else if (mode === '6_months' || mode === '6m') {
+                endDt.setMonth(endDt.getMonth() + 6);
+                endDt.setDate(endDt.getDate() - 1);
+            } else if (mode === '12_months' || mode === '12m' || mode === 'year') {
+                endDt.setFullYear(endDt.getFullYear() + 1);
+                endDt.setDate(endDt.getDate() - 1);
+            }
+
+            const sInput = document.getElementById('flightStartDate');
+            const eInput = document.getElementById('flightEndDate');
+            if (sInput) sInput.value = fmt(startDt);
+            if (eInput) eInput.value = fmt(endDt);
+
+            onFlightDateRangeChanged();
+        }
+
+        function onFlightDateRangeChanged() {
+            const sInput = document.getElementById('flightStartDate');
+            const eInput = document.getElementById('flightEndDate');
+            if (!sInput || !eInput) return;
+
+            const sVal = sInput.value;
+            const eVal = eInput.value;
+
+            const valEl = document.getElementById('flightPeriodVal');
+            const countEl = document.getElementById('flightPeriodDaysCount');
+
+            if (!sVal || !eVal) {
+                if (valEl) valEl.textContent = 'Chưa chọn đủ Từ ngày ➔ Đến ngày';
+                if (countEl) countEl.textContent = '';
+                return;
+            }
+
+            const sDate = new Date(sVal + 'T00:00:00');
+            const eDate = new Date(eVal + 'T00:00:00');
+
+            if (eDate.getTime() < sDate.getTime()) {
+                if (valEl) valEl.innerHTML = '<span class="text-red-500 font-bold">Lỗi: Đến ngày phải sau hoặc cùng Từ ngày!</span>';
+                if (countEl) countEl.textContent = '';
+                return;
+            }
+
+            const days = Math.round((eDate.getTime() - sDate.getTime()) / (24 * 3600 * 1000)) + 1;
+            const sFormatted = formatDateVN(sVal);
+            const eFormatted = formatDateVN(eVal);
+
+            if (valEl) {
+                if (sVal === eVal) {
+                    valEl.textContent = `Ngày ${sFormatted}`;
+                } else {
+                    valEl.textContent = `Từ ${sFormatted} ➔ Đến ${eFormatted}`;
+                }
+            }
+            if (countEl) {
+                let approx = '';
+                if (days >= 360 && days <= 370) approx = ' (~12 tháng)';
+                else if (days >= 175 && days <= 190) approx = ' (~6 tháng)';
+                else if (days >= 28 && days <= 32) approx = ' (~1 tháng)';
+                countEl.textContent = `Tổng số: ${days} ngày${approx}`;
+            }
+        }
+
+        // === Chuẩn hóa thời gian 24 giờ (00:00 - 23:59, không dùng AM/PM) ===
+        function init24hTimeSelectors() {
+            const hours = Array.from({ length: 24 }, (_, i) => String(i).padStart(2, '0'));
+            const minutes = Array.from({ length: 60 }, (_, i) => String(i).padStart(2, '0'));
+
+            const populate = (selId, items, defaultVal) => {
+                const sel = document.getElementById(selId);
+                if (!sel) return;
+                sel.innerHTML = items.map(v => `<option value="${v}">${v}</option>`).join('');
+                sel.value = defaultVal;
+            };
+
+            populate('openHour', hours, '08');
+            populate('openMinute', minutes, '00');
+            populate('closeHour', hours, '23');
+            populate('closeMinute', minutes, '59');
+
+            sync24hTime('open');
+            sync24hTime('close');
+        }
+
+        function sync24hTime(type) {
+            const h = document.getElementById(`${type}Hour`)?.value || (type === 'open' ? '08' : '23');
+            const m = document.getElementById(`${type}Minute`)?.value || (type === 'open' ? '00' : '59');
+            const timeInput = document.getElementById(`${type}Time`);
+            if (timeInput) {
+                timeInput.value = `${h}:${m}`;
+            }
+            if (typeof updateAuctionDurationPreview === 'function') {
+                updateAuctionDurationPreview();
+            }
+        }
+
+        function set24hPreset(type, timeStr) {
+            const parts = timeStr.split(':');
+            if (parts.length !== 2) return;
+            const [h, m] = parts;
+            const hSel = document.getElementById(`${type}Hour`);
+            const mSel = document.getElementById(`${type}Minute`);
+            if (hSel && mSel) {
+                hSel.value = h;
+                mSel.value = m;
+                sync24hTime(type);
+            }
+        }
+
+        function initDateInputs() {
+            const now = new Date();
+            const pad = n => String(n).padStart(2, '0');
+            const todayStr = `${now.getFullYear()}-${pad(now.getMonth() + 1)}-${pad(now.getDate())}`;
+
+            // Default close date: 2 days later
+            const closeDt = new Date(now.getTime() + 2 * 24 * 3600 * 1000);
+            const closeStr = `${closeDt.getFullYear()}-${pad(closeDt.getMonth() + 1)}-${pad(closeDt.getDate())}`;
+
+            const openDateInput = document.getElementById('openDate');
+            const closeDateInput = document.getElementById('closeDate');
+
+            if (openDateInput) {
+                openDateInput.min = todayStr;
+                if (!openDateInput.value) openDateInput.value = todayStr;
+            }
+            if (closeDateInput) {
+                closeDateInput.min = todayStr;
+                if (!closeDateInput.value) closeDateInput.value = closeStr;
+            }
+
+            // Init flight date range (tomorrow -> 1 month later)
+            const sInput = document.getElementById('flightStartDate');
+            const eInput = document.getElementById('flightEndDate');
+            if (sInput && !sInput.value) {
+                const startDt = new Date(now.getTime() + 24 * 3600 * 1000);
+                sInput.value = `${startDt.getFullYear()}-${pad(startDt.getMonth() + 1)}-${pad(startDt.getDate())}`;
+                sInput.min = todayStr;
+            }
+            if (eInput && !eInput.value) {
+                const startDt = new Date(now.getTime() + 24 * 3600 * 1000);
+                const endDt = new Date(startDt.getTime());
+                endDt.setMonth(endDt.getMonth() + 1);
+                endDt.setDate(endDt.getDate() - 1);
+                eInput.value = `${endDt.getFullYear()}-${pad(endDt.getMonth() + 1)}-${pad(endDt.getDate())}`;
+                eInput.min = todayStr;
+            }
+            onFlightDateRangeChanged();
+
+            updateAuctionDurationPreview();
+            onRouteOrDateChanged();
+        }
+
+        function attachFieldListeners() {
+            ['openDate', 'openTime', 'closeDate', 'closeTime'].forEach(id => {
+                const el = document.getElementById(id);
+                if (el) {
+                    el.addEventListener('input', updateAuctionDurationPreview);
+                    el.addEventListener('change', updateAuctionDurationPreview);
+                }
+            });
+
+            const originAirport = document.getElementById('originAirport');
+            if (originAirport) {
+                originAirport.addEventListener('change', onOriginAirportChanged);
+            }
+
+            const destinationAirport = document.getElementById('destinationAirport');
+            if (destinationAirport) {
+                destinationAirport.addEventListener('change', onDestinationAirportChanged);
+            }
+        }
+
+        function initSystemDefaults() {
+            if (window.CargoStore && CargoStore.getSystemSettings) {
+                const sys = CargoStore.getSystemSettings();
+                if (sys && sys.minIncrement) {
+                    const minStepEl = document.getElementById('minStep');
+                    if (minStepEl) minStepEl.value = sys.minIncrement;
+                }
+            }
+        }
+
+        // === 3. Phân quyền đại lý tham gia đấu giá ===
+        let allApprovedAgents = [];
+        let selectedAgentCodes = new Set();
+
+        function initAgentAccessControl() {
+            if (typeof CargoStore === 'undefined') return;
+            allApprovedAgents = CargoStore.getApprovedAgents ? CargoStore.getApprovedAgents() : [];
+            // Mặc định chọn tất cả để nếu chuyển sang SPECIFIC thì người dùng tiện lọc/bỏ chọn
+            selectedAgentCodes.clear();
+            allApprovedAgents.forEach(ag => selectedAgentCodes.add(ag.code));
+            renderApprovedAgentsTable();
+            onAgentScopeChange();
+        }
+
+        function onAgentScopeChange() {
+            const scope = document.querySelector('input[name="agentScope"]:checked')?.value || 'ALL';
+            const specificBox = document.getElementById('specificAgentsContainer');
+            const labelAll = document.getElementById('scopeAllLabel');
+            const labelSpec = document.getElementById('scopeSpecificLabel');
+            const summaryBadge = document.getElementById('agentSelectionCountSummary');
+
+            if (scope === 'ALL') {
+                if (specificBox) specificBox.classList.add('hidden');
+                if (labelAll) {
+                    labelAll.className = 'relative flex items-start gap-3 p-3.5 rounded-xl border-2 border-blue-500 bg-blue-50/70 cursor-pointer transition';
+                }
+                if (labelSpec) {
+                    labelSpec.className = 'relative flex items-start gap-3 p-3.5 rounded-xl border border-slate-200 bg-white cursor-pointer hover:border-blue-300 transition';
+                }
+                if (summaryBadge) {
+                    summaryBadge.textContent = `Tất cả đại lý (${allApprovedAgents.length} đại lý)`;
+                    summaryBadge.className = 'text-xs font-bold px-3 py-1 bg-blue-50 text-blue-700 rounded-full border border-blue-200';
+                }
+            } else {
+                if (specificBox) specificBox.classList.remove('hidden');
+                if (labelSpec) {
+                    labelSpec.className = 'relative flex items-start gap-3 p-3.5 rounded-xl border-2 border-blue-500 bg-blue-50/70 cursor-pointer transition';
+                }
+                if (labelAll) {
+                    labelAll.className = 'relative flex items-start gap-3 p-3.5 rounded-xl border border-slate-200 bg-white cursor-pointer hover:border-blue-300 transition';
+                }
+                updateAgentSelectionUI();
+            }
+        }
+
+        function renderApprovedAgentsTable() {
+            const tbody = document.getElementById('approvedAgentsTableBody');
+            if (!tbody) return;
+
+            const query = (document.getElementById('agentSearchInput')?.value || '').trim().toLowerCase();
+            const filtered = allApprovedAgents.filter(ag => {
+                if (!query) return true;
+                const code = (ag.code || '').toLowerCase();
+                const name = (ag.companyName || '').toLowerCase();
+                const rep = (ag.repName || '').toLowerCase();
+                const tax = (ag.taxCode || '').toLowerCase();
+                return code.includes(query) || name.includes(query) || rep.includes(query) || tax.includes(query);
+            });
+
+            if (filtered.length === 0) {
+                tbody.innerHTML = `
+                    <tr>
+                        <td colspan="5" class="py-6 text-center text-slate-400">
+                            <i class="fa-solid fa-users-slash text-xl mb-1 block"></i>
+                            Không tìm thấy đại lý nào phù hợp với từ khóa "${query}"
+                        </td>
+                    </tr>
+                `;
+                return;
+            }
+
+            tbody.innerHTML = filtered.map(ag => {
+                const isChecked = selectedAgentCodes.has(ag.code);
+                return `
+                    <tr class="hover:bg-blue-50/40 transition cursor-pointer ${isChecked ? 'bg-blue-50/20' : ''}" onclick="toggleAgentRowSelection(event, '${ag.code}')">
+                        <td class="py-2.5 px-3 text-center" onclick="event.stopPropagation()">
+                            <input type="checkbox" value="${ag.code}" ${isChecked ? 'checked' : ''} onchange="onAgentCheckboxChange('${ag.code}', this.checked)" class="agent-select-chk w-4 h-4 text-blue-600 rounded cursor-pointer border-slate-300 focus:ring-blue-500">
+                        </td>
+                        <td class="py-2.5 px-3">
+                            <span class="font-mono font-bold text-blue-700 bg-blue-50 px-2 py-0.5 rounded border border-blue-200">${ag.code}</span>
+                        </td>
+                        <td class="py-2.5 px-3">
+                            <p class="font-bold text-slate-800 leading-snug">${ag.companyName}</p>
+                            <p class="text-[10px] text-slate-400">MST: ${ag.taxCode || '-'}</p>
+                        </td>
+                        <td class="py-2.5 px-3">
+                            <p class="text-slate-700 font-medium">${ag.repName || '-'}</p>
+                            <p class="text-[10px] text-slate-400">${ag.phone || ag.email || ''}</p>
+                        </td>
+                        <td class="py-2.5 px-3 whitespace-nowrap">
+                            <span class="inline-flex items-center gap-1 text-[10px] text-emerald-600 font-semibold ml-1.5"><i class="fa-solid fa-circle-check"></i> Hoạt động</span>
+                        </td>
+                    </tr>
+                `;
+            }).join('');
+
+            updateMasterCheckboxState(filtered);
+        }
+
+        function toggleAgentRowSelection(e, code) {
+            if (e.target && e.target.tagName === 'INPUT') return;
+            const isChecked = selectedAgentCodes.has(code);
+            onAgentCheckboxChange(code, !isChecked);
+        }
+
+        function onAgentCheckboxChange(code, checked) {
+            if (checked) {
+                selectedAgentCodes.add(code);
+            } else {
+                selectedAgentCodes.delete(code);
+            }
+            renderApprovedAgentsTable();
+            updateAgentSelectionUI();
+        }
+
+        function selectAllAgents() {
+            allApprovedAgents.forEach(ag => selectedAgentCodes.add(ag.code));
+            renderApprovedAgentsTable();
+            updateAgentSelectionUI();
+        }
+
+        function deselectAllAgents() {
+            selectedAgentCodes.clear();
+            renderApprovedAgentsTable();
+            updateAgentSelectionUI();
+        }
+
+        function toggleMasterAgentChk(masterChk) {
+            const isChecked = masterChk.checked;
+            const query = (document.getElementById('agentSearchInput')?.value || '').trim().toLowerCase();
+            allApprovedAgents.forEach(ag => {
+                if (!query) {
+                    if (isChecked) selectedAgentCodes.add(ag.code);
+                    else selectedAgentCodes.delete(ag.code);
+                } else {
+                    const match = (ag.code || '').toLowerCase().includes(query) || (ag.companyName || '').toLowerCase().includes(query);
+                    if (match) {
+                        if (isChecked) selectedAgentCodes.add(ag.code);
+                        else selectedAgentCodes.delete(ag.code);
+                    }
+                }
+            });
+            renderApprovedAgentsTable();
+            updateAgentSelectionUI();
+        }
+
+        function updateMasterCheckboxState(visibleAgents) {
+            const masterChk = document.getElementById('masterAgentChk');
+            if (!masterChk || !visibleAgents || visibleAgents.length === 0) return;
+            const allVisibleSelected = visibleAgents.every(ag => selectedAgentCodes.has(ag.code));
+            const anyVisibleSelected = visibleAgents.some(ag => selectedAgentCodes.has(ag.code));
+            masterChk.checked = allVisibleSelected;
+            masterChk.indeterminate = !allVisibleSelected && anyVisibleSelected;
+        }
+
+        function filterAgentsList() {
+            renderApprovedAgentsTable();
+        }
+
+        function updateAgentSelectionUI() {
+            const count = selectedAgentCodes.size;
+            const total = allApprovedAgents.length;
+            const counterEl = document.getElementById('agentSelectedCounter');
+            const summaryBadge = document.getElementById('agentSelectionCountSummary');
+
+            if (counterEl) {
+                counterEl.textContent = `Đã chọn: ${count} / ${total} đại lý`;
+                if (count === 0) {
+                    counterEl.className = 'font-bold text-red-500';
+                } else {
+                    counterEl.className = 'font-bold text-blue-600';
+                }
+            }
+
+            const scope = document.querySelector('input[name="agentScope"]:checked')?.value || 'ALL';
+            if (summaryBadge && scope === 'SPECIFIC') {
+                if (count === 0) {
+                    summaryBadge.textContent = 'Chưa chọn đại lý nào';
+                    summaryBadge.className = 'text-xs font-bold px-3 py-1 bg-red-50 text-red-700 rounded-full border border-red-200';
+                } else if (count === total) {
+                    summaryBadge.textContent = `Tất cả đại lý (${count} đại lý)`;
+                    summaryBadge.className = 'text-xs font-bold px-3 py-1 bg-blue-50 text-blue-700 rounded-full border border-blue-200';
+                } else {
+                    summaryBadge.textContent = `Chỉ định ${count} đại lý được duyệt`;
+                    summaryBadge.className = 'text-xs font-bold px-3 py-1 bg-emerald-50 text-emerald-700 rounded-full border border-emerald-200';
+                }
+            }
+        }
+
+        document.addEventListener('DOMContentLoaded', function () {
+            init24hTimeSelectors();
+            initAirportAndAircraftDropdowns();
+            initDateInputs();
+            attachFieldListeners();
+            updateVolumePreview();
+            initSystemDefaults();
+            initAgentAccessControl();
+            if (window.CargoStore && CargoStore.syncAdminHeaderUI) CargoStore.syncAdminHeaderUI();
+        });
+
+        // Run immediately in case DOM is already ready
+        if (document.readyState === 'complete' || document.readyState === 'interactive') {
+            init24hTimeSelectors();
+            initAirportAndAircraftDropdowns();
+            initDateInputs();
+            attachFieldListeners();
+            initSystemDefaults();
+            initAgentAccessControl();
+        }
+
+        document.getElementById('createAuctionForm').addEventListener('submit', function (e) {
+            e.preventDefault();
+
+            if (window.CargoStore && CargoStore.hasPermission && !CargoStore.hasPermission('auctions.create')) {
+                alert('Từ chối quyền: Tài khoản của bạn không có quyền Tạo phiên đấu giá mới (auctions.create)!');
+                return;
+            }
+
+            const fn = document.getElementById('flightNumber').value.trim().toUpperCase();
+            const origin = document.getElementById('originAirport').value;
+            const dest = document.getElementById('destinationAirport').value;
+
+            if (!fn) {
+                alert('Vui lòng nhập số hiệu chuyến bay!');
+                return;
+            }
+
+            if (window.CargoStore && CargoStore.checkDuplicateFlightNumber) {
+                const check = CargoStore.checkDuplicateFlightNumber(fn);
+                if (check.isDuplicate) {
+                    alert(`❌ Không thể tạo phiên!\n\n${check.message}\n\nVui lòng nhấn "Đổi số hiệu khác" để cấp số hiệu chuyến bay mới không bị trùng.`);
+                    return;
+                }
+            }
+
+            if (origin === dest) {
+                alert('Sân bay đi và đến không được trùng nhau!');
+                return;
+            }
+
+            const flightStartDateVal = document.getElementById('flightStartDate')?.value;
+            const flightEndDateVal = document.getElementById('flightEndDate')?.value;
+
+            if (!flightStartDateVal || !flightEndDateVal) {
+                alert('Vui lòng chọn đầy đủ giai đoạn khai thác chuyến bay (Từ ngày ➔ Đến ngày)!');
+                return;
+            }
+
+            const fsDate = new Date(flightStartDateVal + 'T00:00:00');
+            const feDate = new Date(flightEndDateVal + 'T00:00:00');
+            if (feDate.getTime() < fsDate.getTime()) {
+                alert('❌ Giai đoạn khai thác: "Đến ngày" phải diễn ra sau hoặc cùng "Từ ngày"!');
+                return;
+            }
+
+            const flightPeriodVal = flightStartDateVal === flightEndDateVal
+                ? `Ngày ${formatDateVN(flightStartDateVal)}`
+                : `Từ ${formatDateVN(flightStartDateVal)} ➔ Đến ${formatDateVN(flightEndDateVal)}`;
+
+            const openDateVal = document.getElementById('openDate').value;
+            const openTimeVal = document.getElementById('openTime').value;
+            const closeDateVal = document.getElementById('closeDate').value;
+            const closeTimeVal = document.getElementById('closeTime').value;
+
+            if (!openDateVal) {
+                alert('Vui lòng chọn ngày mở phiên!');
+                return;
+            }
+            if (!closeDateVal) {
+                alert('Vui lòng chọn ngày đóng phiên!');
+                return;
+            }
+
+            const finalOpenTime = openTimeVal ? openTimeVal : '08:00';
+            const finalCloseTime = closeTimeVal ? closeTimeVal : '23:59';
+            const openIso = `${openDateVal}T${finalOpenTime}`;
+            const closeIso = `${closeDateVal}T${finalCloseTime}`;
+
+            const openDt = new Date(openIso);
+            const closeDt = new Date(closeIso);
+
+            if (isNaN(openDt.getTime()) || isNaN(closeDt.getTime())) {
+                alert('Ngày mở hoặc ngày đóng phiên không đúng định dạng!');
+                return;
+            }
+
+            if (closeDt.getTime() <= openDt.getTime()) {
+                alert('❌ Ngày/giờ đóng phiên phải diễn ra sau ngày/giờ mở phiên!');
+                return;
+            }
+
+            if (closeDt.getTime() <= Date.now()) {
+                alert('❌ Ngày/giờ đóng phiên phải là thời điểm trong tương lai!');
+                return;
+            }
+
+            const capacityKgVal = Number(document.getElementById('capacityKg').value) || 3500;
+            if (capacityKgVal < 100 || capacityKgVal > 50000) {
+                alert('Tải trọng phải từ 100 Kg đến 50.000 Kg!');
+                return;
+            }
+
+            // 3. Phân quyền đại lý tham gia đấu giá
+            const scopeVal = document.querySelector('input[name="agentScope"]:checked')?.value || 'ALL';
+            let allowedAgentsVal = ['ALL'];
+            if (scopeVal === 'SPECIFIC') {
+                if (selectedAgentCodes.size === 0) {
+                    alert('⚠️ Bạn đang chọn chế độ "Chỉ định đại lý cụ thể" nhưng chưa tích chọn đại lý nào.\nVui lòng chọn ít nhất 1 đại lý hoặc chuyển sang chế độ "Tất cả đại lý"!');
+                    return;
+                }
+                allowedAgentsVal = Array.from(selectedAgentCodes);
+            }
+
+            const res = (window.CargoStore && CargoStore.createAuction)
+                ? CargoStore.createAuction({
+                    flightNumber: fn,
+                    origin: origin,
+                    destination: dest,
+                    flightStartDate: flightStartDateVal,
+                    flightEndDate: flightEndDateVal,
+                    flightPeriod: flightPeriodVal,
+                    openDate: openIso,
+                    closeDate: closeIso,
+                    etd: closeIso,
+                    eta: '',
+                    aircraft: document.getElementById('aircraftType').value,
+                    capacityKg: capacityKgVal,
+                    startingPriceKg: document.getElementById('startingPriceKg').value,
+                    minStep: 0,
+                    specialNotes: document.getElementById('specialNotes').value,
+                    cutOffTime: 'Theo ngày đóng phiên',
+                    allowedAgents: allowedAgentsVal
+                })
+                : { success: false, message: 'Hệ thống lưu trữ chưa sẵn sàng.' };
+
+            if (res.success) {
+                alert(res.message);
+                window.location.href = '03-AuctionList.html';
+            } else {
+                alert('❌ ' + (res.message || 'Tạo phiên đấu giá thất bại!'));
+            }
+        });
+    </script>
+</body>
+
+</html>

@@ -1,0 +1,999 @@
+@page
+@model BiddingCargo.Web.Pages.RegisterModel
+@{
+    Layout = null;
+}
+<!DOCTYPE html>
+<html lang="vi">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Đăng ký đại lý - Cargo Bidding</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+    <script src="assets/js/sweetalert2.all.min.js"></script>
+    <script src="assets/js/cargo-store.js"></script>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Exo:ital,wght@@0,100;0,200;0,300;0,400;0,500;0,531;0,600;0,700;0,800;0,900;1,100;1,200;1,300;1,400;1,500;1,531;1,600;1,700;1,800;1,900" rel="stylesheet" />
+    <style>
+        body, input, select, textarea, button {
+            font-family: 'Exo', sans-serif;
+        }
+    </style>
+</head>
+
+<body class="bg-gray-100 text-gray-800">
+
+    <!-- Top bar -->
+    <div class="bg-slate-900 text-slate-300 text-xs">
+        <div class="max-w-4xl mx-auto px-4 py-1.5 flex items-center justify-between">
+            <a href="00-Home.html" class="hover:text-white flex items-center gap-1.5">
+                <i class="fa-solid fa-arrow-left"></i> Về trang chủ
+            </a>
+            <div class="flex items-center gap-3">
+                <a href="01-Login.html" class="hover:text-white">Đã có tài khoản? Đăng nhập</a>
+                <span class="text-slate-600">|</span>
+                <a href="Admin/01-AdminLogin.html" class="hover:text-white flex items-center gap-1.5 text-blue-400">
+                    <i class="fa-solid fa-user-shield"></i> Admin
+                </a>
+            </div>
+        </div>
+    </div>
+
+    <!-- Header -->
+    <header class="bg-white border-b shadow-sm sticky top-0 z-40">
+        <div class="max-w-4xl mx-auto px-4 py-4 flex items-center justify-between">
+            <div class="flex items-center gap-3">
+                <img src="assets/images/vietravel-logo-doc.png" alt="Vietravel Airlines Logo"
+                    class="h-7 sm:h-8 object-contain" />
+                <div>
+                    <h1 class="font-bold text-lg text-slate-900">Đăng ký tài khoản đại lý</h1>
+                    <p class="text-xs text-gray-500">Cargo Bidding · Đợt mở đăng ký Tháng 8/2026</p>
+                </div>
+            </div>
+            <a href="00-Home.html" class="text-xs text-gray-500 hover:text-blue-600 flex items-center gap-1">
+                <i class="fa-solid fa-xmark"></i> Hủy
+            </a>
+        </div>
+    </header>
+
+    <main class="max-w-4xl mx-auto px-3 sm:px-4 py-4 sm:py-8">
+
+        <!-- Demo Mode Quick Fill Banner -->
+        <!-- <div class="bg-blue-50 border border-blue-200 rounded-2xl p-4 mb-6 flex flex-col sm:flex-row sm:items-center justify-between gap-3 shadow-xs">
+            <div class="flex items-center gap-3">
+                <div class="w-10 h-10 bg-blue-600 text-white rounded-xl flex items-center justify-center font-bold text-lg flex-shrink-0">
+                    <i class="fa-solid fa-bolt"></i>
+                </div>
+                <div>
+                    <h3 class="font-bold text-sm text-slate-900 flex items-center gap-2">
+                        Chế độ Đăng ký Nhanh (Demo Auto-Fill)
+                        <span class="text-[10px] bg-blue-600 text-white px-2 py-0.5 rounded-md uppercase font-extrabold tracking-wider">Demo Tool</span>
+                    </h3>
+                    <p class="text-xs text-slate-600">Tích chọn để tự động điền đầy đủ dữ liệu hồ sơ mẫu & bỏ qua nhập liệu thủ công</p>
+                </div>
+            </div>
+            <label class="flex items-center gap-2 cursor-pointer bg-white px-4 py-2.5 rounded-xl border border-blue-300 hover:bg-blue-100/50 transition flex-shrink-0 shadow-xs">
+                <input type="checkbox" id="demoAutoFillCheckbox" onchange="toggleDemoFill(this)" class="w-4 h-4 rounded text-blue-600 focus:ring-blue-500">
+                <span class="text-xs font-bold text-blue-900">Tự động điền Hồ sơ mẫu</span>
+            </label>
+        </div> -->
+
+        <!-- Rejected Application Resubmission Notice Banner -->
+        <div id="rejectionNoticeBanner"
+            class="hidden bg-red-50 border-2 border-red-300 rounded-2xl p-4 sm:p-5 mb-6 shadow-sm animate-in fade-in duration-300">
+            <div class="flex items-start gap-3.5">
+                <div
+                    class="w-10 h-10 bg-red-600 text-white rounded-xl flex items-center justify-center font-bold text-lg flex-shrink-0 mt-0.5 shadow-sm">
+                    <i class="fa-solid fa-triangle-exclamation"></i>
+                </div>
+                <div class="flex-1">
+                    <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-1 mb-1">
+                        <h3 class="font-bold text-sm text-red-900 flex items-center gap-2">
+                            Hồ sơ đăng ký đại lý cần chỉnh sửa / bổ sung
+                            <span id="rejectedBannerRegId"
+                                class="font-mono text-xs bg-red-200 text-red-900 px-2 py-0.5 rounded font-bold">REG-...</span>
+                        </h3>
+                    </div>
+                    <div class="bg-white/90 p-3 rounded-xl border border-red-200 my-2">
+                        <p class="text-xs font-bold text-red-800 flex items-center gap-1.5 mb-1">
+                            <i class="fa-solid fa-comment-dots text-red-600"></i> Lý do từ chối từ Ban Điều hành:
+                        </p>
+                        <p id="rejectedBannerReason"
+                            class="text-xs text-red-700 font-medium leading-relaxed pl-5 italic">
+                            -
+                        </p>
+                    </div>
+                    <p class="text-xs text-slate-600">
+                        Thông tin doanh nghiệp đã được tự động điền lại vào biểu mẫu bên dưới. Quý công ty vui lòng
+                        <strong>chỉnh sửa & bổ sung các giấy tờ theo yêu cầu</strong> và bấm <strong>"Gửi lại hồ sơ xét
+                            duyệt"</strong>.
+                    </p>
+                </div>
+            </div>
+        </div>
+
+        <form class="space-y-6" id="registerForm">
+
+            <!-- 1. Thông tin công ty -->
+            <div class="bg-white rounded-2xl border shadow-sm p-6">
+                <h2 class="font-semibold text-lg mb-1 flex items-center gap-2 text-slate-900">
+                    <span
+                        class="w-7 h-7 bg-blue-100 text-blue-700 rounded-lg flex items-center justify-center text-sm font-bold">1</span>
+                    Thông tin công ty
+                </h2>
+                <p class="text-xs text-gray-500 mb-5 ml-9">Thông tin pháp lý của doanh nghiệp đăng ký tham gia</p>
+
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div class="md:col-span-2">
+                        <label class="block text-sm font-medium mb-1">Tên công ty / Doanh nghiệp <span
+                                class="text-red-500">*</span></label>
+                        <input type="text" id="companyName" required
+                            placeholder="VD: Công ty TNHH Vận tải & Tiếp vận Toàn Cầu"
+                            class="w-full border rounded-xl px-4 py-2.5 text-sm focus:ring-2 focus:ring-blue-500 outline-none transition">
+                        <p id="companyNameErr" class="text-xs text-red-600 font-medium mt-1 hidden"></p>
+                    </div>
+                    <div>
+                        <label class="block text-sm font-medium mb-1">Mã số thuế (MST) <span
+                                class="text-red-500">*</span></label>
+                        <input type="text" id="taxCode" required placeholder="0312345678"
+                            class="w-full border rounded-xl px-4 py-2.5 text-sm focus:ring-2 focus:ring-blue-500 outline-none transition">
+                        <p id="taxCodeErr" class="text-xs text-red-600 font-medium mt-1 hidden"></p>
+                    </div>
+                    <div>
+                        <label class="block text-sm font-medium mb-1">Giấy phép kinh doanh số</label>
+                        <input type="text" id="businessLicense" placeholder="Số GPKD (nếu khác MST)"
+                            class="w-full border rounded-xl px-4 py-2.5 text-sm focus:ring-2 focus:ring-blue-500 outline-none transition">
+                    </div>
+                    <div class="md:col-span-2">
+                        <label class="block text-sm font-medium mb-1">Địa chỉ trụ sở chính <span
+                                class="text-red-500">*</span></label>
+                        <input type="text" id="address" required
+                            placeholder="VD: 123 Nguyễn Huệ, Phường Bến Nghé, Quận 1, TP.HCM"
+                            class="w-full border rounded-xl px-4 py-2.5 text-sm focus:ring-2 focus:ring-blue-500 outline-none transition">
+                        <p id="addressErr" class="text-xs text-red-600 font-medium mt-1 hidden"></p>
+                    </div>
+                    <div>
+                        <label class="block text-sm font-medium mb-1">Website công ty (nếu có)</label>
+                        <input type="url" id="website" placeholder="https://..."
+                            class="w-full border rounded-xl px-4 py-2.5 text-sm focus:ring-2 focus:ring-blue-500 outline-none transition">
+                    </div>
+                    <div>
+                        <label class="block text-sm font-medium mb-1">Lĩnh vực hoạt động</label>
+                        <select id="businessField"
+                            class="w-full border rounded-xl px-4 py-2.5 text-sm focus:ring-2 focus:ring-blue-500 outline-none transition bg-white">
+                            <option value="Freight Forwarder">Freight Forwarder (Giao nhận vận tải)</option>
+                            <option value="Cargo Agent">Cargo Agent (Đại lý hàng hóa)</option>
+                            <option value="Logistics">Logistics tổng hợp</option>
+                            <option value="Khác">Khác</option>
+                        </select>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 2. Người đại diện -->
+            <div class="bg-white rounded-2xl border shadow-sm p-6">
+                <h2 class="font-semibold text-lg mb-1 flex items-center gap-2 text-slate-900">
+                    <span
+                        class="w-7 h-7 bg-blue-100 text-blue-700 rounded-lg flex items-center justify-center text-sm font-bold">2</span>
+                    Người đại diện / Liên hệ chính
+                </h2>
+                <p class="text-xs text-gray-500 mb-5 ml-9">Người trực tiếp sử dụng tài khoản đại lý và tiếp nhận thông
+                    báo thầu</p>
+
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div>
+                        <label class="block text-sm font-medium mb-1">Họ và tên người đại diện <span
+                                class="text-red-500">*</span></label>
+                        <input type="text" id="repName" required placeholder="VD: Nguyễn Văn An"
+                            class="w-full border rounded-xl px-4 py-2.5 text-sm focus:ring-2 focus:ring-blue-500 outline-none transition">
+                        <p id="repNameErr" class="text-xs text-red-600 font-medium mt-1 hidden"></p>
+                    </div>
+                    <div>
+                        <label class="block text-sm font-medium mb-1">Chức vụ <span
+                                class="text-red-500">*</span></label>
+                        <input type="text" id="repPosition" required placeholder="Giám đốc / Trưởng phòng Cargo..."
+                            class="w-full border rounded-xl px-4 py-2.5 text-sm focus:ring-2 focus:ring-blue-500 outline-none transition">
+                        <p id="repPositionErr" class="text-xs text-red-600 font-medium mt-1 hidden"></p>
+                    </div>
+                    <div>
+                        <label class="block text-sm font-medium mb-1">Email nhận mã đại lý & hợp đồng <span
+                                class="text-red-500">*</span></label>
+                        <input type="email" id="email" required placeholder="an.nguyen@@company.vn"
+                            class="w-full border rounded-xl px-4 py-2.5 text-sm focus:ring-2 focus:ring-blue-500 outline-none transition">
+                        <p id="emailErr" class="text-xs text-red-600 font-medium mt-1 hidden"></p>
+                    </div>
+                    <div>
+                        <label class="block text-sm font-medium mb-1">Số điện thoại di động <span
+                                class="text-red-500">*</span></label>
+                        <input type="tel" id="phone" required placeholder="0901 234 567"
+                            class="w-full border rounded-xl px-4 py-2.5 text-sm focus:ring-2 focus:ring-blue-500 outline-none transition">
+                        <p id="phoneErr" class="text-xs text-red-600 font-medium mt-1 hidden"></p>
+                    </div>
+                    <div>
+                        <label class="block text-sm font-medium mb-1">Số CCCD / Hộ chiếu</label>
+                        <input type="text" id="citizenId" placeholder="Số căn cước công dân"
+                            class="w-full border rounded-xl px-4 py-2.5 text-sm focus:ring-2 focus:ring-blue-500 outline-none transition">
+                        <p id="citizenIdErr" class="text-xs text-red-600 font-medium mt-1 hidden"></p>
+                    </div>
+                    <div>
+                        <label class="block text-sm font-medium mb-1">Email nhận thông báo đấu giá (nếu khác)</label>
+                        <input type="email" id="notifEmail" placeholder="ops@@company.vn"
+                            class="w-full border rounded-xl px-4 py-2.5 text-sm focus:ring-2 focus:ring-blue-500 outline-none transition">
+                        <p id="notifEmailErr" class="text-xs text-red-600 font-medium mt-1 hidden"></p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 3. Upload documents -->
+            <div class="bg-white rounded-2xl border shadow-sm p-6">
+                <h2 class="font-semibold text-lg mb-1 flex items-center gap-2 text-slate-900">
+                    <span
+                        class="w-7 h-7 bg-blue-100 text-blue-700 rounded-lg flex items-center justify-center text-sm font-bold">3</span>
+                    Hồ sơ đính kèm
+                </h2>
+                <p class="text-xs text-gray-500 mb-5 ml-9">Định dạng hỗ trợ: PDF, JPG, PNG · Dung lượng tối đa 10MB/tệp
+                    tin</p>
+
+                <div class="space-y-4">
+
+                    <!-- Giấy phép kinh doanh -->
+                    <div class="border border-dashed border-gray-300 rounded-xl p-4 hover:border-blue-400 transition"
+                        id="box-gpkd">
+                        <div class="flex items-start gap-4">
+                            <div
+                                class="w-11 h-11 bg-gray-100 text-gray-500 rounded-xl flex items-center justify-center flex-shrink-0">
+                                <i class="fa-solid fa-file-contract text-lg"></i>
+                            </div>
+                            <div class="flex-1 min-w-0">
+                                <p class="font-medium text-sm text-slate-900">Giấy phép kinh doanh / Đăng ký doanh
+                                    nghiệp <span class="text-red-500">*</span></p>
+                                <p class="text-xs text-gray-500 mt-0.5">Bản chụp scan rõ nét, còn hiệu lực pháp lý</p>
+                                <div class="mt-3 flex items-center gap-3">
+                                    <label
+                                        class="cursor-pointer bg-blue-50 hover:bg-blue-100 text-blue-700 text-xs font-medium px-3 py-1.5 rounded-lg transition">
+                                        <i class="fa-solid fa-upload mr-1"></i> Chọn tệp tin
+                                        <input type="file" accept=".pdf,.jpg,.jpeg,.png" class="hidden"
+                                            data-label="gpkd" onchange="handleFile(this)">
+                                    </label>
+                                    <span class="text-xs text-gray-400 file-name" id="name-gpkd">Chưa chọn file</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Giấy ủy quyền cargo -->
+                    <div class="border border-dashed border-gray-300 rounded-xl p-4 hover:border-blue-400 transition">
+                        <div class="flex items-start gap-4">
+                            <div
+                                class="w-11 h-11 bg-gray-100 text-gray-500 rounded-xl flex items-center justify-center flex-shrink-0">
+                                <i class="fa-solid fa-file-signature text-lg"></i>
+                            </div>
+                            <div class="flex-1 min-w-0">
+                                <p class="font-medium text-sm text-slate-900">Giấy ủy quyền / Chứng nhận đại lý cargo /
+                                    IATA <span class="text-red-500">*</span></p>
+                                <p class="text-xs text-gray-500 mt-0.5">Giấy tờ chứng minh tư cách đại lý hàng không
+                                    hoặc đối tác forwarder</p>
+                                <div class="mt-3 flex items-center gap-3">
+                                    <label
+                                        class="cursor-pointer bg-blue-50 hover:bg-blue-100 text-blue-700 text-xs font-medium px-3 py-1.5 rounded-lg transition">
+                                        <i class="fa-solid fa-upload mr-1"></i> Chọn tệp tin
+                                        <input type="file" accept=".pdf,.jpg,.jpeg,.png" class="hidden"
+                                            data-label="uyquyen" onchange="handleFile(this)">
+                                    </label>
+                                    <span class="text-xs text-gray-400 file-name" id="name-uyquyen">Chưa chọn
+                                        file</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- CCCD người đại diện -->
+                    <div class="border border-dashed border-gray-300 rounded-xl p-4 hover:border-blue-400 transition">
+                        <div class="flex items-start gap-4">
+                            <div
+                                class="w-11 h-11 bg-gray-100 text-gray-500 rounded-xl flex items-center justify-center flex-shrink-0">
+                                <i class="fa-solid fa-id-card text-lg"></i>
+                            </div>
+                            <div class="flex-1 min-w-0">
+                                <p class="font-medium text-sm text-slate-900">CCCD / CMND người đại diện pháp luật <span
+                                        class="text-red-500">*</span></p>
+                                <p class="text-xs text-gray-500 mt-0.5">Mặt trước & mặt sau (có thể gộp chung 1 file
+                                    PDF)</p>
+                                <div class="mt-3 flex items-center gap-3">
+                                    <label
+                                        class="cursor-pointer bg-blue-50 hover:bg-blue-100 text-blue-700 text-xs font-medium px-3 py-1.5 rounded-lg transition">
+                                        <i class="fa-solid fa-upload mr-1"></i> Chọn tệp tin
+                                        <input type="file" accept=".pdf,.jpg,.jpeg,.png" class="hidden"
+                                            data-label="cccd" onchange="handleFile(this)">
+                                    </label>
+                                    <span class="text-xs text-gray-400 file-name" id="name-cccd">Chưa chọn file</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Giấy ủy quyền nội bộ (optional) -->
+                    <div class="border border-dashed border-gray-300 rounded-xl p-4 hover:border-blue-400 transition">
+                        <div class="flex items-start gap-4">
+                            <div
+                                class="w-11 h-11 bg-gray-100 text-gray-500 rounded-xl flex items-center justify-center flex-shrink-0">
+                                <i class="fa-solid fa-file-lines text-lg"></i>
+                            </div>
+                            <div class="flex-1 min-w-0">
+                                <p class="font-medium text-sm text-slate-900">Giấy ủy quyền nội bộ doanh nghiệp <span
+                                        class="text-gray-400 font-normal">(tuỳ chọn)</span></p>
+                                <p class="text-xs text-gray-500 mt-0.5">Cần nộp nếu người đứng tên đăng ký không phải
+                                    đại diện pháp luật trên GPKD</p>
+                                <div class="mt-3 flex items-center gap-3">
+                                    <label
+                                        class="cursor-pointer bg-blue-50 hover:bg-blue-100 text-blue-700 text-xs font-medium px-3 py-1.5 rounded-lg transition">
+                                        <i class="fa-solid fa-upload mr-1"></i> Chọn tệp tin
+                                        <input type="file" accept=".pdf,.jpg,.jpeg,.png" class="hidden"
+                                            data-label="uqnb" onchange="handleFile(this)">
+                                    </label>
+                                    <span class="text-xs text-gray-400 file-name" id="name-uqnb">Chưa chọn file</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Tài liệu khác -->
+                    <div class="border border-dashed border-gray-300 rounded-xl p-4 hover:border-blue-400 transition">
+                        <div class="flex items-start gap-4">
+                            <div
+                                class="w-11 h-11 bg-gray-100 text-gray-500 rounded-xl flex items-center justify-center flex-shrink-0">
+                                <i class="fa-solid fa-folder-open text-lg"></i>
+                            </div>
+                            <div class="flex-1 min-w-0">
+                                <p class="font-medium text-sm text-slate-900">Tài liệu bổ trợ khác <span
+                                        class="text-gray-400 font-normal">(tuỳ chọn)</span></p>
+                                <p class="text-xs text-gray-500 mt-0.5">Chứng chỉ vận chuyển hàng nguy hiểm (DGR), hồ sơ
+                                    năng lực logistics</p>
+                                <div class="mt-3 flex items-center gap-3">
+                                    <label
+                                        class="cursor-pointer bg-blue-50 hover:bg-blue-100 text-blue-700 text-xs font-medium px-3 py-1.5 rounded-lg transition">
+                                        <i class="fa-solid fa-upload mr-1"></i> Chọn tệp tin
+                                        <input type="file" accept=".pdf,.jpg,.jpeg,.png" multiple class="hidden"
+                                            data-label="khac" onchange="handleFile(this)">
+                                    </label>
+                                    <span class="text-xs text-gray-400 file-name" id="name-khac">Chưa chọn file</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                </div>
+            </div>
+
+            <!-- 4. Tài khoản đăng nhập mong muốn -->
+            <div class="bg-white rounded-2xl border shadow-sm p-6">
+                <h2 class="font-semibold text-lg mb-1 flex items-center gap-2 text-slate-900">
+                    <span
+                        class="w-7 h-7 bg-blue-100 text-blue-700 rounded-lg flex items-center justify-center text-sm font-bold">4</span>
+                    Thông tin tài khoản (sau khi được duyệt)
+                </h2>
+                <p class="text-xs text-gray-500 mb-5 ml-9">Mã đại lý sẽ do ban điều hành cấp tự động (AG-xxxx). Quý đại
+                    lý vui lòng đặt mật khẩu khởi tạo.</p>
+
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div>
+                        <label class="block text-sm font-medium mb-1">Mật khẩu khởi tạo <span
+                                class="text-red-500">*</span></label>
+                        <input type="password" id="tempPassword" required placeholder="Tối thiểu 8 ký tự"
+                            class="w-full border rounded-xl px-4 py-2.5 text-sm focus:ring-2 focus:ring-blue-500 outline-none transition">
+
+                        <div class="mt-2.5 bg-slate-50 border border-slate-200 rounded-xl p-3 text-xs space-y-1.5"
+                            id="pwdChecklist">
+                            <p class="font-bold text-slate-700 text-[11px] mb-1 flex items-center gap-1.5">
+                                <i class="fa-solid fa-shield-halved text-blue-600"></i> Yêu cầu mật khẩu an toàn:
+                            </p>
+                            <div class="flex items-center gap-1.5 text-slate-500" id="ruleLen">
+                                <i class="fa-solid fa-circle-xmark text-red-500 text-[11px]"></i> <span>Từ 8 ký tự trở
+                                    lên</span>
+                            </div>
+                            <div class="flex items-center gap-1.5 text-slate-500" id="ruleUpper">
+                                <i class="fa-solid fa-circle-xmark text-red-500 text-[11px]"></i> <span>Có chữ HOA
+                                    (A-Z)</span>
+                            </div>
+                            <div class="flex items-center gap-1.5 text-slate-500" id="ruleLower">
+                                <i class="fa-solid fa-circle-xmark text-red-500 text-[11px]"></i> <span>Có chữ thường
+                                    (a-z)</span>
+                            </div>
+                            <div class="flex items-center gap-1.5 text-slate-500" id="ruleDigit">
+                                <i class="fa-solid fa-circle-xmark text-red-500 text-[11px]"></i> <span>Có chữ số
+                                    (0-9)</span>
+                            </div>
+                            <div class="flex items-center gap-1.5 text-slate-500" id="ruleSpecial">
+                                <i class="fa-solid fa-circle-xmark text-red-500 text-[11px]"></i> <span>Có ký tự đặc
+                                    biệt (!@@#$%^&*)</span>
+                            </div>
+                        </div>
+                    </div>
+                    <div>
+                        <label class="block text-sm font-medium mb-1">Xác nhận mật khẩu <span
+                                class="text-red-500">*</span></label>
+                        <input type="password" id="confirmPassword" required placeholder="Nhập lại chính xác mật khẩu"
+                            class="w-full border rounded-xl px-4 py-2.5 text-sm focus:ring-2 focus:ring-blue-500 outline-none transition">
+                        <p id="confirmFeedbackMsg" class="text-xs mt-1 font-medium hidden"></p>
+                    </div>
+                </div>
+                <div
+                    class="bg-blue-50 border border-blue-200 text-blue-800 rounded-xl p-3 text-xs mt-4 flex items-center gap-2">
+                    <i class="fa-solid fa-circle-info text-blue-600"></i>
+                    <span>Sau khi hồ sơ được phê duyệt, Quý đại lý đăng nhập lần đầu bằng Mật khẩu đã tạo, sau đó sẽ
+                        <strong>thiết lập Mã PIN bảo mật (4 chữ số)</strong> trực tiếp trong hệ thống để bảo vệ tài
+                        khoản.</span>
+                </div>
+            </div>
+
+            <!-- 5. Cam kết -->
+            <div class="bg-white rounded-2xl border shadow-sm p-6">
+                <h2 class="font-semibold text-lg mb-4 flex items-center gap-2 text-slate-900">
+                    <span
+                        class="w-7 h-7 bg-blue-100 text-blue-700 rounded-lg flex items-center justify-center text-sm font-bold">5</span>
+                    Cam kết của doanh nghiệp
+                </h2>
+                <div class="space-y-3">
+                    <label class="flex items-start gap-3 cursor-pointer">
+                        <input type="checkbox" required
+                            class="w-4 h-4 mt-0.5 rounded text-blue-600 focus:ring-blue-500">
+                        <span class="text-sm text-gray-600 leading-relaxed">Tôi xác nhận mọi thông tin khai báo và hồ sơ
+                            tải lên là hoàn toàn chính xác, hợp pháp và còn nguyên hiệu lực.</span>
+                    </label>
+                    <label class="flex items-start gap-3 cursor-pointer">
+                        <input type="checkbox" required
+                            class="w-4 h-4 mt-0.5 rounded text-blue-600 focus:ring-blue-500">
+                        <span class="text-sm text-gray-600 leading-relaxed">Tôi đã đọc kỹ và đồng ý tuân thủ toàn bộ <a
+                                href="10-Terms.html" target="_blank"
+                                class="text-blue-600 font-semibold hover:underline">Điều khoản & Quy định vận hành</a>
+                            của hệ thống Cargo Bidding (bao gồm quy chế thanh toán đúng hạn trước giờ Cut-off và chế tài
+                            khóa tài khoản tự động).</span>
+                    </label>
+                    <label class="flex items-start gap-3 cursor-pointer">
+                        <input type="checkbox" required
+                            class="w-4 h-4 mt-0.5 rounded text-blue-600 focus:ring-blue-500">
+                        <span class="text-sm text-gray-600 leading-relaxed">Tôi hiểu rõ việc gửi hồ sơ không đồng nghĩa
+                            với việc tự động được cấp quyền; quyết định phê duyệt cuối cùng thuộc thẩm quyền của hãng
+                            hàng không.</span>
+                    </label>
+                </div>
+            </div>
+
+            <!-- Actions -->
+            <div class="flex flex-col sm:flex-row gap-3 justify-end pt-2">
+                <a href="00-Home.html"
+                    class="px-6 py-3 border rounded-xl text-sm font-medium hover:bg-gray-50 transition text-center text-gray-600">
+                    Hủy bỏ
+                </a>
+                <button type="submit"
+                    class="px-8 py-3.5 bg-blue-600 hover:bg-blue-700 text-white rounded-xl text-sm font-semibold transition shadow-md shadow-blue-600/20 flex items-center justify-center gap-2">
+                    <i class="fa-solid fa-paper-plane"></i>
+                    Gửi hồ sơ đăng ký chính thức
+                </button>
+            </div>
+        </form>
+
+        <!-- Note -->
+        <p class="text-center text-xs text-gray-400 mt-8">
+            Cần giải đáp thắc mắc? Liên hệ Tổng đài <strong>1900.6686</strong> hoặc email
+            <strong>cargo@@vietravelairlines.vn</strong> · Hỗ trợ 24/7
+        </p>
+    </main>
+
+    <!-- Success modal (ẩn mặc định) -->
+    <div id="successModal"
+        class="fixed inset-0 bg-black/50 backdrop-blur-sm z-50 hidden items-center justify-center p-4">
+        <div
+            class="bg-white rounded-2xl shadow-2xl w-full max-w-md p-8 text-center animate-in fade-in zoom-in-95 duration-200 border">
+            <div
+                class="w-16 h-16 bg-blue-100 text-blue-600 rounded-full flex items-center justify-center mx-auto mb-4 shadow-sm">
+                <i class="fa-solid fa-paper-plane text-2xl"></i>
+            </div>
+            <h3 class="text-xl font-bold mb-2 text-slate-900">Đã nộp hồ sơ thành công!</h3>
+            <p class="text-xs text-gray-600 mb-5 leading-relaxed">
+                Hồ sơ đăng ký của Quý doanh nghiệp đã được gửi thành công tới Ban Điều hành để thẩm định pháp lý.
+            </p>
+            <div class="bg-slate-50 border p-3.5 rounded-xl text-xs text-gray-600 mb-5 text-left space-y-1">
+                <p>• Doanh nghiệp: <strong id="modalCompName" class="text-slate-800">-</strong></p>
+                <p>• Người đại diện: <strong id="modalRepName" class="text-slate-800">-</strong></p>
+                <p>• Trạng thái hồ sơ: <span
+                        class="text-amber-700 font-bold bg-amber-50 px-2 py-0.5 rounded border border-amber-200">CHỜ XÉT
+                        DUYỆT (PENDING)</span></p>
+            </div>
+            <div
+                class="bg-blue-50 border border-blue-200 p-3.5 rounded-xl text-xs text-blue-900 mb-6 text-left space-y-1 shadow-xs">
+                <p class="font-bold flex items-center gap-1.5 text-blue-950">
+                    <i class="fa-solid fa-envelope-circle-check text-blue-600 text-sm"></i> Thông báo Email tự động:
+                </p>
+                <p class="text-blue-800 leading-relaxed">
+                    Mã đại lý chính thức (AG-xxxx) và hướng dẫn đăng nhập sẽ được hệ thống <strong>TỰ ĐỘNG GỬI QUA
+                        EMAIL</strong> tới người liên hệ ngay sau khi Quản trị viên Phê duyệt hồ sơ.
+                </p>
+            </div>
+            <div class="flex flex-col gap-2">
+                <a href="00-Home.html"
+                    class="w-full bg-blue-600 hover:bg-blue-700 text-white font-bold py-3 rounded-xl transition shadow">
+                    Trở về trang chủ
+                </a>
+                <a href="Admin/06-AgentList.html" class="text-xs text-blue-600 hover:underline py-1 font-medium">
+                    (Dành cho demo: Chuyển đến trang Admin để duyệt ngay)
+                </a>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Map of uploaded files: key = label, value = [{name, dataUrl, type}]
+        const uploadedFilesMap = {};
+
+        const ALLOWED_EXTENSIONS = ['.pdf', '.jpg', '.jpeg', '.png'];
+        const ALLOWED_MIME_TYPES = ['application/pdf', 'image/jpeg', 'image/jpg', 'image/png', 'image/pjpeg'];
+        const MAX_FILE_SIZE = 15 * 1024 * 1024; // 15MB
+
+        function validateSelectedFile(file) {
+            if (!file) return { valid: false, message: 'Tệp tin không tồn tại' };
+
+            const fileName = file.name || '';
+            const lastDot = fileName.lastIndexOf('.');
+            const ext = lastDot !== -1 ? fileName.substring(lastDot).toLowerCase() : '';
+            const fileType = (file.type || '').toLowerCase();
+
+            // Explicitly block video / audio / executable files
+            if (fileType.startsWith('video/') || ['mp4', 'avi', 'mov', 'mkv', 'flv', 'wmv', 'webm', '3gp', 'm4v'].includes(ext.replace('.', ''))) {
+                return { valid: false, message: `🚫 Không thể tải lên video "${fileName}". Chỉ chấp nhận file tài liệu PDF hoặc hình ảnh (JPG, PNG)!` };
+            }
+            if (fileType.startsWith('audio/') || ['mp3', 'wav', 'aac', 'flac', 'ogg'].includes(ext.replace('.', ''))) {
+                return { valid: false, message: `🚫 Không thể tải lên file âm thanh "${fileName}". Chỉ chấp nhận file tài liệu PDF hoặc hình ảnh (JPG, PNG)!` };
+            }
+
+            // Check valid extensions
+            const hasValidExt = ALLOWED_EXTENSIONS.includes(ext);
+            const hasValidMime = fileType ? (ALLOWED_MIME_TYPES.includes(fileType) || (fileType.startsWith('image/') && ['jpg', 'jpeg', 'png'].includes(ext.replace('.', '')))) : hasValidExt;
+
+            if (!hasValidExt || (!hasValidMime && fileType)) {
+                return { valid: false, message: `⚠️ Tệp "${fileName}" không đúng định dạng. Chỉ chấp nhận định dạng: .pdf, .jpg, .jpeg, .png!` };
+            }
+
+            if (file.size > MAX_FILE_SIZE) {
+                return { valid: false, message: `⚠️ Tệp "${fileName}" vượt quá dung lượng tối đa cho phép (15MB)!` };
+            }
+
+            return { valid: true };
+        }
+
+        function handleFile(input) {
+            const label = input.getAttribute('data-label');
+            const nameEl = document.getElementById('name-' + label);
+            if (!nameEl) return;
+
+            if (input.files && input.files.length > 0) {
+                // Validate all selected files first
+                for (let i = 0; i < input.files.length; i++) {
+                    const check = validateSelectedFile(input.files[i]);
+                    if (!check.valid) {
+                        alert(check.message);
+                        input.value = ''; // Reset input
+                        delete uploadedFilesMap[label];
+                        nameEl.textContent = 'Chưa chọn file (Định dạng không hợp lệ)';
+                        nameEl.classList.remove('text-green-600', 'text-gray-400');
+                        nameEl.classList.add('text-red-500', 'font-medium');
+                        return;
+                    }
+                }
+
+                // Clear previous files for this slot (prevents accumulation)
+                uploadedFilesMap[label] = [];
+
+                const fileCount = input.files.length;
+                let readCount = 0;
+
+                for (let i = 0; i < fileCount; i++) {
+                    const file = input.files[i];
+                    const reader = new FileReader();
+                    reader.onload = function (e) {
+                        uploadedFilesMap[label].push({
+                            name: file.name,
+                            dataUrl: e.target.result,
+                            type: file.type,
+                            size: file.size
+                        });
+                        readCount++;
+                        if (readCount === fileCount) {
+                            // All files read for this slot
+                            if (fileCount === 1) {
+                                nameEl.textContent = '✓ ' + file.name;
+                            } else {
+                                nameEl.textContent = '✓ ' + fileCount + ' tệp tin đã chọn';
+                            }
+                            nameEl.classList.remove('text-gray-400', 'text-red-500');
+                            nameEl.classList.add('text-green-600', 'font-medium');
+                        }
+                    };
+                    reader.readAsDataURL(file);
+                }
+            } else {
+                delete uploadedFilesMap[label];
+                nameEl.textContent = 'Chưa chọn file';
+                nameEl.classList.add('text-gray-400');
+                nameEl.classList.remove('text-green-600', 'text-red-500', 'font-medium');
+            }
+        }
+
+        // Collect all uploaded files into a flat array of {name, dataUrl, type}
+        function collectUploadedFiles() {
+            const result = [];
+            for (const label in uploadedFilesMap) {
+                uploadedFilesMap[label].forEach(f => result.push(f));
+            }
+            return result;
+        }
+
+        const p1Input = document.getElementById('tempPassword');
+        const p2Input = document.getElementById('confirmPassword');
+        const feedbackEl = document.getElementById('confirmFeedbackMsg');
+
+        // Regex patterns
+        const nameRegex = /^[a-zA-ZÀÁÂÃÈÉÊÌÍÒÓÔÕÙÚĂĐĨŨƠàáâãèéêìíòóôõùúăđĩũơƯĂẠẢẤẦẨẪẬẮẰẲẴẶẸẺẼỀỀỂưăạảấầẩẫậắằẳẵặẹẻẽềềểỄỆỈỊỌỎỐỒỔỖỘỚỜỞỠỢỤỦỨỪễệỉịọỏốồổỗộớờởỡợụủứừỬỮỰỲỴÝỶỸửữựỳỵỷỹ\s]+$/;
+        const emailRegex = /^[a-zA-Z0-9._%+-]+@@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/;
+        const phoneRegex = /^(03|05|07|08|09)\d{8}$/;
+        const taxRegex = /^\d{10}(\d{3})?$/;
+        const pinRegex = /^\d{4}$/;
+        const citizenIdRegex = /^(\d{12}|[A-Za-z]\d{7,8})$/;
+
+        function updatePasswordChecklist() {
+            const val = p1Input ? p1Input.value : '';
+            const lenOk = val.length >= 8;
+            const upperOk = /[A-Z]/.test(val);
+            const lowerOk = /[a-z]/.test(val);
+            const digitOk = /[0-9]/.test(val);
+            const specialOk = /[!@@#$%^&*()_+\-=\[\]{};':"\\|,.<>\/?]/.test(val);
+
+            setRuleItem('ruleLen', lenOk, 'Từ 8 ký tự trở lên');
+            setRuleItem('ruleUpper', upperOk, 'Có chữ HOA (A-Z)');
+            setRuleItem('ruleLower', lowerOk, 'Có chữ thường (a-z)');
+            setRuleItem('ruleDigit', digitOk, 'Có chữ số (0-9)');
+            setRuleItem('ruleSpecial', specialOk, 'Có ký tự đặc biệt (!@@#$%^&*)');
+
+            return lenOk && upperOk && lowerOk && digitOk && specialOk;
+        }
+
+        function setRuleItem(id, isOk, text) {
+            const el = document.getElementById(id);
+            if (!el) return;
+            if (isOk) {
+                el.className = 'flex items-center gap-1.5 text-emerald-700 font-medium';
+                el.innerHTML = `<i class="fa-solid fa-circle-check text-emerald-500 text-[11px]"></i> <span>${text}</span>`;
+            } else {
+                el.className = 'flex items-center gap-1.5 text-slate-500';
+                el.innerHTML = `<i class="fa-solid fa-circle-xmark text-red-500 text-[11px]"></i> <span>${text}</span>`;
+            }
+        }
+
+        function setFieldError(fieldId, errId, isValid, errorMsg, forceShow = false) {
+            const inputEl = document.getElementById(fieldId);
+            const errEl = document.getElementById(errId);
+            if (!inputEl) return isValid;
+
+            const rawVal = inputEl.value || '';
+            const val = rawVal.trim();
+
+            if (isValid) {
+                inputEl.classList.remove('border-red-500', 'focus:ring-red-500', 'border-gray-200');
+                inputEl.classList.add('border-emerald-500', 'focus:ring-emerald-500');
+                if (errEl) {
+                    if (val.length > 0) {
+                        errEl.className = 'text-xs text-emerald-600 font-medium mt-1 flex items-center gap-1 block';
+                        errEl.innerHTML = '<i class="fa-solid fa-circle-check text-emerald-500"></i> Định dạng hợp lệ';
+                    } else {
+                        errEl.textContent = '';
+                        errEl.className = 'text-xs mt-1 hidden';
+                    }
+                }
+            } else {
+                // Show error immediately if user typed something (val.length > 0) OR if forced (submit/blur)
+                if (forceShow || val.length > 0 || rawVal.length > 0) {
+                    inputEl.classList.remove('border-emerald-500', 'focus:ring-emerald-500', 'border-gray-200');
+                    inputEl.classList.add('border-red-500', 'focus:ring-red-500');
+                    if (errEl) {
+                        errEl.className = 'text-xs text-red-600 font-medium mt-1 flex items-center gap-1 block';
+                        errEl.innerHTML = `<i class="fa-solid fa-circle-xmark text-red-500"></i> ${errorMsg}`;
+                    }
+                } else {
+                    inputEl.classList.remove('border-red-500', 'focus:ring-red-500', 'border-emerald-500', 'focus:ring-emerald-500');
+                    inputEl.classList.add('border-gray-200');
+                    if (errEl) {
+                        errEl.textContent = '';
+                        errEl.className = 'text-xs mt-1 hidden';
+                    }
+                }
+            }
+            return isValid;
+        }
+
+        function validateFormInputs(showErrors = false, shouldFocus = false) {
+            let isValid = true;
+            let firstInvalidEl = null;
+
+            // 0. Company Name & Address & Rep Position
+            const compVal = (document.getElementById('companyName')?.value || '').trim();
+            const compOk = compVal.length >= 3;
+            if (!setFieldError('companyName', 'companyNameErr', compOk, 'Vui lòng nhập tên công ty đầy đủ (tối thiểu 3 ký tự)', showErrors)) {
+                isValid = false;
+                if (!firstInvalidEl) firstInvalidEl = document.getElementById('companyName');
+            }
+
+            const addrVal = (document.getElementById('address')?.value || '').trim();
+            const addrOk = addrVal.length >= 5;
+            if (!setFieldError('address', 'addressErr', addrOk, 'Vui lòng nhập địa chỉ trụ sở chính đầy đủ', showErrors)) {
+                isValid = false;
+                if (!firstInvalidEl) firstInvalidEl = document.getElementById('address');
+            }
+
+            const posVal = (document.getElementById('repPosition')?.value || '').trim();
+            const posOk = posVal.length >= 2;
+            if (!setFieldError('repPosition', 'repPositionErr', posOk, 'Vui lòng nhập chức vụ người đại diện', showErrors)) {
+                isValid = false;
+                if (!firstInvalidEl) firstInvalidEl = document.getElementById('repPosition');
+            }
+
+            // 1. Tax Code
+            const taxVal = (document.getElementById('taxCode')?.value || '').trim();
+            const taxOk = taxRegex.test(taxVal);
+            if (!setFieldError('taxCode', 'taxCodeErr', taxOk, 'Mã số thuế phải gồm đúng 10 hoặc 13 chữ số (VD: 0312345678)', showErrors)) {
+                isValid = false;
+                if (!firstInvalidEl) firstInvalidEl = document.getElementById('taxCode');
+            }
+
+            // 2. Representative Name
+            const repVal = (document.getElementById('repName')?.value || '').trim();
+            const repOk = repVal.length >= 2 && repVal.split(/\s+/).length >= 2 && nameRegex.test(repVal);
+            if (!setFieldError('repName', 'repNameErr', repOk, 'Họ và tên phải gồm ít nhất 2 từ, chỉ gồm chữ cái (VD: Nguyễn Văn An)', showErrors)) {
+                isValid = false;
+                if (!firstInvalidEl) firstInvalidEl = document.getElementById('repName');
+            }
+
+            // 3. Email
+            const emailVal = (document.getElementById('email')?.value || '').trim();
+            const emailOk = emailRegex.test(emailVal);
+            if (!setFieldError('email', 'emailErr', emailOk, 'Email chưa đúng định dạng (VD: ten.nguyen@@company.com)', showErrors)) {
+                isValid = false;
+                if (!firstInvalidEl) firstInvalidEl = document.getElementById('email');
+            }
+
+            // 4. Phone
+            const phoneVal = (document.getElementById('phone')?.value || '').replace(/\s+/g, '');
+            const phoneOk = phoneRegex.test(phoneVal);
+            if (!setFieldError('phone', 'phoneErr', phoneOk, 'Số điện thoại phải đủ 10 chữ số (Đầu 03, 05, 07, 08, 09, VD: 0901234567)', showErrors)) {
+                isValid = false;
+                if (!firstInvalidEl) firstInvalidEl = document.getElementById('phone');
+            }
+
+            // 5. Citizen ID (Optional check if non-empty)
+            const citizenVal = (document.getElementById('citizenId')?.value || '').trim();
+            const citizenOk = !citizenVal || citizenIdRegex.test(citizenVal);
+            if (!setFieldError('citizenId', 'citizenIdErr', citizenOk, 'Số CCCD phải gồm 12 chữ số hoặc số Hộ chiếu hợp lệ', showErrors)) {
+                isValid = false;
+                if (!firstInvalidEl) firstInvalidEl = document.getElementById('citizenId');
+            }
+
+            // 6. Notification Email (Optional check if non-empty)
+            const notifEmailVal = (document.getElementById('notifEmail')?.value || '').trim();
+            const notifEmailOk = !notifEmailVal || emailRegex.test(notifEmailVal);
+            if (!setFieldError('notifEmail', 'notifEmailErr', notifEmailOk, 'Email nhận thông báo chưa đúng định dạng (VD: ops@@company.com)', showErrors)) {
+                isValid = false;
+                if (!firstInvalidEl) firstInvalidEl = document.getElementById('notifEmail');
+            }
+
+            // 7. Password Strength
+            const pwdOk = updatePasswordChecklist();
+            if (!pwdOk) {
+                isValid = false;
+                if (!firstInvalidEl) firstInvalidEl = p1Input;
+            }
+
+            // 8. Password Confirm
+            const p1 = p1Input ? p1Input.value : '';
+            const p2 = p2Input ? p2Input.value : '';
+            if (p1 !== p2) {
+                isValid = false;
+                if (!firstInvalidEl && p2Input) firstInvalidEl = p2Input;
+            }
+
+            if (!isValid && showErrors && shouldFocus && firstInvalidEl) {
+                firstInvalidEl.focus();
+                firstInvalidEl.scrollIntoView({ behavior: 'smooth', block: 'center' });
+            }
+
+            return isValid;
+        }
+
+        function checkPasswordMatch() {
+            if (!feedbackEl) return;
+            const val1 = p1Input ? p1Input.value : '';
+            const val2 = p2Input ? p2Input.value : '';
+            if (!val2) {
+                feedbackEl.className = 'text-xs mt-1 font-medium hidden';
+                feedbackEl.textContent = '';
+                return;
+            }
+            if (val1 === val2) {
+                feedbackEl.className = 'text-xs mt-1 font-medium text-emerald-600 block flex items-center gap-1';
+                feedbackEl.innerHTML = '<i class="fa-solid fa-circle-check"></i> Mật khẩu trùng khớp';
+            } else {
+                feedbackEl.className = 'text-xs mt-1 font-medium text-red-600 block flex items-center gap-1';
+                feedbackEl.innerHTML = '<i class="fa-solid fa-circle-xmark"></i> Mật khẩu không trùng khớp!';
+            }
+        }
+
+        if (p1Input && p2Input) {
+            p1Input.addEventListener('input', () => {
+                updatePasswordChecklist();
+                checkPasswordMatch();
+            });
+            p2Input.addEventListener('input', checkPasswordMatch);
+        }
+
+        // Live format checks on blur / input (never steals focus or jumps cursor)
+        ['companyName', 'address', 'repPosition', 'taxCode', 'repName', 'email', 'phone', 'citizenId', 'notifEmail'].forEach(id => {
+            const el = document.getElementById(id);
+            if (el) {
+                el.addEventListener('blur', () => validateFormInputs(true, false));
+                el.addEventListener('input', () => validateFormInputs(false, false));
+            }
+        });
+
+        function toggleDemoFill(cb) {
+            if (cb.checked) {
+                document.getElementById('companyName').value = "Công ty TNHH Vận tải & Logistics Tân Sơn Nhất";
+                document.getElementById('taxCode').value = "0318998877";
+                document.getElementById('businessLicense').value = "GPKD-8899/2025/SNH";
+                document.getElementById('address').value = "45 Trường Sơn, Phường 2, Quận Tân Bình, TP. Hồ Chí Minh";
+                document.getElementById('website').value = "https://tsn-logistics.vn";
+                document.getElementById('businessField').value = "Freight Forwarder";
+
+                document.getElementById('repName').value = "Trần Hoàng Nam";
+                document.getElementById('repPosition').value = "Giám đốc Logistics Cargo";
+                document.getElementById('email').value = "nam.tran@@tsn-logistics.vn";
+                document.getElementById('phone').value = "0988776655";
+                document.getElementById('citizenId').value = "079095001234";
+                document.getElementById('notifEmail').value = "";
+
+                document.getElementById('tempPassword').value = "Demo@@123456";
+                document.getElementById('confirmPassword').value = "Demo@@123456";
+
+                updatePasswordChecklist();
+                checkPasswordMatch();
+                validateFormInputs(false, false);
+
+                document.querySelectorAll('#registerForm input[type="checkbox"]').forEach(c => {
+                    if (c !== cb) c.checked = true;
+                });
+
+                // Demo files: store with label keys (clears any previous real uploads)
+                for (const k in uploadedFilesMap) delete uploadedFilesMap[k];
+                uploadedFilesMap['gpkd'] = [{ name: 'GPKD_TanSonNhat_Scan.pdf', dataUrl: null, type: 'application/pdf', size: 0 }];
+                uploadedFilesMap['uyquyen'] = [{ name: 'UyQuyen_Cargo_IATA.pdf', dataUrl: null, type: 'application/pdf', size: 0 }];
+                uploadedFilesMap['cccd'] = [{ name: 'CCCD_TranHoangNam.pdf', dataUrl: null, type: 'application/pdf', size: 0 }];
+
+                const g = document.getElementById('name-gpkd');
+                if (g) { g.textContent = 'GPKD_TanSonNhat_Scan.pdf'; g.className = 'text-xs text-green-600 font-medium'; }
+                const u = document.getElementById('name-uyquyen');
+                if (u) { u.textContent = 'UyQuyen_Cargo_IATA.pdf'; u.className = 'text-xs text-green-600 font-medium'; }
+                const c = document.getElementById('name-cccd');
+                if (c) { c.textContent = 'CCCD_TranHoangNam.pdf'; c.className = 'text-xs text-green-600 font-medium'; }
+            }
+        }
+
+        let currentResubmitRegId = null;
+
+        function initResubmitFromUrl() {
+            const urlParams = new URLSearchParams(window.location.search);
+            const resubmitId = urlParams.get('resubmit') || urlParams.get('ref');
+            if (!resubmitId || typeof CargoStore === 'undefined') return;
+
+            const data = CargoStore.getData();
+            const reg = (data.registrations || []).find(r => r.regId === resubmitId);
+            if (!reg) return;
+
+            currentResubmitRegId = reg.regId;
+
+            // Show rejection notice banner
+            const banner = document.getElementById('rejectionNoticeBanner');
+            const regIdEl = document.getElementById('rejectedBannerRegId');
+            const reasonEl = document.getElementById('rejectedBannerReason');
+            if (banner) banner.classList.remove('hidden');
+            if (regIdEl) regIdEl.textContent = reg.regId;
+            if (reasonEl) reasonEl.textContent = reg.rejectionReason || reg.rejectReason || 'Hồ sơ chưa đạt yêu cầu thẩm định. Vui lòng kiểm tra lại thông tin và bổ sung hồ sơ hợp lệ.';
+
+            // Pre-fill form inputs
+            if (document.getElementById('companyName')) document.getElementById('companyName').value = reg.companyName || '';
+            if (document.getElementById('taxCode')) document.getElementById('taxCode').value = reg.taxCode || '';
+            if (document.getElementById('businessLicense')) document.getElementById('businessLicense').value = reg.businessLicense || '';
+            if (document.getElementById('address')) document.getElementById('address').value = reg.address || '';
+            if (document.getElementById('website')) document.getElementById('website').value = reg.website || '';
+            if (document.getElementById('businessField')) document.getElementById('businessField').value = reg.field || 'Freight Forwarder';
+
+            if (document.getElementById('repName')) document.getElementById('repName').value = reg.repName || '';
+            if (document.getElementById('repPosition')) document.getElementById('repPosition').value = reg.repPosition || '';
+            if (document.getElementById('email')) document.getElementById('email').value = reg.email || '';
+            if (document.getElementById('phone')) document.getElementById('phone').value = reg.phone || '';
+            if (document.getElementById('citizenId')) document.getElementById('citizenId').value = reg.citizenId || '';
+            if (document.getElementById('notifEmail')) document.getElementById('notifEmail').value = reg.notifEmail || reg.email || '';
+
+            // Update submit button text
+            const submitBtn = document.querySelector('#registerForm button[type="submit"]');
+            if (submitBtn) {
+                submitBtn.innerHTML = '<i class="fa-solid fa-rotate-right"></i> Cập nhật & Nộp lại hồ sơ xét duyệt';
+                submitBtn.className = 'px-8 py-3.5 bg-amber-600 hover:bg-amber-700 text-white rounded-xl text-sm font-semibold transition shadow-md shadow-amber-600/20 flex items-center justify-center gap-2';
+            }
+
+            validateFormInputs(false, false);
+        }
+
+        document.addEventListener('DOMContentLoaded', initResubmitFromUrl);
+
+        document.getElementById('registerForm').addEventListener('submit', function (e) {
+            e.preventDefault();
+
+            // Run full form validation (focus first invalid element on submit only)
+            const isFormValid = validateFormInputs(true, true);
+            if (!isFormValid) {
+                alert('⚠️ Thông tin đăng ký chưa đúng định dạng hoặc chưa đủ tiêu chuẩn bảo mật. Vui lòng kiểm tra lại các trường được đánh dấu đỏ!');
+                return;
+            }
+
+            const p1 = document.getElementById('tempPassword').value;
+            const p2 = document.getElementById('confirmPassword').value;
+            if (p1 !== p2) {
+                alert('Mật khẩu xác nhận không trùng khớp! Vui lòng kiểm tra lại.');
+                return;
+            }
+
+            const compName = document.getElementById('companyName').value;
+            const repName = document.getElementById('repName').value;
+
+            // Save to shared store
+            if (typeof CargoStore !== 'undefined') {
+                const collectedFiles = collectUploadedFiles();
+                const res = CargoStore.registerAgent({
+                    resubmitRegId: currentResubmitRegId,
+                    companyName: compName,
+                    taxCode: document.getElementById('taxCode').value,
+                    businessLicense: document.getElementById('businessLicense').value,
+                    address: document.getElementById('address').value,
+                    field: document.getElementById('businessField').value,
+                    website: document.getElementById('website')?.value || '',
+                    repName: repName,
+                    repPosition: document.getElementById('repPosition').value,
+                    email: document.getElementById('email').value,
+                    phone: document.getElementById('phone').value,
+                    citizenId: document.getElementById('citizenId').value,
+                    notifEmail: document.getElementById('notifEmail').value,
+                    password: p1,
+                    pin: null,
+                    documents: collectedFiles.length > 0 ? collectedFiles : [
+                        { name: 'GPKD_TanSonNhat_Scan.pdf', dataUrl: null, type: 'application/pdf' },
+                        { name: 'UyQuyen_Cargo_IATA.pdf', dataUrl: null, type: 'application/pdf' },
+                        { name: 'CCCD_TranHoangNam.pdf', dataUrl: null, type: 'application/pdf' }
+                    ]
+                });
+
+                if (res && res.success === false) {
+                    alert('❌ ' + res.message);
+                    return;
+                }
+            }
+
+            document.getElementById('modalCompName').textContent = compName;
+            document.getElementById('modalRepName').textContent = repName;
+
+            document.getElementById('successModal').classList.remove('hidden');
+            document.getElementById('successModal').classList.add('flex');
+        });
+    </script>
+</body>
+
+</html>

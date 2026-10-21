@@ -1,0 +1,680 @@
+@page
+@model BiddingCargo.Web.Pages.MyBidsModel
+@{
+    Layout = null;
+}
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Lịch sử thầu của tôi - Cargo Bidding | Vietravel Airlines</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+    <script src="assets/js/cargo-store.js"></script>
+    <style>
+        @@import url('https://fonts.googleapis.com/css2?family=Exo:ital,wght@@0,100;0,200;0,300;0,400;0,500;0,531;0,600;0,700;0,800;0,900;1,100;1,200;1,300;1,400;1,500;1,531;1,600;1,700;1,800;1,900&display=swap');
+        * { font-family: 'Exo', sans-serif; }
+    </style>
+</head>
+<body class="bg-gray-50 text-gray-800">
+
+    <!-- HEADER NAVIGATION -->
+    <header class="bg-white border-b shadow-sm sticky top-0 z-50">
+        <div class="max-w-7xl mx-auto px-3 sm:px-4 py-2.5 sm:py-3 flex items-center justify-between">
+            <div class="flex items-center gap-2.5 sm:gap-6">
+                <!-- Mobile Menu Button -->
+                <button type="button" onclick="toggleAgentMobileNav()" class="md:hidden text-gray-600 hover:text-blue-600 p-1.5 rounded-xl hover:bg-gray-100 transition focus:outline-none" aria-label="Menu">
+                    <i class="fa-solid fa-bars text-base"></i>
+                </button>
+                <a href="02-Dashboard.html" class="flex items-center gap-2.5 shrink-0">
+            <img src="assets/images/vietravel-logo-doc.png" alt="Vietravel Airlines" class="h-8 sm:h-9 object-contain" />
+            <span class="font-bold text-sm sm:text-base text-slate-900 tracking-tight border-l border-slate-200 pl-2.5">Cargo Bidding</span>
+        </a>
+                <nav class="hidden md:flex items-center gap-1 text-sm font-medium">
+                    <a href="02-Dashboard.html" class="px-3 py-1.5 rounded-lg text-gray-600 hover:text-blue-600 hover:bg-gray-50 transition flex items-center gap-1.5">
+                        <i class="fa-solid fa-gavel text-xs"></i> Sàn đấu giá trực tuyến
+                    </a>
+                    <a href="06-MyBids.html" class="px-3 py-1.5 rounded-lg bg-blue-50 text-blue-600 font-semibold flex items-center gap-1.5">
+                        <i class="fa-solid fa-clock-rotate-left text-xs"></i> Lịch sử thầu
+                    </a>
+                    <a href="07-WonAuction.html" class="px-3 py-1.5 rounded-lg text-gray-600 hover:text-blue-600 hover:bg-gray-50 transition flex items-center gap-1.5">
+                        <i class="fa-solid fa-trophy text-xs"></i> Thắng thầu
+                    </a>
+                </nav>
+            </div>
+            <div class="flex items-center gap-1.5 sm:gap-3">
+                <a href="08-Notifications.html" class="relative p-1.5 sm:p-2 text-gray-500 hover:text-blue-600 rounded-xl hover:bg-gray-100 transition">
+                    <i class="fa-solid fa-bell text-base sm:text-lg"></i>
+                    <span id="headerNotifDot" class="absolute top-1 right-1 sm:top-1.5 sm:right-1.5 w-2.5 h-2.5 bg-red-500 rounded-full border-2 border-white animate-pulse" style="display:none"></span>
+                </a>
+                <div class="h-6 w-px bg-gray-200 hidden sm:block"></div>
+                <a href="09-Profile.html" class="flex items-center gap-2 hover:bg-gray-50 p-1 sm:p-1.5 rounded-xl transition">
+                    <div id="hdrAvatar" class="w-7 h-7 sm:w-8 sm:h-8 rounded-lg bg-blue-100 text-blue-700 flex items-center justify-center font-bold text-xs">AG</div>
+                    <div class="hidden sm:block text-left">
+                        <p id="hdrCompany" class="text-xs font-bold text-slate-800 leading-tight">ABC Logistics</p>
+                        <p class="text-[11px] text-gray-500 leading-none">Mã: <span id="hdrCode" class="text-blue-600 font-semibold font-mono">AG-0892</span></p>
+                    </div>
+                </a>
+                <a href="01-Login.html" onclick="if(window.CargoStore) CargoStore.logoutAgent()" title="Đăng xuất" class="text-gray-400 hover:text-red-600 p-1.5 sm:p-2 transition">
+                    <i class="fa-solid fa-right-from-bracket"></i>
+                </a>
+            </div>
+        </div>
+        <!-- Mobile Drawer -->
+        <div id="agentMobileNav" class="hidden md:hidden bg-white border-t px-4 py-2.5 space-y-1 text-xs font-medium shadow-lg">
+            <a href="02-Dashboard.html" class="flex items-center gap-2 px-3 py-2 rounded-lg text-gray-700 hover:bg-gray-50 hover:text-blue-600 transition">
+                <i class="fa-solid fa-gavel w-4"></i> Sàn đấu giá trực tuyến
+            </a>
+            <a href="06-MyBids.html" class="flex items-center gap-2 px-3 py-2 rounded-lg bg-blue-50 text-blue-600 font-semibold transition">
+                <i class="fa-solid fa-clock-rotate-left w-4"></i> Lịch sử đặt thầu
+            </a>
+            <a href="07-WonAuction.html" class="flex items-center gap-2 px-3 py-2 rounded-lg text-gray-700 hover:bg-gray-50 hover:text-blue-600 transition">
+                <i class="fa-solid fa-trophy w-4"></i> Đơn hàng thắng thầu
+            </a>
+            <a href="08-Notifications.html" class="flex items-center gap-2 px-3 py-2 rounded-lg text-gray-700 hover:bg-gray-50 hover:text-blue-600 transition">
+                <i class="fa-solid fa-bell w-4"></i> Trung tâm thông báo
+            </a>
+            <a href="09-Profile.html" class="flex items-center gap-2 px-3 py-2 rounded-lg text-gray-700 hover:bg-gray-50 hover:text-blue-600 transition">
+                <i class="fa-solid fa-user-shield w-4"></i> Hồ sơ đại lý & Mã PIN
+            </a>
+            <a href="10-Terms.html" class="flex items-center gap-2 px-3 py-2 rounded-lg text-gray-500 hover:bg-gray-50 hover:text-gray-800 transition border-t pt-2 mt-1">
+                <i class="fa-solid fa-file-contract w-4"></i> Quy chế & Điều khoản
+            </a>
+        </div>
+    </header>
+
+    <main class="max-w-7xl mx-auto px-3 sm:px-4 py-4 sm:py-6 space-y-4 sm:space-y-6">
+
+        <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+            <div>
+                <h1 class="text-2xl font-bold text-slate-900 flex items-center gap-2.5">
+                    <i class="fa-solid fa-clock-rotate-left text-blue-600"></i>
+                    Lịch sử đặt thầu của đại lý
+                </h1>
+                <p class="text-sm text-gray-500 mt-1">Toàn bộ danh sách các lượt đặt giá mà doanh nghiệp đã tham gia trên hệ thống</p>
+            </div>
+            <div class="flex items-center gap-2">
+                <span class="bg-blue-100 text-blue-700 text-xs font-bold px-3 py-1.5 rounded-xl">Mã đại lý: <span id="myBidsAgentCode">AG-0892</span></span>
+            </div>
+        </div>
+
+        <!-- Filter Tabs -->
+        <div class="flex items-center gap-2 overflow-x-auto pb-1" id="filterTabs">
+            <button onclick="setTab('ALL')" class="tab-btn active px-4 py-2 rounded-xl text-xs font-semibold bg-blue-600 text-white shadow-sm whitespace-nowrap shrink-0 cursor-pointer" data-tab="ALL">
+                Tất cả lượt thầu
+            </button>
+            <button onclick="setTab('PARTICIPATING')" class="tab-btn px-4 py-2 rounded-xl text-xs font-semibold bg-white text-gray-600 hover:bg-gray-50 border whitespace-nowrap shrink-0 cursor-pointer" data-tab="PARTICIPATING">
+                Đang tham gia
+            </button>
+            <button onclick="setTab('WAITING')" class="tab-btn px-4 py-2 rounded-xl text-xs font-semibold bg-white text-gray-600 hover:bg-gray-50 border whitespace-nowrap shrink-0 cursor-pointer" data-tab="WAITING">
+                Đang chờ kết quả
+            </button>
+            <button onclick="setTab('WON')" class="tab-btn px-4 py-2 rounded-xl text-xs font-semibold bg-white text-gray-600 hover:bg-gray-50 border whitespace-nowrap shrink-0 cursor-pointer" data-tab="WON">
+                Thắng thầu
+            </button>
+            <button onclick="setTab('LOST')" class="tab-btn px-4 py-2 rounded-xl text-xs font-semibold bg-white text-gray-600 hover:bg-gray-50 border whitespace-nowrap shrink-0 cursor-pointer" data-tab="LOST">
+                Thua
+            </button>
+        </div>
+
+        <!-- Table Card -->
+        <div class="bg-white rounded-2xl border shadow-sm overflow-hidden">
+            <div class="overflow-x-auto">
+                <table class="w-full text-left text-xs">
+                    <thead class="bg-slate-50 text-gray-500 font-semibold border-b">
+                        <tr>
+                            <th class="py-3.5 px-5">Chuyến bay & Tuyến bay</th>
+                            <th class="py-3.5 px-5">Mức giá đặt (VND/Kg)</th>
+                            <th class="py-3.5 px-5">Tải trọng đăng ký</th>
+                            <th class="py-3.5 px-5">Tổng tiền thầu (VND)</th>
+                            <th class="py-3.5 px-5">Thời gian đặt</th>
+                            <th class="py-3.5 px-5">Trạng thái</th>
+                        </tr>
+                    </thead>
+                    <tbody class="divide-y divide-gray-100" id="myBidsTableBody">
+                        <!-- Populated by JS -->
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+        <!-- Pagination Bar -->
+        <div class="bg-white rounded-2xl border shadow-sm p-4 flex flex-col sm:flex-row items-center justify-between gap-3 text-xs text-slate-600">
+            <div class="flex items-center gap-2">
+                <span>Hiển thị</span>
+                <select id="myBidsItemsPerPage" onchange="changeMyBidsItemsPerPage(this.value)" class="border rounded-lg px-2.5 py-1 text-xs bg-white font-medium focus:ring-2 focus:ring-blue-500 outline-none">
+                    <option value="5">5 lượt / trang</option>
+                    <option value="10" selected>10 lượt / trang</option>
+                    <option value="20">20 lượt / trang</option>
+                    <option value="50">50 lượt / trang</option>
+                </select>
+                <span id="myBidsTotalCountText" class="text-slate-500">(Tổng số: 0 lượt)</span>
+            </div>
+            <div id="myBidsPaginationControls" class="flex items-center gap-1.5">
+                <!-- JS rendered -->
+            </div>
+        </div>
+
+    </main>
+
+    <!-- MODAL: CHI TIẾT LỊCH SỬ THAM GIA ĐẶT GIÁ -->
+    <div id="bidHistoryModal" class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-50 flex items-center justify-center p-3 sm:p-4 hidden">
+        <div class="bg-white rounded-2xl max-w-3xl w-full shadow-2xl border border-slate-200 overflow-hidden transform transition-all duration-200">
+            <!-- Modal Header -->
+            <div class="p-4 sm:p-5 bg-slate-900 text-white flex items-center justify-between">
+                <div class="flex items-center gap-3">
+                    <div class="w-10 h-10 rounded-xl bg-blue-500/20 border border-blue-400/30 text-blue-400 flex items-center justify-center text-lg font-bold flex-shrink-0">
+                        <i class="fa-solid fa-clock-rotate-left"></i>
+                    </div>
+                    <div>
+                        <h3 class="text-sm sm:text-base font-bold text-white flex items-center gap-2">
+                            Lịch sử tham gia đặt giá phiên <span id="historyModalFlightNo" class="text-amber-400 font-mono">VU130</span>
+                        </h3>
+                        <p class="text-xs text-slate-300" id="historyModalRoute">SGN - HAN • Tải trọng: 2,000 Kg</p>
+                    </div>
+                </div>
+                <button onclick="closeBidHistoryModal()" class="w-8 h-8 rounded-full text-slate-400 hover:text-white hover:bg-slate-800 flex items-center justify-center transition-colors">
+                    <i class="fa-solid fa-xmark text-lg"></i>
+                </button>
+            </div>
+
+            <!-- Stats Bar -->
+            <div class="grid grid-cols-2 sm:grid-cols-4 gap-2.5 p-3.5 bg-slate-50 border-b border-slate-200 text-xs">
+                <div class="bg-white p-2.5 rounded-xl border border-slate-200">
+                    <span class="text-slate-500 font-medium block text-[10px] uppercase">Lượt giá đã đặt</span>
+                    <span class="text-sm font-bold text-slate-900 mt-0.5 block" id="historyModalTotalBids">0 lượt</span>
+                </div>
+                <div class="bg-white p-2.5 rounded-xl border border-slate-200">
+                    <span class="text-slate-500 font-medium block text-[10px] uppercase">Giá khởi điểm</span>
+                    <span class="text-sm font-bold text-slate-700 mt-0.5 block" id="historyModalStartPrice">0 đ/Kg</span>
+                </div>
+                <div class="bg-white p-2.5 rounded-xl border border-slate-200">
+                    <span class="text-slate-500 font-medium block text-[10px] uppercase">Giá cao nhất đặt</span>
+                    <span class="text-sm font-bold text-blue-600 mt-0.5 block" id="historyModalMyMaxPrice">0 đ/Kg</span>
+                </div>
+                <div class="bg-white p-2.5 rounded-xl border border-slate-200">
+                    <span class="text-slate-500 font-medium block text-[10px] uppercase">Trạng thái hiện tại</span>
+                    <div class="mt-0.5" id="historyModalStatusBadge">-</div>
+                </div>
+            </div>
+
+            <!-- Table Timeline -->
+            <div class="p-3.5 overflow-y-auto max-h-[380px]">
+                <div class="border border-slate-200 rounded-xl overflow-hidden shadow-2xs">
+                    <table class="w-full text-left text-xs">
+                        <thead class="bg-slate-100 text-slate-600 font-semibold border-b">
+                            <tr>
+                                <th class="py-2.5 px-3.5 w-10 text-center">#</th>
+                                <th class="py-2.5 px-3.5">Thời gian đặt</th>
+                                <th class="py-2.5 px-3.5">Đơn vị đặt giá</th>
+                                <th class="py-2.5 px-3.5 text-right">Mức giá đặt (VND/Kg)</th>
+                                <th class="py-2.5 px-3.5 text-right">Tổng thành tiền</th>
+                                <th class="py-2.5 px-3.5 text-center">Trạng thái</th>
+                            </tr>
+                        </thead>
+                        <tbody id="historyModalTableBody" class="divide-y divide-slate-100">
+                            <!-- JS rendered -->
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
+            <!-- Footer -->
+            <div class="p-3.5 bg-slate-50 border-t border-slate-200 flex items-center justify-between text-xs">
+                <span class="text-[11px] text-slate-500 flex items-center gap-1">
+                    <i class="fa-solid fa-circle-check text-emerald-600"></i>
+                    Toàn bộ thao tác nâng giá được lưu nhật ký bất biến
+                </span>
+                <button onclick="closeBidHistoryModal()" class="px-4 py-1.5 font-semibold text-slate-700 bg-white border border-slate-300 rounded-xl hover:bg-slate-100 transition shadow-2xs">
+                    Đóng cửa sổ
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        let currentTab = 'ALL';
+        let currentMyBidsPage = 1;
+        let myBidsItemsPerPage = 10;
+
+        function changeMyBidsItemsPerPage(val) {
+            myBidsItemsPerPage = Number(val) || 10;
+            currentMyBidsPage = 1;
+            renderBids();
+        }
+
+        function setMyBidsPage(p) {
+            currentMyBidsPage = p;
+            renderBids();
+        }
+
+        function renderMyBidsPaginationControls(totalItems) {
+            const controls = document.getElementById('myBidsPaginationControls');
+            const totalText = document.getElementById('myBidsTotalCountText');
+            if (totalText) totalText.textContent = `(Tổng số: ${totalItems} lượt)`;
+            if (!controls) return;
+
+            if (totalItems === 0) {
+                controls.innerHTML = '';
+                return;
+            }
+
+            const totalPages = Math.ceil(totalItems / myBidsItemsPerPage) || 1;
+            if (currentMyBidsPage > totalPages) currentMyBidsPage = totalPages;
+
+            let html = `
+                <button onclick="setMyBidsPage(${Math.max(1, currentMyBidsPage - 1)})" ${currentMyBidsPage === 1 ? 'disabled' : ''}
+                        class="px-3 py-1.5 rounded-lg border text-xs font-medium transition ${currentMyBidsPage === 1 ? 'bg-slate-100 text-slate-400 cursor-not-allowed border-slate-200' : 'bg-white hover:bg-slate-50 text-slate-700 border-slate-300'}">
+                    <i class="fa-solid fa-chevron-left"></i> Trước
+                </button>
+            `;
+
+            for (let i = 1; i <= totalPages; i++) {
+                if (i === currentMyBidsPage) {
+                    html += `<button class="w-8 h-8 rounded-lg bg-blue-600 text-white font-bold text-xs shadow-xs">${i}</button>`;
+                } else {
+                    html += `<button onclick="setMyBidsPage(${i})" class="w-8 h-8 rounded-lg border border-slate-300 bg-white hover:bg-slate-50 text-slate-700 font-medium text-xs transition">${i}</button>`;
+                }
+            }
+
+            html += `
+                <button onclick="setMyBidsPage(${Math.min(totalPages, currentMyBidsPage + 1)})" ${currentMyBidsPage === totalPages ? 'disabled' : ''}
+                        class="px-3 py-1.5 rounded-lg border text-xs font-medium transition ${currentMyBidsPage === totalPages ? 'bg-slate-100 text-slate-400 cursor-not-allowed border-slate-200' : 'bg-white hover:bg-slate-50 text-slate-700 border-slate-300'}">
+                    Sau <i class="fa-solid fa-chevron-right"></i>
+                </button>
+            `;
+
+            controls.innerHTML = html;
+        }
+
+        function setTab(tab) {
+            currentTab = tab;
+            currentMyBidsPage = 1;
+            document.querySelectorAll('.tab-btn').forEach(b => {
+                if (b.getAttribute('data-tab') === tab) {
+                    b.className = 'tab-btn active px-4 py-2 rounded-xl text-xs font-semibold bg-blue-600 text-white shadow-sm';
+                } else {
+                    b.className = 'tab-btn px-4 py-2 rounded-xl text-xs font-semibold bg-white text-gray-600 hover:bg-gray-50 border';
+                }
+            });
+            renderBids();
+        }
+
+        function parseBidDateTime(val) {
+            if (!val) return 0;
+            if (typeof val === 'number') {
+                return val > 1577836800000 ? val : 0;
+            }
+            const s = String(val).trim();
+            if (!s || s === 'Thắng thầu' || s === 'Vừa xong') return 0;
+
+            // Relative formats: "53 phút trước", "1 giờ trước", "2 ngày trước"
+            const relM = s.match(/^(\d+)\s+phút\s+trước/i);
+            if (relM) return Date.now() - parseInt(relM[1], 10) * 60 * 1000;
+            const relH = s.match(/^(\d+)\s+giờ\s+trước/i);
+            if (relH) return Date.now() - parseInt(relH[1], 10) * 3600 * 1000;
+            const relD = s.match(/^(\d+)\s+ngày\s+trước/i);
+            if (relD) return Date.now() - parseInt(relD[1], 10) * 86400 * 1000;
+
+            // Pattern: DD/MM/YYYY HH:mm:ss or DD/MM/YYYY HH:mm or DD/MM/YYYY
+            const m1 = s.match(/^(\d{1,2})\/(\d{1,2})\/(\d{4})(?:\s+(\d{1,2}):(\d{2})(?::(\d{2}))?)?$/);
+            if (m1) {
+                const day = parseInt(m1[1], 10);
+                const month = parseInt(m1[2], 10) - 1;
+                const year = parseInt(m1[3], 10);
+                const hour = m1[4] ? parseInt(m1[4], 10) : 0;
+                const min = m1[5] ? parseInt(m1[5], 10) : 0;
+                const sec = m1[6] ? parseInt(m1[6], 10) : 0;
+                return new Date(year, month, day, hour, min, sec).getTime();
+            }
+
+            // Pattern: HH:mm DD/MM/YYYY
+            const m2 = s.match(/^(\d{1,2}):(\d{2})(?::(\d{2}))?\s+(\d{1,2})\/(\d{1,2})\/(\d{4})$/);
+            if (m2) {
+                const hour = parseInt(m2[1], 10);
+                const min = parseInt(m2[2], 10);
+                const sec = m2[3] ? parseInt(m2[3], 10) : 0;
+                const day = parseInt(m2[4], 10);
+                const month = parseInt(m2[5], 10) - 1;
+                const year = parseInt(m2[6], 10);
+                return new Date(year, month, day, hour, min, sec).getTime();
+            }
+
+            const parsed = Date.parse(s);
+            return (!isNaN(parsed) && parsed > 1577836800000) ? parsed : 0;
+        }
+
+        function getBidTimestamp(b) {
+            if (!b) return 0;
+            // 1. Numeric timestamp
+            if (typeof b.timestamp === 'number' && b.timestamp > 1577836800000) {
+                return b.timestamp;
+            }
+            // 2. Parse from timestamp if string
+            if (b.timestamp) {
+                const t = parseBidDateTime(b.timestamp);
+                if (t > 0) return t;
+            }
+            // 3. Parse from createdAt
+            if (b.createdAt) {
+                const t = parseBidDateTime(b.createdAt);
+                if (t > 0) return t;
+            }
+            // 4. Parse from paidAt
+            if (b.paidAt) {
+                const t = parseBidDateTime(b.paidAt);
+                if (t > 0) return t;
+            }
+            // 5. Parse from time string
+            if (b.time) {
+                const t = parseBidDateTime(b.time);
+                if (t > 0) return t;
+            }
+            // 6. Parse from paymentDeadline
+            if (b.paymentDeadline) {
+                const t = parseBidDateTime(b.paymentDeadline);
+                if (t > 0) return t;
+            }
+            // 7. Fallback to numeric id if epoch
+            if (typeof b.id === 'number' && b.id > 1577836800000) {
+                return b.id;
+            }
+            const numId = Number(String(b.id || '').replace(/\D/g, ''));
+            if (numId > 1577836800000) {
+                return numId;
+            }
+            return 0;
+        }
+
+        function renderBids() {
+            const u = CargoStore.getCurrentUser ? CargoStore.getCurrentUser() : null;
+            if (u) {
+                const displayCode = u.agentCode || u.code || 'AG-0892';
+                document.getElementById('hdrCompany').textContent = u.companyName || 'ABC Logistics';
+                document.getElementById('hdrCode').textContent = displayCode;
+                document.getElementById('hdrAvatar').textContent = displayCode.slice(0,2);
+                document.getElementById('myBidsAgentCode').textContent = displayCode;
+            }
+
+            const myBids = CargoStore.getMyBids() || [];
+            const auctions = CargoStore.getAuctions() || [];
+            const wonAuctions = CargoStore.getWonAuctions ? CargoStore.getWonAuctions() : [];
+
+            const userCode = u ? String(u.agentCode || u.code || '').trim().toUpperCase() : 'AG-0892';
+            const allBids = myBids.map(b => ({ ...b }));
+
+            // Synchronize wonAuctions into bidding history list
+            wonAuctions.forEach(w => {
+                const wAgentCode = String(w.agentCode || '').trim().toUpperCase();
+                if (!wAgentCode || wAgentCode === userCode) {
+                    const existingBid = allBids.find(b => String(b.auctionId) === String(w.auctionId));
+                    if (existingBid) {
+                        existingBid.status = 'WON';
+                    } else {
+                        const ts = parseBidDateTime(w.paidAt) ||
+                                   parseBidDateTime(w.createdAt) ||
+                                   parseBidDateTime(w.wonAt) ||
+                                   parseBidDateTime(w.paymentDeadline) ||
+                                   (Number(w.timestamp) > 1577836800000 ? Number(w.timestamp) : 0);
+                        allBids.push({
+                            id: 'WON-BID-' + w.wonId,
+                            auctionId: w.auctionId,
+                            flightNumber: w.flightNumber,
+                            route: w.route,
+                            priceKg: w.priceKg,
+                            weightKg: w.capacityKg,
+                            capacityKg: w.capacityKg,
+                            totalAmountVND: w.totalAmountVND,
+                            time: w.paidAt || 'Thắng thầu',
+                            timestamp: ts || 0,
+                            status: 'WON',
+                            agentCode: w.agentCode
+                        });
+                    }
+                }
+            });
+
+            // Precompute 4 standardized statuses for each bid
+            allBids.forEach(b => {
+                const auction = auctions.find(a => String(a.id) === String(b.auctionId)) || {};
+                const bidAgentCode = String(b.agentCode || userCode || 'AG-0892').trim().toUpperCase();
+                const wonAuction = wonAuctions.find(w => (String(w.auctionId) === String(b.auctionId) || w.wonId === b.id || ('WON-BID-' + w.wonId) === b.id) && (!w.agentCode || String(w.agentCode).trim().toUpperCase() === bidAgentCode)) || null;
+                const isActualWinner = b.status === 'WON' || !!wonAuction || (auction.winnerAgentCode && String(auction.winnerAgentCode).trim().toUpperCase() === userCode);
+
+                const timer = (auction.endTime && CargoStore.getTimeRemaining) ? CargoStore.getTimeRemaining(auction.endTime) : null;
+                const isAuctionClosed = !auction.id || auction.status === 'CLOSED' || auction.status === 'ENDED' || auction.status === 'EXPIRED' || (timer && timer.isEnded);
+
+                if (isActualWinner) {
+                    b._statusKey = 'WON';
+                    b._statusBadge = '<span class="bg-purple-100 text-purple-700 font-bold px-2.5 py-1 rounded-full text-[10px] inline-flex items-center gap-1"><i class="fa-solid fa-trophy text-[9px]"></i> Thắng thầu</span>';
+                } else if (isAuctionClosed) {
+                    if (auction.status === 'CLOSED' || auction.winnerAgentCode) {
+                        b._statusKey = 'LOST';
+                        b._statusBadge = '<span class="bg-slate-100 text-slate-600 font-medium px-2.5 py-1 rounded-full text-[10px] inline-flex items-center gap-1"><i class="fa-solid fa-circle-xmark text-slate-400 text-[9px]"></i> Thua</span>';
+                    } else {
+                        b._statusKey = 'WAITING';
+                        b._statusBadge = '<span class="bg-amber-100 text-amber-800 font-bold px-2.5 py-1 rounded-full text-[10px] inline-flex items-center gap-1"><i class="fa-solid fa-clock text-[9px] text-amber-600"></i> Đang chờ kết quả</span>';
+                    }
+                } else {
+                    b._statusKey = 'PARTICIPATING';
+                    b._statusBadge = '<span class="bg-blue-100 text-blue-800 font-bold px-2.5 py-1 rounded-full text-[10px] inline-flex items-center gap-1"><i class="fa-solid fa-gavel text-[9px] text-blue-600"></i> Đang tham gia</span>';
+                }
+            });
+
+            // SẮP XẾP LỊCH SỬ ĐẶT THẦU: Mới nhất / gần đây nhất lên đầu (Descending by timestamp)
+            allBids.sort((a, b) => {
+                const tsA = getBidTimestamp(a);
+                const tsB = getBidTimestamp(b);
+                return tsB - tsA;
+            });
+
+            let filtered = allBids;
+            if (currentTab === 'WON') {
+                filtered = allBids.filter(b => b._statusKey === 'WON');
+            } else if (currentTab === 'LOST') {
+                filtered = allBids.filter(b => b._statusKey === 'LOST');
+            } else if (currentTab === 'WAITING') {
+                filtered = allBids.filter(b => b._statusKey === 'WAITING');
+            } else if (currentTab === 'PARTICIPATING') {
+                filtered = allBids.filter(b => b._statusKey === 'PARTICIPATING');
+            }
+
+            const totalItems = filtered.length;
+            renderMyBidsPaginationControls(totalItems);
+
+            const tbody = document.getElementById('myBidsTableBody');
+            if (totalItems === 0) {
+                tbody.innerHTML = `
+                    <tr>
+                        <td colspan="6" class="py-12 text-center text-gray-400">
+                            <i class="fa-solid fa-inbox text-3xl mb-2"></i>
+                            <p class="font-medium text-slate-600">Không có lượt đặt thầu nào trong mục này</p>
+                        </td>
+                    </tr>
+                `;
+                return;
+            }
+
+            const startIdx = (currentMyBidsPage - 1) * myBidsItemsPerPage;
+            const paginatedList = filtered.slice(startIdx, startIdx + myBidsItemsPerPage);
+
+            tbody.innerHTML = paginatedList.map(b => {
+                const auction = auctions.find(a => String(a.id) === String(b.auctionId)) || {};
+                const flightNo = auction.flightNumber || b.flightNumber || 'VU130';
+                const routeStr = auction.route || b.route || 'SGN - HAN';
+                const etdStr = auction.etd || 'Theo lịch bay';
+                const weightVal = b.weightKg || b.capacityKg || 0;
+                const statusBadge = b._statusBadge;
+
+                return `
+                    <tr class="hover:bg-slate-50 transition">
+                        <td class="py-3.5 px-5">
+                            <div class="flex items-center gap-2">
+                                <span class="bg-blue-600 text-white font-bold text-xs px-2 py-0.5 rounded">${flightNo}</span>
+                                <span class="font-bold text-slate-900">${routeStr}</span>
+                            </div>
+                            <p class="text-[11px] text-gray-400 mt-0.5">${etdStr}</p>
+                        </td>
+                        <td class="py-3.5 px-5 font-bold text-blue-600 text-sm">
+                            ${CargoStore.formatCurrency(b.priceKg)}
+                        </td>
+                        <td class="py-3.5 px-5 font-medium text-slate-700">
+                            ${CargoStore.formatNumber(weightVal)} Kg
+                        </td>
+                        <td class="py-3.5 px-5 font-semibold text-slate-900">
+                            ${CargoStore.formatCurrency(b.totalAmountVND || (b.priceKg * weightVal))}
+                        </td>
+                        <td class="py-3.5 px-5 text-gray-400 text-[11px]">
+                            ${CargoStore.formatTimeAgo(getBidTimestamp(b), b.time)}
+                        </td>
+                        <td class="py-3.5 px-5">
+                            ${statusBadge}
+                        </td>
+                    </tr>
+                `;
+            }).join('');
+        }
+
+        function openBidHistoryModal(auctionId) {
+            const auctions = CargoStore.getAuctions ? CargoStore.getAuctions() : [];
+            const auction = auctions.find(a => String(a.id) === String(auctionId)) || {};
+            const wonAuctions = CargoStore.getWonAuctions ? CargoStore.getWonAuctions() : [];
+            const wonItem = wonAuctions.find(w => String(w.auctionId) === String(auctionId)) || null;
+
+            const u = CargoStore.getCurrentUser ? CargoStore.getCurrentUser() : null;
+            const myAgentCode = u ? String(u.agentCode || u.code || 'AG-0892').trim().toUpperCase() : 'AG-0892';
+
+            const flightNo = auction.flightNumber || (wonItem ? wonItem.flightNumber : 'VU130');
+            const routeStr = auction.route || (wonItem ? wonItem.route : 'SGN - HAN');
+            const capacity = auction.capacityKg || (wonItem ? wonItem.capacityKg : 2000);
+            const startingPrice = auction.startingPriceKg || 10000;
+
+            const flightEl = document.getElementById('historyModalFlightNo');
+            if (flightEl) flightEl.textContent = flightNo;
+
+            const routeEl = document.getElementById('historyModalRoute');
+            if (routeEl) routeEl.textContent = `${routeStr} • Tải trọng: ${CargoStore.formatNumber ? CargoStore.formatNumber(capacity) : capacity} Kg`;
+
+            let bidsForAuction = [];
+            if (typeof CargoStore.getBidsForAuction === 'function') {
+                bidsForAuction = CargoStore.getBidsForAuction(auctionId);
+            } else {
+                const allBids = CargoStore.getMyBids ? CargoStore.getMyBids() : [];
+                bidsForAuction = allBids.filter(b => String(b.auctionId) === String(auctionId));
+            }
+
+            const myBidsOnAuction = bidsForAuction.filter(b => {
+                const bCode = String(b.agentCode || b.code || '').trim().toUpperCase();
+                return !bCode || bCode === myAgentCode;
+            });
+
+            const totalCountEl = document.getElementById('historyModalTotalBids');
+            if (totalCountEl) totalCountEl.textContent = `${myBidsOnAuction.length > 0 ? myBidsOnAuction.length : bidsForAuction.length} lượt`;
+
+            const startPriceEl = document.getElementById('historyModalStartPrice');
+            if (startPriceEl) startPriceEl.textContent = CargoStore.formatCurrency ? (CargoStore.formatCurrency(startingPrice) + '/Kg') : `${startingPrice} đ/Kg`;
+
+            const myPrices = myBidsOnAuction.map(b => Number(b.priceKg) || 0);
+            const myMaxPrice = myPrices.length > 0 ? Math.max(...myPrices) : (auction.currentPriceKg || 0);
+
+            const maxPriceEl = document.getElementById('historyModalMyMaxPrice');
+            if (maxPriceEl) maxPriceEl.textContent = CargoStore.formatCurrency ? (CargoStore.formatCurrency(myMaxPrice) + '/Kg') : `${myMaxPrice} đ/Kg`;
+
+            const isAuctionClosed = !auction.id || auction.status === 'CLOSED' || auction.status === 'ENDED' || auction.status === 'EXPIRED';
+            const statusEl = document.getElementById('historyModalStatusBadge');
+            if (statusEl) {
+                if (wonItem || (auction.winnerAgentCode && String(auction.winnerAgentCode).trim().toUpperCase() === myAgentCode)) {
+                    statusEl.innerHTML = '<span class="bg-purple-100 text-purple-700 font-bold px-2.5 py-0.5 rounded-full text-[10px] inline-flex items-center gap-1"><i class="fa-solid fa-trophy text-[9px]"></i> Thắng thầu</span>';
+                } else if (isAuctionClosed) {
+                    if (auction.status === 'CLOSED' || auction.winnerAgentCode) {
+                        statusEl.innerHTML = '<span class="bg-slate-100 text-slate-600 font-medium px-2.5 py-0.5 rounded-full text-[10px] inline-flex items-center gap-1"><i class="fa-solid fa-circle-xmark text-slate-400 text-[9px]"></i> Thua</span>';
+                    } else {
+                        statusEl.innerHTML = '<span class="bg-amber-100 text-amber-800 font-bold px-2.5 py-0.5 rounded-full text-[10px] inline-flex items-center gap-1"><i class="fa-solid fa-clock text-[9px] text-amber-600"></i> Đang chờ kết quả</span>';
+                    }
+                } else {
+                    statusEl.innerHTML = '<span class="bg-blue-100 text-blue-800 font-bold px-2.5 py-0.5 rounded-full text-[10px] inline-flex items-center gap-1"><i class="fa-solid fa-gavel text-[9px] text-blue-600"></i> Đang tham gia</span>';
+                }
+            }
+
+            const tbody = document.getElementById('historyModalTableBody');
+            if (tbody) {
+                const listToRender = bidsForAuction.length > 0 ? bidsForAuction : myBidsOnAuction;
+                if (listToRender.length === 0) {
+                    tbody.innerHTML = `
+                        <tr>
+                            <td colspan="6" class="py-8 text-center text-slate-400">
+                                Chưa có lịch sử đặt giá nào cho phiên này
+                            </td>
+                        </tr>
+                    `;
+                } else {
+                    const sortedBids = [...listToRender].sort((a, b) => (Number(b.timestamp || b.id) || 0) - (Number(a.timestamp || a.id) || 0));
+                    tbody.innerHTML = sortedBids.map((b, idx) => {
+                        const bCode = String(b.agentCode || b.code || '').trim().toUpperCase();
+                        const isMe = !bCode || bCode === myAgentCode;
+                        const price = Number(b.priceKg) || 0;
+                        const total = b.totalAmountVND || (price * capacity);
+                        const timeStr = b.timestamp ? (new Date(b.timestamp).toLocaleString('vi-VN')) : (b.time || 'vừa xong');
+
+                        let statusTag = '';
+                        if (b.status === 'WON' || (wonItem && idx === 0)) {
+                            statusTag = '<span class="bg-purple-100 text-purple-700 font-bold px-2 py-0.5 rounded text-[10px]">Thắng thầu</span>';
+                        } else if (auction.status === 'CLOSED' && !wonItem) {
+                            statusTag = '<span class="bg-slate-100 text-slate-600 font-medium px-2 py-0.5 rounded text-[10px]">Thua</span>';
+                        } else if (auction.status === 'OPEN') {
+                            statusTag = '<span class="bg-blue-100 text-blue-700 font-medium px-2 py-0.5 rounded text-[10px]">Đang tham gia</span>';
+                        } else {
+                            statusTag = '<span class="bg-amber-100 text-amber-800 font-medium px-2 py-0.5 rounded text-[10px]">Đang chờ kết quả</span>';
+                        }
+
+                        return `
+                            <tr class="${isMe ? 'bg-blue-50/40 font-medium' : ''} hover:bg-slate-50 transition">
+                                <td class="py-2.5 px-3.5 text-center font-mono text-slate-400 text-[11px]">${sortedBids.length - idx}</td>
+                                <td class="py-2.5 px-3.5 text-slate-600 font-mono text-[11px]">${timeStr}</td>
+                                <td class="py-2.5 px-3.5">
+                                    <span class="${isMe ? 'text-blue-700 font-bold' : 'text-slate-700'}">
+                                        ${isMe ? 'Tôi (' + myAgentCode + ')' : 'Đại lý ẩn danh (AG-***)'}
+                                    </span>
+                                </td>
+                                <td class="py-2.5 px-3.5 text-right font-bold text-blue-600">
+                                    ${(isMe || auction.status === 'CLOSED') ? (CargoStore.formatCurrency ? CargoStore.formatCurrency(price) : price + ' đ') : '??? (Ẩn)'}
+                                </td>
+                                <td class="py-2.5 px-3.5 text-right font-semibold text-slate-800">
+                                    ${(isMe || auction.status === 'CLOSED') ? (CargoStore.formatCurrency ? CargoStore.formatCurrency(total) : total + ' đ') : '??? (Ẩn)'}
+                                </td>
+                                <td class="py-2.5 px-3.5 text-center">
+                                    ${statusTag}
+                                </td>
+                            </tr>
+                        `;
+                    }).join('');
+                }
+            }
+
+            const modal = document.getElementById('bidHistoryModal');
+            if (modal) modal.classList.remove('hidden');
+        }
+
+        function closeBidHistoryModal() {
+            const modal = document.getElementById('bidHistoryModal');
+            if (modal) modal.classList.add('hidden');
+        }
+
+        // Mobile Nav Toggle
+        function toggleAgentMobileNav() {
+            const nav = document.getElementById('agentMobileNav');
+            if (nav) nav.classList.toggle('hidden');
+        }
+
+        document.addEventListener('DOMContentLoaded', renderBids);
+
+        // Cross-tab sync
+        window.addEventListener('storage', function(e) {
+            if (e.key === 'CARGO_BIDDING_DATA_V3') renderBids();
+        });
+    </script>
+
+</body>
+</html>
+

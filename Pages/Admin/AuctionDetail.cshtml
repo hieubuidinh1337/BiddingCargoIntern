@@ -1,0 +1,2101 @@
+@page
+@model BiddingCargo.Web.Pages.Admin.AuctionDetailModel
+@{
+    Layout = null;
+}
+<!DOCTYPE html>
+<html lang="vi">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Giám sát chi tiết phiên - Cargo Bidding Admin</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+    <script src="../assets/js/sweetalert2.all.min.js"></script>
+    <script src="../assets/js/cargo-store.js"></script>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link
+        href="https://fonts.googleapis.com/css2?family=Exo:ital,wght@@0,100;0,200;0,300;0,400;0,500;0,531;0,600;0,700;0,800;0,900;1,100;1,200;1,300;1,400;1,500;1,531;1,600;1,700;1,800;1,900"
+        rel="stylesheet" />
+    <style>
+        body,
+        input,
+        select,
+        textarea,
+        button {
+            font-family: 'Exo', sans-serif;
+        }
+    </style>
+</head>
+
+<body class="bg-slate-100 text-slate-800 antialiased min-h-screen flex flex-col"> <!-- ═══════════════════════════════════════════
+         ADMIN HEADER — VU Cargo Admin Portal
+         Premium dark navigation — DO NOT EDIT MANUALLY
+         ═══════════════════════════════════════════ -->
+    <style>
+        /* ── Admin Header ── */
+        #adminHeader {
+            background: linear-gradient(135deg, #0f172a 0%, #1e293b 60%, #0f172a 100%);
+            border-bottom: 1px solid rgba(59, 130, 246, 0.18);
+            position: sticky;
+            top: 0;
+            z-index: 50;
+            box-shadow: 0 2px 20px rgba(0, 0, 0, 0.35);
+        }
+
+        #adminHeader::after {
+            content: '';
+            display: block;
+            height: 2px;
+            background: linear-gradient(90deg, transparent 0%, #3b82f6 30%, #6366f1 65%, transparent 100%);
+        }
+
+        .admin-inner {
+            max-width: 1400px;
+            margin: 0 auto;
+            padding: 0 1rem;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            height: 58px;
+            gap: 0.75rem;
+        }
+
+        .admin-brand {
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+            text-decoration: none;
+            flex-shrink: 0;
+        }
+
+        .admin-brand img {
+            height: 32px;
+            object-fit: contain;
+            filter: brightness(0) invert(1);
+        }
+
+        .admin-brand-sep {
+            width: 1px;
+            height: 28px;
+            background: rgba(255, 255, 255, 0.15);
+        }
+
+        .admin-brand-text {
+            font-size: 0.8125rem;
+            font-weight: 700;
+            color: #e2e8f0;
+            letter-spacing: 0.04em;
+            white-space: nowrap;
+        }
+
+        .admin-brand-sub {
+            font-size: 0.6rem;
+            font-weight: 600;
+            color: #94a3b8;
+            text-transform: uppercase;
+            letter-spacing: 0.1em;
+            display: block;
+        }
+
+        /* Desktop Nav */
+        .admin-nav {
+            display: none;
+            align-items: center;
+            gap: 2px;
+        }
+
+        @@media (min-width:768px) {
+            .admin-nav {
+                display: flex;
+            }
+        }
+
+        .nav-item-admin {
+            display: flex;
+            align-items: center;
+            gap: 5px;
+            padding: 5px 10px;
+            border-radius: 8px;
+            font-size: 0.72rem;
+            font-weight: 600;
+            color: rgba(203, 213, 225, 0.85);
+            text-decoration: none;
+            white-space: nowrap;
+            transition: all 0.15s ease;
+            border: 1px solid transparent;
+        }
+
+        .nav-item-admin:hover {
+            color: #fff;
+            background: rgba(255, 255, 255, 0.08);
+            border-color: rgba(255, 255, 255, 0.1);
+        }
+
+        .nav-item-admin.active {
+            color: #fff;
+            background: rgba(59, 130, 246, 0.85);
+            border-color: rgba(59, 130, 246, 0.5);
+            box-shadow: 0 0 12px rgba(59, 130, 246, 0.35);
+        }
+
+        .nav-item-admin.chat-item {
+            color: #c4b5fd;
+            background: rgba(139, 92, 246, 0.12);
+            border-color: rgba(139, 92, 246, 0.25);
+        }
+
+        .nav-item-admin.chat-item:hover {
+            color: #e9d5ff;
+            background: rgba(139, 92, 246, 0.22);
+        }
+
+        .nav-item-admin.active-chat {
+            color: #fff;
+            background: rgba(139, 92, 246, 0.75);
+            border-color: rgba(139, 92, 246, 0.5);
+            box-shadow: 0 0 12px rgba(139, 92, 246, 0.35);
+        }
+
+        .chat-badge {
+            background: #ef4444;
+            color: #fff;
+            font-size: 0.6rem;
+            font-weight: 700;
+            padding: 0 5px;
+            border-radius: 999px;
+            min-width: 16px;
+            text-align: center;
+            line-height: 16px;
+            height: 16px;
+        }
+
+        /* Right Bar */
+        .admin-right {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            flex-shrink: 0;
+        }
+
+        .admin-public-link {
+            display: none;
+            align-items: center;
+            gap: 5px;
+            font-size: 0.68rem;
+            font-weight: 600;
+            color: rgba(148, 163, 184, 0.9);
+            background: rgba(255, 255, 255, 0.06);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            padding: 4px 10px;
+            border-radius: 8px;
+            text-decoration: none;
+            transition: all 0.15s;
+        }
+
+        @@media (min-width:1024px) {
+            .admin-public-link {
+                display: flex;
+            }
+        }
+
+        .admin-public-link:hover {
+            color: #fff;
+            background: rgba(255, 255, 255, 0.1);
+        }
+
+        .admin-sep {
+            width: 1px;
+            height: 24px;
+            background: rgba(255, 255, 255, 0.12);
+        }
+
+        .admin-avatar {
+            width: 32px;
+            height: 32px;
+            border-radius: 50%;
+            background: linear-gradient(135deg, #3b82f6, #6366f1);
+            color: #fff;
+            font-weight: 800;
+            font-size: 0.7rem;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border: 2px solid rgba(255, 255, 255, 0.15);
+            flex-shrink: 0;
+        }
+
+        .admin-user-info {
+            display: none;
+            flex-direction: column;
+            text-align: left;
+        }
+
+        @@media (min-width:640px) {
+            .admin-user-info {
+                display: flex;
+            }
+        }
+
+        .admin-user-name {
+            font-size: 0.72rem;
+            font-weight: 700;
+            color: #e2e8f0;
+            line-height: 1.2;
+        }
+
+        .admin-user-role {
+            font-size: 0.6rem;
+            font-weight: 700;
+            color: #60a5fa;
+            text-transform: uppercase;
+            letter-spacing: 0.08em;
+        }
+
+        .admin-logout {
+            color: rgba(148, 163, 184, 0.7);
+            padding: 6px;
+            border-radius: 8px;
+            text-decoration: none;
+            transition: all 0.15s;
+            font-size: 0.8rem;
+            border: 1px solid transparent;
+        }
+
+        .admin-logout:hover {
+            color: #f87171;
+            background: rgba(239, 68, 68, 0.1);
+            border-color: rgba(239, 68, 68, 0.2);
+        }
+
+        /* Mobile hamburger */
+        .admin-hamburger {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            width: 34px;
+            height: 34px;
+            border-radius: 8px;
+            background: rgba(255, 255, 255, 0.07);
+            border: 1px solid rgba(255, 255, 255, 0.12);
+            color: #cbd5e1;
+            cursor: pointer;
+            font-size: 0.85rem;
+            transition: all 0.15s;
+        }
+
+        .admin-hamburger:hover {
+            background: rgba(255, 255, 255, 0.12);
+            color: #fff;
+        }
+
+        @@media (min-width:768px) {
+            .admin-hamburger {
+                display: none;
+            }
+        }
+
+        /* Mobile dropdown */
+        #adminMobileNav {
+            display: none;
+            padding: 0.75rem 1rem;
+            background: #1e293b;
+            border-top: 1px solid rgba(255, 255, 255, 0.08);
+            max-width: 1400px;
+            margin: 0 auto;
+        }
+
+        #adminMobileNav.open {
+            display: block;
+        }
+
+        .mobile-nav-item {
+            display: flex;
+            align-items: center;
+            gap: 0.6rem;
+            padding: 8px 12px;
+            border-radius: 8px;
+            margin-bottom: 2px;
+            font-size: 0.76rem;
+            font-weight: 600;
+            color: #cbd5e1;
+            text-decoration: none;
+            transition: all 0.15s;
+        }
+
+        .mobile-nav-item:hover {
+            color: #fff;
+            background: rgba(255, 255, 255, 0.08);
+        }
+
+        .mobile-nav-item.active {
+            color: #fff;
+            background: rgba(59, 130, 246, 0.75);
+        }
+
+        .mobile-nav-item.chat-item {
+            color: #c4b5fd;
+        }
+
+        .mobile-nav-item.active-chat {
+            color: #fff;
+            background: rgba(139, 92, 246, 0.75);
+        }
+    </style>
+    <header id="adminHeader">
+        <div class="admin-inner">
+            <!-- Brand -->
+            <button type="button" class="admin-hamburger"
+                onclick="document.getElementById('adminMobileNav').classList.toggle('open')" aria-label="Menu">
+                <i class="fa-solid fa-bars"></i>
+            </button>
+            <a href="02-AdminDashboard.html" class="admin-brand">
+                <img src="../assets/images/vietravel-logo-doc.png" alt="Vietravel Airlines" />
+                <div class="admin-brand-sep"></div>
+                <div>
+                    <span class="admin-brand-sub">Portal Quản Trị</span>
+                    <span class="admin-brand-text">Cargo Admin</span>
+                </div>
+            </a>
+
+            <!-- Desktop Nav -->
+            <nav class="admin-nav">
+                <a href="02-AdminDashboard.html" class="nav-item-admin"><i
+                        class="fa-solid fa-gauge-high"></i>Dashboard</a>
+                <a href="03-AuctionList.html" class="nav-item-admin active"><i class="fa-solid fa-list-check"></i>Quản
+                    lý phiên</a>
+                <a href="04-CreateAuction.html" class="nav-item-admin"><i class="fa-solid fa-circle-plus"></i>Tạo
+                    phiên</a>
+                <a href="06-AgentList.html" class="nav-item-admin"><i class="fa-solid fa-building-user"></i>Đại lý</a>
+                <a href="07-Reports.html" class="nav-item-admin"><i class="fa-solid fa-chart-line"></i>Báo cáo</a>
+                <a href="08-Settings.html" class="nav-item-admin"><i class="fa-solid fa-gear"></i>Cài đặt</a>
+                <a href="10-AuditLogs.html" class="nav-item-admin"><i class="fa-solid fa-clock-rotate-left"></i>Nhật
+                    ký</a>
+            </nav>
+
+            <!-- Right Bar -->
+            <div class="admin-right">
+                <a href="../00-Home.html" target="_blank" class="admin-public-link">
+                    <i class="fa-solid fa-arrow-up-right-from-square text-[9px]"></i> Sàn công khai
+                </a>
+                <div class="admin-sep"></div>
+                <div class="admin-avatar admin-header-avatar">AD</div>
+                <div class="admin-user-info">
+                    <span class="admin-user-name admin-header-name">Quản trị viên</span>
+                    <span class="admin-user-role admin-header-role">QUẢN TRỊ VIÊN</span>
+                </div>
+
+                <a href="01-AdminLogin.html" onclick="if(window.CargoStore) CargoStore.logoutAdmin()"
+                    class="admin-logout" title="Đăng xuất">
+                    <i class="fa-solid fa-power-off"></i>
+                </a>
+            </div>
+        </div>
+
+        <!-- Mobile Dropdown -->
+        <div id="adminMobileNav">
+            <a href="02-AdminDashboard.html" class="mobile-nav-item"><i
+                    class="fa-solid fa-gauge-high w-4"></i>Dashboard</a>
+            <a href="03-AuctionList.html" class="mobile-nav-item active"><i class="fa-solid fa-list-check w-4"></i>Quản
+                lý phiên</a>
+            <a href="04-CreateAuction.html" class="mobile-nav-item"><i class="fa-solid fa-circle-plus w-4"></i>Tạo
+                phiên</a>
+            <a href="06-AgentList.html" class="mobile-nav-item"><i class="fa-solid fa-building-user w-4"></i>Đại lý</a>
+            <a href="07-Reports.html" class="mobile-nav-item"><i class="fa-solid fa-chart-line w-4"></i>Báo cáo</a>
+            <a href="08-Settings.html" class="mobile-nav-item"><i class="fa-solid fa-gear w-4"></i>Cài đặt</a>
+            <a href="10-AuditLogs.html" class="mobile-nav-item"><i class="fa-solid fa-clock-rotate-left w-4"></i>Nhật
+                ký</a>
+            <a href="../00-Home.html" target="_blank" class="mobile-nav-item"
+                style="border-top:1px solid rgba(255,255,255,0.08);margin-top:6px;padding-top:10px">
+                <i class="fa-solid fa-arrow-up-right-from-square w-4"></i> Xem Sàn công khai
+            </a>
+        </div>
+    </header>
+
+    <main class="max-w-7xl mx-auto px-3 sm:px-4 py-4 sm:py-6 space-y-4 sm:space-y-6">
+
+        <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+            <div>
+                <a href="03-AuctionList.html"
+                    class="text-xs text-slate-500 hover:text-blue-600 flex items-center gap-1 mb-1">
+                    <i class="fa-solid fa-arrow-left"></i> Trở lại danh sách phiên
+                </a>
+                <h1 class="text-2xl font-bold text-slate-900 flex items-center flex-wrap gap-2">
+                    <i class="fa-solid fa-tower-broadcast text-blue-600"></i>
+                    Giám sát phiên đấu giá: <span id="adminFlightTitle" class="text-blue-600">VU130</span>
+                    <span id="detStatusBadge" class="text-xs px-3 py-1 rounded-full font-bold border">Đang tải...</span>
+                    <!-- <span id="detCountdownBadge"
+                        class="hidden text-xs px-3 py-1 rounded-full font-mono font-bold bg-amber-50 text-amber-700 border border-amber-300 inline-flex items-center gap-1.5 shadow-2xs">
+                        <i class="fa-solid fa-stopwatch text-amber-600 animate-pulse"></i> Còn lại: <span
+                            id="detCountdownText">--:--:--</span>
+                    </span> -->
+                </h1>
+                <p class="text-xs text-slate-500 mt-0.5" id="adminSubTitle">Mã phiên: FL-VU130-260815 · Tuyến: SGN - HAN
+                </p>
+            </div>
+            <div class="flex flex-wrap items-center gap-2" id="adminActionButtons">
+                <!-- Action buttons rendered by JS -->
+            </div>
+        </div>
+
+        <!-- 4 KPI Specs for Auction -->
+        <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+            <div class="bg-white rounded-2xl p-4 border shadow-sm">
+                <p class="text-xs text-slate-500 flex items-center justify-between">
+                    <span>Mức giá cao nhất</span>
+                    <i class="fa-solid fa-chart-line text-blue-500"></i>
+                </p>
+                <p class="text-xl font-bold text-blue-600 mt-1" id="detCurrentPrice">---</p>
+            </div>
+            <div class="bg-white rounded-2xl p-4 border shadow-sm">
+                <p class="text-xs text-slate-500 flex items-center justify-between">
+                    <span>Tải trọng chào thầu</span>
+                    <i class="fa-solid fa-weight-hanging text-slate-400"></i>
+                </p>
+                <p class="text-xl font-bold text-slate-900 mt-1" id="detCapacity">3,500 Kg</p>
+            </div>
+            <div class="bg-white rounded-2xl p-4 border shadow-sm">
+                <p class="text-xs text-slate-500 flex items-center justify-between">
+                    <span>Giá khởi điểm sàn</span>
+                    <i class="fa-solid fa-tag text-slate-400"></i>
+                </p>
+                <p class="text-xl font-bold text-slate-700 mt-1" id="detStartingPrice">18.000 đ</p>
+            </div>
+            <div class="bg-white rounded-2xl p-4 border shadow-sm" id="detCountdownCard">
+                <p class="text-xs text-slate-500 flex items-center justify-between">
+                    <span>Thời gian đếm ngược</span>
+                    <i class="fa-solid fa-hourglass-half text-amber-500"></i>
+                </p>
+                <div class="mt-1 flex items-baseline gap-1.5">
+                    <p class="text-xl font-bold font-mono text-amber-600 tracking-tight" id="detCountdownCardTime">
+                        --:--:--</p>
+                </div>
+            </div>
+        </div>
+
+        <!-- Flight Specs Detail Table -->
+        <div class="bg-white rounded-2xl border shadow-sm p-5 text-xs space-y-3">
+            <h3 class="font-bold text-sm text-slate-800 border-b pb-2 flex items-center gap-1.5">
+                <i class="fa-solid fa-circle-info text-blue-600"></i> Thông tin hành trình & Khai thác
+            </h3>
+            <div class="grid grid-cols-2 md:grid-cols-5 gap-4 text-slate-600">
+                <div><span class="text-gray-400 block">Tàu bay:</span> <strong class="text-slate-800"
+                        id="detAircraft">Airbus A321neo Cargo</strong></div>
+                <div><span class="text-gray-400 block">Giai đoạn bay:</span> <strong class="text-blue-700 font-bold"
+                        id="detFlightPeriod">-</strong></div>
+                <div><span class="text-gray-400 block">Khởi hành (ETD):</span> <strong class="text-slate-800"
+                        id="detEtd">14:30 · 15/08/2026</strong></div>
+                <div><span class="text-gray-400 block">Hạ cánh (ETA):</span> <strong class="text-slate-800"
+                        id="detEta">16:45 · 15/08/2026</strong></div>
+            </div>
+            <div class="pt-2 border-t flex flex-wrap items-center gap-2">
+                <span class="text-gray-400">Đại lý được quyền tham gia:</span>
+                <span id="detAllowedAgentsBadge" class="font-semibold text-slate-700">Tất cả đại lý</span>
+            </div>
+        </div>
+
+        <!-- Declared Cargo Box for Winner (Rendered if closed/winner exists) -->
+        <div id="adminDeclaredCargoSection" class="hidden"></div>
+
+        <!-- Bảng Xếp Hạng & Thứ Tự Trúng Thầu (Top Bidders & Tiếp Nhận Dự Phòng) -->
+        <!-- Bảng Xếp Hạng & Thứ Tự Trúng Thầu (Top Bidders & Tiếp Nhận Dự Phòng) -->
+        <div id="leaderboardSection" class="bg-white rounded-2xl border shadow-sm overflow-hidden space-y-3 p-5">
+            <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-2 border-b pb-3">
+                <div>
+                    <h3 class="font-bold text-sm text-slate-900 flex items-center gap-2">
+                        <i class="fa-solid fa-trophy text-amber-500 text-base"></i>
+                        Bảng Tổng Kết Xếp Hạng Đặt Giá & Thứ Tự Trúng Thầu
+                    </h3>
+                    <p class="text-xs text-slate-500 mt-0.5">
+                        Lưu ý: Hệ thống sẽ tự động xác nhận đại lý đưa ra mức giá cao nhất. Trong thời gian điều chỉnh,
+                        hệ thống cho phép thay đổi đại lý thắng thầu nếu đại lý đã được xác nhận không hoàn tất nghĩa vụ
+                        sau khi trúng thầu.
+                    </p>
+                </div>
+                <div class="flex items-center gap-2 shrink-0">
+                    <span
+                        class="text-xs font-semibold text-slate-600 bg-slate-100 border border-slate-200 px-3 py-1 rounded-full inline-flex items-center gap-1.5 whitespace-nowrap shadow-2xs"
+                        id="leaderboardSummaryBadge">
+                        <i class="fa-solid fa-users text-[11px] text-slate-400"></i> 0 đại lý tham gia
+                    </span>
+                </div>
+            </div>
+
+            <!-- Review Countdown & Status Banner -->
+            <div id="reviewWindowBanner" class="hidden"></div>
+
+            <!-- Fallback handover history alert (if any transfer happened) -->
+            <div id="fallbackHistoryAlert"
+                class="hidden p-3 bg-amber-50 border border-amber-200 rounded-xl text-xs text-amber-900 space-y-1">
+            </div>
+
+            <!-- Notice when live sealed-bid or closed with 0 bids -->
+            <div id="leaderboardNoticeWrapper" class="hidden"></div>
+
+            <div id="leaderboardTableWrapper" class="overflow-x-auto">
+                <table class="w-full text-xs text-left">
+                    <thead class="bg-slate-50 text-slate-600 font-semibold border-b">
+                        <tr>
+                            <th class="py-3 px-3 text-center w-14">Thứ hạng</th>
+                            <th class="py-3 px-4 min-w-[200px]">Đại lý tham gia</th>
+                            <th class="py-3 px-3 min-w-[110px]">Mức giá (đ/Kg)</th>
+                            <th class="py-3 px-3 min-w-[120px]">Tổng giá trị (VND)</th>
+                            <th class="py-3 px-3 min-w-[110px]">Thời gian nộp</th>
+                            <th class="py-3 px-3 min-w-[160px]">Trạng thái</th>
+                            <th class="py-3 px-4 text-center min-w-[200px]">Thao tác</th>
+                        </tr>
+                    </thead>
+                    <tbody class="divide-y divide-gray-100" id="leaderboardBody">
+                        <tr>
+                            <td colspan="7" class="py-6 text-center text-gray-400">Đang tải bảng xếp hạng...</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+
+            <!-- Audit Trail Table of Rejections and Cascades -->
+            <div id="rejectAuditTrailSection" class="hidden pt-3 border-t"></div>
+        </div>
+
+        <!-- Bids Realtime Log Table -->
+        <div class="bg-white rounded-2xl border shadow-sm overflow-hidden space-y-3 p-5">
+            <div class="flex items-center justify-between border-b pb-3">
+                <div class="flex items-center gap-2">
+                    <h3 class="font-bold text-sm text-slate-800 flex items-center gap-1.5">
+                        <i class="fa-solid fa-list-ol text-blue-600"></i> Lịch sử các lượt đặt giá (Realtime Bidding
+                        Log)
+                    </h3>
+                    <span id="staffBiddingNoticeBadge"
+                        class="hidden text-[11px] font-semibold text-amber-700 bg-amber-50 border border-amber-200 px-2.5 py-0.5 rounded-lg inline-flex items-center gap-1">
+                        <i class="fa-solid fa-shield-halved text-amber-500"></i> Quyền Staff: Thông tin người đấu giá
+                        được bảo mật ẩn danh
+                    </span>
+                </div>
+                <span class="text-xs font-semibold text-blue-600 bg-blue-50 px-2.5 py-1 rounded-lg" id="detBidsCount">0
+                    lượt đặt</span>
+            </div>
+
+            <div class="overflow-x-auto">
+                <table class="w-full text-xs text-left">
+                    <thead class="bg-slate-50 text-slate-500 font-semibold border-b">
+                        <tr>
+                            <th class="py-3 px-4">Mã đại lý</th>
+                            <th class="py-3 px-4">Tên đại lý</th>
+                            <th class="py-3 px-4">Mức giá đặt (đ/Kg)</th>
+                            <th class="py-3 px-4">Tổng giá trị (VND)</th>
+                            <th class="py-3 px-4">Thời gian</th>
+                            <th class="py-3 px-4">Trạng thái</th>
+                        </tr>
+                    </thead>
+                    <tbody class="divide-y divide-gray-100" id="adminBidsBody">
+                        <!-- Populated by JS -->
+                    </tbody>
+                </table>
+            </div>
+
+            <!-- Pagination Bar for Bids -->
+            <div id="bidsPaginationBar"
+                class="bg-white border-t p-4 flex flex-col sm:flex-row items-center justify-between gap-3 text-xs text-slate-600">
+                <div class="flex items-center gap-2">
+                    <span>Hiển thị</span>
+                    <select id="bidsItemsPerPage" onchange="changeBidsItemsPerPage(this.value)"
+                        class="border rounded-lg px-2.5 py-1 text-xs bg-white font-medium focus:ring-2 focus:ring-blue-500 outline-none">
+                        <option value="5">5 lượt / trang</option>
+                        <option value="10" selected>10 lượt / trang</option>
+                        <option value="20">20 lượt / trang</option>
+                        <option value="50">50 lượt / trang</option>
+                    </select>
+                    <span id="bidsTotalCountText" class="text-slate-500">(Tổng số: 0 lượt)</span>
+                </div>
+                <div id="bidsPaginationControls" class="flex items-center gap-1.5">
+                    <!-- JS rendered -->
+                </div>
+            </div>
+        </div>
+
+    </main>
+
+    <!-- Modal: Chỉnh sửa thông số chuyến bay -->
+    <div id="detailEditModal"
+        class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-50 hidden flex items-center justify-center p-4">
+        <div class="bg-white rounded-2xl shadow-xl max-w-lg w-full overflow-hidden">
+            <div class="bg-slate-900 text-white px-6 py-4 flex items-center justify-between">
+                <h3 class="font-bold text-sm flex items-center gap-2">
+                    <i class="fa-solid fa-pen-to-square text-amber-400"></i> Điều chỉnh thông số phiên đấu giá
+                </h3>
+                <button onclick="closeDetailEditModal()" class="text-slate-400 hover:text-white text-lg"><i
+                        class="fa-solid fa-xmark"></i></button>
+            </div>
+            <form onsubmit="saveDetailEdit(event)" class="p-6 space-y-4 text-xs">
+                <div class="grid grid-cols-2 gap-3">
+                    <div>
+                        <label class="block font-semibold text-slate-700 mb-1">Tải trọng (Kg)</label>
+                        <input type="number" id="modalDetCapacity" required readonly
+                            class="w-full border rounded-xl px-3 py-2 font-bold outline-none bg-slate-100 text-slate-500 cursor-not-allowed"
+                            title="Thông số cố định (chỉ xem)">
+                    </div>
+                    <div>
+                        <label class="block font-semibold text-slate-700 mb-1">Giá khởi điểm (đ/Kg)</label>
+                        <input type="number" id="modalDetStarting" required readonly
+                            class="w-full border rounded-xl px-3 py-2 font-bold outline-none bg-slate-100 text-slate-500 cursor-not-allowed"
+                            title="Thông số cố định (chỉ xem)">
+                    </div>
+                </div>
+                <div class="grid grid-cols-1 gap-3">
+                    <div>
+                        <label class="block font-semibold text-slate-700 mb-1">Tàu bay</label>
+                        <input type="text" id="modalDetAircraft" required readonly
+                            class="w-full border rounded-xl px-3 py-2 outline-none bg-slate-100 text-slate-500 cursor-not-allowed"
+                            title="Thông số cố định (chỉ xem)">
+                    </div>
+                </div>
+                <div class="grid grid-cols-2 gap-3">
+                    <div>
+                        <label class="block font-semibold text-slate-700 mb-1">ETD</label>
+                        <input type="text" id="modalDetEtd" required readonly
+                            class="w-full border rounded-xl px-3 py-2 outline-none bg-slate-100 text-slate-500 cursor-not-allowed"
+                            title="Thông số cố định (chỉ xem)">
+                    </div>
+                    <div>
+                        <label class="block font-semibold text-slate-700 mb-1">ETA</label>
+                        <input type="text" id="modalDetEta" required readonly
+                            class="w-full border rounded-xl px-3 py-2 outline-none bg-slate-100 text-slate-500 cursor-not-allowed"
+                            title="Thông số cố định (chỉ xem)">
+                    </div>
+                </div>
+                <div class="p-3 bg-blue-50/80 border border-blue-200 rounded-xl space-y-1.5">
+                    <label class="block font-bold text-blue-900 mb-1 flex items-center gap-1.5 text-xs">
+                        <i class="fa-solid fa-clock-rotate-left text-blue-600"></i> Gia hạn thời gian đóng thầu: <span
+                            class="text-rose-500">*</span>
+                    </label>
+                    <select id="modalDetExtendTime"
+                        class="w-full border border-blue-300 rounded-xl px-3 py-2.5 bg-white outline-none focus:ring-2 focus:ring-blue-500 font-bold text-blue-800 text-xs shadow-2xs">
+                        <option value="0">-- Chọn thời gian gia hạn thêm --</option>
+                        <option value="15">Gia hạn thêm 15 phút</option>
+                        <option value="30" selected>Gia hạn thêm 30 phút</option>
+                        <option value="60">Gia hạn thêm 1 giờ</option>
+                        <option value="120">Gia hạn thêm 2 giờ</option>
+                    </select>
+                    <p class="text-[11px] text-blue-700 font-medium">Lưu ý: Các thông số chuyến bay ở chế độ chỉ đọc,
+                        chỉ cho phép thao tác gia hạn thời gian đóng thầu.</p>
+                </div>
+                <div>
+                    <label class="block font-semibold text-slate-700 mb-1">Ghi chú hàng hóa</label>
+                    <textarea id="modalDetNotes" rows="2" readonly
+                        class="w-full border rounded-xl px-3 py-2 outline-none bg-slate-100 text-slate-500 cursor-not-allowed"
+                        title="Thông số cố định (chỉ xem)"></textarea>
+                </div>
+                <div class="flex items-center justify-end gap-2.5 pt-2 border-t">
+                    <button type="button" onclick="closeDetailEditModal()"
+                        class="px-4 py-2 border rounded-xl text-slate-600 hover:bg-slate-50 font-medium">Hủy bỏ</button>
+                    <button type="submit"
+                        class="px-5 py-2 bg-blue-600 hover:bg-blue-700 text-white font-bold rounded-xl shadow inline-flex items-center gap-1.5 cursor-pointer">
+                        <i class="fa-solid fa-clock-rotate-left text-xs"></i> Xác nhận gia hạn
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Modal: Gửi thông báo chuyến bay này -->
+    <div id="detailBroadcastModal"
+        class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-50 hidden flex items-center justify-center p-4">
+        <div class="bg-white rounded-2xl shadow-xl max-w-lg w-full overflow-hidden">
+            <div class="bg-amber-600 text-white px-6 py-4 flex items-center justify-between">
+                <h3 class="font-bold text-sm flex items-center gap-2">
+                    <i class="fa-solid fa-bullhorn text-white"></i> Gửi thông báo về chuyến bay này
+                </h3>
+                <button onclick="closeDetailBroadcastModal()" class="text-white/80 hover:text-white text-lg"><i
+                        class="fa-solid fa-xmark"></i></button>
+            </div>
+            <form onsubmit="saveDetailBroadcast(event)" class="p-6 space-y-4 text-xs">
+                <div>
+                    <label class="block font-semibold text-slate-700 mb-1">Tiêu đề thông báo</label>
+                    <input type="text" id="bcFlightTitle" required
+                        class="w-full border rounded-xl px-3.5 py-2 font-bold outline-none">
+                </div>
+                <div>
+                    <label class="block font-semibold text-slate-700 mb-1">Nội dung thông báo</label>
+                    <textarea id="bcFlightMsg" rows="3" required
+                        class="w-full border rounded-xl px-3.5 py-2 outline-none"></textarea>
+                </div>
+                <div>
+                    <label class="block font-semibold text-slate-700 mb-1">Loại cảnh báo</label>
+                    <select id="bcFlightType" class="w-full border rounded-xl px-3 py-2 bg-white outline-none">
+                        <option value="CLOSING_SOON">Cảnh báo sắp đóng thầu</option>
+                        <option value="SYSTEM">Thông báo điều hành chuyến bay</option>
+                        <option value="HIGHEST">Cập nhật giá thầu</option>
+                    </select>
+                </div>
+                <div class="flex items-center justify-end gap-2.5 pt-2 border-t">
+                    <button type="button" onclick="closeDetailBroadcastModal()"
+                        class="px-4 py-2 border rounded-xl text-slate-600 hover:bg-slate-50 font-medium">Hủy bỏ</button>
+                    <button type="submit"
+                        class="px-5 py-2 bg-amber-600 hover:bg-amber-700 text-white font-bold rounded-xl shadow">Phát
+                        thông báo tới Đại lý</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <script>
+        async function openProofImageInNewTab(imageUrl) {
+            if (!imageUrl) return;
+
+            let finalUrl = String(imageUrl).trim();
+            if (!finalUrl) return;
+
+            if (finalUrl.startsWith('data:image/')) {
+                try {
+                    const response = await fetch(finalUrl);
+                    const blob = await response.blob();
+                    finalUrl = URL.createObjectURL(blob);
+                } catch (err) {
+                    console.error('Failed to convert proof image data URL:', err);
+                    return;
+                }
+            }
+
+            const a = document.createElement('a');
+            a.href = finalUrl;
+            a.target = '_blank';
+            a.rel = 'noopener noreferrer';
+            document.body.appendChild(a);
+            a.click();
+            a.remove();
+
+            if (finalUrl.startsWith('blob:')) {
+                setTimeout(() => URL.revokeObjectURL(finalUrl), 15000);
+            }
+        }
+
+        async function openDocumentInNewTab(docUrl, docName) {
+            if (!docUrl) return;
+            let finalUrl = String(docUrl).trim();
+            if (!finalUrl) return;
+            const name = docName || 'chung_tu';
+            try {
+                if (finalUrl.startsWith('data:')) {
+                    const response = await fetch(finalUrl);
+                    const blob = await response.blob();
+                    finalUrl = URL.createObjectURL(blob);
+                }
+                const w = window.open();
+                if (w) {
+                    const ext = (name.split('.').pop() || '').toLowerCase();
+                    if (['jpg', 'jpeg', 'png', 'webp', 'gif'].includes(ext)) {
+                        w.document.write(`<html><head><title>${name}</title><style>body{margin:0;background:#111;display:flex;justify-content:center;align-items:flex-start;min-height:100vh;}img{max-width:100%;height:auto;margin:auto;display:block;}</style></head><body><img src="${finalUrl}" alt="${name}"/></body></html>`);
+                    } else {
+                        w.document.write(`<html><head><title>${name}</title><style>body,html{margin:0;padding:0;height:100%;}embed{width:100%;height:100%;}</style></head><body><embed src="${finalUrl}" type="application/pdf" width="100%" height="100%"/></body></html>`);
+                    }
+                    w.document.close();
+                    if (finalUrl.startsWith('blob:')) setTimeout(() => URL.revokeObjectURL(finalUrl), 30000);
+                }
+            } catch (err) {
+                console.error('openDocumentInNewTab error:', err);
+            }
+        }
+
+        function toggleAdminMobileNav() {
+            const nav = document.getElementById('adminMobileNav');
+            if (nav) nav.classList.toggle('hidden');
+        }
+
+        function getParam(param) {
+            const urlParams = new URLSearchParams(window.location.search);
+            return urlParams.get(param) || '1';
+        }
+
+        let currentAuction = null;
+        let reviewTimerInterval = null;
+        let currentBidsPage = 1;
+        let bidsItemsPerPage = 10;
+
+        window.changeBidsItemsPerPage = function (val) {
+            bidsItemsPerPage = Number(val) || 10;
+            currentBidsPage = 1;
+            loadAdminDetail();
+        };
+
+        window.setBidsPage = function (p) {
+            currentBidsPage = p;
+            loadAdminDetail();
+        };
+
+        window.handleDetailCloseAuction = async function () {
+            if (!currentAuction) return;
+            const currentAdmin = CargoStore.getCurrentAdmin ? CargoStore.getCurrentAdmin() : {};
+            const canClose = (CargoStore.hasPermission && CargoStore.hasPermission('auctions.close', currentAdmin)) ||
+                (CargoStore.hasSettlementRole && CargoStore.hasSettlementRole(currentAdmin));
+            if (!canClose) {
+                if (window.Swal) {
+                    Swal.fire({
+                        icon: 'error',
+                        title: 'Từ chối quyền truy cập',
+                        text: 'Tài khoản của bạn không có quyền Chốt phiên đấu giá (auctions.close)!'
+                    });
+                } else {
+                    alert('Quyền bị từ chối: Thao tác Chốt phiên cần quyền auctions.close!');
+                }
+                return;
+            }
+
+            const flight = currentAuction.flightNumber || 'chuyến bay';
+            const sysSettings = CargoStore.getSystemSettings ? CargoStore.getSystemSettings() : {};
+            const configReviewMins = Number(sysSettings.reviewWindowMinutes) || 15;
+            const bids = CargoStore.getBidsForAuction ? CargoStore.getBidsForAuction(currentAuction.id) : [];
+            const uniqueAgentCodes = Array.from(new Set(bids.map(b => (b.agentCode || '').toUpperCase()).filter(Boolean)));
+            const isSingleAgent = uniqueAgentCodes.length <= 1;
+
+            const modalHtml = isSingleAgent ? `
+                <div class="text-left text-xs space-y-2.5 pt-1">
+                    <div class="p-3 bg-blue-50 border border-blue-200 rounded-xl text-blue-950 leading-relaxed">
+                        <i class="fa-solid fa-circle-info text-blue-600 mr-1"></i>
+                        Bạn có chắc chắn muốn chốt đóng phiên chuyến bay <strong>${flight}</strong> (${currentAuction.route})?
+                    </div>
+                    <div class="p-3 bg-emerald-50 border border-emerald-200 rounded-xl text-emerald-950 space-y-1">
+                        <p class="font-bold text-emerald-900"><i class="fa-solid fa-circle-check text-emerald-600 mr-1"></i>Chỉ có 1 đại lý tham gia đặt giá</p>
+                        <p class="text-emerald-800">Hệ thống sẽ tự động xác nhận và chốt thầu chính thức ngay cho đại lý này.</p>
+                    </div>
+                </div>
+            ` : `
+                <div class="text-left text-xs space-y-2.5 pt-1">
+                    <div class="p-3 bg-blue-50 border border-blue-200 rounded-xl text-blue-950 leading-relaxed">
+                        <i class="fa-solid fa-circle-info text-blue-600 mr-1"></i>
+                        Bạn có chắc chắn muốn chốt đóng phiên chuyến bay <strong>${flight}</strong> (${currentAuction.route})?
+                    </div>
+                    <div class="p-3 bg-amber-50 border border-amber-200 rounded-xl text-amber-900 space-y-1.5 leading-relaxed">
+                        <p>✓ Tự động xác nhận đại lý có mức giá đặt cao nhất trúng thầu.</p>
+                        <p>✓ Thời gian điều chỉnh: <strong>${configReviewMins} phút</strong> (theo cấu hình hệ thống). Trong thời gian điều chỉnh, cho phép thay đổi đại lý nếu không hoàn tất nghĩa vụ sau trúng thầu.</p>
+                    </div>
+                </div>
+            `;
+
+            const ok = window.Swal ? (await Swal.fire({
+                title: 'Xác nhận chốt phiên đấu giá?',
+                html: modalHtml,
+                icon: 'question',
+                showCancelButton: true,
+                confirmButtonText: '<i class="fa-solid fa-gavel"></i> Chốt phiên ngay',
+                confirmButtonColor: '#2563eb',
+                cancelButtonText: 'Xem lại'
+            })).isConfirmed : confirm('Bạn có chắc chắn muốn chốt đóng phiên chuyến bay ' + flight + '?');
+
+            if (ok) {
+                const res = CargoStore.closeAuction(currentAuction.id);
+                if (res.success) {
+                    if (window.Swal) {
+                        await Swal.fire({
+                            icon: 'success',
+                            title: 'Chốt phiên thành công!',
+                            text: res.message || 'Đã tự động xác nhận đại lý cao nhất!'
+                        });
+                    } else {
+                        alert(res.message || 'Đã chốt phiên thành công!');
+                    }
+                    loadAdminDetail();
+                } else {
+                    alert(res.message || 'Không thể chốt phiên.');
+                }
+            }
+        };
+
+        function renderLeaderboardTable(auction, isStaff) {
+            const lbody = document.getElementById('leaderboardBody');
+            const summaryBadge = document.getElementById('leaderboardSummaryBadge');
+            const reviewBanner = document.getElementById('reviewWindowBanner');
+            const historyBox = document.getElementById('fallbackHistoryAlert');
+            const auditTrailBox = document.getElementById('rejectAuditTrailSection');
+            const tableWrapper = document.getElementById('leaderboardTableWrapper');
+            const noticeWrapper = document.getElementById('leaderboardNoticeWrapper');
+            if (!lbody) return;
+
+            const list = CargoStore.getAuctionLeaderboard ? CargoStore.getAuctionLeaderboard(auction.id) : [];
+            const isOpen = auction.status === 'OPEN';
+            const canReview = CargoStore && CargoStore.isReviewPeriodActive ? CargoStore.isReviewPeriodActive(auction) : false;
+            const isLocked = !canReview;
+            const currentAdmin = CargoStore.getCurrentAdmin ? CargoStore.getCurrentAdmin() : {};
+            const hasSettlement = Boolean((CargoStore.hasPermission && CargoStore.hasPermission('auctions.settle_select_winner', currentAdmin)) ||
+                (CargoStore.hasSettlementRole && CargoStore.hasSettlementRole(currentAdmin)));
+
+            // 1. TRƯỜNG HỢP: ĐANG TRONG QUÁ TRÌNH ĐẤU GIÁ (status === 'OPEN')
+            // Quy tắc: Khi trong quá trình đấu giá thì Admin không xem được, ẩn hết
+            if (isOpen) {
+                if (summaryBadge) {
+                    summaryBadge.className = 'text-xs font-semibold text-blue-700 bg-blue-50 border border-blue-200 px-3 py-1 rounded-full inline-flex items-center gap-1.5 whitespace-nowrap shadow-2xs';
+                    summaryBadge.innerHTML = '<i class="fa-solid fa-lock text-[11px] text-blue-500"></i> Đang bảo mật trong phiên';
+                }
+                if (reviewBanner) reviewBanner.classList.add('hidden');
+                if (historyBox) historyBox.classList.add('hidden');
+                if (auditTrailBox) auditTrailBox.classList.add('hidden');
+
+                if (tableWrapper) tableWrapper.classList.add('hidden');
+                if (noticeWrapper) {
+                    noticeWrapper.classList.remove('hidden');
+                    noticeWrapper.innerHTML = `
+                        <div class="p-8 text-center bg-slate-50 border border-dashed border-slate-300 rounded-2xl space-y-3">
+                            <div class="w-14 h-14 mx-auto rounded-2xl bg-blue-100 text-blue-700 flex items-center justify-center text-2xl shadow-xs">
+                                <i class="fa-solid fa-user-secret"></i>
+                            </div>
+                            <div>
+                                <h4 class="font-bold text-slate-900 text-sm">Chính Sách Đấu Giá Kín Đang Áp Dụng</h4>
+                                <p class="text-xs text-slate-500 max-w-lg mx-auto mt-1 leading-relaxed">
+                                    Trong suốt thời gian phiên đấu giá đang diễn ra trực tiếp, toàn bộ danh sách đại lý tham gia, số tiền chào thầu và bảng xếp hạng được bảo mật tuyệt đối nhằm bảo đảm tính công bằng và minh bạch.
+                                </p>
+                            </div>
+                            <div class="inline-flex items-center gap-2 px-3.5 py-1.5 bg-blue-50 border border-blue-200 rounded-full text-xs font-semibold text-blue-800">
+                                <i class="fa-solid fa-lock text-blue-600"></i> Bảng tổng kết xếp hạng & kết quả sẽ được công bố sau khi phiên đấu giá kết thúc.
+                            </div>
+                        </div>
+                    `;
+                }
+                return;
+            }
+
+            // 2. TRƯỜNG HỢP: PHIÊN ĐÃ ĐÓNG (status !== 'OPEN') MÀ KHÔNG CÓ ĐẠI LÝ NÀO ĐẶT GIÁ
+            // Quy tắc: Phiên nào đóng rồi mà không có đại lý đặt giá thì bảng tổng kết xếp hạng ẩn
+            if (list.length === 0) {
+                if (summaryBadge) {
+                    summaryBadge.className = 'text-xs font-semibold text-slate-600 bg-slate-100 border border-slate-200 px-3 py-1 rounded-full inline-flex items-center gap-1.5 whitespace-nowrap shadow-2xs';
+                    summaryBadge.innerHTML = '<i class="fa-solid fa-users text-[11px] text-slate-400"></i> 0 đại lý tham gia';
+                }
+                if (reviewBanner) reviewBanner.classList.add('hidden');
+                if (historyBox) historyBox.classList.add('hidden');
+                if (auditTrailBox) auditTrailBox.classList.add('hidden');
+
+                if (tableWrapper) tableWrapper.classList.add('hidden');
+                if (noticeWrapper) {
+                    noticeWrapper.classList.remove('hidden');
+                    noticeWrapper.innerHTML = `
+                        <div class="p-8 text-center bg-slate-50 border border-slate-200 rounded-2xl space-y-2">
+                            <i class="fa-solid fa-inbox text-3xl text-slate-300 block mb-1"></i>
+                            <h4 class="font-bold text-slate-700 text-sm">Phiên đấu giá đã kết thúc</h4>
+                            <p class="text-xs text-slate-500 max-w-md mx-auto">
+                                Phiên đấu giá đã đóng nhưng không có đại lý nào tham gia đặt giá. Bảng tổng kết xếp hạng được ẩn.
+                            </p>
+                            <span class="inline-block mt-1 px-3 py-1 bg-slate-100 text-slate-600 text-[11px] font-semibold rounded-full border border-slate-200">
+                                0 lượt đặt giá · Không có người trúng thầu
+                            </span>
+                        </div>
+                    `;
+                }
+                return;
+            }
+
+            // 3. TRƯỜNG HỢP: PHIÊN ĐÃ ĐÓNG VÀ CÓ ĐẠI LÝ ĐẶT GIÁ -> HIỂN THỊ BẢNG XẾP HẠNG
+            if (noticeWrapper) noticeWrapper.classList.add('hidden');
+            if (tableWrapper) tableWrapper.classList.remove('hidden');
+
+            // Kiểm tra số lượng đại lý thực tế tham gia: nếu chỉ có 1 đại lý thì auto confirm vì chỉ có 1 đại lý
+            const uniqueAgents = Array.from(new Set(list.map(b => (b.agentCode || '').toUpperCase()).filter(Boolean)));
+            const isSingleAgent = uniqueAgents.length <= 1;
+
+            if (summaryBadge) {
+                if (isSingleAgent && list.length > 0) {
+                    summaryBadge.className = 'text-xs font-bold text-emerald-800 bg-emerald-50 border border-emerald-300 px-3 py-1 rounded-full inline-flex items-center gap-1.5 whitespace-nowrap shadow-2xs';
+                    summaryBadge.innerHTML = '<i class="fa-solid fa-circle-check text-[11px] text-emerald-600"></i> 1 đại lý · Đã tự động chốt thầu';
+                } else if (isLocked) {
+                    summaryBadge.className = 'text-xs font-bold text-emerald-800 bg-emerald-50 border border-emerald-300 px-3 py-1 rounded-full inline-flex items-center gap-1.5 whitespace-nowrap shadow-2xs';
+                    summaryBadge.innerHTML = `<i class="fa-solid fa-circle-check text-[11px] text-emerald-600"></i> ${list.length} đại lý · Đã chốt chính thức`;
+                } else {
+                    summaryBadge.className = 'text-xs font-semibold text-amber-800 bg-amber-50 border border-amber-300 px-3 py-1 rounded-full inline-flex items-center gap-1.5 whitespace-nowrap shadow-2xs';
+                    summaryBadge.innerHTML = `<i class="fa-regular fa-clock text-[11px] text-amber-600 animate-pulse"></i> ${list.length} đại lý · Trong thời gian điều chỉnh`;
+                }
+            }
+
+            // Render Review Window Banner
+            if (reviewBanner) {
+                reviewBanner.classList.remove('hidden');
+                if (reviewTimerInterval) { clearInterval(reviewTimerInterval); reviewTimerInterval = null; }
+
+                if (isSingleAgent && list.length > 0) {
+                    // Nếu chỉ có 1 đại lý đặt thì auto confirm và chốt thầu chính thức ngay vì chỉ có 1 đại lý
+                    reviewBanner.className = 'p-3.5 bg-emerald-50 border border-emerald-300 rounded-xl text-xs text-emerald-950 flex flex-col sm:flex-row sm:items-center justify-between gap-2 shadow-2xs';
+                    reviewBanner.innerHTML = `
+                        <div class="flex items-center gap-2.5">
+                            <i class="fa-solid fa-circle-check text-emerald-600 text-lg"></i>
+                            <div>
+                                <div class="flex items-center gap-2">
+                                    <span class="font-bold text-sm text-emerald-900 uppercase">TỰ ĐỘNG CHỐT THẦU CHÍNH THỨC</span>
+                                    <span class="text-[10px] font-bold bg-emerald-200 text-emerald-900 px-2 py-0.5 rounded-full">FINALIZED</span>
+                                </div>
+                                <p class="text-[11px] text-emerald-800 mt-0.5">
+                                    Phiên đấu giá có <strong>1 đại lý tham gia duy nhất (${auction.winnerAgentName || auction.winnerAgentCode || 'Đại lý'})</strong> · Mức giá: <strong>${CargoStore.formatCurrency(auction.winningPriceKg)}/Kg</strong>. Hệ thống tự động xác nhận và chốt thầu chính thức.
+                                </p>
+                            </div>
+                        </div>
+                        <div class="flex items-center gap-2 shrink-0">
+                            <span class="text-xs bg-emerald-100 text-emerald-800 font-bold px-3 py-1.5 rounded-xl border border-emerald-300 inline-flex items-center gap-1.5 shadow-2xs">
+                                <i class="fa-solid fa-lock text-emerald-600"></i> Đã chốt thầu chính thức
+                            </span>
+                        </div>
+                    `;
+                } else if (isLocked) {
+                    reviewBanner.className = 'p-3.5 bg-emerald-50 border border-emerald-300 rounded-xl text-xs text-emerald-950 flex flex-col sm:flex-row sm:items-center justify-between gap-2 shadow-2xs';
+                    reviewBanner.innerHTML = `
+                        <div class="flex items-center gap-2.5">
+                            <i class="fa-solid fa-shield-check text-emerald-600 text-lg"></i>
+                            <div>
+                                <div class="flex items-center gap-2">
+                                    <span class="font-bold text-sm text-emerald-900 uppercase">HẾT THỜI GIAN ĐIỀU CHỈNH - ĐÃ CHỐT THẦU CHÍNH THỨC</span>
+                                    <span class="text-[10px] font-bold bg-emerald-200 text-emerald-900 px-2 py-0.5 rounded-full">FINALIZED</span>
+                                </div>
+                                <p class="text-[11px] text-emerald-800 mt-0.5">
+                                    Đại lý trúng thầu chính thức: <strong>${auction.winnerAgentName || auction.winnerAgentCode}</strong> · Mức giá: <strong>${CargoStore.formatCurrency(auction.winningPriceKg)}/Kg</strong>. Toàn bộ thao tác thay đổi đại lý đã kết thúc theo quy định.
+                                </p>
+                            </div>
+                        </div>
+                        <div class="flex items-center gap-2 shrink-0">
+                            <span class="text-xs bg-emerald-100 text-emerald-800 font-bold px-3 py-1.5 rounded-xl border border-emerald-300 inline-flex items-center gap-1.5 shadow-2xs">
+                                <i class="fa-solid fa-lock text-emerald-600"></i> Đã đóng chốt hoàn tất
+                            </span>
+                        </div>
+                    `;
+                } else {
+                    reviewBanner.className = 'p-3.5 bg-gradient-to-r from-purple-50 via-amber-50 to-orange-50 border border-purple-200 rounded-xl text-xs text-slate-900 flex flex-col md:flex-row md:items-center justify-between gap-3 shadow-2xs';
+                    reviewBanner.innerHTML = `
+                        <div class="flex items-center gap-3">
+                            <div class="w-10 h-10 rounded-xl bg-purple-600 text-white flex items-center justify-center shrink-0 shadow-xs">
+                                <i class="fa-solid fa-stopwatch text-lg"></i>
+                            </div>
+                            <div>
+                                <div class="flex items-center gap-2 flex-wrap">
+                                    <span class="font-bold text-slate-900 text-xs uppercase tracking-wide">Thời gian điều chỉnh còn lại:</span>
+                                    <span id="reviewCountdownTimer" class="font-mono font-black text-rose-600 bg-white px-2.5 py-0.5 rounded-lg border border-purple-200 text-sm shadow-xs">--:--</span>
+                                </div>
+                                <p class="text-[11px] text-slate-600 mt-1">
+                                    Hệ thống tự động xác nhận đại lý đưa ra mức giá cao nhất. Trong thời gian điều chỉnh, hệ thống cho phép thay đổi đại lý thắng thầu nếu đại lý đã được xác nhận không hoàn tất nghĩa vụ sau khi trúng thầu.
+                                </p>
+                            </div>
+                        </div>
+                        <div class="flex items-center gap-2 shrink-0 self-end md:self-center">
+                            ${hasSettlement ? `
+                                <button type="button" onclick="handleLockAuctionReview('${auction.id}')"
+                                    class="bg-slate-900 hover:bg-slate-800 text-white font-bold px-3 py-1.5 rounded-xl text-xs transition inline-flex items-center gap-1.5 shadow-xs cursor-pointer">
+                                    <i class="fa-solid fa-lock text-amber-400"></i> Chốt thầu chính thức ngay
+                                </button>
+                            ` : `
+                                <span class="text-slate-500 text-[11px] font-semibold bg-white/80 border border-purple-200 px-2.5 py-1 rounded-xl inline-flex items-center gap-1 shadow-2xs">
+                                    <i class="fa-solid fa-lock text-slate-400"></i> Cần vai trò AUCTION SETTLEMENT
+                                </span>
+                            `}
+                        </div>
+                    `;
+
+                    // Start/Update live countdown timer
+                    const deadlineMs = auction.reviewDeadline ? new Date(auction.reviewDeadline).getTime() : (Date.now() + (auction.reviewWindowMinutes || 15) * 60 * 1000);
+                    function updateTimerDisplay() {
+                        const remaining = deadlineMs - Date.now();
+                        const timerElem = document.getElementById('reviewCountdownTimer');
+                        if (remaining <= 0) {
+                            if (timerElem) timerElem.textContent = '00:00';
+                            clearInterval(reviewTimerInterval);
+                            reviewTimerInterval = null;
+                            CargoStore.lockAuctionReview(auction.id);
+                            loadAdminDetail();
+                            return;
+                        }
+                        const sec = Math.floor(remaining / 1000);
+                        const m = Math.floor(sec / 60);
+                        const s = sec % 60;
+                        if (timerElem) timerElem.textContent = `${String(m).padStart(2, '0')}:${String(s).padStart(2, '0')}`;
+                    }
+                    updateTimerDisplay();
+                    reviewTimerInterval = setInterval(updateTimerDisplay, 1000);
+                }
+            }
+
+            if (historyBox) historyBox.classList.add('hidden');
+
+            if (list.length === 0) {
+                lbody.innerHTML = `
+                    <tr>
+                        <td colspan="7" class="py-8 text-center text-slate-400">
+                            <i class="fa-solid fa-inbox text-3xl mb-2 text-slate-300 block"></i>
+                            Chưa có đại lý nào đặt giá cho chuyến bay này.
+                        </td>
+                    </tr>
+                `;
+                return;
+            }
+
+            lbody.innerHTML = list.map((item, idx) => {
+                let rankBadge = '';
+                if (item.rank === 1) {
+                    rankBadge = '<span class="w-8 h-8 rounded-xl bg-amber-100 text-amber-800 font-black inline-flex items-center justify-center text-xs shadow-xs border border-amber-300">🥇 #1</span>';
+                } else if (item.rank === 2) {
+                    rankBadge = '<span class="w-8 h-8 rounded-xl bg-slate-100 text-slate-700 font-bold inline-flex items-center justify-center text-xs border border-slate-300">🥈 #2</span>';
+                } else if (item.rank === 3) {
+                    rankBadge = '<span class="w-8 h-8 rounded-xl bg-orange-100 text-orange-800 font-bold inline-flex items-center justify-center text-xs border border-orange-300">🥉 #3</span>';
+                } else {
+                    rankBadge = `<span class="w-8 h-8 rounded-xl bg-slate-50 text-slate-500 font-semibold inline-flex items-center justify-center text-xs border">#${item.rank}</span>`;
+                }
+
+                const displayCode = isStaff ? 'AG-***' : item.agentCode;
+                const displayName = isStaff ? 'Đại lý tham gia (Bảo mật thông tin Staff)' : item.agentName;
+
+                let statusBadge = '';
+                if (isOpen) {
+                    statusBadge = '<span class="bg-blue-50 text-blue-700 font-semibold px-2.5 py-1 rounded-full text-[10px] inline-flex items-center gap-1 border border-blue-200"><i class="fa-solid fa-signal text-blue-500"></i> Đang mở đấu giá</span>';
+                } else if ((item.isFinalLocked || isSingleAgent) && item.isCurrentCandidate) {
+                    statusBadge = '<span class="bg-emerald-100 text-emerald-800 font-bold px-2.5 py-1 rounded-full text-[10px] inline-flex items-center gap-1 border border-emerald-300 shadow-2xs"><i class="fa-solid fa-circle-check text-emerald-600"></i> THẮNG THẦU CHÍNH THỨC</span>';
+                } else if (item.isRejected) {
+                    statusBadge = '<span class="bg-rose-50 text-rose-700 font-semibold px-2.5 py-1 rounded-full text-[10px] inline-flex items-center gap-1 border border-rose-200"><i class="fa-solid fa-circle-xmark text-rose-500"></i> ĐÃ HỦY THẮNG THẦU</span>';
+                } else if (item.isCurrentCandidate) {
+                    statusBadge = '<span class="bg-amber-100 text-amber-900 font-bold px-2.5 py-1 rounded-full text-[10px] inline-flex items-center gap-1 border border-amber-300 animate-pulse"><i class="fa-solid fa-crown text-amber-600"></i> ĐẠI LÝ THẮNG THẦU (TẠM THỜI)</span>';
+                } else {
+                    statusBadge = `<span class="bg-slate-100 text-slate-600 font-medium px-2.5 py-1 rounded-full text-[10px] inline-flex items-center gap-1 border">DỰ PHÒNG #${item.rank}</span>`;
+                }
+
+                // Action Column: Cho phép Thay đổi đại lý trong thời gian điều chỉnh; khi hết giờ hoặc 1 đại lý thì chốt thầu chính thức
+                let actionContent = '';
+                if (isOpen) {
+                    actionContent = '<span class="text-blue-600 text-[11px] font-medium bg-blue-50 px-2.5 py-1 rounded-lg border border-blue-200 inline-flex items-center gap-1"><i class="fa-solid fa-signal text-[10px]"></i> Đang mở đấu giá</span>';
+                } else if (isLocked || isSingleAgent) {
+                    if (item.isCurrentCandidate) {
+                        actionContent = `
+                            <span class="inline-flex items-center gap-1.5 text-emerald-700 font-bold text-xs bg-emerald-50 border border-emerald-200 px-3 py-1.5 rounded-xl shadow-2xs">
+                                <i class="fa-solid fa-lock text-emerald-600"></i> Trúng thầu chính thức
+                            </span>
+                        `;
+                    } else {
+                        actionContent = '<span class="text-slate-400 text-xs italic">-</span>';
+                    }
+                } else {
+                    if (item.isCurrentCandidate) {
+                        if (!hasSettlement) {
+                            actionContent = '<span class="text-slate-400 text-[11px] font-semibold bg-slate-100 border border-slate-200 px-2.5 py-1 rounded-lg inline-flex items-center gap-1 cursor-not-allowed" title="Chỉ Quản trị viên có quyền AUCTION SETTLEMENT (hoặc ITD ADMIN) mới có thẩm quyền thay đổi đại lý thắng thầu"><i class="fa-solid fa-lock text-slate-400"></i> Cần quyền SETTLEMENT</span>';
+                        } else {
+                            actionContent = `
+                                <button type="button" onclick="handleRejectToNextAgent('${auction.id}', '${item.agentCode}', '${item.agentName.replace(/'/g, "\\'")}', ${item.priceKg})"
+                                    class="bg-rose-600 hover:bg-rose-700 text-white font-bold px-3 py-1.5 rounded-xl text-xs transition inline-flex items-center gap-1.5 shadow-2xs cursor-pointer group active:scale-95"
+                                    title="Thay đổi đại lý thắng thầu nếu đại lý đã được xác nhận không hoàn tất nghĩa vụ sau khi trúng thầu">
+                                    <i class="fa-solid fa-arrow-right-arrow-left"></i>
+                                    <span>Thay đổi đại lý thắng thầu</span>
+                                </button>
+                            `;
+                        }
+                    } else if (item.isRejected) {
+                        actionContent = '<span class="text-rose-500 text-xs font-semibold inline-flex items-center gap-1"><i class="fa-solid fa-ban text-rose-400"></i> Đã hủy kết quả</span>';
+                    } else {
+                        actionContent = `<span class="text-slate-400 text-[11px] font-medium">Chờ tiếp nhận dự phòng #${item.rank}</span>`;
+                    }
+                }
+
+                const isHighlight = item.isCurrentCandidate;
+
+                return `
+                    <tr class="${isHighlight ? 'bg-amber-50/40 font-medium' : 'hover:bg-slate-50'} transition">
+                        <td class="py-3 px-3 text-center">${rankBadge}</td>
+                        <td class="py-3 px-4">
+                            <div class="flex items-center gap-2">
+                                <span class="font-mono font-bold text-blue-600">${displayCode}</span>
+                                <strong class="text-slate-900">${displayName}</strong>
+                            </div>
+                            ${(!isStaff && item.phone) ? `<p class="text-[11px] text-slate-500 mt-0.5">LH: ${item.repName} · ${item.phone}</p>` : ''}
+                        </td>
+                        <td class="py-3 px-3 font-bold text-slate-900 font-mono">${CargoStore.formatCurrency(item.priceKg)}</td>
+                        <td class="py-3 px-3 text-slate-700 font-mono font-semibold">${CargoStore.formatCurrency(item.totalAmountVND)}</td>
+                        <td class="py-3 px-3 text-slate-500 text-[11px]">${item.time}</td>
+                        <td class="py-3 px-3">${statusBadge}</td>
+                        <td class="py-3 px-4 text-center">${actionContent}</td>
+                    </tr>
+                `;
+            }).join('');
+
+            // Render Audit Trail Section below the table
+            if (auditTrailBox) {
+                const logs = auction.rejectAuditLogs || [];
+                if (logs.length > 0) {
+                    auditTrailBox.classList.remove('hidden');
+                    auditTrailBox.innerHTML = `
+                        <div class="bg-slate-50/90 border border-slate-200 rounded-2xl p-4 space-y-3 shadow-2xs">
+                            <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-2 border-b border-slate-200 pb-2.5">
+                                <h4 class="font-bold text-xs text-slate-800 flex items-center gap-2">
+                                    <i class="fa-solid fa-clipboard-check text-indigo-600 text-sm"></i>
+                                    Nhật Ký Kiểm Toán (Audit Trail) Thay Đổi & Điều Chuyển Đại Lý Trúng Thầu
+                                </h4>
+                                <div class="flex items-center gap-2">
+                                    <span class="text-[10px] font-bold bg-indigo-100 text-indigo-900 border border-indigo-200 px-2.5 py-0.5 rounded-md flex items-center gap-1">
+                                        <i class="fa-solid fa-user-shield text-indigo-600"></i> Phân quyền chuyên trách: AUCTION SETTLEMENT
+                                    </span>
+                                    <span class="text-[10px] font-mono font-bold bg-slate-200 text-slate-800 px-2.5 py-0.5 rounded-md">
+                                        ${logs.length} bản ghi kiểm toán
+                                    </span>
+                                </div>
+                            </div>
+                            <div class="overflow-x-auto">
+                                <table class="w-full text-xs text-left">
+                                    <thead class="bg-white text-slate-600 font-semibold border-b text-[11px]">
+                                        <tr>
+                                            <th class="py-2.5 px-3">Thời gian ghi nhận</th>
+                                            <th class="py-2.5 px-3">Người thực hiện (Role)</th>
+                                            <th class="py-2.5 px-3">Đại lý bị thay đổi kết quả</th>
+                                            <th class="py-2.5 px-3">Đại lý nhận thầu kế tiếp</th>
+                                            <th class="py-2.5 px-3">Lý do chính thức & Giải trình kiểm toán</th>
+                                            <th class="py-2.5 px-3 text-right">Mã Audit Hash</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody class="divide-y divide-slate-100 text-[11px]">
+                                        ${logs.map(log => `
+                                            <tr class="hover:bg-white transition">
+                                                <td class="py-2.5 px-3 font-mono text-slate-700 whitespace-nowrap">
+                                                    <i class="fa-regular fa-clock text-slate-400 mr-1"></i>${log.formattedTime || log.timestamp}
+                                                </td>
+                                                <td class="py-2.5 px-3 whitespace-nowrap">
+                                                    <strong class="text-slate-900 block">${log.actorName || log.actorUsername}</strong>
+                                                    <span class="text-[10px] font-bold text-indigo-800 bg-indigo-50 border border-indigo-200 px-1.5 py-0.5 rounded inline-flex items-center gap-1 mt-0.5">
+                                                        <i class="fa-solid fa-user-shield text-[9px] text-indigo-600"></i> ${log.actorRole || 'AUCTION SETTLEMENT'}
+                                                    </span>
+                                                </td>
+                                                <td class="py-2.5 px-3 text-rose-700 font-medium">
+                                                    <span class="font-mono font-bold text-rose-800">${log.fromAgentCode}</span>
+                                                    <span class="block text-slate-600 text-[10px]">${log.fromAgentName} (${CargoStore.formatCurrency(log.fromPriceKg)}/Kg)</span>
+                                                </td>
+                                                <td class="py-2.5 px-3 text-emerald-700 font-medium">
+                                                    <span class="font-mono font-bold text-emerald-800">${log.toAgentCode}</span>
+                                                    <span class="block text-slate-600 text-[10px]">${log.toAgentName} (${CargoStore.formatCurrency(log.toPriceKg)}/Kg)</span>
+                                                </td>
+                                                <td class="py-2.5 px-3 text-slate-700 max-w-xs">
+                                                    <strong class="text-slate-900 block font-semibold">${log.reason}</strong>
+                                                    ${log.note ? `<span class="block text-slate-500 text-[10px] italic mt-0.5 bg-white p-1 rounded border border-slate-200/60">${log.note}</span>` : ''}
+                                                </td>
+                                                <td class="py-2.5 px-3 text-right font-mono text-[10px] text-slate-500 font-semibold whitespace-nowrap">
+                                                    <span class="bg-slate-100 border border-slate-300 px-2 py-0.5 rounded text-[10px]">
+                                                        <i class="fa-solid fa-fingerprint text-slate-400 mr-0.5"></i> ${log.auditHash || 'SEC-COD-VERIFIED'}
+                                                    </span>
+                                                </td>
+                                            </tr>
+                                        `).join('')}
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+                    `;
+                } else {
+                    auditTrailBox.classList.add('hidden');
+                }
+            }
+        }
+
+        // Chốt thầu chính thức ngay (kết thúc sớm thời gian điều chỉnh)
+        window.handleLockAuctionReview = async function (auctionId) {
+            const admin = CargoStore.getCurrentAdmin ? CargoStore.getCurrentAdmin() : {};
+            const canSettle = (CargoStore.hasPermission && CargoStore.hasPermission('auctions.settle_select_winner', admin)) ||
+                (CargoStore.hasSettlementRole && CargoStore.hasSettlementRole(admin));
+            if (!canSettle) {
+                if (window.Swal) Swal.fire('Từ chối quyền', 'Tài khoản của bạn không có quyền Chốt / Chọn đại lý thắng thầu (auctions.settle_select_winner)!', 'warning');
+                else alert('Tài khoản của bạn không có quyền Chốt / Chọn đại lý thắng thầu (auctions.settle_select_winner)!');
+                return;
+            }
+            const ok = window.Swal ? (await Swal.fire({
+                title: 'Chốt thầu chính thức ngay?',
+                text: 'Hành động này sẽ kết thúc sớm thời gian điều chỉnh và khóa chính thức kết quả trúng thầu cho đại lý hiện tại.',
+                icon: 'question',
+                showCancelButton: true,
+                confirmButtonText: '<i class="fa-solid fa-lock"></i> Chốt thầu chính thức ngay',
+                confirmButtonColor: '#0f172a',
+                cancelButtonText: 'Hủy'
+            })).isConfirmed : confirm('Chốt thầu chính thức ngay và kết thúc thời gian điều chỉnh?');
+
+            if (ok) {
+                const res = CargoStore.lockAuctionReview(auctionId);
+                if (res.success) {
+                    if (window.Swal) Swal.fire({ icon: 'success', title: 'Đã khóa chốt thầu!', text: res.message });
+                    loadAdminDetail();
+                }
+            }
+        };
+
+        // Action: Reject đại lý hiện tại và tự động chuyển sang đại lý kế tiếp
+        // Phân quyền chuyên trách riêng: AUCTION SETTLEMENT (hoặc ITD ADMIN)
+        // Ghi nhật ký Audit Trail đầy đủ, bảo mật
+        async function handleRejectToNextAgent(auctionId, targetAgentCode, targetAgentName, priceKg) {
+            const admin = CargoStore.getCurrentAdmin ? CargoStore.getCurrentAdmin() : {};
+            const canSettle = (CargoStore.hasPermission && CargoStore.hasPermission('auctions.settle_select_winner', admin)) ||
+                (CargoStore.hasSettlementRole && CargoStore.hasSettlementRole(admin));
+
+            if (!canSettle) {
+                if (window.Swal) {
+                    const currentRolesStr = (Array.isArray(admin.roles) ? admin.roles.join(', ') : admin.role) || 'STAFF';
+                    Swal.fire({
+                        icon: 'error',
+                        title: 'Từ chối quyền truy cập',
+                        html: `
+                            <div class="text-left text-xs space-y-2">
+                                <p class="text-slate-700">Tài khoản hiện tại của bạn: <strong class="text-slate-900">${admin.fullName || admin.username}</strong> (@@${admin.username || 'staff'}).</p>
+                                <p class="text-slate-600">Vai trò hiện có: <strong class="text-rose-600 font-bold">${currentRolesStr}</strong>.</p>
+                                <div class="p-3 bg-purple-50 border border-purple-200 rounded-xl text-purple-950 leading-relaxed space-y-1">
+                                    <div class="font-bold flex items-center gap-1.5 text-purple-900">
+                                        <i class="fa-solid fa-gavel text-purple-600"></i> Thẩm quyền chuyên trách:
+                                    </div>
+                                    <p>Toàn bộ thao tác <strong>Confirm, Reject & điều chuyển thầu dự phòng</strong> đã được phân quyền cho <strong>auctions.settle_select_winner</strong> (hoặc AUCTION SETTLEMENT / SUPER ADMIN).</p>
+                                </div>
+                                <p class="text-[11px] text-slate-500">Vui lòng liên hệ Quản trị viên để cấp quyền nếu cần thiết.</p>
+                            </div>
+                        `
+                    });
+                } else {
+                    alert('Quyền bị từ chối: Cần quyền auctions.settle_select_winner!');
+                }
+                return;
+            }
+
+            // Tìm đại lý dự phòng kế tiếp
+            const list = CargoStore.getAuctionLeaderboard ? CargoStore.getAuctionLeaderboard(auctionId) : [];
+            const rejectedCodes = ((currentAuction && currentAuction.rejectedAgents) || []).concat([targetAgentCode]).map(c => String(c).toUpperCase());
+            const nextCandidate = list.find(item => !rejectedCodes.includes(item.agentCode.toUpperCase()) && item.agentCode.toUpperCase() !== targetAgentCode.toUpperCase());
+
+            const nextAgentHtml = nextCandidate ? `
+                <div class="p-3 bg-emerald-50 border border-emerald-200 rounded-xl text-emerald-950 space-y-1">
+                    <span class="text-[10px] font-bold text-emerald-700 uppercase tracking-wide block"><i class="fa-solid fa-arrow-right"></i> Đại lý dự phòng tiếp nhận kế tiếp (Rank #${nextCandidate.rank}):</span>
+                    <div class="flex items-center justify-between">
+                        <div>
+                            <strong class="text-emerald-900">${nextCandidate.agentName}</strong>
+                            <span class="font-mono text-emerald-700 block text-[11px]">${nextCandidate.agentCode}</span>
+                        </div>
+                        <div class="text-right">
+                            <span class="font-bold font-mono text-emerald-700 text-sm">${CargoStore.formatCurrency(nextCandidate.priceKg)}/Kg</span>
+                            <span class="text-[10px] text-slate-500 block">${CargoStore.formatCurrency(nextCandidate.totalAmountVND)}</span>
+                        </div>
+                    </div>
+                </div>
+            ` : `
+                <div class="p-2.5 bg-amber-50 border border-amber-200 rounded-xl text-amber-900 text-xs">
+                    <i class="fa-solid fa-triangle-exclamation text-amber-600 mr-1"></i>
+                    <strong>Lưu ý:</strong> Không còn đại lý dự phòng nào khác trong danh sách đặt thầu.
+                </div>
+            `;
+
+            if (window.Swal) {
+                const { value: formValues } = await Swal.fire({
+                    title: 'Thẩm định Thay đổi đại lý thắng thầu & Chuyển quyền kế tiếp',
+                    html: `
+                        <div class="text-left text-xs space-y-3 pt-1">
+                            <!-- Role Attribution Header -->
+                            <div class="p-2.5 bg-indigo-50 border border-indigo-200 rounded-xl flex items-center justify-between text-indigo-950">
+                                <div>
+                                    <span class="text-[10px] text-indigo-600 font-semibold block">Cán bộ thực hiện thẩm định:</span>
+                                    <strong class="text-indigo-900">${admin.fullName || admin.username || 'Ban Quản Trị'}</strong>
+                                </div>
+                                <span class="bg-indigo-600 text-white font-mono font-bold text-[10px] px-2.5 py-1 rounded-md shadow-2xs">
+                                    <i class="fa-solid fa-user-shield mr-1"></i>ROLE: AUCTION SETTLEMENT
+                                </span>
+                            </div>
+
+                            <!-- Rejecting Agent Info -->
+                            <div class="p-3 bg-rose-50 border border-rose-200 rounded-xl text-rose-950 space-y-1">
+                                <span class="text-[10px] font-bold text-rose-700 uppercase tracking-wide block"><i class="fa-solid fa-ban"></i> Đại lý bị thay đổi / hủy kết quả:</span>
+                                <div class="flex items-center justify-between">
+                                    <div>
+                                        <strong class="text-rose-900">${targetAgentName}</strong>
+                                        <span class="font-mono text-rose-700 block text-[11px]">${targetAgentCode}</span>
+                                    </div>
+                                    <div class="text-right">
+                                        <span class="font-bold font-mono text-rose-700 text-sm">${CargoStore.formatCurrency(priceKg)}/Kg</span>
+                                        <span class="text-[10px] text-slate-500 block">Đang giữ thầu #1</span>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- Next Candidate -->
+                            ${nextAgentHtml}
+
+                            <!-- Select Reason -->
+                            <div>
+                                <label class="block font-bold text-slate-700 mb-1">
+                                    Lý do thay đổi đại lý thắng thầu <span class="text-rose-600">*</span>:
+                                </label>
+                                <select id="swalRejectReason" class="w-full border border-slate-300 rounded-xl p-2.5 text-xs bg-white outline-none focus:ring-2 focus:ring-rose-500 font-medium">
+                                    <option value="Đại lý không hoàn tất nghĩa vụ thanh toán đúng hạn quy định">1. Đại lý không hoàn tất nghĩa vụ thanh toán đúng hạn quy định</option>
+                                    <option value="Đại lý không nộp hồ sơ khai báo tải trọng (cut-off) đúng hạn">2. Đại lý không nộp hồ sơ khai báo tải trọng (cut-off) đúng hạn</option>
+                                    <option value="Đại lý không đáp ứng tiêu chuẩn an toàn hàng hóa hoặc DGR">3. Đại lý không đáp ứng tiêu chuẩn an toàn hàng hóa hoặc DGR</option>
+                                    <option value="Đại lý chủ động gửi văn bản xin hủy kết quả nhận thầu">4. Đại lý chủ động gửi văn bản xin hủy kết quả nhận thầu</option>
+                                    <option value="Quyết định điều chuyển xử lý từ Ban Giám Đốc Khai Thác Cargo (COD)">5. Quyết định điều chuyển xử lý từ Ban Giám Đốc Khai Thác Cargo (COD)</option>
+                                    <option value="Lý do điều chuyển nghiệp vụ khác">6. Lý do điều chuyển nghiệp vụ khác (ghi rõ bên dưới)</option>
+                                </select>
+                            </div>
+
+                            <!-- Detailed Audit Note -->
+                            <div>
+                                <label class="block font-bold text-slate-700 mb-1">
+                                    Ghi chú & Giải trình kiểm toán (Lưu vết Audit Log):
+                                </label>
+                                <textarea id="swalRejectNote" rows="2" placeholder="Nhập chi tiết biên bản, số công văn hoặc giải trình nghiệp vụ của Ban Điều Hành..." class="w-full border border-slate-300 rounded-xl p-2.5 text-xs outline-none focus:ring-2 focus:ring-rose-500"></textarea>
+                            </div>
+
+                            <div class="p-2 bg-slate-50 border rounded-xl text-[11px] text-slate-500 flex items-center gap-1.5">
+                                <i class="fa-solid fa-lock text-slate-400"></i>
+                                <span>Thao tác sẽ tự sinh <strong>Mã Audit Hash</strong> bảo mật và lưu vĩnh viễn vào Nhật ký kiểm toán.</span>
+                            </div>
+                        </div>
+                    `,
+                    showCancelButton: true,
+                    confirmButtonText: '<i class="fa-solid fa-arrow-right-arrow-left"></i> Xác nhận Thay đổi đại lý & Chuyển tiếp',
+                    confirmButtonColor: '#e11d48',
+                    cancelButtonText: 'Hủy bỏ',
+                    focusCancel: false,
+                    preConfirm: () => {
+                        const reason = document.getElementById('swalRejectReason')?.value || 'Đại lý không hoàn tất nghĩa vụ sau trúng thầu';
+                        const note = (document.getElementById('swalRejectNote')?.value || '').trim();
+                        return { reason, note };
+                    }
+                });
+
+                if (formValues) {
+                    const res = CargoStore.rejectAndPassToNextAgent(auctionId, targetAgentCode, formValues.reason, formValues.note);
+                    if (res.success) {
+                        await Swal.fire({
+                            icon: 'success',
+                            title: 'Đã hoàn tất thay đổi đại lý thắng thầu!',
+                            html: `
+                                <div class="text-left text-xs space-y-2 pt-1">
+                                    <p class="text-slate-700">${res.message}</p>
+                                    <div class="p-2.5 bg-slate-50 border rounded-xl font-mono text-[11px] text-slate-600">
+                                        <p><strong>Người thực hiện:</strong> ${admin.fullName} (${admin.role || 'AUCTION SETTLEMENT'})</p>
+                                        <p><strong>Lý do:</strong> ${formValues.reason}</p>
+                                        <p><strong>Thời gian ghi log:</strong> ${new Date().toLocaleTimeString('vi-VN')} · ${new Date().toLocaleDateString('vi-VN')}</p>
+                                    </div>
+                                </div>
+                            `
+                        });
+                        loadAdminDetail();
+                    } else {
+                        Swal.fire({
+                            icon: 'warning',
+                            title: 'Thông báo',
+                            text: res.message
+                        });
+                        loadAdminDetail();
+                    }
+                }
+            } else {
+                const reason = prompt(`Nhập lý do từ chối (Reject) đại lý ${targetAgentName}:`, 'Đại lý không đáp ứng tiến độ');
+                if (reason) {
+                    const res = CargoStore.rejectAndPassToNextAgent(auctionId, targetAgentCode, reason, 'Ghi nhận qua bảng điều hành COD');
+                    alert(res.message);
+                    loadAdminDetail();
+                }
+            }
+        }
+
+        function loadAdminDetail() {
+            if (typeof CargoStore === 'undefined') return;
+            const id = getParam('id');
+            const auction = CargoStore.getAuctionById(id);
+            if (!auction) return;
+            currentAuction = auction;
+
+            document.getElementById('adminFlightTitle').textContent = auction.flightNumber;
+            document.getElementById('adminSubTitle').textContent = `Mã phiên: ${auction.flightCode} · Tuyến: ${auction.route}`;
+
+            const detStatusBadgeEl = document.getElementById('detStatusBadge');
+            if (detStatusBadgeEl) {
+                const statusInfo = (CargoStore && CargoStore.getAuctionStatusInfo)
+                    ? CargoStore.getAuctionStatusInfo(auction)
+                    : { text: auction.status, badgeClass: 'bg-slate-100 text-slate-700 border-slate-300', icon: 'fa-circle' };
+
+                detStatusBadgeEl.className = `text-xs px-3 py-1 rounded-full font-bold border ${statusInfo.badgeClass} inline-flex items-center gap-1.5`;
+                if (statusInfo.key === 'OPEN') detStatusBadgeEl.classList.add('animate-pulse');
+                detStatusBadgeEl.innerHTML = `<i class="fa-solid ${statusInfo.icon} text-[10px]"></i> ${statusInfo.text}`;
+            }
+
+            document.getElementById('detCapacity').textContent = CargoStore.formatNumber(auction.capacityKg) + ' Kg';
+            document.getElementById('detStartingPrice').textContent = CargoStore.formatCurrency(auction.startingPriceKg) + '/Kg';
+            const detMinStepEl = document.getElementById('detMinStep');
+            if (detMinStepEl) detMinStepEl.textContent = '+' + CargoStore.formatCurrency(auction.minStep) + '/Kg';
+
+            const isOpen = auction.status === 'OPEN';
+            const data = CargoStore.getData();
+            const currentAdmin = (CargoStore && CargoStore.getCurrentAdmin) ? CargoStore.getCurrentAdmin() : data.currentAdmin;
+            const isStaff = Boolean(currentAdmin && String(currentAdmin.role).toUpperCase() === 'STAFF');
+            const isAdmin = Boolean(currentAdmin && String(currentAdmin.role).toUpperCase() === 'ADMIN');
+
+            const auctionBids = CargoStore.getBidsForAuction(auction.id);
+            const highestBidPrice = auctionBids.length > 0 ? Math.max(...auctionBids.map(b => Number(b.priceKg) || 0)) : 0;
+            const hasActualBids = auctionBids.length > 0;
+
+            // DEMO RULE: no bid information for Admin/Staff while the session is live
+            const detPriceEl = document.getElementById('detCurrentPrice');
+            if (detPriceEl) {
+                if (isOpen) {
+                    detPriceEl.innerHTML = '<span class="text-slate-400 font-medium italic text-base"><i class="fa-solid fa-lock text-xs mr-1 text-slate-300"></i> Bảo mật trong phiên</span>';
+                } else if (!hasActualBids) {
+                    detPriceEl.innerHTML = '<span class="text-slate-400 font-normal italic text-lg">---</span>';
+                } else {
+                    const finalWinPrice = auction.winningPriceKg || highestBidPrice;
+                    detPriceEl.textContent = CargoStore.formatCurrency(finalWinPrice) + '/Kg';
+                }
+            }
+
+            document.getElementById('detAircraft').textContent = auction.aircraft;
+            const detFlightPeriodEl = document.getElementById('detFlightPeriod');
+            if (detFlightPeriodEl) {
+                detFlightPeriodEl.textContent = auction.flightPeriod || auction.etd || 'Chưa cập nhật';
+            }
+            document.getElementById('detEtd').textContent = auction.etd;
+            document.getElementById('detEta').textContent = auction.eta;
+            const detCutOffEl = document.getElementById('detCutOff');
+            if (detCutOffEl) {
+                detCutOffEl.textContent = (CargoStore && CargoStore.calculateCutOffTime) ? CargoStore.calculateCutOffTime(auction.etd) : (auction.cutOffTime || 'Trước ETD 3 giờ');
+            }
+            const detNotesEl = document.getElementById('detNotes');
+            if (detNotesEl) {
+                detNotesEl.textContent = auction.specialNotes || 'Không có';
+            }
+
+            // Live Countdown Timer update
+            updateAdminAuctionCountdown(auction);
+
+            // Render Leaderboard & Fallback transfer table
+            renderLeaderboardTable(auction, isStaff);
+
+            const detAllowedAgentsBadge = document.getElementById('detAllowedAgentsBadge');
+            if (detAllowedAgentsBadge) {
+                if (!auction.allowedAgents || auction.allowedAgents.includes('ALL')) {
+                    detAllowedAgentsBadge.innerHTML = '<span class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-semibold bg-blue-50 text-blue-700 border border-blue-200"><i class="fa-solid fa-earth-americas text-blue-500"></i> Mở cho tất cả đại lý đã phê duyệt</span>';
+                } else {
+                    const agentNames = auction.allowedAgents.map(code => {
+                        const ag = (data.agentsList || []).find(x => x.agentCode === code);
+                        return ag ? `<span class="bg-emerald-100 text-emerald-800 px-2 py-0.5 rounded font-mono font-bold">${code}</span>` : `<span class="bg-emerald-100 text-emerald-800 px-2 py-0.5 rounded font-mono font-bold">${code}</span>`;
+                    });
+                    detAllowedAgentsBadge.innerHTML = `<span class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-semibold bg-emerald-50 text-emerald-700 border border-emerald-200"><i class="fa-solid fa-user-check text-emerald-600"></i> Giới hạn ${auction.allowedAgents.length} đại lý được duyệt:</span> <div class="inline-flex flex-wrap items-center gap-1.5">${agentNames.join(' ')}</div>`;
+                }
+            }
+
+            // Declared Cargo section for winner
+            const secCargo = document.getElementById('adminDeclaredCargoSection');
+            if (secCargo) {
+                const wonList = data.wonAuctions || [];
+                const wonItem = wonList.find(w => String(w.auctionId) === String(auction.id) || (auction.flightCode && w.flightCode === auction.flightCode));
+                if (wonItem) {
+                    secCargo.classList.remove('hidden');
+                    const decl = wonItem.cargoDeclaration;
+                    if (decl) {
+                        secCargo.innerHTML = `
+                            <div class="bg-emerald-50/80 border border-emerald-200 rounded-2xl p-5 text-xs space-y-3 shadow-sm">
+                                <div class="flex items-center justify-between border-b border-emerald-200/80 pb-2.5">
+                                    <h3 class="font-bold text-sm text-emerald-950 flex items-center gap-2">
+                                        <i class="fa-solid fa-boxes-packing text-emerald-600 text-base"></i>
+                                        Hồ sơ Khai báo Hàng hóa của Đại lý Trúng thầu (${wonItem.agentCode})
+                                    </h3>
+                                    <div class="flex items-center gap-2">
+                                        <span class="bg-emerald-600 text-white font-bold px-2.5 py-0.5 rounded-full text-[10px]">
+                                            Mã đơn: ${wonItem.wonId}
+                                        </span>
+                                        ${decl.updatedAt ? `<span class="text-[10px] text-slate-500 font-medium">Cập nhật: ${decl.updatedAt}</span>` : ''}
+                                    </div>
+                                </div>
+                                <div class="grid grid-cols-1 md:grid-cols-4 gap-4 text-slate-800">
+                                    <div>
+                                        <span class="text-gray-500 text-[11px] block">Mặt hàng & Loại hàng:</span>
+                                        <strong class="text-slate-900 text-sm block mt-0.5">${decl.cargoName}</strong>
+                                        <span class="text-emerald-700 font-semibold">${decl.cargoType}</span>
+                                    </div>
+                                    <div>
+                                        <span class="text-gray-500 text-[11px] block">Khối lượng hàng khai báo:</span>
+                                        <strong class="text-blue-600 text-sm block mt-0.5">${CargoStore.formatNumber(decl.grossWeightKg || 0)} Kg</strong>
+                                        <span class="text-[10px] text-slate-500">Tải trúng thầu: ${CargoStore.formatNumber(wonItem.capacityKg)} Kg</span>
+                                    </div>
+                                    <div>
+                                        <span class="text-gray-500 text-[11px] block">Quy cách đóng gói:</span>
+                                        <strong class="text-slate-900 text-sm block mt-0.5">${decl.piecesCount} kiện / thùng</strong>
+                                        <span class="text-[10px] text-slate-500">Thể tích: ${decl.volumeCbm} m³</span>
+                                    </div>
+                                    <div>
+                                        <span class="text-gray-500 text-[11px] block">Mã HAWB & Vận đơn:</span>
+                                        <strong class="text-blue-600 font-mono text-sm block mt-0.5">${decl.hawbNumber || 'Chưa gắn HAWB'}</strong>
+                                        <span class="text-slate-500 text-[10px]">Master AWB: ${wonItem.awbNumber || '-'}</span>
+                                    </div>
+                                </div>
+
+                                <div class="grid grid-cols-1 md:grid-cols-2 gap-3 pt-2 border-t border-emerald-200/50">
+                                    <div class="bg-white/80 border rounded-xl p-2.5">
+                                        <span class="text-gray-500 text-[10px] font-semibold block">Đơn vị Gửi hàng (Shipper):</span>
+                                        <strong class="text-slate-800 text-xs block mt-0.5">${decl.shipperName || '-'}</strong>
+                                    </div>
+                                    <div class="bg-white/80 border rounded-xl p-2.5">
+                                        <span class="text-gray-500 text-[10px] font-semibold block">Đơn vị Nhận hàng (Consignee):</span>
+                                        <strong class="text-slate-800 text-xs block mt-0.5">${decl.consigneeName || '-'}</strong>
+                                        ${decl.consigneeAddress ? `<p class="text-[10px] text-slate-500 mt-1"><i class="fa-solid fa-location-dot text-red-500"></i> ${decl.consigneeAddress}</p>` : ''}
+                                    </div>
+                                </div>
+
+                                ${decl.specialNotes ? `
+                                    <div class="bg-amber-100/80 border border-amber-200 rounded-xl p-2.5 text-amber-900 text-[11px] font-medium">
+                                        <i class="fa-solid fa-triangle-exclamation text-amber-600"></i> Yêu cầu đặc biệt: ${decl.specialNotes}
+                                    </div>
+                                ` : ''}
+
+                                ${decl.dgrDocName ? `
+                                    <div class="bg-orange-50 border border-orange-200 rounded-xl p-2.5 space-y-1.5">
+                                        <span class="font-bold flex items-center gap-1.5 text-orange-800 text-[10px]">
+                                            <i class="fa-solid fa-shield-halved text-orange-500"></i> ${(typeof CargoStore !== 'undefined' && CargoStore.getCargoDocumentInfo ? CargoStore.getCargoDocumentInfo(decl.cargoType).adminLabel : 'Chứng từ đính kèm (File / Doc):')}
+                                        </span>
+                                        <div class="flex items-center justify-between bg-white border border-orange-200 rounded-lg px-2.5 py-1.5">
+                                            <div class="flex items-center gap-1.5 min-w-0">
+                                                <div class="w-6 h-6 rounded bg-orange-600 text-white flex items-center justify-center text-[10px] flex-shrink-0">
+                                                    <i class="fa-solid fa-file-shield"></i>
+                                                </div>
+                                                <div class="min-w-0">
+                                                    <p class="font-bold text-slate-800 text-xs truncate">${decl.dgrDocName}</p>
+                                                    <p class="text-[10px] text-emerald-700 font-semibold">✓ ${decl.dgrDocSize || 'PDF/Chứng từ'} • Đã xác thực</p>
+                                                </div>
+                                            </div>
+                                            ${decl.dgrDocUrl ? `
+                                                <button type="button" onclick="openDocumentInNewTab('${decl.dgrDocUrl.replace(/'/g, "\\'")}',' ${decl.dgrDocName || 'chung_tu.pdf'}')" class="flex-shrink-0 flex items-center gap-1 text-[10px] font-semibold text-blue-600 hover:text-white hover:bg-blue-600 border border-blue-300 hover:border-blue-600 px-2 py-0.5 rounded-lg transition-all ml-2" title="Xem chứng từ đính kèm">
+                                                    <i class="fa-solid fa-eye"></i> Xem chứng từ
+                                                </button>
+                                            ` : '<span class="text-[10px] text-slate-400 italic ml-2">Không thể xem trực tiếp</span>'}
+                                        </div>
+                                    </div>
+                                ` : ''}
+                            </div>
+                        `;
+                    } else {
+                        // secCargo.innerHTML = `
+                        //     <div class="bg-amber-50 border border-amber-200 rounded-2xl p-4 text-xs text-amber-900 flex items-center justify-between">
+                        //         <div class="flex items-center gap-2">
+                        //             <i class="fa-solid fa-clock-rotate-left text-amber-600 text-lg"></i>
+                        //             <div>
+                        //                 <p class="font-bold">${isStaff ? 'Đại lý trúng thầu (Bảo mật)' : `Đại lý trúng thầu (${wonItem.agentCode})`} chưa điền thông tin khai báo hàng hóa</p>
+                        //                 <p class="text-[11px] text-amber-800">Đơn trúng thầu ${wonItem.wonId} đang chờ đại lý điền thông tin lô hàng.</p>
+                        //             </div>
+                        //         </div>
+                        //     </div>
+                        // `;
+                    }
+
+                    // Append Payment Proof & Reconciliation Card
+                    const isPaid = wonItem.paymentStatus === 'PAID';
+                    const isPending = wonItem.paymentStatus === 'PENDING_VERIFICATION';
+                    const isExpired = (window.CargoStore && CargoStore.isWonAuctionExpired) ? CargoStore.isWonAuctionExpired(wonItem) : false;
+                    const proof = wonItem.paymentProof;
+                    const expectedMemo = isStaff
+                        ? `CARGO ${wonItem.wonId} AG-***`
+                        : (CargoStore.generatePaymentMemo ? CargoStore.generatePaymentMemo(wonItem.wonId, wonItem.agentCode) : `CARGO ${wonItem.wonId} ${wonItem.agentCode}`);
+
+                    // secCargo.innerHTML += `
+                    //     <div class="bg-white border rounded-2xl p-5 text-xs space-y-3 shadow-sm mt-3">
+                    //         <div class="flex items-center justify-between border-b pb-2.5">
+                    //             <h3 class="font-bold text-sm text-slate-900 flex items-center gap-2">
+                    //                 <i class="fa-solid fa-file-invoice-dollar text-emerald-600 text-base"></i>
+                    //                 Tình trạng Thanh toán & Đối soát Chuyển khoản (Đơn ${wonItem.wonId})
+                    //             </h3>
+                    //             <div>
+                    //                 ${isPaid ? `<span class="bg-emerald-100 text-emerald-800 font-bold px-2.5 py-1 rounded-full text-[10px] inline-flex items-center gap-1"><i class="fa-solid fa-circle-check text-emerald-600"></i> ĐÃ THANH TOÁN (${wonItem.paidAt || 'Đã khớp'})</span>` :
+                    //         (isPending ? `<span class="bg-amber-100 text-amber-900 font-bold px-2.5 py-1 rounded-full text-[10px] inline-flex items-center gap-1 animate-pulse"><i class="fa-solid fa-spinner fa-spin text-amber-600"></i> ĐẠI LÝ BÁO ĐÃ CK - CHỜ DUYỆT</span>` :
+                    //             (isExpired ? `<span class="bg-rose-100 text-rose-800 font-bold px-2.5 py-1 rounded-full text-[10px] inline-flex items-center gap-1"><i class="fa-solid fa-ban text-rose-600"></i> ĐƠN QUÁ HẠN</span>` :
+                    //                 `<span class="bg-red-100 text-red-700 font-bold px-2.5 py-1 rounded-full text-[10px] inline-flex items-center gap-1"><i class="fa-solid fa-clock text-red-500"></i> CHỜ THANH TOÁN</span>`))}
+                    //             </div>
+                    //         </div>
+
+                    //         <div class="grid grid-cols-1 sm:grid-cols-3 gap-3">
+                    //             <div class="bg-slate-50 p-3 rounded-xl border">
+                    //                 <span class="text-[11px] text-slate-500 block">Số tiền cần thanh toán:</span>
+                    //                 <p class="font-bold text-emerald-700 text-base mt-0.5">${CargoStore.formatCurrency(wonItem.totalAmountVND)}</p>
+                    //             </div>
+                    //             <div class="bg-slate-50 p-3 rounded-xl border">
+                    //                 <span class="text-[11px] text-slate-500 block">Cú pháp chuyển khoản:</span>
+                    //                 <p class="font-mono font-bold text-blue-700 text-xs mt-0.5">${expectedMemo}</p>
+                    //             </div>
+                    //             <div class="bg-slate-50 p-3 rounded-xl border">
+                    //                 <span class="text-[11px] text-slate-500 block">Mã GD / FT Ngân hàng:</span>
+                    //                 <p class="font-mono font-bold text-slate-900 text-xs mt-0.5">${proof?.transactionRef || '<span class="text-slate-400 font-normal italic">Chưa nhập mã</span>'}</p>
+                    //             </div>
+                    //         </div>
+
+                    //         ${proof?.proofImageUrl ? `
+                    //             <div class="border rounded-xl p-3 bg-slate-50 space-y-2">
+                    //                 <div class="flex items-center justify-between">
+                    //                     <span class="font-bold text-slate-800 text-[11px] flex items-center gap-1.5">
+                    //                         <i class="fa-solid fa-image text-blue-600"></i> Ảnh biên lai chuyển tiền:
+                    //                     </span>
+                    //                     <button type="button" onclick="openProofImageInNewTab('${proof.proofImageUrl}'); return false;" class="text-blue-600 hover:text-blue-800 text-[11px] underline font-bold">Mở ảnh lớn</button>
+                    //                 </div>
+                    //                 <img src="${proof.proofImageUrl}" alt="Biên lai" class="max-h-48 rounded-lg object-contain">
+                    //             </div>
+                    //         ` : ''}
+
+                    //         ${!isPaid && !isExpired ? `
+                    //             <div class="pt-2 flex justify-end gap-2">
+                    //                 <button onclick="handleDetailRejectPayment('${wonItem.wonId}')" class="bg-rose-600 hover:bg-rose-700 text-white font-bold px-4 py-2 rounded-xl text-xs transition shadow flex items-center gap-1.5 cursor-pointer">
+                    //                     <i class="fa-solid fa-circle-xmark"></i> Từ chối biên lai & Yêu cầu nộp lại
+                    //                 </button>
+                    //                 <button onclick="handleDetailConfirmPayment('${wonItem.wonId}')" class="bg-emerald-600 hover:bg-emerald-700 text-white font-bold px-4 py-2 rounded-xl text-xs transition shadow flex items-center gap-1.5 cursor-pointer">
+                    //                     <i class="fa-solid fa-circle-check"></i> Xác nhận Đã nhận tiền (Khớp lệnh)
+                    //                 </button>
+                    //             </div>
+                    //         ` : ''}
+                    //     </div>
+                    // `;
+                } else {
+                    secCargo.classList.add('hidden');
+                }
+            }
+
+            const btnContainer = document.getElementById('adminActionButtons');
+
+            const sysSettings = (typeof CargoStore !== 'undefined' && CargoStore.getSystemSettings) ? CargoStore.getSystemSettings() : {};
+            const hideCloseBtn = sysSettings && sysSettings.hideCloseAuctionBtn === true;
+            const bids = CargoStore.getBidsForAuction(auction.id);
+            const curAdminForBtn = CargoStore.getCurrentAdmin ? CargoStore.getCurrentAdmin() : {};
+            const canCloseBtn = (CargoStore.hasPermission && CargoStore.hasPermission('auctions.close', curAdminForBtn)) ||
+                (CargoStore.hasSettlementRole && CargoStore.hasSettlementRole(curAdminForBtn));
+            const canEditBtn = (CargoStore.hasPermission && CargoStore.hasPermission('auctions.edit', curAdminForBtn)) && (isOpen || auction.status === 'CLOSED');
+            const canRemoveBtn = (CargoStore.hasPermission && CargoStore.hasPermission('auctions.remove', curAdminForBtn)) && (isOpen || auction.status === 'UPCOMING');
+
+            btnContainer.innerHTML = `
+                ${canEditBtn ? `
+
+                ` : ''}
+                <button onclick="openDetailBroadcastModal()" class="bg-blue-600 hover:bg-blue-700 text-white text-xs font-bold px-3.5 py-2 rounded-xl transition shadow flex items-center gap-1.5 cursor-pointer">
+                    <i class="fa-solid fa-bullhorn"></i> Phát thông báo
+                </button>
+            `;
+
+            function renderBidsPaginationControls(totalItems) {
+                const controls = document.getElementById('bidsPaginationControls');
+                const totalText = document.getElementById('bidsTotalCountText');
+                if (totalText) totalText.textContent = `(Tổng số: ${totalItems} lượt)`;
+                if (!controls) return;
+
+                if (totalItems === 0) {
+                    controls.innerHTML = '';
+                    return;
+                }
+
+                const totalPages = Math.ceil(totalItems / bidsItemsPerPage) || 1;
+                if (currentBidsPage > totalPages) currentBidsPage = totalPages;
+
+                let html = `
+                <button onclick="setBidsPage(${Math.max(1, currentBidsPage - 1)})" ${currentBidsPage === 1 ? 'disabled' : ''}
+                        class="px-3 py-1.5 rounded-lg border text-xs font-medium transition ${currentBidsPage === 1 ? 'bg-slate-100 text-slate-400 cursor-not-allowed border-slate-200' : 'bg-white hover:bg-slate-50 text-slate-700 border-slate-300'}">
+                    <i class="fa-solid fa-chevron-left"></i> Trước
+                </button>
+            `;
+
+                for (let i = 1; i <= totalPages; i++) {
+                    if (i === currentBidsPage) {
+                        html += `<button class="w-8 h-8 rounded-lg bg-blue-600 text-white font-bold text-xs shadow-xs">${i}</button>`;
+                    } else {
+                        html += `<button onclick="setBidsPage(${i})" class="w-8 h-8 rounded-lg border border-slate-300 bg-white hover:bg-slate-50 text-slate-700 font-medium text-xs transition">${i}</button>`;
+                    }
+                }
+
+                html += `
+                <button onclick="setBidsPage(${Math.min(totalPages, currentBidsPage + 1)})" ${currentBidsPage === totalPages ? 'disabled' : ''}
+                        class="px-3 py-1.5 rounded-lg border text-xs font-medium transition ${currentBidsPage === totalPages ? 'bg-slate-100 text-slate-400 cursor-not-allowed border-slate-200' : 'bg-white hover:bg-slate-50 text-slate-700 border-slate-300'}">
+                    Sau <i class="fa-solid fa-chevron-right"></i>
+                </button>
+            `;
+
+                controls.innerHTML = html;
+            }
+
+            document.getElementById('detBidsCount').textContent = isOpen ? '??? (Bảo mật)' : (bids.length + ' lượt đặt');
+            const tbody = document.getElementById('adminBidsBody');
+            const staffNoticeBadge = document.getElementById('staffBiddingNoticeBadge');
+            if (staffNoticeBadge) {
+                staffNoticeBadge.classList.toggle('hidden', !isStaff);
+            }
+
+            if (isOpen) {
+                // LIVE SESSION (Admin & Staff): no access to any bidding data (amounts, counts, bid history)
+                const staffControls = document.getElementById('bidsPaginationControls');
+                const staffTotalText = document.getElementById('bidsTotalCountText');
+                if (staffControls) staffControls.innerHTML = '';
+                if (staffTotalText) staffTotalText.textContent = '';
+                tbody.innerHTML = `<tr><td colspan="6" class="py-8 text-center text-gray-500"><i class="fa-solid fa-lock mb-2 text-2xl block text-gray-300"></i> Thông tin đấu giá (số tiền, lượt đặt giá) được bảo mật trong khi phiên đang diễn ra.<br>Sẽ được công bố sau khi phiên được chốt / đóng.</td></tr>`;
+                return;
+            }
+
+            if (isOpen && !isAdmin) {
+                tbody.innerHTML = `<tr><td colspan="6" class="py-8 text-center text-gray-500"><i class="fa-solid fa-lock mb-2 text-2xl block text-gray-300"></i> Đang trong thời gian đấu giá bảo mật.<br>Chi tiết các lượt đặt giá chỉ dành cho Quản trị viên, hoặc sẽ được hệ thống công bố khi đóng phiên.</td></tr>`;
+                return;
+            }
+
+            // Sort: Realtime log shows newest bids first when OPEN; highest price first when CLOSED
+            if (isOpen) {
+                bids.sort((a, b) => (Number(b.timestamp || b.id || 0)) - (Number(a.timestamp || a.id || 0)));
+            } else {
+                bids.sort((a, b) => (Number(b.priceKg) || 0) - (Number(a.priceKg) || 0) || (Number(b.timestamp || b.id || 0)) - (Number(a.timestamp || a.id || 0)));
+            }
+
+            const highestPrice = bids.length > 0 ? Math.max(...bids.map(b => Number(b.priceKg) || 0)) : 0;
+            const totalItems = bids.length;
+            renderBidsPaginationControls(totalItems);
+
+            if (totalItems === 0) {
+                tbody.innerHTML = `<tr><td colspan="6" class="py-8 text-center text-gray-400">Chưa có đại lý nào đặt giá</td></tr>`;
+                return;
+            }
+
+            const startIdx = (currentBidsPage - 1) * bidsItemsPerPage;
+            const paginatedBids = bids.slice(startIdx, startIdx + bidsItemsPerPage);
+
+            tbody.innerHTML = paginatedBids.map((b, i) => {
+                const displayCode = isStaff
+                    ? '<span class="font-mono text-slate-400 font-semibold">AG-***</span>'
+                    : `<span class="font-mono font-bold text-blue-600">${b.agentCode}</span>`;
+                const displayName = isStaff
+                    ? '<span class="text-slate-500 italic flex items-center gap-1.5"><i class="fa-solid fa-user-shield text-slate-400 text-[10px]"></i>Đại lý tham gia (Bảo mật)</span>'
+                    : `<span class="font-bold text-slate-800">${b.agentName}</span>`;
+
+                const isHighest = Number(b.priceKg) === highestPrice && highestPrice > 0;
+                let statusBadge = '';
+                if (!isOpen || b.status === 'WON') {
+                    statusBadge = (isHighest || b.status === 'WON') ?
+                        '<span class="bg-green-100 text-green-700 font-bold px-2 py-0.5 rounded text-[10px]">THẮNG THẦU</span>' :
+                        '<span class="bg-slate-100 text-slate-500 font-medium px-2 py-0.5 rounded text-[10px]">KHÔNG TRÚNG THẦU</span>';
+                } else {
+                    statusBadge = '<span class="bg-blue-50 text-blue-600 font-medium px-2 py-0.5 rounded text-[10px]">ĐÃ GHI NHẬN</span>';
+                }
+
+                const isNewestItem = isOpen && (startIdx + i) === 0;
+                return `
+                <tr class="${isNewestItem ? 'bg-blue-50/70 font-medium border-l-4 border-l-blue-600' : 'hover:bg-slate-50'} transition">
+                    <td class="py-3 px-4">${displayCode}</td>
+                    <td class="py-3 px-4">${displayName}</td>
+                    <td class="py-3 px-4 font-bold text-slate-900">${CargoStore.formatCurrency(b.priceKg)}</td>
+                    <td class="py-3 px-4 text-slate-700">${CargoStore.formatCurrency(b.priceKg * b.weightKg)}</td>
+                    <td class="py-3 px-4 text-gray-500 text-[11px] font-medium">${CargoStore.formatTimeAgo(b.timestamp, b.time)}</td>
+                    <td class="py-3 px-4">
+                        ${statusBadge}
+                    </td>
+                </tr>
+            `;
+            }).join('');
+        }
+
+        async function openDocumentInNewTab(docUrl, docName) {
+            let finalUrl = String(docUrl || '').trim();
+            if (!finalUrl || finalUrl === '#' || finalUrl === 'undefined') {
+                finalUrl = '../uploads/sample_document.pdf';
+            }
+            const name = docName || 'chung_tu';
+            try {
+                if (finalUrl.startsWith('data:')) {
+                    const response = await fetch(finalUrl);
+                    const blob = await response.blob();
+                    finalUrl = URL.createObjectURL(blob);
+                }
+                const w = window.open();
+                if (w) {
+                    const ext = (name.split('.').pop() || '').toLowerCase();
+                    if (['jpg', 'jpeg', 'png', 'webp', 'gif'].includes(ext)) {
+                        w.document.write(`<html><head><title>${name}</title><style>body{margin:0;background:#111;display:flex;justify-content:center;align-items:flex-start;min-height:100vh;}img{max-width:100%;height:auto;margin:auto;display:block;}</style></head><body><img src="${finalUrl}" alt="${name}"/></body></html>`);
+                    } else {
+                        w.document.write(`<html><head><title>${name}</title><style>body,html{margin:0;padding:0;height:100%;}embed{width:100%;height:100%;}</style></head><body><embed src="${finalUrl}" type="application/pdf" width="100%" height="100%"/></body></html>`);
+                    }
+                    w.document.close();
+                    if (finalUrl.startsWith('blob:')) setTimeout(() => URL.revokeObjectURL(finalUrl), 30000);
+                }
+            } catch (err) {
+                console.error('openDocumentInNewTab error:', err);
+            }
+        }
+
+        function openDetailEditModal() {
+            if (window.CargoStore && CargoStore.hasPermission && !CargoStore.hasPermission('auctions.edit')) {
+                alert('Từ chối quyền: Tài khoản không có quyền Sửa thông số phiên (auctions.edit)!');
+                return;
+            }
+            if (!currentAuction) return;
+            const cap = document.getElementById('modalDetCapacity');
+            const start = document.getElementById('modalDetStarting');
+            const air = document.getElementById('modalDetAircraft');
+            const etd = document.getElementById('modalDetEtd');
+            const eta = document.getElementById('modalDetEta');
+            const notes = document.getElementById('modalDetNotes');
+            if (cap) cap.value = currentAuction.capacityKg || 3500;
+            if (start) start.value = currentAuction.startingPriceKg || 0;
+            if (air) air.value = currentAuction.aircraft || '';
+            if (etd) etd.value = currentAuction.etd || '';
+            if (eta) eta.value = currentAuction.eta || '';
+            if (notes) notes.value = currentAuction.specialNotes || '';
+            const extTime = document.getElementById('modalDetExtendTime');
+            if (extTime) extTime.value = '30';
+            const modal = document.getElementById('detailEditModal');
+            if (modal) modal.classList.remove('hidden');
+        }
+
+        function closeDetailEditModal() {
+            const modal = document.getElementById('detailEditModal');
+            if (modal) modal.classList.add('hidden');
+        }
+
+        function saveDetailEdit(e) {
+            e.preventDefault();
+            if (window.CargoStore && CargoStore.hasPermission && !CargoStore.hasPermission('auctions.edit')) {
+                alert('Từ chối quyền: Tài khoản không có quyền Sửa thông số phiên (auctions.edit)!');
+                return;
+            }
+            if (!currentAuction) return;
+            const extendMinutes = Number(document.getElementById('modalDetExtendTime')?.value) || 0;
+            if (extendMinutes <= 0) {
+                alert('Vui lòng chọn thời gian muốn gia hạn thêm (15 phút, 30 phút, 1 giờ...) trước khi bấm xác nhận!');
+                return;
+            }
+            const res = CargoStore.updateAuction(currentAuction.id, {
+                extendMinutes: extendMinutes
+            });
+            if (res.success) {
+                alert(res.message);
+                closeDetailEditModal();
+                loadAdminDetail();
+            } else {
+                alert(res.message);
+            }
+        }
+
+        function openDetailBroadcastModal() {
+            if (!currentAuction) return;
+            document.getElementById('bcFlightTitle').value = `Thông báo về chuyến bay ${currentAuction.flightNumber} (${currentAuction.route})`;
+            document.getElementById('bcFlightMsg').value = `Cập nhật thông tin phiên thầu chuyến ${currentAuction.flightNumber}. Giá hiện tại đang ở mức ${CargoStore.formatCurrency(currentAuction.currentPriceKg)}/Kg.`;
+            document.getElementById('detailBroadcastModal').classList.remove('hidden');
+        }
+
+        function closeDetailBroadcastModal() {
+            document.getElementById('detailBroadcastModal').classList.add('hidden');
+        }
+
+        function saveDetailBroadcast(e) {
+            e.preventDefault();
+            if (!currentAuction) return;
+
+            const res = CargoStore.sendBroadcastNotification({
+                title: document.getElementById('bcFlightTitle').value.trim(),
+                message: document.getElementById('bcFlightMsg').value.trim(),
+                type: document.getElementById('bcFlightType').value,
+                auctionId: currentAuction.id
+            });
+
+            if (res.success) {
+                alert(res.message);
+                closeDetailBroadcastModal();
+            }
+        }
+
+        async function handleDetailConfirmPayment(wonId) {
+            const ok = window.showConfirm ? await window.showConfirm(`Xác nhận đã nhận đủ số tiền thanh toán cho đơn hàng thắng thầu ${wonId}?\n\nHệ thống sẽ tự động cập nhật trạng thái PAID và gửi Email xác nhận kèm chứng từ cho đại lý.`) : confirm(`Xác nhận đã nhận đủ số tiền thanh toán cho đơn hàng thắng thầu ${wonId}?\n\nHệ thống sẽ tự động cập nhật trạng thái PAID và gửi Email xác nhận kèm chứng từ cho đại lý.`);
+            if (ok) {
+                const res = CargoStore.confirmPayment(wonId);
+                if (res.success) {
+                    alert(res.message);
+                    loadAdminDetail();
+                } else {
+                    alert(res.message);
+                }
+            }
+        }
+
+        function updateAdminAuctionCountdown(auction) {
+            const badgeEl = document.getElementById('detCountdownBadge');
+            const badgeTextEl = document.getElementById('detCountdownText');
+            const cardTimeEl = document.getElementById('detCountdownCardTime');
+            const cardLabelEl = document.getElementById('detCountdownCardLabel');
+
+            if (!auction) return;
+            const isOpen = auction.status === 'OPEN';
+            const timer = (CargoStore && CargoStore.getTimeRemaining) ? CargoStore.getTimeRemaining(auction.endTime) : null;
+
+            if (isOpen && timer && !timer.isEnded && timer.total > 0) {
+                const h = Math.floor(timer.total / (1000 * 60 * 60));
+                const m = Math.floor((timer.total / (1000 * 60)) % 60);
+                const s = Math.floor((timer.total / 1000) % 60);
+                const timeStr = h >= 24 ?
+                    `${Math.floor(h / 24)}d ${String(h % 24).padStart(2, '0')}:${String(m).padStart(2, '0')}:${String(s).padStart(2, '0')}` :
+                    `${String(h).padStart(2, '0')}:${String(m).padStart(2, '0')}:${String(s).padStart(2, '0')}`;
+
+                if (badgeEl) {
+                    badgeEl.classList.remove('hidden');
+                    if (badgeTextEl) badgeTextEl.textContent = timeStr;
+                }
+                if (cardTimeEl) {
+                    cardTimeEl.textContent = timeStr;
+                    cardTimeEl.className = 'text-xl font-bold font-mono text-amber-600 tracking-tight';
+                }
+                if (cardLabelEl) {
+                    cardLabelEl.textContent = '(Đang đếm ngược)';
+                    cardLabelEl.className = 'text-[11px] font-semibold text-amber-700';
+                }
+            } else {
+                if (isOpen && timer && timer.isEnded) {
+                    // Quy tắc nghiệp vụ: Phiên đấu giá hết thời gian ko chốt mà thêm thời gian đại lý đặt tiếp
+                    if (CargoStore && CargoStore.autoCloseExpiredAuctions) {
+                        CargoStore.autoCloseExpiredAuctions(CargoStore.getData());
+                    }
+                    if (badgeEl) {
+                        badgeEl.classList.remove('hidden');
+                        if (badgeTextEl) badgeTextEl.textContent = 'Gia hạn +30m';
+                    }
+                    if (cardTimeEl) {
+                        cardTimeEl.textContent = 'Gia hạn thêm giờ';
+                        cardTimeEl.className = 'text-xl font-bold font-mono text-amber-600 tracking-tight';
+                    }
+                    if (cardLabelEl) {
+                        cardLabelEl.textContent = '(Tiếp tục nhận đặt giá)';
+                        cardLabelEl.className = 'text-[11px] font-semibold text-emerald-600';
+                    }
+                    return;
+                }
+                if (badgeEl) {
+                    badgeEl.classList.add('hidden');
+                }
+                if (cardTimeEl) {
+                    cardTimeEl.textContent = auction.status === 'CANCELLED' ? 'Đã hủy' : 'Đã kết thúc';
+                    cardTimeEl.className = 'text-xl font-bold text-slate-500 tracking-tight';
+                }
+                if (cardLabelEl) {
+                    cardLabelEl.textContent = '(Phiên đã đóng)';
+                    cardLabelEl.className = 'text-[11px] font-semibold text-slate-400';
+                }
+            }
+        }
+
+        async function syncAdminDetailFromServer() {
+            if (window.CargoStore && typeof CargoStore.syncWithServer === 'function') {
+                await CargoStore.syncWithServer(true);
+            }
+            loadAdminDetail();
+        }
+
+        document.addEventListener('DOMContentLoaded', async function () {
+            await syncAdminDetailFromServer();
+            // Smooth live countdown update every second
+            setInterval(function () {
+                if (typeof currentAuction !== 'undefined' && currentAuction) {
+                    updateAdminAuctionCountdown(currentAuction);
+                }
+            }, 1000);
+            setInterval(function () {
+                if (typeof document !== 'undefined' && document.hidden) return;
+                syncAdminDetailFromServer();
+            }, 2000);
+            if (window.CargoStore && CargoStore.syncAdminHeaderUI) CargoStore.syncAdminHeaderUI();
+        });
+
+        document.addEventListener('visibilitychange', function () {
+            if (!document.hidden) {
+                syncAdminDetailFromServer();
+            }
+        });
+
+        // Cross-tab sync
+        let adminDetailUpdateTimeout = null;
+        function onAdminDetailStoreUpdate() {
+            if (adminDetailUpdateTimeout) clearTimeout(adminDetailUpdateTimeout);
+            adminDetailUpdateTimeout = setTimeout(loadAdminDetail, 100);
+        }
+
+        window.addEventListener('storage', function (e) {
+            if (e.key === 'CARGO_BIDDING_DATA_V3') onAdminDetailStoreUpdate();
+        });
+        window.addEventListener('cargostore_updated', onAdminDetailStoreUpdate);
+    </script>
+</body>
+
+</html>
