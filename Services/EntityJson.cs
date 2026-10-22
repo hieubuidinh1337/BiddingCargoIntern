@@ -29,6 +29,7 @@ public static class EntityJson
         [(typeof(WonAuction), "RefundBankInfoJson")] = "refundBankInfo",
         [(typeof(WonAuction), "PaymentProofJson")] = "paymentProof",
         [(typeof(Registration), "Documents")] = "documents",
+        [(typeof(Auction), "AllowedAgentsJson")] = "allowedAgents",
     };
 
     private static readonly ConcurrentDictionary<Type, Meta> Cache = new();

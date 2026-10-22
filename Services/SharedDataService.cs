@@ -114,10 +114,16 @@ public class SharedDataService
         return ag;
     }
 
+    private static long _lastMaintenanceMs = 0;
+
     // ---------------------------------------------------------------- maintenance (chạy trước mỗi GET /api/data)
 
     public async Task MaintenanceAsync()
     {
+        var nowMs = Util.NowMs();
+        if (nowMs - _lastMaintenanceMs < 30_000) return;
+        _lastMaintenanceMs = nowMs;
+
         var auctions = await _db.Auctions.ToListAsync();
         var bids = await _db.Bids.ToListAsync();
         AuctionRules.ReconcileStatuses(auctions, bids);
@@ -169,17 +175,17 @@ public class SharedDataService
         var isAdmin = role == "admin" && agentCode == null;
         var isStaff = role == "staff" && agentCode == null;
 
-        var auctionEnt = await _db.Auctions.OrderByDescending(a => a.Id).ToListAsync();
-        var bidEnt = await _db.Bids.OrderByDescending(b => b.Timestamp).ToListAsync();
-        var wonEnt = await _db.WonAuctions.OrderByDescending(w => w.WonId).ToListAsync();
-        var notifEnt = await _db.Notifications.OrderByDescending(n => n.Id).ToListAsync();
-        var regEnt = await _db.Registrations.ToListAsync();
-        var agentEnt = await _db.Agents.ToListAsync();
-        var userEnt = await _db.Users.ToListAsync();
-        var chatEnt = await _db.Chats.OrderByDescending(c => c.CreatedAt).ToListAsync();
-        var msgEnt = await _db.ChatMessages.OrderBy(m => m.Timestamp).ToListAsync();
-        var emailEnt = await _db.EmailLogs.OrderByDescending(e => e.Id).Take(50).ToListAsync();
-        var logEnt = await _db.ActivityLogs.OrderByDescending(l => l.RawTime).Take(1000).ToListAsync();
+        var auctionEnt = await _db.Auctions.AsNoTracking().OrderByDescending(a => a.Id).ToListAsync();
+        var bidEnt = await _db.Bids.AsNoTracking().OrderByDescending(b => b.Timestamp).ToListAsync();
+        var wonEnt = await _db.WonAuctions.AsNoTracking().OrderByDescending(w => w.WonId).ToListAsync();
+        var notifEnt = await _db.Notifications.AsNoTracking().OrderByDescending(n => n.Id).ToListAsync();
+        var regEnt = await _db.Registrations.AsNoTracking().ToListAsync();
+        var agentEnt = await _db.Agents.AsNoTracking().ToListAsync();
+        var userEnt = await _db.Users.AsNoTracking().ToListAsync();
+        var chatEnt = await _db.Chats.AsNoTracking().OrderByDescending(c => c.CreatedAt).ToListAsync();
+        var msgEnt = await _db.ChatMessages.AsNoTracking().OrderBy(m => m.Timestamp).ToListAsync();
+        var emailEnt = await _db.EmailLogs.AsNoTracking().OrderByDescending(e => e.Id).Take(50).ToListAsync();
+        var logEnt = await _db.ActivityLogs.AsNoTracking().OrderByDescending(l => l.RawTime).Take(1000).ToListAsync();
 
         var auctions = auctionEnt.Select(a => EntityJson.ToNode(a)).ToList();
         var bids = bidEnt.Select(b => EntityJson.ToNode(b)).ToList();
@@ -417,7 +423,22 @@ public class SharedDataService
                 bid.AgentName = agentName ?? code;
                 bid.IsAnonymous = EntityJson.Bool(n, "isAnonymous") ?? false;
                 bid.PriceKg = price.Value;
-                bid.Time = EntityJson.Str(n, "time") ?? "Vừa xong";
+                var rawBidTime = EntityJson.Str(n, "time");
+                if (string.IsNullOrEmpty(rawBidTime) || rawBidTime == "Vừa xong")
+                {
+                    bid.Time = DateTimeOffset.FromUnixTimeMilliseconds(nowMs).ToOffset(TimeSpan.FromHours(7)).ToString("yyyy-MM-dd HH:mm:ss");
+                }
+                else if (rawBidTime.Contains('/') && rawBidTime.Contains(':'))
+                {
+                    if (DateTime.TryParseExact(rawBidTime, "HH:mm:ss dd/MM/yyyy", null, System.Globalization.DateTimeStyles.None, out var parsed))
+                        bid.Time = parsed.ToString("yyyy-MM-dd HH:mm:ss");
+                    else
+                        bid.Time = rawBidTime;
+                }
+                else
+                {
+                    bid.Time = rawBidTime;
+                }
                 bid.Status = EntityJson.Str(n, "status") ?? "RECEIVED";
                 _db.Bids.Add(bid);
             }

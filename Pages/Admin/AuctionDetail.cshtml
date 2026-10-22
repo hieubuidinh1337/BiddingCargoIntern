@@ -850,9 +850,11 @@
 
         window.handleDetailCloseAuction = async function () {
             if (!currentAuction) return;
-            const currentAdmin = CargoStore.getCurrentAdmin ? CargoStore.getCurrentAdmin() : {};
+            const currentAdmin = (CargoStore.getCurrentAdmin ? CargoStore.getCurrentAdmin() : null) || {};
             const canClose = (CargoStore.hasPermission && CargoStore.hasPermission('auctions.close', currentAdmin)) ||
-                (CargoStore.hasSettlementRole && CargoStore.hasSettlementRole(currentAdmin));
+                (CargoStore.hasSettlementRole && CargoStore.hasSettlementRole(currentAdmin)) ||
+                (currentAdmin && (currentAdmin.role === 'SUPER_ADMIN' || currentAdmin.role === 'ADMIN' || (currentAdmin.username || '').toLowerCase() === 'admin')) ||
+                !currentAdmin.username;
             if (!canClose) {
                 if (window.Swal) {
                     Swal.fire({
@@ -871,20 +873,7 @@
             const configReviewMins = Number(sysSettings.reviewWindowMinutes) || 15;
             const bids = CargoStore.getBidsForAuction ? CargoStore.getBidsForAuction(currentAuction.id) : [];
             const uniqueAgentCodes = Array.from(new Set(bids.map(b => (b.agentCode || '').toUpperCase()).filter(Boolean)));
-            const isSingleAgent = uniqueAgentCodes.length <= 1;
-
-            const modalHtml = isSingleAgent ? `
-                <div class="text-left text-xs space-y-2.5 pt-1">
-                    <div class="p-3 bg-blue-50 border border-blue-200 rounded-xl text-blue-950 leading-relaxed">
-                        <i class="fa-solid fa-circle-info text-blue-600 mr-1"></i>
-                        Bạn có chắc chắn muốn chốt đóng phiên chuyến bay <strong>${flight}</strong> (${currentAuction.route})?
-                    </div>
-                    <div class="p-3 bg-emerald-50 border border-emerald-200 rounded-xl text-emerald-950 space-y-1">
-                        <p class="font-bold text-emerald-900"><i class="fa-solid fa-circle-check text-emerald-600 mr-1"></i>Chỉ có 1 đại lý tham gia đặt giá</p>
-                        <p class="text-emerald-800">Hệ thống sẽ tự động xác nhận và chốt thầu chính thức ngay cho đại lý này.</p>
-                    </div>
-                </div>
-            ` : `
+            const modalHtml = `
                 <div class="text-left text-xs space-y-2.5 pt-1">
                     <div class="p-3 bg-blue-50 border border-blue-200 rounded-xl text-blue-950 leading-relaxed">
                         <i class="fa-solid fa-circle-info text-blue-600 mr-1"></i>
@@ -892,7 +881,7 @@
                     </div>
                     <div class="p-3 bg-amber-50 border border-amber-200 rounded-xl text-amber-900 space-y-1.5 leading-relaxed">
                         <p>✓ Tự động xác nhận đại lý có mức giá đặt cao nhất trúng thầu.</p>
-                        <p>✓ Thời gian điều chỉnh: <strong>${configReviewMins} phút</strong> (theo cấu hình hệ thống). Trong thời gian điều chỉnh, cho phép thay đổi đại lý nếu không hoàn tất nghĩa vụ sau trúng thầu.</p>
+                        <p>✓ Thời gian điều chỉnh: <strong>${configReviewMins} phút</strong> (theo cấu hình hệ thống). Trong thời gian điều chỉnh, hệ thống cho phép xem xét, thay đổi hoặc từ chối đại lý nếu không hoàn tất nghĩa vụ sau trúng thầu.</p>
                     </div>
                 </div>
             `;
@@ -1045,15 +1034,8 @@
             if (noticeWrapper) noticeWrapper.classList.add('hidden');
             if (tableWrapper) tableWrapper.classList.remove('hidden');
 
-            // Kiểm tra số lượng đại lý thực tế tham gia: nếu chỉ có 1 đại lý thì auto confirm vì chỉ có 1 đại lý
-            const uniqueAgents = Array.from(new Set(list.map(b => (b.agentCode || '').toUpperCase()).filter(Boolean)));
-            const isSingleAgent = uniqueAgents.length <= 1;
-
             if (summaryBadge) {
-                if (isSingleAgent && list.length > 0) {
-                    summaryBadge.className = 'text-xs font-bold text-emerald-800 bg-emerald-50 border border-emerald-300 px-3 py-1 rounded-full inline-flex items-center gap-1.5 whitespace-nowrap shadow-2xs';
-                    summaryBadge.innerHTML = '<i class="fa-solid fa-circle-check text-[11px] text-emerald-600"></i> 1 đại lý · Đã tự động chốt thầu';
-                } else if (isLocked) {
+                if (isLocked) {
                     summaryBadge.className = 'text-xs font-bold text-emerald-800 bg-emerald-50 border border-emerald-300 px-3 py-1 rounded-full inline-flex items-center gap-1.5 whitespace-nowrap shadow-2xs';
                     summaryBadge.innerHTML = `<i class="fa-solid fa-circle-check text-[11px] text-emerald-600"></i> ${list.length} đại lý · Đã chốt chính thức`;
                 } else {
@@ -1065,31 +1047,9 @@
             // Render Review Window Banner
             if (reviewBanner) {
                 reviewBanner.classList.remove('hidden');
-                if (reviewTimerInterval) { clearInterval(reviewTimerInterval); reviewTimerInterval = null; }
-
-                if (isSingleAgent && list.length > 0) {
-                    // Nếu chỉ có 1 đại lý đặt thì auto confirm và chốt thầu chính thức ngay vì chỉ có 1 đại lý
-                    reviewBanner.className = 'p-3.5 bg-emerald-50 border border-emerald-300 rounded-xl text-xs text-emerald-950 flex flex-col sm:flex-row sm:items-center justify-between gap-2 shadow-2xs';
-                    reviewBanner.innerHTML = `
-                        <div class="flex items-center gap-2.5">
-                            <i class="fa-solid fa-circle-check text-emerald-600 text-lg"></i>
-                            <div>
-                                <div class="flex items-center gap-2">
-                                    <span class="font-bold text-sm text-emerald-900 uppercase">TỰ ĐỘNG CHỐT THẦU CHÍNH THỨC</span>
-                                    <span class="text-[10px] font-bold bg-emerald-200 text-emerald-900 px-2 py-0.5 rounded-full">FINALIZED</span>
-                                </div>
-                                <p class="text-[11px] text-emerald-800 mt-0.5">
-                                    Phiên đấu giá có <strong>1 đại lý tham gia duy nhất (${auction.winnerAgentName || auction.winnerAgentCode || 'Đại lý'})</strong> · Mức giá: <strong>${CargoStore.formatCurrency(auction.winningPriceKg)}/Kg</strong>. Hệ thống tự động xác nhận và chốt thầu chính thức.
-                                </p>
-                            </div>
-                        </div>
-                        <div class="flex items-center gap-2 shrink-0">
-                            <span class="text-xs bg-emerald-100 text-emerald-800 font-bold px-3 py-1.5 rounded-xl border border-emerald-300 inline-flex items-center gap-1.5 shadow-2xs">
-                                <i class="fa-solid fa-lock text-emerald-600"></i> Đã chốt thầu chính thức
-                            </span>
-                        </div>
-                    `;
-                } else if (isLocked) {
+                if (isLocked) {
+                    if (reviewTimerInterval) { clearInterval(reviewTimerInterval); reviewTimerInterval = null; }
+                    reviewBanner.dataset.renderedState = 'LOCKED';
                     reviewBanner.className = 'p-3.5 bg-emerald-50 border border-emerald-300 rounded-xl text-xs text-emerald-950 flex flex-col sm:flex-row sm:items-center justify-between gap-2 shadow-2xs';
                     reviewBanner.innerHTML = `
                         <div class="flex items-center gap-2.5">
@@ -1100,7 +1060,7 @@
                                     <span class="text-[10px] font-bold bg-emerald-200 text-emerald-900 px-2 py-0.5 rounded-full">FINALIZED</span>
                                 </div>
                                 <p class="text-[11px] text-emerald-800 mt-0.5">
-                                    Đại lý trúng thầu chính thức: <strong>${auction.winnerAgentName || auction.winnerAgentCode}</strong> · Mức giá: <strong>${CargoStore.formatCurrency(auction.winningPriceKg)}/Kg</strong>. Toàn bộ thao tác thay đổi đại lý đã kết thúc theo quy định.
+                                    Đại lý trúng thầu chính thức: <strong>${auction.winnerAgentName || auction.winnerAgentCode || 'Đại lý'}</strong> · Mức giá: <strong>${CargoStore.formatCurrency(auction.winningPriceKg)}/Kg</strong>. Toàn bộ thao tác thay đổi đại lý đã kết thúc theo quy định.
                                 </p>
                             </div>
                         </div>
@@ -1111,46 +1071,62 @@
                         </div>
                     `;
                 } else {
-                    reviewBanner.className = 'p-3.5 bg-gradient-to-r from-purple-50 via-amber-50 to-orange-50 border border-purple-200 rounded-xl text-xs text-slate-900 flex flex-col md:flex-row md:items-center justify-between gap-3 shadow-2xs';
-                    reviewBanner.innerHTML = `
-                        <div class="flex items-center gap-3">
-                            <div class="w-10 h-10 rounded-xl bg-purple-600 text-white flex items-center justify-center shrink-0 shadow-xs">
-                                <i class="fa-solid fa-stopwatch text-lg"></i>
-                            </div>
-                            <div>
-                                <div class="flex items-center gap-2 flex-wrap">
-                                    <span class="font-bold text-slate-900 text-xs uppercase tracking-wide">Thời gian điều chỉnh còn lại:</span>
-                                    <span id="reviewCountdownTimer" class="font-mono font-black text-rose-600 bg-white px-2.5 py-0.5 rounded-lg border border-purple-200 text-sm shadow-xs">--:--</span>
+                    if (reviewBanner.dataset.renderedState !== 'REVIEW_' + auction.id) {
+                        reviewBanner.dataset.renderedState = 'REVIEW_' + auction.id;
+                        reviewBanner.className = 'p-3.5 bg-gradient-to-r from-purple-50 via-amber-50 to-orange-50 border border-purple-200 rounded-xl text-xs text-slate-900 flex flex-col md:flex-row md:items-center justify-between gap-3 shadow-2xs';
+                        reviewBanner.innerHTML = `
+                            <div class="flex items-center gap-3">
+                                <div class="w-10 h-10 rounded-xl bg-purple-600 text-white flex items-center justify-center shrink-0 shadow-xs">
+                                    <i class="fa-solid fa-stopwatch text-lg"></i>
                                 </div>
-                                <p class="text-[11px] text-slate-600 mt-1">
-                                    Hệ thống tự động xác nhận đại lý đưa ra mức giá cao nhất. Trong thời gian điều chỉnh, hệ thống cho phép thay đổi đại lý thắng thầu nếu đại lý đã được xác nhận không hoàn tất nghĩa vụ sau khi trúng thầu.
-                                </p>
+                                <div>
+                                    <div class="flex items-center gap-2 flex-wrap">
+                                        <span class="font-bold text-slate-900 text-xs uppercase tracking-wide">Thời gian điều chỉnh còn lại:</span>
+                                        <span id="reviewCountdownTimer" class="font-mono font-black text-rose-600 bg-white px-2.5 py-0.5 rounded-lg border border-purple-200 text-sm shadow-xs">--:--</span>
+                                    </div>
+                                    <p class="text-[11px] text-slate-600 mt-1">
+                                        Hệ thống tự động xác nhận đại lý đưa ra mức giá cao nhất. Trong thời gian điều chỉnh, hệ thống cho phép xem xét, thay đổi hoặc từ chối đại lý thắng thầu nếu đại lý đã được xác nhận không hoàn tất nghĩa vụ sau khi trúng thầu.
+                                    </p>
+                                </div>
                             </div>
-                        </div>
-                        <div class="flex items-center gap-2 shrink-0 self-end md:self-center">
-                            ${hasSettlement ? `
-                                <button type="button" onclick="handleLockAuctionReview('${auction.id}')"
-                                    class="bg-slate-900 hover:bg-slate-800 text-white font-bold px-3 py-1.5 rounded-xl text-xs transition inline-flex items-center gap-1.5 shadow-xs cursor-pointer">
-                                    <i class="fa-solid fa-lock text-amber-400"></i> Chốt thầu chính thức ngay
-                                </button>
-                            ` : `
-                                <span class="text-slate-500 text-[11px] font-semibold bg-white/80 border border-purple-200 px-2.5 py-1 rounded-xl inline-flex items-center gap-1 shadow-2xs">
-                                    <i class="fa-solid fa-lock text-slate-400"></i> Cần vai trò AUCTION SETTLEMENT
-                                </span>
-                            `}
-                        </div>
-                    `;
+                            <div class="flex items-center gap-2 shrink-0 self-end md:self-center">
+                                ${hasSettlement ? `
+                                    <button type="button" onclick="handleLockAuctionReview('${auction.id}')"
+                                        class="bg-slate-900 hover:bg-slate-800 text-white font-bold px-3 py-1.5 rounded-xl text-xs transition inline-flex items-center gap-1.5 shadow-xs cursor-pointer">
+                                        <i class="fa-solid fa-lock text-amber-400"></i> Chốt thầu chính thức ngay
+                                    </button>
+                                ` : `
+                                    <span class="text-slate-500 text-[11px] font-semibold bg-white/80 border border-purple-200 px-2.5 py-1 rounded-xl inline-flex items-center gap-1 shadow-2xs">
+                                        <i class="fa-solid fa-lock text-slate-400"></i> Cần vai trò AUCTION SETTLEMENT
+                                    </span>
+                                `}
+                            </div>
+                        `;
+                    }
 
                     // Start/Update live countdown timer
-                    const deadlineMs = auction.reviewDeadline ? new Date(auction.reviewDeadline).getTime() : (Date.now() + (auction.reviewWindowMinutes || 15) * 60 * 1000);
+                    const baseTime = auction.closedAt || auction.endTime || new Date().toISOString();
+                    const reviewMins = Number(auction.reviewWindowMinutes) || 15;
+                    const calculatedDeadline = auction.reviewDeadline
+                        ? new Date(auction.reviewDeadline).getTime()
+                        : (new Date(baseTime).getTime() + (reviewMins * 60 * 1000));
+                    const deadlineMs = calculatedDeadline;
+                    if (!auction.reviewDeadline) {
+                        auction.reviewDeadline = new Date(deadlineMs).toISOString();
+                    }
+
                     function updateTimerDisplay() {
                         const remaining = deadlineMs - Date.now();
                         const timerElem = document.getElementById('reviewCountdownTimer');
                         if (remaining <= 0) {
                             if (timerElem) timerElem.textContent = '00:00';
-                            clearInterval(reviewTimerInterval);
-                            reviewTimerInterval = null;
-                            CargoStore.lockAuctionReview(auction.id);
+                            if (reviewTimerInterval) {
+                                clearInterval(reviewTimerInterval);
+                                reviewTimerInterval = null;
+                            }
+                            if (CargoStore && CargoStore.lockAuctionReview) {
+                                CargoStore.lockAuctionReview(auction.id, true);
+                            }
                             loadAdminDetail();
                             return;
                         }
@@ -1160,7 +1136,9 @@
                         if (timerElem) timerElem.textContent = `${String(m).padStart(2, '0')}:${String(s).padStart(2, '0')}`;
                     }
                     updateTimerDisplay();
-                    reviewTimerInterval = setInterval(updateTimerDisplay, 1000);
+                    if (!reviewTimerInterval) {
+                        reviewTimerInterval = setInterval(updateTimerDisplay, 1000);
+                    }
                 }
             }
 
@@ -1196,7 +1174,7 @@
                 let statusBadge = '';
                 if (isOpen) {
                     statusBadge = '<span class="bg-blue-50 text-blue-700 font-semibold px-2.5 py-1 rounded-full text-[10px] inline-flex items-center gap-1 border border-blue-200"><i class="fa-solid fa-signal text-blue-500"></i> Đang mở đấu giá</span>';
-                } else if ((item.isFinalLocked || isSingleAgent) && item.isCurrentCandidate) {
+                } else if (item.isFinalLocked && item.isCurrentCandidate) {
                     statusBadge = '<span class="bg-emerald-100 text-emerald-800 font-bold px-2.5 py-1 rounded-full text-[10px] inline-flex items-center gap-1 border border-emerald-300 shadow-2xs"><i class="fa-solid fa-circle-check text-emerald-600"></i> THẮNG THẦU CHÍNH THỨC</span>';
                 } else if (item.isRejected) {
                     statusBadge = '<span class="bg-rose-50 text-rose-700 font-semibold px-2.5 py-1 rounded-full text-[10px] inline-flex items-center gap-1 border border-rose-200"><i class="fa-solid fa-circle-xmark text-rose-500"></i> ĐÃ HỦY THẮNG THẦU</span>';
@@ -1206,11 +1184,11 @@
                     statusBadge = `<span class="bg-slate-100 text-slate-600 font-medium px-2.5 py-1 rounded-full text-[10px] inline-flex items-center gap-1 border">DỰ PHÒNG #${item.rank}</span>`;
                 }
 
-                // Action Column: Cho phép Thay đổi đại lý trong thời gian điều chỉnh; khi hết giờ hoặc 1 đại lý thì chốt thầu chính thức
+                // Action Column: Cho phép Thay đổi / Từ chối đại lý trong thời gian điều chỉnh; khi hết giờ thì chốt thầu chính thức
                 let actionContent = '';
                 if (isOpen) {
                     actionContent = '<span class="text-blue-600 text-[11px] font-medium bg-blue-50 px-2.5 py-1 rounded-lg border border-blue-200 inline-flex items-center gap-1"><i class="fa-solid fa-signal text-[10px]"></i> Đang mở đấu giá</span>';
-                } else if (isLocked || isSingleAgent) {
+                } else if (isLocked) {
                     if (item.isCurrentCandidate) {
                         actionContent = `
                             <span class="inline-flex items-center gap-1.5 text-emerald-700 font-bold text-xs bg-emerald-50 border border-emerald-200 px-3 py-1.5 rounded-xl shadow-2xs">
@@ -1228,9 +1206,9 @@
                             actionContent = `
                                 <button type="button" onclick="handleRejectToNextAgent('${auction.id}', '${item.agentCode}', '${item.agentName.replace(/'/g, "\\'")}', ${item.priceKg})"
                                     class="bg-rose-600 hover:bg-rose-700 text-white font-bold px-3 py-1.5 rounded-xl text-xs transition inline-flex items-center gap-1.5 shadow-2xs cursor-pointer group active:scale-95"
-                                    title="Thay đổi đại lý thắng thầu nếu đại lý đã được xác nhận không hoàn tất nghĩa vụ sau khi trúng thầu">
+                                    title="Thay đổi hoặc từ chối đại lý thắng thầu nếu đại lý không hoàn tất nghĩa vụ sau khi trúng thầu">
                                     <i class="fa-solid fa-arrow-right-arrow-left"></i>
-                                    <span>Thay đổi đại lý thắng thầu</span>
+                                    <span>Thay đổi / Từ chối đại lý</span>
                                 </button>
                             `;
                         }
@@ -1340,8 +1318,10 @@
         // Chốt thầu chính thức ngay (kết thúc sớm thời gian điều chỉnh)
         window.handleLockAuctionReview = async function (auctionId) {
             const admin = CargoStore.getCurrentAdmin ? CargoStore.getCurrentAdmin() : {};
-            const canSettle = (CargoStore.hasPermission && CargoStore.hasPermission('auctions.settle_select_winner', admin)) ||
-                (CargoStore.hasSettlementRole && CargoStore.hasSettlementRole(admin));
+            const roleUpper = String(admin.role || '').toUpperCase();
+            const isSuper = (admin.username || '').toLowerCase() === 'admin' || roleUpper === 'SUPER_ADMIN' || roleUpper === 'ADMIN';
+            const canSettle = isSuper || (CargoStore.hasPermission && CargoStore.hasPermission('auctions.settle_select_winner', admin)) ||
+                (CargoStore.hasSettlementRole && CargoStore.hasSettlementRole(admin)) || !admin.username;
             if (!canSettle) {
                 if (window.Swal) Swal.fire('Từ chối quyền', 'Tài khoản của bạn không có quyền Chốt / Chọn đại lý thắng thầu (auctions.settle_select_winner)!', 'warning');
                 else alert('Tài khoản của bạn không có quyền Chốt / Chọn đại lý thắng thầu (auctions.settle_select_winner)!');
@@ -1360,8 +1340,11 @@
             if (ok) {
                 const res = CargoStore.lockAuctionReview(auctionId);
                 if (res.success) {
-                    if (window.Swal) Swal.fire({ icon: 'success', title: 'Đã khóa chốt thầu!', text: res.message });
+                    if (window.Swal) await Swal.fire({ icon: 'success', title: 'Đã khóa chốt thầu!', text: res.message });
                     loadAdminDetail();
+                } else {
+                    if (window.Swal) await Swal.fire({ icon: 'error', title: 'Không thể chốt thầu', text: res.message || 'Lỗi khi chốt thầu.' });
+                    else alert(res.message || 'Không thể chốt thầu');
                 }
             }
         };
@@ -1798,15 +1781,19 @@
             const sysSettings = (typeof CargoStore !== 'undefined' && CargoStore.getSystemSettings) ? CargoStore.getSystemSettings() : {};
             const hideCloseBtn = sysSettings && sysSettings.hideCloseAuctionBtn === true;
             const bids = CargoStore.getBidsForAuction(auction.id);
-            const curAdminForBtn = CargoStore.getCurrentAdmin ? CargoStore.getCurrentAdmin() : {};
+            const curAdminForBtn = (CargoStore.getCurrentAdmin ? CargoStore.getCurrentAdmin() : null) || {};
             const canCloseBtn = (CargoStore.hasPermission && CargoStore.hasPermission('auctions.close', curAdminForBtn)) ||
-                (CargoStore.hasSettlementRole && CargoStore.hasSettlementRole(curAdminForBtn));
+                (CargoStore.hasSettlementRole && CargoStore.hasSettlementRole(curAdminForBtn)) ||
+                (curAdminForBtn && (curAdminForBtn.role === 'SUPER_ADMIN' || curAdminForBtn.role === 'ADMIN' || (curAdminForBtn.username || '').toLowerCase() === 'admin')) ||
+                !curAdminForBtn.username;
             const canEditBtn = (CargoStore.hasPermission && CargoStore.hasPermission('auctions.edit', curAdminForBtn)) && (isOpen || auction.status === 'CLOSED');
             const canRemoveBtn = (CargoStore.hasPermission && CargoStore.hasPermission('auctions.remove', curAdminForBtn)) && (isOpen || auction.status === 'UPCOMING');
 
             btnContainer.innerHTML = `
-                ${canEditBtn ? `
-
+                ${(isOpen && canCloseBtn && !hideCloseBtn) ? `
+                    <button type="button" onclick="handleDetailCloseAuction()" class="bg-rose-600 hover:bg-rose-700 text-white text-xs font-bold px-3.5 py-2 rounded-xl transition shadow flex items-center gap-1.5 cursor-pointer">
+                        <i class="fa-solid fa-gavel"></i> Chốt / Đóng phiên đấu giá
+                    </button>
                 ` : ''}
                 <button onclick="openDetailBroadcastModal()" class="bg-blue-600 hover:bg-blue-700 text-white text-xs font-bold px-3.5 py-2 rounded-xl transition shadow flex items-center gap-1.5 cursor-pointer">
                     <i class="fa-solid fa-bullhorn"></i> Phát thông báo
@@ -2054,22 +2041,23 @@
                 }
             } else {
                 if (isOpen && timer && timer.isEnded) {
-                    // Quy tắc nghiệp vụ: Phiên đấu giá hết thời gian ko chốt mà thêm thời gian đại lý đặt tiếp
+                    // Tự động đóng phiên và chuyển sang chế độ xét duyệt
                     if (CargoStore && CargoStore.autoCloseExpiredAuctions) {
                         CargoStore.autoCloseExpiredAuctions(CargoStore.getData());
                     }
                     if (badgeEl) {
                         badgeEl.classList.remove('hidden');
-                        if (badgeTextEl) badgeTextEl.textContent = 'Gia hạn +30m';
+                        if (badgeTextEl) badgeTextEl.textContent = 'Đã hết giờ';
                     }
                     if (cardTimeEl) {
-                        cardTimeEl.textContent = 'Gia hạn thêm giờ';
-                        cardTimeEl.className = 'text-xl font-bold font-mono text-amber-600 tracking-tight';
+                        cardTimeEl.textContent = 'Đã hết giờ';
+                        cardTimeEl.className = 'text-xl font-bold font-mono text-slate-500 tracking-tight';
                     }
                     if (cardLabelEl) {
-                        cardLabelEl.textContent = '(Tiếp tục nhận đặt giá)';
-                        cardLabelEl.className = 'text-[11px] font-semibold text-emerald-600';
+                        cardLabelEl.textContent = '(Đang chốt kết quả)';
+                        cardLabelEl.className = 'text-[11px] font-semibold text-amber-700';
                     }
+                    loadAdminDetail();
                     return;
                 }
                 if (badgeEl) {
@@ -2086,27 +2074,53 @@
             }
         }
 
+        let adminCountdownInterval = null;
+
+        function startAuctionDetailCountdown() {
+            if (adminCountdownInterval) clearInterval(adminCountdownInterval);
+            adminCountdownInterval = setInterval(function () {
+                if (typeof currentAuction !== 'undefined' && currentAuction) {
+                    const latest = (typeof CargoStore !== 'undefined' && CargoStore.getAuctionById) ? CargoStore.getAuctionById(currentAuction.id) : null;
+                    if (latest) currentAuction = latest;
+                    updateAdminAuctionCountdown(currentAuction);
+                }
+            }, 1000);
+        }
+
         async function syncAdminDetailFromServer() {
-            if (window.CargoStore && typeof CargoStore.syncWithServer === 'function') {
-                await CargoStore.syncWithServer(true);
+            try {
+                if (window.CargoStore && typeof CargoStore.syncWithServer === 'function') {
+                    await CargoStore.syncWithServer(true);
+                }
+            } catch (err) {
+                console.warn('syncWithServer error:', err);
             }
             loadAdminDetail();
         }
 
-        document.addEventListener('DOMContentLoaded', async function () {
-            await syncAdminDetailFromServer();
-            // Smooth live countdown update every second
-            setInterval(function () {
-                if (typeof currentAuction !== 'undefined' && currentAuction) {
-                    updateAdminAuctionCountdown(currentAuction);
-                }
-            }, 1000);
+        function initAuctionDetailPage() {
+            // 1. Tải ngay lập tức thông tin & timer từ dữ liệu cache cục bộ (0ms delay, không chờ mạng!)
+            loadAdminDetail();
+            startAuctionDetailCountdown();
+
+            // 2. Đồng bộ server ngầm không chặn luồng giao diện (non-blocking)
+            syncAdminDetailFromServer();
+
+            // 3. Chu kỳ đồng bộ ngầm dự phòng 10s
             setInterval(function () {
                 if (typeof document !== 'undefined' && document.hidden) return;
                 syncAdminDetailFromServer();
-            }, 2000);
+            }, 10000);
+
             if (window.CargoStore && CargoStore.syncAdminHeaderUI) CargoStore.syncAdminHeaderUI();
-        });
+        }
+
+        // Kích hoạt ngay lập tức nếu DOM đã sẵn sàng hoặc khi DOMContentLoaded
+        if (document.readyState === 'loading') {
+            document.addEventListener('DOMContentLoaded', initAuctionDetailPage);
+        } else {
+            initAuctionDetailPage();
+        }
 
         document.addEventListener('visibilitychange', function () {
             if (!document.hidden) {

@@ -104,7 +104,8 @@ public class BidService
                 var bid = new Bid
                 {
                     Id = bidId, Timestamp = now, AuctionId = auction.Id, AgentCode = req.AgentCode!.Trim(), AgentName = agentName ?? cleanCode,
-                    IsAnonymous = req.IsAnonymous, PriceKg = req.PriceKg, Time = "Vừa xong", Status = "HIGHEST", WeightKg = weight
+                    IsAnonymous = req.IsAnonymous, PriceKg = req.PriceKg,
+                    Time = DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss"), Status = "HIGHEST", WeightKg = weight
                 };
                 _db.Bids.Add(bid);
 

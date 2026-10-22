@@ -410,7 +410,10 @@
                 if (!wAgentCode || wAgentCode === userCode) {
                     const existingBid = allBids.find(b => String(b.auctionId) === String(w.auctionId));
                     if (existingBid) {
-                        existingBid.status = 'WON';
+                        const parentAuction = auctions.find(a => String(a.id) === String(w.auctionId));
+                        if (!parentAuction || parentAuction.isFinalLocked) {
+                            existingBid.status = 'WON';
+                        }
                     } else {
                         const ts = parseBidDateTime(w.paidAt) ||
                                    parseBidDateTime(w.createdAt) ||
@@ -440,21 +443,31 @@
                 const auction = auctions.find(a => String(a.id) === String(b.auctionId)) || {};
                 const bidAgentCode = String(b.agentCode || userCode || '').trim().toUpperCase();
                 const wonAuction = wonAuctions.find(w => (String(w.auctionId) === String(b.auctionId) || w.wonId === b.id || ('WON-BID-' + w.wonId) === b.id) && (!w.agentCode || String(w.agentCode).trim().toUpperCase() === bidAgentCode)) || null;
-                const isActualWinner = b.status === 'WON' || !!wonAuction || (auction.winnerAgentCode && String(auction.winnerAgentCode).trim().toUpperCase() === userCode);
 
                 const timer = (auction.endTime && CargoStore.getTimeRemaining) ? CargoStore.getTimeRemaining(auction.endTime) : null;
                 const isAuctionClosed = !auction.id || auction.status === 'CLOSED' || auction.status === 'ENDED' || auction.status === 'EXPIRED' || (timer && timer.isEnded);
+                const isFinalLocked = Boolean(auction.isFinalLocked);
 
-                if (isActualWinner) {
-                    b._statusKey = 'WON';
-                    b._statusBadge = '<span class="bg-purple-100 text-purple-700 font-bold px-2.5 py-1 rounded-full text-[10px] inline-flex items-center gap-1"><i class="fa-solid fa-trophy text-[9px]"></i> Thắng thầu</span>';
-                } else if (isAuctionClosed) {
-                    if (auction.status === 'CLOSED' || auction.winnerAgentCode) {
-                        b._statusKey = 'LOST';
-                        b._statusBadge = '<span class="bg-slate-100 text-slate-600 font-medium px-2.5 py-1 rounded-full text-[10px] inline-flex items-center gap-1"><i class="fa-solid fa-circle-xmark text-slate-400 text-[9px]"></i> Thua</span>';
+                const isWinningCandidate = (auction.winnerAgentCode && String(auction.winnerAgentCode).trim().toUpperCase() === userCode) || b.status === 'WON' || !!wonAuction;
+
+                if (isAuctionClosed) {
+                    if (isFinalLocked) {
+                        // Đã chốt thầu chính thức
+                        if (isWinningCandidate) {
+                            b._statusKey = 'WON';
+                            b._statusBadge = '<span class="bg-purple-100 text-purple-700 font-bold px-2.5 py-1 rounded-full text-[10px] inline-flex items-center gap-1"><i class="fa-solid fa-trophy text-[9px]"></i> Thắng thầu</span>';
+                        } else {
+                            b._statusKey = 'LOST';
+                            b._statusBadge = '<span class="bg-slate-100 text-slate-600 font-medium px-2.5 py-1 rounded-full text-[10px] inline-flex items-center gap-1"><i class="fa-solid fa-circle-xmark text-slate-400 text-[9px]"></i> Thua</span>';
+                        }
                     } else {
+                        // Phiên đã đóng nhưng đang trong thời gian điều chỉnh/đối soát -> ĐANG CHỜ KẾT QUẢ
                         b._statusKey = 'WAITING';
-                        b._statusBadge = '<span class="bg-amber-100 text-amber-800 font-bold px-2.5 py-1 rounded-full text-[10px] inline-flex items-center gap-1"><i class="fa-solid fa-clock text-[9px] text-amber-600"></i> Đang chờ kết quả</span>';
+                        if (isWinningCandidate) {
+                            b._statusBadge = '<span class="bg-amber-100 text-amber-800 font-bold px-2.5 py-1 rounded-full text-[10px] inline-flex items-center gap-1 animate-pulse"><i class="fa-solid fa-clock text-[9px] text-amber-600"></i> Đang chờ kết quả (Tạm dẫn đầu)</span>';
+                        } else {
+                            b._statusBadge = '<span class="bg-amber-100 text-amber-800 font-medium px-2.5 py-1 rounded-full text-[10px] inline-flex items-center gap-1"><i class="fa-solid fa-clock text-[9px] text-amber-600"></i> Đang chờ kết quả</span>';
+                        }
                     }
                 } else {
                     b._statusKey = 'PARTICIPATING';

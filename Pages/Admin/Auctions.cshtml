@@ -1208,34 +1208,9 @@
             if (bWon) bWon.textContent = wonAuctions.length;
         }
 
-        function renderAuctionRow(a, data) {
-            const sysSettings = (typeof CargoStore !== 'undefined' && CargoStore.getSystemSettings) ? CargoStore.getSystemSettings() : (data.settings || {});
-            const hideCloseBtn = sysSettings && sysSettings.hideCloseAuctionBtn === true;
+        function getAuctionTimerBadgeHtml(a) {
             const isOpen = a.status === 'OPEN';
-            const isAdmin = data.currentAdmin && data.currentAdmin.role === 'ADMIN';
-            const isStaffRole = Boolean(data.currentAdmin && String(data.currentAdmin.role).toUpperCase() === 'STAFF');
-            const allBids = data.bids || [];
-            const bidsForThis = allBids.filter(b => b.auctionId == a.id);
-            const bidsCount = (a.bidsCount !== undefined && a.bidsCount !== null && a.bidsCount > 0)
-                ? Math.max(a.bidsCount, bidsForThis.length)
-                : bidsForThis.length;
-            const hasBids = bidsCount > 0;
-
-            // DEMO RULE: Admin AND Staff can never see bid prices of a live auction.
-            // The winning price is only revealed once the session is CLOSED and has participants.
-            const displayPrice = (a.status === 'CLOSED') ?
-                (hasBids && (a.winningPriceKg || bidsForThis.length > 0) ?
-                    CargoStore.formatCurrency(a.winningPriceKg || (bidsForThis[0] ? bidsForThis[0].priceKg : a.currentPriceKg)) :
-                    '<span class="text-gray-400 font-normal italic">-</span>'
-                ) :
-                '<span class="text-gray-500 font-normal">' + (isOpen ? '???' : '-') + '</span>';
-
-            const isCancelled = a.status === 'CANCELLED';
-            const isDeleted = a.status === 'DELETED';
-            const canEdit = isOpen && !hasBids;
-
-            // Calculate countdown timer for live sessions
-            const timer = (CargoStore && CargoStore.getTimeRemaining) ? CargoStore.getTimeRemaining(a.endTime) : null;
+            const timer = (typeof CargoStore !== 'undefined' && CargoStore.getTimeRemaining) ? CargoStore.getTimeRemaining(a.endTime) : null;
             let timerBadge = '';
             if (isOpen && timer) {
                 if (timer.isEnded) {
@@ -1264,6 +1239,77 @@
                     timerBadge = `<span class="text-[11px] font-mono font-semibold text-emerald-700 bg-emerald-50 border border-emerald-200 px-2 py-0.5 rounded inline-flex items-center gap-1 shadow-2xs"><i class="fa-solid fa-play text-[10px] text-emerald-600"></i> Đang kích hoạt mở</span>`;
                 }
             }
+            return timerBadge;
+        }
+
+        function updateAllAdminAuctionTimers() {
+            if (typeof document !== 'undefined' && document.hidden) return;
+            const timerEls = document.querySelectorAll('[data-timer-auction-id]');
+            if (!timerEls || timerEls.length === 0) return;
+
+            const data = (typeof CargoStore !== 'undefined' && CargoStore.getData) ? CargoStore.getData() : {};
+            const auctions = (CargoStore && CargoStore.getAllAuctions) ? CargoStore.getAllAuctions() : (data.auctions || []);
+            const auctionMap = new Map();
+            auctions.forEach(a => {
+                if (a && a.id !== undefined) auctionMap.set(String(a.id), a);
+            });
+
+            let needFullRefresh = false;
+
+            timerEls.forEach(el => {
+                const id = el.getAttribute('data-timer-auction-id');
+                const a = auctionMap.get(String(id));
+                if (!a) return;
+
+                if (a.status === 'OPEN') {
+                    const timer = (CargoStore && CargoStore.getTimeRemaining) ? CargoStore.getTimeRemaining(a.endTime) : null;
+                    if (timer && timer.isEnded) {
+                        needFullRefresh = true;
+                    }
+                }
+
+                const newBadge = getAuctionTimerBadgeHtml(a);
+                if (el.innerHTML !== newBadge) {
+                    el.innerHTML = newBadge;
+                }
+            });
+
+            if (needFullRefresh) {
+                if (CargoStore && CargoStore.checkAutoCloseAuctions) {
+                    CargoStore.checkAutoCloseAuctions();
+                }
+                renderAuctionsTable();
+            }
+        }
+
+        function renderAuctionRow(a, data) {
+            const sysSettings = (typeof CargoStore !== 'undefined' && CargoStore.getSystemSettings) ? CargoStore.getSystemSettings() : (data.settings || {});
+            const hideCloseBtn = sysSettings && sysSettings.hideCloseAuctionBtn === true;
+            const isOpen = a.status === 'OPEN';
+            const isAdmin = data.currentAdmin && data.currentAdmin.role === 'ADMIN';
+            const isStaffRole = Boolean(data.currentAdmin && String(data.currentAdmin.role).toUpperCase() === 'STAFF');
+            const allBids = data.bids || [];
+            const bidsForThis = allBids.filter(b => b.auctionId == a.id);
+            const bidsCount = (a.bidsCount !== undefined && a.bidsCount !== null && a.bidsCount > 0)
+                ? Math.max(a.bidsCount, bidsForThis.length)
+                : bidsForThis.length;
+            const hasBids = bidsCount > 0;
+
+            // DEMO RULE: Admin AND Staff can never see bid prices of a live auction.
+            // The winning price is only revealed once the session is CLOSED and has participants.
+            const displayPrice = (a.status === 'CLOSED') ?
+                (hasBids && (a.winningPriceKg || bidsForThis.length > 0) ?
+                    CargoStore.formatCurrency(a.winningPriceKg || (bidsForThis[0] ? bidsForThis[0].priceKg : a.currentPriceKg)) :
+                    '<span class="text-gray-400 font-normal italic">-</span>'
+                ) :
+                '<span class="text-gray-500 font-normal">' + (isOpen ? '???' : '-') + '</span>';
+
+            const isCancelled = a.status === 'CANCELLED';
+            const isDeleted = a.status === 'DELETED';
+            const canEdit = isOpen && !hasBids;
+
+            // Calculate countdown timer for live sessions
+            const timerBadge = getAuctionTimerBadgeHtml(a);
 
             return `
                 <tr class="hover:bg-slate-50 transition">
@@ -1281,8 +1327,14 @@
                 }
                     </td>
                     <td class="py-3.5 px-4 text-gray-600">
-                        <p class="font-medium">${a.aircraft}</p>
-                        ${a.flightPeriod ? `<p class="text-[11px] text-blue-600 font-semibold"><i class="fa-regular fa-calendar-days text-[10px]"></i> ${a.flightPeriod}</p>` : `<p class="text-[11px] text-gray-400">${a.etd}</p>`}
+                        <p class="font-medium text-slate-900">${a.aircraft || 'A320 (32V)'}</p>
+                        <p class="text-[11px] text-slate-600 font-medium flex items-center gap-1 mt-0.5">
+                            <i class="fa-regular fa-clock text-[10px] text-amber-600"></i> ${a.etd ? `ETD: <span class="font-semibold text-slate-800">${a.etd}</span>` : '<span class="text-gray-400">Chưa có ETD</span>'}
+                        </p>
+                        ${(() => {
+                            const periodText = a.flightPeriod || (a.flightStartDate && a.flightEndDate ? (a.flightStartDate === a.flightEndDate ? `Ngày ${a.flightStartDate}` : `Từ ${a.flightStartDate} ➔ Đến ${a.flightEndDate}`) : (a.etd ? `Ngày ${a.etd.includes('·') ? a.etd.split('·')[1].trim() : a.etd}` : ''));
+                            return periodText ? `<p class="text-[11px] text-blue-600 font-semibold flex items-center gap-1 mt-0.5" title="Giai đoạn khai thác"><i class="fa-regular fa-calendar-days text-[10px]"></i> ${periodText}</p>` : '';
+                        })()}
                     </td>
                     <td class="py-3.5 px-4 font-semibold text-slate-900">
                         ${CargoStore.formatNumber(a.capacityKg)} Kg
@@ -1296,11 +1348,11 @@
                                 const sInfo = (CargoStore && CargoStore.getAuctionStatusInfo) ? CargoStore.getAuctionStatusInfo(a) : { shortText: (a.status === 'OPEN' ? 'ĐANG MỞ' : 'ĐÃ ĐÓNG'), badgeClass: (a.status === 'OPEN' ? 'bg-green-100 text-green-700' : 'bg-gray-100 text-gray-500') };
                                 return `<span class="${sInfo.badgeClass} font-bold px-2.5 py-0.5 rounded-full text-[10px] inline-flex items-center gap-1 border">${sInfo.key === 'OPEN' ? '<span class="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse"></span> ' : ''}${sInfo.shortText || sInfo.text}</span>`;
                             })()}
-                            ${timerBadge}
+                            <div data-timer-auction-id="${a.id}">${timerBadge}</div>
                         </div>
                     </td>
                     <td class="py-3.5 px-4 text-right space-x-1.5 whitespace-nowrap">
-                        <a href="05-AuctionDetail.html?id=${a.id}" class="inline-flex items-center gap-1.5 bg-blue-50 hover:bg-blue-600 text-blue-700 hover:text-white font-semibold px-3 py-1.5 rounded-lg transition shadow-2xs" title="Xem chi tiết & lịch sử">
+                        <a href="AuctionDetail?id=${a.id}" class="inline-flex items-center gap-1.5 bg-blue-50 hover:bg-blue-600 text-blue-700 hover:text-white font-semibold px-3 py-1.5 rounded-lg transition shadow-2xs" title="Xem chi tiết & lịch sử">
                             <i class="fa-solid fa-eye text-xs"></i> Xem chi tiết
                         </a>
                     </td>
@@ -1521,6 +1573,7 @@
                     itemUnitLabel: 'phiên đang mở'
                 });
             }
+            updateAllAdminAuctionTimers();
         }
 
         async function handleCloseAuction(id) {
@@ -2559,14 +2612,17 @@
 
             document.getElementById('auctionSearch').addEventListener('input', renderAuctionsTable);
             document.getElementById('statusSelect').addEventListener('change', renderAuctionsTable);
+            // Cập nhật đồng hồ đếm ngược từng giây một cách mượt mà trực tiếp vào DOM (KHÔNG reload trang / KHÔNG re-render lại cả bảng)
+            setInterval(updateAllAdminAuctionTimers, 1000);
+
+            // Đồng bộ dữ liệu định kỳ dự phòng (15s) tránh làm giật lag giao diện
             setInterval(function () {
                 if (typeof document !== 'undefined' && document.hidden) return;
                 if (document.activeElement && (document.activeElement.tagName === 'SELECT' || document.activeElement.tagName === 'INPUT')) {
                     return;
                 }
-                renderAuctionsTable();
                 renderWonAuctionsAdminTable();
-            }, 1000);
+            }, 15000);
             if (window.CargoStore && CargoStore.syncAdminHeaderUI) CargoStore.syncAdminHeaderUI();
         });
 

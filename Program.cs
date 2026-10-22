@@ -9,7 +9,10 @@ var builder = WebApplication.CreateBuilder(args);
 // ---- Cơ sở dữ liệu: SQL Server
 AppDbContext.BoolAsInt = DbInitializer.DetectBoolAsInt(builder.Configuration.GetConnectionString("DefaultConnection"));
 builder.Services.AddDbContext<AppDbContext>(o =>
-    o.UseSqlServer(builder.Configuration.GetConnectionString("DefaultConnection")));
+    o.UseSqlServer(builder.Configuration.GetConnectionString("DefaultConnection"), sql =>
+    {
+        sql.CommandTimeout(30);
+    }));
 
 builder.Services.AddScoped<SharedDataService>();
 builder.Services.AddScoped<BidService>();

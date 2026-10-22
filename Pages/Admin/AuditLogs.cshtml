@@ -1004,7 +1004,10 @@
 
             // Fetch server-side logs immediately and auto-update rapidly (every 2.5s)
             fetchServerLogs();
-            setInterval(fetchServerLogs, 2500);
+            setInterval(function () {
+                if (typeof document !== 'undefined' && document.hidden) return;
+                fetchServerLogs();
+            }, 5000);
 
             // Listen to local storage changes for instant real-time log updates
             window.addEventListener('storage', function (e) {

@@ -350,7 +350,10 @@ async function __cbPoll() {
 }
 function __cbStartPoll() {
   if (pollTimer) clearInterval(pollTimer);
-  pollTimer = setInterval(__cbPoll, 4000);
+  pollTimer = setInterval(function () {
+    if (typeof document !== 'undefined' && document.hidden) return;
+    __cbPoll();
+  }, 6000);
 }
 function init() {
   injectStyles();

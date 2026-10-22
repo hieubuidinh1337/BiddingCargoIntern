@@ -34,6 +34,14 @@ public class Auction
     public string? SpecialNotes { get; set; }
     public string? CutOffTime { get; set; }
     public string? ClosedAt { get; set; }
+    public string? OpenDate { get; set; }
+    public string? CloseDate { get; set; }
+    public string? OpenDateIso { get; set; }
+    public string? CloseDateIso { get; set; }
+    [Column("allowedAgents_json")] public string? AllowedAgentsJson { get; set; }
+    public string? FlightStartDate { get; set; }
+    public string? FlightEndDate { get; set; }
+    public string? FlightPeriod { get; set; }
     // Trường giao diện cần nhưng không có cột riêng trong schema gốc
     [NotMapped] public bool? IsAnonymous { get; set; }
 }
