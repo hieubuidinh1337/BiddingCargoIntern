@@ -2798,6 +2798,12 @@
 
             renderAgentsList();
             if (window.CargoStore && CargoStore.syncAdminHeaderUI) CargoStore.syncAdminHeaderUI();
+            if (window.CargoStore && typeof CargoStore.syncWithServer === 'function') {
+                CargoStore.syncWithServer(true).then(() => {
+                    renderAgentsList();
+                    if (CargoStore.syncAdminHeaderUI) CargoStore.syncAdminHeaderUI();
+                });
+            }
 
             // Auto scroll & highlight specific registration if regId is in URL
             if (regIdParam) {

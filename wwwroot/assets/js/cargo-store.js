@@ -1030,7 +1030,12 @@ const CargoStore = (function () {
             if (!res.ok) return;
             const serverData = await res.json();
             if (serverData && serverData.dataEpoch && !applyServerEpoch(serverData.dataEpoch)) return;
-            const shouldSync = force || !lastServerVersion || (serverData && serverData.version && serverData.version !== lastServerVersion) || (serverData.bids && serverData.bids.length !== (local.bids || []).length);
+            const shouldSync = force || !lastServerVersion ||
+                (serverData && serverData.version && serverData.version !== lastServerVersion) ||
+                (serverData.bids && serverData.bids.length !== (local.bids || []).length) ||
+                (serverData.registrations && serverData.registrations.length !== (local.registrations || []).length) ||
+                (serverData.agentsList && serverData.agentsList.length !== (local.agentsList || []).length) ||
+                (serverData.auctions && serverData.auctions.length !== (local.auctions || []).length);
             if (serverData && shouldSync) {
                 lastServerVersion = serverData.version || Date.now();
                 try { localStorage.setItem('CARGO_BIDDING_SERVER_VERSION', String(lastServerVersion)); } catch (e) { }
@@ -1198,7 +1203,7 @@ const CargoStore = (function () {
 
     // Auto-poll server every 3500ms to stay in sync across different browsers without lagging
     if (typeof window !== 'undefined') {
-        setTimeout(syncWithServer, 200);
+        setTimeout(() => syncWithServer(true), 150);
         setInterval(syncWithServer, 3500);
     }
 
