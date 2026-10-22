@@ -531,7 +531,7 @@
 
         const ALLOWED_EXTENSIONS = ['.pdf', '.jpg', '.jpeg', '.png'];
         const ALLOWED_MIME_TYPES = ['application/pdf', 'image/jpeg', 'image/jpg', 'image/png', 'image/pjpeg'];
-        const MAX_FILE_SIZE = 15 * 1024 * 1024; // 15MB
+        const MAX_FILE_SIZE = 10 * 1024 * 1024; // 10MB
 
         function validateSelectedFile(file) {
             if (!file) return { valid: false, message: 'Tệp tin không tồn tại' };
@@ -558,7 +558,8 @@
             }
 
             if (file.size > MAX_FILE_SIZE) {
-                return { valid: false, message: `⚠️ Tệp "${fileName}" vượt quá dung lượng tối đa cho phép (15MB)!` };
+                const sizeMB = (file.size / (1024 * 1024)).toFixed(1);
+                return { valid: false, message: `⚠️ Tệp "${fileName}" (${sizeMB}MB) vượt quá dung lượng tối đa cho phép (10MB/tệp tin)! Vui lòng nén hoặc chọn tệp tin nhỏ hơn.` };
             }
 
             return { valid: true };
@@ -577,7 +578,7 @@
                         alert(check.message);
                         input.value = ''; // Reset input
                         delete uploadedFilesMap[label];
-                        nameEl.textContent = 'Chưa chọn file (Định dạng không hợp lệ)';
+                        nameEl.textContent = 'Chưa chọn file (Tệp không hợp lệ)';
                         nameEl.classList.remove('text-green-600', 'text-gray-400');
                         nameEl.classList.add('text-red-500', 'font-medium');
                         return;

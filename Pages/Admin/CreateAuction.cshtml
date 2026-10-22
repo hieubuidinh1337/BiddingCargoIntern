@@ -1683,6 +1683,7 @@
                     flightPeriod: flightPeriodVal,
                     openDate: openIso,
                     closeDate: closeIso,
+                    isUpcoming: openDt.getTime() > (Date.now() + 30000),
                     etd: closeIso,
                     eta: '',
                     aircraft: document.getElementById('aircraftType').value,

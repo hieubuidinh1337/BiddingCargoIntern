@@ -484,17 +484,21 @@
                                     <span class="auction-timer-text text-orange-600 font-semibold flex items-center gap-1.5" data-endtime="${a.endTime}" data-status="${a.status}">
                                         <i class="fa-regular fa-clock"></i> <span class="timer-value">Còn: ${timer.hours}h ${timer.minutes}m ${timer.seconds}s</span>
                                     </span>
+                                ` : (a.status === 'UPCOMING' ? `
+                                    <span class="text-blue-700 bg-blue-50 border border-blue-200/90 px-2 py-0.5 rounded font-semibold text-[11px] flex items-center gap-1 shadow-2xs">
+                                        <i class="fa-solid fa-hourglass-start text-[10px] text-blue-600"></i> Mở lúc: ${a.openDate || 'Sắp diễn ra'}
+                                    </span>
                                 ` : `
                                     <span class="text-gray-400 font-medium"><i class="fa-solid fa-lock mr-1"></i> Đã đóng thầu</span>
-                                `}
+                                `)}
                                 <span class="text-gray-500 text-[11px]">${a.bidsCount || 0} lượt đặt</span>
                             </div>
 
                             <!-- Action Button -->
                             <div class="pt-2">
-                                <a href="04-Detail.html?id=${a.id}" class="w-full ${a.status === 'OPEN' ? 'bg-blue-600 hover:bg-blue-700 text-white' : 'bg-gray-200 text-gray-500 cursor-not-allowed'} py-2.5 rounded-xl font-semibold text-xs flex items-center justify-center gap-2 transition shadow">
-                                    <i class="fa-solid fa-gavel"></i>
-                                    <span>${a.status === 'OPEN' ? (myHighestBid ? 'Nâng giá' : 'Vào đặt giá ngay') : 'Xem kết quả'}</span>
+                                <a href="04-Detail.html?id=${a.id}" class="w-full ${a.status === 'OPEN' ? 'bg-blue-600 hover:bg-blue-700 text-white' : (a.status === 'UPCOMING' ? 'bg-amber-600 hover:bg-amber-700 text-white shadow' : 'bg-gray-200 text-gray-500 cursor-not-allowed')} py-2.5 rounded-xl font-semibold text-xs flex items-center justify-center gap-2 transition shadow">
+                                    <i class="fa-solid fa-${a.status === 'UPCOMING' ? 'clock' : 'gavel'}"></i>
+                                    <span>${a.status === 'OPEN' ? (myHighestBid ? 'Nâng giá' : 'Vào đặt giá ngay') : (a.status === 'UPCOMING' ? 'Xem thông tin phiên sắp mở' : 'Xem kết quả')}</span>
                                 </a>
                             </div>
                         </div>

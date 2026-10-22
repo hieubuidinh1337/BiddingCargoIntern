@@ -515,16 +515,22 @@
                 const testSec = document.getElementById('quickTestCloseSection');
                 if (testSec && hideCloseBtn) testSec.classList.add('hidden');
                 if (testSec) testSec.classList.add('hidden');
-                    topBadge.innerHTML = `
-                        <span class="inline-block w-2.5 h-2.5 rounded-full bg-red-500"></span>
-                        <span class="text-xs font-medium text-red-700 bg-red-50 px-2.5 py-1 rounded-full border border-red-200">Phiên đã đóng thầu</span>
-                    `;
-                } else {
-                    topBadge.innerHTML = `
-                        <span class="inline-block w-2.5 h-2.5 rounded-full bg-green-500 animate-pulse"></span>
-                        <span class="text-xs font-medium text-green-700 bg-green-50 px-2.5 py-1 rounded-full border border-green-200">Phiên đang mở trực tiếp</span>
-                    `;
-                }
+                    if (isClosed) {
+                        topBadge.innerHTML = `
+                            <span class="inline-block w-2.5 h-2.5 rounded-full bg-red-500"></span>
+                            <span class="text-xs font-medium text-red-700 bg-red-50 px-2.5 py-1 rounded-full border border-red-200">Phiên đã đóng thầu</span>
+                        `;
+                    } else if (currentAuction.status === 'UPCOMING') {
+                        topBadge.innerHTML = `
+                            <span class="inline-block w-2.5 h-2.5 rounded-full bg-amber-500 animate-pulse"></span>
+                            <span class="text-xs font-medium text-amber-700 bg-amber-50 px-2.5 py-1 rounded-full border border-amber-200">Phiên sắp diễn ra (Mở lúc ${currentAuction.openDate || 'sắp tới'})</span>
+                        `;
+                    } else {
+                        topBadge.innerHTML = `
+                            <span class="inline-block w-2.5 h-2.5 rounded-full bg-green-500 animate-pulse"></span>
+                            <span class="text-xs font-medium text-green-700 bg-green-50 px-2.5 py-1 rounded-full border border-green-200">Phiên đang mở trực tiếp</span>
+                        `;
+                    }
             }
 
             // Input and Submit Controls
@@ -557,6 +563,17 @@
                 if (alertBox) {
                     alertBox.className = 'mt-3 p-3 rounded-xl text-xs bg-red-50 text-red-800 border border-red-200 block font-medium';
                     alertBox.textContent = 'Phiên đấu giá này đã chính thức đóng thầu. Hệ thống ngắt quyền gửi mức giá mới.';
+                }
+            } else if (currentAuction.status === 'UPCOMING') {
+                if (input) input.disabled = true;
+                if (submitBtn) {
+                    submitBtn.disabled = true;
+                    submitBtn.className = 'w-full bg-amber-100 text-amber-800 font-bold py-3.5 rounded-xl text-sm flex items-center justify-center gap-2 cursor-not-allowed border border-amber-300 shadow-none';
+                    submitBtn.innerHTML = `<i class="fa-solid fa-clock"></i> <span>Chưa đến giờ mở phiên (${currentAuction.openDate || 'Sắp diễn ra'})</span>`;
+                }
+                if (alertBox) {
+                    alertBox.className = 'mt-3 p-3.5 rounded-xl text-xs bg-amber-50 text-amber-900 border border-amber-200 block font-medium leading-relaxed';
+                    alertBox.innerHTML = `⏳ <strong>Phiên đấu giá chưa mở:</strong> Thời gian mở nhận giá thầu dự kiến lúc <strong>${currentAuction.openDate}</strong>. Quý đại lý vui lòng quay lại khi đến giờ mở phiên để tham gia đặt giá.`;
                 }
             } else if (!isAllowedToBid) {
                 if (input) input.disabled = true;

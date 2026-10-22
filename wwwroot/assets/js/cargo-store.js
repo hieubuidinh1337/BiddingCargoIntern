@@ -1358,6 +1358,38 @@ const CargoStore = (function () {
             const timer = getTimeRemaining(auction.endTime);
             const isTimerEnded = timer.isEnded;
 
+            // QUY TẮC NGHIỆP VỤ: Tự động chuyển UPCOMING -> OPEN khi đến giờ mở phiên
+            if (auction.status === 'UPCOMING') {
+                const openTimeMs = auction.openDateIso ? Date.parse(auction.openDateIso) : (parseFlightDate(auction.openDate)?.getTime() || 0);
+                if (openTimeMs > 0 && openTimeMs <= _now.getTime()) {
+                    auction.status = 'OPEN';
+                    auction.openedAt = auction.openedAt || _now.toISOString();
+                    modified = true;
+
+                    if (!data.notifications) data.notifications = [];
+                    data.notifications.unshift({
+                        id: Date.now() + Math.floor(Math.random() * 1000),
+                        timestamp: Date.now(),
+                        targetAgentCode: null,
+                        title: `🚀 CHÍNH THỨC MỞ THẦU: Chuyến ${auction.flightNumber} (${auction.route})`,
+                        message: `Phiên đấu giá chuyến bay ${auction.flightNumber} (${auction.originName || ''} - ${auction.destName || ''}) đã đến giờ mở thầu. Mời các đại lý tham gia đặt giá ngay!`,
+                        time: 'Vừa xong',
+                        type: 'AUCTION_OPEN',
+                        read: false,
+                        link: `04-Detail.html?id=${auction.id}`
+                    });
+                }
+            }
+
+            // Tự động chuyển về UPCOMING nếu phiên chưa có lượt đặt nào nhưng giờ mở openDate vẫn ở tương lai (> 30s)
+            if (auction.status === 'OPEN' && (!auction.bidsCount || auction.bidsCount === 0)) {
+                const openTimeMs = auction.openDateIso ? Date.parse(auction.openDateIso) : (parseFlightDate(auction.openDate)?.getTime() || 0);
+                if (openTimeMs > (_now.getTime() + 30000)) {
+                    auction.status = 'UPCOMING';
+                    modified = true;
+                }
+            }
+
             // QUY TẮC NGHIỆP VỤ: Khi phiên hết thời gian (isTimerEnded), phiên tự động ĐÓNG (status = 'CLOSED')
             if (auction.status === 'OPEN' && isTimerEnded) {
                 auction.status = 'CLOSED';
@@ -2269,7 +2301,7 @@ const CargoStore = (function () {
             const formattedEta = auctionData.eta ? this.formatFlightDateDisplay(auctionData.eta) : (formattedClose || 'Chưa cập nhật');
             const endTime = endTimeDate.toISOString();
 
-            const isUpcoming = Boolean(auctionData.isUpcoming && parsedOpen && parsedOpen.getTime() > (now.getTime() + 60000));
+            const isUpcoming = Boolean((auctionData.isUpcoming !== undefined ? auctionData.isUpcoming : true) && parsedOpen && parsedOpen.getTime() > (now.getTime() + 30000));
 
             // Process allowedAgents (Approvals for this flight)
             let allowedAgents = ['ALL'];
@@ -2334,34 +2366,64 @@ const CargoStore = (function () {
 
             // Notifications
             if (!data.notifications) data.notifications = [];
-            if (allowedAgents.includes('ALL')) {
-                // Broadcast notification for all agents
-                data.notifications.unshift({
-                    id: Date.now(),
-                    timestamp: Date.now(),
-                    targetAgentCode: null, // Broadcast to all agents
-                    title: `Mở phiên đấu giá mới: Chuyến ${flightNumber} (${origin} - ${dest})`,
-                    message: `Chuyến bay ${flightNumber} (${originName} - ${destName}) với tải trọng ${this.formatNumber(capacityKg)} Kg, giá khởi điểm ${this.formatCurrency(startingPriceKg)}/Kg đã chính thức mở nhận giá thầu.`,
-                    time: 'Vừa xong',
-                    type: 'AUCTION_OPEN',
-                    read: false,
-                    link: `04-Detail.html?id=${newId}`
-                });
-            } else {
-                // Targeted notifications only to approved assigned agents
-                allowedAgents.forEach((agentCode, idx) => {
+            if (isUpcoming) {
+                if (allowedAgents.includes('ALL')) {
                     data.notifications.unshift({
-                        id: Date.now() + idx + 1,
+                        id: Date.now(),
                         timestamp: Date.now(),
-                        targetAgentCode: agentCode,
-                        title: `🎯 Phê duyệt quyền đấu giá: Chuyến ${flightNumber} (${origin} - ${dest})`,
-                        message: `Đại lý ${agentCode} đã được chọn tham gia đấu giá tải trọng ${this.formatNumber(capacityKg)} Kg cho chuyến bay ${flightNumber} (${originName} - ${destName}). Giá khởi điểm: ${this.formatCurrency(startingPriceKg)}/Kg.`,
+                        targetAgentCode: null,
+                        title: `⏳ Lên lịch phiên đấu giá: Chuyến ${flightNumber} (${origin} - ${dest})`,
+                        message: `Chuyến bay ${flightNumber} (${originName} - ${destName}) với tải trọng ${this.formatNumber(capacityKg)} Kg, giá khởi điểm ${this.formatCurrency(startingPriceKg)}/Kg đã lên lịch mở thầu vào lúc ${formattedOpen}.`,
+                        time: 'Vừa xong',
+                        type: 'AUCTION_UPCOMING',
+                        read: false,
+                        link: `04-Detail.html?id=${newId}`
+                    });
+                } else {
+                    allowedAgents.forEach((agentCode, idx) => {
+                        data.notifications.unshift({
+                            id: Date.now() + idx + 1,
+                            timestamp: Date.now(),
+                            targetAgentCode: agentCode,
+                            title: `🎯 Phê duyệt quyền đấu giá: Chuyến ${flightNumber} (${origin} - ${dest})`,
+                            message: `Đại lý ${agentCode} đã được chọn tham gia đấu giá tải trọng ${this.formatNumber(capacityKg)} Kg cho chuyến bay ${flightNumber} (${originName} - ${destName}). Phiên dự kiến mở thầu lúc ${formattedOpen}. Giá khởi điểm: ${this.formatCurrency(startingPriceKg)}/Kg.`,
+                            time: 'Vừa xong',
+                            type: 'AUCTION_UPCOMING',
+                            read: false,
+                            link: `02-Dashboard.html`
+                        });
+                    });
+                }
+            } else {
+                if (allowedAgents.includes('ALL')) {
+                    // Broadcast notification for all agents
+                    data.notifications.unshift({
+                        id: Date.now(),
+                        timestamp: Date.now(),
+                        targetAgentCode: null, // Broadcast to all agents
+                        title: `Mở phiên đấu giá mới: Chuyến ${flightNumber} (${origin} - ${dest})`,
+                        message: `Chuyến bay ${flightNumber} (${originName} - ${destName}) với tải trọng ${this.formatNumber(capacityKg)} Kg, giá khởi điểm ${this.formatCurrency(startingPriceKg)}/Kg đã chính thức mở nhận giá thầu.`,
                         time: 'Vừa xong',
                         type: 'AUCTION_OPEN',
                         read: false,
-                        link: `02-Dashboard.html`
+                        link: `04-Detail.html?id=${newId}`
                     });
-                });
+                } else {
+                    // Targeted notifications only to approved assigned agents
+                    allowedAgents.forEach((agentCode, idx) => {
+                        data.notifications.unshift({
+                            id: Date.now() + idx + 1,
+                            timestamp: Date.now(),
+                            targetAgentCode: agentCode,
+                            title: `🎯 Phê duyệt quyền đấu giá: Chuyến ${flightNumber} (${origin} - ${dest})`,
+                            message: `Đại lý ${agentCode} đã được chọn tham gia đấu giá tải trọng ${this.formatNumber(capacityKg)} Kg cho chuyến bay ${flightNumber} (${originName} - ${destName}). Giá khởi điểm: ${this.formatCurrency(startingPriceKg)}/Kg.`,
+                            time: 'Vừa xong',
+                            type: 'AUCTION_OPEN',
+                            read: false,
+                            link: `02-Dashboard.html`
+                        });
+                    });
+                }
             }
 
             // Targeted Route Subscription Notifications for agents who subscribed to this specific route
@@ -2378,9 +2440,9 @@ const CargoStore = (function () {
                             timestamp: Date.now(),
                             targetAgentCode: agentCode,
                             title: `🔔 [TUYẾN BẠN QUAN TÂM] Phiên mới: ${flightNumber} (${origin} - ${dest})`,
-                            message: `Chuyến bay ${flightNumber} tuyến ${originName} ➔ ${destName} mà Quý đại lý đang theo dõi vừa mở đấu giá tải trọng ${this.formatNumber(capacityKg)} Kg (Giá khởi điểm: ${this.formatCurrency(startingPriceKg)}/Kg). Đặt giá ngay để không bỏ lỡ slot!`,
+                            message: `Chuyến bay ${flightNumber} tuyến ${originName} ➔ ${destName} mà Quý đại lý đang theo dõi vừa ${isUpcoming ? `lên lịch mở đấu giá vào lúc ${formattedOpen}` : 'mở đấu giá'} tải trọng ${this.formatNumber(capacityKg)} Kg (Giá khởi điểm: ${this.formatCurrency(startingPriceKg)}/Kg). Đặt giá ngay để không bỏ lỡ slot!`,
                             time: 'Vừa xong',
-                            type: 'AUCTION_OPEN',
+                            type: isUpcoming ? 'AUCTION_UPCOMING' : 'AUCTION_OPEN',
                             read: false,
                             link: `04-Detail.html?id=${newId}`
                         });
@@ -2417,12 +2479,14 @@ const CargoStore = (function () {
                 actionCategory: 'Phiên đấu giá',
                 actionTitle: 'Tạo mới phiên đấu giá',
                 target: flightNumber,
-                details: `Khởi tạo phiên đấu giá ${flightCode} (${origin} - ${dest}), cất cánh ${formattedEtd}. Tải trọng: ${this.formatNumber(capacityKg)} Kg, Giá sàn: ${this.formatCurrency(startingPriceKg)}/Kg.`
+                details: `Khởi tạo phiên đấu giá ${flightCode} (${origin} - ${dest}), ${isUpcoming ? `mở lúc ${formattedOpen}, ` : ''}đóng thầu lúc ${formattedClose}. Tải trọng: ${this.formatNumber(capacityKg)} Kg, Giá sàn: ${this.formatCurrency(startingPriceKg)}/Kg.`
             });
 
             return {
                 success: true,
-                message: `Tạo phiên đấu giá chuyến ${flightNumber} (${origin} - ${dest}) thành công! Phiên đã mở trực tiếp trên sàn.`,
+                message: isUpcoming
+                    ? `Tạo phiên đấu giá chuyến ${flightNumber} (${origin} - ${dest}) thành công!\nPhiên ở trạng thái "SẮP DIỄN RA" và sẽ tự động mở nhận giá thầu vào lúc ${formattedOpen}.`
+                    : `Tạo phiên đấu giá chuyến ${flightNumber} (${origin} - ${dest}) thành công! Phiên đã mở trực tiếp trên sàn.`,
                 auction: newAuction,
                 ...newAuction
             };
@@ -2669,6 +2733,11 @@ const CargoStore = (function () {
             // Check if auction is CLOSED (chỉ chặn khi phiên đã thực sự đóng/chốt bởi Admin)
             if (auction.status === 'CLOSED') {
                 return { success: false, message: 'Phiên đấu giá này đã đóng thầu, không thể đặt thêm giá.' };
+            }
+
+            // Check if auction is UPCOMING
+            if (auction.status === 'UPCOMING') {
+                return { success: false, message: `Phiên đấu giá này chưa đến giờ mở (Mở lúc: ${auction.openDate || 'Sắp diễn ra'}). Vui lòng quay lại sau!` };
             }
 
             // Phiên hết thời gian nhưng chưa chốt: tự động gia hạn thêm thời gian để đại lý đặt tiếp
@@ -3478,6 +3547,18 @@ const CargoStore = (function () {
                         success: false,
                         message: `Email "${emailClean}" đã được sử dụng trên hệ thống. Vui lòng sử dụng email khác.`
                     };
+                }
+            }
+
+            if (regData.documents && Array.isArray(regData.documents)) {
+                for (const doc of regData.documents) {
+                    if (doc && doc.size && doc.size > 10 * 1024 * 1024) {
+                        const sizeMB = (doc.size / (1024 * 1024)).toFixed(1);
+                        return {
+                            success: false,
+                            message: `Tệp tin "${doc.name || 'Hồ sơ'}" (${sizeMB}MB) vượt quá dung lượng tối đa cho phép (10MB/tệp tin)!`
+                        };
+                    }
                 }
             }
 
