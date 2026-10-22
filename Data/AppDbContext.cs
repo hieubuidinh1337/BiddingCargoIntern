@@ -50,5 +50,23 @@ public class AppDbContext : DbContext
         b.Entity<Chat>().HasIndex(x => x.AgentCode);
         b.Entity<ChatMessage>().HasIndex(x => x.ChatId);
         b.Entity<AppUser>().HasIndex(x => x.Username).IsUnique();
+
+        b.Entity<Auction>().Property(x => x.CapacityKg).HasConversion<int>();
+        b.Entity<Auction>().Property(x => x.StartingPriceKg).HasConversion<int>();
+        b.Entity<Auction>().Property(x => x.CurrentPriceKg).HasConversion<int>();
+        b.Entity<Auction>().Property(x => x.MinStep).HasConversion<int>();
+        b.Entity<Auction>().Property(x => x.WinningPriceKg).HasConversion<int>();
+
+        b.Entity<Bid>().Property(x => x.PriceKg).HasConversion<int>();
+        b.Entity<Bid>().Property(x => x.WeightKg).HasConversion<int>();
+
+        b.Entity<WonAuction>().Property(x => x.CapacityKg).HasConversion<int>();
+        b.Entity<WonAuction>().Property(x => x.PriceKg).HasConversion<int>();
+    }
+
+    protected override void ConfigureConventions(ModelConfigurationBuilder configurationBuilder)
+    {
+        configurationBuilder.Properties<bool>().HaveConversion<int>();
+        configurationBuilder.Properties<bool?>().HaveConversion<int?>();
     }
 }
