@@ -64,8 +64,12 @@ public class AppDbContext : DbContext
         b.Entity<WonAuction>().Property(x => x.PriceKg).HasConversion<int>();
     }
 
+    // true: DB lưu boolean dạng int (0/1); false: DB dùng kiểu bit. Được dò trong Program.cs trước khi dựng model.
+    public static bool BoolAsInt { get; set; } = true;
+
     protected override void ConfigureConventions(ModelConfigurationBuilder configurationBuilder)
     {
+        if (!BoolAsInt) return;
         configurationBuilder.Properties<bool>().HaveConversion<int>();
         configurationBuilder.Properties<bool?>().HaveConversion<int?>();
     }
