@@ -975,11 +975,7 @@
                     notifEmail: document.getElementById('notifEmail').value,
                     password: p1,
                     pin: null,
-                    documents: collectedFiles.length > 0 ? collectedFiles : [
-                        { name: 'GPKD_TanSonNhat_Scan.pdf', dataUrl: null, type: 'application/pdf' },
-                        { name: 'UyQuyen_Cargo_IATA.pdf', dataUrl: null, type: 'application/pdf' },
-                        { name: 'CCCD_TranHoangNam.pdf', dataUrl: null, type: 'application/pdf' }
-                    ]
+                    documents: collectedFiles
                 });
 
                 if (res && res.success === false) {

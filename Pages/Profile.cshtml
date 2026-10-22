@@ -170,79 +170,13 @@
                             <p class="text-[11px] text-slate-400">Giấy tờ pháp lý lưu trữ trên hệ thống phục vụ thẩm định năng lực đấu thầu</p>
                         </div>
                     </div>
-                    <span class="text-xs bg-emerald-50 text-emerald-800 border border-emerald-200 px-2.5 py-1 rounded-lg font-semibold flex items-center gap-1">
+                    <span id="ekycBadge" class="text-xs bg-emerald-50 text-emerald-800 border border-emerald-200 px-2.5 py-1 rounded-lg font-semibold flex items-center gap-1">
                         <i class="fa-solid fa-shield-check text-emerald-600"></i> Đã số hóa E-KYC
                     </span>
                 </div>
 
-                <div class="grid grid-cols-1 md:grid-cols-2 gap-3 text-xs">
-                    <!-- GPKD -->
-                    <div class="border rounded-xl p-3.5 flex items-center justify-between gap-3 bg-slate-50/70 hover:bg-slate-50 transition">
-                        <div class="flex items-center gap-3">
-                            <div class="w-10 h-10 rounded-xl bg-red-100 text-red-600 flex items-center justify-center text-lg shrink-0">
-                                <i class="fa-solid fa-file-pdf"></i>
-                            </div>
-                            <div>
-                                <p class="font-bold text-slate-900">Giấy phép kinh doanh / ĐKKD</p>
-                                <p class="text-[11px] text-slate-400">GPKD_Doanh_Nghiep.pdf · 1.1 MB</p>
-                            </div>
-                        </div>
-                        <a href="uploads/GPKD_Doanh_Nghiep.pdf" target="_blank"
-                            class="px-3 py-1.5 bg-white border hover:bg-blue-50 text-blue-700 hover:border-blue-300 font-bold rounded-lg text-xs transition shadow-2xs inline-flex items-center gap-1">
-                            <i class="fa-solid fa-eye text-xs"></i> Xem PDF
-                        </a>
-                    </div>
-
-                    <!-- Giấy ủy quyền Cargo / IATA -->
-                    <div class="border rounded-xl p-3.5 flex items-center justify-between gap-3 bg-slate-50/70 hover:bg-slate-50 transition">
-                        <div class="flex items-center gap-3">
-                            <div class="w-10 h-10 rounded-xl bg-red-100 text-red-600 flex items-center justify-center text-lg shrink-0">
-                                <i class="fa-solid fa-file-pdf"></i>
-                            </div>
-                            <div>
-                                <p class="font-bold text-slate-900">Giấy ủy quyền Đại lý Cargo / IATA</p>
-                                <p class="text-[11px] text-slate-400">IATA_Cargo_Authorization.pdf · 1.1 MB</p>
-                            </div>
-                        </div>
-                        <a href="uploads/IATA_Cargo_Authorization.pdf" target="_blank"
-                            class="px-3 py-1.5 bg-white border hover:bg-blue-50 text-blue-700 hover:border-blue-300 font-bold rounded-lg text-xs transition shadow-2xs inline-flex items-center gap-1">
-                            <i class="fa-solid fa-eye text-xs"></i> Xem PDF
-                        </a>
-                    </div>
-
-                    <!-- CCCD người đại diện -->
-                    <div class="border rounded-xl p-3.5 flex items-center justify-between gap-3 bg-slate-50/70 hover:bg-slate-50 transition">
-                        <div class="flex items-center gap-3">
-                            <div class="w-10 h-10 rounded-xl bg-red-100 text-red-600 flex items-center justify-center text-lg shrink-0">
-                                <i class="fa-solid fa-file-pdf"></i>
-                            </div>
-                            <div>
-                                <p class="font-bold text-slate-900">Bản chụp CCCD / Hộ chiếu Người đại diện</p>
-                                <p class="text-[11px] text-slate-400">CCCD_NguoiDaiDien.pdf · 1.1 MB</p>
-                            </div>
-                        </div>
-                        <a href="uploads/CCCD_NguoiDaiDien.pdf" target="_blank"
-                            class="px-3 py-1.5 bg-white border hover:bg-blue-50 text-blue-700 hover:border-blue-300 font-bold rounded-lg text-xs transition shadow-2xs inline-flex items-center gap-1">
-                            <i class="fa-solid fa-eye text-xs"></i> Xem PDF
-                        </a>
-                    </div>
-
-                    <!-- Quy chế / Năng lực logistics -->
-                    <div class="border rounded-xl p-3.5 flex items-center justify-between gap-3 bg-slate-50/70 hover:bg-slate-50 transition">
-                        <div class="flex items-center gap-3">
-                            <div class="w-10 h-10 rounded-xl bg-red-100 text-red-600 flex items-center justify-center text-lg shrink-0">
-                                <i class="fa-solid fa-file-pdf"></i>
-                            </div>
-                            <div>
-                                <p class="font-bold text-slate-900">Quy chế & Cam kết Đấu thầu Tải trọng</p>
-                                <p class="text-[11px] text-slate-400">Quy_che_dau_gia_tai_trong_Vietravel_Cargo.pdf · 1.1 MB</p>
-                            </div>
-                        </div>
-                        <a href="uploads/Quy_che_dau_gia_tai_trong_Vietravel_Cargo.pdf" target="_blank"
-                            class="px-3 py-1.5 bg-white border hover:bg-blue-50 text-blue-700 hover:border-blue-300 font-bold rounded-lg text-xs transition shadow-2xs inline-flex items-center gap-1">
-                            <i class="fa-solid fa-eye text-xs"></i> Xem PDF
-                        </a>
-                    </div>
+                <div id="profDocsContainer" class="grid grid-cols-1 md:grid-cols-2 gap-3 text-xs">
+                    <!-- Dynamic Document Cards rendered via renderProfileDocuments() -->
                 </div>
             </div>
         </div>
@@ -351,19 +285,19 @@
             </h3>
             <div class="grid grid-cols-2 md:grid-cols-4 gap-4">
                 <div class="text-center p-4 bg-gray-50 rounded-xl border">
-                    <p id="statTotalBids" class="text-2xl font-bold text-blue-600">24</p>
+                    <p id="statTotalBids" class="text-2xl font-bold text-blue-600">0</p>
                     <p class="text-xs text-gray-500 mt-1">Tổng lượt thầu</p>
                 </div>
                 <div class="text-center p-4 bg-gray-50 rounded-xl border">
-                    <p id="statTotalWins" class="text-2xl font-bold text-emerald-600">8</p>
+                    <p id="statTotalWins" class="text-2xl font-bold text-emerald-600">0</p>
                     <p class="text-xs text-gray-500 mt-1">Đã thắng thầu</p>
                 </div>
                 <div class="text-center p-4 bg-gray-50 rounded-xl border">
-                    <p id="statWinRate" class="text-2xl font-bold text-amber-500">33%</p>
+                    <p id="statWinRate" class="text-2xl font-bold text-amber-500">0%</p>
                     <p class="text-xs text-gray-500 mt-1">Tỷ lệ thắng</p>
                 </div>
                 <div class="text-center p-4 bg-gray-50 rounded-xl border">
-                    <p id="statSpentUSD" class="text-2xl font-bold text-slate-700">12.4k</p>
+                    <p id="statSpentUSD" class="text-2xl font-bold text-slate-700">0k</p>
                     <p class="text-xs text-gray-500 mt-1">USD tổng trúng</p>
                 </div>
             </div>
@@ -469,10 +403,10 @@
                         joinedDate: defaultAgent.joinedDate || '15/03/2024',
                         pin: defaultAgent.pin || '1234',
                         stats: {
-                            totalBids: defaultAgent.totalBids || 24,
-                            totalWins: defaultAgent.totalWins || 8,
-                            winRate: defaultAgent.winRate || '33%',
-                            totalSpentUSD: defaultAgent.totalSpentUSD || '185k'
+                            totalBids: defaultAgent.totalBids || 0,
+                            totalWins: defaultAgent.totalWins || 0,
+                            winRate: defaultAgent.winRate || '0%',
+                            totalSpentUSD: defaultAgent.totalSpentUSD || '0k'
                         }
                     };
                 }
@@ -499,14 +433,45 @@
             setText('profTaxCode', u.taxCode || '—');
             setText('profProvince', u.province || 'TP. Hồ Chí Minh');
 
+            // Tính thống kê thực tế theo lịch sử đặt thầu và thắng thầu
+            const myCode = (u.agentCode || u.code || '').trim().toUpperCase();
+            let actualBids = 0;
+            let actualWins = 0;
+            let actualSpentVND = 0;
+
+            if (storeData) {
+                if (Array.isArray(storeData.bids)) {
+                    actualBids = storeData.bids.filter(b => b && (b.agentCode || '').trim().toUpperCase() === myCode).length;
+                }
+                if (Array.isArray(storeData.wonAuctions)) {
+                    const myWins = storeData.wonAuctions.filter(w => w && (w.agentCode || '').trim().toUpperCase() === myCode);
+                    actualWins = myWins.length;
+                    actualSpentVND = myWins.reduce((sum, w) => sum + (Number(w.totalAmountVND) || 0), 0);
+                }
+            }
+
             const stats = u.stats || {};
-            setText('statTotalBids', stats.totalBids || u.totalBids || 24);
-            setText('statTotalWins', stats.totalWins || u.totalWins || 8);
-            setText('statWinRate', stats.winRate || u.winRate || '33%');
-            setText('statSpentUSD', stats.totalSpentUSD || u.totalSpentUSD || '185k');
-            setText('profWinRate', stats.winRate || u.winRate || '33%');
-            setText('profWins', stats.totalWins || u.totalWins || 8);
-            setText('profBids', stats.totalBids || u.totalBids || 24);
+            const totalBids = (typeof stats.totalBids === 'number') ? Math.max(stats.totalBids, actualBids) : ((typeof u.totalBids === 'number') ? Math.max(u.totalBids, actualBids) : actualBids);
+            const totalWins = (typeof stats.totalWins === 'number') ? Math.max(stats.totalWins, actualWins) : ((typeof u.totalWins === 'number') ? Math.max(u.totalWins, actualWins) : actualWins);
+            const winRate = totalBids > 0 ? Math.round((totalWins / totalBids) * 100) + '%' : (stats.winRate || '0%');
+
+            let spentText = '0k';
+            if (actualSpentVND > 0) {
+                const spentUSD = Math.round(actualSpentVND / 25400 / 1000 * 10) / 10;
+                spentText = spentUSD >= 1 ? spentUSD + 'k' : (spentUSD > 0 ? spentUSD + 'k' : '0k');
+            } else if (stats.totalSpentUSD && stats.totalSpentUSD !== '0k') {
+                spentText = stats.totalSpentUSD;
+            } else if (u.totalSpentUSD && u.totalSpentUSD !== '0k') {
+                spentText = u.totalSpentUSD;
+            }
+
+            setText('statTotalBids', totalBids);
+            setText('statTotalWins', totalWins);
+            setText('statWinRate', winRate);
+            setText('statSpentUSD', spentText);
+            setText('profWinRate', winRate);
+            setText('profWins', totalWins);
+            setText('profBids', totalBids);
 
             const pinBadge = document.getElementById('pinStatusBadge');
             if (pinBadge) {
@@ -524,6 +489,7 @@
             }
 
             renderProfileRouteBadges();
+            renderProfileDocuments(u, storeData);
         }
 
         function renderProfileRouteBadges() {
@@ -750,7 +716,374 @@
             }
             window.location.href = '01-Login.html';
         }
+
+        // ==================== AGENT PROFILE DOCUMENTS HANDLING ====================
+        let currentProfDocs = [];
+        let currentProfCompName = '';
+        let activeProfBlobUrl = null;
+
+        function dataUrlToBlob(dataUrl) {
+            if (!dataUrl || typeof dataUrl !== 'string') return null;
+            try {
+                const arr = dataUrl.split(',');
+                if (arr.length < 2) return null;
+                const mimeMatch = arr[0].match(/:(.*?);/);
+                const mime = mimeMatch ? mimeMatch[1] : 'application/pdf';
+                const bstr = window.atob(arr[1]);
+                let n = bstr.length;
+                const u8arr = new Uint8Array(n);
+                while (n--) {
+                    u8arr[n] = bstr.charCodeAt(n);
+                }
+                return new Blob([u8arr], { type: mime });
+            } catch (e) {
+                console.error('Lỗi chuyển đổi dataUrl sang Blob:', e);
+                return null;
+            }
+        }
+
+        function renderProfileDocuments(u, storeData) {
+            const container = document.getElementById('profDocsContainer');
+            if (!container) return;
+
+            currentProfCompName = u.companyName || 'Doanh nghiệp';
+            const myCode = (u.agentCode || u.code || '').trim().toUpperCase();
+
+            let docs = [];
+            if (Array.isArray(u.documents) && u.documents.length > 0) {
+                docs = u.documents;
+            } else if (storeData) {
+                const matchedAgent = (storeData.agentsList || []).find(a => (a.code || '').trim().toUpperCase() === myCode);
+                if (matchedAgent && Array.isArray(matchedAgent.documents) && matchedAgent.documents.length > 0) {
+                    docs = matchedAgent.documents;
+                } else {
+                    const matchedReg = (storeData.registrations || []).find(r =>
+                        ((r.agentCode && r.agentCode.trim().toUpperCase() === myCode) ||
+                         (r.taxCode && u.taxCode && r.taxCode.trim() === u.taxCode.trim()))
+                    );
+                    if (matchedReg && Array.isArray(matchedReg.documents) && matchedReg.documents.length > 0) {
+                        docs = matchedReg.documents;
+                    }
+                }
+            }
+
+            // Normalize docs if elements are strings
+            docs = docs.map((d, i) => typeof d === 'string' ? { name: d, dataUrl: null, type: 'application/pdf' } : d);
+            currentProfDocs = docs;
+
+            const badge = document.getElementById('ekycBadge');
+            if (badge) {
+                if (docs.length > 0) {
+                    badge.className = 'text-xs bg-emerald-50 text-emerald-800 border border-emerald-200 px-2.5 py-1 rounded-lg font-semibold flex items-center gap-1';
+                    badge.innerHTML = `<i class="fa-solid fa-shield-check text-emerald-600"></i> Đã số hóa E-KYC (${docs.length} tệp)`;
+                } else {
+                    badge.className = 'text-xs bg-amber-50 text-amber-800 border border-amber-200 px-2.5 py-1 rounded-lg font-semibold flex items-center gap-1';
+                    badge.innerHTML = `<i class="fa-solid fa-circle-exclamation text-amber-600"></i> Chưa đính kèm hồ sơ`;
+                }
+            }
+
+            if (docs.length === 0) {
+                container.className = 'grid grid-cols-1 gap-3 text-xs';
+                container.innerHTML = `
+                    <div class="border-2 border-dashed border-slate-200 rounded-xl p-8 text-center bg-slate-50/50">
+                        <div class="w-12 h-12 rounded-full bg-slate-100 text-slate-400 flex items-center justify-center mx-auto mb-3 text-xl">
+                            <i class="fa-solid fa-folder-open"></i>
+                        </div>
+                        <p class="font-bold text-slate-700 text-sm">Chưa có tài liệu đính kèm nào</p>
+                        <p class="text-xs text-slate-400 mt-1 max-w-md mx-auto">Tài khoản này hiện chưa tải lên hồ sơ pháp lý điện tử (GPKD, Giấy ủy quyền hoặc CCCD) trên hệ thống.</p>
+                    </div>
+                `;
+                return;
+            }
+
+            container.className = 'grid grid-cols-1 md:grid-cols-2 gap-3 text-xs';
+            container.innerHTML = docs.map((doc, idx) => {
+                const docName = doc.name || `Tài liệu_${idx + 1}.pdf`;
+                const docNameLower = docName.toLowerCase();
+                const isImg = (doc.type || '').startsWith('image/') || ['png', 'jpg', 'jpeg', 'webp'].some(e => docNameLower.endsWith(e));
+                const isPdf = (doc.type || '').includes('pdf') || docNameLower.endsWith('.pdf');
+
+                let title = 'Tài liệu hồ sơ minh chứng';
+                if (docNameLower.includes('gpkd') || docNameLower.includes('doanh_nghiep') || docNameLower.includes('kd')) title = 'Giấy phép kinh doanh / ĐKKD';
+                else if (docNameLower.includes('uyquyen') || docNameLower.includes('iata') || docNameLower.includes('cargo')) title = 'Giấy ủy quyền Đại lý Cargo / IATA';
+                else if (docNameLower.includes('cccd') || docNameLower.includes('cmnd') || docNameLower.includes('daidien')) title = 'Bản chụp CCCD / Hộ chiếu Người đại diện';
+                else if (docNameLower.includes('quy_che') || docNameLower.includes('cam_ket')) title = 'Quy chế & Cam kết Đấu thầu Tải trọng';
+
+                let sizeStr = 'Tệp PDF điện tử';
+                if (doc.size) {
+                    if (typeof doc.size === 'number') {
+                        sizeStr = (doc.size / (1024 * 1024)).toFixed(1) + ' MB';
+                    } else {
+                        sizeStr = doc.size;
+                    }
+                } else if (isImg) {
+                    sizeStr = 'Hình ảnh minh chứng';
+                }
+
+                const iconBg = isPdf ? 'bg-red-100 text-red-600' : (isImg ? 'bg-blue-100 text-blue-600' : 'bg-slate-100 text-slate-600');
+                const iconClass = isPdf ? 'fa-file-pdf' : (isImg ? 'fa-file-image' : 'fa-file-lines');
+
+                return `
+                    <div class="border border-slate-200 rounded-xl p-3.5 flex items-center justify-between gap-3 bg-slate-50/70 hover:bg-slate-50 transition shadow-2xs">
+                        <div class="flex items-center gap-3 min-w-0">
+                            <div class="w-10 h-10 rounded-xl ${iconBg} flex items-center justify-center text-lg shrink-0">
+                                <i class="fa-solid ${iconClass}"></i>
+                            </div>
+                            <div class="min-w-0">
+                                <p class="font-bold text-slate-900 truncate" title="${title}">${title}</p>
+                                <p class="text-[11px] text-slate-400 truncate" title="${docName}">${docName} · ${sizeStr}</p>
+                            </div>
+                        </div>
+                        <div class="flex items-center gap-1.5 shrink-0">
+                            <button type="button" onclick="previewProfileDoc(${idx})"
+                                class="px-2.5 py-1.5 bg-white border border-slate-200 hover:bg-blue-50 text-blue-700 hover:border-blue-300 font-bold rounded-lg text-xs transition shadow-2xs inline-flex items-center gap-1 cursor-pointer">
+                                <i class="fa-solid fa-eye text-[11px]"></i> Xem
+                            </button>
+                            <button type="button" onclick="downloadProfileDoc(${idx})"
+                                class="px-2 py-1.5 bg-white border border-slate-200 hover:bg-slate-100 text-slate-600 font-bold rounded-lg text-xs transition shadow-2xs inline-flex items-center cursor-pointer" title="Tải tệp tin">
+                                <i class="fa-solid fa-download text-[11px]"></i>
+                            </button>
+                        </div>
+                    </div>
+                `;
+            }).join('');
+        }
+
+        function previewProfileDoc(idx) {
+            const doc = currentProfDocs[idx];
+            if (!doc) return;
+
+            if (activeProfBlobUrl) {
+                try { URL.revokeObjectURL(activeProfBlobUrl); } catch(e){}
+                activeProfBlobUrl = null;
+            }
+
+            const docName = doc.name || `Tài liệu_${idx + 1}.pdf`;
+            const docNameLower = docName.toLowerCase();
+            const isImg = (doc.type || '').startsWith('image/') || ['png', 'jpg', 'jpeg', 'webp'].some(e => docNameLower.endsWith(e));
+            const isPdf = (doc.type || '').includes('pdf') || docNameLower.endsWith('.pdf');
+
+            const titleEl = document.getElementById('profDocModalTitle');
+            const subEl = document.getElementById('profDocModalSub');
+            if (titleEl) titleEl.textContent = docName;
+            if (subEl) subEl.textContent = `Tài liệu điện tử • ${doc.type || (isPdf ? 'application/pdf' : 'image')}`;
+
+            const iconEl = document.getElementById('profDocModalIcon');
+            if (iconEl) {
+                iconEl.className = 'fa-solid ' + (isPdf ? 'fa-file-pdf text-red-600' : (isImg ? 'fa-file-image text-blue-600' : 'fa-file-lines text-slate-600'));
+            }
+
+            const downloadBtn = document.getElementById('profDocDownloadBtn');
+            if (downloadBtn) {
+                downloadBtn.onclick = () => downloadProfileDoc(idx);
+            }
+
+            const newTabBtn = document.getElementById('profDocNewTabBtn');
+            const bodyEl = document.getElementById('profDocModalBody');
+            if (!bodyEl) return;
+            bodyEl.innerHTML = '';
+
+            if (doc.dataUrl) {
+                const blob = dataUrlToBlob(doc.dataUrl);
+                if (blob) {
+                    activeProfBlobUrl = URL.createObjectURL(blob);
+                }
+            }
+
+            if (newTabBtn) {
+                newTabBtn.onclick = () => {
+                    if (activeProfBlobUrl) {
+                        window.open(activeProfBlobUrl, '_blank');
+                    } else {
+                        alert('Tài liệu mẫu mô phỏng không có đường dẫn tab mới.');
+                    }
+                };
+            }
+
+            if (isPdf) {
+                if (activeProfBlobUrl) {
+                    bodyEl.innerHTML = `
+                        <div class="w-full h-full min-h-[500px] flex flex-col rounded-xl overflow-hidden shadow border border-slate-300 bg-white">
+                            <object data="${activeProfBlobUrl}#toolbar=1&navpanes=0&view=FitH" type="application/pdf" class="w-full h-full flex-1 min-h-[500px]">
+                                <iframe src="${activeProfBlobUrl}#toolbar=1&navpanes=0&view=FitH" class="w-full h-full flex-1 min-h-[500px] border-0" title="${docName}">
+                                    <div class="p-6 text-center text-slate-700">
+                                        <p class="font-bold mb-2">Trình duyệt không hỗ trợ xem trực tiếp PDF trong khung.</p>
+                                        <a href="${activeProfBlobUrl}" target="_blank" class="px-4 py-2 bg-blue-600 text-white rounded-xl font-bold text-xs hover:bg-blue-700 transition inline-block">
+                                            Mở PDF trên tab mới
+                                        </a>
+                                    </div>
+                                </iframe>
+                            </object>
+                        </div>
+                    `;
+                } else {
+                    bodyEl.innerHTML = renderSimulatedDocHtml(doc, docName);
+                }
+            } else if (isImg) {
+                const imgSrc = activeProfBlobUrl || doc.dataUrl;
+                if (imgSrc) {
+                    bodyEl.innerHTML = `
+                        <div class="w-full flex flex-col items-center justify-center p-3 bg-slate-900 rounded-xl overflow-hidden min-h-[420px]">
+                            <img src="${imgSrc}" alt="${docName}" class="max-w-full max-h-[65vh] object-contain rounded-lg shadow-2xl border border-slate-700">
+                            <div class="mt-3 flex items-center gap-2 bg-slate-800/90 text-slate-200 px-3 py-1.5 rounded-full text-xs border border-slate-700">
+                                <i class="fa-solid fa-image text-emerald-400"></i>
+                                <span class="font-mono text-emerald-300 font-bold">${docName}</span>
+                            </div>
+                        </div>
+                    `;
+                } else {
+                    bodyEl.innerHTML = renderSimulatedDocHtml(doc, docName);
+                }
+            } else {
+                if (activeProfBlobUrl) {
+                    bodyEl.innerHTML = `
+                        <div class="w-full flex flex-col items-center justify-center p-8 bg-white rounded-xl min-h-[350px] text-center border">
+                            <i class="fa-solid fa-file text-5xl text-blue-500 mb-3"></i>
+                            <h4 class="font-bold text-slate-800 text-sm mb-1">${docName}</h4>
+                            <p class="text-xs text-slate-500 mb-4">Loại tệp: ${doc.type || 'Tệp dữ liệu'}</p>
+                            <button onclick="downloadProfileDoc(${idx})" class="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-xl text-xs font-bold transition flex items-center gap-1.5 cursor-pointer">
+                                <i class="fa-solid fa-download"></i> Tải file về máy
+                            </button>
+                        </div>
+                    `;
+                } else {
+                    bodyEl.innerHTML = renderSimulatedDocHtml(doc, docName);
+                }
+            }
+
+            const modal = document.getElementById('profileDocModal');
+            if (modal) modal.classList.remove('hidden');
+        }
+
+        function closeProfileDocModal() {
+            const modal = document.getElementById('profileDocModal');
+            if (modal) modal.classList.add('hidden');
+            if (activeProfBlobUrl) {
+                try { URL.revokeObjectURL(activeProfBlobUrl); } catch(e){}
+                activeProfBlobUrl = null;
+            }
+        }
+
+        function downloadProfileDoc(idx) {
+            const doc = currentProfDocs[idx];
+            if (!doc) return;
+
+            if (doc.dataUrl) {
+                const blob = dataUrlToBlob(doc.dataUrl);
+                if (blob) {
+                    const url = URL.createObjectURL(blob);
+                    const a = document.createElement('a');
+                    a.href = url;
+                    a.download = doc.name || 'document.pdf';
+                    document.body.appendChild(a);
+                    a.click();
+                    document.body.removeChild(a);
+                    setTimeout(() => URL.revokeObjectURL(url), 1000);
+                    return;
+                }
+            }
+
+            const blob = new Blob([
+                `BẢN ĐỐI SOÁT HỒ SƠ ĐIỆN TỬ - VIETRAVEL AIRLINES CARGO\n` +
+                `Tên tệp tin: ${doc.name}\n` +
+                `Doanh nghiệp: ${currentProfCompName}\n` +
+                `Trạng thái: Đã số hóa và lưu trữ trên hệ thống E-KYC\n` +
+                `Thời gian trích xuất: ${new Date().toLocaleString('vi-VN')}\n`
+            ], { type: 'text/plain;charset=utf-8' });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = (doc.name || 'document').replace(/\.pdf$/i, '') + '_ChungThuc.txt';
+            document.body.appendChild(a);
+            a.click();
+            document.body.removeChild(a);
+            setTimeout(() => URL.revokeObjectURL(url), 1000);
+        }
+
+        function renderSimulatedDocHtml(doc, docName) {
+            const hash = Math.abs(docName.split('').reduce((a, b) => (((a << 5) - a) + b.charCodeAt(0)) | 0, 0));
+            return `
+                <div class="bg-white text-slate-800 w-full max-w-2xl mx-auto p-6 rounded-xl shadow border border-slate-200 text-left space-y-4 text-xs font-sans relative overflow-hidden">
+                    <div class="absolute right-4 top-10 border-2 border-emerald-600/30 text-emerald-700/40 rounded-full w-24 h-24 flex flex-col items-center justify-center font-bold rotate-[-15deg] pointer-events-none select-none uppercase text-center leading-tight">
+                        <span class="text-[8px] tracking-wider">VIETRAVEL</span>
+                        <span class="text-[10px] font-black border-t border-b border-emerald-600/30 py-0.5 my-0.5">ĐÃ XÁC THỰC</span>
+                        <span class="text-[7px] font-mono tracking-widest">E-KYC</span>
+                    </div>
+
+                    <div class="border-b pb-3 flex items-center justify-between">
+                        <div class="flex items-center gap-2.5">
+                            <div class="w-8 h-8 rounded-lg bg-blue-600 text-white flex items-center justify-center font-bold text-xs">
+                                <i class="fa-solid fa-plane-departure"></i>
+                            </div>
+                            <div>
+                                <p class="font-black text-slate-900 text-xs tracking-wide">VIETRAVEL AIRLINES CARGO</p>
+                                <p class="text-[10px] text-slate-400">HỆ THỐNG QUẢN LÝ ĐẤU THẦU HÀNG HÓA HÀNG KHÔNG</p>
+                            </div>
+                        </div>
+                        <span class="px-2 py-0.5 bg-emerald-50 text-emerald-700 border border-emerald-200 rounded text-[10px] font-bold">HỒ SƠ HỢP LỆ</span>
+                    </div>
+
+                    <div>
+                        <h3 class="text-sm font-black text-slate-800 uppercase tracking-wide text-center py-1">CHỨNG THƯ LƯU TRỮ HỒ SƠ ĐIỆN TỬ</h3>
+                        <p class="text-center text-[10px] text-slate-400">Mã trích xuất số hóa: EKYC-${hash}</p>
+                    </div>
+
+                    <div class="bg-slate-50 border rounded-lg p-3 space-y-1.5 text-slate-700">
+                        <div class="flex justify-between py-0.5 border-b border-slate-200/60">
+                            <span class="text-slate-500 font-medium">Tên tài liệu:</span>
+                            <span class="font-bold text-slate-900 font-mono">${docName}</span>
+                        </div>
+                        <div class="flex justify-between py-0.5 border-b border-slate-200/60">
+                            <span class="text-slate-500 font-medium">Đơn vị nộp hồ sơ:</span>
+                            <span class="font-bold text-slate-900">${currentProfCompName || 'Đại lý đăng ký'}</span>
+                        </div>
+                        <div class="flex justify-between py-0.5 border-b border-slate-200/60">
+                            <span class="text-slate-500 font-medium">Thời gian tiếp nhận:</span>
+                            <span class="font-medium text-slate-800">${new Date().toLocaleDateString('vi-VN')}</span>
+                        </div>
+                        <div class="flex justify-between py-0.5">
+                            <span class="text-slate-500 font-medium">Tình trạng kiểm tra:</span>
+                            <span class="font-bold text-emerald-600 flex items-center gap-1"><i class="fa-solid fa-circle-check"></i> Đã phê duyệt thẩm định</span>
+                        </div>
+                    </div>
+
+                    <p class="text-[11px] text-slate-500 italic text-center">Tài liệu đã được lưu trữ an toàn trong kho hồ sơ năng lực đại lý của Vietravel Airlines Cargo.</p>
+                </div>
+            `;
+        }
     </script>
+
+    <!-- Document Preview Modal -->
+    <div id="profileDocModal" class="fixed inset-0 z-50 hidden flex items-center justify-center bg-slate-900/60 backdrop-blur-xs p-3 sm:p-4">
+        <div class="bg-white rounded-2xl shadow-2xl w-full max-w-4xl max-h-[92vh] flex flex-col overflow-hidden">
+            <!-- Modal Header -->
+            <div class="px-5 py-3.5 border-b border-slate-100 flex items-center justify-between bg-slate-50">
+                <div class="flex items-center gap-3 min-w-0">
+                    <div class="w-9 h-9 rounded-xl bg-blue-100 text-blue-700 flex items-center justify-center shrink-0">
+                        <i id="profDocModalIcon" class="fa-solid fa-file-pdf"></i>
+                    </div>
+                    <div class="min-w-0">
+                        <h3 id="profDocModalTitle" class="font-bold text-slate-900 text-sm truncate">Chi tiết tài liệu đính kèm</h3>
+                        <p id="profDocModalSub" class="text-xs text-slate-500 truncate">Hồ sơ pháp lý đại lý</p>
+                    </div>
+                </div>
+                <div class="flex items-center gap-2">
+                    <button id="profDocDownloadBtn" class="px-3 py-1.5 bg-blue-600 hover:bg-blue-700 text-white rounded-lg text-xs font-semibold flex items-center gap-1.5 transition shadow-sm cursor-pointer">
+                        <i class="fa-solid fa-download"></i> Tải về
+                    </button>
+                    <button id="profDocNewTabBtn" class="px-3 py-1.5 bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-lg text-xs font-semibold flex items-center gap-1.5 transition cursor-pointer">
+                        <i class="fa-solid fa-arrow-up-right-from-square"></i> Tab mới
+                    </button>
+                    <button onclick="closeProfileDocModal()" class="w-8 h-8 rounded-lg hover:bg-slate-200 text-slate-400 hover:text-slate-600 flex items-center justify-center transition cursor-pointer">
+                        <i class="fa-solid fa-xmark text-sm"></i>
+                    </button>
+                </div>
+            </div>
+            <!-- Modal Body -->
+            <div id="profDocModalBody" class="p-4 flex-1 overflow-auto bg-slate-100 min-h-[420px] max-h-[70vh] flex items-center justify-center">
+            </div>
+        </div>
+    </div>
 
 </body>
 

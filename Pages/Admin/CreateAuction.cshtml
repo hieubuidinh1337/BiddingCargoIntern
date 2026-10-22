@@ -1684,7 +1684,7 @@
                     openDate: openIso,
                     closeDate: closeIso,
                     isUpcoming: openDt.getTime() > (Date.now() + 30000),
-                    etd: closeIso,
+                    etd: flightStartDateVal ? `${flightStartDateVal}T08:00` : closeIso,
                     eta: '',
                     aircraft: document.getElementById('aircraftType').value,
                     capacityKg: capacityKgVal,

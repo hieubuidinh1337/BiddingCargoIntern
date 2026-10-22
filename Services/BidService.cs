@@ -77,15 +77,16 @@ public class BidService
             }
             long? endMs = Util.ParseIso(auction.EndTime)?.ToUnixTimeMilliseconds();
 
-            // Phiên quá hạn/ETD đã qua mà chưa có người thắng → tự gia hạn (hành vi của bản gốc)
-            if (auction.Status != "OPEN" || endMs == null || now > endMs || etdMs == null || etdMs <= now)
+            if (auction.Status == "CLOSED" || (endMs != null && now > endMs))
+                throw new BidException("Phiên đấu giá đã kết thúc, không thể đặt thêm giá");
+
+            if (auction.Status == "UPCOMING")
+                throw new BidException("Phiên đấu giá chưa đến giờ mở thầu");
+
+            // Chỉ gán EndTime mặc định nếu phiên hoàn toàn chưa có cấu hình thời gian đóng
+            if (endMs == null)
             {
-                var nextEtd = DateTimeOffset.UtcNow.AddHours(6);
-                var local = nextEtd.LocalDateTime;
-                auction.EndTime = Util.ToIso(DateTimeOffset.UtcNow.AddMinutes(120));
-                auction.EtdIso = Util.ToIso(nextEtd);
-                auction.Etd = $"{local.ToString("HH:mm", System.Globalization.CultureInfo.InvariantCulture)} · {local.ToString("dd/MM/yyyy", System.Globalization.CultureInfo.InvariantCulture)}";
-                auction.Status = "OPEN";
+                auction.EndTime = Util.ToIso(DateTimeOffset.UtcNow.AddMinutes(60));
             }
 
             var minRequired = auction.StartingPriceKg;

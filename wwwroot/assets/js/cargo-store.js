@@ -477,36 +477,24 @@ const CargoStore = (function () {
                     if (!seenIds.has(idKey)) {
                         seenIds.add(idKey);
                         if (a.status === 'OPEN') {
-                            const endTimeMs = Date.parse(a.endTime);
-                            let etdDate = a.etdIso ? new Date(a.etdIso) : parseFlightDate(a.etd);
+                            const endTimeMs = a.endTime ? Date.parse(a.endTime) : (a.closeDateIso ? Date.parse(a.closeDateIso) : NaN);
 
-                            // Check if ETD is in the past or less than 3h from now (Cut-off is 3h before ETD)
-                            const isEtdPastOrTooClose = !etdDate || isNaN(etdDate.getTime()) || etdDate.getTime() <= (now + 3 * 3600 * 1000);
-
-                            if (isEtdPastOrTooClose) {
-                                // Calculate a realistic upcoming departure ETD (tomorrow or later with sufficient lead time)
-                                const durationMins = getFlightDurationMinutes(a.origin, a.destination);
-                                const futureEtdDate = new Date(now + 8 * 3600 * 1000 + (idx % 5) * 3 * 3600 * 1000);
-                                futureEtdDate.setMinutes(Math.round(futureEtdDate.getMinutes() / 15) * 15, 0, 0);
-
-                                a.etd = `${pad(futureEtdDate.getHours())}:${pad(futureEtdDate.getMinutes())} · ${pad(futureEtdDate.getDate())}/${pad(futureEtdDate.getMonth() + 1)}/${futureEtdDate.getFullYear()}`;
-                                a.etdIso = futureEtdDate.toISOString();
-
-                                const etaDate = new Date(futureEtdDate.getTime() + durationMins * 60 * 1000);
-                                a.eta = `${pad(etaDate.getHours())}:${pad(etaDate.getMinutes())} · ${pad(etaDate.getDate())}/${pad(etaDate.getMonth() + 1)}/${etaDate.getFullYear()}`;
-
-                                const cutOffDate = new Date(futureEtdDate.getTime() - 3 * 3600 * 1000);
-                                a.cutOffTime = `${pad(cutOffDate.getHours())}:${pad(cutOffDate.getMinutes())} · ${pad(cutOffDate.getDate())}/${pad(cutOffDate.getMonth() + 1)}/${cutOffDate.getFullYear()}`;
-
-                                // Auction closes 5h before ETD (or at least 2h from now)
-                                const closeMs = Math.max(now + 2 * 3600 * 1000, futureEtdDate.getTime() - 5 * 3600 * 1000);
-                                a.endTime = new Date(closeMs).toISOString();
-                                updated = true;
-                            } else if (isNaN(endTimeMs) || endTimeMs <= now) {
-                                // Keep browser-side end-time reconciliation aligned with server-side logic
-                                // so agent and admin pages calculate the same countdown for the same auction.
-                                const safeClose = Math.max(now + 2 * 3600 * 1000, etdDate.getTime() - 3 * 3600 * 1000);
+                            if (!isNaN(endTimeMs) && endTimeMs > now) {
+                                // Phiên đang OPEN và có hạn đóng hợp lệ trong tương lai:
+                                // TUYỆT ĐỐI KHÔNG ghi đè a.endTime! Giữ nguyên thời gian admin/hệ thống đã thiết lập.
+                                if (!a.endTime && a.closeDateIso) {
+                                    a.endTime = a.closeDateIso;
+                                    updated = true;
+                                }
+                            } else if (isNaN(endTimeMs)) {
+                                // Chỉ khi thiếu endTime hoàn toàn: gán mặc định an toàn 1 giờ
+                                const safeClose = now + 60 * 60 * 1000;
                                 a.endTime = new Date(safeClose).toISOString();
+                                updated = true;
+                            } else if (endTimeMs <= now) {
+                                // Phiên đã hết thời gian đếm ngược: tự động đóng phiên
+                                a.status = 'CLOSED';
+                                a.closedAt = a.closedAt || new Date(endTimeMs).toISOString();
                                 updated = true;
                             }
                         }
@@ -1933,6 +1921,7 @@ const CargoStore = (function () {
                 tier: agent.tier || 'TIER1',
                 status: agent.status || 'Đang hoạt động',
                 joinedDate: agent.joinedDate || '15/03/2024',
+                documents: agent.documents || [],
                 stats: {
                     totalBids: agent.totalBids || 0,
                     totalWins: agent.totalWins || 0,
@@ -1941,6 +1930,18 @@ const CargoStore = (function () {
                     totalSpentVND: agent.totalSpentVND || 0
                 }
             };
+
+            // Auto-link documents from registration if not yet on agent record
+            if (!data.currentUser.documents || data.currentUser.documents.length === 0) {
+                const matchedReg = (data.registrations || []).find(r =>
+                    (r.agentCode && r.agentCode.toUpperCase() === agent.code.toUpperCase()) ||
+                    (r.taxCode && agent.taxCode && r.taxCode.trim() === agent.taxCode.trim())
+                );
+                if (matchedReg && matchedReg.documents && matchedReg.documents.length > 0) {
+                    data.currentUser.documents = matchedReg.documents;
+                    agent.documents = matchedReg.documents;
+                }
+            }
             // Clear currentAdmin to prevent session leakage on agent login
             data.currentAdmin = null;
 
@@ -2203,7 +2204,9 @@ const CargoStore = (function () {
                     return { success: false, message: 'Ngày đóng phiên phải diễn ra sau ngày mở phiên.' };
                 }
                 endTimeDate = parsedClose;
-                parsedEtd = parsedClose;
+                parsedEtd = auctionData.flightStartDate 
+                    ? (this.parseFlightDate(`${auctionData.flightStartDate}T08:00`) || this.parseFlightDate(auctionData.etd) || parsedClose)
+                    : (this.parseFlightDate(auctionData.etd) || parsedClose);
             } else {
                 // Validate ETD date (legacy flow)
                 parsedEtd = this.parseFlightDate(auctionData.etd);
@@ -3689,6 +3692,7 @@ const CargoStore = (function () {
             reg.status = 'APPROVED';
             const count = (data.agentsList || []).length + 1;
             const newCode = `AG-${String(count).padStart(4, '0')}`;
+            reg.agentCode = newCode;
             const agentPwd = reg.password || '12345678';
             const agentPin = reg.pin || null; // Mã PIN được tạo sau khi đăng nhập thành công
 
@@ -3709,7 +3713,8 @@ const CargoStore = (function () {
                 status: 'Đang hoạt động',
                 joinedDate: new Date().toLocaleDateString('vi-VN'),
                 totalBids: 0,
-                totalWins: 0
+                totalWins: 0,
+                documents: reg.documents || []
             };
             data.agentsList.push(newAgent);
 

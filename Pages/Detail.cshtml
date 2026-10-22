@@ -657,6 +657,7 @@
 
             updateCalc();
             renderBidsTable();
+            updateClock();
         }
 
         function updateCalc() {
@@ -845,6 +846,7 @@
 
         document.addEventListener('DOMContentLoaded', function() {
             loadAuctionDetail();
+            updateClock();
             setInterval(function() {
                 if (typeof document !== 'undefined' && document.hidden) return;
                 updateClock();

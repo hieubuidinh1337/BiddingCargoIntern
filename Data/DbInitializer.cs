@@ -12,9 +12,11 @@ public static class DbInitializer
         if (string.IsNullOrWhiteSpace(connectionString)) return true;
         try
         {
-            using var conn = new SqlConnection(connectionString);
+            var b = new SqlConnectionStringBuilder(connectionString) { ConnectTimeout = 3 };
+            using var conn = new SqlConnection(b.ConnectionString);
             conn.Open();
             using var cmd = conn.CreateCommand();
+            cmd.CommandTimeout = 3;
             cmd.CommandText = "SELECT DATA_TYPE FROM INFORMATION_SCHEMA.COLUMNS WHERE TABLE_NAME='notifications' AND COLUMN_NAME='read'";
             var t = cmd.ExecuteScalar() as string;
             return !string.Equals(t, "bit", StringComparison.OrdinalIgnoreCase);
