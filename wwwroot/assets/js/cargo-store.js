@@ -1834,7 +1834,9 @@ const CargoStore = (function () {
                     }
                 }
 
-                return { success: false, message: `Mã đại lý hoặc Email "${agentCodeOrEmail}" không tồn tại trong CSDL.` };
+                // Dữ liệu cục bộ có thể chưa kịp đồng bộ (vd: vừa được duyệt) -> kéo dữ liệu mới nhất để lần thử sau thành công
+                try { lastLocalSaveTimestamp = 0; syncWithServer(true); } catch (e) { }
+                return { success: false, message: `Mã đại lý hoặc Email "${agentCodeOrEmail}" không tồn tại trong CSDL. Nếu hồ sơ vừa được duyệt, vui lòng đợi vài giây rồi đăng nhập lại.` };
             }
 
             // Check if agent is currently locked due to failed login attempts
@@ -2679,8 +2681,14 @@ const CargoStore = (function () {
         },
 
         getAuctionById: function (id) {
+            if (id === undefined || id === null || id === '') return null;
+            const target = String(id).trim().toUpperCase();
             const auctions = this.getAuctions();
-            let found = auctions.find(a => String(a.id) === String(id));
+            let found = auctions.find(a => 
+                String(a.id) === String(id) ||
+                (a.flightCode && a.flightCode.toUpperCase() === target) ||
+                (a.flightNumber && a.flightNumber.toUpperCase() === target)
+            );
             if (!found) {
                 const data = loadData();
                 const won = (data.wonAuctions || []).find(w => String(w.auctionId) === String(id) || String(w.wonId) === String(id));
@@ -2877,7 +2885,31 @@ const CargoStore = (function () {
                     auction.leadingAgentCode = user.agentCode;
                     auction.leadingAgentName = user.companyName;
                 }
-                saveData(data);
+                saveData(data, true);
+
+                // Dispatch to server so database receives the updated bid
+                const isHttpUpdate = typeof window !== 'undefined' && window.location && window.location.protocol && window.location.protocol.startsWith('http');
+                if (isHttpUpdate) {
+                    const updateBidId = 'BID-' + existingBid.timestamp + '-' + Math.floor(Math.random() * 1000);
+                    fetch('/api/bids/place', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({
+                            bidId: updateBidId,
+                            auctionId: Number(auction.id),
+                            agentCode: user.agentCode || user.code,
+                            agentName: user.companyName || user.fullName || user.agentCode || user.code,
+                            priceKg: Number(bidPriceKg),
+                            isAnonymous: (isAnonymous !== false),
+                            weightKg: auction.capacityKg
+                        })
+                    }).then(r => r.json().catch(() => ({}))).then(res => {
+                        if (res && res.success && res.bid) {
+                            if (typeof syncWithServer === 'function') syncWithServer();
+                        }
+                    }).catch(() => { });
+                }
+
                 return {
                     success: true,
                     updated: true,
@@ -3778,8 +3810,14 @@ const CargoStore = (function () {
             if (!reg) return false;
 
             reg.status = 'APPROVED';
-            const count = (data.agentsList || []).length + 1;
-            const newCode = `AG-${String(count).padStart(4, '0')}`;
+            if (!data.agentsList) data.agentsList = [];
+            const existingCodes = new Set(data.agentsList.map(a => String(a.code || '').trim().toUpperCase()));
+            let seq = data.agentsList.length + 1;
+            let newCode = `AG-${String(seq).padStart(4, '0')}`;
+            while (existingCodes.has(newCode)) {
+                seq++;
+                newCode = `AG-${String(seq).padStart(4, '0')}`;
+            }
             reg.agentCode = newCode;
             const agentPwd = reg.password || '12345678';
             const agentPin = reg.pin || null; // Mã PIN được tạo sau khi đăng nhập thành công
@@ -7219,7 +7257,10 @@ const CargoStore = (function () {
                 return role === 'ADMIN' || role === 'STAFF';
             });
 
-            return adminNotifs.map(n => {
+            const readIdSet = new Set((Array.isArray(data.readNotificationIds) ? data.readNotificationIds : []).map(String));
+            const deletedIdSet = new Set((Array.isArray(data.deletedNotificationIds) ? data.deletedNotificationIds : []).map(String));
+            return adminNotifs.filter(n => !deletedIdSet.has(String(n.id))).map(n => {
+                const isRead = n.read === true || readIdSet.has(String(n.id));
                 const ts = n.timestamp || n.createdAt || (typeof n.id === 'number' && n.id > 1577836800000 ? n.id : (typeof n.id === 'string' && !isNaN(Number(n.id)) && Number(n.id) > 1577836800000 ? Number(n.id) : null));
                 let displayTime = n.time;
                 if (ts) {
@@ -7230,35 +7271,23 @@ const CargoStore = (function () {
 
                 return {
                     ...n,
+                    read: isRead,
+                    unread: !isRead,
                     time: displayTime
                 };
             }).sort((a, b) => (Number(b.timestamp || b.createdAt || b.id) || 0) - (Number(a.timestamp || a.createdAt || a.id) || 0));
         },
 
         markAllAdminNotificationsAsRead: function () {
-            const data = loadData();
-            if (data.notifications) {
-                // Only mark admin/staff notifications as read — leave agent notifications untouched
-                data.notifications.forEach(n => {
-                    const role = String(n.targetRole || '').trim().toUpperCase();
-                    if (role === 'ADMIN' || role === 'STAFF') {
-                        n.read = true;
-                    }
-                });
-                saveData(data);
-            }
+            // Only mark admin/staff notifications as read — leave agent notifications untouched
+            this.getAdminNotifications().forEach(n => {
+                if (!n.read) this.markNotificationRead(n.id);
+            });
             this.renderAdminNotificationList();
         },
 
         markAdminNotificationAsRead: function (id) {
-            const data = loadData();
-            if (data.notifications) {
-                const item = data.notifications.find(n => n.id == id);
-                if (item) {
-                    item.read = true;
-                    saveData(data);
-                }
-            }
+            this.markNotificationRead(id);
             this.renderAdminNotificationList();
         },
 

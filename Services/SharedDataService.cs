@@ -66,6 +66,7 @@ public class SharedDataService
         var s = await _db.Settings.FindAsync("version");
         if (s == null) { s = new Setting { Key = "version" }; _db.Settings.Add(s); }
         s.Value = v.ToString();
+        InvalidateSnapshotCache();
         return v;
     }
 
@@ -130,7 +131,7 @@ public class SharedDataService
         AuctionRules.ReconcileSummaries(auctions, bids);
 
         // Chính sách chi nhánh (giữ nguyên từ bản Node): tự động mở khóa mọi đại lý, xóa cảnh báo "TÀI KHOẢN ĐÃ BỊ KHÓA".
-        if (_cfg.GetValue("App:AutoUnlockAgents", true))
+        if (_cfg.GetValue("App:AutoUnlockAgents", false))
         {
             foreach (var a in await _db.Agents.ToListAsync())
             {
@@ -164,10 +165,18 @@ public class SharedDataService
 
     // ---------------------------------------------------------------- snapshot (GET /api/data)
 
+    private static long _cachedSnapshotTime = 0;
+    private static (List<Auction> auctions, List<Bid> bids, List<WonAuction> wons, List<Notification> notifs, List<Registration> regs, List<Agent> agents, List<AppUser> users, List<Chat> chats, List<ChatMessage> msgs, List<EmailLog> emails, List<ActivityLog> logs, Dictionary<string, string?> settings)? _cachedDbSnapshot = null;
+    private static readonly SemaphoreSlim _cacheGate = new(1, 1);
+
+    public static void InvalidateSnapshotCache()
+    {
+        _cachedSnapshotTime = 0;
+        _cachedDbSnapshot = null;
+    }
+
     public async Task<JsonObject> GetSnapshotAsync(string? rawAgentCode, string? rawRole)
     {
-        await MaintenanceAsync();
-
         string? agentCode = null;
         if (!string.IsNullOrWhiteSpace(rawAgentCode) && rawAgentCode != "null" && rawAgentCode != "undefined")
             agentCode = rawAgentCode.Trim().ToUpperInvariant();
@@ -175,21 +184,55 @@ public class SharedDataService
         var isAdmin = role == "admin" && agentCode == null;
         var isStaff = role == "staff" && agentCode == null;
 
-        var auctionEnt = await _db.Auctions.AsNoTracking().OrderByDescending(a => a.Id).ToListAsync();
-        var bidEnt = await _db.Bids.AsNoTracking().OrderByDescending(b => b.Timestamp).ToListAsync();
-        var wonEnt = await _db.WonAuctions.AsNoTracking().OrderByDescending(w => w.WonId).ToListAsync();
-        var notifEnt = await _db.Notifications.AsNoTracking().OrderByDescending(n => n.Id).ToListAsync();
-        var regEnt = await _db.Registrations.AsNoTracking().ToListAsync();
-        var agentEnt = await _db.Agents.AsNoTracking().ToListAsync();
-        var userEnt = await _db.Users.AsNoTracking().ToListAsync();
-        var chatEnt = await _db.Chats.AsNoTracking().OrderByDescending(c => c.CreatedAt).ToListAsync();
-        var msgEnt = await _db.ChatMessages.AsNoTracking().OrderBy(m => m.Timestamp).ToListAsync();
-        var emailEnt = await _db.EmailLogs.AsNoTracking().OrderByDescending(e => e.Id).Take(50).ToListAsync();
-        var logEnt = await _db.ActivityLogs.AsNoTracking().OrderByDescending(l => l.RawTime).Take(1000).ToListAsync();
+        var nowMs = Util.NowMs();
+        var snap = _cachedDbSnapshot;
+        if (snap == null || nowMs - _cachedSnapshotTime > 1500)
+        {
+            await _cacheGate.WaitAsync();
+            try
+            {
+                snap = _cachedDbSnapshot;
+                if (snap == null || nowMs - _cachedSnapshotTime > 1500)
+                {
+                    await using var readTx = await _db.Database.BeginTransactionAsync(System.Data.IsolationLevel.ReadUncommitted);
+                    var auctionEnt = await _db.Auctions.AsNoTracking().OrderByDescending(a => a.Id).ToListAsync();
+                    var bidEnt = await _db.Bids.AsNoTracking().OrderByDescending(b => b.Timestamp).ToListAsync();
+                    var wonEnt = await _db.WonAuctions.AsNoTracking().OrderByDescending(w => w.WonId).ToListAsync();
+                    var notifEnt = await _db.Notifications.AsNoTracking().OrderByDescending(n => n.Id).ToListAsync();
+                    var regEnt = await _db.Registrations.AsNoTracking().ToListAsync();
+                    var agentEnt = await _db.Agents.AsNoTracking().ToListAsync();
+                    var userEnt = await _db.Users.AsNoTracking().ToListAsync();
+                    var chatEnt = await _db.Chats.AsNoTracking().OrderByDescending(c => c.CreatedAt).ToListAsync();
+                    var msgEnt = await _db.ChatMessages.AsNoTracking().OrderBy(m => m.Timestamp).ToListAsync();
+                    var emailEnt = await _db.EmailLogs.AsNoTracking().OrderByDescending(e => e.Id).Take(50).ToListAsync();
+                    var logEnt = await _db.ActivityLogs.AsNoTracking().OrderByDescending(l => l.RawTime).Take(1000).ToListAsync();
+                    var settingsList = await _db.Settings.AsNoTracking().ToListAsync();
+                    var settingsDict = settingsList.ToDictionary(s => s.Key, s => s.Value);
+                    await readTx.CommitAsync();
 
-        var auctions = auctionEnt.Select(a => EntityJson.ToNode(a)).ToList();
-        var bids = bidEnt.Select(b => EntityJson.ToNode(b)).ToList();
-        var wons = wonEnt.Select(w => EntityJson.ToNode(w)).ToList();
+                    snap = (auctionEnt, bidEnt, wonEnt, notifEnt, regEnt, agentEnt, userEnt, chatEnt, msgEnt, emailEnt, logEnt, settingsDict);
+                    _cachedDbSnapshot = snap;
+                    _cachedSnapshotTime = nowMs;
+                }
+            }
+            finally
+            {
+                _cacheGate.Release();
+            }
+        }
+
+        var (auctionList, bidList, wonList, notifList, regList, agentList, userList, chatList, msgList, emailList, logList, dbSettings) = snap.Value;
+
+        JsonNode? ParseSetting(string key)
+        {
+            if (!dbSettings.TryGetValue(key, out var val) || val == null) return null;
+            try { return JsonNode.Parse(val); }
+            catch { return JsonValue.Create(val); }
+        }
+
+        var auctions = auctionList.Select(a => EntityJson.ToNode(a)).ToList();
+        var bids = bidList.Select(b => EntityJson.ToNode(b)).ToList();
+        var wons = wonList.Select(w => EntityJson.ToNode(w)).ToList();
 
         const string anonName = "Đại lý ẩn danh (AG-***)";
 
@@ -207,7 +250,7 @@ public class SharedDataService
         else if (isAdmin)
         {
             // Sealed-bid: trong phiên đang mở Admin không được xem giá/đại lý
-            var open = auctionEnt.Where(a => a.Status == "OPEN").Select(a => (long)a.Id).ToHashSet();
+            var open = auctionList.Where(a => a.Status == "OPEN").Select(a => (long)a.Id).ToHashSet();
             foreach (var b in bids)
             {
                 if (!open.Contains(EntityJson.Lng(b, "auctionId") ?? -1)) continue;
@@ -240,13 +283,13 @@ public class SharedDataService
         }
 
         // Cấu hình: không bao giờ trả mật khẩu SMTP về trình duyệt
-        var settings = (await GetSettingAsync("settings") as JsonObject) ?? new JsonObject();
+        var settings = (ParseSetting("settings") as JsonObject) ?? new JsonObject();
         if (settings["smtp"] is JsonObject smtp && !string.IsNullOrEmpty(EntityJson.Str(smtp, "pass")))
             smtp["pass"] = MaskedSecret;
 
         var chats = new JsonArray();
-        var msgByChat = msgEnt.GroupBy(m => m.ChatId ?? "").ToDictionary(g => g.Key, g => g.ToList());
-        foreach (var c in chatEnt)
+        var msgByChat = msgList.GroupBy(m => m.ChatId ?? "").ToDictionary(g => g.Key, g => g.ToList());
+        foreach (var c in chatList)
         {
             var cn = EntityJson.ToNode(c);
             var ma = new JsonArray();
@@ -256,7 +299,7 @@ public class SharedDataService
         }
 
         var agentsList = new JsonArray();
-        foreach (var ag in agentEnt)
+        foreach (var ag in agentList)
         {
             if (string.IsNullOrWhiteSpace(ag.Code)) continue;
             var key = ag.Code.Trim().ToUpperInvariant();
@@ -270,33 +313,37 @@ public class SharedDataService
         }
 
         var emailLogs = new JsonArray();
-        foreach (var e in emailEnt)
+        foreach (var e in emailList)
         {
             var n = EntityJson.ToNode(e);
             n["to"] = e.ToAddress;
             emailLogs.Add(n);
         }
 
+        long version = Util.NowMs();
+        if (dbSettings.TryGetValue("version", out var vStr) && long.TryParse(vStr, out var v)) version = v;
+        string dataEpoch = dbSettings.TryGetValue("dataEpoch", out var ep) && !string.IsNullOrEmpty(ep) ? ep : Guid.NewGuid().ToString("N");
+
         return new JsonObject
         {
-            ["version"] = await GetVersionAsync(),
-            ["dataEpoch"] = await GetEpochAsync(),
+            ["version"] = version,
+            ["dataEpoch"] = dataEpoch,
             ["auctions"] = ToArray(auctions),
             ["bids"] = ToArray(bids),
             ["wonAuctions"] = ToArray(wons),
-            ["notifications"] = ToArray(notifEnt.Select(n => EntityJson.ToNode(n))),
-            ["registrations"] = ToArray(regEnt.Select(r => EntityJson.ToNode(r))),
+            ["notifications"] = ToArray(notifList.Select(n => EntityJson.ToNode(n))),
+            ["registrations"] = ToArray(regList.Select(r => EntityJson.ToNode(r))),
             ["agentsList"] = agentsList,
-            ["usersList"] = ToArray(userEnt.Select(u => EntityJson.ToNode(u))),
+            ["usersList"] = ToArray(userList.Select(u => EntityJson.ToNode(u))),
             ["chats"] = chats,
             ["settings"] = settings,
-            ["bankConfig"] = (await GetSettingAsync("bankConfig")) ?? new JsonObject(),
-            ["routeSubscriptions"] = (await GetSettingAsync("routeSubscriptions")) ?? new JsonObject(),
+            ["bankConfig"] = ParseSetting("bankConfig") ?? new JsonObject(),
+            ["routeSubscriptions"] = ParseSetting("routeSubscriptions") ?? new JsonObject(),
             ["emailLogs"] = emailLogs,
-            ["activityLogs"] = ToArray(logEnt.Select(l => EntityJson.ToNode(l))),
-            ["readNotificationIds"] = (await GetSettingAsync("readNotificationIds")) ?? new JsonArray(),
-            ["deletedNotificationIds"] = (await GetSettingAsync("deletedNotificationIds")) ?? new JsonArray(),
-            ["adminsList"] = (await GetSettingAsync("adminsList")) ?? new JsonArray(),
+            ["activityLogs"] = ToArray(logList.Select(l => EntityJson.ToNode(l))),
+            ["readNotificationIds"] = ParseSetting("readNotificationIds") ?? new JsonArray(),
+            ["deletedNotificationIds"] = ParseSetting("deletedNotificationIds") ?? new JsonArray(),
+            ["adminsList"] = ParseSetting("adminsList") ?? new JsonArray(),
         };
     }
 
@@ -582,7 +629,7 @@ public class SharedDataService
         AuctionRules.ReconcileStatuses(auctions, bids);
         AuctionRules.ReconcileSummaries(auctions, bids);
         await ReconcileBidActivityLogsAsync(auctions, bids);
-        if (_cfg.GetValue("App:AutoUnlockAgents", true))
+        if (_cfg.GetValue("App:AutoUnlockAgents", false))
         {
             foreach (var a in await _db.Agents.ToListAsync())
                 if (a.Status is "LOCKED" or "Đã khóa" || a.IsLocked || !string.IsNullOrEmpty(a.LockedReason))

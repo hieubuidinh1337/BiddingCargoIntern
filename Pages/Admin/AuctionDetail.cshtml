@@ -2078,6 +2078,9 @@
 
         function startAuctionDetailCountdown() {
             if (adminCountdownInterval) clearInterval(adminCountdownInterval);
+            if (typeof currentAuction !== 'undefined' && currentAuction) {
+                updateAdminAuctionCountdown(currentAuction);
+            }
             adminCountdownInterval = setInterval(function () {
                 if (typeof currentAuction !== 'undefined' && currentAuction) {
                     const latest = (typeof CargoStore !== 'undefined' && CargoStore.getAuctionById) ? CargoStore.getAuctionById(currentAuction.id) : null;

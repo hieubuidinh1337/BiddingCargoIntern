@@ -152,6 +152,7 @@ public class WonAuctionService
         await _shared.SetSettingAsync("readNotificationIds", arr);
         foreach (var i in list)
             if (long.TryParse(i, out var id) && await _db.Notifications.FindAsync(id) is Notification n) { n.Read = true; n.Unread = false; }
+        await _shared.BumpVersionAsync();
         await _db.SaveChangesAsync();
     }
 
@@ -165,6 +166,7 @@ public class WonAuctionService
         await _shared.SetSettingAsync("deletedNotificationIds", arr);
         foreach (var i in list)
             if (long.TryParse(i, out var id) && await _db.Notifications.FindAsync(id) is Notification n) _db.Notifications.Remove(n);
+        await _shared.BumpVersionAsync();
         await _db.SaveChangesAsync();
     }
 }
