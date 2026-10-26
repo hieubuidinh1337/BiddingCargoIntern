@@ -72,7 +72,7 @@ public static class AuctionRules
                     a.WinnerAgentCode = leaderCode;
                     a.WinnerAgentName = leaderName;
                     a.WinningPriceKg = top.PriceKg;
-                    changed = true;
+                    changed = true;  
                 }
 
                 if (a.BidsCount != list.Count) { a.BidsCount = list.Count; changed = true; }
