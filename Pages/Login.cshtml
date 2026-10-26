@@ -12,7 +12,7 @@
     <title>Đăng nhập đại lý - Cargo Bidding | Vietravel Airlines</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
-    <script src="assets/js/cargo-store.js"></script>
+    <script src="assets/js/cargo-store.js?v=20261026_03"></script>
     <style>
         @@import url('https://fonts.googleapis.com/css2?family=Exo:ital,wght@@0,100;0,200;0,300;0,400;0,500;0,531;0,600;0,700;0,800;0,900;1,100;1,200;1,300;1,400;1,500;1,531;1,600;1,700;1,800;1,900&display=swap');
 
@@ -944,15 +944,22 @@
                         `;
                         showError('TÀI KHOẢN ĐÃ BỊ TẠM KHÓA', res.message.replace(/\n\n/g, '<br><br>'), actionBtn);
                     } else {
+                        const targetAgent = res.agentCode || code || '';
                         const actionBtn = `
                         <div class="mt-2.5 pt-2 border-t border-red-200 text-xs text-red-900">
-                            <div class="font-bold mb-1 flex items-center gap-1.5">
-                                <i class="fa-solid fa-triangle-exclamation text-red-600"></i> Hướng dẫn xử lý mở khóa:
+                            <div class="font-bold mb-1 flex items-center gap-1.5 text-red-700">
+                                <i class="fa-solid fa-circle-info text-red-600"></i> Hướng dẫn xử lý mở khóa:
                             </div>
-                            <ul class="list-disc pl-4 space-y-0.5 text-[11px] text-red-800 leading-relaxed">
-                                <li>Hoàn tất chuyển khoản thanh toán các đơn hàng thắng thầu đã quá hạn.</li>
-                                <li>Liên hệ Ban Điều hành Cargo qua Hotline <strong>1900.6686</strong> hoặc Email: <strong>customercare@@vietravelairlines.vn</strong> để được xác minh sao kê và mở khóa tài khoản.</li>
+                            <ul class="list-disc pl-4 space-y-1 text-[11px] text-red-800 leading-relaxed">
+                                <li>Tài khoản đại lý đang ở trạng thái tạm khóa theo quyết định của Ban Điều hành hoặc Quản trị viên hệ thống.</li>
+                                <li>Quý đại lý vui lòng liên hệ Ban Điều hành Cargo qua Hotline <strong>1900.6686</strong> hoặc Email <strong>cargo@@vietravelairlines.vn</strong> để được xác minh và hỗ trợ mở khóa tài khoản.</li>
                             </ul>
+                            <div class="mt-2.5">
+                                <a href="mailto:cargo@@vietravelairlines.vn?subject=${encodeURIComponent('[BiddingCargo] Yêu cầu mở khóa tài khoản đại lý ' + targetAgent)}"
+                                   class="inline-flex items-center gap-1.5 bg-red-600 hover:bg-red-700 text-white px-3 py-1.5 rounded-lg text-xs font-bold transition shadow-xs">
+                                    <i class="fa-solid fa-envelope"></i> Gửi email yêu cầu mở khóa
+                                </a>
+                            </div>
                         </div>
                         `;
                         showError('TÀI KHOẢN ĐÃ BỊ KHÓA', res.message.replace(/\n\n/g, '<br><br>'), actionBtn);

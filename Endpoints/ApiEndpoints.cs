@@ -158,24 +158,30 @@ public static class ApiEndpoints
             if (string.IsNullOrEmpty(r.Status)) r.Status = "PENDING";
             if (string.IsNullOrEmpty(r.SubmittedAt)) r.SubmittedAt = DateTime.Now.ToString("dd/MM/yyyy HH:mm");
 
-            // Thông báo cho ban quản trị
             var comp = r.CompanyName ?? "Đại lý mới";
             var mst = r.TaxCode ?? "";
             var rep = r.RepName ?? "";
             var mail = r.Email ?? "";
-            var notif = new BiddingCargo.Web.Data.Notification
+
+            // Thông báo cho ban quản trị nếu chưa có
+            var hasNotif = regId != null && await Microsoft.EntityFrameworkCore.EntityFrameworkQueryableExtensions.AnyAsync(
+                db.Notifications, n => n.TargetRole == "ADMIN" && n.Message != null && n.Message.Contains(regId));
+            if (!hasNotif)
             {
-                Id = Util.NowMs() + Random.Shared.Next(0, 1000),
-                TargetRole = "ADMIN",
-                Title = $"📋 HỒ SƠ ĐĂNG KÝ MỚI: {comp}",
-                Message = $"Mã hồ sơ {regId} — {comp} (MST: {mst}) vừa nộp hồ sơ đăng ký trở thành đại lý. Người đại diện: {rep} — {mail}. Vui lòng xét duyệt trong vòng 24h làm việc.",
-                Time = "Vừa xong",
-                Type = "REGISTRATION",
-                Read = false,
-                Unread = true,
-                Link = "06-AgentList.html"
-            };
-            db.Notifications.Add(notif);
+                var notif = new BiddingCargo.Web.Data.Notification
+                {
+                    Id = Util.NowMs() + Random.Shared.Next(0, 1000),
+                    TargetRole = "ADMIN",
+                    Title = $"📋 HỒ SƠ ĐĂNG KÝ MỚI: {comp}",
+                    Message = $"Mã hồ sơ {regId} — {comp} (MST: {mst}) vừa nộp hồ sơ đăng ký trở thành đại lý. Người đại diện: {rep} — {mail}. Vui lòng xét duyệt trong vòng 24h làm việc.",
+                    Time = "Vừa xong",
+                    Type = "REGISTRATION",
+                    Read = false,
+                    Unread = true,
+                    Link = "06-AgentList.html"
+                };
+                db.Notifications.Add(notif);
+            }
 
             // Ghi nhật ký hệ thống
             db.ActivityLogs.Add(LogService.Make(rep != "" ? rep : comp, mst != "" ? mst : "guest", "AGENT", "Quản lý Đại lý", "Nộp hồ sơ đăng ký đại lý", $"Hồ sơ {regId}",

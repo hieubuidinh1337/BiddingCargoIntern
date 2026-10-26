@@ -1947,7 +1947,7 @@
 
             let customReason = '';
             if (isCurrentlyLocked) {
-                const defaultReason = 'Đại lý đã nộp bổ sung tiền thanh toán sau quá hạn & được Ban Điều hành chấp thuận mở khóa';
+                const defaultReason = 'Ban Điều hành đã xác minh và chấp thuận mở lại tài khoản hoạt động bình thường';
                 const input = prompt(`MỞ KHÓA TÀI KHOẢN ${type === 'agent' ? 'ĐẠI LÝ' : 'NHÂN SỰ'} "${identifier}":\n\nVui lòng nhập / xác nhận lý do mở khóa khôi phục tài khoản:`, defaultReason);
                 if (input === null) return; // Cancelled by user
                 customReason = input.trim() || defaultReason;

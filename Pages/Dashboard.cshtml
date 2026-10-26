@@ -288,7 +288,13 @@
             const u = CargoStore.getCurrentUser();
             const myCode = u ? (u.agentCode || '') : '';
             const allAuctions = CargoStore.getAuctions();
-            let openAuctions = allAuctions.filter(a => a.status === 'OPEN' && CargoStore.isAgentAllowedForAuction(a, myCode));
+            const _dashNow = Date.now();
+            let openAuctions = allAuctions.filter(a => {
+                if (a.status !== 'OPEN') return false;
+                const endMs = a.endTime ? Date.parse(a.endTime) : (a.closeDateIso ? Date.parse(a.closeDateIso) : NaN);
+                if (!isNaN(endMs) && endMs <= _dashNow) return false;
+                return CargoStore.isAgentAllowedForAuction(a, myCode);
+            });
 
             // Filter by date range (Giai đoạn bay)
             if (dashFilterFrom) {
@@ -962,7 +968,10 @@
                 if (valEl) {
                     if (timer.total <= 0) {
                         valEl.textContent = 'Đã đóng thầu';
-                        needsRefresh = true;
+                        if (!el.getAttribute('data-ended')) {
+                            el.setAttribute('data-ended', 'true');
+                            needsRefresh = true;
+                        }
                     } else {
                         valEl.textContent = `Còn ${timer.hours > 0 ? timer.hours + 'h ' : ''}${timer.minutes}m ${timer.seconds}s`;
                     }

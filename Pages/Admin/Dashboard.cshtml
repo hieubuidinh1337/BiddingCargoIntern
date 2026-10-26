@@ -868,7 +868,10 @@
                 if (valEl) {
                     if (timer.total <= 0) {
                         valEl.textContent = 'Đã hết giờ';
-                        needsRefresh = true;
+                        if (!el.getAttribute('data-ended')) {
+                            el.setAttribute('data-ended', 'true');
+                            needsRefresh = true;
+                        }
                     } else {
                         valEl.textContent = `${timer.hours > 0 ? timer.hours + 'h ' : ''}${timer.minutes}m ${timer.seconds}s`;
                     }

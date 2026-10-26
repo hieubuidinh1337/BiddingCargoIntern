@@ -264,6 +264,39 @@ const CargoStore = (function () {
         return result;
     }
 
+    function deduplicateNotifications(notifs) {
+        if (!Array.isArray(notifs)) return [];
+        const seenKeys = new Set();
+        const seenIds = new Set();
+        const result = [];
+
+        notifs.forEach(n => {
+            if (!n) return;
+            const idStr = n.id ? String(n.id) : null;
+            if (idStr && seenIds.has(idStr)) return;
+
+            const msg = String(n.message || '').trim();
+            const title = String(n.title || '').trim();
+            const role = String(n.targetRole || '').trim().toUpperCase();
+            const code = String(n.targetAgentCode || '').trim().toUpperCase();
+
+            // Semantic fingerprint: collapse duplicate notifications for the same registration / event
+            const regMatch = msg.match(/REG-\d+-\d+/i);
+            const wonMatch = msg.match(/WON-\d+-\d+-\d+/i);
+            const fingerprint = regMatch ? `reg_${regMatch[0].toUpperCase()}_${role}`
+                : wonMatch ? `won_${wonMatch[0].toUpperCase()}_${role}_${title}`
+                : `${role}|${code}|${title}|${msg}`;
+
+            if (seenKeys.has(fingerprint)) return;
+
+            if (idStr) seenIds.add(idStr);
+            seenKeys.add(fingerprint);
+            result.push(n);
+        });
+
+        return result.sort((a, b) => (Number(b.id || b.timestamp || 0)) - (Number(a.id || a.timestamp || 0)));
+    }
+
     let _memoryCacheData = null;
     let _memoryCacheRaw = null;
 
@@ -487,7 +520,7 @@ const CargoStore = (function () {
                 const seenIds = new Set();
                 const uniqueAuctions = [];
                 data.auctions.forEach((a, idx) => {
-                    const idKey = a.id;
+                    const idKey = String(a.id);
                     if (!seenIds.has(idKey)) {
                         seenIds.add(idKey);
                         if (a.status === 'OPEN') {
@@ -777,9 +810,14 @@ const CargoStore = (function () {
             if (!data.notifications || !Array.isArray(data.notifications)) {
                 data.notifications = JSON.parse(JSON.stringify(defaultData.notifications));
                 updated = true;
-            } else if (data.deletedNotificationIds && Array.isArray(data.deletedNotificationIds)) {
-                const delSet = new Set(data.deletedNotificationIds.map(String));
-                data.notifications = data.notifications.filter(n => !delSet.has(String(n.id)));
+            } else {
+                const origLen = data.notifications.length;
+                if (data.deletedNotificationIds && Array.isArray(data.deletedNotificationIds)) {
+                    const delSet = new Set(data.deletedNotificationIds.map(String));
+                    data.notifications = data.notifications.filter(n => !delSet.has(String(n.id)));
+                }
+                data.notifications = deduplicateNotifications(data.notifications);
+                if (data.notifications.length !== origLen) updated = true;
             }
 
             // Migrate any old August/early September 2026 dates to active September 2026 dates
@@ -1055,18 +1093,18 @@ const CargoStore = (function () {
                 if (serverData.auctions && Array.isArray(serverData.auctions)) {
                     const validServerAuctions = serverData.auctions.filter(a => a && a.origin && a.destination && a.flightNumber && a.flightNumber !== 'VU-HIST' && (a.capacityKg || 0) > 0);
                     const auctionMap = new Map();
-                    validServerAuctions.forEach(a => auctionMap.set(a.id, a));
+                    validServerAuctions.forEach(a => auctionMap.set(String(a.id), a));
                     (local.auctions || []).forEach(a => {
                         if (!a || !a.origin || !a.destination || !a.flightNumber || a.flightNumber === 'VU-HIST' || !a.originName || !a.destName || (a.capacityKg || 0) <= 0) return;
-                        const serverItem = auctionMap.get(a.id);
+                        const aKey = String(a.id);
+                        const serverItem = auctionMap.get(aKey);
                         if (!serverItem) {
-                            auctionMap.set(a.id, a);
+                            auctionMap.set(aKey, a);
                         } else {
                             // Final states (CANCELLED, DELETED) must NEVER be overwritten by server's older status
                             const FINAL_STATES = ['CANCELLED', 'DELETED'];
                             if (FINAL_STATES.includes(a.status)) {
-                                // Preserve local final state, keep cancellation metadata
-                                auctionMap.set(a.id, {
+                                auctionMap.set(aKey, {
                                     ...serverItem,
                                     status: a.status,
                                     cancelledAt: a.cancelledAt,
@@ -1075,12 +1113,20 @@ const CargoStore = (function () {
                                     refundAmount: a.refundAmount,
                                     deletedAt: a.deletedAt
                                 });
-                            } else if (a.status === 'CLOSED' && serverItem.status === 'OPEN') {
-                                auctionMap.set(a.id, { ...serverItem, status: 'CLOSED', winnerAgentCode: a.winnerAgentCode || serverItem.winnerAgentCode, winnerAgentName: a.winnerAgentName || serverItem.winnerAgentName });
+                            } else if (a.status === 'CLOSED' || serverItem.status === 'CLOSED') {
+                                // If either server or local is CLOSED, stay CLOSED! Never revert to OPEN or UPCOMING
+                                auctionMap.set(aKey, {
+                                    ...serverItem,
+                                    status: 'CLOSED',
+                                    closedAt: a.closedAt || serverItem.closedAt,
+                                    winnerAgentCode: a.winnerAgentCode || serverItem.winnerAgentCode,
+                                    winnerAgentName: a.winnerAgentName || serverItem.winnerAgentName,
+                                    winningPriceKg: a.winningPriceKg || serverItem.winningPriceKg
+                                });
                             }
                         }
                     });
-                    local.auctions = Array.from(auctionMap.values()).sort((a, b) => (b.id || 0) - (a.id || 0));
+                    local.auctions = Array.from(auctionMap.values()).sort((a, b) => (Number(b.id) || 0) - (Number(a.id) || 0));
                 }
 
                 if (serverData.wonAuctions && Array.isArray(serverData.wonAuctions)) {
@@ -1123,7 +1169,7 @@ const CargoStore = (function () {
                 }
 
                 if (serverData.notifications && Array.isArray(serverData.notifications)) {
-                    local.notifications = serverData.notifications.sort((a, b) => (b.id || 0) - (a.id || 0));
+                    local.notifications = deduplicateNotifications(serverData.notifications);
                 }
 
                 if (serverData.deletedNotificationIds && Array.isArray(serverData.deletedNotificationIds)) {
@@ -1394,22 +1440,28 @@ const CargoStore = (function () {
             if (auction.status === 'UPCOMING') {
                 const openTimeMs = auction.openDateIso ? Date.parse(auction.openDateIso) : (parseFlightDate(auction.openDate)?.getTime() || 0);
                 if (openTimeMs > 0 && openTimeMs <= _now.getTime()) {
-                    auction.status = 'OPEN';
-                    auction.openedAt = auction.openedAt || _now.toISOString();
-                    modified = true;
+                    if (isTimerEnded) {
+                        auction.status = 'CLOSED';
+                        auction.closedAt = auction.closedAt || _now.toISOString();
+                        modified = true;
+                    } else {
+                        auction.status = 'OPEN';
+                        auction.openedAt = auction.openedAt || _now.toISOString();
+                        modified = true;
 
-                    if (!data.notifications) data.notifications = [];
-                    data.notifications.unshift({
-                        id: Date.now() + Math.floor(Math.random() * 1000),
-                        timestamp: Date.now(),
-                        targetAgentCode: null,
-                        title: `🚀 CHÍNH THỨC MỞ THẦU: Chuyến ${auction.flightNumber} (${auction.route})`,
-                        message: `Phiên đấu giá chuyến bay ${auction.flightNumber} (${auction.originName || ''} - ${auction.destName || ''}) đã đến giờ mở thầu. Mời các đại lý tham gia đặt giá ngay!`,
-                        time: 'Vừa xong',
-                        type: 'AUCTION_OPEN',
-                        read: false,
-                        link: `04-Detail.html?id=${auction.id}`
-                    });
+                        if (!data.notifications) data.notifications = [];
+                        data.notifications.unshift({
+                            id: Date.now() + Math.floor(Math.random() * 1000),
+                            timestamp: Date.now(),
+                            targetAgentCode: null,
+                            title: `🚀 CHÍNH THỨC MỞ THẦU: Chuyến ${auction.flightNumber} (${auction.route})`,
+                            message: `Phiên đấu giá chuyến bay ${auction.flightNumber} (${auction.originName || ''} - ${auction.destName || ''}) đã đến giờ mở thầu. Mời các đại lý tham gia đặt giá ngay!`,
+                            time: 'Vừa xong',
+                            type: 'AUCTION_OPEN',
+                            read: false,
+                            link: `04-Detail.html?id=${auction.id}`
+                        });
+                    }
                 }
             }
 
@@ -3255,8 +3307,8 @@ const CargoStore = (function () {
             const deletedIds = Array.isArray(data.deletedNotificationIds) ? data.deletedNotificationIds.map(String) : [];
             const readIds = Array.isArray(data.readNotificationIds) ? data.readNotificationIds.map(String) : [];
 
-            // Filter out deleted notifications upfront
-            let allNotifs = (data.notifications || []).filter(n => n && !deletedIds.includes(String(n.id)));
+            // Filter out deleted notifications upfront & deduplicate
+            let allNotifs = deduplicateNotifications(data.notifications || []).filter(n => n && !deletedIds.includes(String(n.id)));
 
             allNotifs = allNotifs.map(n => {
                 const ts = n.timestamp || n.createdAt || (typeof n.id === 'number' && n.id > 1577836800000 ? n.id : (typeof n.id === 'string' && !isNaN(Number(n.id)) && Number(n.id) > 1577836800000 ? Number(n.id) : null));
@@ -3804,19 +3856,23 @@ const CargoStore = (function () {
 
             data.registrations.unshift(newReg);
 
-            // Push admin notification for new registration
+            // Push admin notification for new registration if not already existing
             if (!data.notifications) data.notifications = [];
-            data.notifications.unshift({
-                id: Date.now(),
-                timestamp: Date.now(),
-                targetRole: 'ADMIN',
-                title: `📋 HỒ SƠ ĐĂNG KÝ MỚI: ${newReg.companyName}`,
-                message: `Mã hồ sơ ${newReg.regId} — ${newReg.companyName} (MST: ${newReg.taxCode}) vừa nộp hồ sơ đăng ký trở thành đại lý. Người đại diện: ${newReg.repName} — ${newReg.email}. Vui lòng xét duyệt trong vòng 24h làm việc.`,
-                time: 'Vừa xong',
-                type: 'REGISTRATION',
-                read: false,
-                link: '../Admin/06-AgentList.html'
-            });
+            const notifMsg = `Mã hồ sơ ${newReg.regId} — ${newReg.companyName} (MST: ${newReg.taxCode}) vừa nộp hồ sơ đăng ký trở thành đại lý. Người đại diện: ${newReg.repName} — ${newReg.email}. Vui lòng xét duyệt trong vòng 24h làm việc.`;
+            const alreadyHasNotif = data.notifications.some(n => n.message && n.message.includes(newReg.regId));
+            if (!alreadyHasNotif) {
+                data.notifications.unshift({
+                    id: Date.now(),
+                    timestamp: Date.now(),
+                    targetRole: 'ADMIN',
+                    title: `📋 HỒ SƠ ĐĂNG KÝ MỚI: ${newReg.companyName}`,
+                    message: notifMsg,
+                    time: 'Vừa xong',
+                    type: 'REGISTRATION',
+                    read: false,
+                    link: '../Admin/06-AgentList.html'
+                });
+            }
 
             saveData(data);
 
@@ -6144,7 +6200,7 @@ const CargoStore = (function () {
                         target.failedLoginAttempts = 0;
                         target.unlockedAt = new Date().toLocaleString('vi-VN');
                         target.unlockedBy = data.currentAdmin ? (data.currentAdmin.username || 'ADMIN') : 'ADMIN';
-                        target.unlockedReason = customReason || 'Đại lý đã nộp bổ sung tiền thanh toán sau quá hạn & được Ban Điều hành phê duyệt mở khóa';
+                        target.unlockedReason = customReason || 'Ban Điều hành đã xác minh và chấp thuận mở lại tài khoản hoạt động bình thường';
                         delete target.lockedReason;
                         delete target.lockedAt;
 
@@ -7329,7 +7385,7 @@ const CargoStore = (function () {
 
         getAdminNotifications: function () {
             const data = loadData();
-            const notifs = data.notifications || [];
+            const notifs = deduplicateNotifications(data.notifications || []);
 
             // Only show notifications scoped to ADMIN or STAFF — never leak agent-only notifications
             const adminNotifs = notifs.filter(n => {

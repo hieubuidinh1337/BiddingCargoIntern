@@ -194,7 +194,6 @@ public class SharedDataService
                 snap = _cachedDbSnapshot;
                 if (snap == null || nowMs - _cachedSnapshotTime > 1500)
                 {
-                    await using var readTx = await _db.Database.BeginTransactionAsync(System.Data.IsolationLevel.ReadUncommitted);
                     var auctionEnt = await _db.Auctions.AsNoTracking().OrderByDescending(a => a.Id).ToListAsync();
                     var bidEnt = await _db.Bids.AsNoTracking().OrderByDescending(b => b.Timestamp).ToListAsync();
                     var wonEnt = await _db.WonAuctions.AsNoTracking().OrderByDescending(w => w.WonId).ToListAsync();
@@ -208,7 +207,6 @@ public class SharedDataService
                     var logEnt = await _db.ActivityLogs.AsNoTracking().OrderByDescending(l => l.RawTime).Take(1000).ToListAsync();
                     var settingsList = await _db.Settings.AsNoTracking().ToListAsync();
                     var settingsDict = settingsList.ToDictionary(s => s.Key, s => s.Value);
-                    await readTx.CommitAsync();
 
                     snap = (auctionEnt, bidEnt, wonEnt, notifEnt, regEnt, agentEnt, userEnt, chatEnt, msgEnt, emailEnt, logEnt, settingsDict);
                     _cachedDbSnapshot = snap;
@@ -408,8 +406,20 @@ public class SharedDataService
                 if (id == null || id == 0) continue;
                 var a = await _db.Auctions.FindAsync((int)id.Value);
                 if (a == null) { a = new Auction { Id = (int)id.Value }; _db.Auctions.Add(a); }
+                var prevWinner = a.WinnerAgentCode;
+                var prevLeader = a.LeadingAgentCode;
                 EntityJson.Apply(a, n);
                 if (a.CurrentPriceKg == 0) a.CurrentPriceKg = a.StartingPriceKg;
+
+                // Bảo vệ Foreign Key: winnerAgentCode và leadingAgentCode phải tồn tại trong bảng agents
+                if (string.IsNullOrWhiteSpace(a.WinnerAgentCode) || a.WinnerAgentCode == "AG-***" || !agents.ContainsKey(a.WinnerAgentCode.Trim().ToUpperInvariant()))
+                {
+                    a.WinnerAgentCode = (!string.IsNullOrWhiteSpace(prevWinner) && agents.ContainsKey(prevWinner.Trim().ToUpperInvariant())) ? prevWinner : null;
+                }
+                if (string.IsNullOrWhiteSpace(a.LeadingAgentCode) || a.LeadingAgentCode == "AG-***" || a.LeadingAgentCode == "Chưa có" || !agents.ContainsKey(a.LeadingAgentCode.Trim().ToUpperInvariant()))
+                {
+                    a.LeadingAgentCode = (!string.IsNullOrWhiteSpace(prevLeader) && agents.ContainsKey(prevLeader.Trim().ToUpperInvariant())) ? prevLeader : null;
+                }
             }
 
             // 2) Danh sách đại lý
@@ -547,8 +557,13 @@ public class SharedDataService
                 if (string.IsNullOrEmpty(wonId)) continue;
                 var w = await _db.WonAuctions.FindAsync(wonId);
                 if (w == null) { w = new WonAuction { WonId = wonId }; _db.WonAuctions.Add(w); }
+                var prevWonAgent = w.AgentCode;
                 EntityJson.Apply(w, n);
                 w.WonId = wonId;
+                if (string.IsNullOrWhiteSpace(w.AgentCode) || w.AgentCode == "AG-***" || !agents.ContainsKey(w.AgentCode.Trim().ToUpperInvariant()))
+                {
+                    w.AgentCode = (!string.IsNullOrWhiteSpace(prevWonAgent) && agents.ContainsKey(prevWonAgent.Trim().ToUpperInvariant())) ? prevWonAgent : null;
+                }
             }
 
             // 6) Thông báo (đã xóa / đã đọc / mới)
@@ -568,12 +583,28 @@ public class SharedDataService
                 await SetStringListAsync("readNotificationIds", read);
             }
             var delSet = deleted.ToHashSet();
+            var recentNotifs = await _db.Notifications.OrderByDescending(x => x.Id).Take(300).ToListAsync();
             foreach (var n in ArrayOf(incoming, "notifications"))
             {
                 var id = EntityJson.Lng(n, "id");
                 if (id == null || delSet.Contains(id.Value.ToString())) continue;
                 var nt = await _db.Notifications.FindAsync(id.Value);
-                if (nt == null) { nt = new Notification { Id = id.Value }; _db.Notifications.Add(nt); }
+                if (nt == null)
+                {
+                    var title = (EntityJson.Str(n, "title") ?? "").Trim();
+                    var msg = (EntityJson.Str(n, "message") ?? "").Trim();
+                    var role = (EntityJson.Str(n, "targetRole") ?? "").Trim();
+
+                    var isDup = recentNotifs.Any(x =>
+                        string.Equals(x.Title?.Trim(), title, StringComparison.OrdinalIgnoreCase) &&
+                        string.Equals(x.Message?.Trim(), msg, StringComparison.OrdinalIgnoreCase) &&
+                        string.Equals(x.TargetRole?.Trim(), role, StringComparison.OrdinalIgnoreCase));
+                    if (isDup) continue;
+
+                    nt = new Notification { Id = id.Value };
+                    _db.Notifications.Add(nt);
+                    recentNotifs.Add(nt);
+                }
                 EntityJson.Apply(nt, n);
                 nt.Id = id.Value;
             }
@@ -668,10 +699,15 @@ public class SharedDataService
         if (string.IsNullOrEmpty(id)) return;
         var c = await _db.Chats.FindAsync(id);
         if (c == null) { c = new Chat { Id = id }; _db.Chats.Add(c); }
+        var prevAgentCode = c.AgentCode;
         var copy = (JsonObject)n.DeepClone();
         copy.Remove("messages");
         EntityJson.Apply(c, copy);
         c.Id = id;
+        if (!string.IsNullOrEmpty(c.AgentCode) && (c.AgentCode == "AG-***" || !await _db.Agents.AnyAsync(a => a.Code == c.AgentCode)))
+        {
+            c.AgentCode = (!string.IsNullOrEmpty(prevAgentCode) && await _db.Agents.AnyAsync(a => a.Code == prevAgentCode)) ? prevAgentCode : null;
+        }
         if (n["messages"] is JsonArray ms)
         {
             foreach (var mn in ms)
