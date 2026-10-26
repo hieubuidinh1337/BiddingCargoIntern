@@ -41,18 +41,19 @@ public static class AuctionRules
         return changed;
     }
 
-    /// <summary>Đối soát currentPriceKg, đại lý dẫn đầu, bidsCount và trạng thái HIGHEST/OUTBID của từng thầu.</summary>
+    /// <summary>Đối soát currentPriceKg, đại lý dẫn đầu, bidsCount và trạng thái HIGHEST/OUTBID/WON của từng thầu.</summary>
     public static bool ReconcileSummaries(IEnumerable<Auction> auctions, IReadOnlyCollection<Bid> bids)
     {
         var changed = false;
-        var byAuction = bids.GroupBy(b => b.AuctionId).ToDictionary(g => g.Key, g => g.OrderByDescending(b => b.PriceKg).ToList());
+        var byAuction = bids.GroupBy(b => b.AuctionId).ToDictionary(g => g.Key, g => g.OrderByDescending(b => b.PriceKg).ThenBy(b => b.Timestamp).ToList());
 
         foreach (var a in auctions)
         {
             if (byAuction.TryGetValue(a.Id, out var list) && list.Count > 0)
             {
                 var top = list[0];
-                for (var i = 0; i < list.Count; i++) list[i].Status = i == 0 ? "HIGHEST" : "OUTBID";
+                var isClosed = a.Status == "CLOSED";
+                for (var i = 0; i < list.Count; i++) list[i].Status = i == 0 ? (isClosed ? "WON" : "HIGHEST") : "OUTBID";
 
                 if (a.CurrentPriceKg != top.PriceKg) { a.CurrentPriceKg = top.PriceKg; changed = true; }
 
@@ -65,6 +66,14 @@ public static class AuctionRules
                     changed = true;
                 }
                 a.IsAnonymous = top.IsAnonymous;
+
+                if (isClosed && (string.IsNullOrEmpty(a.WinnerAgentCode) || a.WinnerAgentCode == "AG-***" || a.WinningPriceKg == 0))
+                {
+                    a.WinnerAgentCode = leaderCode;
+                    a.WinnerAgentName = leaderName;
+                    a.WinningPriceKg = top.PriceKg;
+                    changed = true;
+                }
 
                 if (a.BidsCount != list.Count) { a.BidsCount = list.Count; changed = true; }
             }

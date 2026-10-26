@@ -129,6 +129,7 @@ public class SharedDataService
         var bids = await _db.Bids.ToListAsync();
         AuctionRules.ReconcileStatuses(auctions, bids);
         AuctionRules.ReconcileSummaries(auctions, bids);
+        await SettleClosedAuctionsAsync();
 
         // Chính sách chi nhánh (giữ nguyên từ bản Node): tự động mở khóa mọi đại lý, xóa cảnh báo "TÀI KHOẢN ĐÃ BỊ KHÓA".
         if (_cfg.GetValue("App:AutoUnlockAgents", false))
@@ -400,30 +401,7 @@ public class SharedDataService
             var agents = await AgentsAsync();
             var users = await _db.Users.ToListAsync();
 
-            // 1) Phiên đấu giá
-            foreach (var n in ArrayOf(incoming, "auctions"))
-            {
-                var id = EntityJson.Lng(n, "id");
-                if (id == null || id == 0) continue;
-                var a = await _db.Auctions.FindAsync((int)id.Value);
-                if (a == null) { a = new Auction { Id = (int)id.Value }; _db.Auctions.Add(a); }
-                var prevWinner = a.WinnerAgentCode;
-                var prevLeader = a.LeadingAgentCode;
-                EntityJson.Apply(a, n);
-                if (a.CurrentPriceKg == 0) a.CurrentPriceKg = a.StartingPriceKg;
-
-                // Bảo vệ Foreign Key: winnerAgentCode và leadingAgentCode phải tồn tại trong bảng agents
-                if (string.IsNullOrWhiteSpace(a.WinnerAgentCode) || a.WinnerAgentCode == "AG-***" || !agents.ContainsKey(a.WinnerAgentCode.Trim().ToUpperInvariant()))
-                {
-                    a.WinnerAgentCode = (!string.IsNullOrWhiteSpace(prevWinner) && agents.ContainsKey(prevWinner.Trim().ToUpperInvariant())) ? prevWinner : null;
-                }
-                if (string.IsNullOrWhiteSpace(a.LeadingAgentCode) || a.LeadingAgentCode == "AG-***" || a.LeadingAgentCode == "Chưa có" || !agents.ContainsKey(a.LeadingAgentCode.Trim().ToUpperInvariant()))
-                {
-                    a.LeadingAgentCode = (!string.IsNullOrWhiteSpace(prevLeader) && agents.ContainsKey(prevLeader.Trim().ToUpperInvariant())) ? prevLeader : null;
-                }
-            }
-
-            // 2) Danh sách đại lý
+            // 1) Danh sách đại lý (xử lý trước để có đầy đủ thông tin đại lý cho các bảng khác)
             foreach (var n in ArrayOf(incoming, "agentsList"))
             {
                 var code = EntityJson.Str(n, "code")?.Trim();
@@ -467,7 +445,7 @@ public class SharedDataService
                 }
             }
 
-            // 3) Hồ sơ đăng ký (trạng thái đã xử lý ở server không bị client ghi đè)
+            // 2) Hồ sơ đăng ký (trạng thái đã xử lý ở server không bị client ghi đè)
             foreach (var n in ArrayOf(incoming, "registrations"))
             {
                 var regId = EntityJson.Str(n, "regId");
@@ -494,6 +472,38 @@ public class SharedDataService
                 if (!string.IsNullOrEmpty(agCode))
                     await EnsureAgentAsync(agCode, EntityJson.Str(n, "repName"), EntityJson.Str(n, "companyName"),
                         EntityJson.Str(n, "taxCode"), EntityJson.Str(n, "email"), EntityJson.Str(n, "phone"));
+            }
+
+            // 3) Phiên đấu giá
+            foreach (var n in ArrayOf(incoming, "auctions"))
+            {
+                var id = EntityJson.Lng(n, "id");
+                if (id == null || id == 0) continue;
+                var a = await _db.Auctions.FindAsync((int)id.Value);
+                if (a == null) { a = new Auction { Id = (int)id.Value }; _db.Auctions.Add(a); }
+                var prevWinner = a.WinnerAgentCode;
+                var prevLeader = a.LeadingAgentCode;
+                EntityJson.Apply(a, n);
+                if (a.CurrentPriceKg == 0) a.CurrentPriceKg = a.StartingPriceKg;
+
+                if (!string.IsNullOrWhiteSpace(a.WinnerAgentCode) && a.WinnerAgentCode != "AG-***" && a.WinnerAgentCode != "Chưa có")
+                {
+                    await EnsureAgentAsync(a.WinnerAgentCode, a.WinnerAgentName, a.WinnerAgentName);
+                }
+                if (!string.IsNullOrWhiteSpace(a.LeadingAgentCode) && a.LeadingAgentCode != "AG-***" && a.LeadingAgentCode != "Chưa có")
+                {
+                    await EnsureAgentAsync(a.LeadingAgentCode, a.LeadingAgentName, a.LeadingAgentName);
+                }
+
+                // Bảo vệ Foreign Key: winnerAgentCode và leadingAgentCode phải tồn tại trong bảng agents
+                if (string.IsNullOrWhiteSpace(a.WinnerAgentCode) || a.WinnerAgentCode == "AG-***" || !agents.ContainsKey(a.WinnerAgentCode.Trim().ToUpperInvariant()))
+                {
+                    a.WinnerAgentCode = (!string.IsNullOrWhiteSpace(prevWinner) && agents.ContainsKey(prevWinner.Trim().ToUpperInvariant())) ? prevWinner : null;
+                }
+                if (string.IsNullOrWhiteSpace(a.LeadingAgentCode) || a.LeadingAgentCode == "AG-***" || a.LeadingAgentCode == "Chưa có" || !agents.ContainsKey(a.LeadingAgentCode.Trim().ToUpperInvariant()))
+                {
+                    a.LeadingAgentCode = (!string.IsNullOrWhiteSpace(prevLeader) && agents.ContainsKey(prevLeader.Trim().ToUpperInvariant())) ? prevLeader : null;
+                }
             }
 
             // 4) Thầu (chỉ thêm thầu mới; bỏ bản sao phía client của thầu server đã có)
@@ -561,6 +571,10 @@ public class SharedDataService
                 var prevWonAgent = w.AgentCode;
                 EntityJson.Apply(w, n);
                 w.WonId = wonId;
+                if (!string.IsNullOrWhiteSpace(w.AgentCode) && w.AgentCode != "AG-***")
+                {
+                    await EnsureAgentAsync(w.AgentCode, EntityJson.GetExtraString(w, "agentName"), EntityJson.GetExtraString(w, "agentName"));
+                }
                 if (string.IsNullOrWhiteSpace(w.AgentCode) || w.AgentCode == "AG-***" || !agents.ContainsKey(w.AgentCode.Trim().ToUpperInvariant()))
                 {
                     w.AgentCode = (!string.IsNullOrWhiteSpace(prevWonAgent) && agents.ContainsKey(prevWonAgent.Trim().ToUpperInvariant())) ? prevWonAgent : null;
@@ -595,11 +609,13 @@ public class SharedDataService
                     var title = (EntityJson.Str(n, "title") ?? "").Trim();
                     var msg = (EntityJson.Str(n, "message") ?? "").Trim();
                     var role = (EntityJson.Str(n, "targetRole") ?? "").Trim();
+                    var agentCode = (EntityJson.Str(n, "targetAgentCode") ?? "").Trim();
 
                     var isDup = recentNotifs.Any(x =>
                         string.Equals(x.Title?.Trim(), title, StringComparison.OrdinalIgnoreCase) &&
                         string.Equals(x.Message?.Trim(), msg, StringComparison.OrdinalIgnoreCase) &&
-                        string.Equals(x.TargetRole?.Trim(), role, StringComparison.OrdinalIgnoreCase));
+                        string.Equals(x.TargetRole?.Trim(), role, StringComparison.OrdinalIgnoreCase) &&
+                        string.Equals((x.TargetAgentCode ?? "").Trim(), agentCode, StringComparison.OrdinalIgnoreCase));
                     if (isDup) continue;
 
                     nt = new Notification { Id = id.Value };
@@ -743,12 +759,107 @@ public class SharedDataService
         var bids = await _db.Bids.ToListAsync();
         AuctionRules.ReconcileStatuses(auctions, bids);
         AuctionRules.ReconcileSummaries(auctions, bids);
+        await SettleClosedAuctionsAsync();
         await ReconcileBidActivityLogsAsync(auctions, bids);
         if (_cfg.GetValue("App:AutoUnlockAgents", false))
         {
             foreach (var a in await _db.Agents.ToListAsync())
                 if (a.Status is "LOCKED" or "Đã khóa" || a.IsLocked || !string.IsNullOrEmpty(a.LockedReason))
                 { a.Status = "Đang hoạt động"; a.IsLocked = false; a.LockedReason = null; a.LockedAt = null; }
+        }
+    }
+
+    /// <summary>
+    /// Chốt các phiên đã đóng: đảm bảo có người trúng thầu, đơn hàng WonAuction và thông báo trúng thầu trong database.
+    /// </summary>
+    public async Task SettleClosedAuctionsAsync()
+    {
+        var auctions = await _db.Auctions.ToListAsync();
+        var bids = await _db.Bids.ToListAsync();
+        var agents = await AgentsAsync();
+        var changed = false;
+
+        foreach (var a in auctions.Where(a => a.Status == "CLOSED"))
+        {
+            var auctionBids = bids.Where(b => b.AuctionId == a.Id && b.PriceKg > 0)
+                .OrderByDescending(b => b.PriceKg).ThenBy(b => b.Timestamp).ToList();
+            if (auctionBids.Count == 0) continue;
+
+            var top = auctionBids[0];
+            top.Status = "WON";
+            for (int i = 1; i < auctionBids.Count; i++) auctionBids[i].Status = "OUTBID";
+
+            var code = (top.AgentCode ?? "").Trim().ToUpperInvariant();
+            if (string.IsNullOrEmpty(code) || Util.IsAnonCode(code)) continue;
+
+            await EnsureAgentAsync(code, top.AgentName ?? code, top.AgentName ?? code);
+
+            if (string.IsNullOrEmpty(a.WinnerAgentCode) || a.WinnerAgentCode == "AG-***" || a.WinningPriceKg == 0)
+            {
+                a.WinnerAgentCode = code;
+                a.WinnerAgentName = top.AgentName ?? code;
+                a.WinningPriceKg = top.PriceKg;
+                changed = true;
+            }
+
+            // Đảm bảo đơn thắng thầu tồn tại trong DB
+            var existingWon = await _db.WonAuctions.FirstOrDefaultAsync(w => w.AuctionId == a.Id);
+            if (existingWon == null)
+            {
+                var now = DateTimeOffset.UtcNow.ToOffset(TimeSpan.FromHours(7));
+                var dateStr = now.ToString("yyyyMMdd");
+                var wonId = $"WON-{dateStr}-{a.Id:D2}";
+                existingWon = new WonAuction
+                {
+                    WonId = wonId,
+                    AuctionId = a.Id,
+                    AgentCode = code,
+                    FlightNumber = a.FlightNumber ?? $"VU{a.Id}",
+                    Route = a.Route ?? $"{a.Origin} - {a.Destination}",
+                    CapacityKg = a.CapacityKg,
+                    PriceKg = top.PriceKg,
+                    TotalAmountVND = top.PriceKg * a.CapacityKg,
+                    PaymentDeadline = Util.ToIso(now.AddHours(24)),
+                    PaymentStatus = "UNPAID",
+                    AwbNumber = $"998-{Random.Shared.Next(10000000, 99999999)}",
+                    CutOffTime = a.CutOffTime ?? "Hôm nay 18:00",
+                    Warehouse = "Kho hàng SCSC / TCS Tân Sơn Nhất (Cửa số 4)"
+                };
+                EntityJson.SetExtra(existingWon, "agentName", top.AgentName ?? code);
+                EntityJson.SetExtra(existingWon, "etdIso", a.EtdIso ?? a.EndTime);
+                _db.WonAuctions.Add(existingWon);
+                changed = true;
+            }
+
+            // Đảm bảo có thông báo trúng thầu cho đại lý
+            var notifFlight = a.FlightNumber ?? $"VU{a.Id}";
+            var notifTitle = $"🏆 CHÚC MỪNG! Bạn đã thắng thầu chuyến bay {notifFlight}";
+            var hasWonNotif = await _db.Notifications.AnyAsync(n =>
+                n.TargetAgentCode == code && n.Type == "WON" && ((n.Title != null && n.Title.Contains(notifFlight)) || (n.Message != null && n.Message.Contains(notifFlight))));
+            if (!hasWonNotif)
+            {
+                var nid = Util.NowMs() + Random.Shared.Next(1, 1000);
+                var notif = new Notification
+                {
+                    Id = nid,
+                    TargetAgentCode = code,
+                    Title = notifTitle,
+                    Message = $"Đại lý {top.AgentName ?? code} ({code}) đã trúng thầu chuyến bay {notifFlight} ({a.Route}) với giá {Util.FmtVi(top.PriceKg)}đ/Kg. Phiên đấu giá đã hoàn tất thành công và ghi nhận bạn là người trúng thầu.",
+                    Time = "Vừa xong",
+                    Type = "WON",
+                    Read = false,
+                    Unread = true,
+                    Link = $"07-WonAuction.html?flight={Uri.EscapeDataString(notifFlight)}"
+                };
+                EntityJson.SetExtra(notif, "timestamp", JsonValue.Create(nid));
+                _db.Notifications.Add(notif);
+                changed = true;
+            }
+        }
+
+        if (changed)
+        {
+            await _db.SaveChangesAsync();
         }
     }
 

@@ -748,8 +748,8 @@ const CargoStore = (function () {
                 updated = true;
             }
 
-            if (!data.wonAuctions || !Array.isArray(data.wonAuctions) || data.wonAuctions.length < 5) {
-                data.wonAuctions = JSON.parse(JSON.stringify(defaultData.wonAuctions));
+            if (!data.wonAuctions || !Array.isArray(data.wonAuctions)) {
+                data.wonAuctions = [];
                 updated = true;
             } else {
                 // Self-healing migration for existing localStorage data
@@ -875,6 +875,9 @@ const CargoStore = (function () {
                     localStorage.setItem(STORAGE_KEY, savedStr);
                     _memoryCacheRaw = savedStr;
                 } catch (e) { }
+                if (updated && !isSyncing) {
+                    saveData(data);
+                }
             } else {
                 _memoryCacheRaw = raw;
             }
@@ -1049,7 +1052,8 @@ const CargoStore = (function () {
                         settings: data.settings,
                         bankConfig: data.bankConfig,
                         routeSubscriptions: data.routeSubscriptions,
-                        activityLogs: data.activityLogs
+                        activityLogs: data.activityLogs,
+                        chats: data.chats || []
                     })
                 }).then(r => r.json()).then(res => {
                     if (res && res.stale) { applyServerEpoch(res.dataEpoch); return; }
@@ -1125,6 +1129,7 @@ const CargoStore = (function () {
                             if (FINAL_STATES.includes(a.status)) {
                                 auctionMap.set(aKey, {
                                     ...serverItem,
+                                    ...a,
                                     status: a.status,
                                     cancelledAt: a.cancelledAt,
                                     cancellationReason: a.cancellationReason,
@@ -1136,11 +1141,19 @@ const CargoStore = (function () {
                                 // If either server or local is CLOSED, stay CLOSED! Never revert to OPEN or UPCOMING
                                 auctionMap.set(aKey, {
                                     ...serverItem,
+                                    ...a,
                                     status: 'CLOSED',
+                                    isFinalLocked: a.isFinalLocked || serverItem.isFinalLocked || false,
                                     closedAt: a.closedAt || serverItem.closedAt,
                                     winnerAgentCode: a.winnerAgentCode || serverItem.winnerAgentCode,
                                     winnerAgentName: a.winnerAgentName || serverItem.winnerAgentName,
                                     winningPriceKg: a.winningPriceKg || serverItem.winningPriceKg
+                                });
+                            } else {
+                                auctionMap.set(aKey, {
+                                    ...a,
+                                    ...serverItem,
+                                    isFinalLocked: a.isFinalLocked || serverItem.isFinalLocked || false
                                 });
                             }
                         }
@@ -1149,7 +1162,27 @@ const CargoStore = (function () {
                 }
 
                 if (serverData.wonAuctions && Array.isArray(serverData.wonAuctions)) {
-                    local.wonAuctions = serverData.wonAuctions.filter(w => w && w.wonId && !String(w.wonId).startsWith('TEST_') && !String(w.wonId).startsWith('WON_PAID_TEST_'));
+                    const validServerWons = serverData.wonAuctions.filter(w => w && w.wonId && !String(w.wonId).startsWith('TEST_') && !String(w.wonId).startsWith('WON_PAID_TEST_'));
+                    const wonMap = new Map();
+                    validServerWons.forEach(w => wonMap.set(String(w.wonId), w));
+                    (local.wonAuctions || []).forEach(w => {
+                        if (!w || !w.wonId || String(w.wonId).startsWith('TEST_') || String(w.wonId).startsWith('WON_PAID_TEST_')) return;
+                        const wKey = String(w.wonId);
+                        const serverItem = wonMap.get(wKey);
+                        if (!serverItem) {
+                            wonMap.set(wKey, w);
+                        } else {
+                            // Merge: preserve local updates if server has default UNPAID or lacks fields
+                            wonMap.set(wKey, {
+                                ...w,
+                                ...serverItem,
+                                paymentStatus: (serverItem.paymentStatus && serverItem.paymentStatus !== 'UNPAID') ? serverItem.paymentStatus : (w.paymentStatus || serverItem.paymentStatus),
+                                paymentProof: serverItem.paymentProof || w.paymentProof,
+                                cargoDeclaration: serverItem.cargoDeclaration || w.cargoDeclaration
+                            });
+                        }
+                    });
+                    local.wonAuctions = Array.from(wonMap.values());
                 }
 
                 if (serverData.bids && Array.isArray(serverData.bids)) {
@@ -1181,14 +1214,34 @@ const CargoStore = (function () {
                     const pendingLocalBids = (local.bids || []).filter(b => {
                         if (!b || !b.id) return false;
                         if (serverBidIds.has(String(b.id))) return false;
-                        const age = Date.now() - (Number(b.timestamp || b.id) || 0);
-                        return age >= 0 && age < 45000;
+                        return true;
                     });
                     local.bids = deduplicateBids([...reconciledServerBids, ...pendingLocalBids]);
                 }
 
                 if (serverData.notifications && Array.isArray(serverData.notifications)) {
-                    local.notifications = deduplicateNotifications(serverData.notifications);
+                    const notifMap = new Map();
+                    serverData.notifications.forEach(n => {
+                        if (n && n.id) notifMap.set(String(n.id), n);
+                    });
+                    // Preserve local notifications not yet in serverData
+                    (local.notifications || []).forEach(n => {
+                        if (!n || !n.id) return;
+                        const nKey = String(n.id);
+                        const sItem = notifMap.get(nKey);
+                        if (!sItem) {
+                            notifMap.set(nKey, n);
+                        } else {
+                            // Merge: if either marked read, keep read
+                            notifMap.set(nKey, {
+                                ...sItem,
+                                ...n,
+                                read: sItem.read || n.read,
+                                unread: !sItem.read && !n.read
+                            });
+                        }
+                    });
+                    local.notifications = deduplicateNotifications(Array.from(notifMap.values()));
                 }
 
                 if (serverData.deletedNotificationIds && Array.isArray(serverData.deletedNotificationIds)) {
@@ -1196,6 +1249,8 @@ const CargoStore = (function () {
                     const delSet = new Set(local.deletedNotificationIds.map(String));
                     serverData.deletedNotificationIds.forEach(id => delSet.add(String(id)));
                     local.deletedNotificationIds = Array.from(delSet);
+                    // Filter deleted notifications from local.notifications immediately
+                    local.notifications = (local.notifications || []).filter(n => n && !delSet.has(String(n.id)));
                 }
 
                 if (serverData.readNotificationIds && Array.isArray(serverData.readNotificationIds)) {
@@ -1232,8 +1287,22 @@ const CargoStore = (function () {
                 }
 
                 if (serverData.agentsList && Array.isArray(serverData.agentsList)) {
-                    local.agentsList = serverData.agentsList.filter(ag => {
-                        if (!ag) return false;
+                    const agentMap = new Map();
+                    serverData.agentsList.forEach(ag => {
+                        if (!ag || !ag.code) return;
+                        agentMap.set(String(ag.code).trim().toUpperCase(), ag);
+                    });
+                    (local.agentsList || []).forEach(ag => {
+                        if (!ag || !ag.code) return;
+                        const aKey = String(ag.code).trim().toUpperCase();
+                        if (!agentMap.has(aKey)) {
+                            agentMap.set(aKey, ag);
+                        } else {
+                            const sItem = agentMap.get(aKey);
+                            agentMap.set(aKey, { ...ag, ...sItem, pin: sItem.pin || ag.pin, password: sItem.password || ag.password });
+                        }
+                    });
+                    local.agentsList = Array.from(agentMap.values()).filter(ag => {
                         const code = String(ag.code || '').trim();
                         if (!code || code === 'undefined' || code === 'null') return false;
                         const codeUpper = code.toUpperCase();
@@ -1250,12 +1319,45 @@ const CargoStore = (function () {
                         }
                     }
                 }
+
                 if (serverData.activityLogs && Array.isArray(serverData.activityLogs)) {
-                    // Server is the single source of truth for logs when online.
-                    // Do not merge local logs to avoid duplicates.
-                    local.activityLogs = deduplicateActivityLogs(serverData.activityLogs)
+                    const logMap = new Map();
+                    serverData.activityLogs.forEach(l => {
+                        if (!l) return;
+                        const k = l.id ? String(l.id) : `${l.username || l.actor}_${l.actionTitle}_${Math.floor((Number(l.rawTime) || 0) / 5000)}`;
+                        logMap.set(k, l);
+                    });
+                    (local.activityLogs || []).forEach(l => {
+                        if (!l) return;
+                        const k = l.id ? String(l.id) : `${l.username || l.actor}_${l.actionTitle}_${Math.floor((Number(l.rawTime) || 0) / 5000)}`;
+                        if (!logMap.has(k)) logMap.set(k, l);
+                    });
+                    local.activityLogs = deduplicateActivityLogs(Array.from(logMap.values()))
                         .sort((a, b) => getEffectiveLogTime(b) - getEffectiveLogTime(a))
                         .slice(0, 1000);
+                }
+
+                if (serverData.chats && Array.isArray(serverData.chats)) {
+                    const chatMap = new Map();
+                    serverData.chats.forEach(c => { if (c && c.id) chatMap.set(String(c.id), c); });
+                    (local.chats || []).forEach(c => {
+                        if (!c || !c.id) return;
+                        const cKey = String(c.id);
+                        const sChat = chatMap.get(cKey);
+                        if (!sChat) {
+                            chatMap.set(cKey, c);
+                        } else {
+                            const msgMap = new Map();
+                            (sChat.messages || []).forEach(m => { if (m && m.id) msgMap.set(String(m.id), m); });
+                            (c.messages || []).forEach(m => { if (m && m.id && !msgMap.has(String(m.id))) msgMap.set(String(m.id), m); });
+                            chatMap.set(cKey, {
+                                ...c,
+                                ...sChat,
+                                messages: Array.from(msgMap.values()).sort((x, y) => (Number(x.timestamp) || 0) - (Number(y.timestamp) || 0))
+                            });
+                        }
+                    });
+                    local.chats = Array.from(chatMap.values());
                 }
 
                 if (serverData.adminsList && Array.isArray(serverData.adminsList) && serverData.adminsList.length > 0) {
@@ -1291,7 +1393,7 @@ const CargoStore = (function () {
 
     // Auto-poll server every 8000ms to stay in sync without CPU/network lag
     if (typeof window !== 'undefined') {
-        setTimeout(() => syncWithServer(true), 150);
+        setTimeout(() => syncWithServer(false), 500);
         setInterval(syncWithServer, 8000);
 
         window.addEventListener('storage', function (e) {
@@ -2642,13 +2744,6 @@ const CargoStore = (function () {
             });
 
             saveData(data);
-            if (typeof fetch !== 'undefined') {
-                fetch('/api/data', {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ dataEpoch: getLocalEpoch(), auctions: data.auctions })
-                }).catch(() => {});
-            }
 
             this.logActivity({
                 actionCategory: 'Phiên đấu giá',
@@ -3492,6 +3587,40 @@ const CargoStore = (function () {
                 }
             });
 
+            // Dynamically synthesize missing WON notifications from wonAuctions for current agent
+            const userWonAuctions = (data.wonAuctions || []).filter(w => String(w.agentCode || '').trim().toUpperCase() === myCode);
+            userWonAuctions.forEach(w => {
+                const wonNotifId = `won_${w.wonId || w.auctionId}`;
+                const hasWonNotif = allNotifs.some(n =>
+                    String(n.id) === wonNotifId ||
+                    (n.type === 'WON' && (
+                        (n.link && (n.link.includes(String(w.flightNumber)) || n.link.includes(String(w.auctionId)))) ||
+                        (n.message && w.flightNumber && n.message.includes(w.flightNumber))
+                    ))
+                );
+                const isDeleted = deletedIds.includes(wonNotifId) ||
+                    deletedIds.includes(String(w.wonId)) ||
+                    deletedIds.includes(String(w.auctionId));
+                if (!hasWonNotif && !isDeleted) {
+                    const isRead = readIds.includes(wonNotifId) ||
+                        readIds.includes(String(w.wonId)) ||
+                        readIds.includes(String(w.auctionId));
+                    const wTime = Number(w.timestamp || (w.wonId && w.wonId.split('-')[1]) || Date.now()) || Date.now();
+                    allNotifs.push({
+                        id: wonNotifId,
+                        timestamp: wTime,
+                        targetAgentCode: myCode,
+                        title: `🏆 CHÚC MỪNG! Bạn đã thắng thầu chuyến bay ${w.flightNumber}`,
+                        message: `Đại lý ${w.agentName || myCode} (${myCode}) đã trúng thầu chuyến bay ${w.flightNumber} (${w.route || ''}) với giá ${formatCurrency(w.priceKg)}/Kg. Phiên đấu giá đã hoàn tất thành công và ghi nhận bạn là người trúng thầu.`,
+                        time: formatTimeAgo(wTime),
+                        type: 'WON',
+                        read: isRead,
+                        unread: !isRead,
+                        link: `07-WonAuction.html?flight=${encodeURIComponent(w.flightNumber || '')}`
+                    });
+                }
+            });
+
             // Find agent's approval / creation timestamp
             let approvalTimestamp = 0;
             const approvalNotif = allNotifs.find(n => {
@@ -3597,6 +3726,11 @@ const CargoStore = (function () {
                 data.readNotificationIds.push(targetIdStr);
             }
 
+            if (targetIdStr.startsWith('won_')) {
+                const wonSuffix = targetIdStr.substring(4);
+                if (!data.readNotificationIds.includes(wonSuffix)) data.readNotificationIds.push(wonSuffix);
+            }
+
             if (targetIdStr.startsWith('outbid_') || targetIdStr.startsWith('highest_')) {
                 const parts = targetIdStr.split('_');
                 if (parts.length >= 3) {
@@ -3642,6 +3776,10 @@ const CargoStore = (function () {
                     data.readNotificationIds.push(idStr);
                 }
                 readIds.push(idStr);
+                if (idStr.startsWith('won_')) {
+                    const wonSuffix = idStr.substring(4);
+                    if (!data.readNotificationIds.includes(wonSuffix)) data.readNotificationIds.push(wonSuffix);
+                }
                 if (idStr.startsWith('outbid_') || idStr.startsWith('highest_')) {
                     const parts = idStr.split('_');
                     if (parts.length >= 3) {
@@ -3695,6 +3833,10 @@ const CargoStore = (function () {
             idStrings.forEach(idStr => {
                 if (!data.deletedNotificationIds.includes(idStr)) {
                     data.deletedNotificationIds.push(idStr);
+                }
+                if (idStr.startsWith('won_')) {
+                    const wonSuffix = idStr.substring(4);
+                    if (!data.deletedNotificationIds.includes(wonSuffix)) data.deletedNotificationIds.push(wonSuffix);
                 }
                 if (idStr.startsWith('outbid_') || idStr.startsWith('highest_')) {
                     const parts = idStr.split('_');
