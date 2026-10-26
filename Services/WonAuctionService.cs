@@ -102,41 +102,85 @@ public class WonAuctionService
 
     // ------------------------------------------------ duyệt hồ sơ đại lý
 
-    public async Task<string> ApproveRegistrationAsync(string? regId, string? approvedBy, string? ip)
+    public async Task<string> ApproveRegistrationAsync(string? regId, string? approvedBy, string? ip, string? desiredCode = null)
     {
         if (string.IsNullOrEmpty(regId)) throw new ApiException("regId is required");
         var reg = await _db.Registrations.FindAsync(regId) ?? throw new ApiException("Hồ sơ đăng ký không tồn tại", 404);
 
+        if (reg.Status == "APPROVED" && !string.IsNullOrEmpty(reg.AgentCode))
+        {
+            return reg.AgentCode;
+        }
+
         var agents = await _db.Agents.ToListAsync();
+
+        var agent = agents.FirstOrDefault(a =>
+            (!string.IsNullOrEmpty(desiredCode) && string.Equals(a.Code, desiredCode, StringComparison.OrdinalIgnoreCase)) ||
+            (!string.IsNullOrEmpty(a.TaxCode) && a.TaxCode == reg.TaxCode) ||
+            (!string.IsNullOrEmpty(reg.AgentCode) && string.Equals(a.Code, reg.AgentCode, StringComparison.OrdinalIgnoreCase)));
+
         string code;
-        do { code = "AG-" + Random.Shared.Next(1000, 10000); } while (agents.Any(a => a.Code == code));
+        if (agent != null)
+        {
+            code = agent.Code;
+        }
+        else if (!string.IsNullOrEmpty(desiredCode))
+        {
+            code = desiredCode.Trim().ToUpperInvariant();
+        }
+        else
+        {
+            var existingCodes = agents.Select(a => a.Code.Trim().ToUpperInvariant()).ToHashSet();
+            int seq = 1;
+            while (existingCodes.Contains($"AG-{seq:D4}")) seq++;
+            code = $"AG-{seq:D4}";
+        }
 
-        reg.Status = "APPROVED"; reg.ApprovedAt = Util.ViNow(); reg.AgentCode = code;
+        reg.Status = "APPROVED";
+        reg.ApprovedAt = Util.ViNow();
+        reg.AgentCode = code;
 
-        var agent = agents.FirstOrDefault(a => !string.IsNullOrEmpty(a.TaxCode) && a.TaxCode == reg.TaxCode);
         if (agent == null)
         {
             _db.Agents.Add(new Agent
             {
-                Code = code, Name = reg.CompanyName, CompanyName = reg.CompanyName, TaxCode = reg.TaxCode, Email = reg.Email,
-                Phone = reg.Phone, Status = "Hoạt động", IsLocked = false, Password = "12345678", Pin = "1234"
+                Code = code,
+                Name = reg.CompanyName,
+                CompanyName = reg.CompanyName,
+                TaxCode = reg.TaxCode,
+                Email = reg.Email,
+                Phone = reg.Phone,
+                Status = "Hoạt động",
+                IsLocked = false,
+                Password = "12345678",
+                Pin = "1234"
             });
         }
         else
         {
-            // Giữ hành vi gốc: đại lý trùng MST được cấp lại mã mới (đổi khóa chính).
-            _db.Agents.Remove(agent);
-            _db.Agents.Add(new Agent
+            if (!string.IsNullOrEmpty(reg.CompanyName))
             {
-                Code = code, Name = agent.Name, CompanyName = agent.CompanyName, TaxCode = agent.TaxCode, Email = agent.Email, Phone = agent.Phone,
-                Status = "Hoạt động", IsLocked = false, Password = agent.Password, Pin = agent.Pin, ExtraJson = agent.ExtraJson
-            });
+                agent.Name = reg.CompanyName;
+                agent.CompanyName = reg.CompanyName;
+            }
+            if (!string.IsNullOrEmpty(reg.Email)) agent.Email = reg.Email;
+            if (!string.IsNullOrEmpty(reg.Phone)) agent.Phone = reg.Phone;
+            if (!string.IsNullOrEmpty(reg.TaxCode)) agent.TaxCode = reg.TaxCode;
+            agent.Status = "Hoạt động";
+            agent.IsLocked = false;
         }
 
-        var actor = Util.NullIfEmpty(approvedBy) ?? "Quản trị viên";
-        _db.ActivityLogs.Add(LogService.Make(actor, Util.NullIfEmpty(approvedBy) ?? "admin", "ADMIN", "Quản lý Đại lý", "Tạo tài khoản Đại lý mới", code,
-            $"Duyệt hồ sơ đăng ký {regId} và cấp mã đại lý {code} cho công ty {reg.CompanyName} (MST: {Util.NullIfEmpty(reg.TaxCode) ?? "N/A"}).", ip ?? "127.0.0.1", "Admin Portal"));
+        var nowMs = Util.NowMs();
+        var recentLog = await _db.ActivityLogs.AnyAsync(l => l.ActionCategory == "Quản lý Đại lý" && (l.Target == regId || l.Target == code || (l.Details != null && l.Details.Contains(regId))) && l.RawTime > nowMs - 60000);
+        if (!recentLog)
+        {
+            var actor = Util.NullIfEmpty(approvedBy) ?? "Quản trị viên";
+            _db.ActivityLogs.Add(LogService.Make(actor, Util.NullIfEmpty(approvedBy) ?? "admin", "SUPER_ADMIN", "Quản lý Đại lý", "Duyệt & Cấp mã Đại lý", reg.CompanyName ?? code,
+                $"Phê duyệt hồ sơ đăng ký đại lý \"{reg.CompanyName}\" (MST: {Util.NullIfEmpty(reg.TaxCode) ?? "N/A"}). Cấp thành công Mã Đại lý: {code}.", ip ?? "127.0.0.1", "Admin Portal"));
+        }
+
         await SaveAsync();
+        SharedDataService.InvalidateSnapshotCache();
         return code;
     }
 

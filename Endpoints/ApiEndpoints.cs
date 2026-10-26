@@ -198,7 +198,8 @@ public static class ApiEndpoints
         {
             var b = await BodyAsync(ctx.Request);
             var regId = EntityJson.Str(b, "regId");
-            var code = await svc.ApproveRegistrationAsync(regId, EntityJson.Str(b, "approvedBy"), ctx.Connection.RemoteIpAddress?.ToString());
+            var desiredCode = EntityJson.Str(b, "agentCode");
+            var code = await svc.ApproveRegistrationAsync(regId, EntityJson.Str(b, "approvedBy"), ctx.Connection.RemoteIpAddress?.ToString(), desiredCode);
             return J(new JsonObject
             {
                 ["success"] = true, ["agentCode"] = code,
@@ -219,8 +220,14 @@ public static class ApiEndpoints
             reg.Status = "REJECTED";
             reg.RejectionReason = reason;
 
-            db.ActivityLogs.Add(LogService.Make(rejectedBy, "admin", "SUPER_ADMIN", "Quản lý Đại lý", "Từ chối hồ sơ Đăng ký", reg.CompanyName ?? regId,
-                $"Từ chối hồ sơ đăng ký đại lý \"{reg.CompanyName}\" ({regId}). Lý do từ chối: \"{reason}\".", ctx.Connection.RemoteIpAddress?.ToString(), "Admin Portal"));
+            var nowMs = Util.NowMs();
+            var recentLog = await Microsoft.EntityFrameworkCore.EntityFrameworkQueryableExtensions.AnyAsync(db.ActivityLogs,
+                l => l.ActionCategory == "Quản lý Đại lý" && (l.Target == regId || (l.Details != null && l.Details.Contains(regId))) && l.RawTime > nowMs - 60000);
+            if (!recentLog)
+            {
+                db.ActivityLogs.Add(LogService.Make(rejectedBy, "admin", "SUPER_ADMIN", "Quản lý Đại lý", "Từ chối hồ sơ Đăng ký", reg.CompanyName ?? regId,
+                    $"Từ chối hồ sơ đăng ký đại lý \"{reg.CompanyName}\" ({regId}). Lý do từ chối: \"{reason}\".", ctx.Connection.RemoteIpAddress?.ToString(), "Admin Portal"));
+            }
 
             await db.SaveChangesAsync();
             SharedDataService.InvalidateSnapshotCache();

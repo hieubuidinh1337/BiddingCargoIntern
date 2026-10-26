@@ -3886,6 +3886,7 @@ const CargoStore = (function () {
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify({
                         regId: regId,
+                        agentCode: newCode,
                         approvedBy: data.currentAdmin ? (data.currentAdmin.fullName || data.currentAdmin.username) : 'Admin'
                     })
                 }).then(() => {
