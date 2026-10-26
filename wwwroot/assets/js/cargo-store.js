@@ -237,9 +237,8 @@ const CargoStore = (function () {
 
     function deduplicateActivityLogs(logs) {
         if (!Array.isArray(logs)) return [];
-        const seenKeys = new Set();
-        const seenIds = new Set();
         const result = [];
+        const seenIds = new Set();
 
         logs.forEach(l => {
             if (!l) return;
@@ -247,17 +246,43 @@ const CargoStore = (function () {
             if (idStr && seenIds.has(idStr)) return;
 
             const timeMs = getEffectiveLogTime(l);
-            const timeBucket = Math.floor(timeMs / 5000); // 5-second window
+            const titleStr = String(l.actionTitle || '').trim().toUpperCase();
+            const targetStr = String(l.target || '').trim().toUpperCase();
             const userStr = String(l.username || l.actor || '').trim().toUpperCase();
-            const titleStr = String(l.actionTitle || '').trim();
-            const targetStr = String(l.target || '').trim();
-            const detailsStr = String(l.details || '').trim();
-            const fingerprint = `${userStr}|${titleStr}|${targetStr}|${detailsStr}|${timeBucket}`;
 
-            if (seenKeys.has(fingerprint)) return;
+            // Semantic match within 10 seconds
+            const existingIdx = result.findIndex(r => {
+                const rTime = getEffectiveLogTime(r);
+                if (Math.abs(timeMs - rTime) > 10000) return false;
+                const rTitle = String(r.actionTitle || '').trim().toUpperCase();
+                if (rTitle !== titleStr) return false;
+
+                const rTarget = String(r.target || '').trim().toUpperCase();
+                if (targetStr && rTarget && targetStr !== 'N/A' && rTarget !== 'N/A' && targetStr !== rTarget) {
+                    return false;
+                }
+
+                const rUser = String(r.username || r.actor || '').trim().toUpperCase();
+                const isAdminAction = (userStr.includes('ADMIN') || userStr === 'ADMIN') && (rUser.includes('ADMIN') || rUser === 'ADMIN');
+                if (!isAdminAction && userStr && rUser && userStr !== rUser) {
+                    return false;
+                }
+
+                return true;
+            });
+
+            if (existingIdx >= 0) {
+                const existing = result[existingIdx];
+                if (l.device && l.device !== 'Web App' && (!existing.device || existing.device === 'Web App')) {
+                    result[existingIdx] = l;
+                } else if ((l.actor || '').length > (existing.actor || '').length && existing.device === 'Web App') {
+                    result[existingIdx] = l;
+                }
+                if (idStr) seenIds.add(idStr);
+                return;
+            }
 
             if (idStr) seenIds.add(idStr);
-            seenKeys.add(fingerprint);
             result.push(l);
         });
 
@@ -986,24 +1011,8 @@ const CargoStore = (function () {
         ? fetch('/api/epoch', { cache: 'no-store' }).then(r => r.json()).then(j => applyServerEpoch(j && j.dataEpoch)).catch(() => true)
         : Promise.resolve(true);
 
-    function saveData(data, skipServerSync = false) {
-        if (epochWiping) return;
-        _memoryCacheData = data;
-        let serialized = null;
-        try {
-            serialized = JSON.stringify(data);
-            _memoryCacheRaw = serialized;
-            localStorage.setItem(STORAGE_KEY, serialized);
-        } catch (e) {
-            console.error('Error saving CargoStore data', e);
-        }
-
-        // Broadcast to listeners in this browser window
-        try {
-            window.dispatchEvent(new CustomEvent('cargostore_updated', { detail: data }));
-        } catch (e) { }
-
-        // Auto-update notification badge dots on all pages
+    function updateHeaderNotifBadges(data) {
+        if (!data || typeof document === 'undefined') return;
         try {
             const user = data.currentUser;
             const myCode = user ? (user.agentCode || user.code || '').trim().toUpperCase() : null;
@@ -1024,6 +1033,89 @@ const CargoStore = (function () {
                 countBadge.style.display = unreadCount > 0 ? 'flex' : 'none';
             }
         } catch (e) { }
+    }
+
+    async function pushToServerImmediate(data) {
+        if (typeof window === 'undefined') return;
+        if (saveServerTimeout) {
+            clearTimeout(saveServerTimeout);
+            saveServerTimeout = null;
+        }
+        if (!(await epochReady) || epochWiping) return;
+        lastLocalSaveTimestamp = Date.now();
+        const apiUrl = '/api/data';
+        try {
+            const bodyPayload = JSON.stringify({
+                dataEpoch: getLocalEpoch(),
+                auctions: data.auctions,
+                bids: data.bids,
+                wonAuctions: data.wonAuctions,
+                notifications: data.notifications,
+                deletedNotificationIds: data.deletedNotificationIds || [],
+                readNotificationIds: data.readNotificationIds || [],
+                registrations: data.registrations,
+                agentsList: data.agentsList,
+                adminsList: data.adminsList,
+                rolesList: data.rolesList,
+                settings: data.settings,
+                bankConfig: data.bankConfig,
+                routeSubscriptions: data.routeSubscriptions,
+                activityLogs: data.activityLogs,
+                chats: data.chats || []
+            });
+
+            const res = await fetch(apiUrl, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: bodyPayload,
+                keepalive: true
+            });
+            if (res.ok) {
+                const resJson = await res.json();
+                if (resJson && resJson.stale) {
+                    applyServerEpoch(resJson.dataEpoch);
+                    return resJson;
+                }
+                if (resJson && resJson.version) {
+                    lastServerVersion = resJson.version;
+                    try { localStorage.setItem('CARGO_BIDDING_SERVER_VERSION', String(resJson.version)); } catch (e) { }
+                }
+                if (_syncChannel) {
+                    try {
+                        _syncChannel.postMessage({ type: 'DATA_SAVED', version: lastServerVersion, timestamp: Date.now() });
+                    } catch (e) { }
+                }
+                return resJson;
+            }
+        } catch (err) {
+            // Offline fallback
+        }
+    }
+
+    function saveData(data, skipServerSync = false, immediate = false) {
+        if (epochWiping) return;
+        _memoryCacheData = data;
+        let serialized = null;
+        try {
+            serialized = JSON.stringify(data);
+            _memoryCacheRaw = serialized;
+            localStorage.setItem(STORAGE_KEY, serialized);
+        } catch (e) {
+            console.error('Error saving CargoStore data', e);
+        }
+
+        // Broadcast to listeners in this browser window
+        try {
+            window.dispatchEvent(new CustomEvent('cargostore_updated', { detail: data }));
+        } catch (e) { }
+
+        // Auto-update notification badge dots on all pages
+        updateHeaderNotifBadges(data);
+
+        // Immediate push to server
+        if (immediate && !skipServerSync && typeof window !== 'undefined') {
+            return pushToServerImmediate(data);
+        }
 
         // Debounced push to server if running over HTTP/HTTPS or local dev server
         if (!skipServerSync && typeof window !== 'undefined') {
@@ -1031,39 +1123,7 @@ const CargoStore = (function () {
             if (saveServerTimeout) clearTimeout(saveServerTimeout);
 
             saveServerTimeout = setTimeout(async () => {
-                if (!(await epochReady) || epochWiping) return;
-                const apiUrl = '/api/data';
-
-                fetch(apiUrl, {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({
-                        dataEpoch: getLocalEpoch(),
-                        auctions: data.auctions,
-                        bids: data.bids,
-                        wonAuctions: data.wonAuctions,
-                        notifications: data.notifications,
-                        deletedNotificationIds: data.deletedNotificationIds || [],
-                        readNotificationIds: data.readNotificationIds || [],
-                        registrations: data.registrations,
-                        agentsList: data.agentsList,
-                        adminsList: data.adminsList,
-                        rolesList: data.rolesList,
-                        settings: data.settings,
-                        bankConfig: data.bankConfig,
-                        routeSubscriptions: data.routeSubscriptions,
-                        activityLogs: data.activityLogs,
-                        chats: data.chats || []
-                    })
-                }).then(r => r.json()).then(res => {
-                    if (res && res.stale) { applyServerEpoch(res.dataEpoch); return; }
-                    if (res && res.version) {
-                        lastServerVersion = res.version;
-                        try { localStorage.setItem('CARGO_BIDDING_SERVER_VERSION', String(res.version)); } catch (e) { }
-                    }
-                }).catch(err => {
-                    // Offline fallback
-                });
+                await pushToServerImmediate(data);
             }, 300);
         }
     }
@@ -1071,8 +1131,8 @@ const CargoStore = (function () {
     async function syncWithServer(force = false) {
         if (isSyncing || typeof window === 'undefined') return;
         if (!force && typeof document !== 'undefined' && document.hidden) return; // Save CPU when tab is in background
-        // Prevent sync race condition if local save occurred in the last 2000ms
-        if (!force && Date.now() - lastLocalSaveTimestamp < 2000) return;
+        // Prevent sync race condition if local save occurred in the last 800ms
+        if (!force && Date.now() - lastLocalSaveTimestamp < 800) return;
 
         try {
             isSyncing = true;
@@ -1101,12 +1161,37 @@ const CargoStore = (function () {
             if (!res.ok) return;
             const serverData = await res.json();
             if (serverData && serverData.dataEpoch && !applyServerEpoch(serverData.dataEpoch)) return;
+            const localAuctions = local.auctions || [];
+            const serverAuctions = serverData.auctions || [];
+            const localNotifs = local.notifications || [];
+            const serverNotifs = serverData.notifications || [];
+            const localWons = local.wonAuctions || [];
+            const serverWons = serverData.wonAuctions || [];
+            const localBids = local.bids || [];
+            const serverBids = serverData.bids || [];
+            const localRegs = local.registrations || [];
+            const serverRegs = serverData.registrations || [];
+            const localAgents = local.agentsList || [];
+            const serverAgents = serverData.agentsList || [];
+
+            const localAuctionIds = new Set(localAuctions.map(a => String(a.id)));
+            const hasNewAuctionOnServer = serverAuctions.some(a => a && a.id && !localAuctionIds.has(String(a.id)));
+            const hasStatusMismatch = serverAuctions.some(sa => {
+                if (!sa || !sa.id) return false;
+                const la = localAuctions.find(x => String(x.id) === String(sa.id));
+                return la && la.status !== sa.status;
+            });
+
             const shouldSync = force || !lastServerVersion ||
                 (serverData && serverData.version && serverData.version !== lastServerVersion) ||
-                (serverData.bids && serverData.bids.length !== (local.bids || []).length) ||
-                (serverData.registrations && serverData.registrations.length !== (local.registrations || []).length) ||
-                (serverData.agentsList && serverData.agentsList.length !== (local.agentsList || []).length) ||
-                (serverData.auctions && serverData.auctions.length !== (local.auctions || []).length);
+                hasNewAuctionOnServer ||
+                hasStatusMismatch ||
+                serverNotifs.length !== localNotifs.length ||
+                serverAuctions.length !== localAuctions.length ||
+                serverWons.length !== localWons.length ||
+                serverBids.length !== localBids.length ||
+                serverRegs.length !== localRegs.length ||
+                serverAgents.length !== localAgents.length;
             if (serverData && shouldSync) {
                 lastServerVersion = serverData.version || Date.now();
                 try { localStorage.setItem('CARGO_BIDDING_SERVER_VERSION', String(lastServerVersion)); } catch (e) { }
@@ -1383,6 +1468,10 @@ const CargoStore = (function () {
                 const newStr = JSON.stringify(local);
                 if (oldStr !== newStr) {
                     saveData(local, true);
+                    try {
+                        window.dispatchEvent(new CustomEvent('cargostore_updated', { detail: local }));
+                    } catch (e) { }
+                    updateHeaderNotifBadges(local);
                 }
             }
         } catch (e) {
@@ -1391,17 +1480,67 @@ const CargoStore = (function () {
         }
     }
 
-    // Auto-poll server every 8000ms to stay in sync without CPU/network lag
+    // Inter-tab sync channel via BroadcastChannel
+    let _syncChannel = null;
+    if (typeof window !== 'undefined' && 'BroadcastChannel' in window) {
+        try {
+            _syncChannel = new BroadcastChannel('cargo_bidding_sync_channel');
+            _syncChannel.onmessage = function (e) {
+                if (e.data && (e.data.type === 'DATA_SAVED' || e.data.type === 'SYNC_NOW')) {
+                    _memoryCacheData = null;
+                    _memoryCacheRaw = null;
+                    const fresh = loadData();
+                    try {
+                        window.dispatchEvent(new CustomEvent('cargostore_updated', { detail: fresh }));
+                    } catch (err) { }
+                    updateHeaderNotifBadges(fresh);
+                    setTimeout(() => syncWithServer(true), 100);
+                }
+            };
+        } catch (e) { }
+    }
+
+    // Auto-poll server every 3000ms to stay in sync without CPU/network lag
     if (typeof window !== 'undefined') {
         setTimeout(() => syncWithServer(false), 500);
-        setInterval(syncWithServer, 8000);
+        setInterval(syncWithServer, 3000);
 
         window.addEventListener('storage', function (e) {
             if (!e.key || e.key === STORAGE_KEY) {
                 _memoryCacheData = null;
                 _memoryCacheRaw = null;
+                const fresh = loadData();
+                try {
+                    window.dispatchEvent(new CustomEvent('cargostore_updated', { detail: fresh }));
+                } catch (err) { }
+                updateHeaderNotifBadges(fresh);
             }
         });
+
+        if (typeof document !== 'undefined') {
+            document.addEventListener('visibilitychange', function () {
+                if (!document.hidden) {
+                    _memoryCacheData = null;
+                    _memoryCacheRaw = null;
+                    const fresh = loadData();
+                    try {
+                        window.dispatchEvent(new CustomEvent('cargostore_updated', { detail: fresh }));
+                    } catch (err) { }
+                    updateHeaderNotifBadges(fresh);
+                    syncWithServer(true);
+                }
+            });
+            window.addEventListener('focus', function () {
+                _memoryCacheData = null;
+                _memoryCacheRaw = null;
+                const fresh = loadData();
+                try {
+                    window.dispatchEvent(new CustomEvent('cargostore_updated', { detail: fresh }));
+                } catch (err) { }
+                updateHeaderNotifBadges(fresh);
+                syncWithServer(true);
+            });
+        }
     }
 
     function formatCurrency(amount) {
@@ -1929,6 +2068,9 @@ const CargoStore = (function () {
     return {
         getData: loadData,
         saveData: saveData,
+        saveDataImmediate: function (data) {
+            return pushToServerImmediate(data || loadData());
+        },
         syncWithServer: syncWithServer,
         formatCurrency: formatCurrency,
         formatNumber: formatNumber,
@@ -2743,7 +2885,7 @@ const CargoStore = (function () {
                 }
             });
 
-            saveData(data);
+            saveData(data, false, true);
 
             this.logActivity({
                 actionCategory: 'Phiên đấu giá',

@@ -801,26 +801,53 @@
 
         function deduplicateLogs(logs) {
             if (!Array.isArray(logs)) return [];
-            const seenKeys = new Set();
-            const seenIds = new Set();
             const result = [];
+            const seenIds = new Set();
+
             logs.forEach(l => {
                 if (!l) return;
                 const idStr = l.id ? String(l.id) : null;
                 if (idStr && seenIds.has(idStr)) return;
 
                 const timeMs = getEffectiveTime(l);
-                const timeBucket = Math.floor(timeMs / 5000);
+                const titleStr = String(l.actionTitle || '').trim().toUpperCase();
+                const targetStr = String(l.target || '').trim().toUpperCase();
                 const userStr = String(l.username || l.actor || '').trim().toUpperCase();
-                const titleStr = String(l.actionTitle || '').trim();
-                const targetStr = String(l.target || '').trim();
-                const detailsStr = String(l.details || '').trim();
-                const fingerprint = `${userStr}|${titleStr}|${targetStr}|${detailsStr}|${timeBucket}`;
 
-                if (seenKeys.has(fingerprint)) return;
+                // Semantic match within 10 seconds
+                const existingIdx = result.findIndex(r => {
+                    const rTime = getEffectiveTime(r);
+                    if (Math.Abs ? Math.abs(timeMs - rTime) > 10000 : Math.abs(timeMs - rTime) > 10000) return false;
+                    const rTitle = String(r.actionTitle || '').trim().toUpperCase();
+                    if (rTitle !== titleStr) return false;
+
+                    const rTarget = String(r.target || '').trim().toUpperCase();
+                    if (targetStr && rTarget && targetStr !== 'N/A' && rTarget !== 'N/A' && targetStr !== rTarget) {
+                        return false;
+                    }
+
+                    const rUser = String(r.username || r.actor || '').trim().toUpperCase();
+                    const isAdminAction = (userStr.includes('ADMIN') || userStr === 'ADMIN') && (rUser.includes('ADMIN') || rUser === 'ADMIN');
+                    if (!isAdminAction && userStr && rUser && userStr !== rUser) {
+                        return false;
+                    }
+
+                    return true;
+                });
+
+                if (existingIdx >= 0) {
+                    const existing = result[existingIdx];
+                    // Prefer the richer log (e.g. Windows Chrome over Web App, or longer Actor name)
+                    if (l.device && l.device !== 'Web App' && (!existing.device || existing.device === 'Web App')) {
+                        result[existingIdx] = l;
+                    } else if ((l.actor || '').length > (existing.actor || '').length && existing.device === 'Web App') {
+                        result[existingIdx] = l;
+                    }
+                    if (idStr) seenIds.add(idStr);
+                    return;
+                }
 
                 if (idStr) seenIds.add(idStr);
-                seenKeys.add(fingerprint);
                 result.push(l);
             });
             return result;

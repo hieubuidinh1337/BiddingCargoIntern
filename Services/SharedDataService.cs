@@ -628,25 +628,56 @@ public class SharedDataService
 
             // 7) Nhật ký hoạt động phía client
             var recentLogs = await _db.ActivityLogs.OrderByDescending(l => l.RawTime).Take(2000).ToListAsync();
-            string LogKey(string? user, string? actor, string? title, long raw) => $"{(string.IsNullOrEmpty(user) ? actor : user)}_{title}_{raw / 5000}";
-            var logKeys = recentLogs.Select(l => LogKey(l.Username, l.Actor, l.ActionTitle, l.RawTime)).ToHashSet();
             foreach (var n in ArrayOf(incoming, "activityLogs"))
             {
                 var title = EntityJson.Str(n, "actionTitle");
                 if (string.IsNullOrEmpty(title)) continue;
                 var eff = EffectiveLogTime(EntityJson.Str(n, "timestamp"), EntityJson.Lng(n, "rawTime") ?? 0);
-                var key = LogKey(EntityJson.Str(n, "username"), EntityJson.Str(n, "actor"), title, EntityJson.Lng(n, "rawTime") ?? 0);
-                if (!logKeys.Add(key)) continue;
+                var target = EntityJson.Str(n, "target") ?? "N/A";
+                var user = (EntityJson.Str(n, "username") ?? EntityJson.Str(n, "actor") ?? "").Trim().ToUpperInvariant();
                 var id = EntityJson.Lng(n, "id") ?? eff;
+
                 if (await _db.ActivityLogs.FindAsync(id) != null) continue;
-                _db.ActivityLogs.Add(new ActivityLog
+
+                // Check for duplicate within 10 seconds
+                var dup = recentLogs.FirstOrDefault(r =>
+                {
+                    if (Math.Abs(r.RawTime - eff) > 10000) return false;
+                    if (!string.Equals(r.ActionTitle?.Trim(), title.Trim(), StringComparison.OrdinalIgnoreCase)) return false;
+                    var rTarget = (r.Target ?? "N/A").Trim().ToUpperInvariant();
+                    var nTarget = target.Trim().ToUpperInvariant();
+                    if (rTarget != "N/A" && nTarget != "N/A" && rTarget != nTarget) return false;
+                    var rUser = (string.IsNullOrEmpty(r.Username) ? r.Actor : r.Username)?.Trim().ToUpperInvariant() ?? "";
+                    var isAdmin = (rUser == "ADMIN" || rUser.Contains("ADMIN")) && (user == "ADMIN" || user.Contains("ADMIN"));
+                    if (!isAdmin && rUser != user && !string.IsNullOrEmpty(rUser) && !string.IsNullOrEmpty(user)) return false;
+                    return true;
+                });
+
+                if (dup != null)
+                {
+                    var clientDev = EntityJson.Str(n, "device");
+                    if (!string.IsNullOrEmpty(clientDev) && clientDev != "Web App" && dup.Device == "Web App")
+                    {
+                        dup.Device = clientDev;
+                    }
+                    var clientActor = EntityJson.Str(n, "actor");
+                    if (!string.IsNullOrEmpty(clientActor) && clientActor != "Admin" && dup.Actor == "Admin")
+                    {
+                        dup.Actor = clientActor;
+                    }
+                    continue;
+                }
+
+                var newL = new ActivityLog
                 {
                     Id = id, Timestamp = EntityJson.Str(n, "timestamp") ?? "", RawTime = eff,
                     Actor = EntityJson.Str(n, "actor") ?? "", Username = EntityJson.Str(n, "username") ?? "",
                     Role = EntityJson.Str(n, "role") ?? "AGENT", ActionCategory = EntityJson.Str(n, "actionCategory") ?? "Khác",
-                    ActionTitle = title, Target = EntityJson.Str(n, "target") ?? "N/A", Details = EntityJson.Str(n, "details") ?? "",
+                    ActionTitle = title, Target = target, Details = EntityJson.Str(n, "details") ?? "",
                     Ip = EntityJson.Str(n, "ip") ?? "113.161.42.12", Device = EntityJson.Str(n, "device") ?? "Web Client"
-                });
+                };
+                _db.ActivityLogs.Add(newL);
+                recentLogs.Add(newL);
             }
 
             // 8) Cấu hình & danh sách phụ

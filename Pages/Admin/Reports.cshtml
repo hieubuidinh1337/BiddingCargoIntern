@@ -419,7 +419,7 @@
                 <h1 class="text-2xl font-bold text-slate-900 flex items-center gap-2">
                     <i class="fa-solid fa-chart-line text-blue-600"></i> Báo cáo & Thống kê Hiệu quả Vận tải
                 </h1>
-                <p class="text-xs text-slate-500 mt-1">Phân tích doanh thu đấu giá, tỷ lệ lấp đầy tải trọng theo từng
+                <p class="text-xs text-slate-500 mt-1">Phân tích doanh thu đấu giá tải trọng theo từng
                     chặng bay</p>
             </div>
             <div class="flex items-center gap-2">
@@ -522,8 +522,6 @@
             <div class="bg-white rounded-2xl p-5 border shadow-sm hover:shadow-md transition">
                 <p class="text-xs text-slate-500 font-medium">Tổng tải trọng khai thác</p>
                 <p class="text-2xl font-bold text-blue-600 mt-1" id="kpiTotalCapacity">0 Kg</p>
-                <span class="text-[11px] text-slate-500 block mt-1" id="kpiFillRateSubtext">Tỷ lệ lấp đầy bình quân:
-                    0%</span>
             </div>
             <div class="bg-white rounded-2xl p-5 border shadow-sm hover:shadow-md transition">
                 <p class="text-xs text-slate-500 font-medium">Giá thắng thầu bình quân</p>
@@ -550,7 +548,7 @@
             <div
                 class="sm:hidden flex items-center gap-1.5 text-[11px] text-slate-500 bg-slate-50 px-3 py-1.5 rounded-lg border border-slate-200">
                 <i class="fa-solid fa-arrows-left-right text-blue-500"></i>
-                <span>Bảng rộng: Vuốt ngang để xem tỷ lệ lấp đầy & tổng doanh thu</span>
+                <span>Bảng rộng: Vuốt ngang để xem tổng doanh thu</span>
             </div>
 
             <div class="overflow-x-auto rounded-xl border border-slate-200">
@@ -561,7 +559,6 @@
                             <th class="py-3 px-3.5 whitespace-nowrap">Số chuyến đấu giá</th>
                             <th class="py-3 px-3.5 whitespace-nowrap">Tổng tải trọng chào</th>
                             <th class="py-3 px-3.5 whitespace-nowrap">Tải trọng trúng thầu</th>
-                            <th class="py-3 px-3.5 whitespace-nowrap">Tỷ lệ lấp đầy (Fill-rate)</th>
                             <th class="py-3 px-3.5 whitespace-nowrap">Giá bình quân</th>
                             <th class="py-3 px-3.5 text-right whitespace-nowrap">Tổng doanh thu (VND)</th>
                         </tr>
@@ -1365,7 +1362,6 @@
             if (kpiRev) kpiRev.textContent = CargoStore.formatCurrency(metrics.grandTotalRevenue);
             if (kpiRevSub) kpiRevSub.innerHTML = `<i class="fa-solid fa-circle-check text-emerald-600"></i> Tổng từ ${metrics.closedCount} phiên đã đóng/chốt thầu`;
             if (kpiCap) kpiCap.textContent = CargoStore.formatNumber(metrics.grandTotalOfferedKg) + ' Kg';
-            if (kpiFillSub) kpiFillSub.textContent = `Tỷ lệ lấp đầy bình quân: ${metrics.grandFillRate.toFixed(1)}% (${CargoStore.formatNumber(metrics.grandTotalWonKg)} Kg trúng thầu)`;
             if (kpiPrice) kpiPrice.textContent = CargoStore.formatCurrency(metrics.grandAvgPrice) + '/Kg';
 
             const periodBadge = document.getElementById('reportPeriodBadge');
@@ -1534,7 +1530,6 @@
                         "Số chuyến": r.flightCount,
                         "Tải chào (Kg)": r.totalOfferedKg,
                         "Tải trúng (Kg)": r.totalWonKg,
-                        "Tỷ lệ lấp đầy": `${(r.totalOfferedKg > 0 ? (r.totalWonKg / r.totalOfferedKg * 100) : 0).toFixed(1)}%`,
                         "Giá bình quân (VND/Kg)": r.totalWonKg > 0 ? Math.round(r.totalRevenue / r.totalWonKg) : 0,
                         "Tổng doanh thu (VND)": r.totalRevenue
                     }));
@@ -1545,7 +1540,6 @@
                         "Số chuyến": metrics.routes.reduce((sum, r) => sum + r.flightCount, 0),
                         "Tải chào (Kg)": metrics.grandTotalOfferedKg,
                         "Tải trúng thầu (Kg)": metrics.grandTotalWonKg,
-                        "Tỷ lệ lấp đầy": `${metrics.grandFillRate.toFixed(1)}%`,
                         "Giá bình quân (VND/Kg)": metrics.grandAvgPrice,
                         "Tổng doanh thu (VND)": metrics.grandTotalRevenue
                     });

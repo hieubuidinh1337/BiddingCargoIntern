@@ -26,23 +26,57 @@ public class LogService
     {
         var now = DateTime.Now;
         var raw = Util.NowMs();
+        var id = EntityJson.Lng(body, "id") ?? raw + Random.Shared.Next(0, 1000);
+        var actor = Util.NullIfEmpty(EntityJson.Str(body, "actor")) ?? "Hệ thống";
+        var username = Util.NullIfEmpty(EntityJson.Str(body, "username")) ?? "system";
+        var role = Util.NullIfEmpty(EntityJson.Str(body, "role")) ?? "SYSTEM";
+        var category = Util.NullIfEmpty(EntityJson.Str(body, "actionCategory")) ?? "Khác";
+        var title = Util.NullIfEmpty(EntityJson.Str(body, "actionTitle")) ?? "Thao tác hệ thống";
+        var target = Util.NullIfEmpty(EntityJson.Str(body, "target")) ?? "N/A";
+        var details = EntityJson.Str(body, "details") ?? "";
+        var ip = Util.NullIfEmpty(EntityJson.Str(body, "ip")) ?? remoteIp ?? "113.161.42.12";
+        var device = Util.NullIfEmpty(EntityJson.Str(body, "device")) ?? "Web App";
+
+        // Check if an existing log for the exact same event was already recorded in the last 15 seconds
+        var minTime = raw - 15000;
+        var targetClean = target.Trim().ToUpperInvariant();
+        var titleClean = title.Trim().ToUpperInvariant();
+        var userClean = username.Trim().ToUpperInvariant();
+
+        var duplicate = await _db.ActivityLogs
+            .Where(l => l.RawTime >= minTime)
+            .FirstOrDefaultAsync(l =>
+                l.ActionTitle.ToUpper() == titleClean &&
+                (targetClean == "N/A" || l.Target.ToUpper() == targetClean) &&
+                (l.Username.ToUpper() == userClean || l.Username.ToUpper() == "ADMIN" || userClean == "ADMIN"));
+
+        if (duplicate != null)
+        {
+            if (device != "Web App") duplicate.Device = device;
+            if (!string.IsNullOrEmpty(actor) && actor != "Admin" && actor != "Hệ thống") duplicate.Actor = actor;
+            if (!string.IsNullOrEmpty(details)) duplicate.Details = details;
+            duplicate.Ip = ip;
+            await _db.SaveChangesAsync();
+            return duplicate;
+        }
+
+        var existing = await _db.ActivityLogs.FindAsync(id);
+        if (existing != null) _db.ActivityLogs.Remove(existing);
         var log = new ActivityLog
         {
-            Id = EntityJson.Lng(body, "id") ?? raw + Random.Shared.Next(0, 1000),
-            Timestamp = Util.LogTimestamp(now), RawTime = raw,
-            Actor = Util.NullIfEmpty(EntityJson.Str(body, "actor")) ?? "Hệ thống",
-            Username = Util.NullIfEmpty(EntityJson.Str(body, "username")) ?? "system",
-            Role = Util.NullIfEmpty(EntityJson.Str(body, "role")) ?? "SYSTEM",
-            ActionCategory = Util.NullIfEmpty(EntityJson.Str(body, "actionCategory")) ?? "Khác",
-            ActionTitle = Util.NullIfEmpty(EntityJson.Str(body, "actionTitle")) ?? "Thao tác hệ thống",
-            Target = Util.NullIfEmpty(EntityJson.Str(body, "target")) ?? "N/A",
-            Details = EntityJson.Str(body, "details") ?? "",
-            Ip = Util.NullIfEmpty(EntityJson.Str(body, "ip")) ?? remoteIp ?? "113.161.42.12",
-            Device = Util.NullIfEmpty(EntityJson.Str(body, "device")) ?? "Web App"
+            Id = id,
+            Timestamp = Util.LogTimestamp(now),
+            RawTime = raw,
+            Actor = actor,
+            Username = username,
+            Role = role,
+            ActionCategory = category,
+            ActionTitle = title,
+            Target = target,
+            Details = details,
+            Ip = ip,
+            Device = device
         };
-        var existing = await _db.ActivityLogs.FindAsync(log.Id);
-        if (existing != null) _db.ActivityLogs.Remove(existing);   // INSERT OR REPLACE
-        await _db.SaveChangesAsync();
         _db.ActivityLogs.Add(log);
         await _db.SaveChangesAsync();
         return log;
@@ -52,15 +86,46 @@ public class LogService
     {
         var all = await _db.ActivityLogs.OrderByDescending(l => l.RawTime).Take(1000).ToListAsync();
         var seenIds = new HashSet<long>();
-        var seenKeys = new HashSet<string>();
         var result = new List<ActivityLog>();
+
         foreach (var l in all)
         {
             if (!seenIds.Add(l.Id)) continue;
-            var bucket = SharedDataService.EffectiveLogTime(l.Timestamp, l.RawTime) / 5000;
-            var user = (string.IsNullOrEmpty(l.Username) ? l.Actor : l.Username)?.Trim().ToUpperInvariant();
-            var fp = $"{user}|{l.ActionTitle?.Trim()}|{l.Target?.Trim()}|{l.Details?.Trim()}|{bucket}";
-            if (!seenKeys.Add(fp)) continue;
+            var lTime = SharedDataService.EffectiveLogTime(l.Timestamp, l.RawTime);
+            var lTitle = (l.ActionTitle ?? "").Trim();
+            var lTarget = (l.Target ?? "").Trim();
+            var lUser = (string.IsNullOrEmpty(l.Username) ? l.Actor : l.Username)?.Trim().ToUpperInvariant() ?? "";
+
+            var existingIndex = result.FindIndex(r =>
+            {
+                var rTime = SharedDataService.EffectiveLogTime(r.Timestamp, r.RawTime);
+                if (Math.Abs(lTime - rTime) > 10000) return false;
+                if (!string.Equals(r.ActionTitle?.Trim(), lTitle, StringComparison.OrdinalIgnoreCase)) return false;
+
+                var rTarget = (r.Target ?? "").Trim();
+                if (rTarget != "N/A" && lTarget != "N/A" && !string.Equals(rTarget, lTarget, StringComparison.OrdinalIgnoreCase)) return false;
+
+                var rUser = (string.IsNullOrEmpty(r.Username) ? r.Actor : r.Username)?.Trim().ToUpperInvariant() ?? "";
+                var isAdminUser = (rUser == "ADMIN" || rUser.Contains("ADMIN")) && (lUser == "ADMIN" || lUser.Contains("ADMIN"));
+                if (!isAdminUser && !string.Equals(rUser, lUser, StringComparison.OrdinalIgnoreCase)) return false;
+
+                return true;
+            });
+
+            if (existingIndex >= 0)
+            {
+                var existing = result[existingIndex];
+                if (l.Device != "Web App" && existing.Device == "Web App")
+                {
+                    result[existingIndex] = l;
+                }
+                else if ((l.Actor ?? "").Length > (existing.Actor ?? "").Length && existing.Device == "Web App")
+                {
+                    result[existingIndex] = l;
+                }
+                continue;
+            }
+
             result.Add(l);
         }
 

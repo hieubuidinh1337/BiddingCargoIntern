@@ -866,7 +866,7 @@
                     class="px-5 py-2.5 border rounded-xl text-xs font-medium hover:bg-slate-50 transition">
                     Hủy bỏ
                 </a>
-                <button type="submit"
+                <button type="submit" id="btnSubmitAuction"
                     class="bg-blue-600 hover:bg-blue-700 text-white text-xs font-bold px-6 py-2.5 rounded-xl transition shadow flex items-center gap-1.5">
                     <i class="fa-solid fa-paper-plane"></i> Xuất bản phiên đấu giá lên Sàn
                 </button>
@@ -1641,7 +1641,7 @@
             initAgentAccessControl();
         }
 
-        document.getElementById('createAuctionForm').addEventListener('submit', function (e) {
+        document.getElementById('createAuctionForm').addEventListener('submit', async function (e) {
             e.preventDefault();
 
             if (window.CargoStore && CargoStore.hasPermission && !CargoStore.hasPermission('auctions.create')) {
@@ -1749,6 +1749,12 @@
             const etdIso = flightStartDateVal ? `${flightStartDateVal}T${etdTimeVal}` : '';
             const etaIso = flightStartDateVal ? `${flightStartDateVal}T${etaTimeVal}` : '';
 
+            const submitBtn = document.getElementById('btnSubmitAuction') || e.target.querySelector('button[type="submit"]');
+            if (submitBtn) {
+                submitBtn.disabled = true;
+                submitBtn.innerHTML = '<i class="fa-solid fa-spinner fa-spin mr-1.5"></i> Đang xuất bản phiên lên sàn...';
+            }
+
             const res = (window.CargoStore && CargoStore.createAuction)
                 ? CargoStore.createAuction({
                     flightNumber: fn,
@@ -1773,9 +1779,21 @@
                 : { success: false, message: 'Hệ thống lưu trữ chưa sẵn sàng.' };
 
             if (res.success) {
+                // Ensure immediate push to SQL Server database before redirect
+                try {
+                    if (window.CargoStore && CargoStore.saveDataImmediate) {
+                        await CargoStore.saveDataImmediate();
+                    }
+                } catch (err) {
+                    console.warn('Sync before redirect warning:', err);
+                }
                 alert(res.message);
                 window.location.href = '03-AuctionList.html';
             } else {
+                if (submitBtn) {
+                    submitBtn.disabled = false;
+                    submitBtn.innerHTML = '<i class="fa-solid fa-paper-plane"></i> Xuất bản phiên đấu giá lên Sàn';
+                }
                 alert('❌ ' + (res.message || 'Tạo phiên đấu giá thất bại!'));
             }
         });
