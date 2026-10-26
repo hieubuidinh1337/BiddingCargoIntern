@@ -1522,18 +1522,7 @@ const CargoStore = (function () {
         if (!data) return false;
         let modified = false;
 
-        // Auto-heal / Unlock all agent accounts: branch policy does not lock accounts or hinder bidding for invoices
-        if (Array.isArray(data.agentsList)) {
-            data.agentsList.forEach(agent => {
-                if (agent.status === 'Đã khóa' || agent.status === 'LOCKED' || agent.isLocked || agent.lockedReason) {
-                    agent.status = 'Đang hoạt động';
-                    agent.isLocked = false;
-                    delete agent.lockedReason;
-                    delete agent.lockedAt;
-                    modified = true;
-                }
-            });
-        }
+        // Lưu ý: không tự động mở khóa đại lý ở đây - trạng thái khóa do Admin đặt phải được giữ nguyên.
 
         // Clean up high-priority account lock alert notifications
         if (Array.isArray(data.notifications)) {
@@ -1856,6 +1845,14 @@ const CargoStore = (function () {
                         message: `Tài khoản ${agent.code} đang bị TẠM KHÓA do nhập sai mật khẩu quá 5 lần liên tiếp.\n\nVui lòng kiểm tra email (${masked}) để mở khóa tài khoản, hoặc bấm nút "Mở khóa tài khoản qua Email" bên dưới.`
                     };
                 }
+                // Khóa chủ động bởi Admin (hoặc lý do khác): chặn đăng nhập
+                return {
+                    success: false,
+                    isLocked: true,
+                    lockReason: 'ADMIN_LOCKED',
+                    agentCode: agent.code,
+                    message: `Tài khoản ${agent.code} đã bị KHÓA bởi Ban Điều hành${agent.lockedReason ? ` (Lý do: ${agent.lockedReason})` : ''}.\n\nVui lòng liên hệ Tổng đài 1900.6686 hoặc email cargo@vietravelairlines.vn để được hỗ trợ.`
+                };
             }
 
             // Verify against THAT SPECIFIC AGENT'S PASSWORD OR PIN!
@@ -2849,13 +2846,10 @@ const CargoStore = (function () {
                 };
             }
 
-            // Ensure agent account is active (No invoice/payment blockage in this branch)
+            // Tài khoản bị Admin khóa thì không được đặt thầu
             const agentAccount = (data.agentsList || []).find(a => (a.code || '').toUpperCase() === (user.agentCode || '').toUpperCase());
             if (agentAccount && (agentAccount.status === 'Đã khóa' || agentAccount.status === 'LOCKED' || agentAccount.isLocked)) {
-                agentAccount.status = 'Đang hoạt động';
-                agentAccount.isLocked = false;
-                delete agentAccount.lockedReason;
-                delete agentAccount.lockedAt;
+                return { success: false, message: 'Tài khoản đại lý của bạn đang bị khóa. Vui lòng liên hệ Ban Điều hành để được hỗ trợ.' };
             }
 
             // Check if agent already submitted a bid for this auction
@@ -6051,7 +6045,7 @@ const CargoStore = (function () {
             if (type === 'agent') {
                 const target = (data.agentsList || []).find(a => (a.code || '').toUpperCase() === (identifier || '').toUpperCase());
                 if (target) {
-                    const isCurrentlyActive = target.status === 'Đang hoạt động';
+                    const isCurrentlyActive = !(target.status === 'Đã khóa' || target.status === 'LOCKED' || target.isLocked);
                     if (isCurrentlyActive) {
                         target.status = 'Đã khóa';
                         target.lockedReason = customReason || 'Quản trị viên chủ động khóa tài khoản';
@@ -6067,6 +6061,8 @@ const CargoStore = (function () {
                         }
                     } else {
                         target.status = 'Đang hoạt động';
+                        target.isLocked = false;
+                        target.failedLoginAttempts = 0;
                         target.unlockedAt = new Date().toLocaleString('vi-VN');
                         target.unlockedBy = data.currentAdmin ? (data.currentAdmin.username || 'ADMIN') : 'ADMIN';
                         target.unlockedReason = customReason || 'Đại lý đã nộp bổ sung tiền thanh toán sau quá hạn & được Ban Điều hành phê duyệt mở khóa';
@@ -6115,6 +6111,13 @@ const CargoStore = (function () {
                     }
 
                     saveData(data);
+                    if (typeof window !== 'undefined' && window.location && window.location.protocol.startsWith('http')) {
+                        fetch('/api/agents/lock', {
+                            method: 'POST',
+                            headers: { 'Content-Type': 'application/json' },
+                            body: JSON.stringify({ code: target.code, locked: isCurrentlyActive, reason: customReason || '' })
+                        }).then(() => { lastLocalSaveTimestamp = 0; return syncWithServer(true); }).catch(() => { });
+                    }
                     this.logActivity({
                         actionCategory: 'Quản lý Đại lý',
                         actionTitle: isCurrentlyActive ? 'Khóa tài khoản Đại lý' : 'Mở khóa tài khoản Đại lý',

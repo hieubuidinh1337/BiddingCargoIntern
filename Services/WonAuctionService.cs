@@ -140,6 +140,29 @@ public class WonAuctionService
         return code;
     }
 
+    // ------------------------------------------------ khóa / mở khóa đại lý (Admin)
+
+    public async Task SetAgentLockAsync(string? code, bool locked, string? reason)
+    {
+        if (string.IsNullOrWhiteSpace(code)) throw new ApiException("Thiếu mã đại lý.");
+        var key = code.Trim().ToUpper();
+        var agent = await _db.Agents.FirstOrDefaultAsync(a => a.Code.ToUpper() == key)
+            ?? throw new ApiException("Không tìm thấy đại lý: " + code, 404);
+        if (locked)
+        {
+            agent.Status = "Đã khóa"; agent.IsLocked = true;
+            agent.LockedReason = Util.NullIfEmpty(reason) ?? "Quản trị viên chủ động khóa tài khoản";
+            agent.LockedAt = Util.ViNow(); agent.UnlockedAt = null;
+        }
+        else
+        {
+            agent.Status = "Đang hoạt động"; agent.IsLocked = false;
+            agent.LockedReason = null; agent.LockedAt = null; agent.UnlockedAt = Util.ViNow();
+        }
+        await SaveAsync();
+        SharedDataService.InvalidateSnapshotCache();
+    }
+
     // ------------------------------------------------ thông báo
 
     public async Task MarkNotificationsReadAsync(IEnumerable<string> ids)

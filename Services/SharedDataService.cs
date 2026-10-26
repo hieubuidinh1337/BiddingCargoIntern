@@ -388,7 +388,20 @@ public class SharedDataService
                     agents[key] = ag;
                 }
                 var prevPwd = ag.Password; var prevPin = ag.Pin;
+                var prevStatus = ag.Status; var prevLocked = ag.IsLocked; var prevReason = ag.LockedReason;
+                var prevLockedAt = ag.LockedAt; var prevUnlockedAt = ag.UnlockedAt;
                 EntityJson.Apply(ag, n);
+                // Trạng thái khóa/mở khóa do Admin đặt (qua /api/agents/lock) là nguồn sự thật: dữ liệu cũ từ trình duyệt không được ghi đè.
+                // Chỉ cho phép client tự khóa do nhập sai mật khẩu và tự mở khóa khi khóa đó là do nhập sai mật khẩu.
+                var wasFailedLoginLock = prevReason == "FAILED_LOGIN_ATTEMPTS";
+                var nowFailedLoginLock = ag.LockedReason == "FAILED_LOGIN_ATTEMPTS";
+                var prevIsLocked = prevLocked || prevStatus is "Đã khóa" or "LOCKED";
+                var allowClientLockChange = (!prevIsLocked && nowFailedLoginLock) || (prevIsLocked && wasFailedLoginLock);
+                if (!allowClientLockChange)
+                {
+                    ag.Status = prevStatus; ag.IsLocked = prevLocked; ag.LockedReason = prevReason;
+                    ag.LockedAt = prevLockedAt; ag.UnlockedAt = prevUnlockedAt;
+                }
                 ag.Code = ag.Code.Trim();
                 if (string.IsNullOrEmpty(ag.Password)) ag.Password = prevPwd ?? "12345678";
                 if (string.IsNullOrEmpty(ag.Pin)) ag.Pin = prevPin ?? "1234";
@@ -572,11 +585,13 @@ public class SharedDataService
             foreach (var n in ArrayOf(incoming, "chats")) await UpsertChatAsync(n);
 
             await _db.SaveChangesAsync();
+            InvalidateSnapshotCache();
 
             // 10) Đối soát sau khi gộp
             await ReconcileAfterMergeAsync();
             var version = await BumpVersionAsync();
             await _db.SaveChangesAsync();
+            InvalidateSnapshotCache();
             return version;
         }
         finally { Gate.Release(); }

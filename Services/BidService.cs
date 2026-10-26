@@ -30,9 +30,7 @@ public class BidService
 
         var agent = await _db.Agents.FirstOrDefaultAsync(a => a.Code.ToUpper() == cleanCode);
         if (agent != null && (agent.IsLocked || agent.Status is "Đã khóa" or "LOCKED"))
-        {
-            agent.IsLocked = false; agent.Status = "Hoạt động"; agent.LockedReason = null;
-        }
+            throw new BidException("Tài khoản đại lý đang bị khóa, không thể đặt thầu. Vui lòng liên hệ Ban Điều hành.");
 
         // Tên hiển thị: ưu tiên tên công ty nếu client chỉ gửi mã
         var agentName = req.AgentName;

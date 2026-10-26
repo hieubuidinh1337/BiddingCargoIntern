@@ -146,6 +146,13 @@ public static class ApiEndpoints
             });
         }, log));
 
+        api.MapPost("/agents/lock", (HttpContext ctx, WonAuctionService svc) => Guard(async () =>
+        {
+            var b = await BodyAsync(ctx.Request);
+            await svc.SetAgentLockAsync(EntityJson.Str(b, "code"), EntityJson.Bool(b, "locked") ?? false, EntityJson.Str(b, "reason"));
+            return J(new JsonObject { ["success"] = true });
+        }, log));
+
         // ---- chat
         var chat = api.MapGroup("/chat");
         chat.MapGet("", (HttpContext ctx, ChatService svc) => Guard(async () =>
