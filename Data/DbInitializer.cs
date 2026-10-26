@@ -39,6 +39,39 @@ public static class DbInitializer
                 logger.LogWarning("Database chưa có bảng -> tự tạo các bảng.");
                 await creator.CreateTablesAsync();
             }
+            // Tự động kiểm tra và khởi tạo tài khoản admin mặc định nếu chưa có
+            if (!await db.Users.AnyAsync(u => u.Username == "admin"))
+            {
+                db.Users.Add(new AppUser
+                {
+                    Id = "USR-001",
+                    Username = "admin",
+                    Password = "admin2026",
+                    FullName = "Trần Quản Trị (Super Admin)",
+                    Email = "admin@vietravelairlines.vn",
+                    Role = "ADMIN",
+                    Status = "ACTIVE"
+                });
+                await db.SaveChangesAsync();
+                logger.LogInformation("Đã khởi tạo tài khoản quản trị mặc định (admin) trong bảng users.");
+            }
+
+            var adminSetting = await db.Settings.FirstOrDefaultAsync(s => s.Key == "adminsList");
+            if (adminSetting == null || string.IsNullOrWhiteSpace(adminSetting.Value) || adminSetting.Value.Trim() == "[]")
+            {
+                var defaultAdminsJson = "[{\"id\":99,\"username\":\"admin\",\"password\":\"admin2026\",\"role\":\"SUPER_ADMIN\",\"roles\":[\"SUPER_ADMIN\"],\"fullName\":\"Tr\u1EA7n Qu\u1EA3n Tr\u1ECB (Super Admin)\",\"email\":\"admin@vietravelairlines.vn\",\"department\":\"\"}]";
+                if (adminSetting == null)
+                {
+                    db.Settings.Add(new Setting { Key = "adminsList", Value = defaultAdminsJson });
+                }
+                else
+                {
+                    adminSetting.Value = defaultAdminsJson;
+                }
+                await db.SaveChangesAsync();
+                logger.LogInformation("Đã khởi tạo danh sách quản trị mặc định trong bảng settings (adminsList).");
+            }
+
             logger.LogInformation("SQL Server database kết nối thành công và sẵn sàng.");
         }
         catch (Exception e)

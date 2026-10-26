@@ -324,6 +324,43 @@ public class SharedDataService
         if (dbSettings.TryGetValue("version", out var vStr) && long.TryParse(vStr, out var v)) version = v;
         string dataEpoch = dbSettings.TryGetValue("dataEpoch", out var ep) && !string.IsNullOrEmpty(ep) ? ep : Guid.NewGuid().ToString("N");
 
+        var adminsArr = ParseSetting("adminsList") as JsonArray;
+        if (adminsArr == null || adminsArr.Count == 0)
+        {
+            adminsArr = new JsonArray
+            {
+                new JsonObject
+                {
+                    ["id"] = 99,
+                    ["username"] = "admin",
+                    ["password"] = "admin2026",
+                    ["role"] = "SUPER_ADMIN",
+                    ["roles"] = new JsonArray { "SUPER_ADMIN" },
+                    ["fullName"] = "Trần Quản Trị (Super Admin)",
+                    ["email"] = "admin@vietravelairlines.vn",
+                    ["department"] = ""
+                }
+            };
+        }
+        else
+        {
+            var hasAdmin = adminsArr.Any(n => string.Equals(EntityJson.Str(n, "username"), "admin", StringComparison.OrdinalIgnoreCase));
+            if (!hasAdmin)
+            {
+                adminsArr.Insert(0, new JsonObject
+                {
+                    ["id"] = 99,
+                    ["username"] = "admin",
+                    ["password"] = "admin2026",
+                    ["role"] = "SUPER_ADMIN",
+                    ["roles"] = new JsonArray { "SUPER_ADMIN" },
+                    ["fullName"] = "Trần Quản Trị (Super Admin)",
+                    ["email"] = "admin@vietravelairlines.vn",
+                    ["department"] = ""
+                });
+            }
+        }
+
         return new JsonObject
         {
             ["version"] = version,
@@ -343,7 +380,7 @@ public class SharedDataService
             ["activityLogs"] = ToArray(logList.Select(l => EntityJson.ToNode(l))),
             ["readNotificationIds"] = ParseSetting("readNotificationIds") ?? new JsonArray(),
             ["deletedNotificationIds"] = ParseSetting("deletedNotificationIds") ?? new JsonArray(),
-            ["adminsList"] = ParseSetting("adminsList") ?? new JsonArray(),
+            ["adminsList"] = adminsArr,
         };
     }
 
@@ -565,7 +602,29 @@ public class SharedDataService
             }
 
             // 8) Cấu hình & danh sách phụ
-            if (incoming["adminsList"] != null) await SetSettingAsync("adminsList", incoming["adminsList"]!.DeepClone());
+            if (incoming["adminsList"] is JsonArray incomingAdmins)
+            {
+                var hasAdmin = incomingAdmins.Any(n => string.Equals(EntityJson.Str(n, "username"), "admin", StringComparison.OrdinalIgnoreCase));
+                if (!hasAdmin)
+                {
+                    incomingAdmins.Insert(0, new JsonObject
+                    {
+                        ["id"] = 99,
+                        ["username"] = "admin",
+                        ["password"] = "admin2026",
+                        ["role"] = "SUPER_ADMIN",
+                        ["roles"] = new JsonArray { "SUPER_ADMIN" },
+                        ["fullName"] = "Trần Quản Trị (Super Admin)",
+                        ["email"] = "admin@vietravelairlines.vn",
+                        ["department"] = ""
+                    });
+                }
+                await SetSettingAsync("adminsList", incomingAdmins.DeepClone());
+            }
+            else if (incoming["adminsList"] != null)
+            {
+                await SetSettingAsync("adminsList", incoming["adminsList"]!.DeepClone());
+            }
             if (incoming["settings"] is JsonObject st)
             {
                 var newSettings = (JsonObject)st.DeepClone();

@@ -280,7 +280,11 @@ const CargoStore = (function () {
 
             // High-speed fast path: Return memory cache if raw string unchanged
             if (_memoryCacheData && raw === _memoryCacheRaw) {
-                return _memoryCacheData;
+                if (!_memoryCacheData.adminsList || !Array.isArray(_memoryCacheData.adminsList) || _memoryCacheData.adminsList.length === 0 || !_memoryCacheData.adminsList.some(a => (a.username || '').toLowerCase() === 'admin')) {
+                    _memoryCacheData = null; // force reload and self-healing
+                } else {
+                    return _memoryCacheData;
+                }
             }
 
             let data = JSON.parse(raw);
@@ -1189,7 +1193,15 @@ const CargoStore = (function () {
                         .slice(0, 1000);
                 }
 
-                local.adminsList = serverData.adminsList || local.adminsList;
+                if (serverData.adminsList && Array.isArray(serverData.adminsList) && serverData.adminsList.length > 0) {
+                    let list = [...serverData.adminsList];
+                    if (!list.some(a => (a.username || '').toLowerCase() === 'admin')) {
+                        list.unshift(JSON.parse(JSON.stringify(seedAdmins[0])));
+                    }
+                    local.adminsList = list;
+                } else if (!local.adminsList || !Array.isArray(local.adminsList) || local.adminsList.length === 0) {
+                    local.adminsList = JSON.parse(JSON.stringify(seedAdmins));
+                }
                 if (serverData.settings) local.settings = serverData.settings;
                 if (serverData.bankConfig) local.bankConfig = serverData.bankConfig;
                 if (serverData.routeSubscriptions) local.routeSubscriptions = serverData.routeSubscriptions;
@@ -2011,10 +2023,24 @@ const CargoStore = (function () {
         loginAdmin: function (usernameOrEmail, password) {
             const data = loadData();
             const u = (usernameOrEmail || '').trim().toLowerCase();
-            const admin = (data.adminsList || seedAdmins).find(a =>
+            let adminList = (Array.isArray(data.adminsList) && data.adminsList.length > 0) ? data.adminsList : seedAdmins;
+            let admin = adminList.find(a =>
                 (a.username || '').toLowerCase() === u ||
                 (a.email || '').toLowerCase() === u
             );
+
+            // Guaranteed root admin fallback if adminsList was emptied or corrupted
+            if (!admin && Array.isArray(seedAdmins)) {
+                admin = seedAdmins.find(a =>
+                    (a.username || '').toLowerCase() === u ||
+                    (a.email || '').toLowerCase() === u
+                );
+                if (admin) {
+                    if (!Array.isArray(data.adminsList)) data.adminsList = [];
+                    data.adminsList.unshift(JSON.parse(JSON.stringify(admin)));
+                    saveData(data);
+                }
+            }
 
             if (!admin) {
                 return { success: false, message: `Tài khoản hoặc Email admin "${usernameOrEmail}" không tồn tại.` };
