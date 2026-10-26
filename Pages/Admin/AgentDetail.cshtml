@@ -496,82 +496,8 @@
                     </span>
                 </div>
 
-                <div class="grid grid-cols-1 md:grid-cols-2 gap-3 text-xs">
-                    <!-- GPKD -->
-                    <div
-                        class="border rounded-xl p-3.5 flex items-center justify-between gap-3 bg-slate-50/70 hover:bg-slate-50 transition">
-                        <div class="flex items-center gap-3">
-                            <div
-                                class="w-10 h-10 rounded-xl bg-red-100 text-red-600 flex items-center justify-center text-lg shrink-0">
-                                <i class="fa-solid fa-file-pdf"></i>
-                            </div>
-                            <div>
-                                <p class="font-bold text-slate-900">Giấy phép kinh doanh / ĐKKD</p>
-                                <p class="text-[11px] text-slate-400">GPKD_Doanh_Nghiep.pdf · 2.4 MB</p>
-                            </div>
-                        </div>
-                        <a href="../uploads/GPKD_Doanh_Nghiep.pdf" target="_blank"
-                            class="px-3 py-1.5 bg-white border hover:bg-blue-50 text-blue-700 hover:border-blue-300 font-bold rounded-lg text-xs transition shadow-2xs inline-flex items-center gap-1">
-                            <i class="fa-solid fa-eye text-xs"></i> Xem PDF
-                        </a>
-                    </div>
-
-                    <!-- Giấy ủy quyền Cargo / IATA -->
-                    <div
-                        class="border rounded-xl p-3.5 flex items-center justify-between gap-3 bg-slate-50/70 hover:bg-slate-50 transition">
-                        <div class="flex items-center gap-3">
-                            <div
-                                class="w-10 h-10 rounded-xl bg-red-100 text-red-600 flex items-center justify-center text-lg shrink-0">
-                                <i class="fa-solid fa-file-pdf"></i>
-                            </div>
-                            <div>
-                                <p class="font-bold text-slate-900">Giấy ủy quyền Đại lý Cargo / IATA</p>
-                                <p class="text-[11px] text-slate-400">IATA_Cargo_Authorization.pdf · 1.8 MB</p>
-                            </div>
-                        </div>
-                        <a href="../uploads/IATA_Cargo_Authorization.pdf" target="_blank"
-                            class="px-3 py-1.5 bg-white border hover:bg-blue-50 text-blue-700 hover:border-blue-300 font-bold rounded-lg text-xs transition shadow-2xs inline-flex items-center gap-1">
-                            <i class="fa-solid fa-eye text-xs"></i> Xem PDF
-                        </a>
-                    </div>
-
-                    <!-- CCCD người đại diện -->
-                    <div
-                        class="border rounded-xl p-3.5 flex items-center justify-between gap-3 bg-slate-50/70 hover:bg-slate-50 transition">
-                        <div class="flex items-center gap-3">
-                            <div
-                                class="w-10 h-10 rounded-xl bg-red-100 text-red-600 flex items-center justify-center text-lg shrink-0">
-                                <i class="fa-solid fa-file-pdf"></i>
-                            </div>
-                            <div>
-                                <p class="font-bold text-slate-900">Bản chụp CCCD / Hộ chiếu Người đại diện</p>
-                                <p class="text-[11px] text-slate-400">CCCD_NguoiDaiDien.pdf · 1.1 MB</p>
-                            </div>
-                        </div>
-                        <a href="../uploads/CCCD_NguoiDaiDien.pdf" target="_blank"
-                            class="px-3 py-1.5 bg-white border hover:bg-blue-50 text-blue-700 hover:border-blue-300 font-bold rounded-lg text-xs transition shadow-2xs inline-flex items-center gap-1">
-                            <i class="fa-solid fa-eye text-xs"></i> Xem PDF
-                        </a>
-                    </div>
-
-                    <!-- Quy chế / Năng lực logistics -->
-                    <div
-                        class="border rounded-xl p-3.5 flex items-center justify-between gap-3 bg-slate-50/70 hover:bg-slate-50 transition">
-                        <div class="flex items-center gap-3">
-                            <div
-                                class="w-10 h-10 rounded-xl bg-red-100 text-red-600 flex items-center justify-center text-lg shrink-0">
-                                <i class="fa-solid fa-file-pdf"></i>
-                            </div>
-                            <div>
-                                <p class="font-bold text-slate-900">Quy chế & Cam kết Đấu thầu Tải trọng</p>
-                                <p class="text-[11px] text-slate-400">Quy_che_dau_gia_tai_trong_Vietravel_Cargo.pdf</p>
-                            </div>
-                        </div>
-                        <a href="../uploads/Quy_che_dau_gia_tai_trong_Vietravel_Cargo.pdf" target="_blank"
-                            class="px-3 py-1.5 bg-white border hover:bg-blue-50 text-blue-700 hover:border-blue-300 font-bold rounded-lg text-xs transition shadow-2xs inline-flex items-center gap-1">
-                            <i class="fa-solid fa-eye text-xs"></i> Xem PDF
-                        </a>
-                    </div>
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-3 text-xs" id="agentDocsGrid">
+                    <!-- Populated by renderAgentDocuments() -->
                 </div>
             </div>
         </div>
@@ -702,6 +628,7 @@
 
             renderAgentHeader();
             renderProfileFields();
+            renderAgentDocuments();
             renderAgentKpis();
             renderAgentBidsHistory();
         }
@@ -911,7 +838,409 @@
                 alert(res.message);
             }
         }
+
+        // --- Document Management & Preview ---
+        let currentAgentDocs = [];
+        let activeAgentBlobUrl = null;
+        let activeAgentDocIdx = -1;
+
+        function dataUrlToBlob(dataUrl) {
+            try {
+                const arr = dataUrl.split(',');
+                const mimeMatch = arr[0].match(/:(.*?);/);
+                const mime = mimeMatch ? mimeMatch[1] : 'application/octet-stream';
+                const bstr = atob(arr[1]);
+                let n = bstr.length;
+                const u8arr = new Uint8Array(n);
+                while (n--) {
+                    u8arr[n] = bstr.charCodeAt(n);
+                }
+                return new Blob([u8arr], { type: mime });
+            } catch (e) {
+                console.error('Error converting dataUrl to Blob:', e);
+                return null;
+            }
+        }
+
+        function renderAgentDocuments() {
+            const container = document.getElementById('agentDocsGrid');
+            if (!container) return;
+
+            // Get docs from currentAgent or currentReg
+            let docs = [];
+            if (currentAgent && Array.isArray(currentAgent.documents) && currentAgent.documents.length > 0) {
+                docs = currentAgent.documents;
+            } else if (currentReg && Array.isArray(currentReg.documents) && currentReg.documents.length > 0) {
+                docs = currentReg.documents;
+            }
+
+            // Fallback standard KYC documents if not uploaded or empty
+            if (!docs || docs.length === 0) {
+                docs = [
+                    { name: 'GPKD_Doanh_Nghiep.pdf', size: 2450000, type: 'application/pdf', title: 'Giấy phép kinh doanh / ĐKKD' },
+                    { name: 'IATA_Cargo_Authorization.pdf', size: 1850000, type: 'application/pdf', title: 'Giấy ủy quyền Đại lý Cargo / IATA' },
+                    { name: 'CCCD_NguoiDaiDien.pdf', size: 1150000, type: 'application/pdf', title: 'Bản chụp CCCD / Hộ chiếu Người đại diện' },
+                    { name: 'Quy_che_dau_gia_tai_trong_Vietravel_Cargo.pdf', size: 850000, type: 'application/pdf', title: 'Quy chế & Cam kết Đấu thầu Tải trọng' }
+                ];
+            }
+
+            currentAgentDocs = docs;
+
+            container.innerHTML = docs.map((doc, idx) => {
+                const docName = doc.name || `Tài liệu_${idx + 1}.pdf`;
+                const docNameLower = docName.toLowerCase();
+                const isPdf = (doc.type || '').includes('pdf') || docNameLower.endsWith('.pdf');
+                const isImg = (doc.type || '').startsWith('image/') || ['png', 'jpg', 'jpeg', 'webp'].some(e => docNameLower.endsWith(e));
+
+                let title = doc.title;
+                if (!title) {
+                    if (docNameLower.includes('gpkd') || docNameLower.includes('kd')) title = 'Giấy phép kinh doanh / ĐKKD';
+                    else if (docNameLower.includes('iata') || docNameLower.includes('uyquyen')) title = 'Giấy ủy quyền Đại lý Cargo / IATA';
+                    else if (docNameLower.includes('cccd') || docNameLower.includes('cmnd')) title = 'Bản chụp CCCD / Hộ chiếu Người đại diện';
+                    else if (docNameLower.includes('quy_che') || docNameLower.includes('camket')) title = 'Quy chế & Cam kết Đấu thầu Tải trọng';
+                    else title = docName;
+                }
+
+                let sizeStr = '';
+                if (doc.size) {
+                    sizeStr = (doc.size > 1024 * 1024)
+                        ? (doc.size / (1024 * 1024)).toFixed(1) + ' MB'
+                        : Math.round(doc.size / 1024) + ' KB';
+                } else {
+                    sizeStr = isPdf ? '2.4 MB' : 'Đã số hóa';
+                }
+
+                const iconBg = isPdf ? 'bg-red-100 text-red-600' : (isImg ? 'bg-blue-100 text-blue-600' : 'bg-slate-100 text-slate-600');
+                const iconClass = isPdf ? 'fa-file-pdf' : (isImg ? 'fa-file-image' : 'fa-file-lines');
+
+                return `
+                    <div class="border border-slate-200 rounded-xl p-3.5 flex items-center justify-between gap-3 bg-slate-50/70 hover:bg-slate-50 transition shadow-2xs">
+                        <div class="flex items-center gap-3 min-w-0">
+                            <div class="w-10 h-10 rounded-xl ${iconBg} flex items-center justify-center text-lg shrink-0">
+                                <i class="fa-solid ${iconClass}"></i>
+                            </div>
+                            <div class="min-w-0">
+                                <p class="font-bold text-slate-900 truncate" title="${title}">${title}</p>
+                                <p class="text-[11px] text-slate-400 truncate" title="${docName}">${docName} · ${sizeStr}</p>
+                            </div>
+                        </div>
+                        <div class="flex items-center gap-1.5 shrink-0">
+                            <button type="button" onclick="previewAgentDoc(${idx})"
+                                class="px-2.5 py-1.5 bg-white border border-slate-200 hover:bg-blue-50 text-blue-700 hover:border-blue-300 font-bold rounded-lg text-xs transition shadow-2xs inline-flex items-center gap-1 cursor-pointer">
+                                <i class="fa-solid fa-eye text-[11px]"></i> Xem
+                            </button>
+                            <button type="button" onclick="downloadAgentDoc(${idx})"
+                                class="px-2 py-1.5 bg-white border border-slate-200 hover:bg-slate-100 text-slate-600 font-bold rounded-lg text-xs transition shadow-2xs inline-flex items-center cursor-pointer" title="Tải tệp tin">
+                                <i class="fa-solid fa-download text-[11px]"></i>
+                            </button>
+                        </div>
+                    </div>
+                `;
+            }).join('');
+        }
+
+        function previewAgentDoc(idx) {
+            const doc = currentAgentDocs[idx];
+            if (!doc) return;
+            activeAgentDocIdx = idx;
+
+            if (activeAgentBlobUrl) {
+                try { URL.revokeObjectURL(activeAgentBlobUrl); } catch(e){}
+                activeAgentBlobUrl = null;
+            }
+
+            const docName = doc.name || `Tài liệu_${idx + 1}.pdf`;
+            const docNameLower = docName.toLowerCase();
+            const isImg = (doc.type || '').startsWith('image/') || ['png', 'jpg', 'jpeg', 'webp'].some(e => docNameLower.endsWith(e));
+            const isPdf = (doc.type || '').includes('pdf') || docNameLower.endsWith('.pdf');
+
+            const titleEl = document.getElementById('agentDocModalTitle');
+            const subEl = document.getElementById('agentDocModalSub');
+            if (titleEl) titleEl.textContent = docName;
+            if (subEl) subEl.textContent = `Tài liệu điện tử • ${doc.type || (isPdf ? 'application/pdf' : 'image')}`;
+
+            const iconEl = document.getElementById('agentDocModalIcon');
+            if (iconEl) {
+                iconEl.className = 'fa-solid ' + (isPdf ? 'fa-file-pdf text-red-600' : (isImg ? 'fa-file-image text-blue-600' : 'fa-file-lines text-slate-600'));
+            }
+
+            const downloadBtn = document.getElementById('agentDocDownloadBtn');
+            if (downloadBtn) {
+                downloadBtn.onclick = () => downloadAgentDoc(idx);
+            }
+
+            const newTabBtn = document.getElementById('agentDocNewTabBtn');
+            const bodyEl = document.getElementById('agentDocModalBody');
+            if (!bodyEl) return;
+            bodyEl.innerHTML = '';
+
+            if (doc.dataUrl) {
+                const blob = dataUrlToBlob(doc.dataUrl);
+                if (blob) {
+                    activeAgentBlobUrl = URL.createObjectURL(blob);
+                }
+            }
+
+            if (newTabBtn) {
+                newTabBtn.onclick = () => {
+                    if (activeAgentBlobUrl) {
+                        window.open(activeAgentBlobUrl, '_blank');
+                    } else {
+                        openAgentDocInNewBrowserTab();
+                    }
+                };
+            }
+
+            if (isPdf) {
+                if (activeAgentBlobUrl) {
+                    bodyEl.innerHTML = `
+                        <div class="w-full h-full min-h-[500px] flex flex-col rounded-xl overflow-hidden shadow border border-slate-300 bg-white">
+                            <object data="${activeAgentBlobUrl}#toolbar=1&navpanes=0&view=FitH" type="application/pdf" class="w-full h-full flex-1 min-h-[500px]">
+                                <iframe src="${activeAgentBlobUrl}#toolbar=1&navpanes=0&view=FitH" class="w-full h-full flex-1 min-h-[500px] border-0" title="${docName}">
+                                    <div class="p-6 text-center text-slate-700">
+                                        <p class="font-bold mb-2">Trình duyệt không hỗ trợ xem trực tiếp PDF trong khung.</p>
+                                        <a href="${activeAgentBlobUrl}" target="_blank" class="px-4 py-2 bg-blue-600 text-white rounded-xl font-bold text-xs hover:bg-blue-700 transition inline-block">
+                                            Mở PDF trên tab mới
+                                        </a>
+                                    </div>
+                                </iframe>
+                            </object>
+                        </div>
+                    `;
+                } else {
+                    bodyEl.innerHTML = renderSimulatedDocHtml(doc, docName);
+                }
+            } else if (isImg) {
+                const imgSrc = activeAgentBlobUrl || doc.dataUrl;
+                if (imgSrc) {
+                    bodyEl.innerHTML = `
+                        <div class="w-full flex flex-col items-center justify-center p-3 bg-slate-900 rounded-xl overflow-hidden min-h-[420px]">
+                            <img src="${imgSrc}" alt="${docName}" class="max-w-full max-h-[65vh] object-contain rounded-lg shadow-2xl border border-slate-700">
+                            <div class="mt-3 flex items-center gap-2 bg-slate-800/90 text-slate-200 px-3 py-1.5 rounded-full text-xs border border-slate-700">
+                                <i class="fa-solid fa-image text-emerald-400"></i>
+                                <span class="font-mono text-emerald-300 font-bold">${docName}</span>
+                            </div>
+                        </div>
+                    `;
+                } else {
+                    bodyEl.innerHTML = renderSimulatedDocHtml(doc, docName);
+                }
+            } else {
+                if (activeAgentBlobUrl) {
+                    bodyEl.innerHTML = `
+                        <div class="w-full flex flex-col items-center justify-center p-8 bg-white rounded-xl min-h-[350px] text-center border">
+                            <i class="fa-solid fa-file text-5xl text-blue-500 mb-3"></i>
+                            <h4 class="font-bold text-slate-800 text-sm mb-1">${docName}</h4>
+                            <p class="text-xs text-slate-500 mb-4">Loại tệp: ${doc.type || 'Tệp dữ liệu'}</p>
+                            <button onclick="downloadAgentDoc(${idx})" class="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-xl text-xs font-bold transition flex items-center gap-1.5 cursor-pointer">
+                                <i class="fa-solid fa-download"></i> Tải file về máy
+                            </button>
+                        </div>
+                    `;
+                } else {
+                    bodyEl.innerHTML = renderSimulatedDocHtml(doc, docName);
+                }
+            }
+
+            const modal = document.getElementById('agentDocModal');
+            if (modal) modal.classList.remove('hidden');
+        }
+
+        function closeAgentDocModal() {
+            const modal = document.getElementById('agentDocModal');
+            if (modal) modal.classList.add('hidden');
+            if (activeAgentBlobUrl) {
+                try { URL.revokeObjectURL(activeAgentBlobUrl); } catch(e){}
+                activeAgentBlobUrl = null;
+            }
+        }
+
+        function downloadAgentDoc(idx) {
+            const doc = currentAgentDocs[idx];
+            if (!doc) return;
+
+            if (doc.dataUrl) {
+                const blob = dataUrlToBlob(doc.dataUrl);
+                if (blob) {
+                    const url = URL.createObjectURL(blob);
+                    const a = document.createElement('a');
+                    a.href = url;
+                    a.download = doc.name || 'document.pdf';
+                    document.body.appendChild(a);
+                    a.click();
+                    document.body.removeChild(a);
+                    setTimeout(() => URL.revokeObjectURL(url), 1000);
+                    return;
+                }
+            }
+
+            const docNameLower = (doc.name || '').toLowerCase();
+            if (docNameLower.endsWith('.pdf')) {
+                const a = document.createElement('a');
+                a.href = '../uploads/sample_document.pdf';
+                a.download = doc.name || 'document.pdf';
+                document.body.appendChild(a);
+                a.click();
+                document.body.removeChild(a);
+                return;
+            }
+
+            const compName = currentAgent ? currentAgent.companyName : (currentReg ? currentReg.companyName : 'Đại lý');
+            const blob = new Blob([
+                `BẢN ĐỐI SOÁT HỒ SƠ ĐIỆN TỬ - VIETRAVEL AIRLINES CARGO\n` +
+                `Tên tệp tin: ${doc.name}\n` +
+                `Mã đại lý: ${currentAgentCode}\n` +
+                `Doanh nghiệp: ${compName}\n` +
+                `Trạng thái: Đã số hóa và lưu trữ trên hệ thống E-KYC\n` +
+                `Thời gian trích xuất: ${new Date().toLocaleString('vi-VN')}\n`
+            ], { type: 'text/plain;charset=utf-8' });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = (doc.name || 'document').replace(/\.pdf$/i, '') + '_ChungThuc.txt';
+            document.body.appendChild(a);
+            a.click();
+            document.body.removeChild(a);
+            setTimeout(() => URL.revokeObjectURL(url), 1000);
+        }
+
+        function openAgentDocInNewBrowserTab() {
+            const paperEl = document.getElementById('agentMockDocPaper');
+            const doc = currentAgentDocs[activeAgentDocIdx] || {};
+            if (paperEl) {
+                const w = window.open('', '_blank');
+                if (w) {
+                    w.document.title = (doc.name || 'Tài liệu') + ' - Xem trực tiếp';
+                    const tailwind = w.document.createElement('script');
+                    tailwind.src = 'https://cdn.tailwindcss.com';
+                    w.document.head.appendChild(tailwind);
+
+                    const fa = w.document.createElement('link');
+                    fa.rel = 'stylesheet';
+                    fa.href = 'https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css';
+                    w.document.head.appendChild(fa);
+
+                    w.document.body.className = 'bg-slate-100 p-6 flex justify-center min-h-screen';
+                    const wrapper = w.document.createElement('div');
+                    wrapper.className = 'w-full max-w-3xl';
+
+                    const header = w.document.createElement('div');
+                    header.className = 'mb-4 flex justify-between items-center bg-white p-3 rounded-xl shadow-xs border';
+                    header.innerHTML = `
+                        <span class="font-bold text-sm text-slate-800">
+                            <i class="fa-solid fa-file-pdf text-red-500 mr-2"></i>${doc.name || 'Tài liệu'}
+                        </span>
+                        <button onclick="window.print()" class="px-3 py-1.5 bg-blue-600 text-white rounded-lg text-xs font-bold hover:bg-blue-700 transition">
+                            <i class="fa-solid fa-print mr-1"></i> In / Xuất PDF
+                        </button>
+                    `;
+
+                    const paperClone = paperEl.cloneNode(true);
+                    wrapper.appendChild(header);
+                    wrapper.appendChild(paperClone);
+                    w.document.body.appendChild(wrapper);
+                }
+            } else {
+                window.open('../uploads/sample_document.pdf', '_blank');
+            }
+        }
+
+        function renderSimulatedDocHtml(doc, docName) {
+            const compName = currentAgent ? currentAgent.companyName : (currentReg ? currentReg.companyName : 'Đại lý');
+            const taxCode = currentAgent ? (currentAgent.taxCode || '0318999888') : (currentReg ? currentReg.taxCode : '0318999888');
+            const repName = currentAgent ? (currentAgent.repName || 'Nguyễn Văn Đại Diện') : (currentReg ? currentReg.repName : 'Nguyễn Văn Đại Diện');
+            const hash = Math.abs((docName + currentAgentCode).split('').reduce((a, b) => (((a << 5) - a) + b.charCodeAt(0)) | 0, 0));
+
+            return `
+                <div id="agentMockDocPaper" class="bg-white text-slate-800 w-full max-w-2xl mx-auto p-6 rounded-xl shadow border border-slate-200 text-left space-y-4 text-xs font-sans relative overflow-hidden">
+                    <div class="absolute right-4 top-10 border-2 border-emerald-600/30 text-emerald-700/40 rounded-full w-24 h-24 flex flex-col items-center justify-center font-bold rotate-[-15deg] pointer-events-none select-none uppercase text-center leading-tight">
+                        <span class="text-[8px] tracking-wider">VIETRAVEL</span>
+                        <span class="text-[10px] font-black border-t border-b border-emerald-600/30 py-0.5 my-0.5">ĐÃ XÁC THỰC</span>
+                        <span class="text-[7px] font-mono tracking-widest">E-KYC</span>
+                    </div>
+
+                    <div class="border-b pb-3 flex items-center justify-between">
+                        <div class="flex items-center gap-2.5">
+                            <div class="w-8 h-8 rounded-lg bg-blue-600 text-white flex items-center justify-center font-bold text-xs">
+                                <i class="fa-solid fa-plane-departure"></i>
+                            </div>
+                            <div>
+                                <p class="font-black text-slate-900 text-xs tracking-wide">VIETRAVEL AIRLINES CARGO</p>
+                                <p class="text-[10px] text-slate-400">HỆ THỐNG QUẢN LÝ ĐẤU THẦU HÀNG HÓA HÀNG KHÔNG</p>
+                            </div>
+                        </div>
+                        <span class="px-2 py-0.5 bg-emerald-50 text-emerald-700 border border-emerald-200 rounded text-[10px] font-bold">HỒ SƠ HỢP LỆ</span>
+                    </div>
+
+                    <div>
+                        <h3 class="text-sm font-black text-slate-800 uppercase tracking-wide text-center py-1">CHỨNG THƯ LƯU TRỮ HỒ SƠ ĐIỆN TỬ</h3>
+                        <p class="text-center text-[10px] text-slate-400">Mã trích xuất số hóa: EKYC-${hash} • Mã đại lý: ${currentAgentCode}</p>
+                    </div>
+
+                    <div class="bg-slate-50 border rounded-lg p-3 space-y-1.5 text-slate-700">
+                        <div class="flex justify-between py-0.5 border-b border-slate-200/60">
+                            <span class="text-slate-500 font-medium">Tên tài liệu:</span>
+                            <span class="font-bold text-slate-900 font-mono">${docName}</span>
+                        </div>
+                        <div class="flex justify-between py-0.5 border-b border-slate-200/60">
+                            <span class="text-slate-500 font-medium">Đơn vị chủ quản:</span>
+                            <span class="font-bold text-slate-900">${compName}</span>
+                        </div>
+                        <div class="flex justify-between py-0.5 border-b border-slate-200/60">
+                            <span class="text-slate-500 font-medium">Mã số thuế / ĐKKD:</span>
+                            <span class="font-mono text-slate-900">${taxCode}</span>
+                        </div>
+                        <div class="flex justify-between py-0.5 border-b border-slate-200/60">
+                            <span class="text-slate-500 font-medium">Người đại diện:</span>
+                            <span class="font-medium text-slate-900">${repName}</span>
+                        </div>
+                        <div class="flex justify-between py-0.5 border-b border-slate-200/60">
+                            <span class="text-slate-500 font-medium">Thời gian tiếp nhận:</span>
+                            <span class="font-medium text-slate-800">${new Date().toLocaleDateString('vi-VN')}</span>
+                        </div>
+                        <div class="flex justify-between py-0.5">
+                            <span class="text-slate-500 font-medium">Tình trạng kiểm tra:</span>
+                            <span class="font-bold text-emerald-600 flex items-center gap-1"><i class="fa-solid fa-circle-check"></i> Đã số hóa và kiểm định E-KYC</span>
+                        </div>
+                    </div>
+
+                    <p class="text-[11px] text-slate-500 italic text-center">Tài liệu đã được lưu trữ an toàn trong kho hồ sơ năng lực đại lý của Vietravel Airlines Cargo.</p>
+                </div>
+            `;
+        }
     </script>
+
+    <!-- Document Preview Modal -->
+    <div id="agentDocModal" class="fixed inset-0 z-50 hidden flex items-center justify-center bg-slate-900/60 backdrop-blur-xs p-3 sm:p-4">
+        <div class="bg-white rounded-2xl shadow-2xl w-full max-w-4xl max-h-[92vh] flex flex-col overflow-hidden">
+            <!-- Modal Header -->
+            <div class="px-5 py-3.5 border-b border-slate-100 flex items-center justify-between bg-slate-50">
+                <div class="flex items-center gap-3 min-w-0">
+                    <div class="w-9 h-9 rounded-xl bg-blue-100 text-blue-700 flex items-center justify-center shrink-0">
+                        <i id="agentDocModalIcon" class="fa-solid fa-file-pdf"></i>
+                    </div>
+                    <div class="min-w-0">
+                        <h3 id="agentDocModalTitle" class="font-bold text-slate-900 text-sm truncate">Chi tiết tài liệu đính kèm</h3>
+                        <p id="agentDocModalSub" class="text-xs text-slate-500 truncate">Hồ sơ pháp lý đại lý</p>
+                    </div>
+                </div>
+                <div class="flex items-center gap-2">
+                    <button id="agentDocDownloadBtn" class="px-3 py-1.5 bg-blue-600 hover:bg-blue-700 text-white rounded-lg text-xs font-semibold flex items-center gap-1.5 transition shadow-sm cursor-pointer">
+                        <i class="fa-solid fa-download"></i> Tải về
+                    </button>
+                    <button id="agentDocNewTabBtn" class="px-3 py-1.5 bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-lg text-xs font-semibold flex items-center gap-1.5 transition cursor-pointer">
+                        <i class="fa-solid fa-arrow-up-right-from-square"></i> Tab mới
+                    </button>
+                    <button onclick="closeAgentDocModal()" class="w-8 h-8 rounded-lg hover:bg-slate-200 text-slate-400 hover:text-slate-600 flex items-center justify-center transition cursor-pointer">
+                        <i class="fa-solid fa-xmark text-sm"></i>
+                    </button>
+                </div>
+            </div>
+            <!-- Modal Body -->
+            <div id="agentDocModalBody" class="p-4 flex-1 overflow-auto bg-slate-100 min-h-[420px] max-h-[70vh] flex items-center justify-center">
+            </div>
+        </div>
+    </div>
 </body>
 
 </html>
