@@ -200,12 +200,39 @@ public static class ApiEndpoints
             });
         }, log));
 
-        api.MapPost("/registration/approve", (HttpContext ctx, WonAuctionService svc) => Guard(async () =>
+        api.MapPost("/registration/approve", (HttpContext ctx, WonAuctionService svc, BiddingCargo.Web.Data.AppDbContext db) => Guard(async () =>
         {
             var b = await BodyAsync(ctx.Request);
             var regId = EntityJson.Str(b, "regId");
             var desiredCode = EntityJson.Str(b, "agentCode");
+            var passedPwd = EntityJson.Str(b, "password");
+            var passedPin = EntityJson.Str(b, "pin");
+
+            if (!string.IsNullOrEmpty(regId) && (!string.IsNullOrEmpty(passedPwd) || !string.IsNullOrEmpty(passedPin)))
+            {
+                var r = await db.Registrations.FindAsync(regId);
+                if (r != null)
+                {
+                    if (!string.IsNullOrEmpty(passedPwd)) EntityJson.SetExtra(r, "password", passedPwd);
+                    if (!string.IsNullOrEmpty(passedPin)) EntityJson.SetExtra(r, "pin", passedPin);
+                    await db.SaveChangesAsync();
+                }
+            }
+
             var code = await svc.ApproveRegistrationAsync(regId, EntityJson.Str(b, "approvedBy"), ctx.Connection.RemoteIpAddress?.ToString(), desiredCode);
+
+            if (!string.IsNullOrEmpty(passedPwd) && !string.IsNullOrEmpty(code))
+            {
+                var ag = await Microsoft.EntityFrameworkCore.EntityFrameworkQueryableExtensions.FirstOrDefaultAsync(db.Agents, a => a.Code == code);
+                if (ag != null && (string.IsNullOrEmpty(ag.Password) || ag.Password == "12345678"))
+                {
+                    ag.Password = passedPwd;
+                    if (!string.IsNullOrEmpty(passedPin)) ag.Pin = passedPin;
+                    await db.SaveChangesAsync();
+                }
+            }
+
+            SharedDataService.InvalidateSnapshotCache();
             return J(new JsonObject
             {
                 ["success"] = true, ["agentCode"] = code,

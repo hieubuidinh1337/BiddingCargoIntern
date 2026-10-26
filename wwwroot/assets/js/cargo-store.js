@@ -1384,7 +1384,22 @@ const CargoStore = (function () {
                             agentMap.set(aKey, ag);
                         } else {
                             const sItem = agentMap.get(aKey);
-                            agentMap.set(aKey, { ...ag, ...sItem, pin: sItem.pin || ag.pin, password: sItem.password || ag.password });
+                            const finalPwd = (sItem.password && sItem.password !== '12345678') ? sItem.password : (ag.password || sItem.password || '12345678');
+                            const finalPin = (sItem.pin && sItem.pin !== '1234') ? sItem.pin : (ag.pin || sItem.pin || '1234');
+                            agentMap.set(aKey, { ...ag, ...sItem, pin: finalPin, password: finalPwd });
+                        }
+                    });
+                    // Self-heal: if any agent still has default '12345678' password, check if registration record has their custom registered password
+                    agentMap.forEach((ag, aKey) => {
+                        if (!ag.password || ag.password === '12345678') {
+                            const matchedReg = (local.registrations || []).find(r =>
+                                (r.agentCode && String(r.agentCode).toUpperCase() === aKey) ||
+                                (r.taxCode && ag.taxCode && String(r.taxCode).trim() === String(ag.taxCode).trim()) ||
+                                (r.email && ag.email && String(r.email).trim().toLowerCase() === String(ag.email).trim().toLowerCase())
+                            );
+                            if (matchedReg && matchedReg.password) {
+                                ag.password = matchedReg.password;
+                            }
                         }
                     });
                     local.agentsList = Array.from(agentMap.values()).filter(ag => {
@@ -2190,10 +2205,24 @@ const CargoStore = (function () {
 
             // Verify against THAT SPECIFIC AGENT'S PASSWORD OR PIN!
             const inputVal = String(password || '').trim();
-            const expectedPassword = String(agent.password || '12345678').trim();
+            let expectedPassword = String(agent.password || '').trim();
             const expectedPin = agent.pin ? String(agent.pin).trim() : '1234';
 
-            const isPasswordMatch = inputVal === expectedPassword;
+            // Self-heal from registration record if agent has default password or missing
+            if ((!expectedPassword || expectedPassword === '12345678') && Array.isArray(data.registrations)) {
+                const reg = data.registrations.find(r =>
+                    (r.agentCode && String(r.agentCode).toUpperCase() === String(agent.code).toUpperCase()) ||
+                    (r.taxCode && agent.taxCode && String(r.taxCode).trim() === String(agent.taxCode).trim()) ||
+                    (r.email && agent.email && String(r.email).trim().toLowerCase() === String(agent.email).trim().toLowerCase())
+                );
+                if (reg && reg.password) {
+                    expectedPassword = String(reg.password).trim();
+                    agent.password = expectedPassword;
+                }
+            }
+            if (!expectedPassword) expectedPassword = '12345678';
+
+            const isPasswordMatch = inputVal === expectedPassword || (agent.password && inputVal === String(agent.password).trim());
             const isPinMatch = inputVal === expectedPin;
 
             if (!isPasswordMatch && !isPinMatch) {
@@ -4296,6 +4325,8 @@ const CargoStore = (function () {
                     body: JSON.stringify({
                         regId: regId,
                         agentCode: newCode,
+                        password: agentPwd,
+                        pin: agentPin,
                         approvedBy: data.currentAdmin ? (data.currentAdmin.fullName || data.currentAdmin.username) : 'Admin'
                     })
                 }).then(() => {

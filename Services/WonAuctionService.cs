@@ -140,9 +140,12 @@ public class WonAuctionService
         reg.ApprovedAt = Util.ViNow();
         reg.AgentCode = code;
 
+        var regPwd = Util.NullIfEmpty(EntityJson.GetExtraString(reg, "password")) ?? "12345678";
+        var regPin = Util.NullIfEmpty(EntityJson.GetExtraString(reg, "pin")) ?? "1234";
+
         if (agent == null)
         {
-            _db.Agents.Add(new Agent
+            agent = new Agent
             {
                 Code = code,
                 Name = reg.CompanyName,
@@ -152,9 +155,10 @@ public class WonAuctionService
                 Phone = reg.Phone,
                 Status = "Hoạt động",
                 IsLocked = false,
-                Password = "12345678",
-                Pin = "1234"
-            });
+                Password = regPwd,
+                Pin = regPin
+            };
+            _db.Agents.Add(agent);
         }
         else
         {
@@ -168,6 +172,14 @@ public class WonAuctionService
             if (!string.IsNullOrEmpty(reg.TaxCode)) agent.TaxCode = reg.TaxCode;
             agent.Status = "Hoạt động";
             agent.IsLocked = false;
+            if (!string.IsNullOrEmpty(regPwd) && (string.IsNullOrEmpty(agent.Password) || agent.Password == "12345678"))
+            {
+                agent.Password = regPwd;
+            }
+            if (!string.IsNullOrEmpty(regPin) && (string.IsNullOrEmpty(agent.Pin) || agent.Pin == "1234"))
+            {
+                agent.Pin = regPin;
+            }
         }
 
         var nowMs = Util.NowMs();

@@ -430,7 +430,9 @@ public class SharedDataService
                 }
                 ag.Code = ag.Code.Trim();
                 if (string.IsNullOrEmpty(ag.Password)) ag.Password = prevPwd ?? "12345678";
+                if (ag.Password == "12345678" && !string.IsNullOrEmpty(prevPwd) && prevPwd != "12345678") ag.Password = prevPwd;
                 if (string.IsNullOrEmpty(ag.Pin)) ag.Pin = prevPin ?? "1234";
+                if (ag.Pin == "1234" && !string.IsNullOrEmpty(prevPin) && prevPin != "1234") ag.Pin = prevPin;
                 if (string.IsNullOrEmpty(ag.Name)) ag.Name = ag.CompanyName;
 
                 var newPin = Util.NullIfEmpty(EntityJson.Str(n, "pin"));
@@ -470,8 +472,23 @@ public class SharedDataService
                 }
                 var agCode = EntityJson.Str(n, "agentCode");
                 if (!string.IsNullOrEmpty(agCode))
-                    await EnsureAgentAsync(agCode, EntityJson.Str(n, "repName"), EntityJson.Str(n, "companyName"),
+                {
+                    var ag = await EnsureAgentAsync(agCode, EntityJson.Str(n, "repName"), EntityJson.Str(n, "companyName"),
                         EntityJson.Str(n, "taxCode"), EntityJson.Str(n, "email"), EntityJson.Str(n, "phone"));
+                    var regPwd = EntityJson.Str(n, "password") ?? EntityJson.GetExtraString(r, "password");
+                    var regPin = EntityJson.Str(n, "pin") ?? EntityJson.GetExtraString(r, "pin");
+                    if (ag != null)
+                    {
+                        if (!string.IsNullOrEmpty(regPwd) && (string.IsNullOrEmpty(ag.Password) || ag.Password == "12345678"))
+                        {
+                            ag.Password = regPwd;
+                        }
+                        if (!string.IsNullOrEmpty(regPin) && (string.IsNullOrEmpty(ag.Pin) || ag.Pin == "1234"))
+                        {
+                            ag.Pin = regPin;
+                        }
+                    }
+                }
             }
 
             // 3) Phiên đấu giá
