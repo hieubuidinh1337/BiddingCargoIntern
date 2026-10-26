@@ -561,6 +561,24 @@ const CargoStore = (function () {
                             }
                         }
 
+                        // Fix corrupted/identical ETD and ETA where ETD was mistakenly set to closeDate
+                        if (!a.etd || !a.eta || a.etd === a.eta || (a.closeDate && a.etd === a.closeDate)) {
+                            let depDate = a.flightStartDate ? parseFlightDate(`${a.flightStartDate}T08:00`) : parseFlightDate(a.etd);
+                            if (!depDate && a.etdIso) depDate = new Date(a.etdIso);
+                            if (!depDate) depDate = new Date(now + 86400000);
+
+                            const pad = n => String(n).padStart(2, '0');
+                            const dStr = `${pad(depDate.getDate())}/${pad(depDate.getMonth() + 1)}/${depDate.getFullYear()}`;
+                            a.etd = `08:00 · ${dStr}`;
+
+                            const durMins = getFlightDurationMinutes(a.origin, a.destination);
+                            const totalMins = 8 * 60 + durMins;
+                            const etaH = Math.floor(totalMins / 60) % 24;
+                            const etaM = totalMins % 60;
+                            a.eta = `${pad(etaH)}:${pad(etaM)} · ${dStr}`;
+                            updated = true;
+                        }
+
                         uniqueAuctions.push(a);
                     } else {
                         updated = true;
@@ -2315,6 +2333,7 @@ const CargoStore = (function () {
             const now = new Date();
 
             let parsedEtd = null;
+            let parsedEta = null;
             let parsedOpen = null;
             let parsedClose = null;
             let endTimeDate = null;
@@ -2332,9 +2351,25 @@ const CargoStore = (function () {
                     return { success: false, message: 'Ngày đóng phiên phải diễn ra sau ngày mở phiên.' };
                 }
                 endTimeDate = parsedClose;
-                parsedEtd = auctionData.flightStartDate 
-                    ? (this.parseFlightDate(`${auctionData.flightStartDate}T08:00`) || this.parseFlightDate(auctionData.etd) || parsedClose)
-                    : (this.parseFlightDate(auctionData.etd) || parsedClose);
+
+                // Parse ETD: prioritize explicit auctionData.etd
+                if (auctionData.etd) {
+                    parsedEtd = this.parseFlightDate(auctionData.etd);
+                }
+                if (!parsedEtd && auctionData.flightStartDate) {
+                    parsedEtd = this.parseFlightDate(`${auctionData.flightStartDate}T08:00`);
+                }
+                if (!parsedEtd) {
+                    parsedEtd = new Date(parsedClose.getTime() + 12 * 3600 * 1000);
+                }
+
+                // Parse ETA: prioritize explicit auctionData.eta, fallback to calculateETA
+                if (auctionData.eta) {
+                    parsedEta = this.parseFlightDate(auctionData.eta);
+                }
+                if (!parsedEta && parsedEtd) {
+                    parsedEta = calculateETA(parsedEtd, auctionData.origin, auctionData.destination);
+                }
             } else {
                 // Validate ETD date (legacy flow)
                 parsedEtd = this.parseFlightDate(auctionData.etd);
@@ -2359,13 +2394,16 @@ const CargoStore = (function () {
 
                 // Validate ETA if provided
                 if (auctionData.eta) {
-                    const parsedEta = this.parseFlightDate(auctionData.eta);
+                    parsedEta = this.parseFlightDate(auctionData.eta);
                     if (parsedEta && parsedEta.getTime() <= parsedEtd.getTime()) {
                         return {
                             success: false,
                             message: 'Thời gian hạ cánh dự kiến (ETA) phải sau thời gian cất cánh dự kiến (ETD).'
                         };
                     }
+                }
+                if (!parsedEta && parsedEtd) {
+                    parsedEta = calculateETA(parsedEtd, auctionData.origin, auctionData.destination);
                 }
 
                 const closeOffset = Number(auctionData.auctionCloseOffsetHours) || 5;
@@ -2433,8 +2471,8 @@ const CargoStore = (function () {
 
             const formattedOpen = parsedOpen ? this.formatFlightDateDisplay(parsedOpen) : '';
             const formattedClose = parsedClose ? this.formatFlightDateDisplay(parsedClose) : '';
-            const formattedEtd = parsedClose ? formattedClose : this.formatFlightDateDisplay(parsedEtd);
-            const formattedEta = auctionData.eta ? this.formatFlightDateDisplay(auctionData.eta) : (formattedClose || 'Chưa cập nhật');
+            const formattedEtd = parsedEtd ? this.formatFlightDateDisplay(parsedEtd) : '';
+            const formattedEta = parsedEta ? this.formatFlightDateDisplay(parsedEta) : (formattedEtd || 'Chưa cập nhật');
             const endTime = endTimeDate.toISOString();
 
             const isUpcoming = Boolean((auctionData.isUpcoming !== undefined ? auctionData.isUpcoming : true) && parsedOpen && parsedOpen.getTime() > (now.getTime() + 30000));
@@ -2482,7 +2520,8 @@ const CargoStore = (function () {
                 closeDateIso: parsedClose ? parsedClose.toISOString() : endTime,
                 etd: formattedEtd,
                 eta: formattedEta,
-                etdIso: parsedEtd.toISOString(),
+                etdIso: parsedEtd ? parsedEtd.toISOString() : (endTimeDate ? endTimeDate.toISOString() : ''),
+                etaIso: parsedEta ? parsedEta.toISOString() : '',
                 aircraft: auctionData.aircraft || 'Airbus A321neo Cargo',
                 capacityKg: capacityKg,
                 startingPriceKg: startingPriceKg,

@@ -536,6 +536,70 @@
                         <span class="text-slate-500 text-[10px] font-medium" id="flightPeriodDaysCount">Tổng số: 7
                             ngày</span>
                     </div>
+
+                    <!-- Flight ETD & ETA times per day -->
+                    <div class="pt-3 border-t border-blue-100">
+                        <div class="flex items-center justify-between mb-2">
+                            <span class="text-xs font-bold text-slate-800 flex items-center gap-1.5">
+                                <i class="fa-solid fa-plane-departure text-blue-600"></i> Khung giờ bay trong ngày (ETD & ETA)
+                                <span class="text-red-500">*</span>
+                            </span>
+                            <span class="text-[11px] text-blue-700 font-semibold bg-blue-100/70 px-2 py-0.5 rounded-full" id="flightDurationBadge">
+                                Thời gian bay: ~1h 20m
+                            </span>
+                        </div>
+                        <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                            <!-- ETD -->
+                            <div class="bg-white p-2.5 rounded-xl border border-slate-200">
+                                <label class="block text-[11px] font-semibold text-slate-700 mb-1 flex items-center justify-between">
+                                    <span><i class="fa-solid fa-plane-departure text-blue-500 mr-1"></i> Giờ cất cánh (ETD):</span>
+                                    <span class="text-[10px] text-slate-400">Khởi hành</span>
+                                </label>
+                                <div class="flex items-center justify-between bg-slate-50 border border-slate-300 rounded-xl px-2.5 py-1.5 focus-within:ring-2 focus-within:ring-blue-500 focus-within:bg-white focus-within:border-blue-500 transition shadow-xs">
+                                    <i class="fa-regular fa-clock text-blue-600 text-xs shrink-0 mr-1"></i>
+                                    <div class="flex items-center gap-1 font-mono font-bold text-xs text-slate-800 flex-1 justify-center">
+                                        <select id="etdHour" onchange="sync24hTime('etd')" class="bg-transparent text-xs font-bold text-slate-800 outline-none cursor-pointer text-center" title="Giờ cất cánh (00 - 23h)"></select>
+                                        <span class="text-slate-400 font-bold select-none">:</span>
+                                        <select id="etdMinute" onchange="sync24hTime('etd')" class="bg-transparent text-xs font-bold text-slate-800 outline-none cursor-pointer text-center" title="Phút cất cánh (00 - 59p)"></select>
+                                    </div>
+                                    <span class="text-[9px] font-bold text-blue-600 bg-blue-100/70 px-1 py-0.5 rounded shrink-0">24h</span>
+                                </div>
+                                <input type="hidden" id="etdTime" value="08:00">
+                                <div class="flex items-center justify-between mt-1 text-[10px]">
+                                    <span class="text-slate-400 font-medium">Gợi ý:</span>
+                                    <div class="flex gap-1">
+                                        <button type="button" onclick="set24hPreset('etd', '06:30')" class="px-1.5 py-0.5 rounded bg-slate-100 hover:bg-blue-100 hover:text-blue-700 font-semibold text-slate-600 transition">06:30</button>
+                                        <button type="button" onclick="set24hPreset('etd', '08:00')" class="px-1.5 py-0.5 rounded bg-slate-100 hover:bg-blue-100 hover:text-blue-700 font-semibold text-slate-600 transition">08:00</button>
+                                        <button type="button" onclick="set24hPreset('etd', '14:30')" class="px-1.5 py-0.5 rounded bg-slate-100 hover:bg-blue-100 hover:text-blue-700 font-semibold text-slate-600 transition">14:30</button>
+                                        <button type="button" onclick="set24hPreset('etd', '20:15')" class="px-1.5 py-0.5 rounded bg-slate-100 hover:bg-blue-100 hover:text-blue-700 font-semibold text-slate-600 transition">20:15</button>
+                                    </div>
+                                </div>
+                            </div>
+                            <!-- ETA -->
+                            <div class="bg-white p-2.5 rounded-xl border border-slate-200">
+                                <label class="block text-[11px] font-semibold text-slate-700 mb-1 flex items-center justify-between">
+                                    <span><i class="fa-solid fa-plane-arrival text-emerald-500 mr-1"></i> Giờ hạ cánh (ETA):</span>
+                                    <span class="text-[10px] text-slate-400">Đến nơi</span>
+                                </label>
+                                <div class="flex items-center justify-between bg-slate-50 border border-slate-300 rounded-xl px-2.5 py-1.5 focus-within:ring-2 focus-within:ring-emerald-500 focus-within:bg-white focus-within:border-emerald-500 transition shadow-xs">
+                                    <i class="fa-regular fa-clock text-emerald-600 text-xs shrink-0 mr-1"></i>
+                                    <div class="flex items-center gap-1 font-mono font-bold text-xs text-slate-800 flex-1 justify-center">
+                                        <select id="etaHour" onchange="sync24hTime('eta')" class="bg-transparent text-xs font-bold text-slate-800 outline-none cursor-pointer text-center" title="Giờ hạ cánh (00 - 23h)"></select>
+                                        <span class="text-slate-400 font-bold select-none">:</span>
+                                        <select id="etaMinute" onchange="sync24hTime('eta')" class="bg-transparent text-xs font-bold text-slate-800 outline-none cursor-pointer text-center" title="Phút hạ cánh (00 - 59p)"></select>
+                                    </div>
+                                    <span class="text-[9px] font-bold text-emerald-600 bg-emerald-100/70 px-1 py-0.5 rounded shrink-0">24h</span>
+                                </div>
+                                <input type="hidden" id="etaTime" value="09:20">
+                                <div class="flex items-center justify-between mt-1 text-[10px]">
+                                    <span class="text-slate-400 font-medium">Tự động tính:</span>
+                                    <button type="button" onclick="autoCalculateEtaFromEtd()" class="px-2 py-0.5 rounded bg-emerald-50 hover:bg-emerald-100 text-emerald-700 font-bold transition flex items-center gap-1">
+                                        <i class="fa-solid fa-wand-magic-sparkles text-[9px]"></i> Tính lại ETA
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
                 </div>
 
                 <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
@@ -1147,15 +1211,18 @@
         function onOriginAirportChanged() {
             updateDestinationOptions();
             updateAutoGeneratedFlightNumber(true);
+            if (typeof autoCalculateEtaFromEtd === 'function') autoCalculateEtaFromEtd();
         }
 
         function onDestinationAirportChanged() {
             updateAutoGeneratedFlightNumber(true);
+            if (typeof autoCalculateEtaFromEtd === 'function') autoCalculateEtaFromEtd();
         }
 
         function onRouteOrDateChanged() {
             updateDestinationOptions();
             updateAutoGeneratedFlightNumber(true);
+            if (typeof autoCalculateEtaFromEtd === 'function') autoCalculateEtaFromEtd();
         }
 
         function formatDateVN(dateStr) {
@@ -1257,20 +1324,65 @@
             populate('openMinute', minutes, '00');
             populate('closeHour', hours, '23');
             populate('closeMinute', minutes, '59');
+            populate('etdHour', hours, '08');
+            populate('etdMinute', minutes, '00');
+            populate('etaHour', hours, '09');
+            populate('etaMinute', minutes, '20');
 
             sync24hTime('open');
             sync24hTime('close');
+            sync24hTime('etd');
+            autoCalculateEtaFromEtd();
         }
 
         function sync24hTime(type) {
-            const h = document.getElementById(`${type}Hour`)?.value || (type === 'open' ? '08' : '23');
-            const m = document.getElementById(`${type}Minute`)?.value || (type === 'open' ? '00' : '59');
+            const defaultH = (type === 'open' ? '08' : (type === 'close' ? '23' : (type === 'etd' ? '08' : '09')));
+            const defaultM = (type === 'open' ? '00' : (type === 'close' ? '59' : (type === 'etd' ? '00' : '20')));
+            const h = document.getElementById(`${type}Hour`)?.value || defaultH;
+            const m = document.getElementById(`${type}Minute`)?.value || defaultM;
             const timeInput = document.getElementById(`${type}Time`);
             if (timeInput) {
                 timeInput.value = `${h}:${m}`;
             }
+            if (type === 'etd') {
+                autoCalculateEtaFromEtd();
+            }
             if (typeof updateAuctionDurationPreview === 'function') {
                 updateAuctionDurationPreview();
+            }
+        }
+
+        function autoCalculateEtaFromEtd() {
+            const origin = document.getElementById('originAirport')?.value || 'SGN';
+            const dest = document.getElementById('destinationAirport')?.value || 'DAD';
+            const etdTime = document.getElementById('etdTime')?.value || '08:00';
+            const [hStr, mStr] = etdTime.split(':');
+            let h = parseInt(hStr, 10);
+            let m = parseInt(mStr, 10);
+            if (isNaN(h)) h = 8;
+            if (isNaN(m)) m = 0;
+
+            const durationMins = (window.CargoStore && CargoStore.getFlightDurationMinutes)
+                ? CargoStore.getFlightDurationMinutes(origin, dest)
+                : 80;
+
+            const totalMins = h * 60 + m + durationMins;
+            const etaH = Math.floor(totalMins / 60) % 24;
+            const etaM = totalMins % 60;
+            const pad = n => String(n).padStart(2, '0');
+
+            const etaHourSel = document.getElementById('etaHour');
+            const etaMinSel = document.getElementById('etaMinute');
+            const etaTimeInp = document.getElementById('etaTime');
+            if (etaHourSel) etaHourSel.value = pad(etaH);
+            if (etaMinSel) etaMinSel.value = pad(etaM);
+            if (etaTimeInp) etaTimeInp.value = `${pad(etaH)}:${pad(etaM)}`;
+
+            const badge = document.getElementById('flightDurationBadge');
+            if (badge) {
+                const durH = Math.floor(durationMins / 60);
+                const durM = durationMins % 60;
+                badge.textContent = `Thời gian bay: ~${durH > 0 ? durH + 'h ' : ''}${durM}m (${origin} ➔ ${dest})`;
             }
         }
 
@@ -1673,6 +1785,11 @@
                 allowedAgentsVal = Array.from(selectedAgentCodes);
             }
 
+            const etdTimeVal = document.getElementById('etdTime')?.value || '08:00';
+            const etaTimeVal = document.getElementById('etaTime')?.value || '09:20';
+            const etdIso = flightStartDateVal ? `${flightStartDateVal}T${etdTimeVal}` : '';
+            const etaIso = flightStartDateVal ? `${flightStartDateVal}T${etaTimeVal}` : '';
+
             const res = (window.CargoStore && CargoStore.createAuction)
                 ? CargoStore.createAuction({
                     flightNumber: fn,
@@ -1684,8 +1801,8 @@
                     openDate: openIso,
                     closeDate: closeIso,
                     isUpcoming: openDt.getTime() > (Date.now() + 30000),
-                    etd: flightStartDateVal ? `${flightStartDateVal}T08:00` : closeIso,
-                    eta: '',
+                    etd: etdIso,
+                    eta: etaIso,
                     aircraft: document.getElementById('aircraftType').value,
                     capacityKg: capacityKgVal,
                     startingPriceKg: document.getElementById('startingPriceKg').value,
