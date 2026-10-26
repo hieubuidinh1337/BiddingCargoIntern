@@ -46,9 +46,9 @@ public class LogService
         var duplicate = await _db.ActivityLogs
             .Where(l => l.RawTime >= minTime)
             .FirstOrDefaultAsync(l =>
-                l.ActionTitle.ToUpper() == titleClean &&
-                (targetClean == "N/A" || l.Target.ToUpper() == targetClean) &&
-                (l.Username.ToUpper() == userClean || l.Username.ToUpper() == "ADMIN" || userClean == "ADMIN"));
+                l.ActionTitle != null && l.ActionTitle.ToUpper() == titleClean &&
+                (targetClean == "N/A" || (l.Target != null && l.Target.ToUpper() == targetClean)) &&
+                (userClean == "ADMIN" || (l.Username != null && (l.Username.ToUpper() == userClean || l.Username.ToUpper() == "ADMIN"))));
 
         if (duplicate != null)
         {
