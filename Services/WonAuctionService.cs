@@ -159,6 +159,13 @@ public class WonAuctionService
             agent.Status = "Đang hoạt động"; agent.IsLocked = false;
             agent.LockedReason = null; agent.LockedAt = null; agent.UnlockedAt = Util.ViNow();
         }
+
+        var actTitle = locked ? "Khóa tài khoản Đại lý" : "Mở khóa tài khoản Đại lý";
+        var actDetails = locked
+            ? $"Quản trị viên đã khóa tài khoản đại lý {agent.Code} ({agent.CompanyName}). Lý do: {agent.LockedReason}"
+            : $"Quản trị viên đã mở khóa tài khoản đại lý {agent.Code} ({agent.CompanyName}).";
+        _db.ActivityLogs.Add(LogService.Make("Admin", "admin", "SUPER_ADMIN", "Quản lý Đại lý", actTitle, agent.Code, actDetails));
+
         await SaveAsync();
         SharedDataService.InvalidateSnapshotCache();
     }

@@ -1138,21 +1138,23 @@ const CargoStore = (function () {
 
                 if (serverData.registrations && Array.isArray(serverData.registrations)) {
                     const regMap = new Map();
+                    // Server is authoritative source of truth for registrations
                     serverData.registrations.forEach(r => {
-                        const key = String(r.regId || r.id || r.taxCode || r.email);
+                        if (!r) return;
+                        const key = r.regId ? String(r.regId) : String(r.id || r.taxCode || r.email);
                         regMap.set(key, r);
                     });
                     (local.registrations || []).forEach(r => {
-                        const key = String(r.regId || r.id || r.taxCode || r.email);
-                        const existing = regMap.get(key);
-                        if (!existing) {
+                        if (!r) return;
+                        const key = r.regId ? String(r.regId) : String(r.id || r.taxCode || r.email);
+                        const serverItem = regMap.get(key);
+                        if (!serverItem) {
                             regMap.set(key, r);
                         } else {
-                            const merged = { ...existing, ...r };
-                            if (existing.status && existing.status !== 'PENDING') {
-                                merged.status = existing.status;
-                                if (existing.agentCode) merged.agentCode = existing.agentCode;
-                                if (existing.rejectionReason) merged.rejectionReason = existing.rejectionReason;
+                            // Merge: serverItem overrides local, but keep local documents dataUrl if server only stored filenames
+                            const merged = { ...r, ...serverItem };
+                            if (Array.isArray(r.documents) && (!serverItem.documents || serverItem.documents.length === 0)) {
+                                merged.documents = r.documents;
                             }
                             regMap.set(key, merged);
                         }
@@ -1739,6 +1741,7 @@ const CargoStore = (function () {
     return {
         getData: loadData,
         saveData: saveData,
+        syncWithServer: syncWithServer,
         formatCurrency: formatCurrency,
         formatNumber: formatNumber,
         getTimeRemaining: getTimeRemaining,
@@ -3720,6 +3723,17 @@ const CargoStore = (function () {
 
                 saveData(data);
 
+                if (typeof window !== 'undefined' && window.location && window.location.protocol.startsWith('http')) {
+                    fetch('/api/registration/submit', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify(existingRejectedReg)
+                    }).then(() => {
+                        lastLocalSaveTimestamp = 0;
+                        return syncWithServer(true);
+                    }).catch(() => { });
+                }
+
                 CargoStore.sendEmailNotification({
                     type: 'REGISTRATION_SUBMITTED',
                     to: existingRejectedReg.email,
@@ -3779,6 +3793,17 @@ const CargoStore = (function () {
             });
 
             saveData(data);
+
+            if (typeof window !== 'undefined' && window.location && window.location.protocol.startsWith('http')) {
+                fetch('/api/registration/submit', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(newReg)
+                }).then(() => {
+                    lastLocalSaveTimestamp = 0;
+                    return syncWithServer(true);
+                }).catch(() => { });
+            }
 
             // Dispatch automated email via Nodemailer
             CargoStore.sendEmailNotification({
@@ -3855,6 +3880,19 @@ const CargoStore = (function () {
             });
 
             saveData(data);
+            if (typeof window !== 'undefined' && window.location && window.location.protocol.startsWith('http')) {
+                fetch('/api/registration/approve', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        regId: regId,
+                        approvedBy: data.currentAdmin ? (data.currentAdmin.fullName || data.currentAdmin.username) : 'Admin'
+                    })
+                }).then(() => {
+                    lastLocalSaveTimestamp = 0;
+                    return syncWithServer(true);
+                }).catch(() => { });
+            }
             this.logActivity({
                 actionCategory: 'Quản lý Đại lý',
                 actionTitle: 'Duyệt & Cấp mã Đại lý',
@@ -4232,6 +4270,20 @@ const CargoStore = (function () {
                 targetRole: 'ADMIN'
             });
             saveData(data);
+            if (typeof window !== 'undefined' && window.location && window.location.protocol.startsWith('http')) {
+                fetch('/api/registration/reject', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        regId: regId,
+                        reason: finalReason,
+                        rejectedBy: data.currentAdmin ? (data.currentAdmin.fullName || data.currentAdmin.username) : 'Admin'
+                    })
+                }).then(() => {
+                    lastLocalSaveTimestamp = 0;
+                    return syncWithServer(true);
+                }).catch(() => { });
+            }
             this.logActivity({
                 actionCategory: 'Quản lý Đại lý',
                 actionTitle: 'Từ chối hồ sơ Đăng ký',
@@ -6746,9 +6798,14 @@ const CargoStore = (function () {
             const isOnline = typeof window !== 'undefined' && window.location &&
                 window.location.protocol && window.location.protocol.startsWith('http');
 
+            // Always keep recent logs in local data so client pages immediately display them
+            data.activityLogs.unshift(newLog);
+            if (data.activityLogs.length > 1000) {
+                data.activityLogs = data.activityLogs.slice(0, 1000);
+            }
+            saveData(data, true); // true = skipServerSync so we don't trigger a duplicate bulk push
+
             if (isOnline) {
-                // Online: only POST to server. Server is the single source of truth.
-                // Do NOT write to local storage to avoid duplicate entries when syncing.
                 const payload = JSON.stringify(newLog);
                 if (typeof navigator !== 'undefined' && typeof navigator.sendBeacon === 'function') {
                     const blob = new Blob([payload], { type: 'application/json' });
@@ -6758,15 +6815,8 @@ const CargoStore = (function () {
                         method: 'POST',
                         headers: { 'Content-Type': 'application/json' },
                         body: payload
-                    }).catch(() => { }); // Fire-and-forget, ignore errors
+                    }).catch(() => { });
                 }
-            } else {
-                // Offline: write to local storage only
-                data.activityLogs.unshift(newLog);
-                if (data.activityLogs.length > 1000) {
-                    data.activityLogs = data.activityLogs.slice(0, 1000);
-                }
-                saveData(data);
             }
 
             return newLog;

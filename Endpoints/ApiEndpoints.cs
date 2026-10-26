@@ -134,6 +134,66 @@ public static class ApiEndpoints
             });
         }, log));
 
+        api.MapPost("/registration/submit", (HttpContext ctx, SharedDataService shared, BiddingCargo.Web.Data.AppDbContext db) => Guard(async () =>
+        {
+            var b = await BodyAsync(ctx.Request);
+            var regId = EntityJson.Str(b, "regId");
+            if (string.IsNullOrWhiteSpace(regId))
+            {
+                var now = DateTime.Now;
+                var count = await Microsoft.EntityFrameworkCore.EntityFrameworkQueryableExtensions.CountAsync(db.Registrations) + 1;
+                regId = $"REG-{now:yyyyMMdd}-{count:D2}";
+                b["regId"] = regId;
+            }
+
+            var r = await db.Registrations.FindAsync(regId);
+            if (r == null)
+            {
+                r = new BiddingCargo.Web.Data.Registration { RegId = regId };
+                db.Registrations.Add(r);
+            }
+
+            EntityJson.Apply(r, b);
+            r.RegId = regId;
+            if (string.IsNullOrEmpty(r.Status)) r.Status = "PENDING";
+            if (string.IsNullOrEmpty(r.SubmittedAt)) r.SubmittedAt = DateTime.Now.ToString("dd/MM/yyyy HH:mm");
+
+            // Thông báo cho ban quản trị
+            var comp = r.CompanyName ?? "Đại lý mới";
+            var mst = r.TaxCode ?? "";
+            var rep = r.RepName ?? "";
+            var mail = r.Email ?? "";
+            var notif = new BiddingCargo.Web.Data.Notification
+            {
+                Id = Util.NowMs() + Random.Shared.Next(0, 1000),
+                TargetRole = "ADMIN",
+                Title = $"📋 HỒ SƠ ĐĂNG KÝ MỚI: {comp}",
+                Message = $"Mã hồ sơ {regId} — {comp} (MST: {mst}) vừa nộp hồ sơ đăng ký trở thành đại lý. Người đại diện: {rep} — {mail}. Vui lòng xét duyệt trong vòng 24h làm việc.",
+                Time = "Vừa xong",
+                Type = "REGISTRATION",
+                Read = false,
+                Unread = true,
+                Link = "06-AgentList.html"
+            };
+            db.Notifications.Add(notif);
+
+            // Ghi nhật ký hệ thống
+            db.ActivityLogs.Add(LogService.Make(rep != "" ? rep : comp, mst != "" ? mst : "guest", "AGENT", "Quản lý Đại lý", "Nộp hồ sơ đăng ký đại lý", $"Hồ sơ {regId}",
+                $"Đại lý {comp} (MST: {mst}) nộp hồ sơ đăng ký đại lý mới. Người đại diện: {rep} ({mail}).", ctx.Connection.RemoteIpAddress?.ToString(), "Web Portal"));
+
+            await db.SaveChangesAsync();
+            SharedDataService.InvalidateSnapshotCache();
+            await shared.BumpVersionAsync();
+
+            return J(new JsonObject
+            {
+                ["success"] = true,
+                ["regId"] = regId,
+                ["message"] = "Hồ sơ đăng ký đã được gửi thành công đến Ban Điều Hành!",
+                ["registration"] = EntityJson.ToNode(r)
+            });
+        }, log));
+
         api.MapPost("/registration/approve", (HttpContext ctx, WonAuctionService svc) => Guard(async () =>
         {
             var b = await BodyAsync(ctx.Request);
@@ -143,6 +203,33 @@ public static class ApiEndpoints
             {
                 ["success"] = true, ["agentCode"] = code,
                 ["message"] = $"Hồ sơ {regId} đã được duyệt thành công! Mã đại lý cấp: {code}"
+            });
+        }, log));
+
+        api.MapPost("/registration/reject", (HttpContext ctx, SharedDataService shared, BiddingCargo.Web.Data.AppDbContext db) => Guard(async () =>
+        {
+            var b = await BodyAsync(ctx.Request);
+            var regId = EntityJson.Str(b, "regId");
+            var reason = EntityJson.Str(b, "reason") ?? "Hồ sơ chưa đạt tiêu chuẩn theo quy chế xét duyệt đại lý";
+            var rejectedBy = EntityJson.Str(b, "rejectedBy") ?? "Admin";
+
+            if (string.IsNullOrEmpty(regId)) return Err("Thiếu regId");
+            var reg = await db.Registrations.FindAsync(regId) ?? throw new ApiException("Hồ sơ đăng ký không tồn tại", 404);
+
+            reg.Status = "REJECTED";
+            reg.RejectionReason = reason;
+
+            db.ActivityLogs.Add(LogService.Make(rejectedBy, "admin", "SUPER_ADMIN", "Quản lý Đại lý", "Từ chối hồ sơ Đăng ký", reg.CompanyName ?? regId,
+                $"Từ chối hồ sơ đăng ký đại lý \"{reg.CompanyName}\" ({regId}). Lý do từ chối: \"{reason}\".", ctx.Connection.RemoteIpAddress?.ToString(), "Admin Portal"));
+
+            await db.SaveChangesAsync();
+            SharedDataService.InvalidateSnapshotCache();
+            await shared.BumpVersionAsync();
+
+            return J(new JsonObject
+            {
+                ["success"] = true,
+                ["message"] = $"Đã từ chối hồ sơ {regId} thành công."
             });
         }, log));
 

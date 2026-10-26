@@ -569,7 +569,7 @@
                     <select id="roleFilter" onchange="handleFilterChange()"
                         class="w-full px-3 py-2 text-xs bg-slate-50 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 font-medium text-slate-700">
                         <option value="ALL">-- Vai trò: Tất cả --</option>
-                        <option value="ADMIN">ADMIN (Quản trị)</option>
+                        <option value="ADMIN">ADMIN / Ban Quản Trị</option>
                         <option value="STAFF">STAFF (Nhân viên)</option>
                         <option value="AGENT">AGENT (Đại lý)</option>
                     </select>
@@ -1021,7 +1021,10 @@
             const allLogs = getAllLogs();
 
             const loginLogoutCount = allLogs.filter(l => (l.actionCategory || '') === 'Đăng nhập').length;
-            const adminStaffCount = allLogs.filter(l => ['ADMIN', 'STAFF'].includes((l.role || '').toUpperCase())).length;
+            const adminStaffCount = allLogs.filter(l => {
+                const r = (l.role || '').toUpperCase();
+                return ['ADMIN', 'SUPER_ADMIN', 'ITD_ADMIN', 'STAFF'].includes(r) || r.includes('ADMIN');
+            }).length;
             const agentCount = allLogs.filter(l => (l.role || '').toUpperCase() === 'AGENT').length;
 
             const auctionBidCount = allLogs.filter(l => ['Đấu giá', 'Phiên đấu giá', 'Thanh toán'].includes(l.actionCategory || '')).length;
@@ -1108,7 +1111,14 @@
             }
 
             if (currentFilters.role !== 'ALL') {
-                logs = logs.filter(l => (l.role || '').toUpperCase() === currentFilters.role.toUpperCase());
+                const targetRole = currentFilters.role.toUpperCase();
+                logs = logs.filter(l => {
+                    const r = (l.role || '').toUpperCase();
+                    if (targetRole === 'ADMIN') {
+                        return ['ADMIN', 'SUPER_ADMIN', 'ITD_ADMIN'].includes(r) || r.includes('ADMIN');
+                    }
+                    return r === targetRole;
+                });
             }
 
             if (currentFilters.category !== 'ALL') {
@@ -1184,8 +1194,8 @@
 
                     let roleBadge = '<span class="px-2 py-0.5 rounded text-[10px] font-bold bg-slate-100 text-slate-700">SYSTEM</span>';
                     const roleUpper = (log.role || '').toUpperCase();
-                    if (roleUpper === 'ADMIN') {
-                        roleBadge = '<span class="px-2 py-0.5 rounded text-[10px] font-bold bg-purple-100 text-purple-700 border border-purple-200">ADMIN</span>';
+                    if (['ADMIN', 'SUPER_ADMIN', 'ITD_ADMIN'].includes(roleUpper) || roleUpper.includes('ADMIN')) {
+                        roleBadge = `<span class="px-2 py-0.5 rounded text-[10px] font-bold bg-purple-100 text-purple-700 border border-purple-200">${roleUpper}</span>`;
                     } else if (roleUpper === 'STAFF') {
                         roleBadge = '<span class="px-2 py-0.5 rounded text-[10px] font-bold bg-blue-100 text-blue-700 border border-blue-200">STAFF</span>';
                     } else if (roleUpper === 'AGENT') {

@@ -66,7 +66,13 @@ public class LogService
 
         IEnumerable<ActivityLog> res = result.OrderByDescending(l => SharedDataService.EffectiveLogTime(l.Timestamp, l.RawTime));
         if (!string.IsNullOrEmpty(role) && role != "ALL")
-            res = res.Where(l => string.Equals(l.Role, role, StringComparison.OrdinalIgnoreCase));
+        {
+            var r = role.ToUpperInvariant();
+            if (r == "ADMIN")
+                res = res.Where(l => l.Role != null && l.Role.ToUpper().Contains("ADMIN"));
+            else
+                res = res.Where(l => string.Equals(l.Role, role, StringComparison.OrdinalIgnoreCase));
+        }
         if (!string.IsNullOrEmpty(category) && category != "ALL")
             res = res.Where(l => (l.ActionCategory ?? "") == category);
         if (!string.IsNullOrWhiteSpace(q))
