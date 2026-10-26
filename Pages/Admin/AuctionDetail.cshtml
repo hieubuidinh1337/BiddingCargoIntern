@@ -1789,16 +1789,16 @@
             const canEditBtn = (CargoStore.hasPermission && CargoStore.hasPermission('auctions.edit', curAdminForBtn)) && (isOpen || auction.status === 'CLOSED');
             const canRemoveBtn = (CargoStore.hasPermission && CargoStore.hasPermission('auctions.remove', curAdminForBtn)) && (isOpen || auction.status === 'UPCOMING');
 
-            btnContainer.innerHTML = `
-                ${(isOpen && canCloseBtn && !hideCloseBtn) ? `
-                    <button type="button" onclick="handleDetailCloseAuction()" class="bg-rose-600 hover:bg-rose-700 text-white text-xs font-bold px-3.5 py-2 rounded-xl transition shadow flex items-center gap-1.5 cursor-pointer">
-                        <i class="fa-solid fa-gavel"></i> Chốt / Đóng phiên đấu giá
-                    </button>
-                ` : ''}
-                <button onclick="openDetailBroadcastModal()" class="bg-blue-600 hover:bg-blue-700 text-white text-xs font-bold px-3.5 py-2 rounded-xl transition shadow flex items-center gap-1.5 cursor-pointer">
-                    <i class="fa-solid fa-bullhorn"></i> Phát thông báo
-                </button>
-            `;
+            // btnContainer.innerHTML = `
+            //     ${(isOpen && canCloseBtn && !hideCloseBtn) ? `
+            //         <button type="button" onclick="handleDetailCloseAuction()" class="bg-rose-600 hover:bg-rose-700 text-white text-xs font-bold px-3.5 py-2 rounded-xl transition shadow flex items-center gap-1.5 cursor-pointer">
+            //             <i class="fa-solid fa-gavel"></i> Chốt / Đóng phiên đấu giá
+            //         </button>
+            //     ` : ''}
+            //     <button onclick="openDetailBroadcastModal()" class="bg-blue-600 hover:bg-blue-700 text-white text-xs font-bold px-3.5 py-2 rounded-xl transition shadow flex items-center gap-1.5 cursor-pointer">
+            //         <i class="fa-solid fa-bullhorn"></i> Phát thông báo
+            //     </button>
+            // `;
 
             function renderBidsPaginationControls(totalItems) {
                 const controls = document.getElementById('bidsPaginationControls');
