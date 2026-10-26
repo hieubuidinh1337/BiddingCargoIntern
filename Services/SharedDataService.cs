@@ -379,6 +379,7 @@ public class SharedDataService
             ["readNotificationIds"] = ParseSetting("readNotificationIds") ?? new JsonArray(),
             ["deletedNotificationIds"] = ParseSetting("deletedNotificationIds") ?? new JsonArray(),
             ["adminsList"] = adminsArr,
+            ["rolesList"] = ParseSetting("rolesList") ?? new JsonArray(),
         };
     }
 
@@ -655,6 +656,10 @@ public class SharedDataService
             else if (incoming["adminsList"] != null)
             {
                 await SetSettingAsync("adminsList", incoming["adminsList"]!.DeepClone());
+            }
+            if (incoming["rolesList"] != null)
+            {
+                await SetSettingAsync("rolesList", incoming["rolesList"]!.DeepClone());
             }
             if (incoming["settings"] is JsonObject st)
             {

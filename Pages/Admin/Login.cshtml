@@ -88,65 +88,16 @@
                 <p id="adminErrorMsg" class="pl-6">Tên đăng nhập hoặc mật khẩu quản trị không đúng.</p>
             </div>
 
-            <!-- 5 Standard Roles Demo Account Selector -->
-            <!-- <div class="bg-slate-800/90 border border-slate-700/80 rounded-2xl p-3.5 mb-5 text-xs text-slate-300 space-y-2.5">
+            <!-- Staff & Admin Accounts Quick Login for Testing -->
+            <div id="quickAccountsSection" class="bg-slate-800/90 border border-slate-700/80 rounded-2xl p-3.5 mb-5 text-xs text-slate-300 space-y-2.5">
                 <p class="font-bold text-[11px] uppercase tracking-wider text-slate-400 flex items-center justify-between">
-                    <span class="flex items-center gap-1.5"><i class="fa-solid fa-users-gear text-blue-400"></i> Tài khoản phân quyền mẫu (Click để điền):</span>
-                    <span class="text-[10px] text-slate-500 font-normal">Tự động điền</span>
+                    <span class="flex items-center gap-1.5"><i class="fa-solid fa-users-gear text-blue-400"></i> Chọn nhanh tài khoản để test phân quyền:</span>
+                    <span class="text-[10px] text-slate-500 font-normal">Click để tự điền</span>
                 </p>
-                <div class="grid grid-cols-2 sm:grid-cols-3 gap-2"> -->
-                    <!-- Role 1: Super Admin -->
-                    <!-- <button type="button" onclick="fillAdminDemo('admin', 'admin2026')"
-                        class="bg-slate-900/90 hover:bg-rose-950/60 text-slate-200 border border-rose-500/30 hover:border-rose-400 p-2.5 rounded-xl text-left transition cursor-pointer group">
-                        <div class="flex items-center justify-between">
-                            <span class="font-bold text-rose-400 group-hover:text-rose-300 text-[10px] block">SUPER ADMIN</span>
-                            <span class="text-[9px] bg-rose-500/20 text-rose-300 px-1 py-0.5 rounded font-mono font-bold">14/14</span>
-                        </div>
-                        <span class="text-[11px] text-slate-200 font-semibold block mt-0.5 truncate">Trần Quản Trị</span>
-                        <span class="text-[10px] text-slate-400 font-mono">admin (admin2026)</span>
-                    </button> -->
-                    <!-- Role 2: COD Manager -->
-                    <!-- <button type="button" onclick="fillAdminDemo('cod_admin', 'admin2026')"
-                        class="bg-slate-900/90 hover:bg-amber-950/60 text-slate-200 border border-amber-500/30 hover:border-amber-400 p-2.5 rounded-xl text-left transition cursor-pointer group">
-                        <div class="flex items-center justify-between">
-                            <span class="font-bold text-amber-400 group-hover:text-amber-300 text-[10px] block">COD MANAGER</span>
-                            <span class="text-[9px] bg-amber-500/20 text-amber-300 px-1 py-0.5 rounded font-mono font-bold">8/14</span>
-                        </div>
-                        <span class="text-[11px] text-slate-200 font-semibold block mt-0.5 truncate">Lê Khai Thác</span>
-                        <span class="text-[10px] text-slate-400 font-mono">cod_admin (admin2026)</span>
-                    </button> -->
-                    <!-- Role 3: Settlement Officer -->
-                    <!-- <button type="button" onclick="fillAdminDemo('settler01', 'admin2026')"
-                        class="bg-slate-900/90 hover:bg-purple-950/60 text-slate-200 border border-purple-500/30 hover:border-purple-400 p-2.5 rounded-xl text-left transition cursor-pointer group">
-                        <div class="flex items-center justify-between">
-                            <span class="font-bold text-purple-400 group-hover:text-purple-300 text-[10px] block">SETTLEMENT</span>
-                            <span class="text-[9px] bg-purple-500/20 text-purple-300 px-1 py-0.5 rounded font-mono font-bold">3/14</span>
-                        </div>
-                        <span class="text-[11px] text-slate-200 font-semibold block mt-0.5 truncate">Vũ Thẩm Định</span>
-                        <span class="text-[10px] text-slate-400 font-mono">settler01 (admin2026)</span>
-                    </button> -->
-                    <!-- Role 4: Agent Auditor -->
-                    <!-- <button type="button" onclick="fillAdminDemo('staff02', 'staff2026')"
-                        class="bg-slate-900/90 hover:bg-teal-950/60 text-slate-200 border border-teal-500/30 hover:border-teal-400 p-2.5 rounded-xl text-left transition cursor-pointer group">
-                        <div class="flex items-center justify-between">
-                            <span class="font-bold text-teal-400 group-hover:text-teal-300 text-[10px] block">AUDITOR</span>
-                            <span class="text-[9px] bg-teal-500/20 text-teal-300 px-1 py-0.5 rounded font-mono font-bold">4/14</span>
-                        </div>
-                        <span class="text-[11px] text-slate-200 font-semibold block mt-0.5 truncate">Lê Thị Bích Vân</span>
-                        <span class="text-[10px] text-slate-400 font-mono">staff02 (staff2026)</span>
-                    </button> -->
-                    <!-- Role 5: Operations Staff / Viewer -->
-                    <!-- <button type="button" onclick="fillAdminDemo('staff01', 'staff2026')"
-                        class="bg-slate-900/90 hover:bg-emerald-950/60 text-slate-200 border border-emerald-500/30 hover:border-emerald-400 p-2.5 rounded-xl text-left transition cursor-pointer group col-span-2 sm:col-span-1">
-                        <div class="flex items-center justify-between">
-                            <span class="font-bold text-emerald-400 group-hover:text-emerald-300 text-[10px] block">VIEWER</span>
-                            <span class="text-[9px] bg-emerald-500/20 text-emerald-300 px-1 py-0.5 rounded font-mono font-bold">4/14</span>
-                        </div>
-                        <span class="text-[11px] text-slate-200 font-semibold block mt-0.5 truncate">Nguyễn Điều Hành</span>
-                        <span class="text-[10px] text-slate-400 font-mono">staff01 (staff2026)</span>
-                    </button> -->
-                <!-- </div>
-            </div> -->
+                <div id="quickStaffList" class="grid grid-cols-2 sm:grid-cols-3 gap-2">
+                    <!-- Rendered by JS based on adminsList -->
+                </div>
+            </div>
 
             <form id="adminLoginForm" onsubmit="handleAdminLogin(event)" class="space-y-4">
                 <div>
@@ -207,6 +158,53 @@
             document.getElementById('adminPass').value = pwd;
             hideAdminError();
         }
+
+        function renderQuickStaffList() {
+            const container = document.getElementById('quickStaffList');
+            if (!container || typeof CargoStore === 'undefined') return;
+            const data = CargoStore.getData();
+            const list = data.adminsList || [];
+            const allRoles = CargoStore.getRoles ? CargoStore.getRoles() : [];
+
+            if (list.length === 0) {
+                container.innerHTML = '<span class="text-[11px] text-slate-500 italic col-span-2">Chưa có tài khoản nhân sự.</span>';
+                return;
+            }
+
+            container.innerHTML = list.map(st => {
+                const roles = (Array.isArray(st.roles) && st.roles.length > 0) ? st.roles : [st.role || 'SUPER_ADMIN'];
+                const roleCode = String(roles[0] || '').toUpperCase();
+                const matchedRole = allRoles.find(r => String(r.code || r.id).toUpperCase() === roleCode);
+                const pCount = matchedRole && matchedRole.permissions ? matchedRole.permissions.length : 14;
+
+                let borderCls = 'border-blue-500/30 hover:border-blue-400 text-blue-400';
+                if (roleCode === 'COD_MANAGER') borderCls = 'border-amber-500/30 hover:border-amber-400 text-amber-400';
+                else if (roleCode === 'SETTLEMENT_OFFICER') borderCls = 'border-purple-500/30 hover:border-purple-400 text-purple-400';
+                else if (roleCode === 'AGENT_AUDITOR') borderCls = 'border-teal-500/30 hover:border-teal-400 text-teal-400';
+                else if (roleCode === 'OPERATIONS_VIEWER') borderCls = 'border-emerald-500/30 hover:border-emerald-400 text-emerald-400';
+
+                const pwd = st.password || 'staff2026';
+
+                return `
+                    <button type="button" onclick="fillAdminDemo('${st.username}', '${pwd}')"
+                        class="bg-slate-900/90 hover:bg-slate-950 text-slate-200 border ${borderCls} p-2 rounded-xl text-left transition cursor-pointer group shadow-2xs">
+                        <div class="flex items-center justify-between">
+                            <span class="font-bold text-[10px] block truncate max-w-[90px]">${roleCode}</span>
+                            <span class="text-[9px] bg-slate-800 text-slate-300 px-1 py-0.5 rounded font-mono font-bold">${pCount}/14</span>
+                        </div>
+                        <span class="text-[11px] text-slate-200 font-semibold block mt-0.5 truncate">${st.fullName || st.username}</span>
+                        <span class="text-[10px] text-slate-400 font-mono block truncate">@@${st.username} (${pwd})</span>
+                    </button>
+                `;
+            }).join('');
+        }
+
+        window.addEventListener('DOMContentLoaded', () => {
+            renderQuickStaffList();
+        });
+        window.addEventListener('cargostore_updated', () => {
+            renderQuickStaffList();
+        });
 
         function toggleAdminPass() {
             const input = document.getElementById('adminPass');

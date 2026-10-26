@@ -1027,6 +1027,7 @@ const CargoStore = (function () {
                         registrations: data.registrations,
                         agentsList: data.agentsList,
                         adminsList: data.adminsList,
+                        rolesList: data.rolesList,
                         settings: data.settings,
                         bankConfig: data.bankConfig,
                         routeSubscriptions: data.routeSubscriptions,
@@ -1247,6 +1248,9 @@ const CargoStore = (function () {
                     local.adminsList = list;
                 } else if (!local.adminsList || !Array.isArray(local.adminsList) || local.adminsList.length === 0) {
                     local.adminsList = JSON.parse(JSON.stringify(seedAdmins));
+                }
+                if (serverData.rolesList && Array.isArray(serverData.rolesList) && serverData.rolesList.length > 0) {
+                    local.rolesList = serverData.rolesList;
                 }
                 if (serverData.settings) local.settings = serverData.settings;
                 if (serverData.bankConfig) local.bankConfig = serverData.bankConfig;

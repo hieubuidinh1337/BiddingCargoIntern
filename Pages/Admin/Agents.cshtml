@@ -625,13 +625,14 @@
 
         <!-- Tab 3: Staff & Internal Users -->
         <div id="sectionStaff" class="hidden bg-white rounded-2xl border shadow-sm overflow-hidden">
-            <div class="p-4 bg-slate-50/70 border-b flex items-center justify-between">
-                <span class="text-xs text-slate-600 font-semibold">Danh sách tài khoản Nhân viên Điều hành & Quản trị
-                    viên sàn</span>
-                <!-- Chức năng tạm ẩn theo yêu cầu -->
+            <div class="p-4 bg-slate-50/70 border-b flex flex-wrap items-center justify-between gap-3">
+                <div class="space-y-0.5">
+                    <span class="text-xs text-slate-800 font-bold block">Danh sách tài khoản Nhân viên Điều hành & Quản trị viên sàn</span>
+                    <span class="text-[11px] text-slate-500">Cấp tài khoản mới, phân quyền vai trò hoặc khóa/mở khóa nhân sự nội bộ</span>
+                </div>
                 <button id="addStaffBtn" onclick="openAddStaffModal()"
-                    class="hidden bg-blue-600 hover:bg-blue-700 text-white text-xs font-bold px-3 py-1.5 rounded-xl transition shadow items-center gap-1.5">
-                    <i class="fa-solid fa-user-plus"></i> Thêm tài khoản nhân viên mới
+                    class="bg-blue-600 hover:bg-blue-700 text-white text-xs font-bold px-3.5 py-2 rounded-xl transition shadow flex items-center gap-1.5 cursor-pointer">
+                    <i class="fa-solid fa-user-plus text-xs"></i> Thêm tài khoản nhân sự mới
                 </button>
             </div>
             <div class="sm:hidden px-3 pt-2">
@@ -674,10 +675,16 @@
                         ký đại lý, Phiên đấu giá, Đại lý ủy quyền, Nhân viên nội bộ).
                     </p>
                 </div>
-                <button id="addRoleBtn" onclick="openRoleModal()"
-                    class="bg-blue-600 hover:bg-blue-500 text-white text-xs font-bold px-4 py-2.5 rounded-xl transition shadow flex items-center justify-center gap-2 shrink-0">
-                    <i class="fa-solid fa-plus-circle"></i> Tạo vai trò mới
-                </button>
+                <div class="flex flex-wrap items-center gap-2 shrink-0">
+                    <button type="button" onclick="openAddStaffModal()"
+                        class="bg-white/10 hover:bg-white/20 text-white border border-white/20 text-xs font-bold px-4 py-2.5 rounded-xl transition shadow flex items-center justify-center gap-2 cursor-pointer">
+                        <i class="fa-solid fa-user-plus text-blue-400"></i> Cấp tài khoản Nhân sự
+                    </button>
+                    <button id="addRoleBtn" onclick="openRoleModal()"
+                        class="bg-blue-600 hover:bg-blue-500 text-white text-xs font-bold px-4 py-2.5 rounded-xl transition shadow flex items-center justify-center gap-2 shrink-0">
+                        <i class="fa-solid fa-plus-circle"></i> Tạo vai trò mới
+                    </button>
+                </div>
             </div>
 
             <!-- Permission Matrix Legend -->
@@ -994,23 +1001,34 @@
         <div class="bg-white rounded-2xl shadow-xl max-w-md w-full overflow-hidden">
             <div class="bg-slate-900 text-white px-6 py-4 flex items-center justify-between">
                 <h3 class="font-bold text-sm flex items-center gap-2">
-                    <i class="fa-solid fa-user-plus text-blue-400"></i> Cấp tài khoản Nhân viên mới
+                    <i class="fa-solid fa-user-plus text-blue-400"></i> Cấp tài khoản Nhân sự nội bộ & Quản trị
                 </h3>
                 <button onclick="closeAddStaffModal()" class="text-slate-400 hover:text-white text-lg"><i
                         class="fa-solid fa-xmark"></i></button>
             </div>
             <form onsubmit="handleCreateStaff(event)" class="p-6 space-y-3.5 text-xs">
+                <div class="bg-blue-50 border border-blue-200 text-blue-800 rounded-xl p-3 text-[11px] leading-relaxed flex items-start gap-2">
+                    <i class="fa-solid fa-circle-info text-blue-600 mt-0.5 shrink-0"></i>
+                    <span>Tài khoản tạo xong có thể đăng nhập ngay tại cổng <strong>Quản trị (/admin/login)</strong> để kiểm tra các quyền hạn được phân quyền.</span>
+                </div>
                 <div>
                     <label class="block font-semibold text-slate-700 mb-1">Tên đăng nhập (Username) <span
                             class="text-red-500">*</span></label>
-                    <input type="text" id="newStaffUsername" required placeholder="VD: staff03"
+                    <input type="text" id="newStaffUsername" required placeholder="VD: cod_manager, staff01, auditor..."
+                        oninput="if(!document.getElementById('newStaffEmail').value.trim()) document.getElementById('newStaffEmail').placeholder = this.value.trim().toLowerCase() + '@@vietravelairlines.vn'"
                         class="w-full border rounded-xl px-3 py-2 outline-none focus:ring-2 focus:ring-blue-500 font-mono">
                 </div>
                 <div>
                     <label class="block font-semibold text-slate-700 mb-1">Họ và tên nhân viên <span
                             class="text-red-500">*</span></label>
-                    <input type="text" id="newStaffFullName" required placeholder="VD: Trần Văn Khai Thác"
+                    <input type="text" id="newStaffFullName" required placeholder="VD: Nguyễn Văn Điều Hành"
                         class="w-full border rounded-xl px-3 py-2 outline-none focus:ring-2 focus:ring-blue-500">
+                </div>
+                <div>
+                    <label class="block font-semibold text-slate-700 mb-1">Email liên hệ <span
+                            class="text-red-500">*</span></label>
+                    <input type="email" id="newStaffEmail" required placeholder="VD: staff01@vietravelairlines.vn"
+                        class="w-full border rounded-xl px-3 py-2 outline-none focus:ring-2 focus:ring-blue-500 font-mono">
                 </div>
                 <div>
                     <label class="block font-semibold text-slate-700 mb-1">Phòng ban chuyên trách</label>
@@ -1019,12 +1037,14 @@
                         <option value="Air Cargo Flight Operations">Air Cargo Flight Operations (Điều hành bay)</option>
                         <option value="Agent Audit & Approval">Agent Audit & Approval (Thẩm định đại lý)</option>
                         <option value="Cargo Revenue & Pricing">Cargo Revenue & Pricing (Doanh thu & Giá cước)</option>
+                        <option value="Executive Management">Executive Management (Ban Giám đốc & Quản trị)</option>
+                        <option value="IT Operations & Security">IT Operations & Security (Công nghệ thông tin)</option>
                     </select>
                 </div>
                 <div>
-                    <label class="block font-semibold text-slate-700 mb-1">Phân quyền vai trò</label>
+                    <label class="block font-semibold text-slate-700 mb-1">Phân quyền vai trò <span class="text-red-500">*</span></label>
                     <select id="newStaffRole"
-                        class="w-full border rounded-xl px-3 py-2 bg-white outline-none focus:ring-2 focus:ring-blue-500">
+                        class="w-full border rounded-xl px-3 py-2 bg-white outline-none focus:ring-2 focus:ring-blue-500 font-medium">
                         <option value="SUPER_ADMIN">QUẢN TRỊ VIÊN HỆ THỐNG (Super Admin) - Toàn quyền (14/14)</option>
                         <option value="COD_MANAGER">ĐIỀU HÀNH KHAI THÁC (COD Manager) - Phiên bay & Duyệt đại lý (8/14)</option>
                         <option value="SETTLEMENT_OFFICER">HỘI ĐỒNG CHỐT THẦU (Settlement Officer) - Chốt phiên & Người thắng (3/14)</option>
@@ -1033,24 +1053,26 @@
                     </select>
                 </div>
                 <div>
-                    <label class="block font-semibold text-slate-700 mb-1">Mật khẩu khởi tạo <span
+                    <label class="block font-semibold text-slate-700 mb-1">Mật khẩu đăng nhập <span
                             class="text-red-500">*</span></label>
                     <div class="relative">
                         <input type="password" id="newStaffPassword" required value="staff2026"
-                            class="w-full border rounded-xl px-3 py-2 pr-10 outline-none focus:ring-2 focus:ring-blue-500">
+                            class="w-full border rounded-xl px-3 py-2 pr-10 outline-none focus:ring-2 focus:ring-blue-500 font-mono">
                         <button type="button"
                             onclick="const input = document.getElementById('newStaffPassword'); const icon = this.querySelector('i'); if (input.type === 'password') { input.type = 'text'; icon.classList.replace('fa-eye', 'fa-eye-slash'); } else { input.type = 'password'; icon.classList.replace('fa-eye-slash', 'fa-eye'); }"
                             class="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600 transition">
                             <i class="fa-solid fa-eye text-sm"></i>
                         </button>
                     </div>
+                    <span class="text-[10px] text-slate-400 mt-1 block">Mật khẩu mặc định khuyến nghị: <strong class="font-mono text-slate-600">staff2026</strong> hoặc tùy ý.</span>
                 </div>
                 <div class="flex items-center justify-end gap-2.5 pt-2 border-t">
                     <button type="button" onclick="closeAddStaffModal()"
                         class="px-4 py-2 border rounded-xl text-slate-600 hover:bg-slate-50 font-medium">Hủy bỏ</button>
                     <button type="submit"
-                        class="px-5 py-2 bg-blue-600 hover:bg-blue-700 text-white font-bold rounded-xl shadow">Tạo tài
-                        khoản</button>
+                        class="px-5 py-2 bg-blue-600 hover:bg-blue-700 text-white font-bold rounded-xl shadow cursor-pointer flex items-center gap-1.5">
+                        <i class="fa-solid fa-check"></i> Tạo tài khoản
+                    </button>
                 </div>
             </form>
         </div>
@@ -1393,11 +1415,16 @@
                 }
             }
 
-            // Chức năng cấp tài khoản nhân sự mới tạm ẩn theo yêu cầu
+            // Quản lý hiển thị nút Thêm tài khoản nhân sự
             const addStaffBtn = document.getElementById('addStaffBtn');
             if (addStaffBtn) {
-                addStaffBtn.classList.add('hidden');
-                addStaffBtn.style.display = 'none';
+                if (canCreateStaff) {
+                    addStaffBtn.classList.remove('hidden');
+                    addStaffBtn.style.display = 'inline-flex';
+                } else {
+                    addStaffBtn.classList.add('hidden');
+                    addStaffBtn.style.display = 'none';
+                }
             }
 
             // 1. Render Registrations
@@ -2064,6 +2091,9 @@
                         <div class="flex items-center justify-between border-t border-slate-100 pt-3 text-xs">
                             <span class="font-mono text-[10px] text-slate-400">Mã: ${role.code || role.id}</span>
                             <div class="flex items-center gap-2">
+                                <button onclick="openAddStaffModalWithRole('${role.code || role.id}')" class="inline-flex items-center gap-1 text-emerald-700 hover:text-white hover:bg-emerald-600 border border-emerald-200 hover:border-emerald-600 font-bold px-2.5 py-1 rounded-lg transition text-xs shadow-2xs cursor-pointer" title="Cấp tài khoản nhân sự có vai trò này">
+                                    <i class="fa-solid fa-user-plus text-[10px]"></i> Cấp tài khoản
+                                </button>
                                 ${!role.isSystem && canEditRole ? `
                                     <button onclick="openRoleModal('${role.id}')" class="inline-flex items-center gap-1 text-blue-600 hover:text-white hover:bg-blue-600 border border-blue-200 hover:border-blue-600 font-bold px-2.5 py-1 rounded-lg transition text-xs shadow-2xs cursor-pointer">
                                         <i class="fa-solid fa-pen-to-square text-[10px]"></i> Sửa quyền
@@ -2326,9 +2356,47 @@
             }
         }
 
-        function openAddStaffModal() {
-            alert('Chức năng cấp tài khoản nhân viên mới tạm thời ẩn để bảo trì.');
-            return;
+        function openAddStaffModal(presetRole) {
+            if (!CargoStore.hasPermission('staff.create')) {
+                alert('Bạn không có quyền cấp mới tài khoản nhân sự (yêu cầu quyền staff.create)!');
+                return;
+            }
+            const modal = document.getElementById('addStaffModal');
+            if (!modal) return;
+
+            // Populate role options dynamically from all available roles
+            const roleSelect = document.getElementById('newStaffRole');
+            if (roleSelect && window.CargoStore && CargoStore.getRoles) {
+                const roles = CargoStore.getRoles();
+                if (roles && roles.length > 0) {
+                    roleSelect.innerHTML = roles.map(r => {
+                        const permCount = (r.permissions || []).length;
+                        const isSuper = (r.code === 'SUPER_ADMIN' || r.id === 'role_super_admin');
+                        const isSelected = presetRole && (String(presetRole).toUpperCase() === String(r.code || r.id).toUpperCase());
+                        return `<option value="${r.code || r.id}" ${isSelected ? 'selected' : ''}>${r.name} (${permCount} quyền)${isSuper ? ' - Toàn quyền' : ''}</option>`;
+                    }).join('');
+                }
+            }
+
+            // Reset inputs
+            const uInput = document.getElementById('newStaffUsername');
+            const fnInput = document.getElementById('newStaffFullName');
+            const pwdInput = document.getElementById('newStaffPassword');
+            const emailInput = document.getElementById('newStaffEmail');
+            if (uInput) uInput.value = '';
+            if (fnInput) fnInput.value = '';
+            if (pwdInput) pwdInput.value = 'staff2026';
+            if (emailInput) {
+                emailInput.value = '';
+                emailInput.placeholder = 'VD: staff01@vietravelairlines.vn';
+            }
+
+            modal.classList.remove('hidden');
+            setTimeout(() => { if (uInput) uInput.focus(); }, 100);
+        }
+
+        function openAddStaffModalWithRole(roleCode) {
+            openAddStaffModal(roleCode);
         }
 
         function closeAddStaffModal() {
@@ -2337,17 +2405,27 @@
 
         function handleCreateStaff(e) {
             e.preventDefault();
+            const username = (document.getElementById('newStaffUsername').value || '').trim();
+            const fullName = (document.getElementById('newStaffFullName').value || '').trim();
+            const email = (document.getElementById('newStaffEmail')?.value || '').trim();
+            const department = document.getElementById('newStaffDept').value;
+            const role = document.getElementById('newStaffRole').value;
+            const password = document.getElementById('newStaffPassword').value;
+
             const res = CargoStore.createStaffAccount({
-                username: document.getElementById('newStaffUsername').value,
-                fullName: document.getElementById('newStaffFullName').value,
-                department: document.getElementById('newStaffDept').value,
-                role: document.getElementById('newStaffRole').value,
-                password: document.getElementById('newStaffPassword').value
+                username: username,
+                fullName: fullName,
+                email: email || (username + '@@vietravelairlines.vn'),
+                department: department,
+                role: role,
+                roles: [role],
+                password: password
             });
 
             if (res.success) {
-                if (window.Swal) Swal.fire('Thành công', res.message, 'success');
-                else alert(res.message);
+                const successMsg = `Đã cấp tài khoản thành công!\n\n• Tên đăng nhập: @@${username}\n• Họ tên: ${fullName}\n• Vai trò: ${role}\n• Mật khẩu: ${password}\n\nTài khoản có thể đăng nhập ngay tại cổng Quản trị (/admin/login).`;
+                if (window.Swal) Swal.fire('Tạo tài khoản thành công', successMsg.replace(/\n/g, '<br>'), 'success');
+                else alert(successMsg);
                 closeAddStaffModal();
                 renderAgentsList();
                 renderRolesList();
