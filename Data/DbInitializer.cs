@@ -28,14 +28,22 @@ public static class DbInitializer
     {
         try
         {
-            if (await db.Database.CanConnectAsync())
+            var creator = db.GetService<IRelationalDatabaseCreator>();
+            if (!await creator.ExistsAsync())
             {
-                logger.LogInformation("SQL Server database kết nối thành công và sẵn sàng.");
+                logger.LogWarning("Chưa có database -> tự tạo mới.");
+                await creator.CreateAsync();
             }
+            if (!await creator.HasTablesAsync())
+            {
+                logger.LogWarning("Database chưa có bảng -> tự tạo các bảng.");
+                await creator.CreateTablesAsync();
+            }
+            logger.LogInformation("SQL Server database kết nối thành công và sẵn sàng.");
         }
         catch (Exception e)
         {
-            logger.LogWarning(e, "Kiểm tra kết nối SQL Server lúc khởi động gặp cảnh báo.");
+            logger.LogError(e, "Không thể kết nối/khởi tạo SQL Server. Kiểm tra ConnectionStrings:DefaultConnection.");
         }
     }
 }
