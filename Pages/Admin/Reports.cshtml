@@ -1880,13 +1880,7 @@
 
         document.addEventListener('DOMContentLoaded', initReports);
 
-        // Auto-update report numbers in real-time when data changes
-        window.addEventListener('storage', function (e) {
-            if (e.key === 'CARGO_BIDDING_DATA_V3') {
-                renderReportUI();
-            }
-        });
-        window.addEventListener('cargostore_updated', renderReportUI);
+        // NOTE: cargostore_updated listener removed to eliminate reports screen flicker
     </script>
 </body>
 

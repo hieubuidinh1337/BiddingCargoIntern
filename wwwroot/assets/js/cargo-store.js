@@ -901,7 +901,7 @@ const CargoStore = (function () {
                     _memoryCacheRaw = savedStr;
                 } catch (e) { }
                 if (updated && !isSyncing) {
-                    saveData(data);
+                    saveData(data, true);
                 }
             } else {
                 _memoryCacheRaw = raw;
@@ -1128,11 +1128,15 @@ const CargoStore = (function () {
         }
     }
 
+    let lastServerSyncTimestamp = 0;
     async function syncWithServer(force = false) {
         if (isSyncing || typeof window === 'undefined') return;
+        // Guard: Do not sync more than once every 30 seconds
+        if (Date.now() - lastServerSyncTimestamp < 30000) return;
         if (!force && typeof document !== 'undefined' && document.hidden) return; // Save CPU when tab is in background
         // Prevent sync race condition if local save occurred in the last 800ms
         if (!force && Date.now() - lastLocalSaveTimestamp < 800) return;
+        lastServerSyncTimestamp = Date.now();
 
         try {
             isSyncing = true;
@@ -1509,17 +1513,13 @@ const CargoStore = (function () {
                         window.dispatchEvent(new CustomEvent('cargostore_updated', { detail: fresh }));
                     } catch (err) { }
                     updateHeaderNotifBadges(fresh);
-                    setTimeout(() => syncWithServer(true), 100);
                 }
             };
         } catch (e) { }
     }
 
-    // Auto-poll server every 3000ms to stay in sync without CPU/network lag
+    // Auto-poll intervals removed per requirement - no repetitive background polling loops
     if (typeof window !== 'undefined') {
-        setTimeout(() => syncWithServer(false), 500);
-        setInterval(syncWithServer, 3000);
-
         window.addEventListener('storage', function (e) {
             if (!e.key || e.key === STORAGE_KEY) {
                 _memoryCacheData = null;
@@ -1531,31 +1531,6 @@ const CargoStore = (function () {
                 updateHeaderNotifBadges(fresh);
             }
         });
-
-        if (typeof document !== 'undefined') {
-            document.addEventListener('visibilitychange', function () {
-                if (!document.hidden) {
-                    _memoryCacheData = null;
-                    _memoryCacheRaw = null;
-                    const fresh = loadData();
-                    try {
-                        window.dispatchEvent(new CustomEvent('cargostore_updated', { detail: fresh }));
-                    } catch (err) { }
-                    updateHeaderNotifBadges(fresh);
-                    syncWithServer(true);
-                }
-            });
-            window.addEventListener('focus', function () {
-                _memoryCacheData = null;
-                _memoryCacheRaw = null;
-                const fresh = loadData();
-                try {
-                    window.dispatchEvent(new CustomEvent('cargostore_updated', { detail: fresh }));
-                } catch (err) { }
-                updateHeaderNotifBadges(fresh);
-                syncWithServer(true);
-            });
-        }
     }
 
     function formatCurrency(amount) {
@@ -2349,8 +2324,9 @@ const CargoStore = (function () {
                     agent.documents = matchedReg.documents;
                 }
             }
-            // Preserve currentAdmin if testing both portals in same browser session
-
+            if (typeof document !== 'undefined') {
+                document.cookie = "cargo_agent_code=" + encodeURIComponent(agent.code) + "; path=/; max-age=2592000; SameSite=Lax";
+            }
             saveData(data);
             this.logActivity({
                 actor: agent.companyName || agent.repName || agent.code,

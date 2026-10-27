@@ -40,10 +40,10 @@
                 <button type="button" onclick="toggleAgentMobileNav()" class="md:hidden text-gray-600 hover:text-blue-600 p-1.5 rounded-xl hover:bg-gray-100 transition focus:outline-none" aria-label="Menu">
                     <i class="fa-solid fa-bars text-base"></i>
                 </button>
-                <a href="02-Dashboard.html" class="w-8 h-8 sm:w-9 sm:h-9 rounded-xl bg-gray-100 hover:bg-gray-200 flex items-center justify-center text-gray-600 hover:text-blue-600 transition">
+                <a href="/Dashboard" class="w-8 h-8 sm:w-9 sm:h-9 rounded-xl bg-gray-100 hover:bg-gray-200 flex items-center justify-center text-gray-600 hover:text-blue-600 transition">
                     <i class="fa-solid fa-arrow-left text-xs sm:text-sm"></i>
                 </a>
-                <a href="02-Dashboard.html" class="flex items-center gap-2.5 shrink-0">
+                <a href="/Dashboard" class="flex items-center gap-2.5 shrink-0">
             <img src="assets/images/vietravel-logo-doc.png" alt="Vietravel Airlines" class="h-8 sm:h-9 object-contain" />
             <span class="font-bold text-sm sm:text-base text-slate-900 tracking-tight border-l border-slate-200 pl-2.5">Cargo Bidding</span>
         </a>
@@ -53,7 +53,7 @@
                     <p class="text-xs text-gray-400">Biến động giá thầu & cập nhật hệ thống</p>
                 </div>
             </div>
-            <div class="flex items-center gap-1.5 sm:gap-2">
+            <!-- <div class="flex items-center gap-1.5 sm:gap-2">
                 <button onclick="markAllRead()" id="markAllBtn" class="text-[11px] sm:text-xs font-semibold text-blue-600 hover:text-blue-800 bg-blue-50 hover:bg-blue-100 px-2 sm:px-3 py-1.5 rounded-lg transition flex items-center gap-1">
                     <i class="fa-solid fa-check-double text-[10px]"></i>
                     <span class="hidden sm:inline">Đánh dấu</span> đã đọc
@@ -62,26 +62,26 @@
                     <i class="fa-solid fa-trash text-[10px]"></i>
                     <span class="hidden sm:inline">Xóa</span> đã đọc
                 </button>
-            </div>
+            </div> -->
         </div>
         <!-- Mobile Drawer -->
         <div id="agentMobileNav" class="hidden md:hidden bg-white border-t px-4 py-2.5 space-y-1 text-xs font-medium shadow-lg">
-            <a href="02-Dashboard.html" class="flex items-center gap-2 px-3 py-2 rounded-lg text-gray-700 hover:bg-gray-50 hover:text-blue-600 transition">
+            <a href="/Dashboard" class="flex items-center gap-2 px-3 py-2 rounded-lg text-gray-700 hover:bg-gray-50 hover:text-blue-600 transition">
                 <i class="fa-solid fa-gavel w-4"></i> Sàn đấu giá trực tuyến
             </a>
-            <a href="06-MyBids.html" class="flex items-center gap-2 px-3 py-2 rounded-lg text-gray-700 hover:bg-gray-50 hover:text-blue-600 transition">
+            <a href="/MyBids" class="flex items-center gap-2 px-3 py-2 rounded-lg text-gray-700 hover:bg-gray-50 hover:text-blue-600 transition">
                 <i class="fa-solid fa-clock-rotate-left w-4"></i> Lịch sử đặt thầu
             </a>
-            <a href="07-WonAuction.html" class="flex items-center gap-2 px-3 py-2 rounded-lg text-gray-700 hover:bg-gray-50 hover:text-blue-600 transition">
+            <a href="/WonAuction" class="flex items-center gap-2 px-3 py-2 rounded-lg text-gray-700 hover:bg-gray-50 hover:text-blue-600 transition">
                 <i class="fa-solid fa-trophy w-4"></i> Đơn hàng thắng thầu
             </a>
-            <a href="08-Notifications.html" class="flex items-center gap-2 px-3 py-2 rounded-lg bg-blue-50 text-blue-600 font-semibold transition">
+            <a href="/Notifications" class="flex items-center gap-2 px-3 py-2 rounded-lg bg-blue-50 text-blue-600 font-semibold transition">
                 <i class="fa-solid fa-bell w-4"></i> Trung tâm thông báo
             </a>
-            <a href="09-Profile.html" class="flex items-center gap-2 px-3 py-2 rounded-lg text-gray-700 hover:bg-gray-50 hover:text-blue-600 transition">
+            <a href="/Profile" class="flex items-center gap-2 px-3 py-2 rounded-lg text-gray-700 hover:bg-gray-50 hover:text-blue-600 transition">
                 <i class="fa-solid fa-user-shield w-4"></i> Hồ sơ đại lý & Mã PIN
             </a>
-            <a href="10-Terms.html" class="flex items-center gap-2 px-3 py-2 rounded-lg text-gray-500 hover:bg-gray-50 hover:text-gray-800 transition border-t pt-2 mt-1">
+            <a href="/Terms" class="flex items-center gap-2 px-3 py-2 rounded-lg text-gray-500 hover:bg-gray-50 hover:text-gray-800 transition border-t pt-2 mt-1">
                 <i class="fa-solid fa-file-contract w-4"></i> Quy chế & Điều khoản
             </a>
         </div>
@@ -264,7 +264,10 @@
         renderNotifications();
     }
 
+    let loadedNotifs = [];
+
     function getCurrentlyFilteredNotifs() {
+        if (loadedNotifs && loadedNotifs.length > 0) return loadedNotifs;
         if (typeof CargoStore === 'undefined') return [];
         let notifs = CargoStore.getNotifications ? CargoStore.getNotifications().slice() : [];
         if (currentFilter === 'unread') notifs = notifs.filter(n => !n.read);
@@ -272,27 +275,40 @@
         return notifs;
     }
 
-    function renderNotifications() {
-        if (typeof CargoStore === 'undefined') return;
+    async function renderNotifications() {
+        let notifs = [];
+        try {
+            const res = await fetch(`/api/agent/notifications?filter=${encodeURIComponent(currentFilter)}`, { credentials: 'same-origin' });
+            if (res.ok) {
+                const data = await res.json();
+                if (data.success && Array.isArray(data.notifications)) {
+                    notifs = data.notifications;
+                    loadedNotifs = notifs;
+                    document.getElementById('statTotal').textContent = data.total;
+                    document.getElementById('statUnread').textContent = data.unread;
+                    document.getElementById('statWon').textContent = data.won;
+                    const markAllBtn = document.getElementById('markAllBtn');
+                    if (markAllBtn) markAllBtn.style.display = data.unread === 0 ? 'none' : 'flex';
+                }
+            }
+        } catch (e) {
+            console.warn('Failed to load notifications from API, falling back to local store:', e);
+        }
 
-        let notifs = CargoStore.getNotifications ? CargoStore.getNotifications().slice() : [];
-
-        const total = notifs.length;
-        const unread = notifs.filter(n => !n.read).length;
-        
-        const won = notifs.filter(n => n.type === 'WON').length;
-        document.getElementById('statTotal').textContent = total;
-        document.getElementById('statUnread').textContent = unread;
-        
-        document.getElementById('statWon').textContent = won;
-
-        if (currentFilter === 'unread') notifs = notifs.filter(n => !n.read);
-        else if (currentFilter !== 'all') notifs = notifs.filter(n => n.type === currentFilter);
+        if (notifs.length === 0 && (!loadedNotifs || loadedNotifs.length === 0)) {
+            if (typeof CargoStore !== 'undefined' && CargoStore.getNotifications) {
+                let localAll = CargoStore.getNotifications().slice();
+                document.getElementById('statTotal').textContent = localAll.length;
+                document.getElementById('statUnread').textContent = localAll.filter(n => !n.read).length;
+                document.getElementById('statWon').textContent = localAll.filter(n => n.type === 'WON').length;
+                if (currentFilter === 'unread') notifs = localAll.filter(n => !n.read);
+                else if (currentFilter !== 'all') notifs = localAll.filter(n => n.type === currentFilter);
+                else notifs = localAll;
+                loadedNotifs = notifs;
+            }
+        }
 
         const container = document.getElementById('notifList');
-        const markAllBtn = document.getElementById('markAllBtn');
-        if (markAllBtn) markAllBtn.style.display = unread === 0 ? 'none' : 'flex';
-
         const toolbar = document.getElementById('selectionToolbar');
         if (toolbar) {
             toolbar.style.display = notifs.length === 0 ? 'none' : 'flex';
@@ -302,7 +318,6 @@
             const msgs = {
                 'all': 'Hộp thư thông báo trống',
                 'unread': 'Không có thông báo chưa đọc',
-                
                 'BID_RECEIVED': 'Không có thông báo đặt giá',
                 'WON': 'Bạn chưa trúng thầu nào',
                 'CLOSING_SOON': 'Không có cảnh báo sắp đóng thầu',
@@ -313,7 +328,7 @@
                     <div class="empty-anim text-6xl mb-5">🔔</div>
                     <p class="font-bold text-slate-700 text-lg">${msgs[currentFilter] || 'Trống'}</p>
                     <p class="text-sm text-gray-400 mt-1">Các thông báo mới sẽ xuất hiện tại đây theo thời gian thực</p>
-                    </div>`;
+                </div>`;
             updateSelectionUI();
             return;
         }
@@ -351,7 +366,7 @@
                         
                         <div class="flex items-center gap-3 mt-3 flex-wrap">
                             ${(() => {
-                                const targetUrl = (n.type === 'WON') ? '07-WonAuction.html' : `11-NotificationDetail.html?id=${n.id}`;
+                                const targetUrl = (n.type === 'WON') ? '/WonAuction' : `/NotificationDetail?id=${n.id}`;
                                 return `
                                 <a href="${targetUrl}" onclick="markReadById('${n.id}')" class="inline-flex items-center gap-1 text-xs font-semibold text-blue-600 hover:text-blue-800 hover:underline transition">
                                     <i class="fa-solid fa-arrow-right text-[9px]"></i> Xem chi tiết
@@ -375,31 +390,15 @@
                     </div>
 
                     ${(() => {
-                        if (n.type === 'OUTBID' && n.link) {
-                            const allAuctions = CargoStore.getAuctions ? CargoStore.getAuctions() : [];
-                            const match = (n.link || '').match(/id=([^&]+)/);
-                            const aId = match ? match[1] : null;
-                            let isClosed = false;
-                            if (aId) {
-                                const foundA = allAuctions.find(a => String(a.id) === String(aId));
-                                if (foundA) {
-                                    const tm = (foundA.endTime && CargoStore.getTimeRemaining) ? CargoStore.getTimeRemaining(foundA.endTime) : null;
-                                    isClosed = foundA.status === 'CLOSED' || foundA.status === 'ENDED' || foundA.status === 'EXPIRED' || (tm && tm.isEnded);
-                                }
-                            }
-                            if (isClosed) {
-                                return `
-                                <a href="${n.link}" onclick="markReadById('${n.id}')" class="flex-shrink-0 bg-slate-100 hover:bg-slate-200 text-slate-500 text-xs font-medium px-3 py-2 rounded-xl transition shadow-xs flex items-center gap-1.5 whitespace-nowrap" title="Phiên đấu giá đã đóng">
-                                    <i class="fa-solid fa-lock text-[10px]"></i> Đã đóng
-                                </a>`;
-                            }
+                        const linkUrl = n.link ? n.link.replace('04-Detail.html', '/Detail').replace('03-AuctionDetail.html', '/Detail') : '';
+                        if (n.type === 'OUTBID' && linkUrl) {
                             return `
-                            <a href="${n.link}" onclick="markReadById('${n.id}')" class="flex-shrink-0 bg-amber-500 hover:bg-amber-600 text-white text-xs font-bold px-3 py-2 rounded-xl transition shadow flex items-center gap-1.5 whitespace-nowrap">
+                            <a href="${linkUrl}" onclick="markReadById('${n.id}')" class="flex-shrink-0 bg-amber-500 hover:bg-amber-600 text-white text-xs font-bold px-3 py-2 rounded-xl transition shadow flex items-center gap-1.5 whitespace-nowrap">
                                 <i class="fa-solid fa-gavel text-[10px]"></i> Đặt lại ngay
                             </a>`;
                         } else if (n.type === 'WON') {
                             return `
-                            <a href="07-WonAuction.html" onclick="markReadById('${n.id}')" class="flex-shrink-0 bg-emerald-500 hover:bg-emerald-600 text-white text-xs font-bold px-3 py-2 rounded-xl transition shadow flex items-center gap-1.5 whitespace-nowrap">
+                            <a href="/WonAuction" onclick="markReadById('${n.id}')" class="flex-shrink-0 bg-emerald-500 hover:bg-emerald-600 text-white text-xs font-bold px-3 py-2 rounded-xl transition shadow flex items-center gap-1.5 whitespace-nowrap">
                                 <i class="fa-solid fa-circle-check text-[10px]"></i> Xem đơn
                             </a>`;
                         }
@@ -529,13 +528,21 @@
         document.getElementById('deleteConfirmModal').classList.add('hidden');
     }
 
-    function executeDelete() {
+    async function executeDelete() {
         if (!pendingDeleteIds || pendingDeleteIds.length === 0) {
             closeDeleteModal();
             return;
         }
 
         const count = pendingDeleteIds.length;
+        try {
+            await fetch('/api/notifications/delete', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ ids: pendingDeleteIds })
+            });
+        } catch (e) {}
+
         if (typeof CargoStore !== 'undefined' && CargoStore.deleteNotifications) {
             CargoStore.deleteNotifications(pendingDeleteIds);
         }
@@ -546,10 +553,18 @@
         renderNotifications();
     }
 
-    function markSelectedAsRead() {
+    async function markSelectedAsRead() {
         const visibleNotifs = getCurrentlyFilteredNotifs();
         const idsToMark = visibleNotifs.map(n => String(n.id)).filter(id => selectedNotifIds.has(id));
         if (idsToMark.length === 0) return;
+
+        try {
+            await fetch('/api/notifications/read', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ ids: idsToMark })
+            });
+        } catch (e) {}
 
         if (typeof CargoStore !== 'undefined' && CargoStore.markNotificationRead) {
             idsToMark.forEach(id => CargoStore.markNotificationRead(id));
@@ -658,14 +673,31 @@
         }
     }
 
-    function markReadById(id) {
+    async function markReadById(id) {
+        try {
+            await fetch('/api/notifications/read', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ ids: [String(id)] })
+            });
+        } catch (e) {}
         if (typeof CargoStore !== 'undefined' && CargoStore.markNotificationRead) {
             CargoStore.markNotificationRead(id);
         }
         renderNotifications();
     }
 
-    function markAllRead() {
+    async function markAllRead() {
+        const unreadIds = (loadedNotifs || []).filter(n => !n.read).map(n => String(n.id));
+        if (unreadIds.length > 0) {
+            try {
+                await fetch('/api/notifications/read', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ ids: unreadIds })
+                });
+            } catch (e) {}
+        }
         if (typeof CargoStore !== 'undefined' && CargoStore.markAllNotificationsRead) {
             CargoStore.markAllNotificationsRead();
         }
@@ -673,18 +705,23 @@
         renderNotifications();
     }
 
-    function clearAllRead() {
-        const notifs = CargoStore.getNotifications ? CargoStore.getNotifications() : [];
-        const readNotifs = notifs.filter(n => n.read);
-        if (readNotifs.length === 0) {
+    async function clearAllRead() {
+        const readIds = (loadedNotifs || []).filter(n => n.read).map(n => String(n.id));
+        if (readIds.length === 0) {
             showToast('Không có thông báo đã đọc nào để xóa');
             return;
         }
-        const idsToDelete = readNotifs.map(n => String(n.id));
+        try {
+            await fetch('/api/notifications/delete', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ ids: readIds })
+            });
+        } catch (e) {}
         if (typeof CargoStore !== 'undefined' && CargoStore.deleteNotifications) {
-            CargoStore.deleteNotifications(idsToDelete);
+            CargoStore.deleteNotifications(readIds);
         }
-        showToast(`Đã xóa ${idsToDelete.length} thông báo đã đọc`);
+        showToast(`Đã xóa ${readIds.length} thông báo đã đọc`);
         renderNotifications();
     }
 
@@ -704,13 +741,7 @@
     document.addEventListener('DOMContentLoaded', function() {
         renderNotifications();
     });
-
-    window.addEventListener('storage', function(e) {
-        if (e.key === 'CARGO_BIDDING_DATA_V3') {
-            renderNotifications();
-        }
-    });
-    window.addEventListener('cargostore_updated', renderNotifications);
+    // NOTE: Removed window.addEventListener('cargostore_updated', renderNotifications) to completely eliminate DOM flicker!
     </script>
 </body>
 </html>

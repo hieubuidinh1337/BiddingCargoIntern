@@ -2896,11 +2896,7 @@
             }
         });
 
-        // Cross-tab sync
-        window.addEventListener('storage', function (e) {
-            if (e.key === 'CARGO_BIDDING_DATA_V3') renderAgentsList();
-        });
-        window.addEventListener('cargostore_updated', renderAgentsList);
+        // NOTE: cargostore_updated listener removed to eliminate agents table flicker
     </script>
 </body>
 

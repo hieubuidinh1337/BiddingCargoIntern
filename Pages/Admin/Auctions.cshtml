@@ -2639,10 +2639,7 @@
             }, 100);
         }
 
-        window.addEventListener('storage', function (e) {
-            if (e.key === 'CARGO_BIDDING_DATA_V3') onAdminListStoreUpdate();
-        });
-        window.addEventListener('cargostore_updated', onAdminListStoreUpdate);
+        // NOTE: cargostore_updated listener removed to eliminate table jumping and scroll reset
     </script>
 
     <!-- Modal: Admin xác nhận hoàn tiền cho đại lý -->

@@ -2138,10 +2138,7 @@
             adminDetailUpdateTimeout = setTimeout(loadAdminDetail, 100);
         }
 
-        window.addEventListener('storage', function (e) {
-            if (e.key === 'CARGO_BIDDING_DATA_V3') onAdminDetailStoreUpdate();
-        });
-        window.addEventListener('cargostore_updated', onAdminDetailStoreUpdate);
+        // NOTE: cargostore_updated listener removed to eliminate DOM jumping
     </script>
 </body>
 

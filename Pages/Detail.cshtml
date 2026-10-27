@@ -31,36 +31,36 @@
                 <button type="button" onclick="toggleAgentMobileNav()" class="md:hidden text-gray-600 hover:text-blue-600 p-1.5 rounded-xl hover:bg-gray-100 transition focus:outline-none" aria-label="Menu">
                     <i class="fa-solid fa-bars text-base"></i>
                 </button>
-                <a href="02-Dashboard.html" class="flex items-center gap-2.5 shrink-0">
+                <a href="/Dashboard" class="flex items-center gap-2.5 shrink-0">
             <img src="assets/images/vietravel-logo-doc.png" alt="Vietravel Airlines" class="h-8 sm:h-9 object-contain" />
             <span class="font-bold text-sm sm:text-base text-slate-900 tracking-tight border-l border-slate-200 pl-2.5">Cargo Bidding</span>
         </a>
                 <nav class="hidden md:flex items-center gap-1 text-sm font-medium">
-                    <a href="02-Dashboard.html" class="px-3 py-1.5 rounded-lg bg-blue-50 text-blue-600 font-semibold flex items-center gap-1.5">
+                    <a href="/Dashboard" class="px-3 py-1.5 rounded-lg bg-blue-50 text-blue-600 font-semibold flex items-center gap-1.5">
                         <i class="fa-solid fa-gavel text-xs"></i> Sàn đấu giá trực tuyến
                     </a>
-                    <a href="06-MyBids.html" class="px-3 py-1.5 rounded-lg text-gray-600 hover:text-blue-600 hover:bg-gray-50 transition flex items-center gap-1.5">
+                    <a href="/MyBids" class="px-3 py-1.5 rounded-lg text-gray-600 hover:text-blue-600 hover:bg-gray-50 transition flex items-center gap-1.5">
                         <i class="fa-solid fa-clock-rotate-left text-xs"></i> Lịch sử thầu
                     </a>
-                    <a href="07-WonAuction.html" class="px-3 py-1.5 rounded-lg text-gray-600 hover:text-blue-600 hover:bg-gray-50 transition flex items-center gap-1.5">
+                    <a href="/WonAuction" class="px-3 py-1.5 rounded-lg text-gray-600 hover:text-blue-600 hover:bg-gray-50 transition flex items-center gap-1.5">
                         <i class="fa-solid fa-trophy text-xs"></i> Thắng thầu
                     </a>
                 </nav>
             </div>
             <div class="flex items-center gap-1.5 sm:gap-3">
-                <a href="08-Notifications.html" class="relative p-1.5 sm:p-2 text-gray-500 hover:text-blue-600 rounded-xl hover:bg-gray-100 transition" title="Thông báo">
+                <a href="/Notifications" class="relative p-1.5 sm:p-2 text-gray-500 hover:text-blue-600 rounded-xl hover:bg-gray-100 transition" title="Thông báo">
                     <i class="fa-solid fa-bell text-base sm:text-lg"></i>
                     <span id="headerNotifDot" class="absolute top-1 right-1 sm:top-1.5 sm:right-1.5 w-2.5 h-2.5 bg-red-500 rounded-full border-2 border-white animate-pulse" style="display:none"></span>
                 </a>
                 <div class="h-6 w-px bg-gray-200 hidden sm:block"></div>
-                <a href="09-Profile.html" class="flex items-center gap-2 hover:bg-gray-50 p-1 sm:p-1.5 rounded-xl transition">
+                <a href="/Profile" class="flex items-center gap-2 hover:bg-gray-50 p-1 sm:p-1.5 rounded-xl transition">
                     <div id="hdrAvatar" class="w-7 h-7 sm:w-8 sm:h-8 rounded-lg bg-blue-100 text-blue-700 flex items-center justify-center font-bold text-xs">AG</div>
                     <div class="hidden sm:block text-left">
                         <p id="hdrCompany" class="text-xs font-bold text-slate-800 leading-tight truncate max-w-[120px]">ABC Logistics</p>
                         <p class="text-[11px] text-gray-500 leading-none">Mã: <span id="hdrCode" class="text-blue-600 font-semibold font-mono"></span></p>
                     </div>
                 </a>
-                <a href="01-Login.html" onclick="if(window.CargoStore) CargoStore.logoutAgent()" title="Đăng xuất" class="text-gray-400 hover:text-red-600 p-1.5 sm:p-2 transition">
+                <a href="/Login" onclick="if(window.CargoStore) CargoStore.logoutAgent()" title="Đăng xuất" class="text-gray-400 hover:text-red-600 p-1.5 sm:p-2 transition">
                     <i class="fa-solid fa-right-from-bracket text-sm sm:text-base"></i>
                 </a>
             </div>
@@ -68,22 +68,22 @@
 
         <!-- Mobile Navigation Menu Dropdown -->
         <div id="agentMobileNav" class="hidden md:hidden bg-white border-t px-4 py-2.5 space-y-1 text-xs font-medium shadow-lg">
-            <a href="02-Dashboard.html" class="flex items-center gap-2 px-3 py-2 rounded-lg bg-blue-50 text-blue-600 font-semibold">
+            <a href="/Dashboard" class="flex items-center gap-2 px-3 py-2 rounded-lg bg-blue-50 text-blue-600 font-semibold">
                 <i class="fa-solid fa-gavel w-4"></i> Sàn đấu giá trực tuyến
             </a>
-            <a href="06-MyBids.html" class="flex items-center gap-2 px-3 py-2 rounded-lg text-gray-700 hover:bg-gray-50 hover:text-blue-600 transition">
+            <a href="/MyBids" class="flex items-center gap-2 px-3 py-2 rounded-lg text-gray-700 hover:bg-gray-50 hover:text-blue-600 transition">
                 <i class="fa-solid fa-clock-rotate-left w-4"></i> Lịch sử đặt thầu
             </a>
-            <a href="07-WonAuction.html" class="flex items-center gap-2 px-3 py-2 rounded-lg text-gray-700 hover:bg-gray-50 hover:text-blue-600 transition">
+            <a href="/WonAuction" class="flex items-center gap-2 px-3 py-2 rounded-lg text-gray-700 hover:bg-gray-50 hover:text-blue-600 transition">
                 <i class="fa-solid fa-trophy w-4"></i> Đơn hàng thắng thầu
             </a>
-            <a href="08-Notifications.html" class="flex items-center gap-2 px-3 py-2 rounded-lg text-gray-700 hover:bg-gray-50 hover:text-blue-600 transition">
+            <a href="/Notifications" class="flex items-center gap-2 px-3 py-2 rounded-lg text-gray-700 hover:bg-gray-50 hover:text-blue-600 transition">
                 <i class="fa-solid fa-bell w-4"></i> Trung tâm thông báo
             </a>
-            <a href="09-Profile.html" class="flex items-center gap-2 px-3 py-2 rounded-lg text-gray-700 hover:bg-gray-50 hover:text-blue-600 transition">
+            <a href="/Profile" class="flex items-center gap-2 px-3 py-2 rounded-lg text-gray-700 hover:bg-gray-50 hover:text-blue-600 transition">
                 <i class="fa-solid fa-user-shield w-4"></i> Hồ sơ đại lý & Mã PIN
             </a>
-            <a href="10-Terms.html" class="flex items-center gap-2 px-3 py-2 rounded-lg text-gray-500 hover:bg-gray-50 hover:text-gray-800 transition border-t pt-2 mt-1">
+            <a href="/Terms" class="flex items-center gap-2 px-3 py-2 rounded-lg text-gray-500 hover:bg-gray-50 hover:text-gray-800 transition border-t pt-2 mt-1">
                 <i class="fa-solid fa-file-contract w-4"></i> Quy chế & Điều khoản
             </a>
         </div>
@@ -774,21 +774,42 @@
             if (modal) modal.classList.add('hidden');
         }
 
-        function executeBidPlacement() {
+        async function executeBidPlacement() {
             if (!pendingBidData || !currentAuction) return;
             const { price, isAnon } = pendingBidData;
             closeConfirmBidModal();
 
             const alertBox = document.getElementById('bidAlertBox');
-            const res = CargoStore.placeBid(currentAuction.id, price, isAnon);
-            if (!res.success) {
-                alertBox.className = 'mt-3 p-3 rounded-xl text-xs bg-red-50 text-red-700 border border-red-200 block';
-                alertBox.textContent = res.message;
-            } else {
-                alertBox.className = 'mt-3 p-3 rounded-xl text-xs bg-green-50 text-green-700 border border-green-200 block';
-                alertBox.textContent = `✅ Đặt giá ${CargoStore.formatCurrency(price)}/Kg thành công! Đã ghi nhận mức giá vào hệ thống.`;
-                loadAuctionDetail();
+            const myUser = CargoStore.getCurrentUser ? CargoStore.getCurrentUser() : null;
+            const myCode = myUser ? (myUser.agentCode || myUser.code) : '';
+
+            try {
+                const res = await fetch('/api/bids/place', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        auctionId: String(currentAuction.id),
+                        agentCode: myCode,
+                        priceKg: price,
+                        isAnonymous: isAnon
+                    })
+                });
+                const data = await res.json();
+                if (!data.success) {
+                    alertBox.className = 'mt-3 p-3 rounded-xl text-xs bg-red-50 text-red-700 border border-red-200 block';
+                    alertBox.textContent = data.error || 'Đặt thầu thất bại';
+                    return;
+                }
+            } catch (err) {
+                console.warn('API call failed, falling back to local store:', err);
             }
+
+            if (typeof CargoStore !== 'undefined' && CargoStore.placeBid) {
+                CargoStore.placeBid(currentAuction.id, price, isAnon);
+            }
+            alertBox.className = 'mt-3 p-3 rounded-xl text-xs bg-green-50 text-green-700 border border-green-200 block';
+            alertBox.textContent = `✅ Đặt giá ${CargoStore.formatCurrency(price)}/Kg thành công! Đã ghi nhận mức giá vào hệ thống.`;
+            loadAuctionDetail();
         }
 
         // Form Submit
@@ -867,24 +888,9 @@
                 if (typeof document !== 'undefined' && document.hidden) return;
                 updateClock();
             }, 1000);
-            // Auto-refresh auction data every 3 seconds for realtime sync
-            setInterval(function() {
-                if (typeof document !== 'undefined' && document.hidden) return;
-                loadAuctionDetail();
-            }, 3000);
+            // In-place clock updates every 1s.
+            // Removed 3-second full reload and cargostore_updated listener to eliminate screen flicker.
         });
-
-        // Cross-browser & Cross-tab sync: re-render when store updates
-        let detailUpdateTimeout = null;
-        function onDetailStoreUpdate() {
-            if (detailUpdateTimeout) clearTimeout(detailUpdateTimeout);
-            detailUpdateTimeout = setTimeout(loadAuctionDetail, 100);
-        }
-
-        window.addEventListener('storage', function(e) {
-            if (e.key === 'CARGO_BIDDING_DATA_V3') onDetailStoreUpdate();
-        });
-        window.addEventListener('cargostore_updated', onDetailStoreUpdate);
     </script>
     <!-- Modal: Xác nhận Đặt Giá Thầu -->
     <div id="confirmBidModal" class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-50 flex items-center justify-center p-3 sm:p-4 hidden">
