@@ -11,7 +11,8 @@ AppDbContext.BoolAsInt = DbInitializer.DetectBoolAsInt(builder.Configuration.Get
 builder.Services.AddDbContext<AppDbContext>(o =>
     o.UseSqlServer(builder.Configuration.GetConnectionString("DefaultConnection"), sql =>
     {
-        sql.CommandTimeout(30);
+        sql.CommandTimeout(60);
+        sql.EnableRetryOnFailure(maxRetryCount: 5, maxRetryDelay: TimeSpan.FromSeconds(5), errorNumbersToAdd: null);
     }));
 
 builder.Services.AddScoped<SharedDataService>();

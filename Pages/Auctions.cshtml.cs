@@ -80,15 +80,13 @@ public class AuctionsModel : PageModel
         int page,
         int pageSize)
     {
-        try { await _shared.MaintenanceAsync(); } catch { }
-
         agentCode = (agentCode ?? Request.Cookies["cargo_agent_code"])?.Trim().ToUpperInvariant();
         Agent? agent = null;
         if (!string.IsNullOrEmpty(agentCode))
-            agent = await _db.Agents.FirstOrDefaultAsync(a => a.Code.ToUpper() == agentCode);
+            agent = await _db.Agents.AsNoTracking().FirstOrDefaultAsync(a => a.Code.ToUpper() == agentCode);
         if (agent == null)
         {
-            agent = await _db.Agents.OrderBy(a => a.Code).FirstOrDefaultAsync();
+            agent = await _db.Agents.AsNoTracking().OrderBy(a => a.Code).FirstOrDefaultAsync();
             if (agent != null) agentCode = agent.Code;
         }
 
@@ -101,7 +99,7 @@ public class AuctionsModel : PageModel
                     Path = "/", MaxAge = TimeSpan.FromDays(30), SameSite = SameSiteMode.Lax
                 });
             }
-            var unreadNotifCount = await _db.Notifications
+            var unreadNotifCount = await _db.Notifications.AsNoTracking()
                 .Where(n => !n.Read && (n.TargetAgentCode == agent.Code || (n.TargetAgentCode == null && (n.TargetRole == null || n.TargetRole == "AGENT" || n.TargetRole == "agent"))))
                 .CountAsync();
             CurrentAgent = new DashboardModel.AgentDto

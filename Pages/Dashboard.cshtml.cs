@@ -71,25 +71,16 @@ public class DashboardModel : PageModel
 
     private async Task LoadDashboardDataAsync(string? agentCode, string? fromDate, string? toDate)
     {
-        try
-        {
-            await _shared.MaintenanceAsync();
-        }
-        catch (Exception ex)
-        {
-            _log.LogWarning(ex, "MaintenanceAsync in DashboardModel encountered an issue");
-        }
-
         // 1. Resolve agent code (Query -> Cookie -> DB Default)
         agentCode = (agentCode ?? Request.Cookies["cargo_agent_code"])?.Trim().ToUpperInvariant();
         Agent? agent = null;
         if (!string.IsNullOrEmpty(agentCode))
         {
-            agent = await _db.Agents.FirstOrDefaultAsync(a => a.Code.ToUpper() == agentCode);
+            agent = await _db.Agents.AsNoTracking().FirstOrDefaultAsync(a => a.Code.ToUpper() == agentCode);
         }
         if (agent == null)
         {
-            agent = await _db.Agents.OrderBy(a => a.Code).FirstOrDefaultAsync();
+            agent = await _db.Agents.AsNoTracking().OrderBy(a => a.Code).FirstOrDefaultAsync();
             if (agent != null)
             {
                 agentCode = agent.Code;
@@ -109,7 +100,7 @@ public class DashboardModel : PageModel
                 });
             }
 
-            var unreadCount = await _db.Notifications
+            var unreadCount = await _db.Notifications.AsNoTracking()
                 .Where(n => !n.Read &&
                     (n.TargetAgentCode == agent.Code ||
                      (n.TargetAgentCode == null && (n.TargetRole == null || n.TargetRole == "AGENT" || n.TargetRole == "agent"))))
@@ -231,7 +222,7 @@ public class DashboardModel : PageModel
         var wonCount = 0;
         if (!string.IsNullOrEmpty(agentCode))
         {
-            wonCount = await _db.WonAuctions
+            wonCount = await _db.WonAuctions.AsNoTracking()
                 .Where(w => w.AgentCode != null && w.AgentCode.ToUpper() == agentCode)
                 .CountAsync();
         }
