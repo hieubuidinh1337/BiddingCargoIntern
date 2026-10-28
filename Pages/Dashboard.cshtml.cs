@@ -128,8 +128,17 @@ public class DashboardModel : PageModel
 
         var openList = allAuctions.Where(a =>
         {
-            if (a.Status != "OPEN") return false;
-            var endMs = Util.ParseIso(a.EndTime)?.ToUnixTimeMilliseconds();
+            var isEffectiveOpen = a.Status == "OPEN";
+            if (!isEffectiveOpen && a.Status == "UPCOMING")
+            {
+                var openMs = Util.ParseIso(a.OpenDateIso)?.ToUnixTimeMilliseconds()
+                    ?? (Util.ParseFlightDate(a.OpenDate) != null ? new DateTimeOffset(Util.ParseFlightDate(a.OpenDate)!.Value).ToUnixTimeMilliseconds() : (long?)null);
+                if (openMs == null || openMs.Value <= nowMs) isEffectiveOpen = true;
+            }
+            if (!isEffectiveOpen) return false;
+
+            var endMs = Util.ParseIso(a.EndTime)?.ToUnixTimeMilliseconds()
+                ?? (Util.ParseFlightDate(a.CloseDate) != null ? new DateTimeOffset(Util.ParseFlightDate(a.CloseDate)!.Value).ToUnixTimeMilliseconds() : (long?)null);
             if (endMs.HasValue && endMs.Value <= nowMs) return false;
 
             if (!string.IsNullOrEmpty(a.AllowedAgentsJson) && !string.IsNullOrEmpty(agentCode))

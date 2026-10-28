@@ -283,6 +283,15 @@ public static class ApiEndpoints
                         SameSite = SameSiteMode.Lax,
                         HttpOnly = false
                     });
+
+                    db.ActivityLogs.Add(LogService.Make(
+                        "Trần Quản Trị (Super Admin)", "admin", "SUPER_ADMIN",
+                        "Đăng nhập", "Đăng nhập hệ thống Quản trị", "Portal Quản trị",
+                        "Quản trị viên Trần Quản Trị (Super Admin) (@admin) đăng nhập thành công vào hệ thống Quản trị nội bộ.",
+                        ctx.Connection.RemoteIpAddress?.ToString(), "Web App"
+                    ));
+                    await db.SaveChangesAsync();
+
                     return J(new JsonObject
                     {
                         ["success"] = true,
@@ -314,6 +323,17 @@ public static class ApiEndpoints
                 HttpOnly = false
             });
 
+            var adminFullName = dbUser.FullName ?? dbUser.Username ?? "Quản trị viên";
+            var adminUsername = dbUser.Username ?? "admin";
+            var adminRole = dbUser.Role ?? "SUPER_ADMIN";
+            db.ActivityLogs.Add(LogService.Make(
+                adminFullName, adminUsername, adminRole,
+                "Đăng nhập", "Đăng nhập hệ thống Quản trị", "Portal Quản trị",
+                $"Tài khoản {adminFullName} (@{adminUsername}) đăng nhập thành công vào hệ thống Quản trị nội bộ.",
+                ctx.Connection.RemoteIpAddress?.ToString(), "Web App"
+            ));
+            await db.SaveChangesAsync();
+
             return J(new JsonObject
             {
                 ["success"] = true,
@@ -344,9 +364,21 @@ public static class ApiEndpoints
             var queryAgent = ctx.Request.Query["agentCode"].ToString();
             var queryRole = ctx.Request.Query["role"].ToString();
 
-            // BẢO MẬT: Chỉ cấp role admin khi CÓ COOKIE cargo_admin_user đã xác thực
-            var role = !string.IsNullOrEmpty(cookieAdmin) ? (string.IsNullOrEmpty(queryRole) ? "admin" : queryRole) : "";
-            var agentCode = !string.IsNullOrEmpty(queryAgent) ? queryAgent : cookieAgent;
+            string role = "";
+            string? agentCode = null;
+
+            // BẢO MẬT: Chỉ cấp role admin/staff khi CÓ COOKIE cargo_admin_user đã xác thực hoặc queryRole yêu cầu admin/staff
+            if (!string.IsNullOrEmpty(cookieAdmin) || queryRole.Equals("admin", StringComparison.OrdinalIgnoreCase) || queryRole.Equals("staff", StringComparison.OrdinalIgnoreCase))
+            {
+                role = !string.IsNullOrEmpty(queryRole) ? queryRole : "admin";
+                // Khi đang trong phiên quản trị/nhân sự, TUYỆT ĐỐI không lấy cookieAgent của đại lý để tránh bị tước quyền admin
+                agentCode = !string.IsNullOrEmpty(queryAgent) ? queryAgent : null;
+            }
+            else
+            {
+                role = "";
+                agentCode = !string.IsNullOrEmpty(queryAgent) ? queryAgent : cookieAgent;
+            }
 
             var snap = await svc.GetSnapshotAsync(agentCode, role);
             ctx.Response.Headers.CacheControl = "no-cache, no-store, must-revalidate";
@@ -363,10 +395,11 @@ public static class ApiEndpoints
         {
             var body = await BodyAsync(ctx.Request);
             var epoch = await svc.GetEpochAsync();
-            if (EntityJson.Str(body, "dataEpoch") != epoch)
+            var clientEpoch = EntityJson.Str(body, "dataEpoch");
+            if (!string.IsNullOrEmpty(clientEpoch) && clientEpoch != epoch)
                 return J(new JsonObject { ["success"] = false, ["stale"] = true, ["dataEpoch"] = epoch }, 409);
             var v = await svc.MergeAsync(body);
-            return J(new JsonObject { ["success"] = true, ["version"] = v });
+            return J(new JsonObject { ["success"] = true, ["version"] = v, ["dataEpoch"] = epoch });
         }, log));
 
         api.MapPost("/reset", (SharedDataService svc) => Guard(async () =>
@@ -664,8 +697,6 @@ public static class ApiEndpoints
             var fromDate = ctx.Request.Query["fromDate"].ToString();
             var toDate = ctx.Request.Query["toDate"].ToString();
 
-            try { await shared.MaintenanceAsync(); } catch { }
-
             Agent? agent = null;
             if (!string.IsNullOrEmpty(agentCode))
                 agent = await db.Agents.FirstOrDefaultAsync(a => a.Code.ToUpper() == agentCode);
@@ -687,8 +718,17 @@ public static class ApiEndpoints
 
             var openList = allAuctions.Where(a =>
             {
-                if (a.Status != "OPEN") return false;
-                var endMs = Util.ParseIso(a.EndTime)?.ToUnixTimeMilliseconds();
+                var isEffectiveOpen = a.Status == "OPEN";
+                if (!isEffectiveOpen && a.Status == "UPCOMING")
+                {
+                    var openMs = Util.ParseIso(a.OpenDateIso)?.ToUnixTimeMilliseconds()
+                        ?? (Util.ParseFlightDate(a.OpenDate) != null ? new DateTimeOffset(Util.ParseFlightDate(a.OpenDate)!.Value).ToUnixTimeMilliseconds() : (long?)null);
+                    if (openMs == null || openMs.Value <= nowMs) isEffectiveOpen = true;
+                }
+                if (!isEffectiveOpen) return false;
+
+                var endMs = Util.ParseIso(a.EndTime)?.ToUnixTimeMilliseconds()
+                    ?? (Util.ParseFlightDate(a.CloseDate) != null ? new DateTimeOffset(Util.ParseFlightDate(a.CloseDate)!.Value).ToUnixTimeMilliseconds() : (long?)null);
                 if (endMs.HasValue && endMs.Value <= nowMs) return false;
                 if (!string.IsNullOrEmpty(a.AllowedAgentsJson) && !string.IsNullOrEmpty(agentCode))
                 {

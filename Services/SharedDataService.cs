@@ -182,8 +182,8 @@ public class SharedDataService
         if (!string.IsNullOrWhiteSpace(rawAgentCode) && rawAgentCode != "null" && rawAgentCode != "undefined")
             agentCode = rawAgentCode.Trim().ToUpperInvariant();
         var role = (rawRole ?? "").ToLowerInvariant();
-        var isAdmin = role == "admin" && agentCode == null;
-        var isStaff = role == "staff" && agentCode == null;
+        var isAdmin = role == "admin" || role == "super_admin";
+        var isStaff = role == "staff";
 
         var nowMs = Util.NowMs();
         var snap = _cachedDbSnapshot;
@@ -418,9 +418,9 @@ public class SharedDataService
             return n.TargetRole == "AGENT" || n.Type == "SYSTEM" || n.Type == "ANNOUNCEMENT";
         });
 
-        // BẢO MẬT: Lọc nhật ký hoạt động (chỉ admin hoặc chính đại lý đó)
+        // BẢO MẬT: Lọc nhật ký hoạt động (admin và nhân sự nội bộ xem toàn bộ; đại lý chỉ xem nhật ký của chính mình)
         var filteredLogs = logList.Where(l => {
-            if (isAdmin) return true;
+            if (isAdmin || isStaff) return true;
             if (agentCode == null) return false;
             return string.Equals(l.Actor?.Trim(), agentCode, StringComparison.OrdinalIgnoreCase) ||
                    string.Equals(l.Username?.Trim(), agentCode, StringComparison.OrdinalIgnoreCase);
@@ -434,9 +434,9 @@ public class SharedDataService
             ["bids"] = ToArray(bids),
             ["wonAuctions"] = ToArray(wons),
             ["notifications"] = ToArray(filteredNotifs.Select(n => EntityJson.ToNode(n))),
-            ["registrations"] = isAdmin ? ToArray(regList.Select(r => EntityJson.ToNode(r))) : new JsonArray(),
+            ["registrations"] = (isAdmin || isStaff) ? ToArray(regList.Select(r => EntityJson.ToNode(r))) : new JsonArray(),
             ["agentsList"] = agentsList,
-            ["usersList"] = isAdmin ? ToArray(userList.Select(u => {
+            ["usersList"] = (isAdmin || isStaff) ? ToArray(userList.Select(u => {
                 var un = EntityJson.ToNode(u);
                 un.Remove("password");
                 return un;
@@ -450,7 +450,7 @@ public class SharedDataService
             ["readNotificationIds"] = ParseSetting("readNotificationIds") ?? new JsonArray(),
             ["deletedNotificationIds"] = ParseSetting("deletedNotificationIds") ?? new JsonArray(),
             ["adminsList"] = adminsArr,
-            ["rolesList"] = isAdmin ? (ParseSetting("rolesList") ?? new JsonArray()) : new JsonArray(),
+            ["rolesList"] = (isAdmin || isStaff) ? (ParseSetting("rolesList") ?? new JsonArray()) : new JsonArray(),
         };
     }
 

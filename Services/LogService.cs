@@ -106,8 +106,7 @@ public class LogService
                 if (rTarget != "N/A" && lTarget != "N/A" && !string.Equals(rTarget, lTarget, StringComparison.OrdinalIgnoreCase)) return false;
 
                 var rUser = (string.IsNullOrEmpty(r.Username) ? r.Actor : r.Username)?.Trim().ToUpperInvariant() ?? "";
-                var isAdminUser = (rUser == "ADMIN" || rUser.Contains("ADMIN")) && (lUser == "ADMIN" || lUser.Contains("ADMIN"));
-                if (!isAdminUser && !string.Equals(rUser, lUser, StringComparison.OrdinalIgnoreCase)) return false;
+                if (!string.Equals(rUser, lUser, StringComparison.OrdinalIgnoreCase)) return false;
 
                 return true;
             });
@@ -134,7 +133,9 @@ public class LogService
         {
             var r = role.ToUpperInvariant();
             if (r == "ADMIN")
-                res = res.Where(l => l.Role != null && l.Role.ToUpper().Contains("ADMIN"));
+                res = res.Where(l => l.Role != null && (l.Role.ToUpper().Contains("ADMIN") || l.Role.ToUpper() == "SUPER_ADMIN" || l.Role.ToUpper() == "ITD_ADMIN"));
+            else if (r == "STAFF")
+                res = res.Where(l => l.Role != null && (l.Role.ToUpper() == "STAFF" || l.Role.ToUpper().Contains("STAFF") || l.Role.ToUpper().Contains("NHÂN VIÊN")));
             else
                 res = res.Where(l => string.Equals(l.Role, role, StringComparison.OrdinalIgnoreCase));
         }

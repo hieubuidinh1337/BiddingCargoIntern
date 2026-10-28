@@ -1783,7 +1783,9 @@
             if (res.success) {
                 // Ensure immediate push to SQL Server database before redirect
                 try {
-                    if (window.CargoStore && CargoStore.saveDataImmediate) {
+                    if (res.pushPromise) {
+                        await res.pushPromise;
+                    } else if (window.CargoStore && CargoStore.saveDataImmediate) {
                         await CargoStore.saveDataImmediate();
                     }
                 } catch (err) {

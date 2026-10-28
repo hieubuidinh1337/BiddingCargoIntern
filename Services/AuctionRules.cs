@@ -16,8 +16,30 @@ public static class AuctionRules
         {
             if (a.Status is "CANCELLED" or "DELETED") continue;
 
+            // 1) Nếu phiên đang UPCOMING mà thời gian mở phiên đã tới hoặc trong quá khứ -> tự động mở OPEN
+            if (a.Status == "UPCOMING")
+            {
+                long? openMs = Util.ParseIso(a.OpenDateIso)?.ToUnixTimeMilliseconds();
+                if (openMs == null && !string.IsNullOrEmpty(a.OpenDate))
+                {
+                    var fd = Util.ParseFlightDate(a.OpenDate);
+                    if (fd != null) openMs = new DateTimeOffset(fd.Value).ToUnixTimeMilliseconds();
+                }
+                if (!openMs.HasValue || openMs.Value <= now)
+                {
+                    a.Status = "OPEN";
+                    changed = true;
+                }
+            }
+
+            // 2) Nếu phiên đã hết hạn đóng thầu -> chuyển sang CLOSED
             var end = Util.ParseIso(a.EndTime);
-            if (a.Status == "OPEN" && end != null && end.Value.ToUnixTimeMilliseconds() <= now)
+            if (end == null && !string.IsNullOrEmpty(a.CloseDate))
+            {
+                var cfd = Util.ParseFlightDate(a.CloseDate);
+                if (cfd != null) end = new DateTimeOffset(cfd.Value);
+            }
+            if ((a.Status == "OPEN" || a.Status == "UPCOMING") && end != null && end.Value.ToUnixTimeMilliseconds() <= now)
             {
                 a.Status = "CLOSED";
                 if (string.IsNullOrEmpty(a.ClosedAt)) a.ClosedAt = Util.ToIso(end.Value);

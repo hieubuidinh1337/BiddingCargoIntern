@@ -1144,6 +1144,9 @@
                     if (targetRole === 'ADMIN') {
                         return ['ADMIN', 'SUPER_ADMIN', 'ITD_ADMIN'].includes(r) || r.includes('ADMIN');
                     }
+                    if (targetRole === 'STAFF') {
+                        return r === 'STAFF' || r.includes('STAFF') || r.includes('NHÂN VIÊN');
+                    }
                     return r === targetRole;
                 });
             }

@@ -568,6 +568,14 @@ const CargoStore = (function () {
                             }
                         }
 
+                        if (a.status === 'UPCOMING') {
+                            const openTimeMs = a.openDateIso ? Date.parse(a.openDateIso) : (a.openDate ? (parseFlightDate(a.openDate)?.getTime() || NaN) : NaN);
+                            if (isNaN(openTimeMs) || openTimeMs <= now) {
+                                a.status = 'OPEN';
+                                updated = true;
+                            }
+                        }
+
                         if (!a.flightPeriod) {
                             if (a.flightStartDate && a.flightEndDate) {
                                 a.flightPeriod = (a.flightStartDate === a.flightEndDate) ? `Ngày ${a.flightStartDate}` : `Từ ${a.flightStartDate} ➔ Đến ${a.flightEndDate}`;
@@ -1050,8 +1058,22 @@ const CargoStore = (function () {
         lastLocalSaveTimestamp = Date.now();
         const apiUrl = '/api/data';
         try {
+            let currentEpoch = getLocalEpoch();
+            if (!currentEpoch) {
+                try {
+                    const epRes = await fetch('/api/epoch', { cache: 'no-store' });
+                    if (epRes.ok) {
+                        const epJson = await epRes.json();
+                        if (epJson && epJson.dataEpoch) {
+                            currentEpoch = epJson.dataEpoch;
+                            try { localStorage.setItem(EPOCH_KEY, currentEpoch); } catch (e) { }
+                        }
+                    }
+                } catch (e) { }
+            }
+
             const bodyPayload = JSON.stringify({
-                dataEpoch: getLocalEpoch(),
+                dataEpoch: currentEpoch,
                 auctions: data.auctions,
                 bids: data.bids,
                 wonAuctions: data.wonAuctions,
@@ -1080,6 +1102,9 @@ const CargoStore = (function () {
                 if (resJson && resJson.stale) {
                     applyServerEpoch(resJson.dataEpoch);
                     return resJson;
+                }
+                if (resJson && resJson.dataEpoch && !currentEpoch) {
+                    try { localStorage.setItem(EPOCH_KEY, resJson.dataEpoch); } catch (e) { }
                 }
                 if (resJson && resJson.version) {
                     lastServerVersion = resJson.version;
@@ -2478,6 +2503,15 @@ const CargoStore = (function () {
                         };
                         saveData(local, true);
                         document.cookie = "cargo_admin_user=" + encodeURIComponent(resJson.admin.username) + "; path=/; max-age=604800; SameSite=Lax";
+                        this.logActivity({
+                            actor: local.currentAdmin.fullName || local.currentAdmin.username,
+                            username: local.currentAdmin.username,
+                            role: local.currentAdmin.role || 'ADMIN',
+                            actionCategory: 'Đăng nhập',
+                            actionTitle: 'Đăng nhập hệ thống Admin',
+                            target: 'Portal Quản trị',
+                            details: `Tài khoản ${local.currentAdmin.role || 'ADMIN'} ${local.currentAdmin.fullName} (@${local.currentAdmin.username}) đăng nhập thành công vào Trung tâm Điều hành Cargo.`
+                        });
                         return { success: true, admin: local.currentAdmin };
                     }
                     return resJson || { success: false, message: 'Đăng nhập quản trị thất bại.' };
@@ -3035,7 +3069,7 @@ const CargoStore = (function () {
                 }
             });
 
-            saveData(data, false, true);
+            const pushPromise = saveData(data, false, true);
 
             this.logActivity({
                 actionCategory: 'Phiên đấu giá',
@@ -3050,6 +3084,7 @@ const CargoStore = (function () {
                     ? `Tạo phiên đấu giá chuyến ${flightNumber} (${origin} - ${dest}) thành công!\nPhiên ở trạng thái "SẮP DIỄN RA" và sẽ tự động mở nhận giá thầu vào lúc ${formattedOpen}.`
                     : `Tạo phiên đấu giá chuyến ${flightNumber} (${origin} - ${dest}) thành công! Phiên đã mở trực tiếp trên sàn.`,
                 auction: newAuction,
+                pushPromise: pushPromise,
                 ...newAuction
             };
         },

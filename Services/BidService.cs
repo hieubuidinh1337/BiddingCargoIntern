@@ -76,7 +76,22 @@ public class BidService
             throw new BidException("Phiên đấu giá đã kết thúc, không thể đặt thêm giá");
 
         if (auction.Status == "UPCOMING")
-            throw new BidException("Phiên đấu giá chưa đến giờ mở thầu");
+        {
+            var openMs = Util.ParseIso(auction.OpenDateIso)?.ToUnixTimeMilliseconds();
+            if (openMs == null && !string.IsNullOrEmpty(auction.OpenDate))
+            {
+                var fd = Util.ParseFlightDate(auction.OpenDate);
+                if (fd != null) openMs = new DateTimeOffset(fd.Value).ToUnixTimeMilliseconds();
+            }
+            if (openMs == null || openMs.Value <= now)
+            {
+                auction.Status = "OPEN";
+            }
+            else
+            {
+                throw new BidException("Phiên đấu giá chưa đến giờ mở thầu");
+            }
+        }
 
         // Nếu hết thời gian nhưng Admin chưa chốt phiên (Status vẫn OPEN): tự động gia hạn 30 phút theo quy chế
         if (endMs != null && now > endMs)

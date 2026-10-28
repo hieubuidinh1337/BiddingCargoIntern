@@ -233,10 +233,6 @@
                             class="text-slate-400 hover:text-slate-700 px-1.5 py-1 text-xs cursor-pointer">
                             <i class="fa-solid fa-rotate-left"></i>
                         </button>
-                        <button type="button" onclick="fetchDashboardData()" title="Làm mới dữ liệu từ máy chủ"
-                            class="text-blue-600 hover:text-blue-800 bg-blue-50 hover:bg-blue-100 px-2 py-1 rounded-lg text-xs font-semibold cursor-pointer transition flex items-center gap-1 ml-1">
-                            <i class="fa-solid fa-arrows-rotate text-[10px]"></i> Làm mới
-                        </button>
                     </div>
                 </div>
             </div>
@@ -249,6 +245,17 @@
         </div>
 
     </main>
+
+    <script id="initDashData" type="application/json">
+        @Html.Raw(System.Text.Json.JsonSerializer.Serialize(new {
+            success = true,
+            agent = Model.CurrentAgent,
+            kpis = Model.Kpis,
+            auctions = Model.OpenAuctions
+        }, new System.Text.Json.JsonSerializerOptions {
+            PropertyNamingPolicy = System.Text.Json.JsonNamingPolicy.CamelCase
+        }))
+    </script>
 
     <script>
         function toggleAgentMobileNav() {
@@ -317,6 +324,36 @@
             const ag = data.agent || {};
             const kpis = data.kpis || {};
             const auctions = data.auctions || [];
+
+            // Cache auctions for instant and safe modal bid lookup
+            window._dashAuctionsMap = window._dashAuctionsMap || {};
+            auctions.forEach(a => { if (a && a.id) window._dashAuctionsMap[String(a.id)] = a; });
+
+            // Ensure CargoStore local storage has these auctions so placeBid will always succeed
+            if (typeof CargoStore !== 'undefined' && typeof CargoStore.getData === 'function') {
+                try {
+                    const storeData = CargoStore.getData();
+                    if (storeData && Array.isArray(auctions) && auctions.length > 0) {
+                        if (!storeData.auctions) storeData.auctions = [];
+                        let storeModified = false;
+                        auctions.forEach(backendAuc => {
+                            const idx = storeData.auctions.findIndex(x => String(x.id) === String(backendAuc.id));
+                            if (idx >= 0) {
+                                storeData.auctions[idx] = { ...storeData.auctions[idx], ...backendAuc };
+                                storeModified = true;
+                            } else {
+                                storeData.auctions.unshift(backendAuc);
+                                storeModified = true;
+                            }
+                        });
+                        if (storeModified && CargoStore.saveData) {
+                            CargoStore.saveData(storeData, true);
+                        }
+                    }
+                } catch (e) {
+                    console.warn('Sync to CargoStore warning:', e);
+                }
+            }
 
             // Update Header Profile
             const hdrCompany = document.getElementById('hdrCompany');
@@ -506,6 +543,25 @@
                 `;
             }
         }
+
+        function renderInitialDataIfAvailable() {
+            try {
+                const el = document.getElementById('initDashData');
+                if (el && el.textContent) {
+                    const data = JSON.parse(el.textContent);
+                    if (data && data.success && Array.isArray(data.auctions)) {
+                        renderDashboardFromBackend(data);
+                        return true;
+                    }
+                }
+            } catch (e) {
+                console.warn('Initial data render error:', e);
+            }
+            return false;
+        }
+
+        // Render tức thì dữ liệu server ngay khi parser duyệt đến script (0ms delay, không phải chờ tải xong thư viện hay fetch)
+        renderInitialDataIfAvailable();
 
         function renderDashboard() {
             if (typeof CargoStore === 'undefined') return;
@@ -1007,8 +1063,19 @@
                 return;
             }
 
-            const allAuctions = CargoStore.getAuctions();
-            const auction = allAuctions.find(a => String(a.id) === String(auctionId));
+            const allAuctions = (typeof CargoStore !== 'undefined' && CargoStore.getAuctions) ? CargoStore.getAuctions() : [];
+            let auction = allAuctions.find(a => String(a.id) === String(auctionId));
+            if (!auction && window._dashAuctionsMap && window._dashAuctionsMap[String(auctionId)]) {
+                auction = window._dashAuctionsMap[String(auctionId)];
+                if (typeof CargoStore !== 'undefined' && typeof CargoStore.getData === 'function') {
+                    const sd = CargoStore.getData();
+                    if (!sd.auctions) sd.auctions = [];
+                    if (!sd.auctions.some(a => String(a.id) === String(auction.id))) {
+                        sd.auctions.unshift(auction);
+                        CargoStore.saveData(sd, true);
+                    }
+                }
+            }
             if (!auction) {
                 alert('Không tìm thấy thông tin gói thầu!');
                 return;
@@ -1188,8 +1255,31 @@
         }
 
         document.addEventListener('DOMContentLoaded', function () {
-            // Load clean backend data once on initialization
+            // Render tức thì nếu trước đó chưa render
+            if (!document.getElementById('dashboardAuctionList')?.children?.length) {
+                if (!renderInitialDataIfAvailable()) {
+                    renderDashboard();
+                }
+            }
+
+            // Đồng bộ ngầm để cập nhật dữ liệu mới nhất (nếu có thay đổi)
             fetchDashboardData();
+
+            // Tự động kiểm tra dữ liệu phiên mới định kỳ mỗi 4 giây (để đại lý thấy ngay phiên vừa mở)
+            setInterval(function () {
+                if (typeof document !== 'undefined' && document.hidden) return;
+                fetchDashboardData();
+            }, 4000);
+
+            // Nghe sự kiện từ storage / cargostore để cập nhật tức thì
+            window.addEventListener('storage', function (e) {
+                if (e.key === 'CARGO_BIDDING_DATA_V3' || e.key === 'CARGO_BIDDING_SERVER_VERSION') {
+                    fetchDashboardData();
+                }
+            });
+            window.addEventListener('cargostore_updated', function () {
+                fetchDashboardData();
+            });
 
             // Realtime 1-second countdown strictly in-place (no DOM re-renders)
             setInterval(updateDashCountdowns, 1000);
