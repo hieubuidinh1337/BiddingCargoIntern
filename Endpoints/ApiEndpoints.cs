@@ -171,6 +171,7 @@ public static class ApiEndpoints
                 });
             }
 
+            var needSave = failedAttempts > 0;
             agentNode["failedLoginAttempts"] = 0;
 
             // Tự bù đắp thông tin người đại diện, chức vụ, địa chỉ, tài liệu từ hồ sơ đăng ký (Registration)
@@ -210,23 +211,58 @@ public static class ApiEndpoints
             {
                 try { docsNode = JsonNode.Parse(agentReg.Documents); } catch { }
             }
+            if (docsNode is JsonArray rawDocsArr)
+            {
+                for (int i = 0; i < rawDocsArr.Count; i++)
+                {
+                    if (rawDocsArr[i] is JsonObject docObj &&
+                        docObj["dataUrl"]?.GetValue<string>() is { Length: > 2000 })
+                    {
+                        docObj["dataUrl"] = null;
+                        docObj["hasServerFile"] = true;
+                        docObj["docIndex"] = i;
+                        if (agentReg != null) docObj["regId"] = agentReg.RegId;
+                    }
+                }
+            }
             docsNode ??= new JsonArray();
 
             if (string.IsNullOrEmpty(EntityJson.Str(agentNode, "repName")) && !string.IsNullOrEmpty(repName))
+            {
                 agentNode["repName"] = repName;
+                needSave = true;
+            }
             if (string.IsNullOrEmpty(EntityJson.Str(agentNode, "fullName")) && !string.IsNullOrEmpty(repName))
+            {
                 agentNode["fullName"] = repName;
+                needSave = true;
+            }
             if (string.IsNullOrEmpty(EntityJson.Str(agentNode, "position")) && !string.IsNullOrEmpty(position))
+            {
                 agentNode["position"] = position;
+                needSave = true;
+            }
             if (string.IsNullOrEmpty(EntityJson.Str(agentNode, "address")) && !string.IsNullOrEmpty(address))
+            {
                 agentNode["address"] = address;
+                needSave = true;
+            }
             if (string.IsNullOrEmpty(EntityJson.Str(agentNode, "province")))
+            {
                 agentNode["province"] = province;
+                needSave = true;
+            }
             if (!agentNode.ContainsKey("documents") && docsNode is JsonArray da && da.Count > 0)
+            {
                 agentNode["documents"] = docsNode.DeepClone();
+                needSave = true;
+            }
 
-            EntityJson.Apply(agent, agentNode);
-            await db.SaveChangesAsync();
+            if (needSave)
+            {
+                EntityJson.Apply(agent, agentNode);
+                await db.SaveChangesAsync();
+            }
 
             ctx.Response.Cookies.Append("cargo_agent_code", agent.Code ?? "", new CookieOptions
             {
@@ -552,9 +588,9 @@ public static class ApiEndpoints
             db.ActivityLogs.Add(LogService.Make(rep != "" ? rep : comp, mst != "" ? mst : "guest", "AGENT", "Quản lý Đại lý", "Nộp hồ sơ đăng ký đại lý", $"Hồ sơ {regId}",
                 $"Đại lý {comp} (MST: {mst}) nộp hồ sơ đăng ký đại lý mới. Người đại diện: {rep} ({mail}).", ctx.Connection.RemoteIpAddress?.ToString(), "Web Portal"));
 
+            await shared.BumpVersionAsync();
             await db.SaveChangesAsync();
             SharedDataService.InvalidateSnapshotCache();
-            await shared.BumpVersionAsync();
 
             return J(new JsonObject
             {
@@ -627,9 +663,9 @@ public static class ApiEndpoints
                     $"Từ chối hồ sơ đăng ký đại lý \"{reg.CompanyName}\" ({regId}). Lý do từ chối: \"{reason}\".", ctx.Connection.RemoteIpAddress?.ToString(), "Admin Portal"));
             }
 
+            await shared.BumpVersionAsync();
             await db.SaveChangesAsync();
             SharedDataService.InvalidateSnapshotCache();
-            await shared.BumpVersionAsync();
 
             return J(new JsonObject
             {
@@ -762,10 +798,13 @@ public static class ApiEndpoints
             var fromDate = ctx.Request.Query["fromDate"].ToString();
             var toDate = ctx.Request.Query["toDate"].ToString();
 
-            Agent? agent = null;
+            Agent? agent = ctx.Items["CurrentAgent"] as Agent;
             if (!string.IsNullOrEmpty(explicitCode))
             {
-                agent = await db.Agents.FirstOrDefaultAsync(a => a.Code.ToUpper() == explicitCode);
+                if (agent == null || !string.Equals(agent.Code, explicitCode, StringComparison.OrdinalIgnoreCase))
+                {
+                    agent = await db.Agents.AsNoTracking().FirstOrDefaultAsync(a => a.Code.ToUpper() == explicitCode);
+                }
                 if (agent != null && (agent.IsLocked || agent.Status == "Đã khóa" || agent.Status == "LOCKED"))
                 {
                     ctx.Response.Cookies.Delete("cargo_agent_code");
@@ -782,7 +821,7 @@ public static class ApiEndpoints
             if (agent == null)
             {
                 // Fallback: pick the first ACTIVE (non-locked) agent so guests or new sessions can view
-                agent = await db.Agents.Where(a => !a.IsLocked && a.Status != "Đã khóa" && a.Status != "LOCKED").OrderBy(a => a.Code).FirstOrDefaultAsync();
+                agent = await db.Agents.AsNoTracking().Where(a => !a.IsLocked && a.Status != "Đã khóa" && a.Status != "LOCKED").OrderBy(a => a.Code).FirstOrDefaultAsync();
             }
             var agentCode = agent?.Code ?? explicitCode ?? "";
 
@@ -923,7 +962,11 @@ public static class ApiEndpoints
 
             if (!string.IsNullOrEmpty(explicitCode))
             {
-                var agCheck = await db.Agents.AsNoTracking().FirstOrDefaultAsync(a => a.Code.ToUpper() == explicitCode);
+                var agCheck = ctx.Items["CurrentAgent"] as Agent;
+                if (agCheck == null || !string.Equals(agCheck.Code, explicitCode, StringComparison.OrdinalIgnoreCase))
+                {
+                    agCheck = await db.Agents.AsNoTracking().FirstOrDefaultAsync(a => a.Code.ToUpper() == explicitCode);
+                }
                 if (agCheck != null && (agCheck.IsLocked || agCheck.Status == "Đã khóa" || agCheck.Status == "LOCKED"))
                 {
                     ctx.Response.Cookies.Delete("cargo_agent_code");
@@ -1338,7 +1381,11 @@ public static class ApiEndpoints
             }
             if (string.IsNullOrEmpty(agentCode)) return Err("Chưa đăng nhập đại lý", 401);
 
-            var agent = await db.Agents.AsNoTracking().FirstOrDefaultAsync(a => a.Code.ToUpper() == agentCode);
+            var agent = ctx.Items["CurrentAgent"] as Agent;
+            if (agent == null || !string.Equals(agent.Code, agentCode, StringComparison.OrdinalIgnoreCase))
+            {
+                agent = await db.Agents.AsNoTracking().FirstOrDefaultAsync(a => a.Code.ToUpper() == agentCode);
+            }
             if (agent == null) return Err("Không tìm thấy thông tin đại lý", 404);
 
             return J(new JsonObject
@@ -1448,8 +1495,9 @@ public static class ApiEndpoints
             var totalBids = await db.Bids.CountAsync();
             var totalAgents = await db.Agents.CountAsync(a => !a.IsLocked && a.Status != "Đã khóa");
 
-            var paidWons = await db.WonAuctions.AsNoTracking().Where(w => w.PaymentStatus == "PAID").ToListAsync();
-            var totalRevenue = paidWons.Sum(w => w.TotalAmountVND);
+            var totalRevenue = await db.WonAuctions.AsNoTracking()
+                .Where(w => w.PaymentStatus == "PAID")
+                .SumAsync(w => (long?)w.TotalAmountVND) ?? 0L;
 
             var recentAuctions = await db.Auctions.AsNoTracking()
                 .OrderByDescending(a => a.Id)

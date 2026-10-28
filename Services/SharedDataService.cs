@@ -43,15 +43,23 @@ public class SharedDataService
         s.Value = value?.ToJsonString();
     }
 
+    private static string? _cachedEpoch;
+
     /// <summary>Định danh "thế hệ dữ liệu" của máy chủ. Trình duyệt mang dữ liệu thuộc thế hệ khác sẽ bị dọn sạch và không được ghi đè lên DB.</summary>
     public async Task<string> GetEpochAsync()
     {
+        if (!string.IsNullOrEmpty(_cachedEpoch)) return _cachedEpoch;
         var s = await _db.Settings.FindAsync("dataEpoch");
-        if (s != null && !string.IsNullOrEmpty(s.Value)) return s.Value;
+        if (s != null && !string.IsNullOrEmpty(s.Value))
+        {
+            _cachedEpoch = s.Value;
+            return _cachedEpoch;
+        }
         if (s == null) { s = new Setting { Key = "dataEpoch" }; _db.Settings.Add(s); }
         s.Value = Guid.NewGuid().ToString("N");
         await _db.SaveChangesAsync();
-        return s.Value;
+        _cachedEpoch = s.Value;
+        return _cachedEpoch;
     }
 
     public async Task<long> GetVersionAsync()
@@ -129,7 +137,7 @@ public class SharedDataService
         var bids = await _db.Bids.ToListAsync();
         AuctionRules.ReconcileStatuses(auctions, bids);
         AuctionRules.ReconcileSummaries(auctions, bids);
-        await SettleClosedAuctionsAsync();
+        await SettleClosedAuctionsCoreAsync(auctions, bids, saveImmediately: false);
 
         // Chính sách chi nhánh (giữ nguyên từ bản Node): tự động mở khóa mọi đại lý, xóa cảnh báo "TÀI KHOẢN ĐÃ BỊ KHÓA".
         if (_cfg.GetValue("App:AutoUnlockAgents", false))
