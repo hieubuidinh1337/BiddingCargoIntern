@@ -5,7 +5,7 @@ using Microsoft.EntityFrameworkCore;
 namespace BiddingCargo.Web.Services;
 
 /// <summary>
-/// Thay thế "serverData" trong server.js: dựng snapshot cho GET /api/data (kèm các lớp che thông tin
+/// Dịch vụ quản lý và đồng bộ dữ liệu tổng hợp: dựng snapshot cho GET /api/data (kèm các lớp che thông tin
 /// sealed-bid theo vai trò) và gộp dữ liệu client gửi lên qua POST /api/data.
 /// </summary>
 public class SharedDataService
@@ -139,7 +139,7 @@ public class SharedDataService
         AuctionRules.ReconcileSummaries(auctions, bids);
         await SettleClosedAuctionsCoreAsync(auctions, bids, saveImmediately: false);
 
-        // Chính sách chi nhánh (giữ nguyên từ bản Node): tự động mở khóa mọi đại lý, xóa cảnh báo "TÀI KHOẢN ĐÃ BỊ KHÓA".
+        // Chính sách bảo trì: xóa các cảnh báo "TÀI KHOẢN ĐÃ BỊ KHÓA" của những đại lý đã được mở khóa.
         if (_cfg.GetValue("App:AutoUnlockAgents", false))
         {
             foreach (var a in await _db.Agents.ToListAsync())

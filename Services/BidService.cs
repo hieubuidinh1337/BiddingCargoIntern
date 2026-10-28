@@ -12,7 +12,7 @@ public class BidException : Exception
 public record PlaceBidRequest(string? AuctionId, string? AgentCode, string? AgentName, long PriceKg, bool IsAnonymous,
                               long WeightKg, string? BidId);
 
-/// <summary>Port của placeBidAtomic (db.js) + route POST /api/bids/place.</summary>
+/// <summary>Dịch vụ xử lý đặt thầu nguyên tử (Atomic Bid Placement) cho API POST /api/bids/place.</summary>
 public class BidService
 {
     private static readonly Regex BidIdPattern = new(@"^BID-\d+-\d+$", RegexOptions.Compiled);

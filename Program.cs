@@ -21,11 +21,18 @@ builder.Services.AddScoped<ChatService>();
 builder.Services.AddScoped<LogService>();
 builder.Services.AddScoped<EmailService>();
 builder.Services.AddScoped<WonAuctionService>();
+builder.Services.AddScoped<FlightUtilityService>();
+builder.Services.AddScoped<AuthPermissionService>();
+builder.Services.AddScoped<AuctionManagementService>();
+builder.Services.AddScoped<RegistrationSecurityService>();
+builder.Services.AddScoped<SettlementPaymentService>();
+builder.Services.AddScoped<AdminRbacService>();
+builder.Services.AddScoped<BankRouteService>();
 
 builder.Services.Configure<FormOptions>(o => o.MultipartBodyLengthLimit = 50 * 1024 * 1024);
 builder.WebHost.ConfigureKestrel(o => o.Limits.MaxRequestBodySize = 50 * 1024 * 1024);
 
-// ---- Razor Pages với URL "sạch" giống CLEAN_ROUTES của server.js
+// ---- Razor Pages với URL "sạch" cho toàn bộ các phân hệ Đại lý & Quản trị
 
 builder.Services.AddRazorPages(options =>
 {
@@ -158,7 +165,7 @@ app.MapApi();
 
 app.Run();
 
-/// <summary>Bảng route trang → tương đương CLEAN_ROUTES / REVERSE_ROUTES trong server.js.</summary>
+/// <summary>Bảng định tuyến trang (URL sạch và tương thích URL .html cũ).</summary>
 public static class PageRoutes
 {
     public static readonly (string Page, string[] Routes)[] Map =

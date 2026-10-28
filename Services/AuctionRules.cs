@@ -2,7 +2,7 @@ using BiddingCargo.Web.Data;
 
 namespace BiddingCargo.Web.Services;
 
-/// <summary>Các quy tắc nghiệp vụ thuần (port từ server.js): đóng phiên, đối soát giá/đại lý dẫn đầu, hạn thanh toán.</summary>
+/// <summary>Các quy tắc nghiệp vụ cốt lõi: đóng phiên, đối soát giá/đại lý dẫn đầu, hạn thanh toán.</summary>
 public static class AuctionRules
 {
     /// <summary>Phiên hết giờ tự động ĐÓNG; phiên đóng mà không có thầu thì không có winner.</summary>
