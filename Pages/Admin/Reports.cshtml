@@ -482,10 +482,6 @@
                     <select id="reportRouteFilter" onchange="applyReportFilters()"
                         class="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl font-medium text-slate-800 outline-none focus:ring-2 focus:ring-blue-500/20 cursor-pointer">
                         <option value="ALL">Tất cả đường bay</option>
-                        <option value="SGN - HAN">SGN - HAN (Sài Gòn - Hà Nội)</option>
-                        <option value="SGN - DAD">SGN - DAD (Sài Gòn - Đà Nẵng)</option>
-                        <option value="HAN - PQC">HAN - PQC (Hà Nội - Phú Quốc)</option>
-                        <option value="SGN - PQC">SGN - PQC (Sài Gòn - Phú Quốc)</option>
                     </select>
                 </div>
             </div>
@@ -822,6 +818,23 @@
     </div>
 
     <script>
+        function populateReportRouteFilter() {
+            const select = document.getElementById('reportRouteFilter');
+            if (!select) return;
+            const currentVal = select.value || 'ALL';
+            const routes = (window.CargoStore && CargoStore.getAllRoutes) ? CargoStore.getAllRoutes() : [];
+            let html = '<option value="ALL">Tất cả đường bay</option>';
+            routes.forEach(r => {
+                html += `<option value="${r.route}">${r.label}</option>`;
+            });
+            select.innerHTML = html;
+            if (currentVal && select.querySelector(`option[value="${currentVal}"]`)) {
+                select.value = currentVal;
+            } else {
+                select.value = 'ALL';
+            }
+        }
+
         function getReportFilters() {
             const timeRange = document.getElementById('reportTimeRangeFilter')?.value || 'ALL';
             const route = document.getElementById('reportRouteFilter')?.value || 'ALL';
@@ -1120,8 +1133,9 @@
             const filteredAuctions = auctions.filter(a => {
                 if (a.status !== 'CLOSED') return false;
 
-                const rName = a.route || `${a.origin || 'SGN'} - ${a.destination || 'HAN'}`;
-                if (filters.route !== 'ALL' && rName !== filters.route) return false;
+                const rName = (a.route || `${a.origin || 'SGN'} - ${a.destination || 'HAN'}`).replace(/\s+/g, '').toUpperCase();
+                const selRoute = (filters.route || 'ALL').replace(/\s+/g, '').toUpperCase();
+                if (selRoute !== 'ALL' && rName !== selRoute && !rName.includes(selRoute)) return false;
 
                 const aTs = getItemTimestamp(a);
                 if (filters.timeRange === '30DAYS') {
@@ -1150,8 +1164,9 @@
 
             // Filter wonList by selected filter parameters
             const filteredWonList = wonList.filter(w => {
-                const rName = w.route || (w.flightNumber ? w.flightNumber : '');
-                if (filters.route !== 'ALL' && !rName.includes(filters.route)) return false;
+                const rName = (w.route || (w.flightNumber ? w.flightNumber : '')).replace(/\s+/g, '').toUpperCase();
+                const selRoute = (filters.route || 'ALL').replace(/\s+/g, '').toUpperCase();
+                if (selRoute !== 'ALL' && !rName.includes(selRoute)) return false;
 
                 const wTs = getItemTimestamp(w);
                 if (filters.timeRange === '30DAYS') {
@@ -1871,6 +1886,7 @@
                 }
             }
 
+            populateReportRouteFilter();
             renderReportUI();
 
             if (store && store.syncAdminHeaderUI) {

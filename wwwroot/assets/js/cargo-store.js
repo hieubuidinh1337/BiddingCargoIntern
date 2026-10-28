@@ -2000,7 +2000,22 @@ const CargoStore = (function () {
         'HAN-PQC': 135, // 2h 15m
         'PQC-HAN': 135,
         'DAD-PQC': 105, // 1h 45m
-        'PQC-DAD': 105
+        'PQC-DAD': 105,
+        'SGN-CXR': 60,  'CXR-SGN': 60,
+        'HAN-CXR': 115, 'CXR-HAN': 115,
+        'SGN-DLI': 50,  'DLI-SGN': 50,
+        'HAN-DLI': 115, 'DLI-HAN': 115,
+        'SGN-HPH': 120, 'HPH-SGN': 120,
+        'SGN-HUI': 85,  'HUI-SGN': 85,
+        'HAN-HUI': 70,  'HUI-HAN': 70,
+        'SGN-UIH': 70,  'UIH-SGN': 70,
+        'HAN-UIH': 95,  'UIH-HAN': 95,
+        'SGN-VII': 105, 'VII-SGN': 105,
+        'HAN-VII': 60,  'VII-HAN': 60,
+        'SGN-VCA': 45,  'VCA-SGN': 45,
+        'HAN-VCA': 130, 'VCA-HAN': 130,
+        'SGN-VDO': 135, 'VDO-SGN': 135,
+        'DAD-CXR': 65,  'CXR-DAD': 65
     };
 
     function getFlightDurationMinutes(origin, destination) {
@@ -2034,18 +2049,38 @@ const CargoStore = (function () {
         // Extended realistic flight number pools for Vietravel Airlines (VU)
         // Even numbers for Southbound/Eastbound, Odd for Northbound/Westbound
         const routeBases = {
-            'SGN-HAN': [130, 132, 134, 136, 138, 140, 142, 144, 146, 148, 150, 152, 154, 156, 158, 160, 162, 164, 166, 168, 170, 172, 174, 176, 178, 180, 182, 184, 186, 188, 190, 192, 194, 196, 198],
-            'HAN-SGN': [131, 133, 135, 137, 139, 141, 143, 145, 147, 149, 151, 153, 155, 157, 159, 161, 163, 165, 167, 169, 171, 173, 175, 177, 179, 181, 183, 185, 187, 189, 191, 193, 195, 197, 199],
-            'SGN-DAD': [220, 222, 224, 226, 228, 230, 232, 234, 236, 238, 240, 242, 244, 246, 248, 250, 252, 254, 256, 258],
-            'DAD-SGN': [221, 223, 225, 227, 229, 231, 233, 235, 237, 239, 241, 243, 245, 247, 249, 251, 253, 255, 257, 259],
-            'HAN-DAD': [260, 262, 264, 266, 268, 270, 272, 274, 276, 278, 280, 282, 284, 286, 288, 290, 292, 294, 296, 298],
-            'DAD-HAN': [261, 263, 265, 267, 269, 271, 273, 275, 277, 279, 281, 283, 285, 287, 289, 291, 293, 295, 297, 299],
-            'HAN-PQC': [340, 342, 344, 346, 348, 350, 352, 354, 356, 358, 360, 362, 364, 366, 368, 370, 372, 374, 376, 378],
-            'PQC-HAN': [341, 343, 345, 347, 349, 351, 353, 355, 357, 359, 361, 363, 365, 367, 369, 371, 373, 375, 377, 379],
-            'SGN-PQC': [450, 452, 454, 456, 458, 460, 462, 464, 466, 468, 470, 472, 474, 476, 478, 480, 482, 484, 486, 488],
-            'PQC-SGN': [451, 453, 455, 457, 459, 461, 463, 465, 467, 469, 471, 473, 475, 477, 479, 481, 483, 485, 487, 489],
-            'DAD-PQC': [510, 512, 514, 516, 518, 520, 522, 524, 526, 528, 530, 532, 534, 536, 538, 540, 542, 544, 546, 548],
-            'PQC-DAD': [511, 513, 515, 517, 519, 521, 523, 525, 527, 529, 531, 533, 535, 537, 539, 541, 543, 545, 547, 549]
+            'SGN-HAN': [130, 132, 134, 136, 138, 140, 142, 144, 146, 148],
+            'HAN-SGN': [131, 133, 135, 137, 139, 141, 143, 145, 147, 149],
+            'SGN-DAD': [220, 222, 224, 226, 228, 230, 232, 234],
+            'DAD-SGN': [221, 223, 225, 227, 229, 231, 233, 235],
+            'HAN-DAD': [260, 262, 264, 266, 268, 270],
+            'DAD-HAN': [261, 263, 265, 267, 269, 271],
+            'HAN-PQC': [340, 342, 344, 346, 348],
+            'PQC-HAN': [341, 343, 345, 347, 349],
+            'SGN-PQC': [450, 452, 454, 456, 458],
+            'PQC-SGN': [451, 453, 455, 457, 459],
+            'DAD-PQC': [510, 512, 514, 516],
+            'PQC-DAD': [511, 513, 515, 517],
+            'SGN-CXR': [620, 622, 624, 626],
+            'CXR-SGN': [621, 623, 625, 627],
+            'HAN-CXR': [640, 642, 644, 646],
+            'CXR-HAN': [641, 643, 645, 647],
+            'SGN-DLI': [710, 712, 714],
+            'DLI-SGN': [711, 713, 715],
+            'HAN-DLI': [730, 732, 734],
+            'DLI-HAN': [731, 733, 735],
+            'SGN-VII': [810, 812, 814],
+            'VII-SGN': [811, 813, 815],
+            'SGN-HPH': [830, 832, 834],
+            'HPH-SGN': [831, 833, 835],
+            'SGN-HUI': [850, 852, 854],
+            'HUI-SGN': [851, 853, 855],
+            'SGN-UIH': [870, 872, 874],
+            'UIH-SGN': [871, 873, 875],
+            'SGN-VCA': [890, 892, 894],
+            'VCA-SGN': [891, 893, 895],
+            'SGN-VDO': [910, 912, 914],
+            'VDO-SGN': [911, 913, 915]
         };
 
         const defaultCandidates = [610, 612, 614, 616, 618, 620, 622, 624, 626, 628, 630, 632, 634, 636, 638, 640];
@@ -7177,6 +7212,38 @@ const CargoStore = (function () {
             const found = list.find(a => (a.code || '').toUpperCase() === clean);
             return found ? found.name : clean;
         },
+        getAirportCity: function (code) {
+            if (!code) return '';
+            const clean = String(code).trim().toUpperCase();
+            const cityMap = {
+                'SGN': 'Sài Gòn',
+                'HAN': 'Hà Nội',
+                'DAD': 'Đà Nẵng',
+                'PQC': 'Phú Quốc',
+                'CXR': 'Cam Ranh',
+                'DLI': 'Đà Lạt',
+                'HPH': 'Hải Phòng',
+                'HUI': 'Huế',
+                'UIH': 'Quy Nhơn',
+                'VCA': 'Cần Thơ',
+                'VII': 'Vinh',
+                'VDO': 'Vân Đồn'
+            };
+            if (cityMap[clean]) return cityMap[clean];
+            const name = this.getAirportName(clean);
+            if (name && name !== clean) {
+                return name.replace(/\s+(International\s+)?Airport$/i, '').trim();
+            }
+            return clean;
+        },
+        formatRouteDisplay: function (origin, dest) {
+            const o = (origin || '').trim().toUpperCase();
+            const d = (dest || '').trim().toUpperCase();
+            if (!o || !d) return '';
+            const c1 = this.getAirportCity(o);
+            const c2 = this.getAirportCity(d);
+            return `${o} - ${d} (${c1} - ${c2})`;
+        },
 
         // ==========================================
         // AIRCRAFT TYPES CONFIGURATION (msg_AcType)
@@ -8205,20 +8272,91 @@ const CargoStore = (function () {
         },
 
         getAvailableRoutes: function () {
-            return [
-                { pair: 'SGN-HAN', name: 'TP.HCM (SGN) ➔ Hà Nội (HAN)', origin: 'SGN', dest: 'HAN' },
-                { pair: 'SGN-DAD', name: 'TP.HCM (SGN) ➔ Đà Nẵng (DAD)', origin: 'SGN', dest: 'DAD' },
-                { pair: 'SGN-PQC', name: 'TP.HCM (SGN) ➔ Phú Quốc (PQC)', origin: 'SGN', dest: 'PQC' },
-                { pair: 'HAN-PQC', name: 'Hà Nội (HAN) ➔ Phú Quốc (PQC)', origin: 'HAN', dest: 'PQC' },
-                { pair: 'HAN-SGN', name: 'Hà Nội (HAN) ➔ TP.HCM (SGN)', origin: 'HAN', dest: 'SGN' },
-                { pair: 'HAN-DAD', name: 'Hà Nội (HAN) ➔ Đà Nẵng (DAD)', origin: 'HAN', dest: 'DAD' },
-                { pair: 'DAD-SGN', name: 'Đà Nẵng (DAD) ➔ TP.HCM (SGN)', origin: 'DAD', dest: 'SGN' },
-                { pair: 'DAD-HAN', name: 'Đà Nẵng (DAD) ➔ Hà Nội (HAN)', origin: 'DAD', dest: 'HAN' },
-                { pair: 'DAD-PQC', name: 'Đà Nẵng (DAD) ➔ Phú Quốc (PQC)', origin: 'DAD', dest: 'PQC' },
-                { pair: 'PQC-SGN', name: 'Phú Quốc (PQC) ➔ TP.HCM (SGN)', origin: 'PQC', dest: 'SGN' },
-                { pair: 'PQC-HAN', name: 'Phú Quốc (PQC) ➔ Hà Nội (HAN)', origin: 'PQC', dest: 'HAN' },
-                { pair: 'PQC-DAD', name: 'Phú Quốc (PQC) ➔ Đà Nẵng (DAD)', origin: 'PQC', dest: 'DAD' }
+            const self = this;
+            const pairs = [
+                // Trục chính Bắc - Nam
+                ['SGN', 'HAN'], ['HAN', 'SGN'],
+                ['SGN', 'DAD'], ['DAD', 'SGN'],
+                ['HAN', 'DAD'], ['DAD', 'HAN'],
+                // Tuyến du lịch & công nghiệp từ Sài Gòn
+                ['SGN', 'PQC'], ['PQC', 'SGN'],
+                ['SGN', 'CXR'], ['CXR', 'SGN'],
+                ['SGN', 'DLI'], ['DLI', 'SGN'],
+                ['SGN', 'HPH'], ['HPH', 'SGN'],
+                ['SGN', 'HUI'], ['HUI', 'SGN'],
+                ['SGN', 'UIH'], ['UIH', 'SGN'],
+                ['SGN', 'VII'], ['VII', 'SGN'],
+                ['SGN', 'VCA'], ['VCA', 'SGN'],
+                ['SGN', 'VDO'], ['VDO', 'SGN'],
+                // Tuyến từ Hà Nội
+                ['HAN', 'PQC'], ['PQC', 'HAN'],
+                ['HAN', 'CXR'], ['CXR', 'HAN'],
+                ['HAN', 'DLI'], ['DLI', 'HAN'],
+                ['HAN', 'HUI'], ['HUI', 'HAN'],
+                ['HAN', 'UIH'], ['UIH', 'HAN'],
+                ['HAN', 'VCA'], ['VCA', 'HAN'],
+                // Tuyến từ Đà Nẵng
+                ['DAD', 'PQC'], ['PQC', 'DAD'],
+                ['DAD', 'CXR'], ['CXR', 'DAD']
             ];
+            return pairs.map(([orig, dest]) => {
+                const c1 = self.getAirportCity ? self.getAirportCity(orig) : orig;
+                const c2 = self.getAirportCity ? self.getAirportCity(dest) : dest;
+                return {
+                    pair: `${orig}-${dest}`,
+                    name: `${c1} (${orig}) ➔ ${c2} (${dest})`,
+                    origin: orig,
+                    dest: dest
+                };
+            });
+        },
+
+        getAllRoutes: function () {
+            const data = loadData();
+            const map = new Map();
+            const self = this;
+
+            const addPair = (orig, dest) => {
+                if (!orig || !dest) return;
+                orig = String(orig).trim().toUpperCase();
+                dest = String(dest).trim().toUpperCase();
+                if (orig === dest || orig.length !== 3 || dest.length !== 3) return;
+                const routeKey = `${orig} - ${dest}`;
+                if (!map.has(routeKey)) {
+                    const c1 = self.getAirportCity ? self.getAirportCity(orig) : orig;
+                    const c2 = self.getAirportCity ? self.getAirportCity(dest) : dest;
+                    map.set(routeKey, {
+                        route: routeKey,
+                        pair: `${orig}-${dest}`,
+                        label: `${routeKey} (${c1} - ${c2})`,
+                        origin: orig,
+                        dest: dest
+                    });
+                }
+            };
+
+            // 1. Quét toàn bộ các chuyến bay thực tế trong cơ sở dữ liệu
+            (data.auctions || []).forEach(a => {
+                if (a.origin && a.destination) {
+                    addPair(a.origin, a.destination);
+                } else if (a.route) {
+                    const parts = a.route.split('-').map(s => s.trim());
+                    if (parts.length === 2) addPair(parts[0], parts[1]);
+                }
+            });
+            (data.wonAuctions || []).forEach(w => {
+                if (w.route) {
+                    const parts = w.route.split('-').map(s => s.trim());
+                    if (parts.length === 2) addPair(parts[0], parts[1]);
+                }
+            });
+
+            // 2. Bổ sung mạng đường bay tiêu chuẩn của các sân bay
+            (this.getAvailableRoutes() || []).forEach(r => {
+                addPair(r.origin, r.dest);
+            });
+
+            return Array.from(map.values());
         },
 
         getRouteSubscriptions: function (agentCode) {

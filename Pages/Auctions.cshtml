@@ -131,18 +131,6 @@
                 <div>
                     <select id="routeFilter" class="w-full border rounded-xl px-3 py-2 text-xs focus:ring-2 focus:ring-blue-500 outline-none bg-white">
                         <option value="ALL">Tất cả tuyến bay</option>
-                        <option value="SGN - HAN">SGN - HAN (Sài Gòn - Hà Nội)</option>
-                        <option value="SGN - DAD">SGN - DAD (Sài Gòn - Đà Nẵng)</option>
-                        <option value="SGN - PQC">SGN - PQC (Sài Gòn - Phú Quốc)</option>
-                        <option value="HAN - PQC">HAN - PQC (Hà Nội - Phú Quốc)</option>
-                        <option value="HAN - SGN">HAN - SGN (Hà Nội - Sài Gòn)</option>
-                        <option value="HAN - DAD">HAN - DAD (Hà Nội - Đà Nẵng)</option>
-                        <option value="DAD - SGN">DAD - SGN (Đà Nẵng - Sài Gòn)</option>
-                        <option value="DAD - HAN">DAD - HAN (Đà Nẵng - Hà Nội)</option>
-                        <option value="DAD - PQC">DAD - PQC (Đà Nẵng - Phú Quốc)</option>
-                        <option value="PQC - SGN">PQC - SGN (Phú Quốc - Sài Gòn)</option>
-                        <option value="PQC - HAN">PQC - HAN (Phú Quốc - Hà Nội)</option>
-                        <option value="PQC - DAD">PQC - DAD (Phú Quốc - Đà Nẵng)</option>
                     </select>
                 </div>
 
@@ -880,7 +868,25 @@
             });
         }
 
+        function populateRouteFilter() {
+            const select = document.getElementById('routeFilter');
+            if (!select) return;
+            const currentVal = select.value || 'ALL';
+            const routes = (window.CargoStore && CargoStore.getAllRoutes) ? CargoStore.getAllRoutes() : [];
+            let html = '<option value="ALL">Tất cả tuyến bay</option>';
+            routes.forEach(r => {
+                html += `<option value="${r.route}">${r.label}</option>`;
+            });
+            select.innerHTML = html;
+            if (currentVal && select.querySelector(`option[value="${currentVal}"]`)) {
+                select.value = currentVal;
+            } else {
+                select.value = 'ALL';
+            }
+        }
+
         document.addEventListener('DOMContentLoaded', function() {
+            populateRouteFilter();
             // Load clean backend data once on initialization
             fetchAuctionsData();
 
