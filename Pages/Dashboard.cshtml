@@ -293,7 +293,16 @@
             fetchDashboardData();
         }
 
-        async function fetchDashboardData() {
+        let _isFetchingDashboard = false;
+        let _lastDashFetchTime = 0;
+
+        async function fetchDashboardData(force = false) {
+            if (_isFetchingDashboard) return;
+            const now = Date.now();
+            if (!force && (now - _lastDashFetchTime < 3000)) return;
+            _isFetchingDashboard = true;
+            _lastDashFetchTime = now;
+
             try {
                 const u = (typeof CargoStore !== 'undefined' && CargoStore.getCurrentUser) ? CargoStore.getCurrentUser() : null;
                 const myCode = u ? (u.agentCode || u.code || '') : '';
@@ -306,8 +315,27 @@
                 if (dashFilterTo) q.set('toDate', dashFilterTo);
 
                 const res = await fetch('/api/agent/dashboard?' + q.toString(), { cache: 'no-store' });
+                if (res.status === 403) {
+                    const errJson = await res.json().catch(() => ({}));
+                    if (myCode) {
+                        if (typeof CargoStore !== 'undefined' && CargoStore.kickOutLockedAgent) {
+                            CargoStore.kickOutLockedAgent(errJson.message || 'Tài khoản đại lý của bạn đã bị KHÓA bởi Quản trị viên.');
+                        } else {
+                            window.location.href = '/login?locked=1';
+                        }
+                        return;
+                    }
+                }
                 if (res.ok) {
                     const data = await res.json();
+                    if (data && data.isLocked && myCode) {
+                        if (typeof CargoStore !== 'undefined' && CargoStore.kickOutLockedAgent) {
+                            CargoStore.kickOutLockedAgent(data.message || 'Tài khoản đại lý của bạn đã bị KHÓA bởi Quản trị viên.');
+                        } else {
+                            window.location.href = '/login?locked=1';
+                        }
+                        return;
+                    }
                     if (data && data.success) {
                         renderDashboardFromBackend(data);
                         return;
@@ -315,6 +343,8 @@
                 }
             } catch (err) {
                 console.warn('Backend dashboard fetch failed, falling back to local store', err);
+            } finally {
+                _isFetchingDashboard = false;
             }
             renderDashboard();
         }
@@ -341,26 +371,20 @@
             window._dashAuctionsMap = window._dashAuctionsMap || {};
             auctions.forEach(a => { if (a && a.id) window._dashAuctionsMap[String(a.id)] = a; });
 
-            // Ensure CargoStore local storage has these auctions so placeBid will always succeed
+            // Ensure CargoStore in-memory auctions are available without triggering recursive save events
             if (typeof CargoStore !== 'undefined' && typeof CargoStore.getData === 'function') {
                 try {
                     const storeData = CargoStore.getData();
                     if (storeData && Array.isArray(auctions) && auctions.length > 0) {
                         if (!storeData.auctions) storeData.auctions = [];
-                        let storeModified = false;
                         auctions.forEach(backendAuc => {
                             const idx = storeData.auctions.findIndex(x => String(x.id) === String(backendAuc.id));
                             if (idx >= 0) {
                                 storeData.auctions[idx] = { ...storeData.auctions[idx], ...backendAuc };
-                                storeModified = true;
                             } else {
                                 storeData.auctions.unshift(backendAuc);
-                                storeModified = true;
                             }
                         });
-                        if (storeModified && CargoStore.saveData) {
-                            CargoStore.saveData(storeData, true);
-                        }
                     }
                 } catch (e) {
                     console.warn('Sync to CargoStore warning:', e);
@@ -1303,26 +1327,38 @@
 
         document.addEventListener('DOMContentLoaded', function () {
             // Render tức thì nếu trước đó chưa render
+            let renderedInit = false;
             if (!document.getElementById('dashboardAuctionList')?.children?.length) {
-                if (!renderInitialDataIfAvailable()) {
+                renderedInit = renderInitialDataIfAvailable();
+                if (!renderedInit) {
                     renderDashboard();
                 }
+            } else {
+                renderedInit = !!lastDashData;
             }
 
-            // Đồng bộ ngầm để cập nhật dữ liệu mới nhất (nếu có thay đổi)
-            fetchDashboardData();
+            // Chỉ gọi fetch ngay lập tức nếu chưa có dữ liệu khởi tạo từ server hoặc mã đại lý thay đổi
+            const currentCode = resolveCurrentAgentCode();
+            const initCode = (lastDashData && lastDashData.agent && lastDashData.agent.code) ? String(lastDashData.agent.code).trim().toUpperCase() : '';
+            if (!renderedInit || (currentCode && initCode && currentCode.toUpperCase() !== initCode)) {
+                fetchDashboardData(true);
+            }
 
-            // Tự động kiểm tra dữ liệu phiên mới định kỳ mỗi 4 giây (để đại lý thấy ngay phiên vừa mở)
+            // Tự động kiểm tra dữ liệu phiên mới định kỳ mỗi 6 giây (chỉ khi tab đang mở)
             setInterval(function () {
                 if (typeof document !== 'undefined' && document.hidden) return;
                 fetchDashboardData();
-            }, 4000);
+            }, 6000);
 
-            // Nghe sự kiện từ tab khác (không nghe cargostore_updated để tránh vòng lặp refresh)
+            // Nghe sự kiện cập nhật phiên thầu từ tab khác khi có phiên mới
             window.addEventListener('storage', function (e) {
-                if (e.key === 'CARGO_BIDDING_SERVER_VERSION') {
+                if (e && (e.key === 'CARGO_BIDDING_SERVER_VERSION' || e.key === 'CARGO_BIDDING_DATA_V3')) {
                     fetchDashboardData();
                 }
+            });
+
+            window.addEventListener('cargostore_updated', function () {
+                fetchDashboardData();
             });
 
             // Realtime 1-second countdown strictly in-place (no DOM re-renders)

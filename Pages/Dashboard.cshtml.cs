@@ -31,12 +31,42 @@ public class DashboardModel : PageModel
 
     public async Task<IActionResult> OnGetAsync(string? agentCode = null, string? fromDate = null, string? toDate = null)
     {
+        var resolvedCode = (!string.IsNullOrWhiteSpace(agentCode) ? agentCode : Request.Cookies["cargo_agent_code"])?.Trim().ToUpperInvariant();
+        if (!string.IsNullOrEmpty(resolvedCode))
+        {
+            var agent = (HttpContext.Items["CurrentAgent"] as Agent);
+            if (agent == null || !string.Equals(agent.Code, resolvedCode, StringComparison.OrdinalIgnoreCase))
+            {
+                agent = await _db.Agents.AsNoTracking().FirstOrDefaultAsync(a => a.Code.ToUpper() == resolvedCode);
+                if (agent != null) HttpContext.Items["CurrentAgent"] = agent;
+            }
+            if (agent != null && (agent.IsLocked || agent.Status == "Đã khóa" || agent.Status == "LOCKED"))
+            {
+                Response.Cookies.Delete("cargo_agent_code");
+                return Redirect($"/login?locked=1&code={Uri.EscapeDataString(agent.Code)}&reason={Uri.EscapeDataString(agent.LockedReason ?? "Tài khoản đại lý đã bị khóa bởi Quản trị viên")}");
+            }
+        }
         await LoadDashboardDataAsync(agentCode, fromDate, toDate);
         return Page();
     }
 
     public async Task<IActionResult> OnGetDashboardDataAsync(string? agentCode = null, string? fromDate = null, string? toDate = null)
     {
+        var resolvedCode = (!string.IsNullOrWhiteSpace(agentCode) ? agentCode : Request.Cookies["cargo_agent_code"])?.Trim().ToUpperInvariant();
+        if (!string.IsNullOrEmpty(resolvedCode))
+        {
+            var agent = (HttpContext.Items["CurrentAgent"] as Agent);
+            if (agent == null || !string.Equals(agent.Code, resolvedCode, StringComparison.OrdinalIgnoreCase))
+            {
+                agent = await _db.Agents.AsNoTracking().FirstOrDefaultAsync(a => a.Code.ToUpper() == resolvedCode);
+                if (agent != null) HttpContext.Items["CurrentAgent"] = agent;
+            }
+            if (agent != null && (agent.IsLocked || agent.Status == "Đã khóa" || agent.Status == "LOCKED"))
+            {
+                Response.Cookies.Delete("cargo_agent_code");
+                return new JsonResult(new { success = false, isLocked = true, message = agent.LockedReason ?? "Tài khoản đại lý đã bị khóa" }) { StatusCode = 403 };
+            }
+        }
         await LoadDashboardDataAsync(agentCode, fromDate, toDate);
         return new JsonResult(new
         {
@@ -72,19 +102,23 @@ public class DashboardModel : PageModel
     private async Task LoadDashboardDataAsync(string? agentCode, string? fromDate, string? toDate)
     {
         // 1. Resolve agent code (Query -> Cookie -> DB Default)
-        agentCode = (agentCode ?? Request.Cookies["cargo_agent_code"])?.Trim().ToUpperInvariant();
-        Agent? agent = null;
-        if (!string.IsNullOrEmpty(agentCode))
+        var explicitCode = (!string.IsNullOrWhiteSpace(agentCode) ? agentCode : Request.Cookies["cargo_agent_code"])?.Trim().ToUpperInvariant();
+        Agent? agent = HttpContext.Items["CurrentAgent"] as Agent;
+        if (!string.IsNullOrEmpty(explicitCode) && (agent == null || !string.Equals(agent.Code, explicitCode, StringComparison.OrdinalIgnoreCase)))
         {
-            agent = await _db.Agents.AsNoTracking().FirstOrDefaultAsync(a => a.Code.ToUpper() == agentCode);
+            agent = await _db.Agents.AsNoTracking().FirstOrDefaultAsync(a => a.Code.ToUpper() == explicitCode);
         }
         if (agent == null)
         {
-            agent = await _db.Agents.AsNoTracking().OrderBy(a => a.Code).FirstOrDefaultAsync();
+            agent = await _db.Agents.AsNoTracking().Where(a => !a.IsLocked && a.Status != "Đã khóa" && a.Status != "LOCKED").OrderBy(a => a.Code).FirstOrDefaultAsync();
             if (agent != null)
             {
                 agentCode = agent.Code;
             }
+        }
+        else
+        {
+            agentCode = agent.Code;
         }
 
         if (agent != null)

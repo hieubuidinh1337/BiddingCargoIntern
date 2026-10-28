@@ -46,8 +46,12 @@ public class LogService
         var duplicate = await _db.ActivityLogs
             .Where(l => l.RawTime >= minTime)
             .FirstOrDefaultAsync(l =>
-                l.ActionTitle != null && l.ActionTitle.ToUpper() == titleClean &&
-                (targetClean == "N/A" || (l.Target != null && l.Target.ToUpper() == targetClean)) &&
+                l.ActionTitle != null && (
+                    l.ActionTitle.ToUpper() == titleClean ||
+                    (titleClean.Contains("ĐĂNG NHẬP") && l.ActionTitle.ToUpper().Contains("ĐĂNG NHẬP")) ||
+                    (titleClean.Contains("ĐĂNG XUẤT") && l.ActionTitle.ToUpper().Contains("ĐĂNG XUẤT"))
+                ) &&
+                (targetClean == "N/A" || l.Target == null || l.Target.ToUpper() == targetClean) &&
                 (userClean == "ADMIN" || (l.Username != null && (l.Username.ToUpper() == userClean || l.Username.ToUpper() == "ADMIN"))));
 
         if (duplicate != null)
@@ -100,13 +104,17 @@ public class LogService
             {
                 var rTime = SharedDataService.EffectiveLogTime(r.Timestamp, r.RawTime);
                 if (Math.Abs(lTime - rTime) > 10000) return false;
-                if (!string.Equals(r.ActionTitle?.Trim(), lTitle, StringComparison.OrdinalIgnoreCase)) return false;
+
+                var isSameTitle = string.Equals(r.ActionTitle?.Trim(), lTitle, StringComparison.OrdinalIgnoreCase)
+                    || ((r.ActionTitle ?? "").ToUpper().Contains("ĐĂNG NHẬP") && lTitle.ToUpper().Contains("ĐĂNG NHẬP"))
+                    || ((r.ActionTitle ?? "").ToUpper().Contains("ĐĂNG XUẤT") && lTitle.ToUpper().Contains("ĐĂNG XUẤT"));
+                if (!isSameTitle) return false;
 
                 var rTarget = (r.Target ?? "").Trim();
                 if (rTarget != "N/A" && lTarget != "N/A" && !string.Equals(rTarget, lTarget, StringComparison.OrdinalIgnoreCase)) return false;
 
                 var rUser = (string.IsNullOrEmpty(r.Username) ? r.Actor : r.Username)?.Trim().ToUpperInvariant() ?? "";
-                if (!string.Equals(rUser, lUser, StringComparison.OrdinalIgnoreCase)) return false;
+                if (!string.Equals(rUser, lUser, StringComparison.OrdinalIgnoreCase) && !(rUser.Contains("ADMIN") && lUser.Contains("ADMIN"))) return false;
 
                 return true;
             });

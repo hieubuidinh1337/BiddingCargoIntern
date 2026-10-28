@@ -727,20 +727,64 @@ public static class ApiEndpoints
         }, log));
 
         // ---- API chuyên biệt cho Agent Dashboard & Sàn Đấu Giá
+        api.MapGet("/agent/status", async (HttpContext ctx, AppDbContext db) =>
+        {
+            var qCode = ctx.Request.Query["code"].ToString();
+            if (string.IsNullOrEmpty(qCode)) qCode = ctx.Request.Query["agentCode"].ToString();
+            var code = (!string.IsNullOrEmpty(qCode) ? qCode : ctx.Request.Cookies["cargo_agent_code"] ?? "").Trim().ToUpperInvariant();
+            if (string.IsNullOrEmpty(code))
+                return J(new JsonObject { ["success"] = false, ["isLocked"] = false });
+
+            var agent = await db.Agents.AsNoTracking().FirstOrDefaultAsync(a => a.Code.ToUpper() == code);
+            if (agent == null)
+                return J(new JsonObject { ["success"] = false, ["notFound"] = true, ["isLocked"] = false });
+
+            var isLocked = agent.IsLocked || agent.Status == "Đã khóa" || agent.Status == "LOCKED";
+            if (isLocked)
+            {
+                ctx.Response.Cookies.Delete("cargo_agent_code");
+            }
+            return J(new JsonObject
+            {
+                ["success"] = true,
+                ["code"] = agent.Code,
+                ["isLocked"] = isLocked,
+                ["status"] = agent.Status ?? "Đang hoạt động",
+                ["reason"] = isLocked ? (agent.LockedReason ?? "Tài khoản đại lý của bạn đã bị KHÓA bởi Quản trị viên.") : null
+            });
+        });
+
         api.MapGet("/agent/dashboard", async (HttpContext ctx, AppDbContext db, SharedDataService shared) =>
         {
-            var agentCode = (ctx.Request.Query["agentCode"].ToString() ?? ctx.Request.Cookies["cargo_agent_code"])?.Trim().ToUpperInvariant();
+            var qCode = ctx.Request.Query["agentCode"].ToString();
+            if (string.IsNullOrEmpty(qCode)) qCode = ctx.Request.Query["code"].ToString();
+            var explicitCode = (!string.IsNullOrEmpty(qCode) ? qCode : ctx.Request.Cookies["cargo_agent_code"])?.Trim().ToUpperInvariant();
             var fromDate = ctx.Request.Query["fromDate"].ToString();
             var toDate = ctx.Request.Query["toDate"].ToString();
 
             Agent? agent = null;
-            if (!string.IsNullOrEmpty(agentCode))
-                agent = await db.Agents.FirstOrDefaultAsync(a => a.Code.ToUpper() == agentCode);
+            if (!string.IsNullOrEmpty(explicitCode))
+            {
+                agent = await db.Agents.FirstOrDefaultAsync(a => a.Code.ToUpper() == explicitCode);
+                if (agent != null && (agent.IsLocked || agent.Status == "Đã khóa" || agent.Status == "LOCKED"))
+                {
+                    ctx.Response.Cookies.Delete("cargo_agent_code");
+                    return J(new JsonObject
+                    {
+                        ["success"] = false,
+                        ["isLocked"] = true,
+                        ["agentCode"] = agent.Code,
+                        ["message"] = agent.LockedReason ?? "Tài khoản đại lý của bạn đã bị KHÓA bởi Quản trị viên."
+                    }, 403);
+                }
+            }
+
             if (agent == null)
             {
-                agent = await db.Agents.OrderBy(a => a.Code).FirstOrDefaultAsync();
-                if (agent != null) agentCode = agent.Code;
+                // Fallback: pick the first ACTIVE (non-locked) agent so guests or new sessions can view
+                agent = await db.Agents.Where(a => !a.IsLocked && a.Status != "Đã khóa" && a.Status != "LOCKED").OrderBy(a => a.Code).FirstOrDefaultAsync();
             }
+            var agentCode = agent?.Code ?? explicitCode ?? "";
 
             var unreadCount = 0;
             if (agent != null)
@@ -873,7 +917,27 @@ public static class ApiEndpoints
 
         api.MapGet("/agent/auctions", async (HttpContext ctx, AppDbContext db, SharedDataService shared) =>
         {
-            var agentCode = (ctx.Request.Query["agentCode"].ToString() ?? ctx.Request.Cookies["cargo_agent_code"])?.Trim().ToUpperInvariant();
+            var qCode = ctx.Request.Query["agentCode"].ToString();
+            if (string.IsNullOrEmpty(qCode)) qCode = ctx.Request.Query["code"].ToString();
+            var explicitCode = (!string.IsNullOrEmpty(qCode) ? qCode : ctx.Request.Cookies["cargo_agent_code"])?.Trim().ToUpperInvariant();
+
+            if (!string.IsNullOrEmpty(explicitCode))
+            {
+                var agCheck = await db.Agents.AsNoTracking().FirstOrDefaultAsync(a => a.Code.ToUpper() == explicitCode);
+                if (agCheck != null && (agCheck.IsLocked || agCheck.Status == "Đã khóa" || agCheck.Status == "LOCKED"))
+                {
+                    ctx.Response.Cookies.Delete("cargo_agent_code");
+                    return J(new JsonObject
+                    {
+                        ["success"] = false,
+                        ["isLocked"] = true,
+                        ["agentCode"] = agCheck.Code,
+                        ["message"] = agCheck.LockedReason ?? "Tài khoản đại lý của bạn đã bị KHÓA bởi Quản trị viên."
+                    }, 403);
+                }
+            }
+
+            var agentCode = explicitCode ?? "";
             var route = ctx.Request.Query["route"].ToString();
             var status = ctx.Request.Query["status"].ToString();
             var sort = ctx.Request.Query["sort"].ToString();

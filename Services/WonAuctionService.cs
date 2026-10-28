@@ -235,6 +235,7 @@ public class WonAuctionService
         {
             agent.Status = "Đang hoạt động"; agent.IsLocked = false;
             agent.LockedReason = null; agent.LockedAt = null; agent.UnlockedAt = Util.ViNow();
+            EntityJson.SetExtra(agent, "failedLoginAttempts", 0);
         }
 
         var actTitle = locked ? "Khóa tài khoản Đại lý" : "Mở khóa tài khoản Đại lý";

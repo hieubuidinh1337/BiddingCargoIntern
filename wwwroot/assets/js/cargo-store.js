@@ -407,10 +407,12 @@ const CargoStore = (function () {
 
                     // Migrate standard user details & names
                     if (u === 'admin') {
-                        a.role = 'SUPER_ADMIN';
-                        a.roles = ['SUPER_ADMIN'];
-                        a.fullName = 'Trần Quản Trị (Super Admin)';
-                        updated = true;
+                        if (a.role !== 'SUPER_ADMIN' || !Array.isArray(a.roles) || a.roles.length !== 1 || a.roles[0] !== 'SUPER_ADMIN' || a.fullName !== 'Trần Quản Trị (Super Admin)') {
+                            a.role = 'SUPER_ADMIN';
+                            a.roles = ['SUPER_ADMIN'];
+                            a.fullName = 'Trần Quản Trị (Super Admin)';
+                            updated = true;
+                        }
                     } else if (u === 'cod_admin') {
                         if (r === 'COD_ADMIN' || r === 'COD ADMIN' || !a.role) {
                             a.role = 'COD_MANAGER';
@@ -430,7 +432,10 @@ const CargoStore = (function () {
                         }
                         a.fullName = 'Nguyễn Điều Hành (Operations Staff)';
                     } else if (u === 'staff02') {
-                        if (!a.role) a.role = 'AGENT_AUDITOR';
+                        if (!a.role) {
+                            a.role = 'AGENT_AUDITOR';
+                            updated = true;
+                        }
                         a.fullName = 'Lê Thị Bích Vân (Agent Auditor)';
                     }
 
@@ -458,11 +463,16 @@ const CargoStore = (function () {
                 if (data.currentAdmin) {
                     const matchedStaff = data.adminsList.find(a => (a.username || '').toLowerCase() === (data.currentAdmin.username || '').toLowerCase());
                     if (matchedStaff) {
-                        data.currentAdmin.role = matchedStaff.role;
-                        data.currentAdmin.roles = matchedStaff.roles;
-                        data.currentAdmin.fullName = matchedStaff.fullName;
-                        data.currentAdmin.department = matchedStaff.department;
-                        updated = true;
+                        if (data.currentAdmin.role !== matchedStaff.role ||
+                            JSON.stringify(data.currentAdmin.roles) !== JSON.stringify(matchedStaff.roles) ||
+                            data.currentAdmin.fullName !== matchedStaff.fullName ||
+                            data.currentAdmin.department !== matchedStaff.department) {
+                            data.currentAdmin.role = matchedStaff.role;
+                            data.currentAdmin.roles = matchedStaff.roles;
+                            data.currentAdmin.fullName = matchedStaff.fullName;
+                            data.currentAdmin.department = matchedStaff.department;
+                            updated = true;
+                        }
                     } else {
                         const cr = String(data.currentAdmin.role || '').toUpperCase();
                         if (cr === 'ITD_ADMIN' || cr === 'ADMIN') {
@@ -648,15 +658,15 @@ const CargoStore = (function () {
                                 updated = true;
                             }
                             if (auction.status === 'CLOSED') {
-                                if (auction.winnerAgentCode !== w.agentCode) {
+                                if (w.agentCode && auction.winnerAgentCode !== w.agentCode) {
                                     auction.winnerAgentCode = w.agentCode;
                                     updated = true;
                                 }
-                                if (auction.winnerAgentName !== w.agentName) {
+                                if (w.agentName && auction.winnerAgentName !== w.agentName) {
                                     auction.winnerAgentName = w.agentName;
                                     updated = true;
                                 }
-                                if (auction.winningPriceKg !== w.priceKg) {
+                                if (w.priceKg && auction.winningPriceKg !== w.priceKg) {
                                     auction.winningPriceKg = w.priceKg;
                                     updated = true;
                                 }
@@ -664,60 +674,6 @@ const CargoStore = (function () {
                         }
                     });
                 }
-            }
-
-            // Reconcile auction summary fields from bid history so UI always reflects the real highest bid.
-            if (data.auctions && Array.isArray(data.auctions)) {
-                const allBids = Array.isArray(data.bids) ? data.bids : [];
-                data.auctions.forEach(a => {
-                    const auctionBids = allBids
-                        .filter(b => b && (
-                            String(b.auctionId) === String(a.id) ||
-                            (a.flightCode && b.flightCode && String(b.flightCode).toUpperCase() === String(a.flightCode).toUpperCase())
-                        ))
-                        .filter(b => b && Number.isFinite(Number(b.priceKg)) && Number(b.priceKg) > 0)
-                        .sort((x, y) => (Number(y.priceKg) || 0) - (Number(x.priceKg) || 0));
-
-                    if (auctionBids.length > 0) {
-                        const highestBid = auctionBids[0];
-                        const highestPrice = Number(highestBid.priceKg);
-
-                        if (Number.isFinite(highestPrice) && a.currentPriceKg !== highestPrice) {
-                            a.currentPriceKg = highestPrice;
-                            updated = true;
-                        }
-
-                        const normalizedLeaderCode = (highestBid.agentCode || '').trim();
-                        const normalizedLeaderName = (highestBid.agentName || '').trim();
-
-                        if (normalizedLeaderCode && normalizedLeaderCode !== 'AG-***') {
-                            if ((a.leadingAgentCode || '').trim() !== normalizedLeaderCode ||
-                                (a.leadingAgentName || '').trim() !== normalizedLeaderName) {
-                                a.leadingAgentCode = normalizedLeaderCode;
-                                a.leadingAgentName = normalizedLeaderName;
-                                a.isAnonymous = highestBid.isAnonymous !== false;
-                                updated = true;
-                            }
-                        }
-
-                        const bidCount = auctionBids.length;
-                        if ((a.bidsCount || 0) !== bidCount) {
-                            a.bidsCount = bidCount;
-                            updated = true;
-                        }
-                    } else {
-                        // When there are 0 bids: clear leader info & reset current price to starting price
-                        if (a.leadingAgentCode || a.leadingAgentName || (a.bidsCount || 0) !== 0 || (a.startingPriceKg && a.currentPriceKg !== a.startingPriceKg)) {
-                            a.leadingAgentCode = null;
-                            a.leadingAgentName = null;
-                            a.bidsCount = 0;
-                            if (a.startingPriceKg) {
-                                a.currentPriceKg = a.startingPriceKg;
-                            }
-                            updated = true;
-                        }
-                    }
-                });
             }
 
             if (!data.agentsList || !Array.isArray(data.agentsList) || data.agentsList.length === 0) {
@@ -847,9 +803,11 @@ const CargoStore = (function () {
             if (data.notifications && Array.isArray(data.notifications)) {
                 data.notifications.forEach(n => {
                     if ((n.title || '').includes('ĐẠI LÝ BÁO CHUYỂN KHOẢN') || (n.message || '').includes('đối soát sao kê ngân hàng')) {
-                        n.targetRole = 'ADMIN';
-                        n.targetAgentCode = null;
-                        updated = true;
+                        if (n.targetRole !== 'ADMIN' || n.targetAgentCode !== null) {
+                            n.targetRole = 'ADMIN';
+                            n.targetAgentCode = null;
+                            updated = true;
+                        }
                     }
                 });
             }
@@ -899,15 +857,14 @@ const CargoStore = (function () {
                 updated = true;
             }
 
-            if (!raw || updated) {
+            if (updated && !isSyncing) {
+                saveData(data, true);
+            } else if (!raw || updated) {
                 try {
                     const savedStr = JSON.stringify(data);
                     localStorage.setItem(STORAGE_KEY, savedStr);
                     _memoryCacheRaw = savedStr;
                 } catch (e) { }
-                if (updated && !isSyncing) {
-                    saveData(data, true);
-                }
             } else {
                 _memoryCacheRaw = raw;
             }
@@ -1087,15 +1044,14 @@ const CargoStore = (function () {
                 settings: data.settings,
                 bankConfig: data.bankConfig,
                 routeSubscriptions: data.routeSubscriptions,
-                activityLogs: data.activityLogs,
+                activityLogs: Array.isArray(data.activityLogs) ? data.activityLogs.slice(0, 100) : [],
                 chats: data.chats || []
-            });
+            }, (k, v) => (k === 'dataUrl' && typeof v === 'string' && v.length > 2000) ? null : v);
 
             const res = await fetch(apiUrl, {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
-                body: bodyPayload,
-                keepalive: true
+                body: bodyPayload
             });
             if (res.ok) {
                 const resJson = await res.json();
@@ -1463,6 +1419,14 @@ const CargoStore = (function () {
                         const myCode = String(local.currentUser.agentCode || local.currentUser.code || '').trim().toUpperCase();
                         const serverAg = local.agentsList.find(a => String(a.code || '').trim().toUpperCase() === myCode);
                         if (serverAg) {
+                            if (serverAg.isLocked || serverAg.status === 'Đã khóa' || serverAg.status === 'LOCKED') {
+                                local.currentUser = null;
+                                saveData(local);
+                                if (typeof CargoStore !== 'undefined' && CargoStore.kickOutLockedAgent) {
+                                    CargoStore.kickOutLockedAgent(serverAg.lockedReason || 'Tài khoản của bạn đã bị KHÓA bởi Quản trị viên.');
+                                    return;
+                                }
+                            }
                             if (serverAg.pin) local.currentUser.pin = serverAg.pin;
                             if (serverAg.fullName) local.currentUser.fullName = serverAg.fullName;
                             if (serverAg.repName) local.currentUser.repName = serverAg.repName;
@@ -2514,7 +2478,7 @@ const CargoStore = (function () {
                             username: local.currentAdmin.username,
                             role: local.currentAdmin.role || 'ADMIN',
                             actionCategory: 'Đăng nhập',
-                            actionTitle: 'Đăng nhập hệ thống Admin',
+                            actionTitle: 'Đăng nhập hệ thống Quản trị',
                             target: 'Portal Quản trị',
                             details: `Tài khoản ${local.currentAdmin.role || 'ADMIN'} ${local.currentAdmin.fullName} (@${local.currentAdmin.username}) đăng nhập thành công vào Trung tâm Điều hành Cargo.`
                         });
@@ -2589,7 +2553,7 @@ const CargoStore = (function () {
                 username: admin.username,
                 role: admin.role || 'ADMIN',
                 actionCategory: 'Đăng nhập',
-                actionTitle: 'Đăng nhập hệ thống Admin',
+                actionTitle: 'Đăng nhập hệ thống Quản trị',
                 target: 'Portal Quản trị',
                 details: `Tài khoản ${admin.role || 'ADMIN'} ${admin.fullName} (@${admin.username}) đăng nhập thành công vào Trung tâm Điều hành Cargo.`
             });
@@ -2598,15 +2562,12 @@ const CargoStore = (function () {
 
         getCurrentUser: function () {
             const data = loadData();
-            if (checkAndAutoLockExpiredWonAuctions(data)) {
-                saveData(data, true);
-            }
             const user = data.currentUser;
             if (!user) return null;
             const userCode = String(user.agentCode || user.code || '').trim();
             if (!userCode) return null;
 
-            // Verify if current agent account status is locked in agentsList
+            // Sync latest pin from agentsList without destructively wiping currentUser on simple read
             if (user.role === 'agent' || user.agentCode || user.code) {
                 const targetCode = userCode.toUpperCase();
                 const agent = (data.agentsList || []).find(a =>
@@ -2616,8 +2577,8 @@ const CargoStore = (function () {
                     if (agent.pin && !user.pin) {
                         user.pin = agent.pin;
                     }
-                    if (agent.status === 'Đã khóa' || agent.status === 'LOCKED') {
-                        // Auto logout / clear session immediately
+                    const isHttp = typeof window !== 'undefined' && window.location && window.location.protocol && window.location.protocol.startsWith('http');
+                    if (!isHttp && (agent.status === 'Đã khóa' || agent.status === 'LOCKED' || agent.isLocked)) {
                         data.currentUser = null;
                         saveData(data);
                         return null;
@@ -3140,7 +3101,7 @@ const CargoStore = (function () {
 
         getAuctions: function () {
             const data = loadData();
-            const auctions = Array.isArray(data.auctions) ? JSON.parse(JSON.stringify(data.auctions)) : [];
+            const auctions = Array.isArray(data.auctions) ? data.auctions.map(a => ({ ...a })) : [];
             const bids = data.bids || [];
             const wonList = data.wonAuctions || [];
 
@@ -3220,7 +3181,7 @@ const CargoStore = (function () {
         // Admin-only: returns ALL auctions including DELETED and CANCELLED (for audit/management)
         getAllAuctions: function () {
             const data = loadData();
-            const auctions = Array.isArray(data.auctions) ? JSON.parse(JSON.stringify(data.auctions)) : [];
+            const auctions = Array.isArray(data.auctions) ? data.auctions.map(a => ({ ...a })) : [];
             const bids = data.bids || [];
             auctions.forEach(a => {
                 const count = bids.filter(b => b.auctionId == a.id).length;
@@ -3401,6 +3362,9 @@ const CargoStore = (function () {
             // Tài khoản bị Admin khóa thì không được đặt thầu
             const agentAccount = (data.agentsList || []).find(a => (a.code || '').toUpperCase() === (user.agentCode || '').toUpperCase());
             if (agentAccount && (agentAccount.status === 'Đã khóa' || agentAccount.status === 'LOCKED' || agentAccount.isLocked)) {
+                if (typeof this.kickOutLockedAgent === 'function') {
+                    this.kickOutLockedAgent(agentAccount.lockedReason || 'Tài khoản đại lý của bạn đang bị khóa.');
+                }
                 return { success: false, message: 'Tài khoản đại lý của bạn đang bị khóa. Vui lòng liên hệ Ban Điều hành để được hỗ trợ.' };
             }
 
@@ -5398,7 +5362,7 @@ const CargoStore = (function () {
                 if (auction.status === 'CLOSED' && !auction.isFinalLocked) {
                     auction.isFinalLocked = true;
                     auction.finalLockedAt = auction.closedAt || auction.endTime || new Date().toISOString();
-                    saveData(data);
+                    saveData(data, true);
                 }
                 return [];
             }
@@ -5445,7 +5409,7 @@ const CargoStore = (function () {
                 if (isExpiredByTime && !auction.isFinalLocked) {
                     auction.isFinalLocked = true;
                     auction.finalLockedAt = new Date().toISOString();
-                    saveData(data);
+                    saveData(data, true);
                 }
             }
 
@@ -7609,7 +7573,7 @@ const CargoStore = (function () {
             }
             const freshData = loadData();
             freshData.currentUser = null;
-            saveData(freshData);
+            saveData(freshData, true);
         },
 
         logoutAdmin: function () {
@@ -7632,7 +7596,7 @@ const CargoStore = (function () {
             }
             const freshData = loadData();
             freshData.currentAdmin = null;
-            saveData(freshData);
+            saveData(freshData, true);
         },
 
         syncHeaderUI: function () {
@@ -8292,7 +8256,7 @@ const CargoStore = (function () {
             const data = loadData();
             if (!data.bankConfig) {
                 data.bankConfig = JSON.parse(JSON.stringify(defaultData.bankConfig));
-                saveData(data);
+                saveData(data, true);
             }
             return data.bankConfig;
         },
@@ -8437,7 +8401,7 @@ const CargoStore = (function () {
                     emailAlert: true,
                     soundAlert: true
                 };
-                saveData(data);
+                saveData(data, true);
             }
             return data.routeSubscriptions[code];
         },
@@ -8533,8 +8497,46 @@ const CargoStore = (function () {
                 console.error('Error resetting CargoStore data:', e);
             }
             return { success: true, message: 'Đã khôi phục toàn bộ dữ liệu hệ thống về mặc định!' };
-        }
+        },
 
+        kickOutLockedAgent: function (reason = 'Tài khoản đại lý của bạn đã bị KHÓA bởi Quản trị viên hệ thống.') {
+            if (isRedirecting) return;
+            isRedirecting = true;
+            try {
+                const data = loadData();
+                data.currentUser = null;
+                saveData(data, true);
+            } catch (e) { }
+
+            try {
+                document.cookie = "cargo_agent_code=; path=/; expires=Thu, 01 Jan 1970 00:00:00 UTC; SameSite=Lax";
+            } catch (e) { }
+
+            const targetUrl = (typeof window !== 'undefined' && window.location && window.location.protocol.startsWith('http'))
+                ? `/login?locked=1&reason=${encodeURIComponent(reason)}`
+                : `01-Login.html?locked=1&reason=${encodeURIComponent(reason)}`;
+
+            if (typeof Swal !== 'undefined') {
+                Swal.fire({
+                    icon: 'error',
+                    title: 'TÀI KHOẢN ĐÃ BỊ KHÓA',
+                    html: `<div style="font-size: 13.5px; color: #334155; line-height: 1.5; text-align: left; padding: 4px 6px;">
+                        <p style="margin-bottom: 8px; font-weight: 700; color: #dc2626;">Phiên làm việc đã bị chấm dứt.</p>
+                        <p style="margin-bottom: 8px;">${reason}</p>
+                        <p style="font-size: 12px; color: #64748b;">Vui lòng liên hệ Ban Điều hành Cargo để được hỗ trợ mở khóa tài khoản.</p>
+                    </div>`,
+                    confirmButtonText: 'Quay lại Đăng nhập',
+                    confirmButtonColor: '#dc2626',
+                    allowOutsideClick: false,
+                    allowEscapeKey: false
+                }).then(() => {
+                    window.location.href = targetUrl;
+                });
+            } else {
+                alert(`TÀI KHOẢN ĐÃ BỊ KHÓA:\n\n${reason}\n\nPhiên làm việc đã bị chấm dứt. Vui lòng liên hệ Ban Điều hành để được hỗ trợ.`);
+                window.location.href = targetUrl;
+            }
+        }
     };
 })();
 
@@ -8659,16 +8661,20 @@ if (typeof window !== 'undefined') {
         }
 
         // 3. Rewrite links in DOM
-        function rewriteAllLinks() {
+        function rewriteLinkElement(a) {
             try {
-                const links = document.querySelectorAll('a[href]');
-                links.forEach(a => {
-                    const raw = a.getAttribute('href');
-                    const clean = resolveCleanHref(raw);
-                    if (clean && raw !== clean) {
-                        a.setAttribute('href', clean);
-                    }
-                });
+                const raw = a.getAttribute('href');
+                const clean = resolveCleanHref(raw);
+                if (clean && raw !== clean) {
+                    a.setAttribute('href', clean);
+                }
+            } catch (e) { }
+        }
+
+        function rewriteAllLinks(root = document) {
+            try {
+                const links = root.querySelectorAll('a[href]');
+                links.forEach(rewriteLinkElement);
             } catch (e) { }
         }
 
@@ -8678,92 +8684,153 @@ if (typeof window !== 'undefined') {
         document.addEventListener('click', function (e) {
             const a = e.target.closest('a[href]');
             if (!a) return;
-            const raw = a.getAttribute('href');
-            const clean = resolveCleanHref(raw);
-            if (clean && raw !== clean) {
-                a.setAttribute('href', clean);
-            }
+            rewriteLinkElement(a);
         }, true);
 
-        // 5. Watch dynamic DOM changes
+        // 5. Watch dynamic DOM changes (only inspect newly added Element nodes, never re-scan whole document)
         if (typeof MutationObserver !== 'undefined' && document.body) {
             const observer = new MutationObserver(function (mutations) {
-                let shouldRewrite = false;
                 for (const m of mutations) {
-                    if (m.addedNodes && m.addedNodes.length > 0) {
-                        shouldRewrite = true;
-                        break;
+                    if (!m.addedNodes || m.addedNodes.length === 0) continue;
+                    for (const node of m.addedNodes) {
+                        if (node.nodeType === 1) {
+                            if (node.tagName === 'A' && node.hasAttribute('href')) {
+                                rewriteLinkElement(node);
+                            } else if (node.querySelectorAll) {
+                                rewriteAllLinks(node);
+                            }
+                        }
                     }
                 }
-                if (shouldRewrite) rewriteAllLinks();
             });
             observer.observe(document.body, { childList: true, subtree: true });
         }
     }
 
-    function checkAccountLockGuard() {
+    let _isCheckingLockGuard = false;
+    let _lastLockGuardCheck = 0;
+
+    async function checkAccountLockGuard() {
         if (typeof window === 'undefined' || !window.location || !window.location.pathname) return;
+        if (typeof document !== 'undefined' && document.hidden) return;
         if (isRedirecting || window._isManualLogout) return;
         if (typeof CargoStore === 'undefined') return;
 
-        const pathname = (window.location.pathname || '').toLowerCase();
+        // In-flight guard & time throttle to prevent request loops and browser lag
+        if (_isCheckingLockGuard) return;
+        const now = Date.now();
+        if (now - _lastLockGuardCheck < 10000) return;
+        _isCheckingLockGuard = true;
+        _lastLockGuardCheck = now;
 
-        // Never trigger lock/logout alerts or redirects on public, login, or register pages!
-        const isPublicOrLoginPage = (
-            pathname === '/' ||
-            pathname.endsWith('/') ||
-            pathname.endsWith('/index.html') ||
-            pathname.includes('00-home') ||
-            pathname.includes('01-login') ||
-            pathname.includes('adminlogin') ||
-            pathname.includes('register') ||
-            pathname.includes('10-terms') ||
-            pathname === '/home' ||
-            pathname === '/login' ||
-            pathname === '/admin/login' ||
-            pathname === '/terms' ||
-            pathname === '/register'
-        );
+        try {
+            const pathname = (window.location.pathname || '').toLowerCase();
 
-        if (isPublicOrLoginPage) return;
-
-        const isAdminPage = (
-            pathname.includes('/admin/') ||
-            pathname.includes('\\admin\\') ||
-            pathname === '/admin' ||
-            pathname.startsWith('/admin')
-        );
-
-        if (isAdminPage) {
-            // Guard protected Admin pages
-            if (pathname.includes('01-adminlogin') || pathname === '/admin/login' || pathname === '/admin') return;
-            const admin = CargoStore.getCurrentAdmin();
-            if (!admin) {
-                isRedirecting = true;
-                window.location.href = window.location.protocol.startsWith('http') ? '/admin/login' : '01-AdminLogin.html';
-                return;
-            }
-        } else {
-            // Guard protected Agent pages
-            const isAgentProtectedPage = (
-                pathname.includes('02-dashboard') || pathname.includes('/dashboard') ||
-                pathname.includes('03-index') || pathname.includes('/auctions') || pathname.includes('/auction') ||
-                pathname.includes('04-detail') || pathname.includes('/detail') ||
-                pathname.includes('05-watchlist') || pathname.includes('/watchlist') ||
-                pathname.includes('06-mybids') || pathname.includes('/my-bids') || pathname.includes('/bids') ||
-                pathname.includes('07-wonauction') || pathname.includes('/won') || pathname.includes('/won-auction') ||
-                pathname.includes('08-notifications') || pathname.includes('/notifications') || pathname.includes('/notification') ||
-                pathname.includes('09-profile') || pathname.includes('/profile')
+            // Never trigger lock/logout alerts or redirects on public, login, or register pages!
+            const isPublicOrLoginPage = (
+                pathname === '/' ||
+                pathname.endsWith('/') ||
+                pathname.endsWith('/index.html') ||
+                pathname.includes('00-home') ||
+                pathname.includes('01-login') ||
+                pathname.includes('adminlogin') ||
+                pathname.includes('register') ||
+                pathname.includes('10-terms') ||
+                pathname === '/home' ||
+                pathname === '/login' ||
+                pathname === '/admin/login' ||
+                pathname === '/terms' ||
+                pathname === '/register'
             );
 
-            if (isAgentProtectedPage) {
-                const user = CargoStore.getCurrentUser();
-                if (!user) {
+            if (isPublicOrLoginPage) return;
+
+            const isAdminPage = (
+                pathname.includes('/admin/') ||
+                pathname.includes('\\admin\\') ||
+                pathname === '/admin' ||
+                pathname.startsWith('/admin')
+            );
+
+            if (isAdminPage) {
+                // Guard protected Admin pages
+                if (pathname.includes('01-adminlogin') || pathname === '/admin/login' || pathname === '/admin') return;
+                const admin = CargoStore.getCurrentAdmin();
+                if (!admin) {
                     isRedirecting = true;
-                    window.location.href = window.location.protocol.startsWith('http') ? '/login' : '01-Login.html';
+                    window.location.href = window.location.protocol.startsWith('http') ? '/admin/login' : '01-AdminLogin.html';
                     return;
                 }
+            } else {
+                // Guard protected Agent pages
+                const isAgentProtectedPage = (
+                    pathname.includes('02-dashboard') || pathname.includes('/dashboard') ||
+                    pathname.includes('03-index') || pathname.includes('/auctions') || pathname.includes('/auction') ||
+                    pathname.includes('04-detail') || pathname.includes('/detail') ||
+                    pathname.includes('05-watchlist') || pathname.includes('/watchlist') ||
+                    pathname.includes('06-mybids') || pathname.includes('/my-bids') || pathname.includes('/bids') ||
+                    pathname.includes('07-wonauction') || pathname.includes('/won') || pathname.includes('/won-auction') ||
+                    pathname.includes('08-notifications') || pathname.includes('/notifications') || pathname.includes('/notification') ||
+                    pathname.includes('09-profile') || pathname.includes('/profile')
+                );
+
+                if (isAgentProtectedPage) {
+                    const user = CargoStore.getCurrentUser();
+                    if (!user) {
+                        isRedirecting = true;
+                        window.location.href = window.location.protocol.startsWith('http') ? '/login' : '01-Login.html';
+                        return;
+                    }
+
+                    // Check lock status actively with server
+                    const myCode = (user.agentCode || user.code || '').trim().toUpperCase();
+                    if (myCode && typeof fetch === 'function' && window.location.protocol.startsWith('http')) {
+                        try {
+                            const statusRes = await fetch(`/api/agent/status?code=${encodeURIComponent(myCode)}`, { cache: 'no-store' });
+                            if (statusRes.status === 403) {
+                                const errJson = await statusRes.json().catch(() => ({}));
+                                CargoStore.kickOutLockedAgent(errJson.message || 'Tài khoản đại lý của bạn đã bị KHÓA bởi Quản trị viên hệ thống.');
+                                return;
+                            }
+                            if (statusRes.ok) {
+                                const statusData = await statusRes.json();
+                                if (statusData && statusData.isLocked) {
+                                    CargoStore.kickOutLockedAgent(statusData.reason);
+                                    return;
+                                }
+                                if (statusData && !statusData.isLocked) {
+                                    // Synchronize active status to local storage so client doesn't hold stale lock state
+                                    try {
+                                        const local = loadData();
+                                        let changed = false;
+                                        if (Array.isArray(local.agentsList)) {
+                                            const ag = local.agentsList.find(a => (a.code || '').toUpperCase() === myCode);
+                                            if (ag && (ag.isLocked || ag.status === 'Đã khóa' || ag.status === 'LOCKED')) {
+                                                ag.isLocked = false;
+                                                ag.status = 'Đang hoạt động';
+                                                delete ag.lockedReason;
+                                                changed = true;
+                                            }
+                                        }
+                                        if (local.currentUser && (local.currentUser.agentCode || local.currentUser.code || '').toUpperCase() === myCode) {
+                                            if (local.currentUser.isLocked || local.currentUser.status === 'Đã khóa' || local.currentUser.status === 'LOCKED') {
+                                                local.currentUser.isLocked = false;
+                                                local.currentUser.status = 'Đang hoạt động';
+                                                changed = true;
+                                            }
+                                        }
+                                        if (changed) {
+                                            saveData(local, true);
+                                        }
+                                    } catch (e) { }
+                                }
+                            }
+                        } catch (e) { }
+                    }
+                }
             }
+        } finally {
+            _isCheckingLockGuard = false;
         }
     }
 
@@ -8826,9 +8893,8 @@ if (typeof window !== 'undefined') {
         });
     }
 
-    // Periodically check every 5s on protected pages
-    setInterval(checkAccountLockGuard, 5000);
-    window.addEventListener('storage', checkAccountLockGuard);
+    // Periodically check every 15s on protected pages
+    setInterval(checkAccountLockGuard, 15000);
 }
 
 // Global SweetAlert2 & custom confirm integration

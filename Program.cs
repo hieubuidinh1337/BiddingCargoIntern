@@ -77,12 +77,78 @@ app.Use(async (ctx, next) =>
     await next();
 });
 
+// ---- Kiểm tra tài khoản đại lý bị khóa: tự động thu hồi phiên, xóa cookie và đá văng về trang đăng nhập
+app.Use(async (ctx, next) =>
+{
+    var path = ctx.Request.Path.Value?.ToLowerInvariant() ?? "/";
+    var isApi = path.StartsWith("/api/");
+
+    // Bỏ qua trang login, register, home, admin, static files và endpoint kiểm tra trạng thái /api/agent/status
+    var isAgentPage = path.StartsWith("/dashboard") ||
+                      path.StartsWith("/auctions") || path.StartsWith("/auction") ||
+                      path.StartsWith("/detail") ||
+                      path.StartsWith("/watchlist") ||
+                      path.StartsWith("/my-bids") || path.StartsWith("/bids") ||
+                      path.StartsWith("/won") ||
+                      path.StartsWith("/notifications") || path.StartsWith("/notification") ||
+                      path.StartsWith("/profile");
+
+    var isAgentApi = isApi && (path.StartsWith("/api/agent/") || path.StartsWith("/api/bids/")) && !path.StartsWith("/api/agent/status");
+
+    if (isAgentPage || isAgentApi)
+    {
+        var agentCode = ctx.Request.Cookies["cargo_agent_code"]?.Trim().ToUpperInvariant();
+        if (string.IsNullOrEmpty(agentCode) && isAgentApi)
+        {
+            agentCode = ctx.Request.Query["agentCode"].ToString()?.Trim().ToUpperInvariant();
+            if (string.IsNullOrEmpty(agentCode))
+                agentCode = ctx.Request.Query["code"].ToString()?.Trim().ToUpperInvariant();
+        }
+
+        if (!string.IsNullOrEmpty(agentCode))
+        {
+            var db = ctx.RequestServices.GetRequiredService<AppDbContext>();
+            var agent = await db.Agents.AsNoTracking().FirstOrDefaultAsync(a => a.Code.ToUpper() == agentCode);
+            if (agent != null)
+            {
+                ctx.Items["CurrentAgent"] = agent;
+            }
+            if (agent != null && (agent.IsLocked || agent.Status == "Đã khóa" || agent.Status == "LOCKED"))
+            {
+                ctx.Response.Cookies.Delete("cargo_agent_code");
+                var reason = agent.LockedReason ?? "Tài khoản đại lý của bạn đã bị KHÓA bởi Quản trị viên hệ thống.";
+
+                if (isApi)
+                {
+                    ctx.Response.StatusCode = 403;
+                    ctx.Response.ContentType = "application/json; charset=utf-8";
+                    await ctx.Response.WriteAsync(System.Text.Json.JsonSerializer.Serialize(new
+                    {
+                        success = false,
+                        isLocked = true,
+                        agentCode = agent.Code,
+                        message = reason
+                    }));
+                    return;
+                }
+                else
+                {
+                    ctx.Response.Redirect($"/login?locked=1&code={Uri.EscapeDataString(agent.Code)}&reason={Uri.EscapeDataString(reason)}");
+                    return;
+                }
+            }
+        }
+    }
+
+    await next();
+});
+
 app.UseStaticFiles(new StaticFileOptions
 {
     OnPrepareResponse = ctx =>
     {
-        // Giống bản Node: không cache để luôn lấy JS/CSS mới nhất
-        ctx.Context.Response.Headers.CacheControl = "no-cache, no-store, must-revalidate";
+        // Cho phép trình duyệt cache tài nguyên tĩnh (JS/CSS/ảnh) kèm ETag/Last-Modified để chuyển trang mượt mà
+        ctx.Context.Response.Headers.CacheControl = "public, max-age=3600";
     }
 });
 

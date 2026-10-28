@@ -381,9 +381,9 @@
 
             <!-- Right Bar -->
             <div class="admin-right">
-                <a href="../00-Home.html" target="_blank" class="admin-public-link">
+                <!-- <a href="../00-Home.html" target="_blank" class="admin-public-link">
                     <i class="fa-solid fa-arrow-up-right-from-square text-[9px]"></i> Sàn công khai
-                </a>
+                </a> -->
                 <div class="admin-sep"></div>
                 <div class="admin-avatar admin-header-avatar">AD</div>
                 <div class="admin-user-info">
@@ -868,11 +868,24 @@
             return false;
         }
 
-        function findAuctionForLog(log) {
-            if (!log) return null;
+        let _cachedAuctionsForLog = null;
+        let _cachedAuctionsForLogTs = 0;
+
+        function getCachedAuctionsForLog() {
+            const now = Date.now();
+            if (_cachedAuctionsForLog && (now - _cachedAuctionsForLogTs < 1500)) {
+                return _cachedAuctionsForLog;
+            }
             const store = (typeof CargoStore !== 'undefined') ? CargoStore : null;
             const data = (store && store.getData) ? store.getData() : {};
-            const auctions = (store && store.getAuctions) ? store.getAuctions() : (data.auctions || []);
+            _cachedAuctionsForLog = (store && store.getAuctions) ? store.getAuctions() : (data.auctions || []);
+            _cachedAuctionsForLogTs = now;
+            return _cachedAuctionsForLog;
+        }
+
+        function findAuctionForLog(log) {
+            if (!log) return null;
+            const auctions = getCachedAuctionsForLog();
 
             const targetStr = String(log.target || '').trim().toUpperCase();
             const detailsStr = String(log.details || '').toUpperCase();

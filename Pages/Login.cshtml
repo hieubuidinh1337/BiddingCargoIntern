@@ -1142,10 +1142,28 @@
             `;
         }
 
-        // Check for 1-click URL unlock token: ?action=unlock&code=AG-XXXX&token=ULK-XXXX
+        // Check for 1-click URL unlock token or account locked redirect
         document.addEventListener('DOMContentLoaded', function () {
             const params = new URLSearchParams(window.location.search);
-            if (params.get('action') === 'unlock' && params.get('token') && params.get('code')) {
+            if (params.get('locked') === '1') {
+                const lCode = params.get('code') || '';
+                const lReason = params.get('reason') || 'Tài khoản đại lý của bạn đã bị KHÓA bởi Quản trị viên hệ thống.';
+                if (lCode && document.getElementById('agentCode')) {
+                    document.getElementById('agentCode').value = lCode;
+                }
+                const actionBtn = `
+                <div class="mt-2.5 pt-2 border-t border-red-200 text-xs text-red-900">
+                    <div class="font-bold mb-1 flex items-center gap-1.5 text-red-700">
+                        <i class="fa-solid fa-circle-info text-red-600"></i> Hướng dẫn liên hệ hỗ trợ:
+                    </div>
+                    <ul class="list-disc pl-4 space-y-1 text-[11px] text-red-800 leading-relaxed">
+                        <li>Phiên đăng nhập đã bị hủy ngay lập tức do tài khoản đang ở trạng thái Khóa.</li>
+                        <li>Vui lòng liên hệ Hotline <strong>1900.6686</strong> hoặc Email <strong>cargo@vietravelairlines.vn</strong> để được giải đáp.</li>
+                    </ul>
+                </div>
+                `;
+                showError('TÀI KHOẢN ĐÃ BỊ KHÓA', lReason, actionBtn);
+            } else if (params.get('action') === 'unlock' && params.get('token') && params.get('code')) {
                 const uCode = params.get('code');
                 const uToken = params.get('token');
                 const uRes = CargoStore.unlockAccountWithToken(uCode, uToken);
