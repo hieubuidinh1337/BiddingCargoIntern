@@ -16,6 +16,41 @@ public class SharedDataService
     private static readonly HashSet<string> PseudoAgentCodes =
         new(StringComparer.OrdinalIgnoreCase) { "ALL", "STAFF", "SYSTEM", "ADMIN", "VU-ADMIN-01", "VU-OPS-88" };
 
+    private static readonly HashSet<string> SampleDocNames =
+        new(StringComparer.OrdinalIgnoreCase)
+        {
+            "GPKD_TanSonNhat_Scan.pdf", "UyQuyen_Cargo_IATA.pdf", "CCCD_TranHoangNam.pdf",
+            "GPKD_Doanh_Nghiep.pdf", "IATA_Cargo_Authorization.pdf", "CCCD_NguoiDaiDien.pdf",
+            "Quy_che_dau_gia_tai_trong_Vietravel_Cargo.pdf", "sample_document.pdf"
+        };
+
+    private static JsonObject FilterSampleDocuments(JsonObject node)
+    {
+        if (node["documents"] is JsonArray arr)
+        {
+            var cleaned = new JsonArray();
+            foreach (var item in arr)
+            {
+                if (item is JsonObject obj)
+                {
+                    var name = (EntityJson.Str(obj, "name") ?? "").Trim();
+                    var dataUrl = EntityJson.Str(obj, "dataUrl");
+                    if (string.IsNullOrEmpty(name)) continue;
+                    if (string.IsNullOrEmpty(dataUrl) && SampleDocNames.Contains(name)) continue;
+                    cleaned.Add(obj.DeepClone());
+                }
+                else if (item != null)
+                {
+                    var name = (EntityJson.NodeStr(item) ?? "").Trim();
+                    if (!string.IsNullOrEmpty(name) && !SampleDocNames.Contains(name))
+                        cleaned.Add(item.DeepClone());
+                }
+            }
+            node["documents"] = cleaned;
+        }
+        return node;
+    }
+
     private readonly AppDbContext _db;
     private readonly IConfiguration _cfg;
     private readonly ILogger<SharedDataService> _log;
@@ -365,6 +400,7 @@ public class SharedDataService
             n.Remove("pin");
             n.Remove("unlockToken");
             n.Remove("unlockOtp");
+            FilterSampleDocuments(n);
             agentsList.Add(n);
         }
 
@@ -442,7 +478,7 @@ public class SharedDataService
             ["bids"] = ToArray(bids),
             ["wonAuctions"] = ToArray(wons),
             ["notifications"] = ToArray(filteredNotifs.Select(n => EntityJson.ToNode(n))),
-            ["registrations"] = (isAdmin || isStaff) ? ToArray(regList.Select(r => EntityJson.ToNode(r))) : new JsonArray(),
+            ["registrations"] = (isAdmin || isStaff) ? ToArray(regList.Select(r => FilterSampleDocuments(EntityJson.ToNode(r)))) : new JsonArray(),
             ["agentsList"] = agentsList,
             ["usersList"] = (isAdmin || isStaff) ? ToArray(userList.Select(u => {
                 var un = EntityJson.ToNode(u);

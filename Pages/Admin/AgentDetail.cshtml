@@ -882,17 +882,33 @@
                 docs = currentReg.documents;
             }
 
-            // Fallback standard KYC documents if not uploaded or empty
-            if (!docs || docs.length === 0) {
-                docs = [
-                    { name: 'GPKD_Doanh_Nghiep.pdf', size: 2450000, type: 'application/pdf', title: 'Giấy phép kinh doanh / ĐKKD' },
-                    { name: 'IATA_Cargo_Authorization.pdf', size: 1850000, type: 'application/pdf', title: 'Giấy ủy quyền Đại lý Cargo / IATA' },
-                    { name: 'CCCD_NguoiDaiDien.pdf', size: 1150000, type: 'application/pdf', title: 'Bản chụp CCCD / Hộ chiếu Người đại diện' },
-                    { name: 'Quy_che_dau_gia_tai_trong_Vietravel_Cargo.pdf', size: 850000, type: 'application/pdf', title: 'Quy chế & Cam kết Đấu thầu Tải trọng' }
-                ];
-            }
+            // Filter out legacy sample PDFs without real dataUrl (không hiển thị file PDF mẫu)
+            const SAMPLE_DOC_NAMES = new Set([
+                'gpkd_tansonnhaat_scan.pdf', 'gpkd_tansonnhat_scan.pdf', 'uyquyen_cargo_iata.pdf', 'cccd_tranhoangnam.pdf',
+                'gpkd_doanh_nghiep.pdf', 'iata_cargo_authorization.pdf', 'cccd_nguoidaidien.pdf',
+                'quy_che_dau_gia_tai_trong_vietravel_cargo.pdf', 'sample_document.pdf'
+            ]);
+            docs = (docs || [])
+                .map(d => typeof d === 'string' ? { name: d, dataUrl: null, type: 'application/pdf' } : d)
+                .filter(d => {
+                    if (!d || !d.name) return false;
+                    if (!d.dataUrl && SAMPLE_DOC_NAMES.has(String(d.name).trim().toLowerCase())) return false;
+                    return true;
+                });
 
             currentAgentDocs = docs;
+
+            if (docs.length === 0) {
+                container.className = 'block';
+                container.innerHTML = `
+                    <div class="border border-dashed border-slate-200 rounded-xl p-5 text-center bg-slate-50/70 text-xs text-slate-500">
+                        <i class="fa-solid fa-folder-open text-slate-400 text-lg mb-1.5 block"></i>
+                        Đại lý chưa tải lên hồ sơ PDF bổ sung (Chỉ mới đăng ký thông tin doanh nghiệp).
+                    </div>
+                `;
+                return;
+            }
+            container.className = 'grid grid-cols-1 md:grid-cols-2 gap-3 text-xs';
 
             container.innerHTML = docs.map((doc, idx) => {
                 const docName = doc.name || `Tài liệu_${idx + 1}.pdf`;
@@ -1082,17 +1098,6 @@
                 }
             }
 
-            const docNameLower = (doc.name || '').toLowerCase();
-            if (docNameLower.endsWith('.pdf')) {
-                const a = document.createElement('a');
-                a.href = '../uploads/sample_document.pdf';
-                a.download = doc.name || 'document.pdf';
-                document.body.appendChild(a);
-                a.click();
-                document.body.removeChild(a);
-                return;
-            }
-
             const compName = currentAgent ? currentAgent.companyName : (currentReg ? currentReg.companyName : 'Đại lý');
             const blob = new Blob([
                 `BẢN ĐỐI SOÁT HỒ SƠ ĐIỆN TỬ - VIETRAVEL AIRLINES CARGO\n` +
@@ -1149,7 +1154,7 @@
                     w.document.body.appendChild(wrapper);
                 }
             } else {
-                window.open('../uploads/sample_document.pdf', '_blank');
+                alert('Tệp tin này chưa có dữ liệu gốc tải lên.');
             }
         }
 

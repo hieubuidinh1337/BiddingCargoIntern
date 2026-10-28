@@ -168,19 +168,25 @@
 
             <!-- Profile Documents Section (E-KYC Verification) -->
             <div class="border-t pt-5">
-                <div class="flex items-center justify-between mb-3.5">
+                <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-2.5 mb-3.5">
                     <div class="flex items-center gap-2.5">
                         <span class="w-7 h-7 bg-blue-100 text-blue-700 rounded-lg flex items-center justify-center text-xs font-bold">
                             <i class="fa-solid fa-folder-closed"></i>
                         </span>
                         <div>
-                            <h3 class="font-bold text-sm text-slate-900">Hồ sơ & Giấy tờ Minh chứng Đính kèm</h3>
-                            <p class="text-[11px] text-slate-400">Giấy tờ pháp lý lưu trữ trên hệ thống phục vụ thẩm định năng lực đấu thầu</p>
+                            <h3 class="font-bold text-sm text-slate-900">Hồ sơ & Giấy tờ Minh chứng Bổ sung</h3>
+                            <p class="text-[11px] text-slate-400">Tải lên bổ sung các tệp PDF / Scan pháp lý (GPKD, Chứng nhận đại lý, CCCD...)</p>
                         </div>
                     </div>
-                    <span id="ekycBadge" class="text-xs bg-emerald-50 text-emerald-800 border border-emerald-200 px-2.5 py-1 rounded-lg font-semibold flex items-center gap-1">
-                        <i class="fa-solid fa-shield-check text-emerald-600"></i> Đã số hóa E-KYC
-                    </span>
+                    <div class="flex items-center gap-2">
+                        <span id="ekycBadge" class="text-xs bg-amber-50 text-amber-800 border border-amber-200 px-2.5 py-1 rounded-lg font-semibold flex items-center gap-1">
+                            <i class="fa-solid fa-clock text-amber-600"></i> Chưa bổ sung hồ sơ
+                        </span>
+                        <label class="cursor-pointer bg-blue-600 hover:bg-blue-700 text-white text-xs font-bold px-3 py-1.5 rounded-lg transition shadow-xs inline-flex items-center gap-1.5">
+                            <i class="fa-solid fa-file-arrow-up"></i> Bổ sung hồ sơ (PDF / Ảnh)
+                            <input type="file" id="suppDocInput" accept=".pdf,.jpg,.jpeg,.png" multiple class="hidden" onchange="handleUploadSupplementaryDocs(this)">
+                        </label>
+                    </div>
                 </div>
 
                 <div id="profDocsContainer" class="grid grid-cols-1 md:grid-cols-2 gap-3 text-xs">
@@ -819,24 +825,44 @@
                 docs = window._serverProfile.documents;
             }
 
-            // Fallback standard KYC documents if not uploaded or empty
-            if (!docs || docs.length === 0) {
-                docs = [
-                    { name: 'GPKD_Doanh_Nghiep.pdf', size: 2450000, type: 'application/pdf', title: 'Giấy phép kinh doanh / ĐKKD' },
-                    { name: 'IATA_Cargo_Authorization.pdf', size: 1850000, type: 'application/pdf', title: 'Giấy ủy quyền Đại lý Cargo / IATA' },
-                    { name: 'CCCD_NguoiDaiDien.pdf', size: 1150000, type: 'application/pdf', title: 'Bản chụp CCCD / Hộ chiếu Người đại diện' },
-                    { name: 'Quy_che_dau_gia_tai_trong_Vietravel_Cargo.pdf', size: 850000, type: 'application/pdf', title: 'Quy chế & Cam kết Đấu thầu Tải trọng' }
-                ];
-            }
-
-            // Normalize docs if elements are strings
-            docs = docs.map((d, i) => typeof d === 'string' ? { name: d, dataUrl: null, type: 'application/pdf' } : d);
+            // Normalize docs & filter out any legacy sample PDF files without real dataUrl
+            const SAMPLE_DOC_NAMES = new Set([
+                'gpkd_tansonnhaat_scan.pdf', 'gpkd_tansonnhat_scan.pdf', 'uyquyen_cargo_iata.pdf', 'cccd_tranhoangnam.pdf',
+                'gpkd_doanh_nghiep.pdf', 'iata_cargo_authorization.pdf', 'cccd_nguoidaidien.pdf',
+                'quy_che_dau_gia_tai_trong_vietravel_cargo.pdf', 'sample_document.pdf'
+            ]);
+            docs = (docs || [])
+                .map(d => typeof d === 'string' ? { name: d, dataUrl: null, type: 'application/pdf' } : d)
+                .filter(d => {
+                    if (!d || !d.name) return false;
+                    if (!d.dataUrl && SAMPLE_DOC_NAMES.has(String(d.name).trim().toLowerCase())) return false;
+                    return true;
+                });
             currentProfDocs = docs;
 
             const badge = document.getElementById('ekycBadge');
             if (badge) {
-                badge.className = 'text-xs bg-emerald-50 text-emerald-800 border border-emerald-200 px-2.5 py-1 rounded-lg font-semibold flex items-center gap-1';
-                badge.innerHTML = `<i class="fa-solid fa-shield-check text-emerald-600"></i> Đã số hóa E-KYC (${docs.length} tệp)`;
+                if (docs.length > 0) {
+                    badge.className = 'text-xs bg-emerald-50 text-emerald-800 border border-emerald-200 px-2.5 py-1 rounded-lg font-semibold flex items-center gap-1';
+                    badge.innerHTML = `<i class="fa-solid fa-shield-check text-emerald-600"></i> Đã tải lên (${docs.length} tệp)`;
+                } else {
+                    badge.className = 'text-xs bg-amber-50 text-amber-800 border border-amber-200 px-2.5 py-1 rounded-lg font-semibold flex items-center gap-1';
+                    badge.innerHTML = `<i class="fa-solid fa-clock text-amber-600"></i> Chưa bổ sung hồ sơ (0 tệp)`;
+                }
+            }
+
+            if (docs.length === 0) {
+                container.className = 'block';
+                container.innerHTML = `
+                    <div class="border border-dashed border-slate-300 rounded-xl p-6 text-center bg-slate-50/60">
+                        <div class="w-11 h-11 rounded-full bg-slate-100 text-slate-400 flex items-center justify-center mx-auto mb-2.5 text-lg">
+                            <i class="fa-solid fa-file-circle-plus"></i>
+                        </div>
+                        <p class="font-bold text-slate-700 text-xs mb-1">Chưa có hồ sơ pháp lý bổ sung</p>
+                        <p class="text-[11px] text-slate-500 max-w-md mx-auto">Quý đại lý có thể bấm nút <strong>"Bổ sung hồ sơ (PDF / Ảnh)"</strong> ở góc trên bên phải để tải lên Giấy phép kinh doanh, Chứng nhận đại lý Cargo/IATA hoặc CCCD.</p>
+                    </div>
+                `;
+                return;
             }
 
             container.className = 'grid grid-cols-1 md:grid-cols-2 gap-3 text-xs';
@@ -888,10 +914,93 @@
                                 class="px-2 py-1.5 bg-white border border-slate-200 hover:bg-slate-100 text-slate-600 font-bold rounded-lg text-xs transition shadow-2xs inline-flex items-center cursor-pointer" title="Tải tệp tin">
                                 <i class="fa-solid fa-download text-[11px]"></i>
                             </button>
+                            <button type="button" onclick="removeProfileDoc(${idx})"
+                                class="px-2 py-1.5 bg-white border border-slate-200 hover:bg-red-50 text-red-500 hover:border-red-200 font-bold rounded-lg text-xs transition shadow-2xs inline-flex items-center cursor-pointer" title="Xóa tệp tin">
+                                <i class="fa-solid fa-trash-can text-[11px]"></i>
+                            </button>
                         </div>
                     </div>
                 `;
             }).join('');
+        }
+
+        async function saveProfileDocumentsToServer(newDocs) {
+            const u = (typeof CargoStore !== 'undefined' && CargoStore.getCurrentUser) ? CargoStore.getCurrentUser() : null;
+            const myCode = ((u && (u.agentCode || u.code)) || (window._serverProfile && window._serverProfile.agentCode) || '').trim().toUpperCase();
+            currentProfDocs = newDocs;
+
+            if (window._serverProfile) window._serverProfile.documents = newDocs;
+            if (typeof CargoStore !== 'undefined') {
+                const storeData = CargoStore.getData();
+                if (storeData.currentUser) storeData.currentUser.documents = newDocs;
+                const ag = (storeData.agentsList || []).find(a => (a.code || '').trim().toUpperCase() === myCode);
+                if (ag) ag.documents = newDocs;
+                const reg = (storeData.registrations || []).find(r => (r.agentCode || '').trim().toUpperCase() === myCode);
+                if (reg) reg.documents = newDocs;
+                CargoStore.saveData(storeData);
+                renderProfileDocuments(storeData.currentUser || { code: myCode, companyName: currentProfCompName, documents: newDocs }, storeData);
+            }
+
+            if (myCode) {
+                try {
+                    await fetch('/api/agent/profile/documents', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({ agentCode: myCode, documents: newDocs })
+                    });
+                } catch (err) {
+                    console.warn('Lỗi lưu hồ sơ bổ sung lên server:', err);
+                }
+            }
+        }
+
+        function handleUploadSupplementaryDocs(input) {
+            if (!input || !input.files || input.files.length === 0) return;
+            const allowedExts = ['.pdf', '.jpg', '.jpeg', '.png'];
+            const maxSize = 10 * 1024 * 1024;
+            const files = Array.from(input.files);
+
+            for (const f of files) {
+                const ext = f.name.includes('.') ? f.name.substring(f.name.lastIndexOf('.')).toLowerCase() : '';
+                if (!allowedExts.includes(ext)) {
+                    alert(`Tệp "${f.name}" không hợp lệ. Chỉ chấp nhận định dạng PDF, JPG, PNG!`);
+                    input.value = '';
+                    return;
+                }
+                if (f.size > maxSize) {
+                    alert(`Tệp "${f.name}" vượt quá dung lượng tối đa 10MB!`);
+                    input.value = '';
+                    return;
+                }
+            }
+
+            const newDocs = Array.isArray(currentProfDocs) ? [...currentProfDocs] : [];
+            let readCount = 0;
+            files.forEach(file => {
+                const reader = new FileReader();
+                reader.onload = async function (e) {
+                    newDocs.push({
+                        name: file.name,
+                        dataUrl: e.target.result,
+                        type: file.type || (file.name.toLowerCase().endsWith('.pdf') ? 'application/pdf' : 'image/png'),
+                        size: file.size
+                    });
+                    readCount++;
+                    if (readCount === files.length) {
+                        input.value = '';
+                        await saveProfileDocumentsToServer(newDocs);
+                    }
+                };
+                reader.readAsDataURL(file);
+            });
+        }
+
+        async function removeProfileDoc(idx) {
+            if (!Array.isArray(currentProfDocs) || !currentProfDocs[idx]) return;
+            const docName = currentProfDocs[idx].name || 'tệp tin này';
+            if (!confirm(`Bạn có chắc chắn muốn xóa hồ sơ "${docName}" khỏi danh sách đính kèm?`)) return;
+            const updated = currentProfDocs.filter((_, i) => i !== idx);
+            await saveProfileDocumentsToServer(updated);
         }
 
         async function previewProfileDoc(idx) {

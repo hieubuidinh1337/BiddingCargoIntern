@@ -782,7 +782,8 @@
         async function openDocumentInNewTab(docUrl, docName) {
             let finalUrl = String(docUrl || '').trim();
             if (!finalUrl || finalUrl === '#' || finalUrl === 'undefined') {
-                finalUrl = '../uploads/sample_document.pdf';
+                alert('Tệp chứng từ chưa được tải lên.');
+                return;
             }
             const name = docName || 'chung_tu';
 

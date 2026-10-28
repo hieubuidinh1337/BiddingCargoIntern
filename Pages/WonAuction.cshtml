@@ -1312,9 +1312,12 @@
         }
 
         function viewDgrDocument() {
-            if (!currentDgrFile) return;
+            if (!currentDgrFile || !currentDgrFile.url) {
+                alert('Chưa có tệp chứng từ DGR đính kèm.');
+                return;
+            }
 
-            let url = currentDgrFile.url || 'uploads/sample_document.pdf';
+            let url = currentDgrFile.url;
             const name = currentDgrFile.name || 'dgr_msds_document.pdf';
 
             try {

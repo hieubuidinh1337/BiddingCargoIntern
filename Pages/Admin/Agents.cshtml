@@ -1584,17 +1584,32 @@
                             </div>
 
                             <!-- Hồ sơ & Giấy tờ minh chứng đính kèm -->
+                            ${(() => {
+                                const sampleSet = new Set(['gpkd_tansonnhaat_scan.pdf', 'gpkd_tansonnhat_scan.pdf', 'uyquyen_cargo_iata.pdf', 'cccd_tranhoangnam.pdf', 'gpkd_doanh_nghiep.pdf', 'iata_cargo_authorization.pdf', 'cccd_nguoidaidien.pdf', 'quy_che_dau_gia_tai_trong_vietravel_cargo.pdf', 'sample_document.pdf']);
+                                const realDocs = ((r.documents && Array.isArray(r.documents)) ? r.documents : []).filter(d => {
+                                    const n = typeof d === 'string' ? d : (d && d.name);
+                                    if (!n) return false;
+                                    const hasData = typeof d === 'object' && d && d.dataUrl;
+                                    if (!hasData && sampleSet.has(String(n).trim().toLowerCase())) return false;
+                                    return true;
+                                });
+                                r.documents = realDocs;
+                                return `
                             <div class="bg-slate-50 rounded-xl p-3.5 border border-slate-200/80">
                                 <div class="flex items-center justify-between mb-2">
                                     <p class="text-xs font-bold text-slate-800 flex items-center gap-1.5">
-                                        <i class="fa-solid fa-folder-open text-blue-600"></i> Hồ sơ & Giấy tờ minh chứng đính kèm (${((r.documents && r.documents.length > 0) ? r.documents.length : 0)} tệp tin):
+                                        <i class="fa-solid fa-folder-open text-blue-600"></i> Hồ sơ & Giấy tờ minh chứng đính kèm (${realDocs.length} tệp tin):
                                     </p>
+                                    ${realDocs.length > 0 ? `
                                     <span class="text-[10px] text-emerald-700 bg-emerald-50 px-2 py-0.5 rounded font-semibold border border-emerald-200">
                                         <i class="fa-solid fa-shield-check"></i> Đã tải lên thành công
-                                    </span>
+                                    </span>` : `
+                                    <span class="text-[10px] text-amber-700 bg-amber-50 px-2 py-0.5 rounded font-semibold border border-amber-200">
+                                        <i class="fa-solid fa-clock"></i> Bổ sung sau khi đăng ký
+                                    </span>`}
                                 </div>
                                 <div class="flex flex-wrap gap-2.5">
-                                    ${((r.documents && r.documents.length > 0) ? r.documents : []).map((doc, docIdx) => {
+                                    ${realDocs.map((doc, docIdx) => {
                         const docName = typeof doc === 'string' ? doc : (doc.name || 'document');
                         const isPdf = docName.toLowerCase().endsWith('.pdf');
                         const regIdx = regs.indexOf(r);
@@ -1613,9 +1628,10 @@
                                         </div>
                                     `;
                     }).join('')}
-                                    ${(!r.documents || r.documents.length === 0) ? '<p class="text-xs text-gray-400 italic">Không có tệp đính kèm</p>' : ''}
+                                    ${realDocs.length === 0 ? '<p class="text-xs text-gray-400 italic">Chưa nộp hồ sơ PDF bổ sung (Chỉ đăng ký thông tin công ty)</p>' : ''}
                                 </div>
-                            </div>
+                            </div>`;
+                            })()}
 
                             ${(r.status === 'REJECTED' && (r.rejectionReason || r.rejectReason)) ? `
                                 <div class="p-3 bg-red-50 border border-red-200 rounded-xl text-xs text-red-800 space-y-1">
@@ -2788,13 +2804,6 @@
                 a.click();
                 document.body.removeChild(a);
                 setTimeout(() => { if (blob) URL.revokeObjectURL(url); }, 5000);
-            } else if (isPdf) {
-                const a = document.createElement('a');
-                a.href = '../uploads/sample_document.pdf';
-                a.download = activeDocObj.name || 'document.pdf';
-                document.body.appendChild(a);
-                a.click();
-                document.body.removeChild(a);
             } else {
                 // If demo file without uploaded binary, generate real downloadable PDF via html2pdf
                 const paperEl = document.getElementById('mockDocPaper');

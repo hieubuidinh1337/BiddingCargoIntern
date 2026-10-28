@@ -183,11 +183,7 @@
                     // Support both old format (string) and new format ({name, dataUrl, type})
                     if (typeof d === 'string') return { name: d, dataUrl: null, type: d.toLowerCase().endsWith('.pdf') ? 'application/pdf' : 'image/png' };
                     return { name: d.name || 'document', dataUrl: d.dataUrl || null, type: d.type || 'application/octet-stream', size: d.size || 0 };
-                }) : [
-                    { name: 'GPKD_TanSonNhat_Scan.pdf', dataUrl: null, type: 'application/pdf' },
-                    { name: 'UyQuyen_Cargo_IATA.pdf', dataUrl: null, type: 'application/pdf' },
-                    { name: 'CCCD_TranHoangNam.pdf', dataUrl: null, type: 'application/pdf' }
-                ],
+                }) : [],
                 status: 'PENDING',
                 submittedAt: now.toLocaleDateString('vi-VN') + ' ' + now.toLocaleTimeString('vi-VN', { hour: '2-digit', minute: '2-digit' })
             };

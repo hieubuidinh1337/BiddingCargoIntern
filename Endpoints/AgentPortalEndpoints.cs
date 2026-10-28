@@ -736,6 +736,44 @@ public static class AgentPortalEndpoints
             return J(new JsonObject { ["success"] = true, ["message"] = "Cập nhật thông tin đại lý thành công!" });
         }, log));
 
+        api.MapPost("/agent/profile/documents", (HttpContext ctx, AppDbContext db, SharedDataService shared) => Guard(async () =>
+        {
+            var b = await BodyAsync(ctx.Request);
+            var code = (EntityJson.Str(b, "agentCode") ?? EntityJson.Str(b, "code") ?? ctx.Request.Cookies["cargo_agent_code"] ?? "").Trim().ToUpperInvariant();
+            if (string.IsNullOrEmpty(code)) return Err("Thiếu mã đại lý");
+
+            var agent = await db.Agents.FirstOrDefaultAsync(a => a.Code.ToUpper() == code);
+            if (agent == null) return Err("Không tìm thấy đại lý", 404);
+
+            var docsArr = b["documents"] as JsonArray ?? new JsonArray();
+            EntityJson.SetExtra(agent, "documents", docsArr);
+
+            var matchedReg = await db.Registrations.FirstOrDefaultAsync(r =>
+                (r.AgentCode != null && r.AgentCode.ToUpper() == code) ||
+                (r.TaxCode != null && agent.TaxCode != null && r.TaxCode == agent.TaxCode));
+            if (matchedReg != null)
+            {
+                matchedReg.Documents = docsArr.ToJsonString();
+            }
+
+            db.ActivityLogs.Add(LogService.Make(
+                agent.CompanyName ?? agent.Code, agent.Code, "AGENT",
+                "Hồ sơ Đại lý", "Bổ sung hồ sơ pháp lý", agent.Code,
+                $"Đại lý {agent.CompanyName} ({agent.Code}) đã cập nhật hồ sơ pháp lý đính kèm ({docsArr.Count} tệp).",
+                ctx.Connection.RemoteIpAddress?.ToString(), "Web Portal"));
+
+            await shared.BumpVersionAsync();
+            await db.SaveChangesAsync();
+            SharedDataService.InvalidateSnapshotCache();
+
+            return J(new JsonObject
+            {
+                ["success"] = true,
+                ["documents"] = docsArr,
+                ["message"] = "Đã lưu hồ sơ bổ sung thành công!"
+            });
+        }, log));
+
         api.MapPost("/agent/profile/change-pin", (HttpContext ctx, AppDbContext db) => Guard(async () =>
         {
             var b = await BodyAsync(ctx.Request);
