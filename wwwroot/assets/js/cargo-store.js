@@ -1431,8 +1431,19 @@ const CargoStore = (function () {
                     if (local.currentUser) {
                         const myCode = String(local.currentUser.agentCode || local.currentUser.code || '').trim().toUpperCase();
                         const serverAg = local.agentsList.find(a => String(a.code || '').trim().toUpperCase() === myCode);
-                        if (serverAg && serverAg.pin) {
-                            local.currentUser.pin = serverAg.pin;
+                        if (serverAg) {
+                            if (serverAg.pin) local.currentUser.pin = serverAg.pin;
+                            if (serverAg.fullName) local.currentUser.fullName = serverAg.fullName;
+                            if (serverAg.repName) local.currentUser.repName = serverAg.repName;
+                            if (!local.currentUser.fullName && local.currentUser.repName) local.currentUser.fullName = local.currentUser.repName;
+                            if (!local.currentUser.repName && local.currentUser.fullName) local.currentUser.repName = local.currentUser.fullName;
+                            if (serverAg.position && (!local.currentUser.position || local.currentUser.position === 'Đại diện ủy quyền')) local.currentUser.position = serverAg.position;
+                            if (serverAg.address && (!local.currentUser.address || local.currentUser.address === '—')) local.currentUser.address = serverAg.address;
+                            if (serverAg.province) local.currentUser.province = serverAg.province;
+                            if (serverAg.joinedDate) local.currentUser.joinedDate = serverAg.joinedDate;
+                            if (Array.isArray(serverAg.documents) && serverAg.documents.length > 0 && (!Array.isArray(local.currentUser.documents) || local.currentUser.documents.length === 0)) {
+                                local.currentUser.documents = serverAg.documents;
+                            }
                         }
                     }
                 }
@@ -2170,10 +2181,16 @@ const CargoStore = (function () {
                             code: resJson.agent.code,
                             name: resJson.agent.name || resJson.agent.companyName,
                             companyName: resJson.agent.companyName || resJson.agent.name,
+                            fullName: resJson.agent.fullName || resJson.agent.repName || resJson.agent.name || '',
+                            repName: resJson.agent.repName || resJson.agent.fullName || resJson.agent.name || '',
+                            position: resJson.agent.position || 'Đại diện ủy quyền',
                             email: resJson.agent.email,
                             phone: resJson.agent.phone,
                             taxCode: resJson.agent.taxCode,
-                            address: resJson.agent.address,
+                            address: resJson.agent.address || '',
+                            province: resJson.agent.province || 'TP. Hồ Chí Minh',
+                            joinedDate: resJson.agent.joinedDate || '15/03/2024',
+                            documents: resJson.agent.documents || [],
                             role: 'agent',
                             status: resJson.agent.status || 'Hoạt động'
                         };
@@ -6321,7 +6338,10 @@ const CargoStore = (function () {
             const user = data.currentUser;
             if (!user) return { success: false, message: 'Chưa đăng nhập tài khoản đại lý.' };
 
-            if (profileData.repName) user.fullName = profileData.repName;
+            if (profileData.repName) {
+                user.fullName = profileData.repName;
+                user.repName = profileData.repName;
+            }
             if (profileData.position) user.position = profileData.position;
             if (profileData.email) user.email = profileData.email;
             if (profileData.phone) user.phone = profileData.phone;
@@ -6332,7 +6352,10 @@ const CargoStore = (function () {
             if (data.agentsList) {
                 const ag = data.agentsList.find(a => (a.code || '').toUpperCase() === (user.agentCode || '').toUpperCase());
                 if (ag) {
-                    if (profileData.repName) ag.repName = profileData.repName;
+                    if (profileData.repName) {
+                        ag.repName = profileData.repName;
+                        ag.fullName = profileData.repName;
+                    }
                     if (profileData.position) ag.position = profileData.position;
                     if (profileData.email) ag.email = profileData.email;
                     if (profileData.phone) ag.phone = profileData.phone;

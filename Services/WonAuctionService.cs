@@ -182,6 +182,27 @@ public class WonAuctionService
             }
         }
 
+        // Lưu thông tin người đại diện, chức vụ, địa chỉ, tài liệu từ hồ sơ vào extra_json của đại lý
+        if (!string.IsNullOrEmpty(reg.RepName))
+        {
+            EntityJson.SetExtra(agent, "repName", reg.RepName);
+            EntityJson.SetExtra(agent, "fullName", reg.RepName);
+        }
+        if (!string.IsNullOrEmpty(reg.RepPosition))
+        {
+            EntityJson.SetExtra(agent, "position", reg.RepPosition);
+        }
+        if (!string.IsNullOrEmpty(reg.Address))
+        {
+            EntityJson.SetExtra(agent, "address", reg.Address);
+        }
+        EntityJson.SetExtra(agent, "province", "TP. Hồ Chí Minh");
+        EntityJson.SetExtra(agent, "joinedDate", DateTime.Now.ToString("dd/MM/yyyy"));
+        if (!string.IsNullOrEmpty(reg.Documents))
+        {
+            try { EntityJson.SetExtra(agent, "documents", System.Text.Json.Nodes.JsonNode.Parse(reg.Documents)); } catch { }
+        }
+
         var nowMs = Util.NowMs();
         var recentLog = await _db.ActivityLogs.AnyAsync(l => l.ActionCategory == "Quản lý Đại lý" && (l.Target == regId || l.Target == code || (l.Details != null && l.Details.Contains(regId))) && l.RawTime > nowMs - 60000);
         if (!recentLog)

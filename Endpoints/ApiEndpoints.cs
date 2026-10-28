@@ -172,6 +172,59 @@ public static class ApiEndpoints
             }
 
             agentNode["failedLoginAttempts"] = 0;
+
+            // Tự bù đắp thông tin người đại diện, chức vụ, địa chỉ, tài liệu từ hồ sơ đăng ký (Registration)
+            var agentReg = await db.Registrations.AsNoTracking().FirstOrDefaultAsync(r =>
+                (r.AgentCode != null && r.AgentCode.ToUpper() == agent.Code.ToUpper()) ||
+                (r.TaxCode != null && agent.TaxCode != null && r.TaxCode.Trim() == agent.TaxCode.Trim()) ||
+                (r.Email != null && agent.Email != null && r.Email.ToLower() == agent.Email.ToLower()));
+
+            var repName = EntityJson.Str(agentNode, "repName")
+                ?? EntityJson.Str(agentNode, "fullName")
+                ?? agentReg?.RepName
+                ?? agent.Name
+                ?? "";
+
+            var position = EntityJson.Str(agentNode, "position")
+                ?? EntityJson.Str(agentNode, "repPosition")
+                ?? agentReg?.RepPosition
+                ?? "Đại diện ủy quyền";
+
+            var address = EntityJson.Str(agentNode, "address")
+                ?? agentReg?.Address
+                ?? "";
+
+            var province = EntityJson.Str(agentNode, "province")
+                ?? "TP. Hồ Chí Minh";
+
+            var joinedDate = EntityJson.Str(agentNode, "joinedDate")
+                ?? agent.UnlockedAt
+                ?? "15/03/2024";
+
+            JsonNode? docsNode = null;
+            if (agentNode.TryGetPropertyValue("documents", out var dn) && dn != null)
+            {
+                docsNode = dn.DeepClone();
+            }
+            else if (!string.IsNullOrEmpty(agentReg?.Documents))
+            {
+                try { docsNode = JsonNode.Parse(agentReg.Documents); } catch { }
+            }
+            docsNode ??= new JsonArray();
+
+            if (string.IsNullOrEmpty(EntityJson.Str(agentNode, "repName")) && !string.IsNullOrEmpty(repName))
+                agentNode["repName"] = repName;
+            if (string.IsNullOrEmpty(EntityJson.Str(agentNode, "fullName")) && !string.IsNullOrEmpty(repName))
+                agentNode["fullName"] = repName;
+            if (string.IsNullOrEmpty(EntityJson.Str(agentNode, "position")) && !string.IsNullOrEmpty(position))
+                agentNode["position"] = position;
+            if (string.IsNullOrEmpty(EntityJson.Str(agentNode, "address")) && !string.IsNullOrEmpty(address))
+                agentNode["address"] = address;
+            if (string.IsNullOrEmpty(EntityJson.Str(agentNode, "province")))
+                agentNode["province"] = province;
+            if (!agentNode.ContainsKey("documents") && docsNode is JsonArray da && da.Count > 0)
+                agentNode["documents"] = docsNode.DeepClone();
+
             EntityJson.Apply(agent, agentNode);
             await db.SaveChangesAsync();
 
@@ -191,10 +244,16 @@ public static class ApiEndpoints
                     ["code"] = agent.Code,
                     ["name"] = agent.Name,
                     ["companyName"] = agent.CompanyName ?? agent.Name,
+                    ["repName"] = repName,
+                    ["fullName"] = repName,
+                    ["position"] = position,
                     ["email"] = agent.Email,
                     ["phone"] = agent.Phone,
                     ["taxCode"] = agent.TaxCode,
-                    ["address"] = EntityJson.Str(agentNode, "address") ?? "",
+                    ["address"] = address,
+                    ["province"] = province,
+                    ["joinedDate"] = joinedDate,
+                    ["documents"] = docsNode,
                     ["status"] = agent.Status
                 }
             });

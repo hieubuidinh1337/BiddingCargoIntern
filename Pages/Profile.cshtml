@@ -414,24 +414,40 @@
 
             if (!u) return;
 
+            const myCode = (u.agentCode || u.code || '').trim().toUpperCase();
+            let matchedAgent = null;
+            if (storeData && Array.isArray(storeData.agentsList)) {
+                matchedAgent = storeData.agentsList.find(a => (a.code || '').trim().toUpperCase() === myCode);
+            }
+
             const setText = (id, val) => {
                 const el = document.getElementById(id);
                 if (el) el.textContent = val;
             };
 
-            setText('profCompanyName', u.companyName || 'Đại lý Cargo');
-            setText('profAgentCode', u.agentCode || 'AG-0000');
-            setText('profAvatar', (u.agentCode || 'AG').slice(0, 2));
-            setText('profStatus', u.status || 'Đang hoạt động');
-            setText('profJoinedDate', u.joinedDate || '15/03/2024');
+            const repNameVal = u.fullName || u.repName || (matchedAgent && (matchedAgent.fullName || matchedAgent.repName)) || (u.name && u.name !== u.companyName ? u.name : '') || '—';
+            const addressVal = (u.address && u.address !== '—') ? u.address : ((matchedAgent && matchedAgent.address) ? matchedAgent.address : '—');
+            const positionVal = u.position || (matchedAgent && matchedAgent.position) || 'Đại diện ủy quyền';
+            const emailVal = u.email || (matchedAgent && matchedAgent.email) || '—';
+            const phoneVal = u.phone || (matchedAgent && matchedAgent.phone) || '—';
+            const taxVal = u.taxCode || (matchedAgent && matchedAgent.taxCode) || '—';
+            const provVal = u.province || (matchedAgent && matchedAgent.province) || 'TP. Hồ Chí Minh';
+            const compVal = u.companyName || (matchedAgent && matchedAgent.companyName) || 'Đại lý Cargo';
+            const joinedVal = u.joinedDate || (matchedAgent && matchedAgent.joinedDate) || '15/03/2024';
 
-            setText('profRepName', u.fullName || u.repName || '—');
-            setText('profPosition', u.position || 'Đại diện ủy quyền');
-            setText('profEmail', u.email || '—');
-            setText('profPhone', u.phone || '—');
-            setText('profAddress', u.address || '—');
-            setText('profTaxCode', u.taxCode || '—');
-            setText('profProvince', u.province || 'TP. Hồ Chí Minh');
+            setText('profCompanyName', compVal);
+            setText('profAgentCode', u.agentCode || u.code || 'AG-0000');
+            setText('profAvatar', (u.agentCode || u.code || 'AG').slice(0, 2));
+            setText('profStatus', u.status || (matchedAgent && matchedAgent.status) || 'Đang hoạt động');
+            setText('profJoinedDate', joinedVal);
+
+            setText('profRepName', repNameVal);
+            setText('profPosition', positionVal);
+            setText('profEmail', emailVal);
+            setText('profPhone', phoneVal);
+            setText('profAddress', addressVal);
+            setText('profTaxCode', taxVal);
+            setText('profProvince', provVal);
 
             // Tính thống kê thực tế theo lịch sử đặt thầu và thắng thầu
             const myCode = (u.agentCode || u.code || '').trim().toUpperCase();
@@ -579,12 +595,16 @@
             const u = CargoStore.getCurrentUser ? CargoStore.getCurrentUser() : null;
             if (!u) return;
 
-            document.getElementById('editProfCompanyName').value = u.companyName || '';
-            document.getElementById('editProfRepName').value = u.fullName || '';
-            document.getElementById('editProfPosition').value = u.position || '';
-            document.getElementById('editProfEmail').value = u.email || '';
-            document.getElementById('editProfPhone').value = u.phone || '';
-            document.getElementById('editProfAddress').value = u.address || '';
+            const storeData = (typeof CargoStore !== 'undefined' && CargoStore.getData) ? CargoStore.getData() : null;
+            const myCode = (u.agentCode || u.code || '').trim().toUpperCase();
+            const matchedAgent = (storeData && Array.isArray(storeData.agentsList)) ? storeData.agentsList.find(a => (a.code || '').trim().toUpperCase() === myCode) : null;
+
+            document.getElementById('editProfCompanyName').value = u.companyName || (matchedAgent && matchedAgent.companyName) || '';
+            document.getElementById('editProfRepName').value = u.fullName || u.repName || (matchedAgent && (matchedAgent.fullName || matchedAgent.repName)) || '';
+            document.getElementById('editProfPosition').value = u.position || (matchedAgent && matchedAgent.position) || '';
+            document.getElementById('editProfEmail').value = u.email || (matchedAgent && matchedAgent.email) || '';
+            document.getElementById('editProfPhone').value = u.phone || (matchedAgent && matchedAgent.phone) || '';
+            document.getElementById('editProfAddress').value = (u.address && u.address !== '—') ? u.address : ((matchedAgent && matchedAgent.address) ? matchedAgent.address : '');
 
             document.getElementById('editProfileModal').classList.remove('hidden');
         }

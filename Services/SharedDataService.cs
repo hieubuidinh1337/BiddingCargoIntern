@@ -310,6 +310,45 @@ public class SharedDataService
             if (!isAdmin && (agentCode == null || key != agentCode)) continue;
 
             var n = EntityJson.ToNode(ag);
+
+            // Bổ sung các trường hồ sơ đại lý (Người đại diện, Địa chỉ, Chức vụ, Tài liệu) từ bảng registrations nếu chưa có trong extra_json
+            var matchedReg = regList.FirstOrDefault(r =>
+                (!string.IsNullOrEmpty(r.AgentCode) && string.Equals(r.AgentCode.Trim(), key, StringComparison.OrdinalIgnoreCase)) ||
+                (!string.IsNullOrEmpty(r.TaxCode) && !string.IsNullOrEmpty(ag.TaxCode) && string.Equals(r.TaxCode.Trim(), ag.TaxCode.Trim(), StringComparison.OrdinalIgnoreCase)) ||
+                (!string.IsNullOrEmpty(r.Email) && !string.IsNullOrEmpty(ag.Email) && string.Equals(r.Email.Trim(), ag.Email.Trim(), StringComparison.OrdinalIgnoreCase)));
+
+            if (matchedReg != null)
+            {
+                if (string.IsNullOrEmpty(EntityJson.Str(n, "repName")) && !string.IsNullOrEmpty(matchedReg.RepName))
+                    n["repName"] = matchedReg.RepName;
+                if (string.IsNullOrEmpty(EntityJson.Str(n, "fullName")) && !string.IsNullOrEmpty(matchedReg.RepName))
+                    n["fullName"] = matchedReg.RepName;
+                if (string.IsNullOrEmpty(EntityJson.Str(n, "position")) && !string.IsNullOrEmpty(matchedReg.RepPosition))
+                    n["position"] = matchedReg.RepPosition;
+                if (string.IsNullOrEmpty(EntityJson.Str(n, "address")) && !string.IsNullOrEmpty(matchedReg.Address))
+                    n["address"] = matchedReg.Address;
+                if (string.IsNullOrEmpty(EntityJson.Str(n, "province")))
+                    n["province"] = "TP. Hồ Chí Minh";
+                if (!n.ContainsKey("documents") || n["documents"] is not JsonArray da || da.Count == 0)
+                {
+                    if (!string.IsNullOrEmpty(matchedReg.Documents))
+                    {
+                        try { n["documents"] = JsonNode.Parse(matchedReg.Documents); } catch { }
+                    }
+                }
+            }
+
+            if (string.IsNullOrEmpty(EntityJson.Str(n, "fullName")) && !string.IsNullOrEmpty(EntityJson.Str(n, "repName")))
+                n["fullName"] = EntityJson.Str(n, "repName");
+            if (string.IsNullOrEmpty(EntityJson.Str(n, "repName")) && !string.IsNullOrEmpty(EntityJson.Str(n, "fullName")))
+                n["repName"] = EntityJson.Str(n, "fullName");
+            if (string.IsNullOrEmpty(EntityJson.Str(n, "position")))
+                n["position"] = "Đại diện ủy quyền";
+            if (string.IsNullOrEmpty(EntityJson.Str(n, "province")))
+                n["province"] = "TP. Hồ Chí Minh";
+            if (string.IsNullOrEmpty(EntityJson.Str(n, "joinedDate")))
+                n["joinedDate"] = ag.UnlockedAt ?? "15/03/2024";
+
             if (string.IsNullOrEmpty(EntityJson.Str(n, "repName")) && string.IsNullOrEmpty(ag.Email)
                 && string.IsNullOrEmpty(ag.TaxCode) && string.IsNullOrEmpty(ag.Phone) && string.IsNullOrEmpty(ag.CompanyName)) continue;
 
