@@ -681,7 +681,7 @@
             if (alertBox) alertBox.classList.add('hidden');
         }
 
-        function handleHeroLogin(e) {
+        async function handleHeroLogin(e) {
             e.preventDefault();
             hideHeroError();
 
@@ -698,7 +698,7 @@
                 return;
             }
 
-            const res = CargoStore.loginAgent(code, pwd);
+            const res = await CargoStore.loginAgent(code, pwd);
             if (!res.success) {
                 showHeroError('Đăng nhập thất bại', res.message);
                 return;

@@ -153,55 +153,7 @@
     </footer>
 
     <script>
-        function fillAdminDemo(user, pwd) {
-            document.getElementById('adminUser').value = user;
-            document.getElementById('adminPass').value = pwd;
-            hideAdminError();
-        }
-
-        function renderQuickStaffList() {
-            const container = document.getElementById('quickStaffList');
-            if (!container || typeof CargoStore === 'undefined') return;
-            const data = CargoStore.getData();
-            const list = data.adminsList || [];
-            const allRoles = CargoStore.getRoles ? CargoStore.getRoles() : [];
-
-            if (list.length === 0) {
-                container.innerHTML = '<span class="text-[11px] text-slate-500 italic col-span-2">Chưa có tài khoản nhân sự.</span>';
-                return;
-            }
-
-            container.innerHTML = list.map(st => {
-                const roles = (Array.isArray(st.roles) && st.roles.length > 0) ? st.roles : [st.role || 'SUPER_ADMIN'];
-                const roleCode = String(roles[0] || '').toUpperCase();
-                const matchedRole = allRoles.find(r => String(r.code || r.id).toUpperCase() === roleCode);
-                const pCount = matchedRole && matchedRole.permissions ? matchedRole.permissions.length : 14;
-
-                let borderCls = 'border-blue-500/30 hover:border-blue-400 text-blue-400';
-                if (roleCode === 'COD_MANAGER') borderCls = 'border-amber-500/30 hover:border-amber-400 text-amber-400';
-                else if (roleCode === 'SETTLEMENT_OFFICER') borderCls = 'border-purple-500/30 hover:border-purple-400 text-purple-400';
-                else if (roleCode === 'AGENT_AUDITOR') borderCls = 'border-teal-500/30 hover:border-teal-400 text-teal-400';
-                else if (roleCode === 'OPERATIONS_VIEWER') borderCls = 'border-emerald-500/30 hover:border-emerald-400 text-emerald-400';
-
-                const pwd = st.password || 'staff2026';
-
-                return `
-                    <button type="button" onclick="fillAdminDemo('${st.username}', '${pwd}')"
-                        class="bg-slate-900/90 hover:bg-slate-950 text-slate-200 border ${borderCls} p-2 rounded-xl text-left transition cursor-pointer group shadow-2xs">
-                        <div class="flex items-center justify-between">
-                            <span class="font-bold text-[10px] block truncate max-w-[90px]">${roleCode}</span>
-                            <span class="text-[9px] bg-slate-800 text-slate-300 px-1 py-0.5 rounded font-mono font-bold">${pCount}/14</span>
-                        </div>
-                        <span class="text-[11px] text-slate-200 font-semibold block mt-0.5 truncate">${st.fullName || st.username}</span>
-                        <span class="text-[10px] text-slate-400 font-mono block truncate">@@${st.username} (${pwd})</span>
-                    </button>
-                `;
-            }).join('');
-        }
-
-        window.addEventListener('DOMContentLoaded', () => {
-            renderQuickStaffList();
-        });
+        // Admin Authentication Script
 
 
         function toggleAdminPass() {
@@ -231,7 +183,7 @@
             document.getElementById('adminErrorAlert').classList.add('hidden');
         }
 
-        function handleAdminLogin(e) {
+        async function handleAdminLogin(e) {
             e.preventDefault();
             hideAdminError();
 
@@ -248,7 +200,7 @@
                 return;
             }
 
-            const res = CargoStore.loginAdmin(user, pass);
+            const res = await CargoStore.loginAdmin(user, pass);
             if (!res.success) {
                 showAdminError('Truy cập bị từ chối', res.message);
                 return;

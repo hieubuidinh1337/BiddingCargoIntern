@@ -290,6 +290,8 @@ public class SharedDataService
         var msgByChat = msgList.GroupBy(m => m.ChatId ?? "").ToDictionary(g => g.Key, g => g.ToList());
         foreach (var c in chatList)
         {
+            if (!isAdmin && (agentCode == null || !string.Equals(c.AgentCode?.Trim(), agentCode, StringComparison.OrdinalIgnoreCase)))
+                continue;
             var cn = EntityJson.ToNode(c);
             var ma = new JsonArray();
             if (msgByChat.TryGetValue(c.Id, out var ml)) foreach (var m in ml) ma.Add(EntityJson.ToNode(m));
@@ -303,62 +305,87 @@ public class SharedDataService
             if (string.IsNullOrWhiteSpace(ag.Code)) continue;
             var key = ag.Code.Trim().ToUpperInvariant();
             if (PseudoAgentCodes.Contains(key)) continue;
+
+            // BẢO MẬT: Khách hoặc Đại lý chỉ thấy duy nhất profile của chính mình, không thấy đại lý khác
+            if (!isAdmin && (agentCode == null || key != agentCode)) continue;
+
             var n = EntityJson.ToNode(ag);
             if (string.IsNullOrEmpty(EntityJson.Str(n, "repName")) && string.IsNullOrEmpty(ag.Email)
                 && string.IsNullOrEmpty(ag.TaxCode) && string.IsNullOrEmpty(ag.Phone) && string.IsNullOrEmpty(ag.CompanyName)) continue;
-            if (string.IsNullOrEmpty(ag.Password)) n["password"] = "12345678";
-            if (string.IsNullOrEmpty(ag.Pin)) n["pin"] = "1234";
+
+            // BẢO MẬT: Tuyệt đối không gửi mật khẩu, mã PIN hoặc token mở khóa về trình duyệt
+            n.Remove("password");
+            n.Remove("pin");
+            n.Remove("unlockToken");
+            n.Remove("unlockOtp");
             agentsList.Add(n);
         }
 
+        // BẢO MẬT: Email logs chỉ dành riêng cho Admin
         var emailLogs = new JsonArray();
-        foreach (var e in emailList)
+        if (isAdmin)
         {
-            var n = EntityJson.ToNode(e);
-            n["to"] = e.ToAddress;
-            emailLogs.Add(n);
+            foreach (var e in emailList)
+            {
+                var n = EntityJson.ToNode(e);
+                n["to"] = e.ToAddress;
+                emailLogs.Add(n);
+            }
         }
 
         long version = Util.NowMs();
         if (dbSettings.TryGetValue("version", out var vStr) && long.TryParse(vStr, out var v)) version = v;
         string dataEpoch = dbSettings.TryGetValue("dataEpoch", out var ep) && !string.IsNullOrEmpty(ep) ? ep : Guid.NewGuid().ToString("N");
 
-        var adminsArr = ParseSetting("adminsList") as JsonArray;
-        if (adminsArr == null || adminsArr.Count == 0)
+        // BẢO MẬT: Danh sách tài khoản Admin CHỈ gửi cho Admin, và TUYỆT ĐỐI xóa trường password
+        var adminsArr = new JsonArray();
+        if (isAdmin)
         {
-            adminsArr = new JsonArray
+            var rawAdmins = ParseSetting("adminsList") as JsonArray;
+            if (rawAdmins == null || rawAdmins.Count == 0)
             {
-                new JsonObject
+                rawAdmins = new JsonArray
                 {
-                    ["id"] = 99,
-                    ["username"] = "admin",
-                    ["password"] = "admin2026",
-                    ["role"] = "SUPER_ADMIN",
-                    ["roles"] = new JsonArray { "SUPER_ADMIN" },
-                    ["fullName"] = "Trần Quản Trị (Super Admin)",
-                    ["email"] = "admin@vietravelairlines.vn",
-                    ["department"] = ""
+                    new JsonObject
+                    {
+                        ["id"] = 99,
+                        ["username"] = "admin",
+                        ["role"] = "SUPER_ADMIN",
+                        ["roles"] = new JsonArray { "SUPER_ADMIN" },
+                        ["fullName"] = "Trần Quản Trị (Super Admin)",
+                        ["email"] = "admin@vietravelairlines.vn",
+                        ["department"] = ""
+                    }
+                };
+            }
+            foreach (var adm in rawAdmins)
+            {
+                if (adm is JsonObject admObj)
+                {
+                    var clone = (JsonObject)admObj.DeepClone();
+                    clone.Remove("password");
+                    adminsArr.Add(clone);
                 }
-            };
-        }
-        else
-        {
-            var hasAdmin = adminsArr.Any(n => string.Equals(EntityJson.Str(n, "username"), "admin", StringComparison.OrdinalIgnoreCase));
-            if (!hasAdmin)
-            {
-                adminsArr.Insert(0, new JsonObject
-                {
-                    ["id"] = 99,
-                    ["username"] = "admin",
-                    ["password"] = "admin2026",
-                    ["role"] = "SUPER_ADMIN",
-                    ["roles"] = new JsonArray { "SUPER_ADMIN" },
-                    ["fullName"] = "Trần Quản Trị (Super Admin)",
-                    ["email"] = "admin@vietravelairlines.vn",
-                    ["department"] = ""
-                });
             }
         }
+
+        // BẢO MẬT: Lọc thông báo theo đúng đại lý hoặc broadcast
+        var filteredNotifs = notifList.Where(n => {
+            if (isAdmin) return true;
+            if (agentCode == null) return false;
+            if (n.TargetRole == "ADMIN" || n.TargetRole == "admin") return false;
+            if (!string.IsNullOrEmpty(n.TargetAgentCode))
+                return string.Equals(n.TargetAgentCode.Trim(), agentCode, StringComparison.OrdinalIgnoreCase);
+            return n.TargetRole == "AGENT" || n.Type == "SYSTEM" || n.Type == "ANNOUNCEMENT";
+        });
+
+        // BẢO MẬT: Lọc nhật ký hoạt động (chỉ admin hoặc chính đại lý đó)
+        var filteredLogs = logList.Where(l => {
+            if (isAdmin) return true;
+            if (agentCode == null) return false;
+            return string.Equals(l.Actor?.Trim(), agentCode, StringComparison.OrdinalIgnoreCase) ||
+                   string.Equals(l.Username?.Trim(), agentCode, StringComparison.OrdinalIgnoreCase);
+        });
 
         return new JsonObject
         {
@@ -367,20 +394,24 @@ public class SharedDataService
             ["auctions"] = ToArray(auctions),
             ["bids"] = ToArray(bids),
             ["wonAuctions"] = ToArray(wons),
-            ["notifications"] = ToArray(notifList.Select(n => EntityJson.ToNode(n))),
-            ["registrations"] = ToArray(regList.Select(r => EntityJson.ToNode(r))),
+            ["notifications"] = ToArray(filteredNotifs.Select(n => EntityJson.ToNode(n))),
+            ["registrations"] = isAdmin ? ToArray(regList.Select(r => EntityJson.ToNode(r))) : new JsonArray(),
             ["agentsList"] = agentsList,
-            ["usersList"] = ToArray(userList.Select(u => EntityJson.ToNode(u))),
+            ["usersList"] = isAdmin ? ToArray(userList.Select(u => {
+                var un = EntityJson.ToNode(u);
+                un.Remove("password");
+                return un;
+            })) : new JsonArray(),
             ["chats"] = chats,
             ["settings"] = settings,
             ["bankConfig"] = ParseSetting("bankConfig") ?? new JsonObject(),
             ["routeSubscriptions"] = ParseSetting("routeSubscriptions") ?? new JsonObject(),
             ["emailLogs"] = emailLogs,
-            ["activityLogs"] = ToArray(logList.Select(l => EntityJson.ToNode(l))),
+            ["activityLogs"] = ToArray(filteredLogs.Select(l => EntityJson.ToNode(l))),
             ["readNotificationIds"] = ParseSetting("readNotificationIds") ?? new JsonArray(),
             ["deletedNotificationIds"] = ParseSetting("deletedNotificationIds") ?? new JsonArray(),
             ["adminsList"] = adminsArr,
-            ["rolesList"] = ParseSetting("rolesList") ?? new JsonArray(),
+            ["rolesList"] = isAdmin ? (ParseSetting("rolesList") ?? new JsonArray()) : new JsonArray(),
         };
     }
 

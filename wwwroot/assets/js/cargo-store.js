@@ -138,20 +138,17 @@ const CargoStore = (function () {
     // Tài khoản khởi tạo duy nhất để đăng nhập lần đầu - hãy đổi mật khẩu ngay sau khi vào hệ thống.
     const seedAdmins = [
         {
-            id: 99, username: 'admin', password: 'admin2026', role: 'SUPER_ADMIN', roles: ['SUPER_ADMIN'],
+            id: 99, username: 'admin', role: 'SUPER_ADMIN', roles: ['SUPER_ADMIN'],
             fullName: 'Quản trị hệ thống', email: '', department: ''
         }
     ];
 
     const defaultData = {
         currentUser: null,
-        currentAdmin: {
-            id: 99, username: 'admin', password: 'admin2026', role: 'SUPER_ADMIN', roles: ['SUPER_ADMIN'],
-            fullName: 'Quản trị hệ thống', email: '', department: ''
-        },
+        currentAdmin: null,
         rolesList: seedRoles,
-        agentsList: seedAgents,
-        adminsList: seedAdmins,
+        agentsList: [],
+        adminsList: [],
         airports: [
             { code: 'DAD', name: 'Da Nang International Airport' },
             { code: 'DLI', name: 'Lien Khuong Airport' },
@@ -1007,7 +1004,14 @@ const CargoStore = (function () {
         return true;
     }
 
-    const epochReady = (typeof window !== 'undefined' && typeof fetch !== 'undefined')
+    const _currPath = (typeof window !== 'undefined' && window.location && window.location.pathname) ? window.location.pathname.toLowerCase() : '';
+    const _isPublic = _currPath === '' || _currPath === '/' || _currPath === '/home' || _currPath.endsWith('00-home.html') ||
+                      _currPath === '/login' || _currPath.endsWith('01-login.html') ||
+                      _currPath === '/admin/login' || _currPath.endsWith('01-adminlogin.html') ||
+                      _currPath === '/terms' || _currPath.endsWith('10-terms.html') ||
+                      _currPath === '/register' || _currPath.endsWith('01-register.html');
+
+    const epochReady = (typeof window !== 'undefined' && typeof fetch !== 'undefined' && !_isPublic)
         ? fetch('/api/epoch', { cache: 'no-store' }).then(r => r.json()).then(j => applyServerEpoch(j && j.dataEpoch)).catch(() => true)
         : Promise.resolve(true);
 
@@ -1041,6 +1045,7 @@ const CargoStore = (function () {
             clearTimeout(saveServerTimeout);
             saveServerTimeout = null;
         }
+        if (_isPublic) return;
         if (!(await epochReady) || epochWiping) return;
         lastLocalSaveTimestamp = Date.now();
         const apiUrl = '/api/data';
@@ -1131,34 +1136,42 @@ const CargoStore = (function () {
     let lastServerSyncTimestamp = 0;
     async function syncWithServer(force = false) {
         if (isSyncing || typeof window === 'undefined') return;
+
+        const pathname = (typeof window !== 'undefined' && window.location && window.location.pathname) ? window.location.pathname.toLowerCase() : '';
+        const isPublicPage = pathname === '' || pathname === '/' || pathname === '/home' || pathname.endsWith('00-home.html') ||
+                             pathname === '/login' || pathname.endsWith('01-login.html') ||
+                             pathname === '/admin/login' || pathname.endsWith('01-adminlogin.html') ||
+                             pathname === '/terms' || pathname.endsWith('10-terms.html') ||
+                             pathname === '/register' || pathname.endsWith('01-register.html');
+
+        // NGUYÊN TẮC: Trang chủ & các trang công khai tuyệt đối KHÔNG tự ý gọi API đồng bộ ngầm
+        if (isPublicPage && !force) return;
+
         // Guard: Do not sync more than once every 30 seconds
         if (Date.now() - lastServerSyncTimestamp < 30000) return;
         if (!force && typeof document !== 'undefined' && document.hidden) return; // Save CPU when tab is in background
-        // Prevent sync race condition if local save occurred in the last 800ms
         if (!force && Date.now() - lastLocalSaveTimestamp < 800) return;
         lastServerSyncTimestamp = Date.now();
 
         try {
             isSyncing = true;
             const local = loadData();
-            const pathname = (typeof window !== 'undefined' && window.location && window.location.pathname) ? window.location.pathname.toLowerCase() : '';
             const isAdminPage = pathname.includes('/admin/');
             const currentAgentCode = (local.currentUser && (local.currentUser.agentCode || local.currentUser.code)) ? String(local.currentUser.agentCode || local.currentUser.code).trim() : null;
 
+            // BẢO MẬT: Chỉ gửi role=admin khi đang ở trang admin VÀ có admin đăng nhập
             let queryParams = [];
-            if (isAdminPage || (!currentAgentCode && local.currentAdmin)) {
-                const isStaffSession = !!(local.currentAdmin && String(local.currentAdmin.role).toUpperCase() === 'STAFF');
-                if (isStaffSession) {
-                    queryParams.push('role=staff');
-                } else {
-                    queryParams.push('role=admin');
-                }
+            if (isAdminPage && local.currentAdmin) {
+                const isStaffSession = !!(String(local.currentAdmin.role).toUpperCase() === 'STAFF');
+                queryParams.push(isStaffSession ? 'role=staff' : 'role=admin');
             } else if (currentAgentCode) {
                 queryParams.push(`agentCode=${encodeURIComponent(currentAgentCode)}`);
+            } else if (!force) {
+                // Người dùng chưa đăng nhập -> không gọi API ngầm
+                return;
             }
 
             const baseUrl = '/api/data';
-
             const apiUrl = queryParams.length > 0 ? `${baseUrl}?${queryParams.join('&')}` : baseUrl;
 
             const res = await fetch(apiUrl);
@@ -2099,9 +2112,53 @@ const CargoStore = (function () {
         },
 
         /**
-         * Dynamic Agent Login checking each agent's SPECIFIC password
+         * Server-side Agent Login with offline fallback
          */
-        loginAgent: function (agentCodeOrEmail, password) {
+        loginAgent: async function (agentCodeOrEmail, password, loginMode = 'password') {
+            const isHttp = typeof window !== 'undefined' && window.location && window.location.protocol && window.location.protocol.startsWith('http');
+            if (isHttp) {
+                try {
+                    const res = await fetch('/api/auth/agent-login', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({
+                            identifier: agentCodeOrEmail,
+                            password: password,
+                            loginMode: loginMode
+                        })
+                    });
+                    const resJson = await res.json();
+                    if (resJson && resJson.success && resJson.agent) {
+                        const local = loadData();
+                        local.currentUser = {
+                            agentCode: resJson.agent.code,
+                            code: resJson.agent.code,
+                            name: resJson.agent.name || resJson.agent.companyName,
+                            companyName: resJson.agent.companyName || resJson.agent.name,
+                            email: resJson.agent.email,
+                            phone: resJson.agent.phone,
+                            taxCode: resJson.agent.taxCode,
+                            address: resJson.agent.address,
+                            role: 'agent',
+                            status: resJson.agent.status || 'Hoạt động'
+                        };
+                        if (!Array.isArray(local.agentsList)) local.agentsList = [];
+                        const exIdx = local.agentsList.findIndex(a => (a.code || '').toUpperCase() === resJson.agent.code.toUpperCase());
+                        if (exIdx >= 0) local.agentsList[exIdx] = { ...local.agentsList[exIdx], ...local.currentUser };
+                        else local.agentsList.push({ ...local.currentUser });
+                        saveData(local, true);
+                        document.cookie = "cargo_agent_code=" + encodeURIComponent(resJson.agent.code) + "; path=/; max-age=2592000; SameSite=Lax";
+                        return { success: true, user: local.currentUser };
+                    }
+                    return resJson || { success: false, message: 'Đăng nhập không thành công.' };
+                } catch (err) {
+                    console.error('Server auth error:', err);
+                }
+            }
+            return this.loginAgentFallback(agentCodeOrEmail, password);
+        },
+
+        loginAgentFallback: function (agentCodeOrEmail, password) {
             const data = loadData();
             if (checkAndAutoLockExpiredWonAuctions(data)) {
                 saveData(data, true);
@@ -2341,9 +2398,45 @@ const CargoStore = (function () {
         },
 
         /**
-         * Dynamic Admin Login checking each admin's SPECIFIC password
+         * Server-side Admin Login with offline fallback
          */
-        loginAdmin: function (usernameOrEmail, password) {
+        loginAdmin: async function (usernameOrEmail, password) {
+            const isHttp = typeof window !== 'undefined' && window.location && window.location.protocol && window.location.protocol.startsWith('http');
+            if (isHttp) {
+                try {
+                    const res = await fetch('/api/auth/admin-login', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({
+                            username: usernameOrEmail,
+                            password: password
+                        })
+                    });
+                    const resJson = await res.json();
+                    if (resJson && resJson.success && resJson.admin) {
+                        const local = loadData();
+                        local.currentAdmin = {
+                            id: resJson.admin.id,
+                            username: resJson.admin.username,
+                            role: resJson.admin.role,
+                            roles: Array.isArray(resJson.admin.roles) ? resJson.admin.roles : [resJson.admin.role],
+                            fullName: resJson.admin.fullName,
+                            email: resJson.admin.email,
+                            department: resJson.admin.department || ''
+                        };
+                        saveData(local, true);
+                        document.cookie = "cargo_admin_user=" + encodeURIComponent(resJson.admin.username) + "; path=/; max-age=604800; SameSite=Lax";
+                        return { success: true, admin: local.currentAdmin };
+                    }
+                    return resJson || { success: false, message: 'Đăng nhập quản trị thất bại.' };
+                } catch (err) {
+                    console.error('Server admin auth error:', err);
+                }
+            }
+            return this.loginAdminFallback(usernameOrEmail, password);
+        },
+
+        loginAdminFallback: function (usernameOrEmail, password) {
             const data = loadData();
             const u = (usernameOrEmail || '').trim().toLowerCase();
             let adminList = (Array.isArray(data.adminsList) && data.adminsList.length > 0) ? data.adminsList : seedAdmins;
@@ -7366,6 +7459,10 @@ const CargoStore = (function () {
 
         logoutAgent: function () {
             if (typeof window !== 'undefined') window._isManualLogout = true;
+            try {
+                document.cookie = "cargo_agent_code=; path=/; max-age=0; SameSite=Lax";
+                fetch('/api/auth/logout', { method: 'POST' }).catch(() => {});
+            } catch (e) { }
             const data = loadData();
             if (data.currentUser) {
                 const cur = data.currentUser;
@@ -7386,6 +7483,10 @@ const CargoStore = (function () {
 
         logoutAdmin: function () {
             if (typeof window !== 'undefined') window._isManualLogout = true;
+            try {
+                document.cookie = "cargo_admin_user=; path=/; max-age=0; SameSite=Lax";
+                fetch('/api/auth/logout', { method: 'POST' }).catch(() => {});
+            } catch (e) { }
             const data = loadData();
             if (data.currentAdmin) {
                 this.logActivity({

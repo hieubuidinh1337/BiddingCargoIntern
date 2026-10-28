@@ -114,69 +114,76 @@ public class BidService
             throw new BidException($"Đại lý của bạn đã nộp mức giá {Util.FmtVi(priorAgentBid.PriceKg)}đ/Kg. Mức giá mới phải cao hơn mức giá đã đặt trước đó.");
         }
 
-        await using var tx = await _db.Database.BeginTransactionAsync();
-        try
+        var strategy = _db.Database.CreateExecutionStrategy();
+        return await strategy.ExecuteAsync(async () =>
         {
-            var weight = req.WeightKg != 0 ? req.WeightKg : auction.CapacityKg;
-            var bid = new Bid
+            await using var tx = await _db.Database.BeginTransactionAsync();
+            try
             {
-                Id = bidId, Timestamp = now, AuctionId = auction.Id, AgentCode = req.AgentCode!.Trim(), AgentName = agentName ?? cleanCode,
-                IsAnonymous = req.IsAnonymous, PriceKg = req.PriceKg,
-                Time = DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss"), Status = "HIGHEST", WeightKg = weight
-            };
-            _db.Bids.Add(bid);
-
-            var allAuctionBids = await _db.Bids.Where(b => b.AuctionId == auction.Id).ToListAsync();
-            allAuctionBids.Add(bid);
-            var maxBid = allAuctionBids.OrderByDescending(b => b.PriceKg).ThenBy(b => b.Timestamp).FirstOrDefault();
-            foreach (var b in allAuctionBids)
-            {
-                b.Status = (b.Id == maxBid?.Id) ? "HIGHEST" : "OUTBID";
-            }
-
-            auction.BidsCount = allAuctionBids.Count;
-            if (maxBid != null)
-            {
-                auction.CurrentPriceKg = maxBid.PriceKg;
-                auction.LeadingAgentCode = maxBid.AgentCode;
-                auction.LeadingAgentName = maxBid.AgentName;
-            }
-
-            var flight = Util.NullIfEmpty(auction.FlightNumber) ?? $"FL-{auction.Id}";
-            var route = auction.Route ?? "";
-            var price = Util.FmtVi(req.PriceKg);
-            var anon = req.IsAnonymous ? " (Tên công ty được che ẩn danh đối với các đối thủ)" : "";
-            if (await _db.Notifications.FindAsync(now) == null)
-                _db.Notifications.Add(new Notification
+                var weight = req.WeightKg != 0 ? req.WeightKg : auction.CapacityKg;
+                var bid = new Bid
                 {
-                    Id = now, TargetAgentCode = bid.AgentCode, Title = $"Đặt giá thành công chuyến {flight}",
-                    Message = $"Hệ thống đã ghi nhận mức giá {price}đ/Kg của bạn cho chặng {route}.{anon}",
-                    Time = "Vừa xong", Type = "BID_RECEIVED", Read = false, Unread = true,
-                    Link = $"04-Detail.html?id={auction.Id}"
-                });
+                    Id = bidId, Timestamp = now, AuctionId = auction.Id, AgentCode = req.AgentCode!.Trim(), AgentName = agentName ?? cleanCode,
+                    IsAnonymous = req.IsAnonymous, PriceKg = req.PriceKg,
+                    Time = DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss"), Status = "HIGHEST", WeightKg = weight
+                };
 
-            var actor = Util.NullIfEmpty(agent.CompanyName) ?? EntityJson.GetExtraString(agent, "repName") ?? agentName ?? cleanCode;
-            var routeSuffix = route != "" ? $" ({route})" : "";
-            if (await _db.ActivityLogs.FindAsync(now) == null)
-                _db.ActivityLogs.Add(new ActivityLog
+                var allAuctionBids = await _db.Bids.Where(b => b.AuctionId == auction.Id).ToListAsync();
+                if (!allAuctionBids.Any(b => b.Id == bid.Id))
                 {
-                    Id = now, Timestamp = Util.LogTimestamp(DateTime.Now), RawTime = now, Actor = actor, Username = bid.AgentCode,
-                    Role = "AGENT", ActionCategory = "Đấu giá", ActionTitle = "Đặt giá thầu", Target = flight,
-                    Details = $"Đại lý {actor} đặt thầu thành công mức giá {price} đ/Kg cho chuyến bay {flight}{routeSuffix}.",
-                    Ip = "113.161.42.12", Device = "Web Client"
-                });
+                    allAuctionBids.Add(bid);
+                }
+                _db.Bids.Add(bid);
 
-            await _db.SaveChangesAsync();
-            await _shared.BumpVersionAsync();   // để các tab Admin/Đại lý nhận biết có thầu mới
-            await _db.SaveChangesAsync();
-            await tx.CommitAsync();
-            SharedDataService.InvalidateSnapshotCache();
-            return bid;
-        }
-        catch
-        {
-            await tx.RollbackAsync();
-            throw;
-        }
+                var maxBid = allAuctionBids.OrderByDescending(b => b.PriceKg).ThenBy(b => b.Timestamp).FirstOrDefault();
+                foreach (var b in allAuctionBids)
+                {
+                    b.Status = (b.Id == maxBid?.Id) ? "HIGHEST" : "OUTBID";
+                }
+
+                auction.BidsCount = allAuctionBids.Count;
+                if (maxBid != null)
+                {
+                    auction.CurrentPriceKg = maxBid.PriceKg;
+                    auction.LeadingAgentCode = maxBid.AgentCode;
+                    auction.LeadingAgentName = maxBid.AgentName;
+                }
+
+                var flight = Util.NullIfEmpty(auction.FlightNumber) ?? $"FL-{auction.Id}";
+                var route = auction.Route ?? "";
+                var price = Util.FmtVi(req.PriceKg);
+                var anon = req.IsAnonymous ? " (Tên công ty được che ẩn danh đối với các đối thủ)" : "";
+                if (await _db.Notifications.FindAsync(now) == null)
+                    _db.Notifications.Add(new Notification
+                    {
+                        Id = now, TargetAgentCode = bid.AgentCode, Title = $"Đặt giá thành công chuyến {flight}",
+                        Message = $"Hệ thống đã ghi nhận mức giá {price}đ/Kg của bạn cho chặng {route}.{anon}",
+                        Time = "Vừa xong", Type = "BID_RECEIVED", Read = false, Unread = true,
+                        Link = $"04-Detail.html?id={auction.Id}"
+                    });
+
+                var actor = Util.NullIfEmpty(agent.CompanyName) ?? EntityJson.GetExtraString(agent, "repName") ?? agentName ?? cleanCode;
+                var routeSuffix = route != "" ? $" ({route})" : "";
+                if (await _db.ActivityLogs.FindAsync(now) == null)
+                    _db.ActivityLogs.Add(new ActivityLog
+                    {
+                        Id = now, Timestamp = Util.LogTimestamp(DateTime.Now), RawTime = now, Actor = actor, Username = bid.AgentCode,
+                        Role = "AGENT", ActionCategory = "Đấu giá", ActionTitle = "Đặt giá thầu", Target = flight,
+                        Details = $"Đại lý {actor} đặt thầu thành công mức giá {price} đ/Kg cho chuyến bay {flight}{routeSuffix}.",
+                        Ip = "113.161.42.12", Device = "Web Client"
+                    });
+
+                await _shared.BumpVersionAsync();   // để các tab Admin/Đại lý nhận biết có thầu mới
+                await _db.SaveChangesAsync();
+                await tx.CommitAsync();
+                SharedDataService.InvalidateSnapshotCache();
+                return bid;
+            }
+            catch
+            {
+                await tx.RollbackAsync();
+                throw;
+            }
+        });
     }
 }

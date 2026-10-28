@@ -896,7 +896,7 @@
             }
         }
 
-        function handleLogin(e) {
+        async function handleLogin(e) {
             e.preventDefault();
             hideError();
 
@@ -918,7 +918,7 @@
                 return;
             }
 
-            const res = CargoStore.loginAgent(code, credential);
+            const res = await CargoStore.loginAgent(code, credential, currentLoginMode);
             if (!res.success) {
                 if (res.isLocked) {
                     if (res.lockReason === 'FAILED_LOGIN_ATTEMPTS') {
