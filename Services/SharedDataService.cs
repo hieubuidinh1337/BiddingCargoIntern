@@ -532,6 +532,7 @@ public class SharedDataService
                 else
                 {
                     var st1 = r.Status; var ac = r.AgentCode; var rr = r.RejectionReason;
+                    PreserveDocData(r.Documents, n);
                     EntityJson.Apply(r, n);
                     if (!string.IsNullOrEmpty(st1) && st1 != "PENDING")
                     {
@@ -824,6 +825,31 @@ public class SharedDataService
             return version;
         }
         finally { Gate.Release(); }
+    }
+
+    // Giữ lại nội dung tệp (dataUrl) đã lưu ở server nếu bản client gửi lên bị rút gọn / thiếu
+    private static void PreserveDocData(string? existingDocs, JsonObject incoming)
+    {
+        if (string.IsNullOrWhiteSpace(existingDocs)) return;
+        try
+        {
+            if (JsonNode.Parse(existingDocs) is not JsonArray oldArr || oldArr.Count == 0) return;
+            if (incoming["documents"] is not JsonArray newArr || newArr.Count == 0)
+            {
+                incoming["documents"] = oldArr.DeepClone();
+                return;
+            }
+            foreach (var d in newArr)
+            {
+                if (d is not JsonObject dobj) continue;
+                if (!string.IsNullOrEmpty(EntityJson.Str(dobj, "dataUrl"))) continue;
+                var name = EntityJson.Str(dobj, "name");
+                var match = oldArr.OfType<JsonObject>().FirstOrDefault(o =>
+                    EntityJson.Str(o, "name") == name && !string.IsNullOrEmpty(EntityJson.Str(o, "dataUrl")));
+                if (match != null) dobj["dataUrl"] = match["dataUrl"]!.DeepClone();
+            }
+        }
+        catch { }
     }
 
     private static IEnumerable<JsonObject> ArrayOf(JsonObject src, string key)

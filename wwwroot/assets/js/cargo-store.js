@@ -1132,6 +1132,12 @@ const CargoStore = (function () {
             localStorage.setItem(STORAGE_KEY, serialized);
         } catch (e) {
             console.error('Error saving CargoStore data', e);
+            // localStorage đầy (thường do file PDF/ảnh base64): lưu bản rút gọn, nội dung tệp vẫn nằm trên server
+            try {
+                const slim = JSON.stringify(data, (k, v) => (k === 'dataUrl' && typeof v === 'string' && v.length > 2000) ? null : v);
+                localStorage.setItem(STORAGE_KEY, slim);
+                _memoryCacheRaw = slim;
+            } catch (e2) { }
         }
 
         // Broadcast to listeners in this browser window

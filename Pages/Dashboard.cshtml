@@ -325,6 +325,18 @@
             const kpis = data.kpis || {};
             const auctions = data.auctions || [];
 
+            // Chỉ vẽ lại khi dữ liệu thật sự thay đổi (đồng hồ đếm ngược được cập nhật riêng, không cần render lại)
+            const newSig = JSON.stringify([auctions, ag, kpis]);
+            if (window._dashLastSig === newSig && document.getElementById('dashboardAuctionList')?.children?.length) return;
+            window._dashLastSig = newSig;
+
+            // Giữ lại giá đang nhập dở trước khi vẽ lại
+            document.querySelectorAll('[id^="dashBidInput_"]').forEach(inp => {
+                const id = inp.id.replace('dashBidInput_', '');
+                const v = Number(inp.value);
+                if (v) dashInputCache[id] = v;
+            });
+
             // Cache auctions for instant and safe modal bid lookup
             window._dashAuctionsMap = window._dashAuctionsMap || {};
             auctions.forEach(a => { if (a && a.id) window._dashAuctionsMap[String(a.id)] = a; });
@@ -535,12 +547,28 @@
                                         <tbody class="divide-y divide-slate-200 bg-white font-medium">
                                             ${tableRowsHtml}
                                         </tbody>
+                                        <tfoot class="bg-slate-50/90 border-t-2 border-slate-300 font-bold">
+                                            <tr>
+                                                <td colspan="3" class="py-3 px-4 text-right uppercase text-xs text-slate-700 border-r border-slate-200">
+                                                    <div class="font-extrabold text-slate-900 text-xs tracking-wide flex items-center justify-end gap-1.5">
+                                                        <i class="fa-solid fa-receipt text-blue-600"></i>
+                                                        <span>TỔNG GIÁ ĐÃ ĐẶT (VNĐ):</span>
+                                                    </div>
+                                                    <div class="text-[10px] text-slate-400 font-normal mt-0.5 normal-case">(Chỉ tính các chuyến bay đã bấm Xác nhận đặt giá)</div>
+                                                </td>
+                                                <td class="py-3 px-4 text-emerald-700 text-lg sm:text-xl font-extrabold bg-emerald-50/70">
+                                                    <span id="dashGrandTotal">0 đ</span>
+                                                </td>
+                                            </tr>
+                                        </tfoot>
                                     </table>
                                 </div>
                             </div>
                         </div>
                     </div>
                 `;
+
+                updateDashAllTotals();
             }
         }
 
@@ -864,33 +892,46 @@
 
         // Tính tổng giá đã đặt: CHỈ cộng những chuyến bay đã bấm Xác nhận đặt giá
         function updateDashAllTotals() {
-            const u = CargoStore.getCurrentUser();
-            const myCode = u ? (u.agentCode || '') : '';
-            const allAuctions = CargoStore.getAuctions();
-            const openAuctions = allAuctions.filter(a => a.status === 'OPEN' && CargoStore.isAgentAllowedForAuction(a, myCode));
-            const myBids = CargoStore.getMyBids ? CargoStore.getMyBids() : [];
-
             let grandTotal = 0;
             let confirmedCount = 0;
 
-            openAuctions.forEach(a => {
-                const auctionMyBids = (myBids || []).filter(b => String(b.auctionId) === String(a.id));
-                const myHighestBid = auctionMyBids.length > 0
-                    ? auctionMyBids.sort((x, y) => (Number(y.priceKg) || 0) - (Number(x.priceKg) || 0))[0]
-                    : null;
+            if (window._dashAuctionsMap && Object.keys(window._dashAuctionsMap).length > 0) {
+                Object.values(window._dashAuctionsMap).forEach(a => {
+                    if (a && a.isSubmitted) {
+                        const capKg = a.capacityKg || 3500;
+                        const price = Number(a.myHighestBidPriceKg) || Number(a.currentPriceKg) || 0;
+                        grandTotal += (capKg * price);
+                        confirmedCount++;
+                    }
+                });
+            } else if (typeof CargoStore !== 'undefined') {
+                const u = CargoStore.getCurrentUser();
+                const myCode = u ? (u.agentCode || '') : '';
+                const allAuctions = CargoStore.getAuctions ? CargoStore.getAuctions() : [];
+                const openAuctions = allAuctions.filter(a => a.status === 'OPEN' && CargoStore.isAgentAllowedForAuction(a, myCode));
+                const myBids = CargoStore.getMyBids ? CargoStore.getMyBids() : [];
 
-                // Chỉ tính tổng cho các chuyến bay đã bấm Xác nhận nộp giá thầu
-                if (myHighestBid) {
-                    const capKg = a.capacityKg || 3500;
-                    const price = Number(myHighestBid.priceKg) || 0;
-                    grandTotal += (capKg * price);
-                    confirmedCount++;
-                }
-            });
+                openAuctions.forEach(a => {
+                    const auctionMyBids = (myBids || []).filter(b => String(b.auctionId) === String(a.id));
+                    const myHighestBid = auctionMyBids.length > 0
+                        ? auctionMyBids.sort((x, y) => (Number(y.priceKg) || 0) - (Number(x.priceKg) || 0))[0]
+                        : null;
+
+                    // Chỉ tính tổng cho các chuyến bay đã bấm Xác nhận nộp giá thầu
+                    if (myHighestBid) {
+                        const capKg = a.capacityKg || 3500;
+                        const price = Number(myHighestBid.priceKg) || 0;
+                        grandTotal += (capKg * price);
+                        confirmedCount++;
+                    }
+                });
+            }
 
             const grandTotalEl = document.getElementById('dashGrandTotal');
             if (grandTotalEl) {
-                grandTotalEl.textContent = CargoStore.formatCurrency(grandTotal);
+                grandTotalEl.textContent = (typeof CargoStore !== 'undefined' && CargoStore.formatCurrency) 
+                    ? CargoStore.formatCurrency(grandTotal) 
+                    : grandTotal.toLocaleString('vi-VN') + ' đ';
             }
         }
 
@@ -1221,6 +1262,12 @@
                 }
                 delete dashInputCache[auctionId];
                 delete dashCheckCache[auctionId];
+                if (window._dashAuctionsMap && window._dashAuctionsMap[String(auctionId)]) {
+                    window._dashAuctionsMap[String(auctionId)].isSubmitted = true;
+                    window._dashAuctionsMap[String(auctionId)].myHighestBidPriceKg = priceKg;
+                }
+                window._dashLastSig = '';
+                updateDashAllTotals();
                 fetchDashboardData();
             } else {
                 alert(res.message || 'Không thể gửi giá thầu!');
@@ -1271,14 +1318,11 @@
                 fetchDashboardData();
             }, 4000);
 
-            // Nghe sự kiện từ storage / cargostore để cập nhật tức thì
+            // Nghe sự kiện từ tab khác (không nghe cargostore_updated để tránh vòng lặp refresh)
             window.addEventListener('storage', function (e) {
-                if (e.key === 'CARGO_BIDDING_DATA_V3' || e.key === 'CARGO_BIDDING_SERVER_VERSION') {
+                if (e.key === 'CARGO_BIDDING_SERVER_VERSION') {
                     fetchDashboardData();
                 }
-            });
-            window.addEventListener('cargostore_updated', function () {
-                fetchDashboardData();
             });
 
             // Realtime 1-second countdown strictly in-place (no DOM re-renders)

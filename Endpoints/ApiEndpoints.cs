@@ -463,6 +463,42 @@ public static class ApiEndpoints
             });
         }, log));
 
+        api.MapGet("/registration/doc", async (HttpContext ctx, BiddingCargo.Web.Data.AppDbContext db) =>
+        {
+            var adminCookie = ctx.Request.Cookies["cargo_admin_user"];
+            var agentCookie = ctx.Request.Cookies["cargo_agent_code"];
+            if (string.IsNullOrEmpty(adminCookie) && string.IsNullOrEmpty(agentCookie))
+                return J(new JsonObject { ["success"] = false, ["message"] = "Không có quyền truy cập" }, 403);
+
+            var regId = ctx.Request.Query["regId"].ToString();
+            var agentCode = ctx.Request.Query["agentCode"].ToString();
+            int.TryParse(ctx.Request.Query["idx"], out var idx);
+
+            BiddingCargo.Web.Data.Registration? r = null;
+            if (!string.IsNullOrEmpty(regId))
+            {
+                r = await db.Registrations.AsNoTracking().FirstOrDefaultAsync(x => x.RegId == regId);
+            }
+            if (r == null && !string.IsNullOrEmpty(agentCode))
+            {
+                r = await db.Registrations.AsNoTracking().FirstOrDefaultAsync(x => x.AgentCode != null && x.AgentCode.ToUpper() == agentCode.ToUpper());
+            }
+            if (r == null && !string.IsNullOrEmpty(agentCookie))
+            {
+                r = await db.Registrations.AsNoTracking().FirstOrDefaultAsync(x => x.AgentCode != null && x.AgentCode.ToUpper() == agentCookie.ToUpper());
+            }
+
+            if (r == null || string.IsNullOrEmpty(r.Documents))
+                return J(new JsonObject { ["success"] = false, ["message"] = "Không tìm thấy hồ sơ" }, 404);
+            try
+            {
+                if (JsonNode.Parse(r.Documents) is JsonArray arr && idx >= 0 && idx < arr.Count && arr[idx] != null)
+                    return J(new JsonObject { ["success"] = true, ["doc"] = arr[idx]!.DeepClone() });
+            }
+            catch { }
+            return J(new JsonObject { ["success"] = false, ["message"] = "Không tìm thấy tệp" }, 404);
+        });
+
         api.MapPost("/registration/submit", (HttpContext ctx, SharedDataService shared, BiddingCargo.Web.Data.AppDbContext db) => Guard(async () =>
         {
             var b = await BodyAsync(ctx.Request);

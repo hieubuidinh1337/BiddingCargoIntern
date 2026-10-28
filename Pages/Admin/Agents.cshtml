@@ -2488,9 +2488,20 @@
             };
         }
 
+        const _docFetchTried = {};
         function previewDocByIndex(regIdx, docIdx) {
             const info = getDocFromIndex(regIdx, docIdx);
             if (!info) { alert('Không tìm thấy tệp tin!'); return; }
+            const fetchKey = info.regId + '#' + docIdx;
+            if (!info.doc.dataUrl && String(info.regId).startsWith('REG-') && !_docFetchTried[fetchKey]) {
+                _docFetchTried[fetchKey] = true;
+                fetch('/api/registration/doc?regId=' + encodeURIComponent(info.regId) + '&idx=' + docIdx, { cache: 'no-store' })
+                    .then(r => r.ok ? r.json() : null)
+                    .then(j => { if (j && j.success && j.doc && j.doc.dataUrl) info.doc.dataUrl = j.doc.dataUrl; })
+                    .catch(() => { })
+                    .finally(() => previewDocByIndex(regIdx, docIdx));
+                return;
+            }
             activeDocObj = info.doc;
             activeCompName = info.companyName;
 

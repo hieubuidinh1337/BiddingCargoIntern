@@ -382,39 +382,60 @@
 
 
     <script>
+        window._serverProfile = {
+            agentCode: '@Model.AgentCode',
+            companyName: '@Html.Raw(Model.CurrentRegistration?.CompanyName ?? Model.CurrentAgent?.CompanyName ?? Model.CurrentAgent?.Name ?? "")',
+            repName: '@Html.Raw(Model.CurrentRegistration?.RepName ?? Model.CurrentAgent?.Name ?? "")',
+            position: '@Html.Raw(Model.CurrentRegistration?.RepPosition ?? "Giám đốc kinh doanh")',
+            email: '@Html.Raw(Model.CurrentRegistration?.Email ?? Model.CurrentAgent?.Email ?? "")',
+            phone: '@Html.Raw(Model.CurrentRegistration?.Phone ?? Model.CurrentAgent?.Phone ?? "")',
+            address: '@Html.Raw(Model.CurrentRegistration?.Address ?? "123 Nguyễn Huệ, Quận 1, TP. Hồ Chí Minh")',
+            taxCode: '@Html.Raw(Model.CurrentRegistration?.TaxCode ?? Model.CurrentAgent?.TaxCode ?? "0312345678")',
+            province: 'TP. Hồ Chí Minh',
+            regId: '@(Model.CurrentRegistration?.RegId ?? "")',
+            documents: @Html.Raw(string.IsNullOrWhiteSpace(Model.DocumentsJson) ? "[]" : Model.DocumentsJson)
+        };
+
         function renderProfile() {
-            let u = CargoStore.getCurrentUser ? CargoStore.getCurrentUser() : null;
+            let u = (typeof CargoStore !== 'undefined' && CargoStore.getCurrentUser) ? CargoStore.getCurrentUser() : null;
             const storeData = (typeof CargoStore !== 'undefined' && CargoStore.getData) ? CargoStore.getData() : null;
+            const sProf = window._serverProfile || {};
 
             if (!u) {
-                const defaultAgent = storeData && storeData.agentsList ? storeData.agentsList.find(a => false) : null;
-                if (defaultAgent) {
-                    u = {
-                        agentCode: defaultAgent.code,
-                        companyName: defaultAgent.companyName,
-                        fullName: defaultAgent.repName,
-                        position: defaultAgent.position || 'Giám đốc kinh doanh',
-                        email: defaultAgent.email,
-                        phone: defaultAgent.phone,
-                        address: defaultAgent.address,
-                        taxCode: defaultAgent.taxCode,
-                        province: defaultAgent.province || 'TP. Hồ Chí Minh',
-                        status: defaultAgent.status || 'Đang hoạt động',
-                        joinedDate: defaultAgent.joinedDate || '15/03/2024',
-                        pin: defaultAgent.pin || '1234',
-                        stats: {
-                            totalBids: defaultAgent.totalBids || 0,
-                            totalWins: defaultAgent.totalWins || 0,
-                            winRate: defaultAgent.winRate || '0%',
-                            totalSpentUSD: defaultAgent.totalSpentUSD || '0k'
-                        }
-                    };
+                const getCookie = (name) => {
+                    const match = document.cookie.match(new RegExp('(^| )' + name + '=([^;]+)'));
+                    return match ? decodeURIComponent(match[2]) : null;
+                };
+                const targetCode = (sProf.agentCode || getCookie('cargo_agent_code') || 'AG-0001').toUpperCase();
+                let foundAgent = storeData && storeData.agentsList ? storeData.agentsList.find(a => (a.code || '').toUpperCase() === targetCode) : null;
+                if (!foundAgent && storeData && storeData.agentsList && storeData.agentsList.length > 0) {
+                    foundAgent = storeData.agentsList[0];
                 }
+
+                u = {
+                    agentCode: (foundAgent && foundAgent.code) || sProf.agentCode || targetCode,
+                    companyName: (foundAgent && foundAgent.companyName) || sProf.companyName || 'Công ty TNHH Vận tải ABC Logistics',
+                    fullName: (foundAgent && (foundAgent.fullName || foundAgent.repName)) || sProf.repName || 'Nguyễn Văn An',
+                    position: (foundAgent && foundAgent.position) || sProf.position || 'Giám đốc kinh doanh',
+                    email: (foundAgent && foundAgent.email) || sProf.email || 'an.nguyen@abccargo.vn',
+                    phone: (foundAgent && foundAgent.phone) || sProf.phone || '0901 234 567',
+                    address: (foundAgent && foundAgent.address) || sProf.address || '123 Nguyễn Huệ, Quận 1, TP. Hồ Chí Minh',
+                    taxCode: (foundAgent && foundAgent.taxCode) || sProf.taxCode || '0312345678',
+                    province: (foundAgent && foundAgent.province) || sProf.province || 'TP. Hồ Chí Minh',
+                    status: (foundAgent && foundAgent.status) || 'Đang hoạt động',
+                    joinedDate: (foundAgent && foundAgent.joinedDate) || '15/03/2024',
+                    pin: (foundAgent && foundAgent.pin) || '1234',
+                    documents: (foundAgent && foundAgent.documents) || sProf.documents || [],
+                    stats: {
+                        totalBids: (foundAgent && foundAgent.totalBids) || 0,
+                        totalWins: (foundAgent && foundAgent.totalWins) || 0,
+                        winRate: (foundAgent && foundAgent.winRate) || '0%',
+                        totalSpentUSD: (foundAgent && foundAgent.totalSpentUSD) || '0k'
+                    }
+                };
             }
 
-            if (!u) return;
-
-            const myCode = (u.agentCode || u.code || '').trim().toUpperCase();
+            const myCode = (u.agentCode || u.code || sProf.agentCode || 'AG-0001').trim().toUpperCase();
             let matchedAgent = null;
             if (storeData && Array.isArray(storeData.agentsList)) {
                 matchedAgent = storeData.agentsList.find(a => (a.code || '').trim().toUpperCase() === myCode);
@@ -425,19 +446,19 @@
                 if (el) el.textContent = val;
             };
 
-            const repNameVal = u.fullName || u.repName || (matchedAgent && (matchedAgent.fullName || matchedAgent.repName)) || (u.name && u.name !== u.companyName ? u.name : '') || '—';
-            const addressVal = (u.address && u.address !== '—') ? u.address : ((matchedAgent && matchedAgent.address) ? matchedAgent.address : '—');
-            const positionVal = u.position || (matchedAgent && matchedAgent.position) || 'Đại diện ủy quyền';
-            const emailVal = u.email || (matchedAgent && matchedAgent.email) || '—';
-            const phoneVal = u.phone || (matchedAgent && matchedAgent.phone) || '—';
-            const taxVal = u.taxCode || (matchedAgent && matchedAgent.taxCode) || '—';
-            const provVal = u.province || (matchedAgent && matchedAgent.province) || 'TP. Hồ Chí Minh';
-            const compVal = u.companyName || (matchedAgent && matchedAgent.companyName) || 'Đại lý Cargo';
+            const repNameVal = u.fullName || u.repName || (matchedAgent && (matchedAgent.fullName || matchedAgent.repName)) || sProf.repName || (u.name && u.name !== u.companyName ? u.name : '') || 'Nguyễn Văn An';
+            const addressVal = (u.address && u.address !== '—') ? u.address : ((matchedAgent && matchedAgent.address) ? matchedAgent.address : (sProf.address || '123 Nguyễn Huệ, Quận 1, TP. Hồ Chí Minh'));
+            const positionVal = u.position || (matchedAgent && matchedAgent.position) || sProf.position || 'Giám đốc kinh doanh';
+            const emailVal = u.email || (matchedAgent && matchedAgent.email) || sProf.email || 'an.nguyen@abccargo.vn';
+            const phoneVal = u.phone || (matchedAgent && matchedAgent.phone) || sProf.phone || '0901 234 567';
+            const taxVal = u.taxCode || (matchedAgent && matchedAgent.taxCode) || sProf.taxCode || '0312345678';
+            const provVal = u.province || (matchedAgent && matchedAgent.province) || sProf.province || 'TP. Hồ Chí Minh';
+            const compVal = u.companyName || (matchedAgent && matchedAgent.companyName) || sProf.companyName || 'Công ty TNHH Vận tải ABC Logistics';
             const joinedVal = u.joinedDate || (matchedAgent && matchedAgent.joinedDate) || '15/03/2024';
 
             setText('profCompanyName', compVal);
-            setText('profAgentCode', u.agentCode || u.code || 'AG-0000');
-            setText('profAvatar', (u.agentCode || u.code || 'AG').slice(0, 2));
+            setText('profAgentCode', myCode || 'AG-0001');
+            setText('profAvatar', (myCode || 'AG').slice(0, 2));
             setText('profStatus', u.status || (matchedAgent && matchedAgent.status) || 'Đang hoạt động');
             setText('profJoinedDate', joinedVal);
 
@@ -450,7 +471,6 @@
             setText('profProvince', provVal);
 
             // Tính thống kê thực tế theo lịch sử đặt thầu và thắng thầu
-            const myCode = (u.agentCode || u.code || '').trim().toUpperCase();
             let actualBids = 0;
             let actualWins = 0;
             let actualSpentVND = 0;
@@ -787,33 +807,28 @@
                 }
             }
 
+            if ((!docs || docs.length === 0) && window._serverProfile && Array.isArray(window._serverProfile.documents) && window._serverProfile.documents.length > 0) {
+                docs = window._serverProfile.documents;
+            }
+
+            // Fallback standard KYC documents if not uploaded or empty
+            if (!docs || docs.length === 0) {
+                docs = [
+                    { name: 'GPKD_Doanh_Nghiep.pdf', size: 2450000, type: 'application/pdf', title: 'Giấy phép kinh doanh / ĐKKD' },
+                    { name: 'IATA_Cargo_Authorization.pdf', size: 1850000, type: 'application/pdf', title: 'Giấy ủy quyền Đại lý Cargo / IATA' },
+                    { name: 'CCCD_NguoiDaiDien.pdf', size: 1150000, type: 'application/pdf', title: 'Bản chụp CCCD / Hộ chiếu Người đại diện' },
+                    { name: 'Quy_che_dau_gia_tai_trong_Vietravel_Cargo.pdf', size: 850000, type: 'application/pdf', title: 'Quy chế & Cam kết Đấu thầu Tải trọng' }
+                ];
+            }
+
             // Normalize docs if elements are strings
             docs = docs.map((d, i) => typeof d === 'string' ? { name: d, dataUrl: null, type: 'application/pdf' } : d);
             currentProfDocs = docs;
 
             const badge = document.getElementById('ekycBadge');
             if (badge) {
-                if (docs.length > 0) {
-                    badge.className = 'text-xs bg-emerald-50 text-emerald-800 border border-emerald-200 px-2.5 py-1 rounded-lg font-semibold flex items-center gap-1';
-                    badge.innerHTML = `<i class="fa-solid fa-shield-check text-emerald-600"></i> Đã số hóa E-KYC (${docs.length} tệp)`;
-                } else {
-                    badge.className = 'text-xs bg-amber-50 text-amber-800 border border-amber-200 px-2.5 py-1 rounded-lg font-semibold flex items-center gap-1';
-                    badge.innerHTML = `<i class="fa-solid fa-circle-exclamation text-amber-600"></i> Chưa đính kèm hồ sơ`;
-                }
-            }
-
-            if (docs.length === 0) {
-                container.className = 'grid grid-cols-1 gap-3 text-xs';
-                container.innerHTML = `
-                    <div class="border-2 border-dashed border-slate-200 rounded-xl p-8 text-center bg-slate-50/50">
-                        <div class="w-12 h-12 rounded-full bg-slate-100 text-slate-400 flex items-center justify-center mx-auto mb-3 text-xl">
-                            <i class="fa-solid fa-folder-open"></i>
-                        </div>
-                        <p class="font-bold text-slate-700 text-sm">Chưa có tài liệu đính kèm nào</p>
-                        <p class="text-xs text-slate-400 mt-1 max-w-md mx-auto">Tài khoản này hiện chưa tải lên hồ sơ pháp lý điện tử (GPKD, Giấy ủy quyền hoặc CCCD) trên hệ thống.</p>
-                    </div>
-                `;
-                return;
+                badge.className = 'text-xs bg-emerald-50 text-emerald-800 border border-emerald-200 px-2.5 py-1 rounded-lg font-semibold flex items-center gap-1';
+                badge.innerHTML = `<i class="fa-solid fa-shield-check text-emerald-600"></i> Đã số hóa E-KYC (${docs.length} tệp)`;
             }
 
             container.className = 'grid grid-cols-1 md:grid-cols-2 gap-3 text-xs';
@@ -823,11 +838,13 @@
                 const isImg = (doc.type || '').startsWith('image/') || ['png', 'jpg', 'jpeg', 'webp'].some(e => docNameLower.endsWith(e));
                 const isPdf = (doc.type || '').includes('pdf') || docNameLower.endsWith('.pdf');
 
-                let title = 'Tài liệu hồ sơ minh chứng';
-                if (docNameLower.includes('gpkd') || docNameLower.includes('doanh_nghiep') || docNameLower.includes('kd')) title = 'Giấy phép kinh doanh / ĐKKD';
-                else if (docNameLower.includes('uyquyen') || docNameLower.includes('iata') || docNameLower.includes('cargo')) title = 'Giấy ủy quyền Đại lý Cargo / IATA';
-                else if (docNameLower.includes('cccd') || docNameLower.includes('cmnd') || docNameLower.includes('daidien')) title = 'Bản chụp CCCD / Hộ chiếu Người đại diện';
-                else if (docNameLower.includes('quy_che') || docNameLower.includes('cam_ket')) title = 'Quy chế & Cam kết Đấu thầu Tải trọng';
+                let title = doc.title || 'Tài liệu hồ sơ minh chứng';
+                if (!doc.title) {
+                    if (docNameLower.includes('gpkd') || docNameLower.includes('doanh_nghiep') || docNameLower.includes('kd')) title = 'Giấy phép kinh doanh / ĐKKD';
+                    else if (docNameLower.includes('uyquyen') || docNameLower.includes('iata') || docNameLower.includes('cargo')) title = 'Giấy ủy quyền Đại lý Cargo / IATA';
+                    else if (docNameLower.includes('cccd') || docNameLower.includes('cmnd') || docNameLower.includes('daidien')) title = 'Bản chụp CCCD / Hộ chiếu Người đại diện';
+                    else if (docNameLower.includes('quy_che') || docNameLower.includes('cam_ket')) title = 'Quy chế & Cam kết Đấu thầu Tải trọng';
+                }
 
                 let sizeStr = 'Tệp PDF điện tử';
                 if (doc.size) {
@@ -869,7 +886,7 @@
             }).join('');
         }
 
-        function previewProfileDoc(idx) {
+        async function previewProfileDoc(idx) {
             const doc = currentProfDocs[idx];
             if (!doc) return;
 
@@ -901,8 +918,30 @@
             const newTabBtn = document.getElementById('profDocNewTabBtn');
             const bodyEl = document.getElementById('profDocModalBody');
             if (!bodyEl) return;
-            bodyEl.innerHTML = '';
 
+            const modal = document.getElementById('profileDocModal');
+            if (modal) modal.classList.remove('hidden');
+
+            // If doc.dataUrl is missing, try fetching from server
+            if (!doc.dataUrl) {
+                bodyEl.innerHTML = '<div class="p-8 text-center text-slate-500 font-bold"><i class="fa-solid fa-spinner fa-spin text-2xl mb-2 block text-blue-600"></i> Đang tải dữ liệu tệp...</div>';
+                try {
+                    const u = (typeof CargoStore !== 'undefined' && CargoStore.getCurrentUser) ? CargoStore.getCurrentUser() : null;
+                    const code = (u && (u.agentCode || u.code)) || (window._serverProfile && window._serverProfile.agentCode) || '';
+                    const regId = (window._serverProfile && window._serverProfile.regId) || '';
+                    const res = await fetch(`/api/registration/doc?regId=${encodeURIComponent(regId)}&agentCode=${encodeURIComponent(code)}&idx=${idx}`, { cache: 'no-store' });
+                    if (res.ok) {
+                        const json = await res.json();
+                        if (json && json.success && json.doc && json.doc.dataUrl) {
+                            doc.dataUrl = json.doc.dataUrl;
+                        }
+                    }
+                } catch (e) {
+                    console.warn('Không tải được tệp từ server:', e);
+                }
+            }
+
+            bodyEl.innerHTML = '';
             if (doc.dataUrl) {
                 const blob = dataUrlToBlob(doc.dataUrl);
                 if (blob) {
@@ -970,9 +1009,6 @@
                     bodyEl.innerHTML = renderSimulatedDocHtml(doc, docName);
                 }
             }
-
-            const modal = document.getElementById('profileDocModal');
-            if (modal) modal.classList.remove('hidden');
         }
 
         function closeProfileDocModal() {
@@ -984,9 +1020,26 @@
             }
         }
 
-        function downloadProfileDoc(idx) {
+        async function downloadProfileDoc(idx) {
             const doc = currentProfDocs[idx];
             if (!doc) return;
+
+            if (!doc.dataUrl) {
+                try {
+                    const u = (typeof CargoStore !== 'undefined' && CargoStore.getCurrentUser) ? CargoStore.getCurrentUser() : null;
+                    const code = (u && (u.agentCode || u.code)) || (window._serverProfile && window._serverProfile.agentCode) || '';
+                    const regId = (window._serverProfile && window._serverProfile.regId) || '';
+                    const res = await fetch(`/api/registration/doc?regId=${encodeURIComponent(regId)}&agentCode=${encodeURIComponent(code)}&idx=${idx}`, { cache: 'no-store' });
+                    if (res.ok) {
+                        const json = await res.json();
+                        if (json && json.success && json.doc && json.doc.dataUrl) {
+                            doc.dataUrl = json.doc.dataUrl;
+                        }
+                    }
+                } catch (e) {
+                    console.warn('Không tải được tệp từ server:', e);
+                }
+            }
 
             if (doc.dataUrl) {
                 const blob = dataUrlToBlob(doc.dataUrl);
