@@ -688,52 +688,33 @@
                     <i class="fa-solid fa-coins text-amber-500"></i> 2. Tải trọng & Tham số đấu giá
                 </h2>
 
-                <!-- Tải trọng chào thầu (Tự nhập, mặc định 3500 Kg) & Thể tích tối đa -->
-                <div class="space-y-3">
-                    <label class="block text-xs font-semibold text-slate-700">
-                        Tải trọng chào thầu (Kg) & Thể tích chứa tối đa (CBM - m³) <span class="text-red-500">*</span>
-                    </label>
-
-                    <!-- Input Khối lượng Kg tự nhập + Live calculation preview -->
-                    <div class="grid grid-cols-1 sm:grid-cols-3 gap-4">
-                        <div class="sm:col-span-1">
-                            <label class="block text-xs font-semibold text-slate-700 mb-1">Số Kg chào thầu (Tự nhập)
-                                <span class="text-red-500">*</span></label>
-                            <input type="number" id="capacityKg" required value="3500" min="100" max="50000" step="100"
-                                placeholder="Nhập số Kg (VD: 3500)" oninput="updateVolumePreview()"
-                                class="w-full border rounded-xl px-3.5 py-2.5 text-xs font-bold text-slate-900 focus:ring-2 focus:ring-blue-500 outline-none">
-                            <p class="text-[10px] text-slate-400 mt-1">Có thể tự nhập bất kỳ từ
-                                100 đến 50.000 Kg.</p>
-                        </div>
-                        <div class="sm:col-span-2 flex items-center">
-                            <div
-                                class="w-full bg-slate-50 border border-slate-200 rounded-xl p-3 flex items-center justify-between">
-                                <div class="flex items-center gap-2.5">
-                                    <div
-                                        class="w-9 h-9 rounded-lg bg-emerald-100 text-emerald-700 flex items-center justify-center font-bold text-sm shadow-xs">
-                                        <i class="fa-solid fa-cube"></i>
-                                    </div>
-                                    <div>
-                                        <span class="text-[11px] text-slate-500 block">Thể tích chứa tối đa cho
-                                            phép</span>
-                                        <span id="maxVolumeDisplay" class="text-sm font-black text-emerald-700">175
-                                            m³</span>
-                                    </div>
-                                </div>
-                                <span
-                                    class="text-[10px] font-medium text-slate-500 bg-white border border-slate-200 px-2 py-1 rounded-md shadow-xs">IATA:
-                                    20 Kg/m³</span>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-
-                <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                <div class="grid grid-cols-1 sm:grid-cols-3 gap-4">
                     <div>
-                        <label class="block text-xs font-semibold text-slate-700 mb-1">Giá khởi điểm sàn (VND/Kg) <span
-                                class="text-red-500">*</span></label>
-                        <input type="number" id="startingPriceKg" required value="18000" step="any"
-                            class="w-full border rounded-xl px-3.5 py-2.5 text-xs font-bold focus:ring-2 focus:ring-blue-500 outline-none">
+                        <label class="block text-xs font-semibold text-slate-700 mb-1">
+                            Tải trọng chào thầu (Kg) <span class="text-red-500">*</span>
+                        </label>
+                        <input type="number" id="capacityKg" required value="3500" min="100" max="50000" step="100"
+                            placeholder="Nhập số Kg (VD: 3500)"
+                            class="w-full border rounded-xl px-3.5 py-2.5 text-xs font-bold text-slate-900 focus:ring-2 focus:ring-blue-500 outline-none">
+                        <p class="text-[10px] text-slate-400 mt-1">Từ 100 đến 50.000 Kg.</p>
+                    </div>
+                    <div>
+                        <label class="block text-xs font-semibold text-slate-700 mb-1">
+                            Giá khởi điểm sàn <span class="text-red-500">*</span>
+                        </label>
+                        <div class="flex items-stretch rounded-xl border border-slate-300 focus-within:ring-2 focus-within:ring-blue-500 focus-within:border-blue-500 overflow-hidden bg-white">
+                            <input type="text" id="startingPriceKg" inputmode="numeric" required value="18,000"
+                                placeholder="VD: 18,000" oninput="formatStartingPriceInput(this)"
+                                class="w-full px-3.5 py-2.5 text-xs font-bold text-slate-900 outline-none">
+                            <select id="startingPriceUnit" onchange="onStartingPriceUnitChange()"
+                                class="bg-slate-100 border-l border-slate-300 px-2.5 py-2 text-xs font-bold text-blue-700 outline-none cursor-pointer shrink-0">
+                                <option value="VND/Kg" selected>VND/Kg</option>
+                                <option value="USD/Kg">USD/Kg</option>
+                                <option value="VND/Tấn">VND/Tấn</option>
+                                <option value="VND/Chuyến">VND/Chuyến</option>
+                            </select>
+                        </div>
+                        <p id="startingPriceHint" class="text-[10px] text-slate-400 mt-1">Tự động thêm dấu phẩy ngăn cách hàng nghìn.</p>
                     </div>
                     <div>
                         <label
@@ -876,7 +857,7 @@
                 </a>
                 <button type="submit" id="btnSubmitAuction"
                     class="bg-blue-600 hover:bg-blue-700 text-white text-xs font-bold px-6 py-2.5 rounded-xl transition shadow flex items-center gap-1.5">
-                    <i class="fa-solid fa-paper-plane"></i> Xuất bản phiên đấu giá lên Sàn
+                    <i class="fa-solid fa-floppy-disk"></i> Lưu
                 </button>
             </div>
 
@@ -976,16 +957,29 @@
             return list[Math.max(0, skip) % list.length];
         }
 
-        function updateVolumePreview() {
-            const input = document.getElementById('capacityKg');
-            const display = document.getElementById('maxVolumeDisplay');
-            if (!input || !display) return;
-            const kg = Number(input.value) || 0;
-            if (kg > 0) {
-                const maxVol = (kg / 20).toFixed(1);
-                display.textContent = `${Number(maxVol).toLocaleString('vi-VN')} m³`;
-            } else {
-                display.textContent = '- m³';
+        function formatStartingPriceInput(input) {
+            if (!input) return;
+            const raw = String(input.value || '').replace(/[^0-9.]/g, '');
+            if (!raw) {
+                input.value = '';
+                return;
+            }
+            const parts = raw.split('.');
+            const intPart = parts[0].replace(/^0+(?=\d)/, '');
+            const formattedInt = intPart.replace(/\B(?=(\d{3})+(?!\d))/g, ',');
+            input.value = parts.length > 1 ? `${formattedInt}.${parts[1].slice(0, 2)}` : formattedInt;
+        }
+
+        function getCleanStartingPrice() {
+            const raw = String(document.getElementById('startingPriceKg')?.value || '').replace(/,/g, '').trim();
+            return Number(raw) || 0;
+        }
+
+        function onStartingPriceUnitChange() {
+            const unit = document.getElementById('startingPriceUnit')?.value || 'VND/Kg';
+            const hint = document.getElementById('startingPriceHint');
+            if (hint) {
+                hint.textContent = `Đơn vị áp dụng: ${unit} · Tự động thêm dấu phẩy ngăn cách hàng nghìn.`;
             }
         }
 
@@ -1031,15 +1025,17 @@
             }
 
             const diffMs = closeDt.getTime() - openDt.getTime();
-            const totalHours = Math.floor(diffMs / (3600 * 1000));
-            const days = Math.floor(totalHours / 24);
-            const remainHours = totalHours % 24;
-            let durationText = '';
-            if (days > 0) {
-                durationText = `${days} ngày${remainHours > 0 ? ' ' + remainHours + ' giờ' : ''}`;
-            } else {
-                durationText = `${totalHours} giờ`;
-            }
+            const totalMinutes = Math.floor(diffMs / (60 * 1000));
+            const days = Math.floor(totalMinutes / (24 * 60));
+            const remainHours = Math.floor((totalMinutes % (24 * 60)) / 60);
+            const remainMinutes = totalMinutes % 60;
+
+            const parts = [];
+            if (days > 0) parts.push(`${days} ngày`);
+            if (remainHours > 0) parts.push(`${remainHours} giờ`);
+            if (remainMinutes > 0 || parts.length === 0) parts.push(`${remainMinutes} phút`);
+
+            const durationText = `${parts.join(' ')} (Tổng: ${totalMinutes.toLocaleString('vi-VN')} phút)`;
 
             const hasCustomOpenTime = openTimeInput?.value ? ` (${openTimeInput.value})` : ' ';
             const hasCustomCloseTime = closeTimeInput?.value ? ` (${closeTimeInput.value})` : '';
@@ -1635,9 +1631,9 @@
             initAirportAndAircraftDropdowns();
             initDateInputs();
             attachFieldListeners();
-            updateVolumePreview();
             initSystemDefaults();
             initAgentAccessControl();
+            formatStartingPriceInput(document.getElementById('startingPriceKg'));
             if (window.CargoStore && CargoStore.syncAdminHeaderUI) CargoStore.syncAdminHeaderUI();
         });
 
@@ -1759,10 +1755,17 @@
             const etdIso = flightStartDateVal ? `${flightStartDateVal}T${etdTimeVal}` : '';
             const etaIso = flightStartDateVal ? `${flightStartDateVal}T${etaTimeVal}` : '';
 
+            const startingPriceVal = getCleanStartingPrice();
+            const priceUnitVal = document.getElementById('startingPriceUnit')?.value || 'VND/Kg';
+            if (startingPriceVal <= 0) {
+                alert('Vui lòng nhập giá khởi điểm sàn hợp lệ!');
+                return;
+            }
+
             const submitBtn = document.getElementById('btnSubmitAuction') || e.target.querySelector('button[type="submit"]');
             if (submitBtn) {
                 submitBtn.disabled = true;
-                submitBtn.innerHTML = '<i class="fa-solid fa-spinner fa-spin mr-1.5"></i> Đang xuất bản phiên lên sàn...';
+                submitBtn.innerHTML = '<i class="fa-solid fa-spinner fa-spin mr-1.5"></i> Đang lưu...';
             }
 
             const res = (window.CargoStore && CargoStore.createAuction)
@@ -1780,7 +1783,8 @@
                     eta: etaIso,
                     aircraft: document.getElementById('aircraftType').value,
                     capacityKg: capacityKgVal,
-                    startingPriceKg: document.getElementById('startingPriceKg').value,
+                    startingPriceKg: startingPriceVal,
+                    priceUnit: priceUnitVal,
                     minStep: 0,
                     specialNotes: document.getElementById('specialNotes').value,
                     cutOffTime: 'Theo ngày đóng phiên',
@@ -1804,7 +1808,7 @@
             } else {
                 if (submitBtn) {
                     submitBtn.disabled = false;
-                    submitBtn.innerHTML = '<i class="fa-solid fa-paper-plane"></i> Xuất bản phiên đấu giá lên Sàn';
+                    submitBtn.innerHTML = '<i class="fa-solid fa-floppy-disk"></i> Lưu';
                 }
                 alert('❌ ' + (res.message || 'Tạo phiên đấu giá thất bại!'));
             }

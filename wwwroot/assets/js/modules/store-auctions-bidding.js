@@ -155,7 +155,8 @@
                 };
             }
 
-            const startingPriceKg = Number(auctionData.startingPriceKg) || 18000;
+            const startingPriceKg = Number(String(auctionData.startingPriceKg || '').replace(/,/g, '')) || 18000;
+            const priceUnit = auctionData.priceUnit || 'VND/Kg';
             const defaultMinIncrement = (data.settings && data.settings.minIncrement) ? Number(data.settings.minIncrement) : 500;
             const minStep = (auctionData.minStep !== undefined && auctionData.minStep !== null && auctionData.minStep !== '')
                 ? Number(auctionData.minStep)
@@ -218,6 +219,7 @@
                 capacityKg: capacityKg,
                 startingPriceKg: startingPriceKg,
                 currentPriceKg: startingPriceKg,
+                priceUnit: priceUnit,
                 minStep: minStep,
                 endTime: endTime,
                 status: isUpcoming ? 'UPCOMING' : 'OPEN',
