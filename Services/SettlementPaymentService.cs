@@ -12,11 +12,13 @@ public class SettlementPaymentService
 {
     private readonly AppDbContext _db;
     private readonly SharedDataService _shared;
+    private readonly LogService _logs;
 
-    public SettlementPaymentService(AppDbContext db, SharedDataService shared)
+    public SettlementPaymentService(AppDbContext db, SharedDataService shared, LogService logs)
     {
         _db = db;
         _shared = shared;
+        _logs = logs;
     }
 
     public async Task<JsonObject> CloseAuctionAsync(int auctionId, string? closedBy, string? ip)
@@ -51,7 +53,7 @@ public class SettlementPaymentService
             auction.BidsCount = 0;
         }
 
-        _db.ActivityLogs.Add(LogService.Make(
+        await _logs.AddOrUpdateAsync(LogService.Make(
             closedBy ?? "Admin", "admin", "ADMIN",
             "Phiên đấu giá", "Chốt đóng phiên đấu giá", auction.FlightNumber ?? $"#{auctionId}",
             $"Chốt đóng phiên đấu giá chuyến bay {auction.FlightNumber} ({auction.Route}). Người dẫn đầu: {auction.WinnerAgentCode ?? "Không có"}.",
@@ -96,7 +98,7 @@ public class SettlementPaymentService
             Link = "07-WonAuction.html"
         });
 
-        _db.ActivityLogs.Add(LogService.Make(
+        await _logs.AddOrUpdateAsync(LogService.Make(
             confirmedBy ?? "Admin", "admin", "ADMIN",
             "Thanh toán", "Xác nhận thanh toán đơn thầu", won.WonId,
             $"Xác nhận đã nhận đủ thanh toán cho đơn {won.WonId} (Đại lý {won.AgentCode}, chuyến {won.FlightNumber}). Cấp AWB: {won.AwbNumber}.",
@@ -138,7 +140,7 @@ public class SettlementPaymentService
             Link = "07-WonAuction.html"
         });
 
-        _db.ActivityLogs.Add(LogService.Make(
+        await _logs.AddOrUpdateAsync(LogService.Make(
             rejectedBy ?? "Admin", "admin", "ADMIN",
             "Thanh toán", "Từ chối xác nhận thanh toán", won.WonId,
             $"Từ chối xác nhận thanh toán đơn {won.WonId} (Đại lý {won.AgentCode}). Lý do: \"{cleanReason}\".",
@@ -199,7 +201,7 @@ public class SettlementPaymentService
         cargoData["updatedAt"] = Util.ViNow();
         won.CargoDeclarationJson = cargoData.ToJsonString();
 
-        _db.ActivityLogs.Add(LogService.Make(
+        await _logs.AddOrUpdateAsync(LogService.Make(
             won.AgentCode ?? "Đại lý", won.AgentCode ?? "AGENT", "AGENT",
             "Khai báo hàng hóa", "Cập nhật Khai báo Vận đơn", won.WonId,
             $"Cập nhật thông tin vận đơn AWB / hàng hóa cho đơn thắng thầu {won.WonId}.",

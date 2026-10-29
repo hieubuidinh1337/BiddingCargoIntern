@@ -16,9 +16,10 @@ public class WonAuctionService
 {
     private readonly AppDbContext _db;
     private readonly SharedDataService _shared;
+    private readonly LogService _logs;
 
-    public WonAuctionService(AppDbContext db, SharedDataService shared)
-    { _db = db; _shared = shared; }
+    public WonAuctionService(AppDbContext db, SharedDataService shared, LogService logs)
+    { _db = db; _shared = shared; _logs = logs; }
 
     private async Task<WonAuction> FindWonAsync(string? wonId)
     {
@@ -69,7 +70,7 @@ public class WonAuctionService
         var agent = await _db.Agents.FirstOrDefaultAsync(a => a.Code.ToUpper() == (won.AgentCode ?? "").ToUpper());
         var agentName = Util.NullIfEmpty(agent?.CompanyName) ?? EntityJson.GetExtraString(won, "agentName") ?? "Đại lý";
         var code = won.AgentCode ?? "AGENT";
-        _db.ActivityLogs.Add(LogService.Make(agentName, code, "AGENT", "Thanh toán", "Điền thông tin hoàn tiền", won.WonId,
+        await _logs.AddOrUpdateAsync(LogService.Make(agentName, code, "AGENT", "Thanh toán", "Điền thông tin hoàn tiền", won.WonId,
             $"Đại lý {agentName} ({code}) đã đăng ký tài khoản nhận tiền hoàn cho đơn {won.WonId}: {bank} - STK: {acc} (Chủ TK: {name}).", ip));
         await SaveAsync();
         return won;
@@ -94,7 +95,7 @@ public class WonAuctionService
             Id = Util.NowMs(), TargetAgentCode = won.AgentCode, Title = "TIỀN HOÀN ĐÃ ĐƯỢC CHUYỂN - Đơn " + won.WonId,
             Message = $"Ban Điều hành đã hoàn tất chuyển tiền hoàn vào {bankText}.", Time = "Vừa xong", Type = "SUCCESS", Read = false, Unread = true
         });
-        _db.ActivityLogs.Add(LogService.Make(by, "admin", "ADMIN", "Thanh toán", "Xác nhận hoàn tiền đơn thầu", won.WonId,
+        await _logs.AddOrUpdateAsync(LogService.Make(by, "admin", "ADMIN", "Thanh toán", "Xác nhận hoàn tiền đơn thầu", won.WonId,
             $"Xác nhận đã hoàn tiền cho đơn thắng thầu {won.WonId} của Đại lý {EntityJson.GetExtraString(won, "agentName") ?? won.AgentCode} vào tài khoản {bankText}.", ip));
         await SaveAsync();
         return won;
@@ -203,14 +204,9 @@ public class WonAuctionService
             try { EntityJson.SetExtra(agent, "documents", System.Text.Json.Nodes.JsonNode.Parse(reg.Documents)); } catch { }
         }
 
-        var nowMs = Util.NowMs();
-        var recentLog = await _db.ActivityLogs.AnyAsync(l => l.ActionCategory == "Quản lý Đại lý" && (l.Target == regId || l.Target == code || (l.Details != null && l.Details.Contains(regId))) && l.RawTime > nowMs - 60000);
-        if (!recentLog)
-        {
-            var actor = Util.NullIfEmpty(approvedBy) ?? "Quản trị viên";
-            _db.ActivityLogs.Add(LogService.Make(actor, Util.NullIfEmpty(approvedBy) ?? "admin", "SUPER_ADMIN", "Quản lý Đại lý", "Duyệt & Cấp mã Đại lý", reg.CompanyName ?? code,
-                $"Phê duyệt hồ sơ đăng ký đại lý \"{reg.CompanyName}\" (MST: {Util.NullIfEmpty(reg.TaxCode) ?? "N/A"}). Cấp thành công Mã Đại lý: {code}.", ip ?? "127.0.0.1", "Admin Portal"));
-        }
+        var actor = Util.NullIfEmpty(approvedBy) ?? "Quản trị viên";
+        await _logs.AddOrUpdateAsync(LogService.Make(actor, Util.NullIfEmpty(approvedBy) ?? "admin", "SUPER_ADMIN", "Quản lý Đại lý", "Duyệt & Cấp mã Đại lý", reg.CompanyName ?? code,
+            $"Phê duyệt hồ sơ đăng ký đại lý \"{reg.CompanyName}\" (MST: {Util.NullIfEmpty(reg.TaxCode) ?? "N/A"}). Cấp thành công Mã Đại lý: {code}.", ip ?? "127.0.0.1", "Admin Portal"));
 
         await SaveAsync();
         SharedDataService.InvalidateSnapshotCache();
@@ -242,7 +238,7 @@ public class WonAuctionService
         var actDetails = locked
             ? $"Quản trị viên đã khóa tài khoản đại lý {agent.Code} ({agent.CompanyName}). Lý do: {agent.LockedReason}"
             : $"Quản trị viên đã mở khóa tài khoản đại lý {agent.Code} ({agent.CompanyName}).";
-        _db.ActivityLogs.Add(LogService.Make("Admin", "admin", "SUPER_ADMIN", "Quản lý Đại lý", actTitle, agent.Code, actDetails));
+        await _logs.AddOrUpdateAsync(LogService.Make("Admin", "admin", "SUPER_ADMIN", "Quản lý Đại lý", actTitle, agent.Code, actDetails));
 
         await SaveAsync();
         SharedDataService.InvalidateSnapshotCache();

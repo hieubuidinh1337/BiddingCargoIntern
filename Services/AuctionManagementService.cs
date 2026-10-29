@@ -12,11 +12,13 @@ public class AuctionManagementService
 {
     private readonly AppDbContext _db;
     private readonly SharedDataService _shared;
+    private readonly LogService _logs;
 
-    public AuctionManagementService(AppDbContext db, SharedDataService shared)
+    public AuctionManagementService(AppDbContext db, SharedDataService shared, LogService logs)
     {
         _db = db;
         _shared = shared;
+        _logs = logs;
     }
 
     public async Task<Auction> CreateAuctionAsync(JsonObject body, string? ip)
@@ -91,7 +93,7 @@ public class AuctionManagementService
 
             if (existing == null)
             {
-                _db.ActivityLogs.Add(LogService.Make(
+                await _logs.AddOrUpdateAsync(LogService.Make(
                     EntityJson.Str(body, "createdBy") ?? "Admin", "admin", "ADMIN",
                     "Phiên đấu giá", "Tạo mới phiên đấu giá", fn,
                     $"Tạo mới phiên đấu giá chuyến bay {fn} ({auction.Route}), tải trọng {auction.CapacityKg} kg, giá khởi điểm {Util.FmtVi(auction.StartingPriceKg)}đ/kg.",
@@ -120,7 +122,7 @@ public class AuctionManagementService
         EntityJson.Apply(auction, body);
         auction.Id = id;
 
-        _db.ActivityLogs.Add(LogService.Make(
+        await _logs.AddOrUpdateAsync(LogService.Make(
             EntityJson.Str(body, "updatedBy") ?? "Admin", "admin", "ADMIN",
             "Phiên đấu giá", "Cập nhật phiên đấu giá", auction.FlightNumber ?? $"#{id}",
             $"Cập nhật thông tin phiên đấu giá chuyến bay {auction.FlightNumber} ({auction.Route}).",

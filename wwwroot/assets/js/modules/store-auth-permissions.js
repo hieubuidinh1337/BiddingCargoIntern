@@ -58,6 +58,15 @@
                         else local.agentsList.push({ ...local.currentUser });
                         saveData(local, true);
                         document.cookie = "cargo_agent_code=" + encodeURIComponent(resJson.agent.code) + "; path=/; max-age=2592000; SameSite=Lax";
+                        this.logActivity({
+                            actor: local.currentUser.companyName || local.currentUser.name || local.currentUser.repName || local.currentUser.code,
+                            username: local.currentUser.code,
+                            role: 'AGENT',
+                            actionCategory: 'Đăng nhập',
+                            actionTitle: 'Đăng nhập Cổng Đại lý',
+                            target: 'Portal Đại lý',
+                            details: `Đại lý ${local.currentUser.code} (${local.currentUser.companyName || local.currentUser.name}) đăng nhập thành công vào sàn đấu giá.`
+                        });
                         return { success: true, user: local.currentUser };
                     }
                     return resJson || { success: false, message: 'Đăng nhập không thành công.' };

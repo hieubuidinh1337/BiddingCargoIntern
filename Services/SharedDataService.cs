@@ -54,11 +54,12 @@ public class SharedDataService
     private readonly AppDbContext _db;
     private readonly IConfiguration _cfg;
     private readonly ILogger<SharedDataService> _log;
+    private readonly LogService _logs;
     private Dictionary<string, Agent>? _agents;
 
-    public SharedDataService(AppDbContext db, IConfiguration cfg, ILogger<SharedDataService> log)
+    public SharedDataService(AppDbContext db, IConfiguration cfg, ILogger<SharedDataService> log, LogService logs)
     {
-        _db = db; _cfg = cfg; _log = log;
+        _db = db; _cfg = cfg; _log = log; _logs = logs;
     }
 
     // ---------------------------------------------------------------- settings / version
@@ -288,7 +289,7 @@ public class SharedDataService
                     var chatEnt = await _db.Chats.AsNoTracking().OrderByDescending(c => c.CreatedAt).ToListAsync();
                     var msgEnt = await _db.ChatMessages.AsNoTracking().OrderBy(m => m.Timestamp).ToListAsync();
                     var emailEnt = await _db.EmailLogs.AsNoTracking().OrderByDescending(e => e.Id).Take(50).ToListAsync();
-                    var logEnt = await _db.ActivityLogs.AsNoTracking().OrderByDescending(l => l.RawTime).Take(1000).ToListAsync();
+                    var logEnt = await _logs.QueryAsync(null, null, null);
                     var settingsList = await _db.Settings.AsNoTracking().ToListAsync();
                     var settingsDict = settingsList.ToDictionary(s => s.Key, s => s.Value);
 
@@ -879,59 +880,24 @@ public class SharedDataService
             }
 
             // 7) Nhật ký hoạt động phía client
-            var recentLogs = await _db.ActivityLogs.OrderByDescending(l => l.RawTime).Take(500).ToListAsync();
-            var existingLogIds = (await _db.ActivityLogs.AsNoTracking().Select(l => l.Id).ToListAsync()).ToHashSet();
             foreach (var n in ArrayOf(incoming, "activityLogs"))
             {
                 var title = EntityJson.Str(n, "actionTitle");
                 if (string.IsNullOrEmpty(title)) continue;
                 var eff = EffectiveLogTime(EntityJson.Str(n, "timestamp"), EntityJson.Lng(n, "rawTime") ?? 0);
                 var target = EntityJson.Str(n, "target") ?? "N/A";
-                var user = (EntityJson.Str(n, "username") ?? EntityJson.Str(n, "actor") ?? "").Trim().ToUpperInvariant();
+                var user = (EntityJson.Str(n, "username") ?? EntityJson.Str(n, "actor") ?? "").Trim();
                 var id = EntityJson.Lng(n, "id") ?? eff;
-
-                if (existingLogIds.Contains(id)) continue;
-
-                // Check for duplicate within 10 seconds
-                var dup = recentLogs.FirstOrDefault(r =>
-                {
-                    if (Math.Abs(r.RawTime - eff) > 10000) return false;
-                    if (!string.Equals(r.ActionTitle?.Trim(), title.Trim(), StringComparison.OrdinalIgnoreCase)) return false;
-                    var rTarget = (r.Target ?? "N/A").Trim().ToUpperInvariant();
-                    var nTarget = target.Trim().ToUpperInvariant();
-                    if (rTarget != "N/A" && nTarget != "N/A" && rTarget != nTarget) return false;
-                    var rUser = (string.IsNullOrEmpty(r.Username) ? r.Actor : r.Username)?.Trim().ToUpperInvariant() ?? "";
-                    var isAdmin = (rUser == "ADMIN" || rUser.Contains("ADMIN")) && (user == "ADMIN" || user.Contains("ADMIN"));
-                    if (!isAdmin && rUser != user && !string.IsNullOrEmpty(rUser) && !string.IsNullOrEmpty(user)) return false;
-                    return true;
-                });
-
-                if (dup != null)
-                {
-                    var clientDev = EntityJson.Str(n, "device");
-                    if (!string.IsNullOrEmpty(clientDev) && clientDev != "Web App" && dup.Device == "Web App")
-                    {
-                        dup.Device = clientDev;
-                    }
-                    var clientActor = EntityJson.Str(n, "actor");
-                    if (!string.IsNullOrEmpty(clientActor) && clientActor != "Admin" && dup.Actor == "Admin")
-                    {
-                        dup.Actor = clientActor;
-                    }
-                    continue;
-                }
 
                 var newL = new ActivityLog
                 {
                     Id = id, Timestamp = EntityJson.Str(n, "timestamp") ?? "", RawTime = eff,
-                    Actor = EntityJson.Str(n, "actor") ?? "", Username = EntityJson.Str(n, "username") ?? "",
+                    Actor = EntityJson.Str(n, "actor") ?? "", Username = user,
                     Role = EntityJson.Str(n, "role") ?? "AGENT", ActionCategory = EntityJson.Str(n, "actionCategory") ?? "Khác",
                     ActionTitle = title, Target = target, Details = EntityJson.Str(n, "details") ?? "",
                     Ip = EntityJson.Str(n, "ip") ?? "113.161.42.12", Device = EntityJson.Str(n, "device") ?? "Web Client"
                 };
-                _db.ActivityLogs.Add(newL);
-                existingLogIds.Add(id);
-                recentLogs.Add(newL);
+                await _logs.AddOrUpdateAsync(newL);
             }
 
             // 8) Cấu hình & danh sách phụ
@@ -1242,10 +1208,6 @@ public class SharedDataService
     /// <summary>Mỗi thầu hợp lệ phải có một dòng nhật ký "Đặt giá thầu" (port reconcileBidActivityLogs).</summary>
     private async Task ReconcileBidActivityLogsAsync(List<Auction> auctions, List<Bid> bids)
     {
-        var logs = await _db.ActivityLogs.AsNoTracking()
-            .Where(l => l.ActionTitle == "Đặt giá thầu" || l.ActionCategory == "Đấu giá").ToListAsync();
-        var keys = logs.Select(l => $"{(string.IsNullOrEmpty(l.Username) ? l.Actor : l.Username)!.ToUpperInvariant()}_{l.Target}_{l.RawTime / 10000}").ToHashSet();
-        var existingLogIds = logs.Select(l => l.Id).ToHashSet();
         var agents = await AgentsAsync();
 
         foreach (var b in bids)
@@ -1255,21 +1217,21 @@ public class SharedDataService
             var auc = auctions.FirstOrDefault(a => a.Id == b.AuctionId);
             var flight = auc != null ? (Util.NullIfEmpty(auc.FlightNumber) ?? auc.FlightCode) : $"AUC-{b.AuctionId}";
             var raw = b.Timestamp != 0 ? b.Timestamp : Util.NowMs();
-            if (!keys.Add($"{code}_{flight}_{raw / 10000}")) continue;
 
             agents.TryGetValue(code, out var ag);
             var actor = ag != null ? (Util.NullIfEmpty(ag.CompanyName) ?? EntityJson.GetExtraString(ag, "repName")) : (b.AgentName ?? code);
             var d = DateTimeOffset.FromUnixTimeMilliseconds(raw).LocalDateTime;
             var route = auc != null && !string.IsNullOrEmpty(auc.Route) ? $" ({auc.Route})" : "";
             var id = raw + Random.Shared.Next(0, 1000);
-            if (!existingLogIds.Add(id)) continue;
-            _db.ActivityLogs.Add(new ActivityLog
+
+            var newLog = new ActivityLog
             {
                 Id = id, Timestamp = Util.LogTimestamp(d), RawTime = raw, Actor = actor ?? code, Username = code,
                 Role = "AGENT", ActionCategory = "Đấu giá", ActionTitle = "Đặt giá thầu", Target = flight,
                 Details = $"Đại lý {actor} đặt thầu thành công mức giá {Util.FmtVi(b.PriceKg)}đ/Kg cho chuyến bay {flight}{route}.",
                 Ip = "113.161.42.12", Device = "Web Client"
-            });
+            };
+            await _logs.AddOrUpdateAsync(newLog);
         }
     }
 

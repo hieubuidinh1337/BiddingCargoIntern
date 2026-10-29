@@ -18,8 +18,9 @@ public class BidService
     private static readonly Regex BidIdPattern = new(@"^BID-\d+-\d+$", RegexOptions.Compiled);
     private readonly AppDbContext _db;
     private readonly SharedDataService _shared;
+    private readonly LogService _logs;
 
-    public BidService(AppDbContext db, SharedDataService shared) { _db = db; _shared = shared; }
+    public BidService(AppDbContext db, SharedDataService shared, LogService logs) { _db = db; _shared = shared; _logs = logs; }
 
     public async Task<Bid> PlaceAsync(PlaceBidRequest req)
     {
@@ -179,14 +180,13 @@ public class BidService
 
                 var actor = Util.NullIfEmpty(agent.CompanyName) ?? EntityJson.GetExtraString(agent, "repName") ?? agentName ?? cleanCode;
                 var routeSuffix = route != "" ? $" ({route})" : "";
-                if (await _db.ActivityLogs.FindAsync(now) == null)
-                    _db.ActivityLogs.Add(new ActivityLog
-                    {
-                        Id = now, Timestamp = Util.LogTimestamp(DateTime.Now), RawTime = now, Actor = actor, Username = bid.AgentCode,
-                        Role = "AGENT", ActionCategory = "Đấu giá", ActionTitle = "Đặt giá thầu", Target = flight,
-                        Details = $"Đại lý {actor} đặt thầu thành công mức giá {price} đ/Kg cho chuyến bay {flight}{routeSuffix}.",
-                        Ip = "113.161.42.12", Device = "Web Client"
-                    });
+                await _logs.AddOrUpdateAsync(new ActivityLog
+                {
+                    Id = now, Timestamp = Util.LogTimestamp(DateTime.Now), RawTime = now, Actor = actor, Username = bid.AgentCode,
+                    Role = "AGENT", ActionCategory = "Đấu giá", ActionTitle = "Đặt giá thầu", Target = flight,
+                    Details = $"Đại lý {actor} đặt thầu thành công mức giá {price} đ/Kg cho chuyến bay {flight}{routeSuffix}.",
+                    Ip = "113.161.42.12", Device = "Web Client"
+                });
 
                 await _shared.BumpVersionAsync();   // để các tab Admin/Đại lý nhận biết có thầu mới
                 await _db.SaveChangesAsync();

@@ -22,11 +22,125 @@ public class LogService
         };
     }
 
+    public static string NormalizeActionTitle(string? title)
+    {
+        if (string.IsNullOrWhiteSpace(title)) return "";
+        var t = title.Trim().ToUpperInvariant();
+        if (t.Contains("ĐĂNG NHẬP")) return "LOGIN";
+        if (t.Contains("ĐĂNG XUẤT")) return "LOGOUT";
+        if (t.Contains("TẠO MỚI PHIÊN") || t.Contains("TẠO PHIÊN")) return "CREATE_AUCTION";
+        if (t.Contains("CẬP NHẬT PHIÊN")) return "UPDATE_AUCTION";
+        if (t.Contains("ĐÓNG PHIÊN") || t.Contains("CHỐT THẦU") || t.Contains("CHỐT ĐÓNG PHIÊN")) return "CLOSE_AUCTION";
+        if (t.Contains("ĐẶT GIÁ THẦU") || t.Contains("ĐẶT THẦU")) return "PLACE_BID";
+        if (t.Contains("KHÓA KẾT QUẢ")) return "LOCK_RESULT";
+        if (t.Contains("DUYỆT & CẤP MÃ") || t.Contains("DUYỆT HỒ SƠ")) return "APPROVE_AGENT";
+        if (t.Contains("TỪ CHỐI HỒ SƠ")) return "REJECT_AGENT";
+        if (t.Contains("KHÓA TÀI KHOẢN")) return "LOCK_ACCOUNT";
+        if (t.Contains("MỞ KHÓA TÀI KHOẢN")) return "UNLOCK_ACCOUNT";
+        if (t.Contains("XÁC NHẬN THANH TOÁN")) return "CONFIRM_PAYMENT";
+        if (t.Contains("TỪ CHỐI XÁC NHẬN THANH TOÁN")) return "REJECT_PAYMENT";
+        return t;
+    }
+
+    public static bool IsSameTarget(string? targetA, string? targetB)
+    {
+        var a = (targetA ?? "N/A").Trim().ToUpperInvariant();
+        var b = (targetB ?? "N/A").Trim().ToUpperInvariant();
+        if (a == "N/A" || b == "N/A" || a == b) return true;
+        return a.Contains(b) || b.Contains(a);
+    }
+
+    public static bool IsSameUser(string? userA, string? actorA, string? roleA, string? userB, string? actorB, string? roleB)
+    {
+        var uA = (userA ?? "").Trim().ToUpperInvariant();
+        var uB = (userB ?? "").Trim().ToUpperInvariant();
+        var actA = (actorA ?? "").Trim().ToUpperInvariant();
+        var actB = (actorB ?? "").Trim().ToUpperInvariant();
+        var rA = (roleA ?? "").Trim().ToUpperInvariant();
+        var rB = (roleB ?? "").Trim().ToUpperInvariant();
+
+        bool isAdminA = uA == "ADMIN" || rA.Contains("ADMIN") || actA.Contains("ADMIN");
+        bool isAdminB = uB == "ADMIN" || rB.Contains("ADMIN") || actB.Contains("ADMIN");
+        if (isAdminA && isAdminB) return true;
+
+        if (!string.IsNullOrEmpty(uA) && !string.IsNullOrEmpty(uB) && uA == uB) return true;
+        if (!string.IsNullOrEmpty(actA) && !string.IsNullOrEmpty(actB) && (actA == actB || actA.Contains(actB) || actB.Contains(actA))) return true;
+
+        return false;
+    }
+
+    public static bool IsSemanticDuplicate(ActivityLog a, ActivityLog b)
+    {
+        var normA = NormalizeActionTitle(a.ActionTitle);
+        var normB = NormalizeActionTitle(b.ActionTitle);
+        if (normA != normB) return false;
+
+        if (!IsSameTarget(a.Target, b.Target)) return false;
+
+        if (!IsSameUser(a.Username, a.Actor, a.Role, b.Username, b.Actor, b.Role)) return false;
+
+        return true;
+    }
+
+    public async Task<ActivityLog> AddOrUpdateAsync(ActivityLog newLog)
+    {
+        var raw = newLog.RawTime != 0 ? newLog.RawTime : Util.NowMs();
+        var minTime = raw - 30000;
+        var maxTime = raw + 30000;
+
+        var candidates = await _db.ActivityLogs
+            .Where(l => l.RawTime >= minTime && l.RawTime <= maxTime)
+            .ToListAsync();
+
+        var duplicate = candidates.FirstOrDefault(l => IsSemanticDuplicate(l, newLog));
+
+        if (duplicate != null)
+        {
+            if (newLog.Device != "Web App" && (duplicate.Device == "Web App" || string.IsNullOrEmpty(duplicate.Device)))
+                duplicate.Device = newLog.Device;
+            if (!string.IsNullOrEmpty(newLog.Actor) && newLog.Actor != "Admin" && newLog.Actor != "Hệ thống" && (duplicate.Actor == "Admin" || duplicate.Actor == "Hệ thống" || string.IsNullOrEmpty(duplicate.Actor)))
+                duplicate.Actor = newLog.Actor;
+            if (!string.IsNullOrEmpty(newLog.Details) && (string.IsNullOrEmpty(duplicate.Details) || duplicate.Details.Length < newLog.Details.Length))
+                duplicate.Details = newLog.Details;
+            if (!string.IsNullOrEmpty(newLog.Ip) && (string.IsNullOrEmpty(duplicate.Ip) || duplicate.Ip == "113.161.42.12"))
+                duplicate.Ip = newLog.Ip;
+            if (!string.IsNullOrEmpty(newLog.Role) && duplicate.Role == "SYSTEM")
+                duplicate.Role = newLog.Role;
+
+            await _db.SaveChangesAsync();
+            return duplicate;
+        }
+
+        if (newLog.Id == 0)
+        {
+            newLog.Id = raw + Random.Shared.Next(0, 1000);
+        }
+        else
+        {
+            var existingWithSameId = await _db.ActivityLogs.FindAsync(newLog.Id);
+            if (existingWithSameId != null)
+            {
+                newLog.Id = raw + Random.Shared.Next(0, 1000);
+            }
+        }
+
+        if (string.IsNullOrEmpty(newLog.Timestamp))
+        {
+            newLog.Timestamp = Util.LogTimestamp(DateTime.Now);
+        }
+        newLog.RawTime = raw;
+
+        _db.ActivityLogs.Add(newLog);
+        await _db.SaveChangesAsync();
+        return newLog;
+    }
+
     public async Task<ActivityLog> AddFromClientAsync(JsonObject body, string? remoteIp)
     {
-        var now = DateTime.Now;
         var raw = Util.NowMs();
-        var id = EntityJson.Lng(body, "id") ?? raw + Random.Shared.Next(0, 1000);
+        var clientRaw = EntityJson.Lng(body, "rawTime");
+        var effTime = SharedDataService.EffectiveLogTime(EntityJson.Str(body, "timestamp"), clientRaw ?? raw);
+        var id = EntityJson.Lng(body, "id") ?? effTime + Random.Shared.Next(0, 1000);
         var actor = Util.NullIfEmpty(EntityJson.Str(body, "actor")) ?? "Hệ thống";
         var username = Util.NullIfEmpty(EntityJson.Str(body, "username")) ?? "system";
         var role = Util.NullIfEmpty(EntityJson.Str(body, "role")) ?? "SYSTEM";
@@ -37,40 +151,11 @@ public class LogService
         var ip = Util.NullIfEmpty(EntityJson.Str(body, "ip")) ?? remoteIp ?? "113.161.42.12";
         var device = Util.NullIfEmpty(EntityJson.Str(body, "device")) ?? "Web App";
 
-        // Check if an existing log for the exact same event was already recorded in the last 15 seconds
-        var minTime = raw - 15000;
-        var targetClean = target.Trim().ToUpperInvariant();
-        var titleClean = title.Trim().ToUpperInvariant();
-        var userClean = username.Trim().ToUpperInvariant();
-
-        var duplicate = await _db.ActivityLogs
-            .Where(l => l.RawTime >= minTime)
-            .FirstOrDefaultAsync(l =>
-                l.ActionTitle != null && (
-                    l.ActionTitle.ToUpper() == titleClean ||
-                    (titleClean.Contains("ĐĂNG NHẬP") && l.ActionTitle.ToUpper().Contains("ĐĂNG NHẬP")) ||
-                    (titleClean.Contains("ĐĂNG XUẤT") && l.ActionTitle.ToUpper().Contains("ĐĂNG XUẤT"))
-                ) &&
-                (targetClean == "N/A" || l.Target == null || l.Target.ToUpper() == targetClean) &&
-                (userClean == "ADMIN" || (l.Username != null && (l.Username.ToUpper() == userClean || l.Username.ToUpper() == "ADMIN"))));
-
-        if (duplicate != null)
-        {
-            if (device != "Web App") duplicate.Device = device;
-            if (!string.IsNullOrEmpty(actor) && actor != "Admin" && actor != "Hệ thống") duplicate.Actor = actor;
-            if (!string.IsNullOrEmpty(details)) duplicate.Details = details;
-            duplicate.Ip = ip;
-            await _db.SaveChangesAsync();
-            return duplicate;
-        }
-
-        var existing = await _db.ActivityLogs.FindAsync(id);
-        if (existing != null) _db.ActivityLogs.Remove(existing);
         var log = new ActivityLog
         {
             Id = id,
-            Timestamp = Util.LogTimestamp(now),
-            RawTime = raw,
+            Timestamp = EntityJson.Str(body, "timestamp") ?? Util.LogTimestamp(DateTime.Now),
+            RawTime = effTime,
             Actor = actor,
             Username = username,
             Role = role,
@@ -81,9 +166,8 @@ public class LogService
             Ip = ip,
             Device = device
         };
-        _db.ActivityLogs.Add(log);
-        await _db.SaveChangesAsync();
-        return log;
+
+        return await AddOrUpdateAsync(log);
     }
 
     public async Task<List<ActivityLog>> QueryAsync(string? role, string? category, string? q)
@@ -96,27 +180,12 @@ public class LogService
         {
             if (!seenIds.Add(l.Id)) continue;
             var lTime = SharedDataService.EffectiveLogTime(l.Timestamp, l.RawTime);
-            var lTitle = (l.ActionTitle ?? "").Trim();
-            var lTarget = (l.Target ?? "").Trim();
-            var lUser = (string.IsNullOrEmpty(l.Username) ? l.Actor : l.Username)?.Trim().ToUpperInvariant() ?? "";
 
             var existingIndex = result.FindIndex(r =>
             {
                 var rTime = SharedDataService.EffectiveLogTime(r.Timestamp, r.RawTime);
-                if (Math.Abs(lTime - rTime) > 10000) return false;
-
-                var isSameTitle = string.Equals(r.ActionTitle?.Trim(), lTitle, StringComparison.OrdinalIgnoreCase)
-                    || ((r.ActionTitle ?? "").ToUpper().Contains("ĐĂNG NHẬP") && lTitle.ToUpper().Contains("ĐĂNG NHẬP"))
-                    || ((r.ActionTitle ?? "").ToUpper().Contains("ĐĂNG XUẤT") && lTitle.ToUpper().Contains("ĐĂNG XUẤT"));
-                if (!isSameTitle) return false;
-
-                var rTarget = (r.Target ?? "").Trim();
-                if (rTarget != "N/A" && lTarget != "N/A" && !string.Equals(rTarget, lTarget, StringComparison.OrdinalIgnoreCase)) return false;
-
-                var rUser = (string.IsNullOrEmpty(r.Username) ? r.Actor : r.Username)?.Trim().ToUpperInvariant() ?? "";
-                if (!string.Equals(rUser, lUser, StringComparison.OrdinalIgnoreCase) && !(rUser.Contains("ADMIN") && lUser.Contains("ADMIN"))) return false;
-
-                return true;
+                if (Math.Abs(lTime - rTime) > 30000) return false;
+                return IsSemanticDuplicate(r, l);
             });
 
             if (existingIndex >= 0)

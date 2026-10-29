@@ -235,6 +235,50 @@ if (typeof globalThis !== 'undefined') globalThis.CargoStore = CargoStore;
         return raw || parsed || 0;
     }
 
+    function normalizeLogTitle(title) {
+        if (!title) return '';
+        const t = String(title).trim().toUpperCase();
+        if (t.includes('ĐĂNG NHẬP')) return 'LOGIN';
+        if (t.includes('ĐĂNG XUẤT')) return 'LOGOUT';
+        if (t.includes('TẠO MỚI PHIÊN') || t.includes('TẠO PHIÊN')) return 'CREATE_AUCTION';
+        if (t.includes('CẬP NHẬT PHIÊN')) return 'UPDATE_AUCTION';
+        if (t.includes('ĐÓNG PHIÊN') || t.includes('CHỐT THẦU') || t.includes('CHỐT ĐÓNG PHIÊN')) return 'CLOSE_AUCTION';
+        if (t.includes('ĐẶT GIÁ THẦU') || t.includes('ĐẶT THẦU')) return 'PLACE_BID';
+        if (t.includes('KHÓA KẾT QUẢ')) return 'LOCK_RESULT';
+        if (t.includes('DUYỆT & CẤP MÃ') || t.includes('DUYỆT HỒ SƠ')) return 'APPROVE_AGENT';
+        if (t.includes('TỪ CHỐI HỒ SƠ')) return 'REJECT_AGENT';
+        if (t.includes('KHÓA TÀI KHOẢN')) return 'LOCK_ACCOUNT';
+        if (t.includes('MỞ KHÓA TÀI KHOẢN')) return 'UNLOCK_ACCOUNT';
+        if (t.includes('XÁC NHẬN THANH TOÁN')) return 'CONFIRM_PAYMENT';
+        if (t.includes('TỪ CHỐI XÁC NHẬN THANH TOÁN')) return 'REJECT_PAYMENT';
+        return t;
+    }
+
+    function isSameLogTarget(targetA, targetB) {
+        const a = String(targetA || 'N/A').trim().toUpperCase();
+        const b = String(targetB || 'N/A').trim().toUpperCase();
+        if (a === 'N/A' || b === 'N/A' || a === b) return true;
+        return a.includes(b) || b.includes(a);
+    }
+
+    function isSameLogUser(userA, actorA, roleA, userB, actorB, roleB) {
+        const uA = String(userA || '').trim().toUpperCase();
+        const uB = String(userB || '').trim().toUpperCase();
+        const actA = String(actorA || '').trim().toUpperCase();
+        const actB = String(actorB || '').trim().toUpperCase();
+        const rA = String(roleA || '').trim().toUpperCase();
+        const rB = String(roleB || '').trim().toUpperCase();
+
+        const isAdminA = uA === 'ADMIN' || rA.includes('ADMIN') || actA.includes('ADMIN');
+        const isAdminB = uB === 'ADMIN' || rB.includes('ADMIN') || actB.includes('ADMIN');
+        if (isAdminA && isAdminB) return true;
+
+        if (uA && uB && uA === uB) return true;
+        if (actA && actB && (actA === actB || actA.includes(actB) || actB.includes(actA))) return true;
+
+        return false;
+    }
+
     function deduplicateActivityLogs(logs) {
         if (!Array.isArray(logs)) return [];
         const result = [];
@@ -246,27 +290,18 @@ if (typeof globalThis !== 'undefined') globalThis.CargoStore = CargoStore;
             if (idStr && seenIds.has(idStr)) return;
 
             const timeMs = getEffectiveLogTime(l);
-            const titleStr = String(l.actionTitle || '').trim().toUpperCase();
-            const targetStr = String(l.target || '').trim().toUpperCase();
-            const userStr = String(l.username || l.actor || '').trim().toUpperCase();
+            const normTitle = normalizeLogTitle(l.actionTitle);
 
-            // Semantic match within 10 seconds
+            // Semantic match within 30 seconds
             const existingIdx = result.findIndex(r => {
                 const rTime = getEffectiveLogTime(r);
-                if (Math.abs(timeMs - rTime) > 10000) return false;
-                const rTitle = String(r.actionTitle || '').trim().toUpperCase();
-                if (rTitle !== titleStr) return false;
+                if (Math.abs(timeMs - rTime) > 30000) return false;
+                const rNormTitle = normalizeLogTitle(r.actionTitle);
+                if (rNormTitle !== normTitle) return false;
 
-                const rTarget = String(r.target || '').trim().toUpperCase();
-                if (targetStr && rTarget && targetStr !== 'N/A' && rTarget !== 'N/A' && targetStr !== rTarget) {
-                    return false;
-                }
+                if (!isSameLogTarget(l.target, r.target)) return false;
 
-                const rUser = String(r.username || r.actor || '').trim().toUpperCase();
-                const isAdminAction = (userStr.includes('ADMIN') || userStr === 'ADMIN') && (rUser.includes('ADMIN') || rUser === 'ADMIN');
-                if (!isAdminAction && userStr && rUser && userStr !== rUser) {
-                    return false;
-                }
+                if (!isSameLogUser(l.username, l.actor, l.role, r.username, r.actor, r.role)) return false;
 
                 return true;
             });

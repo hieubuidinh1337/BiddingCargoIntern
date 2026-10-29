@@ -72,11 +72,49 @@ public static class DbInitializer
                 logger.LogInformation("Đã khởi tạo danh sách quản trị mặc định trong bảng settings (adminsList).");
             }
 
+            await DeduplicateExistingLogsAsync(db, logger);
             logger.LogInformation("SQL Server database kết nối thành công và sẵn sàng.");
         }
         catch (Exception e)
         {
             logger.LogError(e, "Không thể kết nối/khởi tạo SQL Server. Kiểm tra ConnectionStrings:DefaultConnection.");
+        }
+    }
+
+    public static async Task DeduplicateExistingLogsAsync(AppDbContext db, ILogger logger)
+    {
+        try
+        {
+            var all = await db.ActivityLogs.OrderByDescending(l => l.RawTime).ToListAsync();
+            var toRemove = new List<ActivityLog>();
+            var kept = new List<ActivityLog>();
+
+            foreach (var log in all)
+            {
+                var isDup = kept.Any(k =>
+                    Math.Abs(k.RawTime - log.RawTime) <= 30000 &&
+                    Services.LogService.IsSemanticDuplicate(k, log));
+
+                if (isDup)
+                {
+                    toRemove.Add(log);
+                }
+                else
+                {
+                    kept.Add(log);
+                }
+            }
+
+            if (toRemove.Count > 0)
+            {
+                db.ActivityLogs.RemoveRange(toRemove);
+                await db.SaveChangesAsync();
+                logger.LogInformation("Đã dọn dẹp {Count} bản ghi nhật ký trùng lặp trong CSDL.", toRemove.Count);
+            }
+        }
+        catch (Exception ex)
+        {
+            logger.LogWarning(ex, "Lỗi khi dọn dẹp nhật ký trùng lặp trong CSDL.");
         }
     }
 }

@@ -11,7 +11,7 @@ public static class AuthEndpoints
 {
     public static void MapAuthEndpoints(this RouteGroupBuilder api)
     {
-        api.MapPost("/auth/agent-login", async (HttpContext ctx, AppDbContext db) =>
+        api.MapPost("/auth/agent-login", async (HttpContext ctx, AppDbContext db, LogService logs) =>
         {
             var body = await BodyAsync(ctx.Request);
             var id = (EntityJson.Str(body, "identifier") ?? EntityJson.Str(body, "code") ?? "").Trim();
@@ -222,6 +222,23 @@ public static class AuthEndpoints
                 await db.SaveChangesAsync();
             }
 
+            var agentDisplay = !string.IsNullOrEmpty(agent.CompanyName) ? agent.CompanyName : (agent.Name ?? agent.Code ?? "Đại lý");
+            await logs.AddOrUpdateAsync(new ActivityLog
+            {
+                Id = Util.NowMs() + Random.Shared.Next(0, 1000),
+                Timestamp = Util.LogTimestamp(DateTime.Now),
+                RawTime = Util.NowMs(),
+                Actor = agentDisplay,
+                Username = agent.Code ?? "agent",
+                Role = "AGENT",
+                ActionCategory = "Đăng nhập",
+                ActionTitle = "Đăng nhập Cổng Đại lý",
+                Target = "Portal Đại lý",
+                Details = $"Đại lý {agent.Code} ({agentDisplay}) đăng nhập thành công vào sàn đấu giá.",
+                Ip = ctx.Connection.RemoteIpAddress?.ToString() ?? "113.161.42.12",
+                Device = "Web App"
+            });
+
             ctx.Response.Cookies.Append("cargo_agent_code", agent.Code ?? "", new CookieOptions
             {
                 Path = "/",
@@ -253,7 +270,7 @@ public static class AuthEndpoints
             });
         });
 
-        api.MapPost("/auth/admin-login", async (HttpContext ctx, AppDbContext db) =>
+        api.MapPost("/auth/admin-login", async (HttpContext ctx, AppDbContext db, LogService logs) =>
         {
             var body = await BodyAsync(ctx.Request);
             var user = (EntityJson.Str(body, "username") ?? "").Trim();
@@ -278,13 +295,12 @@ public static class AuthEndpoints
                         HttpOnly = false
                     });
 
-                    db.ActivityLogs.Add(LogService.Make(
+                    await logs.AddOrUpdateAsync(LogService.Make(
                         "Trần Quản Trị (Super Admin)", "admin", "SUPER_ADMIN",
                         "Đăng nhập", "Đăng nhập hệ thống Quản trị", "Portal Quản trị",
                         "Quản trị viên Trần Quản Trị (Super Admin) (@admin) đăng nhập thành công vào hệ thống Quản trị nội bộ.",
                         ctx.Connection.RemoteIpAddress?.ToString(), "Web App"
                     ));
-                    await db.SaveChangesAsync();
 
                     return J(new JsonObject
                     {
@@ -320,13 +336,12 @@ public static class AuthEndpoints
             var adminFullName = dbUser.FullName ?? dbUser.Username ?? "Quản trị viên";
             var adminUsername = dbUser.Username ?? "admin";
             var adminRole = dbUser.Role ?? "SUPER_ADMIN";
-            db.ActivityLogs.Add(LogService.Make(
+            await logs.AddOrUpdateAsync(LogService.Make(
                 adminFullName, adminUsername, adminRole,
                 "Đăng nhập", "Đăng nhập hệ thống Quản trị", "Portal Quản trị",
                 $"Tài khoản {adminFullName} (@{adminUsername}) đăng nhập thành công vào hệ thống Quản trị nội bộ.",
                 ctx.Connection.RemoteIpAddress?.ToString(), "Web App"
             ));
-            await db.SaveChangesAsync();
 
             return J(new JsonObject
             {
