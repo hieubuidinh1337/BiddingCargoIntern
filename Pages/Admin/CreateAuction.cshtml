@@ -1035,7 +1035,7 @@
             if (remainHours > 0) parts.push(`${remainHours} giờ`);
             if (remainMinutes > 0 || parts.length === 0) parts.push(`${remainMinutes} phút`);
 
-            const durationText = `${parts.join(' ')} (Tổng: ${totalMinutes.toLocaleString('vi-VN')} phút)`;
+            const durationText = `${parts.join(' ')}`;
 
             const hasCustomOpenTime = openTimeInput?.value ? ` (${openTimeInput.value})` : ' ';
             const hasCustomCloseTime = closeTimeInput?.value ? ` (${closeTimeInput.value})` : '';
