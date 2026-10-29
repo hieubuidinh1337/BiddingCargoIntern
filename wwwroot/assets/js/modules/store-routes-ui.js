@@ -94,6 +94,32 @@
                 ['DAD', 'PQC'], ['PQC', 'DAD'],
                 ['DAD', 'CXR'], ['CXR', 'DAD']
             ];
+
+            // Tự động kết nối mọi sân bay trong danh mục cấu hình (kể cả sân bay mới thêm) với các Hub chính
+            const airports = self.getAirports ? self.getAirports() : (loadData().airports || []);
+            const configuredCodes = (airports || []).map(a => (a.code || '').trim().toUpperCase()).filter(c => c && c.length === 3);
+            const hubs = ['SGN', 'HAN', 'DAD'].filter(h => configuredCodes.includes(h));
+            if (hubs.length === 0 && configuredCodes.length > 0) hubs.push(configuredCodes[0]);
+
+            const pairSet = new Set(pairs.map(([o, d]) => `${o}-${d}`));
+
+            configuredCodes.forEach(code => {
+                hubs.forEach(h => {
+                    if (h !== code) {
+                        const p1 = `${h}-${code}`;
+                        const p2 = `${code}-${h}`;
+                        if (!pairSet.has(p1)) {
+                            pairs.push([h, code]);
+                            pairSet.add(p1);
+                        }
+                        if (!pairSet.has(p2)) {
+                            pairs.push([code, h]);
+                            pairSet.add(p2);
+                        }
+                    }
+                });
+            });
+
             return pairs.map(([orig, dest]) => {
                 const c1 = self.getAirportCity ? self.getAirportCity(orig) : orig;
                 const c2 = self.getAirportCity ? self.getAirportCity(dest) : dest;
@@ -151,7 +177,41 @@
                 addPair(r.origin, r.dest);
             });
 
-            return Array.from(map.values());
+            // 3. Tự động sinh tất cả các tuyến bay liên quan đến mọi sân bay trong Cấu hình (Settings)
+            const airports = self.getAirports ? self.getAirports() : (data.airports || []);
+            const validAirports = (airports || []).map(a => (a.code || '').trim().toUpperCase()).filter(c => c && c.length === 3);
+            const hubs = ['SGN', 'HAN', 'DAD'].filter(h => validAirports.includes(h));
+            if (hubs.length === 0 && validAirports.length > 0) hubs.push(validAirports[0]);
+
+            validAirports.forEach(code => {
+                // Kết nối 2 chiều với các Hubs chính
+                hubs.forEach(h => {
+                    if (h !== code) {
+                        addPair(h, code);
+                        addPair(code, h);
+                    }
+                });
+                // Kết nối 2 chiều với mọi sân bay còn lại trong hệ thống
+                validAirports.forEach(otherCode => {
+                    if (otherCode !== code) {
+                        addPair(code, otherCode);
+                        addPair(otherCode, code);
+                    }
+                });
+            });
+
+            // Sắp xếp thứ tự ưu tiên: SGN, HAN, DAD trước, sau đó theo bảng chữ cái
+            const hubRank = { 'SGN': 1, 'HAN': 2, 'DAD': 3 };
+            return Array.from(map.values()).sort((a, b) => {
+                const rA = hubRank[a.origin] || 99;
+                const rB = hubRank[b.origin] || 99;
+                if (rA !== rB) return rA - rB;
+                if (a.origin !== b.origin) return a.origin.localeCompare(b.origin);
+                const rdA = hubRank[a.dest] || 99;
+                const rdB = hubRank[b.dest] || 99;
+                if (rdA !== rdB) return rdA - rdB;
+                return a.dest.localeCompare(b.dest);
+            });
         },
 
         getRouteSubscriptions: function (agentCode) {

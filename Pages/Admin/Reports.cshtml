@@ -832,9 +832,35 @@
             const currentVal = select.value || 'ALL';
             const routes = (window.CargoStore && CargoStore.getAllRoutes) ? CargoStore.getAllRoutes() : [];
             let html = '<option value="ALL">Tất cả đường bay</option>';
+
+            // Phân nhóm tuyến bay theo sân bay khởi hành (Origin)
+            const groups = {};
             routes.forEach(r => {
-                html += `<option value="${r.route}">${r.label}</option>`;
+                const orig = r.origin || 'OTHER';
+                if (!groups[orig]) groups[orig] = [];
+                groups[orig].push(r);
             });
+
+            // Ưu tiên các Hub lớn: SGN, HAN, DAD, sau đó sắp xếp theo bảng chữ cái
+            const hubOrder = ['SGN', 'HAN', 'DAD'];
+            const sortedOrigins = Object.keys(groups).sort((a, b) => {
+                const idxA = hubOrder.indexOf(a);
+                const idxB = hubOrder.indexOf(b);
+                if (idxA !== -1 && idxB !== -1) return idxA - idxB;
+                if (idxA !== -1) return -1;
+                if (idxB !== -1) return 1;
+                return a.localeCompare(b);
+            });
+
+            sortedOrigins.forEach(orig => {
+                const cityName = (window.CargoStore && CargoStore.getAirportCity) ? CargoStore.getAirportCity(orig) : orig;
+                html += `<optgroup label="Khởi hành từ ${cityName} (${orig})">`;
+                groups[orig].forEach(r => {
+                    html += `<option value="${r.route}">${r.label}</option>`;
+                });
+                html += `</optgroup>`;
+            });
+
             select.innerHTML = html;
             if (currentVal && select.querySelector(`option[value="${currentVal}"]`)) {
                 select.value = currentVal;
@@ -1260,6 +1286,17 @@
                     }
                 }
             });
+
+            // If a specific route was selected in filter and has no flights yet, show it with 0 stats
+            if (filters.route && filters.route !== 'ALL' && !routeMap[filters.route]) {
+                routeMap[filters.route] = {
+                    route: filters.route,
+                    flightCount: 0,
+                    totalOfferedKg: 0,
+                    totalWonKg: 0,
+                    totalRevenue: 0
+                };
+            }
 
             const grandFillRate = grandTotalOfferedKg > 0 ? (grandTotalWonKg / grandTotalOfferedKg * 100) : 0;
             const grandAvgPrice = grandTotalWonKg > 0 ? Math.round(grandTotalRevenue / grandTotalWonKg) : 0;
@@ -1862,12 +1899,15 @@
                     const res = await fetch(apiUrl);
                     if (res.ok) {
                         const sData = await res.json();
-                        if (sData && sData.auctions && sData.auctions.length > 0) {
+                        if (sData) {
                             const currentData = store.getData();
-                            currentData.auctions = sData.auctions;
-                            currentData.bids = sData.bids || currentData.bids || [];
-                            currentData.wonAuctions = sData.wonAuctions || currentData.wonAuctions || [];
-                            currentData.agentsList = sData.agentsList || currentData.agentsList || [];
+                            if (sData.auctions && sData.auctions.length > 0) currentData.auctions = sData.auctions;
+                            if (sData.bids) currentData.bids = sData.bids || currentData.bids || [];
+                            if (sData.wonAuctions) currentData.wonAuctions = sData.wonAuctions || currentData.wonAuctions || [];
+                            if (sData.agentsList) currentData.agentsList = sData.agentsList || currentData.agentsList || [];
+                            if (sData.airports && Array.isArray(sData.airports) && sData.airports.length > 0) {
+                                currentData.airports = sData.airports;
+                            }
                             store.saveData(currentData, true);
                         }
                     }
@@ -1886,7 +1926,13 @@
 
         document.addEventListener('DOMContentLoaded', initReports);
 
-        // NOTE: cargostore_updated listener removed to eliminate reports screen flicker
+        // Tự động làm mới danh sách tuyến bay khi chuyển tab hoặc cập nhật cấu hình sân bay
+        window.addEventListener('focus', () => {
+            populateReportRouteFilter();
+        });
+        window.addEventListener('cargostore_updated', () => {
+            populateReportRouteFilter();
+        });
     </script>
 </body>
 

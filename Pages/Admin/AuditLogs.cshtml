@@ -569,9 +569,6 @@
                     <select id="roleFilter" onchange="handleFilterChange()"
                         class="w-full px-3 py-2 text-xs bg-slate-50 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 font-medium text-slate-700">
                         <option value="ALL">-- Vai trò: Tất cả --</option>
-                        <option value="ADMIN">ADMIN / Ban Quản Trị</option>
-                        <option value="STAFF">STAFF (Nhân viên)</option>
-                        <option value="AGENT">AGENT (Đại lý)</option>
                     </select>
                 </div>
 
@@ -583,8 +580,8 @@
                         <option value="Đăng nhập">Đăng nhập / Đăng xuất</option>
                         <option value="Phiên đấu giá">Phiên đấu giá</option>
                         <option value="Đấu giá">Đặt thầu đấu giá</option>
-                        <option value="Thanh toán">Thanh toán & Biên lai</option>
-                        <option value="Khai báo hàng hóa">Khai báo hàng hóa & AWB</option>
+                        <!-- <option value="Thanh toán">Thanh toán & Biên lai</option>
+                        <option value="Khai báo hàng hóa">Khai báo hàng hóa & AWB</option> -->
                         <option value="Quản lý Đại lý">Quản lý Đại lý</option>
                         <option value="Cấu hình hệ thống">Cấu hình hệ thống</option>
                         <option value="Tài khoản">Quản lý Tài khoản</option>
@@ -1064,6 +1061,42 @@
             return isNaN(d.getTime()) ? Date.now() : d.getTime();
         }
 
+        function populateRoleFilter() {
+            const select = document.getElementById('roleFilter');
+            if (!select) return;
+            const currentVal = (currentFilters && currentFilters.role) ? currentFilters.role : (select.value || 'ALL');
+
+            const roles = (window.CargoStore && CargoStore.getRoles) ? CargoStore.getRoles() : [];
+
+            let html = '<option value="ALL">-- Vai trò: Tất cả --</option>';
+
+            // 1. Nhóm Vai trò Quản trị & Phân quyền Hệ thống (Lấy động từ CargoStore.getRoles)
+            if (roles && roles.length > 0) {
+                html += '<optgroup label="Vai trò & Phân quyền Hệ thống">';
+                roles.forEach(r => {
+                    const code = (r.code || r.id || '').toUpperCase();
+                    const name = r.name || code;
+                    html += `<option value="${code}">${name} (${code})</option>`;
+                });
+                html += '</optgroup>';
+            }
+
+            // 2. Nhóm Đối tác & Đại lý ủy quyền
+            html += '<optgroup label="Khách hàng & Đại lý">';
+            html += '<option value="AGENT">Đại lý ủy quyền (AGENT)</option>';
+            html += '</optgroup>';
+
+            select.innerHTML = html;
+
+            // Giữ lại lựa chọn nếu vai trò vẫn tồn tại, nếu vai trò đã bị xóa thì tự động chuyển về ALL
+            if (currentVal && select.querySelector(`option[value="${currentVal}"]`)) {
+                select.value = currentVal;
+            } else {
+                select.value = 'ALL';
+                if (currentFilters) currentFilters.role = 'ALL';
+            }
+        }
+
         document.addEventListener('DOMContentLoaded', function () {
             const adminUser = CargoStore.getCurrentAdmin();
             const currentRole = (adminUser && adminUser.role ? adminUser.role : '').toUpperCase();
@@ -1094,21 +1127,30 @@
                 if (el) el.textContent = adminUser.fullName || adminUser.username || 'Trần Quản Trị';
             }
 
+            populateRoleFilter();
             updateKpisAndTabCounters();
             renderLogs();
 
-            // Fetch server-side logs immediately and auto-update rapidly (every 2.5s)
+            // Fetch server-side logs immediately and auto-update rapidly (every 5s)
             fetchServerLogs();
             setInterval(function () {
                 if (typeof document !== 'undefined' && document.hidden) return;
                 fetchServerLogs();
             }, 5000);
 
-            // Listen to local storage changes for instant real-time log updates
+            // Tự động cập nhật danh sách vai trò khi thêm/xóa vai trò từ tab khác hoặc trong hệ thống
             window.addEventListener('storage', function (e) {
                 if (e.key === 'CARGO_BIDDING_DATA_V3' || e.key === 'CARGO_AUDIT_LOGS') {
+                    populateRoleFilter();
                     fetchServerLogs();
                 }
+            });
+            window.addEventListener('cargostore_updated', function () {
+                populateRoleFilter();
+                renderLogs();
+            });
+            window.addEventListener('focus', function () {
+                populateRoleFilter();
             });
         });
 
@@ -1118,7 +1160,7 @@
             const loginLogoutCount = allLogs.filter(l => (l.actionCategory || '') === 'Đăng nhập').length;
             const adminStaffCount = allLogs.filter(l => {
                 const r = (l.role || '').toUpperCase();
-                return ['ADMIN', 'SUPER_ADMIN', 'ITD_ADMIN', 'STAFF'].includes(r) || r.includes('ADMIN');
+                return r !== 'AGENT';
             }).length;
             const agentCount = allLogs.filter(l => (l.role || '').toUpperCase() === 'AGENT').length;
 
@@ -1209,13 +1251,38 @@
                 const targetRole = currentFilters.role.toUpperCase();
                 logs = logs.filter(l => {
                     const r = (l.role || '').toUpperCase();
-                    if (targetRole === 'ADMIN') {
+                    if (!r) return false;
+
+                    // Nếu chọn SUPER_ADMIN hoặc ADMIN: khớp SUPER_ADMIN, ADMIN, ITD_ADMIN
+                    if (targetRole === 'SUPER_ADMIN' || targetRole === 'ADMIN') {
                         return ['ADMIN', 'SUPER_ADMIN', 'ITD_ADMIN'].includes(r) || r.includes('ADMIN');
                     }
                     if (targetRole === 'STAFF') {
                         return r === 'STAFF' || r.includes('STAFF') || r.includes('NHÂN VIÊN');
                     }
-                    return r === targetRole;
+                    if (targetRole === 'AGENT') {
+                        return r === 'AGENT' || r.includes('ĐẠI LÝ');
+                    }
+
+                    // Khớp trực tiếp mã vai trò
+                    if (r === targetRole || r.includes(targetRole) || targetRole.includes(r)) {
+                        return true;
+                    }
+
+                    // Khớp theo tài khoản nhân sự được gán vai trò này
+                    const admins = (window.CargoStore && CargoStore.getData) ? (CargoStore.getData().adminsList || []) : [];
+                    const adminUser = admins.find(a =>
+                        (a.username && a.username.toUpperCase() === (l.username || '').toUpperCase()) ||
+                        (a.fullName && a.fullName.toUpperCase() === (l.actor || '').toUpperCase())
+                    );
+                    if (adminUser) {
+                        const userRoles = (Array.isArray(adminUser.roles) ? adminUser.roles : [adminUser.role]).map(x => String(x || '').toUpperCase());
+                        if (userRoles.includes(targetRole) || userRoles.some(ur => ur.includes(targetRole))) {
+                            return true;
+                        }
+                    }
+
+                    return false;
                 });
             }
 
@@ -1292,12 +1359,19 @@
 
                     let roleBadge = '<span class="px-2 py-0.5 rounded text-[10px] font-bold bg-slate-100 text-slate-700">SYSTEM</span>';
                     const roleUpper = (log.role || '').toUpperCase();
-                    if (['ADMIN', 'SUPER_ADMIN', 'ITD_ADMIN'].includes(roleUpper) || roleUpper.includes('ADMIN')) {
-                        roleBadge = `<span class="px-2 py-0.5 rounded text-[10px] font-bold bg-purple-100 text-purple-700 border border-purple-200">${roleUpper}</span>`;
-                    } else if (roleUpper === 'STAFF') {
-                        roleBadge = '<span class="px-2 py-0.5 rounded text-[10px] font-bold bg-blue-100 text-blue-700 border border-blue-200">STAFF</span>';
+                    const allRoles = (window.CargoStore && CargoStore.getRoles) ? CargoStore.getRoles() : [];
+                    const matchedRole = allRoles.find(ro => (ro.code || '').toUpperCase() === roleUpper || (ro.id || '').toUpperCase() === roleUpper);
+
+                    if (['ADMIN', 'SUPER_ADMIN', 'ITD_ADMIN'].includes(roleUpper) || roleUpper.includes('ADMIN') || (matchedRole && matchedRole.code === 'SUPER_ADMIN')) {
+                        roleBadge = `<span class="px-2 py-0.5 rounded text-[10px] font-bold bg-purple-100 text-purple-700 border border-purple-200">${roleUpper || 'SUPER_ADMIN'}</span>`;
                     } else if (roleUpper === 'AGENT') {
                         roleBadge = '<span class="px-2 py-0.5 rounded text-[10px] font-bold bg-amber-100 text-amber-700 border border-amber-200">AGENT</span>';
+                    } else if (matchedRole) {
+                        roleBadge = `<span class="px-2 py-0.5 rounded text-[10px] font-bold bg-indigo-50 text-indigo-700 border border-indigo-200" title="${matchedRole.name}">${matchedRole.code || roleUpper}</span>`;
+                    } else if (roleUpper === 'STAFF') {
+                        roleBadge = '<span class="px-2 py-0.5 rounded text-[10px] font-bold bg-blue-100 text-blue-700 border border-blue-200">STAFF</span>';
+                    } else {
+                        roleBadge = `<span class="px-2 py-0.5 rounded text-[10px] font-bold bg-slate-100 text-slate-700 border border-slate-200">${roleUpper || 'SYSTEM'}</span>`;
                     }
 
                     let cat = log.actionCategory || 'Khác';
@@ -1447,10 +1521,20 @@
             const roleUpper = (log.role || '').toUpperCase();
             const roleEl = document.getElementById('modalRoleBadge');
             roleEl.textContent = roleUpper;
-            if (roleUpper === 'ADMIN') roleEl.className = 'inline-block px-2 py-0.5 rounded text-[10px] font-bold bg-purple-100 text-purple-700 border border-purple-200';
-            else if (roleUpper === 'STAFF') roleEl.className = 'inline-block px-2 py-0.5 rounded text-[10px] font-bold bg-blue-100 text-blue-700 border border-blue-200';
-            else if (roleUpper === 'AGENT') roleEl.className = 'inline-block px-2 py-0.5 rounded text-[10px] font-bold bg-amber-100 text-amber-700 border border-amber-200';
-            else roleEl.className = 'inline-block px-2 py-0.5 rounded text-[10px] font-bold bg-slate-100 text-slate-700';
+            const allRolesModal = (window.CargoStore && CargoStore.getRoles) ? CargoStore.getRoles() : [];
+            const matchedRoleModal = allRolesModal.find(ro => (ro.code || '').toUpperCase() === roleUpper || (ro.id || '').toUpperCase() === roleUpper);
+            if (['ADMIN', 'SUPER_ADMIN', 'ITD_ADMIN'].includes(roleUpper) || roleUpper.includes('ADMIN') || (matchedRoleModal && matchedRoleModal.code === 'SUPER_ADMIN')) {
+                roleEl.className = 'inline-block px-2 py-0.5 rounded text-[10px] font-bold bg-purple-100 text-purple-700 border border-purple-200';
+            } else if (roleUpper === 'AGENT') {
+                roleEl.className = 'inline-block px-2 py-0.5 rounded text-[10px] font-bold bg-amber-100 text-amber-700 border border-amber-200';
+            } else if (matchedRoleModal) {
+                roleEl.className = 'inline-block px-2 py-0.5 rounded text-[10px] font-bold bg-indigo-50 text-indigo-700 border border-indigo-200';
+                roleEl.title = matchedRoleModal.name;
+            } else if (roleUpper === 'STAFF') {
+                roleEl.className = 'inline-block px-2 py-0.5 rounded text-[10px] font-bold bg-blue-100 text-blue-700 border border-blue-200';
+            } else {
+                roleEl.className = 'inline-block px-2 py-0.5 rounded text-[10px] font-bold bg-slate-100 text-slate-700 border border-slate-200';
+            }
 
             document.getElementById('modalTimestamp').textContent = log.timestamp || '-';
             const rawTime = getEffectiveTime(log);

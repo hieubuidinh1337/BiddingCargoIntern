@@ -37,7 +37,7 @@
     <!-- Top bar -->
     <!-- <div class="bg-slate-900 text-slate-300 text-xs">
         <div class="max-w-4xl mx-auto px-4 py-1.5 flex items-center justify-between">
-            <a href="00-Home.html" class="hover:text-white flex items-center gap-1.5">
+            <a href="/" class="hover:text-white flex items-center gap-1.5">
                 <i class="fa-solid fa-arrow-left"></i> Về trang chủ
             </a>
             <div class="flex items-center gap-3">
@@ -61,7 +61,7 @@
                     <!-- <p class="text-xs text-gray-500">Cargo Bidding · Đợt mở đăng ký Tháng 8/2026</p> -->
                 </div>
             </div>
-            <a href="00-Home.html" class="text-xs text-gray-500 hover:text-blue-600 flex items-center gap-1">
+            <a href="/" class="text-xs text-gray-500 hover:text-blue-600 flex items-center gap-1">
                 <i class="fa-solid fa-xmark"></i> Hủy
             </a>
         </div>
@@ -341,7 +341,7 @@
 
             <!-- Actions -->
             <div class="flex flex-col sm:flex-row gap-3 justify-end pt-2">
-                <a href="00-Home.html"
+                <a href="/"
                     class="px-6 py-3 border rounded-xl text-sm font-medium hover:bg-gray-50 transition text-center text-gray-600">
                     Hủy bỏ
                 </a>
@@ -381,7 +381,7 @@
                         DUYỆT (PENDING)</span></p>
             </div>
             <div
-                class="bg-blue-50 border border-blue-200 p-3.5 rounded-xl text-xs text-blue-900 mb-6 text-left space-y-1 shadow-xs">
+                class="bg-blue-50 border border-blue-200 p-3.5 rounded-xl text-xs text-blue-900 mb-5 text-left space-y-1 shadow-xs">
                 <p class="font-bold flex items-center gap-1.5 text-blue-950">
                     <i class="fa-solid fa-envelope-circle-check text-blue-600 text-sm"></i> Thông báo Email tự động:
                 </p>
@@ -390,13 +390,13 @@
                         EMAIL</strong> tới người liên hệ ngay sau khi Quản trị viên Phê duyệt hồ sơ.
                 </p>
             </div>
+            <p class="text-xs text-blue-600 font-semibold mb-3 flex items-center justify-center gap-1.5">
+                <i class="fa-solid fa-spinner fa-spin text-xs"></i> Đang tự động chuyển về trang chủ trong <span id="autoRedirectTimer" class="font-bold underline text-blue-700">2</span> giây...
+            </p>
             <div class="flex flex-col gap-2">
-                <a href="00-Home.html"
-                    class="w-full bg-blue-600 hover:bg-blue-700 text-white font-bold py-3 rounded-xl transition shadow">
-                    Trở về trang chủ
-                </a>
-                <a href="Admin/06-AgentList.html" class="text-xs text-blue-600 hover:underline py-1 font-medium">
-                    (Dành cho demo: Chuyển đến trang Admin để duyệt ngay)
+                <a href="/"
+                    class="w-full bg-blue-600 hover:bg-blue-700 text-white font-bold py-3 rounded-xl transition shadow flex items-center justify-center gap-2">
+                    Trở về trang chủ ngay <i class="fa-solid fa-arrow-right text-xs"></i>
                 </a>
             </div>
         </div>
@@ -855,6 +855,18 @@
 
             document.getElementById('successModal').classList.remove('hidden');
             document.getElementById('successModal').classList.add('flex');
+
+            // Tự động đếm ngược và chuyển về trang chủ (Home)
+            let secondsLeft = 2;
+            const timerEl = document.getElementById('autoRedirectTimer');
+            const countdownInterval = setInterval(() => {
+                secondsLeft--;
+                if (timerEl) timerEl.textContent = secondsLeft;
+                if (secondsLeft <= 0) {
+                    clearInterval(countdownInterval);
+                    window.location.href = '/';
+                }
+            }, 1000);
         });
     </script>
 </body>

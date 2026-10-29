@@ -14,7 +14,8 @@
         'store-registrations-security.js',
         'store-settlement-payments.js',
         'store-admin-rbac.js',
-        'store-routes-ui.js'
+        'store-routes-ui.js',
+        'store-i18n.js'
     ];
 
     let basePath = '/assets/js/modules/';

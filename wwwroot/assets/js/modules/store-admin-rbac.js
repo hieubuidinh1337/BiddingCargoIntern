@@ -550,9 +550,9 @@
                 actionCategory: 'Cấu hình hệ thống',
                 actionTitle: 'Thêm sân bay mới',
                 target: `Sân bay ${cleanCode}`,
-                details: `Đã thêm sân bay ${cleanCode} - ${cleanName} vào danh mục.`
+                details: `Đã thêm sân bay ${cleanCode} - ${cleanName} vào danh mục và tự động tạo các tuyến bay liên quan.`
             });
-            return { success: true, message: `Đã thêm sân bay ${cleanCode} (${cleanName}) thành công!` };
+            return { success: true, message: `Đã thêm sân bay ${cleanCode} (${cleanName}) và tự động tạo các tuyến đường bay liên quan!` };
         },
         updateAirport: function (oldCode, newCode, name) {
             if (!oldCode || !newCode || !name) return { success: false, message: 'Thông tin sân bay không hợp lệ.' };
@@ -621,7 +621,11 @@
             if (cityMap[clean]) return cityMap[clean];
             const name = this.getAirportName(clean);
             if (name && name !== clean) {
-                return name.replace(/\s+(International\s+)?Airport$/i, '').trim();
+                return name
+                    .replace(/^(Sân bay\s+(quốc tế\s+)?|Cảng hàng không\s+(quốc tế\s+)?)/i, '')
+                    .replace(/\s+(International\s+)?Airport$/i, '')
+                    .replace(/\s+Airport$/i, '')
+                    .trim() || name;
             }
             return clean;
         },
