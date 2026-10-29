@@ -13,15 +13,15 @@
     <script src="https://cdn.tailwindcss.com"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
     <script src="assets/js/sweetalert2.all.min.js"></script>
-    <script src="assets/js/modules/store-seeds-utils.js"></script>
-    <script src="assets/js/modules/store-sync.js"></script>
-    <script src="assets/js/modules/store-auth-permissions.js"></script>
-    <script src="assets/js/modules/store-auctions-bidding.js"></script>
-    <script src="assets/js/modules/store-registrations-security.js"></script>
-    <script src="assets/js/modules/store-settlement-payments.js"></script>
-    <script src="assets/js/modules/store-admin-rbac.js"></script>
-    <script src="assets/js/modules/store-routes-ui.js"></script>
-    <script src="assets/js/cargo-store.js?v=20261014_01"></script>
+    <script src="assets/js/modules/store-seeds-utils.js?v=20261029_4"></script>
+    <script src="assets/js/modules/store-sync.js?v=20261029_4"></script>
+    <script src="assets/js/modules/store-auth-permissions.js?v=20261029_4"></script>
+    <script src="assets/js/modules/store-auctions-bidding.js?v=20261029_4"></script>
+    <script src="assets/js/modules/store-registrations-security.js?v=20261029_4"></script>
+    <script src="assets/js/modules/store-settlement-payments.js?v=20261029_4"></script>
+    <script src="assets/js/modules/store-admin-rbac.js?v=20261029_4"></script>
+    <script src="assets/js/modules/store-routes-ui.js?v=20261029_4"></script>
+    <script src="assets/js/cargo-store.js?v=20261029_4"></script>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link
@@ -357,8 +357,36 @@
             renderDashboard();
         }
 
+        let lastDashData = null;
+
+        function resolveCurrentAgentCode() {
+            if (typeof CargoStore !== 'undefined' && CargoStore.getCurrentUser) {
+                const u = CargoStore.getCurrentUser();
+                if (u && (u.agentCode || u.code)) return String(u.agentCode || u.code).trim();
+            }
+            const m = document.cookie.match(/(?:^|;\s*)cargo_agent_code=([^;]*)/);
+            return m ? decodeURIComponent(m[1]).trim() : '';
+        }
+
+        function computeDashTimer(endTime) {
+            if (typeof CargoStore !== 'undefined' && CargoStore.getTimeRemaining) {
+                const t = CargoStore.getTimeRemaining(endTime);
+                if (t && typeof t.total === 'number' && !isNaN(t.total)) return t;
+            }
+            if (!endTime) return { total: 0, hours: 0, minutes: 0, seconds: 0, isEnded: true };
+            const total = Date.parse(endTime) - Date.now();
+            if (isNaN(total) || total <= 0) {
+                return { total: 0, hours: 0, minutes: 0, seconds: 0, isEnded: true };
+            }
+            const seconds = Math.floor((total / 1000) % 60);
+            const minutes = Math.floor((total / 1000 / 60) % 60);
+            const hours = Math.floor(total / (1000 * 60 * 60));
+            return { total, hours, minutes, seconds, isEnded: false };
+        }
+
         function renderDashboardFromBackend(data) {
             if (!data || !data.success) return;
+            lastDashData = data;
             const ag = data.agent || {};
             const kpis = data.kpis || {};
             const auctions = data.auctions || [];
@@ -445,7 +473,7 @@
                 }
 
                 const tableRowsHtml = auctions.map(a => {
-                    const timer = (typeof CargoStore !== 'undefined' && CargoStore.getTimeRemaining) ? CargoStore.getTimeRemaining(a.endTime) : { hours: 0, minutes: 0, seconds: 0, total: 1000 };
+                    const timer = computeDashTimer(a.endTime);
                     const capKg = a.capacityKg || 3500;
                     const startPrice = a.startingPriceKg || 18000;
                     const isSubmitted = !!a.isSubmitted;
@@ -1311,44 +1339,64 @@
         window.updateDashCardTotal = onDashPriceInput;
 
         function updateDashCountdowns() {
-            if (typeof document !== 'undefined' && document.hidden) return;
             const timerEls = document.querySelectorAll('.dash-timer-text');
+            let hasJustExpired = false;
 
             timerEls.forEach(el => {
                 const endTime = el.getAttribute('data-endtime');
                 if (!endTime) return;
-                const timer = (typeof CargoStore !== 'undefined' && CargoStore.getTimeRemaining) 
-                    ? CargoStore.getTimeRemaining(endTime) 
-                    : { hours: 0, minutes: 0, seconds: 0, total: 0 };
+                const timer = computeDashTimer(endTime);
                 const valEl = el.querySelector('.timer-val');
                 if (valEl) {
                     if (timer.total <= 0) {
                         valEl.textContent = 'Đã đóng thầu';
                         el.classList.remove('text-amber-600');
                         el.classList.add('text-slate-400');
+                        if (!el.getAttribute('data-expired')) {
+                            el.setAttribute('data-expired', '1');
+                            hasJustExpired = true;
+                        }
                     } else {
                         valEl.textContent = `Còn ${timer.hours > 0 ? timer.hours + 'h ' : ''}${timer.minutes}m ${timer.seconds}s`;
                     }
                 }
             });
+
+            if (hasJustExpired) {
+                fetchDashboardData(true);
+            }
+        }
+
+        if (!window._dashCountdownInterval) {
+            window._dashCountdownInterval = setInterval(updateDashCountdowns, 1000);
         }
 
         document.addEventListener('DOMContentLoaded', function () {
-            // Render tức thì nếu trước đó chưa render
-            let renderedInit = false;
-            if (!document.getElementById('dashboardAuctionList')?.children?.length) {
-                renderedInit = renderInitialDataIfAvailable();
-                if (!renderedInit) {
-                    renderDashboard();
-                }
-            } else {
-                renderedInit = !!lastDashData;
+            if (!window._dashCountdownInterval) {
+                window._dashCountdownInterval = setInterval(updateDashCountdowns, 1000);
             }
+            updateDashCountdowns();
 
-            // Chỉ gọi fetch ngay lập tức nếu chưa có dữ liệu khởi tạo từ server hoặc mã đại lý thay đổi
-            const currentCode = resolveCurrentAgentCode();
-            const initCode = (lastDashData && lastDashData.agent && lastDashData.agent.code) ? String(lastDashData.agent.code).trim().toUpperCase() : '';
-            if (!renderedInit || (currentCode && initCode && currentCode.toUpperCase() !== initCode)) {
+            try {
+                // Render tức thì nếu trước đó chưa render
+                let renderedInit = false;
+                if (!document.getElementById('dashboardAuctionList')?.children?.length) {
+                    renderedInit = renderInitialDataIfAvailable();
+                    if (!renderedInit) {
+                        renderDashboard();
+                    }
+                } else {
+                    renderedInit = !!lastDashData;
+                }
+
+                // Chỉ gọi fetch ngay lập tức nếu chưa có dữ liệu khởi tạo từ server hoặc mã đại lý thay đổi
+                const currentCode = resolveCurrentAgentCode();
+                const initCode = (lastDashData && lastDashData.agent && lastDashData.agent.code) ? String(lastDashData.agent.code).trim().toUpperCase() : '';
+                if (!renderedInit || (currentCode && initCode && currentCode.toUpperCase() !== initCode)) {
+                    fetchDashboardData(true);
+                }
+            } catch (err) {
+                console.warn('Dashboard init warning:', err);
                 fetchDashboardData(true);
             }
 
@@ -1361,16 +1409,13 @@
             // Nghe sự kiện cập nhật phiên thầu từ tab khác khi có phiên mới
             window.addEventListener('storage', function (e) {
                 if (e && (e.key === 'CARGO_BIDDING_SERVER_VERSION' || e.key === 'CARGO_BIDDING_DATA_V3')) {
-                    fetchDashboardData();
+                    fetchDashboardData(true);
                 }
             });
 
             window.addEventListener('cargostore_updated', function () {
                 fetchDashboardData();
             });
-
-            // Realtime 1-second countdown strictly in-place (no DOM re-renders)
-            setInterval(updateDashCountdowns, 1000);
         });
     </script>
 </body>

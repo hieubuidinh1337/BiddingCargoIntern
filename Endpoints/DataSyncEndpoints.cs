@@ -31,6 +31,7 @@ public static class DataSyncEndpoints
                 agentCode = !string.IsNullOrEmpty(queryAgent) ? queryAgent : cookieAgent;
             }
 
+            await svc.MaintenanceAsync();
             var snap = await svc.GetSnapshotAsync(agentCode, role);
             ctx.Response.Headers.CacheControl = "no-cache, no-store, must-revalidate";
             return J(snap);

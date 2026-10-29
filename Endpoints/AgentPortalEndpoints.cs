@@ -210,7 +210,9 @@ public static class AgentPortalEndpoints
                     ["flightPeriod"] = a.FlightPeriod,
                     ["etd"] = a.Etd ?? "08:00",
                     ["eta"] = a.Eta ?? "10:15",
-                    ["endTime"] = a.EndTime ?? a.CloseDateIso ?? DateTime.UtcNow.AddHours(2).ToString("o"),
+                    ["endTime"] = !string.IsNullOrWhiteSpace(a.EndTime) ? a.EndTime
+                        : (!string.IsNullOrWhiteSpace(a.CloseDateIso) ? a.CloseDateIso
+                        : (Util.ParseFlightDate(a.CloseDate) != null ? new DateTimeOffset(Util.ParseFlightDate(a.CloseDate)!.Value).ToUniversalTime().ToString("o") : "")),
                     ["capacityKg"] = capKg,
                     ["startingPriceKg"] = startPrice,
                     ["currentPriceKg"] = a.CurrentPriceKg,
@@ -394,7 +396,9 @@ public static class AgentPortalEndpoints
                     ["eta"] = a.Eta ?? "10:15",
                     ["cutOffTime"] = a.CutOffTime ?? "18:00",
                     ["warehouse"] = EntityJson.GetExtraString(a, "warehouse") ?? "Kho TCS - Tân Sơn Nhất",
-                    ["endTime"] = a.EndTime ?? a.CloseDateIso ?? DateTime.UtcNow.AddHours(2).ToString("o"),
+                    ["endTime"] = !string.IsNullOrWhiteSpace(a.EndTime) ? a.EndTime
+                        : (!string.IsNullOrWhiteSpace(a.CloseDateIso) ? a.CloseDateIso
+                        : (Util.ParseFlightDate(a.CloseDate) != null ? new DateTimeOffset(Util.ParseFlightDate(a.CloseDate)!.Value).ToUniversalTime().ToString("o") : "")),
                     ["status"] = a.Status ?? "OPEN",
                     ["bidsCount"] = a.BidsCount,
                     ["leadingAgentDisplay"] = "Đại lý ẩn danh (AG-***)",

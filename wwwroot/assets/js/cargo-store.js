@@ -29,7 +29,7 @@
         }
     } catch (e) { }
 
-    const CACHE_VER = '?v=20261029_3';
+    const CACHE_VER = '?v=20261029_4';
     if (typeof document !== 'undefined' && document.readyState === 'loading') {
         const tags = MODULES.map(m => `<script src="${basePath}${m}${CACHE_VER}"><\/script>`).join('\n');
         document.write(tags);

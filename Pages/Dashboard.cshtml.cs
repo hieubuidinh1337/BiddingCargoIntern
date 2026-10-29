@@ -247,7 +247,9 @@ public class DashboardModel : PageModel
                 FlightEndDate = a.FlightEndDate,
                 Etd = a.Etd ?? "08:00",
                 Eta = a.Eta ?? "10:15",
-                EndTime = a.EndTime ?? a.CloseDateIso ?? DateTime.UtcNow.AddHours(2).ToString("o"),
+                EndTime = !string.IsNullOrWhiteSpace(a.EndTime) ? a.EndTime
+                    : (!string.IsNullOrWhiteSpace(a.CloseDateIso) ? a.CloseDateIso
+                    : (Util.ParseFlightDate(a.CloseDate) != null ? new DateTimeOffset(Util.ParseFlightDate(a.CloseDate)!.Value).ToUniversalTime().ToString("o") : "")),
                 CapacityKg = capKg,
                 StartingPriceKg = startPrice,
                 CurrentPriceKg = a.CurrentPriceKg,

@@ -203,10 +203,10 @@
 
             saveData(data);
             if (typeof window !== 'undefined' && window.location && window.location.protocol && window.location.protocol.startsWith('http')) {
-                fetch('/api/auctions/close', {
+                fetch('/api/admin/auctions/close', {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ auctionId: Number(auction.id) })
+                    body: JSON.stringify({ id: Number(auction.id), auctionId: Number(auction.id) })
                 }).then(() => {
                     if (typeof syncWithServer === 'function') syncWithServer(true);
                 }).catch(() => { });
@@ -543,7 +543,16 @@
                 }
             }
 
-            saveData(data);
+            saveData(data, false, true);
+            if (typeof window !== 'undefined' && window.location && window.location.protocol && window.location.protocol.startsWith('http')) {
+                fetch('/api/admin/auctions/close', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ id: Number(auction.id), auctionId: Number(auction.id) })
+                }).then(() => {
+                    if (typeof syncWithServer === 'function') syncWithServer(true);
+                }).catch(() => { });
+            }
 
             const adminActor = isAutoSystem ? 'Hệ Thống Tự Động' : ((currentAdmin && (currentAdmin.fullName || currentAdmin.username)) || 'Ban Quản Trị Chốt Thầu');
             const adminRole = isAutoSystem ? 'SYSTEM' : ((currentAdmin && (Array.isArray(currentAdmin.roles) ? currentAdmin.roles.join(', ') : currentAdmin.role)) || 'AUCTION_SETTLEMENT');
