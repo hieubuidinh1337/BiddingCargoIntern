@@ -447,8 +447,40 @@ if (typeof globalThis !== 'undefined') globalThis.CargoStore = CargoStore;
     }
 
 
-    function formatCurrency(amount) {
-        return new Intl.NumberFormat('vi-VN').format(amount) + ' đ';
+    function formatCurrency(amount, unit) {
+        if (!unit || unit === 'VND' || unit === 'VND/Kg' || unit === 'đ') {
+            return new Intl.NumberFormat('vi-VN').format(amount) + ' đ';
+        }
+        if (unit.startsWith('USD') || unit === '$') {
+            return '$' + new Intl.NumberFormat('en-US').format(amount);
+        }
+        if (unit.startsWith('THB') || unit === '฿') {
+            return new Intl.NumberFormat('th-TH').format(amount) + ' THB';
+        }
+        if (unit.startsWith('CNY') || unit.startsWith('RMB') || unit === '¥') {
+            return new Intl.NumberFormat('zh-CN').format(amount) + ' CNY';
+        }
+        return new Intl.NumberFormat('vi-VN').format(amount) + ' ' + unit;
+    }
+
+    function formatPriceWithUnit(amount, unit) {
+        if (!unit) unit = 'VND/Kg';
+        const rawUnit = String(unit).trim();
+        const baseNum = Number(amount) || 0;
+        const denom = rawUnit.includes('/') ? rawUnit.split('/')[1] : 'Kg';
+        if (rawUnit.startsWith('USD')) {
+            return '$' + new Intl.NumberFormat('en-US').format(baseNum) + '/' + denom;
+        }
+        if (rawUnit.startsWith('THB')) {
+            return new Intl.NumberFormat('th-TH').format(baseNum) + ' ฿/' + denom;
+        }
+        if (rawUnit.startsWith('CNY')) {
+            return new Intl.NumberFormat('zh-CN').format(baseNum) + ' ¥/' + denom;
+        }
+        if (rawUnit.startsWith('VND')) {
+            return new Intl.NumberFormat('vi-VN').format(baseNum) + ' đ/' + denom;
+        }
+        return new Intl.NumberFormat('vi-VN').format(baseNum) + ' ' + rawUnit;
     }
 
     function formatNumber(num) {
@@ -1036,6 +1068,7 @@ if (typeof globalThis !== 'undefined') globalThis.CargoStore = CargoStore;
         deduplicateNotifications,
         reconcileAuctionSummaries,
         formatCurrency,
+        formatPriceWithUnit,
         formatNumber,
         getTimeRemaining,
         formatTimeAgo,

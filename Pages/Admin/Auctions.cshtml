@@ -1316,7 +1316,7 @@
             // The winning price is only revealed once the session is CLOSED and has participants.
             const displayPrice = (a.status === 'CLOSED') ?
                 (hasBids && (a.winningPriceKg || bidsForThis.length > 0) ?
-                    CargoStore.formatCurrency(a.winningPriceKg || (bidsForThis[0] ? bidsForThis[0].priceKg : a.currentPriceKg)) :
+                    (CargoStore.formatPriceWithUnit ? CargoStore.formatPriceWithUnit(a.winningPriceKg || (bidsForThis[0] ? bidsForThis[0].priceKg : a.currentPriceKg), a.priceUnit) : CargoStore.formatCurrency(a.winningPriceKg || (bidsForThis[0] ? bidsForThis[0].priceKg : a.currentPriceKg))) :
                     '<span class="text-gray-400 font-normal italic">-</span>'
                 ) :
                 '<span class="text-gray-500 font-normal">' + (isOpen ? '???' : '-') + '</span>';

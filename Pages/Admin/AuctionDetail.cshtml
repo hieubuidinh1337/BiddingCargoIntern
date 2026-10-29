@@ -1552,8 +1552,11 @@
                 detStatusBadgeEl.innerHTML = `<i class="fa-solid ${statusInfo.icon} text-[10px]"></i> ${statusInfo.text}`;
             }
 
+            const unitDisplay = auction.priceUnit || 'VND/Kg';
             document.getElementById('detCapacity').textContent = CargoStore.formatNumber(auction.capacityKg) + ' Kg';
-            document.getElementById('detStartingPrice').textContent = CargoStore.formatCurrency(auction.startingPriceKg) + '/Kg';
+            document.getElementById('detStartingPrice').textContent = (CargoStore && CargoStore.formatPriceWithUnit)
+                ? CargoStore.formatPriceWithUnit(auction.startingPriceKg, unitDisplay)
+                : (CargoStore.formatCurrency(auction.startingPriceKg) + '/Kg');
             const detMinStepEl = document.getElementById('detMinStep');
             if (detMinStepEl) detMinStepEl.textContent = '+' + CargoStore.formatCurrency(auction.minStep) + '/Kg';
 
@@ -1576,7 +1579,9 @@
                     detPriceEl.innerHTML = '<span class="text-slate-400 font-normal italic text-lg">---</span>';
                 } else {
                     const finalWinPrice = Number(auction.winningPriceKg) || highestBidPrice || Number(auction.currentPriceKg) || Number(auction.startingPriceKg) || 0;
-                    detPriceEl.textContent = CargoStore.formatCurrency(finalWinPrice) + '/Kg';
+                    detPriceEl.textContent = (CargoStore && CargoStore.formatPriceWithUnit)
+                        ? CargoStore.formatPriceWithUnit(finalWinPrice, unitDisplay)
+                        : (CargoStore.formatCurrency(finalWinPrice) + '/Kg');
                 }
             }
 

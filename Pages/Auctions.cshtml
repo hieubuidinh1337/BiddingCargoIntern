@@ -380,7 +380,7 @@
                 const myHighestBidPrice = a.myHighestBidPriceKg;
                 const isSubmitted = !!a.isSubmitted;
                 const fmtCap = (typeof CargoStore !== 'undefined' && CargoStore.formatNumber) ? CargoStore.formatNumber(a.capacityKg) : (a.capacityKg || 0).toLocaleString();
-                const fmtStart = (typeof CargoStore !== 'undefined' && CargoStore.formatCurrency) ? CargoStore.formatCurrency(a.startingPriceKg) : (a.startingPriceKg || 0).toLocaleString() + ' đ';
+                const fmtStart = (typeof CargoStore !== 'undefined' && CargoStore.formatPriceWithUnit) ? CargoStore.formatPriceWithUnit(a.startingPriceKg, a.priceUnit) : ((typeof CargoStore !== 'undefined' && CargoStore.formatCurrency) ? CargoStore.formatCurrency(a.startingPriceKg) + '/Kg' : (a.startingPriceKg || 0).toLocaleString() + ' đ/Kg');
 
                 return `
                     <div class="bg-white rounded-2xl border ${isWatched ? 'border-amber-400 ring-2 ring-amber-400/20 shadow-md' : 'border-slate-200 shadow-sm'} hover:shadow-lg transition flex flex-col justify-between overflow-hidden relative">
@@ -442,13 +442,13 @@
                             <div class="flex items-center justify-between">
                                 <div>
                                     <p class="text-[11px] text-gray-400">Giá sàn khởi điểm</p>
-                                    <p class="text-xs font-semibold text-gray-600">${fmtStart}/Kg</p>
+                                    <p class="text-xs font-semibold text-gray-600">${fmtStart}</p>
                                 </div>
                                 <div class="text-right">
                                     ${a.status === 'CLOSED' ? (
                                         (a.winnerAgentCode && a.winningPriceKg > 0) ? `
                                             <p class="text-[11px] text-emerald-600 font-semibold">Giá chốt thắng thầu</p>
-                                            <p class="text-base font-bold text-blue-600">${(typeof CargoStore !== 'undefined' && CargoStore.formatCurrency) ? CargoStore.formatCurrency(a.winningPriceKg) : a.winningPriceKg.toLocaleString() + ' đ'}/Kg</p>
+                                            <p class="text-base font-bold text-blue-600">${(typeof CargoStore !== 'undefined' && CargoStore.formatPriceWithUnit) ? CargoStore.formatPriceWithUnit(a.winningPriceKg, a.priceUnit) : a.winningPriceKg.toLocaleString() + ' đ/Kg'}</p>
                                         ` : `
                                             <p class="text-[11px] text-slate-400 font-medium">Kết quả phiên</p>
                                             <p class="text-xs text-slate-400 font-medium mt-1">Không có người trúng</p>
@@ -457,7 +457,7 @@
                                         <p class="text-[11px] text-blue-600 font-semibold flex items-center justify-end gap-1">
                                             <i class="fa-solid fa-user-check text-[10px]"></i> Giá bạn đã đặt
                                         </p>
-                                        <p class="text-base font-bold text-blue-600">${(typeof CargoStore !== 'undefined' && CargoStore.formatCurrency) ? CargoStore.formatCurrency(myHighestBidPrice) : myHighestBidPrice.toLocaleString() + ' đ'}/Kg</p>
+                                        <p class="text-base font-bold text-blue-600">${(typeof CargoStore !== 'undefined' && CargoStore.formatPriceWithUnit) ? CargoStore.formatPriceWithUnit(myHighestBidPrice, a.priceUnit) : myHighestBidPrice.toLocaleString() + ' đ/Kg'}</p>
                                     ` : `
                                         <p class="text-[11px] text-gray-400">Giá bạn đã đặt</p>
                                         <p class="text-xs text-slate-400 font-medium mt-1">Chưa tham gia</p>

@@ -710,8 +710,16 @@
                                 class="bg-slate-100 border-l border-slate-300 px-2.5 py-2 text-xs font-bold text-blue-700 outline-none cursor-pointer shrink-0">
                                 <option value="VND/Kg" selected>VND/Kg</option>
                                 <option value="USD/Kg">USD/Kg</option>
+                                <option value="THB/Kg">THB/Kg (Baht Thái)</option>
+                                <option value="CNY/Kg">CNY/Kg (Nhân dân tệ)</option>
                                 <option value="VND/Tấn">VND/Tấn</option>
+                                <option value="USD/Tấn">USD/Tấn</option>
+                                <option value="THB/Tấn">THB/Tấn</option>
+                                <option value="CNY/Tấn">CNY/Tấn</option>
                                 <option value="VND/Chuyến">VND/Chuyến</option>
+                                <option value="USD/Chuyến">USD/Chuyến</option>
+                                <option value="THB/Chuyến">THB/Chuyến</option>
+                                <option value="CNY/Chuyến">CNY/Chuyến</option>
                             </select>
                         </div>
                         <p id="startingPriceHint" class="text-[10px] text-slate-400 mt-1">Tự động thêm dấu phẩy ngăn cách hàng nghìn.</p>
@@ -979,7 +987,22 @@
             const unit = document.getElementById('startingPriceUnit')?.value || 'VND/Kg';
             const hint = document.getElementById('startingPriceHint');
             if (hint) {
-                hint.textContent = `Đơn vị áp dụng: ${unit} · Tự động thêm dấu phẩy ngăn cách hàng nghìn.`;
+                const currencyNames = {
+                    'VND/Kg': 'Đồng Việt Nam (VND/Kg)',
+                    'USD/Kg': 'Đô la Mỹ (USD/Kg)',
+                    'THB/Kg': 'Baht Thái Lan (THB/Kg)',
+                    'CNY/Kg': 'Nhân dân tệ Trung Quốc (CNY/Kg)',
+                    'VND/Tấn': 'Đồng Việt Nam (VND/Tấn)',
+                    'USD/Tấn': 'Đô la Mỹ (USD/Tấn)',
+                    'THB/Tấn': 'Baht Thái Lan (THB/Tấn)',
+                    'CNY/Tấn': 'Nhân dân tệ Trung Quốc (CNY/Tấn)',
+                    'VND/Chuyến': 'Đồng Việt Nam (VND/Chuyến)',
+                    'USD/Chuyến': 'Đô la Mỹ (USD/Chuyến)',
+                    'THB/Chuyến': 'Baht Thái Lan (THB/Chuyến)',
+                    'CNY/Chuyến': 'Nhân dân tệ Trung Quốc (CNY/Chuyến)'
+                };
+                const curName = currencyNames[unit] || unit;
+                hint.textContent = `Đơn vị áp dụng: ${curName} · Tự động thêm dấu phẩy ngăn cách hàng nghìn.`;
             }
         }
 
