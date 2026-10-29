@@ -110,6 +110,7 @@ public class SharedDataService
         if (s == null) { s = new Setting { Key = "version" }; _db.Settings.Add(s); }
         s.Value = v.ToString();
         InvalidateSnapshotCache();
+        _nextDueMs = 0; // dữ liệu phiên có thể đã đổi -> tính lại mốc mở/đóng ở lần bảo trì kế tiếp
         return v;
     }
 
@@ -159,36 +160,36 @@ public class SharedDataService
     }
 
     private static long _lastMaintenanceMs = 0;
+    private static long _nextDueMs = 0;
+
+    private static long ComputeNextDueMs(IEnumerable<Auction> auctions, long nowMs)
+    {
+        var next = long.MaxValue;
+        foreach (var a in auctions)
+        {
+            if (a.Status == "UPCOMING")
+            {
+                var openMs = Util.ParseIso(a.OpenDateIso)?.ToUnixTimeMilliseconds()
+                             ?? (Util.ParseFlightDate(a.OpenDate) is { } od ? new DateTimeOffset(od).ToUnixTimeMilliseconds() : (long?)null);
+                next = Math.Min(next, openMs ?? nowMs);
+            }
+            if (a.Status is "OPEN" or "UPCOMING")
+            {
+                var endMs = Util.ParseIso(a.EndTime)?.ToUnixTimeMilliseconds()
+                            ?? (Util.ParseFlightDate(a.CloseDate) is { } cd ? new DateTimeOffset(cd).ToUnixTimeMilliseconds() : (long?)null);
+                if (endMs.HasValue) next = Math.Min(next, endMs.Value);
+            }
+        }
+        return next;
+    }
 
     // ---------------------------------------------------------------- maintenance (chạy trước mỗi GET /api/data)
 
     public async Task MaintenanceAsync()
     {
         var nowMs = Util.NowMs();
-        var hasDueAuction = false;
-        var snap = _cachedDbSnapshot;
-        if (snap != null)
-        {
-            foreach (var a in snap.Value.auctions)
-            {
-                if (a.Status == "UPCOMING")
-                {
-                    var openMs = Util.ParseIso(a.OpenDateIso)?.ToUnixTimeMilliseconds()
-                                 ?? (Util.ParseFlightDate(a.OpenDate) is { } od ? new DateTimeOffset(od).ToUnixTimeMilliseconds() : (long?)null);
-                    if (!openMs.HasValue || openMs.Value <= nowMs) { hasDueAuction = true; break; }
-                }
-                if (a.Status is "OPEN" or "UPCOMING")
-                {
-                    var endMs = Util.ParseIso(a.EndTime)?.ToUnixTimeMilliseconds()
-                                ?? (Util.ParseFlightDate(a.CloseDate) is { } cd ? new DateTimeOffset(cd).ToUnixTimeMilliseconds() : (long?)null);
-                    if (endMs.HasValue && endMs.Value <= nowMs) { hasDueAuction = true; break; }
-                }
-            }
-        }
-        else
-        {
-            hasDueAuction = true;
-        }
+        // _nextDueMs: mốc gần nhất cần xử lý (mở/đóng phiên). Chưa tới mốc thì chỉ bảo trì định kỳ 10s.
+        var hasDueAuction = nowMs >= _nextDueMs;
 
         if (!hasDueAuction && nowMs - _lastMaintenanceMs < 10_000) return;
         _lastMaintenanceMs = nowMs;
@@ -201,6 +202,7 @@ public class SharedDataService
             var statusChanged = AuctionRules.ReconcileStatuses(auctions, bids);
             var summaryChanged = AuctionRules.ReconcileSummaries(auctions, bids);
             await SettleClosedAuctionsCoreAsync(auctions, bids, saveImmediately: false);
+            _nextDueMs = ComputeNextDueMs(auctions, nowMs);
 
             // Chính sách bảo trì: xóa các cảnh báo "TÀI KHOẢN ĐÃ BỊ KHÓA" của những đại lý đã được mở khóa.
             if (_cfg.GetValue("App:AutoUnlockAgents", false))

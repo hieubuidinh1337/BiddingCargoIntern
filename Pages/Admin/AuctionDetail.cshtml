@@ -2052,9 +2052,16 @@
                 }
             } else {
                 if (isOpen && timer && timer.isEnded) {
-                    // Tự động đóng phiên và chuyển sang chế độ xét duyệt
-                    if (CargoStore && CargoStore.autoCloseExpiredAuctions) {
-                        CargoStore.autoCloseExpiredAuctions(CargoStore.getData());
+                    // Tự động đóng phiên và chuyển sang chế độ xét duyệt (throttle 3s, tránh render/đồng bộ mỗi giây gây lag)
+                    const expNow = Date.now();
+                    const shouldRefreshExpired = expNow - (window._adminDetailExpireRefresh || 0) > 3000;
+                    if (shouldRefreshExpired) {
+                        window._adminDetailExpireRefresh = expNow;
+                        if (CargoStore && CargoStore.checkAutoCloseAuctions) {
+                            CargoStore.checkAutoCloseAuctions();
+                        } else if (CargoStore && CargoStore.autoCloseExpiredAuctions) {
+                            CargoStore.autoCloseExpiredAuctions(CargoStore.getData());
+                        }
                     }
                     if (badgeEl) {
                         badgeEl.classList.remove('hidden');
@@ -2068,8 +2075,10 @@
                         cardLabelEl.textContent = '(Đang chốt kết quả)';
                         cardLabelEl.className = 'text-[11px] font-semibold text-amber-700';
                     }
-                    loadAdminDetail();
-                    syncAdminDetailFromServer();
+                    if (shouldRefreshExpired) {
+                        loadAdminDetail();
+                        syncAdminDetailFromServer();
+                    }
                     return;
                 }
                 if (badgeEl) {

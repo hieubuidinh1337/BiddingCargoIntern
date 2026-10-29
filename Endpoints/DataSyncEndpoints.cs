@@ -37,6 +37,14 @@ public static class DataSyncEndpoints
             return J(snap);
         });
 
+        // Endpoint rất nhẹ để client kiểm tra có dữ liệu mới hay không (phiên mới / tự đóng phiên...)
+        api.MapGet("/version", (HttpContext ctx, SharedDataService svc) => Guard(async () =>
+        {
+            await svc.MaintenanceAsync();
+            ctx.Response.Headers.CacheControl = "no-cache, no-store, must-revalidate";
+            return J(new JsonObject { ["version"] = await svc.GetVersionAsync(), ["dataEpoch"] = await svc.GetEpochAsync() });
+        }, log));
+
         api.MapGet("/epoch", (HttpContext ctx, SharedDataService svc) => Guard(async () =>
         {
             ctx.Response.Headers.CacheControl = "no-cache, no-store, must-revalidate";

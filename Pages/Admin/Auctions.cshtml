@@ -1287,10 +1287,15 @@
             });
 
             if (needFullRefresh) {
-                if (CargoStore && CargoStore.checkAutoCloseAuctions) {
-                    CargoStore.checkAutoCloseAuctions();
+                // Chỉ xử lý 1 lần / 3 giây (trước đây render lại cả bảng MỖI GIÂY gây lag)
+                const nowTs = Date.now();
+                if (nowTs - (window._adminLastExpireRefresh || 0) > 3000) {
+                    window._adminLastExpireRefresh = nowTs;
+                    if (CargoStore && CargoStore.checkAutoCloseAuctions) {
+                        CargoStore.checkAutoCloseAuctions();
+                    }
+                    renderAuctionsTable();
                 }
-                renderAuctionsTable();
             }
         }
 
@@ -2652,6 +2657,10 @@
         }
 
         // NOTE: cargostore_updated listener removed to eliminate table jumping and scroll reset
+        // Chỉ vẽ lại bảng khi server báo có dữ liệu mới (phiên mới / phiên tự đóng) - sự kiện này hiếm nên không gây giật
+        window.addEventListener('cargostore_remote_changed', function () {
+            onAdminListStoreUpdate();
+        });
     </script>
 
     <!-- Modal: Admin xác nhận hoàn tiền cho đại lý -->

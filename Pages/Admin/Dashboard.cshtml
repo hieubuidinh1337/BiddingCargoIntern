@@ -898,6 +898,7 @@
             if (window.CargoStore && CargoStore.syncAdminHeaderUI) CargoStore.syncAdminHeaderUI();
         });
         // NOTE: cargostore_updated listener removed to eliminate dashboard jumping and table flicker!
+        window.addEventListener('cargostore_remote_changed', function () { safeLoadDashboard(); });
     </script>
 </body>
 

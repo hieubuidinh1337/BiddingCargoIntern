@@ -790,8 +790,8 @@
         // NGUYÊN TẮC: Trang chủ & các trang công khai tuyệt đối KHÔNG tự ý gọi API đồng bộ ngầm
         if (isPublicPage && !force) return;
 
-        // Guard: Do not sync more than once every 30 seconds
-        if (Date.now() - lastServerSyncTimestamp < 30000) return;
+        // Guard: không đồng bộ quá dày (force: tối thiểu 1s, thường: 30s)
+        if (Date.now() - lastServerSyncTimestamp < (force ? 1000 : 30000)) return;
         if (!force && typeof document !== 'undefined' && document.hidden) return; // Save CPU when tab is in background
         if (force) lastLocalSaveTimestamp = 0;
         if (!force && Date.now() - lastLocalSaveTimestamp < 800) return;
@@ -1217,6 +1217,62 @@
         }
     }
 
+    // Kiểm tra nhẹ phiên bản dữ liệu trên server mỗi 4s: có thay đổi (phiên mới, tự đóng phiên...) thì đồng bộ ngay.
+    let _versionPollTimer = null;
+    let _versionPolling = false;
+    async function pollServerVersion() {
+        if (_versionPolling || _isPublic || epochWiping) return;
+        if (typeof document !== 'undefined' && document.hidden) return;
+        _versionPolling = true;
+        try {
+            const res = await fetch('/api/version', { cache: 'no-store' });
+            if (!res.ok) return;
+            const j = await res.json();
+            if (!j || !j.version) return;
+            if (j.dataEpoch && !applyServerEpoch(j.dataEpoch)) return;
+            if (Number(j.version) !== Number(lastServerVersion)) {
+                const before = lastServerVersion;
+                await syncWithServer(true);
+                if (lastServerVersion !== before) {
+                    try { window.dispatchEvent(new CustomEvent('cargostore_remote_changed', { detail: { version: lastServerVersion } })); } catch (e) { }
+                }
+            }
+        } catch (e) {
+        } finally {
+            _versionPolling = false;
+        }
+    }
+
+    // Đồng hồ đã chạy về 0 -> yêu cầu server chốt phiên rồi đồng bộ về (throttle 3s, KHÔNG render lại liên tục)
+    let _lastExpiredSyncMs = 0;
+    function checkAutoCloseAuctions() {
+        let modified = false;
+        try {
+            const data = loadData();
+            if (autoCloseExpiredAuctions(data)) {
+                modified = true;
+                saveData(data, true);
+            }
+        } catch (e) { }
+        const now = Date.now();
+        if (now - _lastExpiredSyncMs > 3000) {
+            _lastExpiredSyncMs = now;
+            lastServerSyncTimestamp = 0;
+            Promise.resolve(syncWithServer(true)).then(() => {
+                try { window.dispatchEvent(new CustomEvent('cargostore_remote_changed', { detail: { expired: true } })); } catch (e) { }
+            }).catch(() => { });
+        }
+        return modified;
+    }
+
+    if (typeof window !== 'undefined' && !_isPublic && !_versionPollTimer) {
+        _versionPollTimer = setInterval(pollServerVersion, 4000);
+        setTimeout(pollServerVersion, 600);
+        document.addEventListener('visibilitychange', function () {
+            if (!document.hidden) pollServerVersion();
+        });
+    }
+
     // Inter-tab sync channel via BroadcastChannel
     let _syncChannel = null;
     if (typeof window !== 'undefined' && 'BroadcastChannel' in window) {
@@ -1267,6 +1323,8 @@
             return pushToServerImmediate(data || loadData());
         },
         syncWithServer: syncWithServer,
+        checkAutoCloseAuctions: checkAutoCloseAuctions,
+        pollServerVersion: pollServerVersion,
         formatCurrency: formatCurrency,
         formatNumber: formatNumber,
         getTimeRemaining: getTimeRemaining,
