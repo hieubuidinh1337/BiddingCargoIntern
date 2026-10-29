@@ -442,6 +442,7 @@
                 </h2>
 
                 <input type="hidden" id="cfgMinIncrement" value="0">
+                <input type="hidden" id="cfgPaymentWindow" value="24">
                 <div class="grid grid-cols-1 sm:grid-cols-2 gap-4 text-xs">
 
                     <!-- <div>
@@ -1424,40 +1425,63 @@
             if (typeof CargoStore === 'undefined') return;
             const s = CargoStore.getSystemSettings();
             if (s) {
-                if (s.minIncrement) document.getElementById('cfgMinIncrement').value = s.minIncrement;
-                if (s.paymentWindowHours) document.getElementById('cfgPaymentWindow').value = s.paymentWindowHours;
-                if (s.reviewWindowMinutes) document.getElementById('cfgReviewWindow').value = s.reviewWindowMinutes;
-                if (s.hotline) document.getElementById('cfgHotline').value = s.hotline;
-                if (s.supportEmail) document.getElementById('cfgSupportEmail').value = s.supportEmail;
-                document.getElementById('cfgHideAgentCredentials').checked = s.hideAgentCredentials !== false;
-                if (document.getElementById('cfgHideCloseAuctionBtn')) {
-                    document.getElementById('cfgHideCloseAuctionBtn').checked = s.hideCloseAuctionBtn === true;
-                }
+                const minIncEl = document.getElementById('cfgMinIncrement');
+                if (minIncEl && s.minIncrement !== undefined) minIncEl.value = s.minIncrement;
+
+                const payWinEl = document.getElementById('cfgPaymentWindow');
+                if (payWinEl && s.paymentWindowHours !== undefined) payWinEl.value = s.paymentWindowHours;
+
+                const revWinEl = document.getElementById('cfgReviewWindow');
+                if (revWinEl && s.reviewWindowMinutes !== undefined) revWinEl.value = s.reviewWindowMinutes;
+
+                const hotlineEl = document.getElementById('cfgHotline');
+                if (hotlineEl && s.hotline !== undefined) hotlineEl.value = s.hotline;
+
+                const emailEl = document.getElementById('cfgSupportEmail');
+                if (emailEl && s.supportEmail !== undefined) emailEl.value = s.supportEmail;
+
+                const hideCredEl = document.getElementById('cfgHideAgentCredentials');
+                if (hideCredEl) hideCredEl.checked = s.hideAgentCredentials !== false;
+
+                const hideCloseEl = document.getElementById('cfgHideCloseAuctionBtn');
+                if (hideCloseEl) hideCloseEl.checked = s.hideCloseAuctionBtn === true;
+
+                const hostEl = document.getElementById('smtpHost');
+                const portEl = document.getElementById('smtpPort');
+                const userEl = document.getElementById('smtpUser');
+                const passEl = document.getElementById('smtpPass');
+                const fromEl = document.getElementById('smtpFromName');
 
                 if (s.smtp) {
-                    document.getElementById('smtpHost').value = s.smtp.host || 'smtp.gmail.com';
-                    document.getElementById('smtpPort').value = s.smtp.port || 465;
-                    document.getElementById('smtpUser').value = s.smtp.user || '';
-                    document.getElementById('smtpPass').value = s.smtp.pass || 'fcju ktvw jqhg ilzb';
-                    if (s.smtp.fromName) document.getElementById('smtpFromName').value = s.smtp.fromName;
+                    if (hostEl) hostEl.value = s.smtp.host || 'smtp.gmail.com';
+                    if (portEl) portEl.value = s.smtp.port || 465;
+                    if (userEl) userEl.value = s.smtp.user || '';
+                    if (passEl) passEl.value = s.smtp.pass || 'fcju ktvw jqhg ilzb';
+                    if (fromEl && s.smtp.fromName) fromEl.value = s.smtp.fromName;
                     updateSmtpStatusBadge(s.smtp);
                 } else {
-                    document.getElementById('smtpHost').value = 'smtp.gmail.com';
-                    document.getElementById('smtpPort').value = 465;
-                    document.getElementById('smtpUser').value = '';
-                    document.getElementById('smtpPass').value = 'fcju ktvw jqhg ilzb';
+                    if (hostEl) hostEl.value = 'smtp.gmail.com';
+                    if (portEl) portEl.value = 465;
+                    if (userEl) userEl.value = '';
+                    if (passEl) passEl.value = 'fcju ktvw jqhg ilzb';
                     updateSmtpStatusBadge({ host: 'smtp.gmail.com', port: 465, user: '', pass: 'fcjuktvwjqhgilzb' });
                 }
             }
 
             const bankCfg = CargoStore.getBankConfig ? CargoStore.getBankConfig() : null;
             if (bankCfg) {
-                if (bankCfg.bankName) document.getElementById('bankName').value = bankCfg.bankName;
-                if (bankCfg.accountNumber) document.getElementById('bankAccNum').value = bankCfg.accountNumber;
-                if (bankCfg.accountName) document.getElementById('bankAccName').value = bankCfg.accountName;
-                if (bankCfg.branch) document.getElementById('bankBranch').value = bankCfg.branch;
-                if (bankCfg.memoPrefix) document.getElementById('bankMemoPrefix').value = bankCfg.memoPrefix;
-                if (bankCfg.bankBin) document.getElementById('bankBin').value = bankCfg.bankBin;
+                const bName = document.getElementById('bankName');
+                const bAcc = document.getElementById('bankAccNum');
+                const bOwner = document.getElementById('bankAccName');
+                const bBranch = document.getElementById('bankBranch');
+                const bMemo = document.getElementById('bankMemoPrefix');
+                const bBin = document.getElementById('bankBin');
+                if (bName && bankCfg.bankName) bName.value = bankCfg.bankName;
+                if (bAcc && bankCfg.accountNumber) bAcc.value = bankCfg.accountNumber;
+                if (bOwner && bankCfg.accountName) bOwner.value = bankCfg.accountName;
+                if (bBranch && bankCfg.branch) bBranch.value = bankCfg.branch;
+                if (bMemo && bankCfg.memoPrefix) bMemo.value = bankCfg.memoPrefix;
+                if (bBin && bankCfg.bankBin) bBin.value = bankCfg.bankBin;
             }
 
             // Render Airport and Aircraft Types tables
@@ -1652,13 +1676,13 @@
             };
 
             const res = CargoStore.updateSystemSettings({
-                minIncrement: document.getElementById('cfgMinIncrement').value,
-                paymentWindowHours: document.getElementById('cfgPaymentWindow').value,
-                reviewWindowMinutes: document.getElementById('cfgReviewWindow').value,
-                hotline: document.getElementById('cfgHotline').value,
-                supportEmail: document.getElementById('cfgSupportEmail').value,
-                hideAgentCredentials: document.getElementById('cfgHideAgentCredentials').checked,
-                hideCloseAuctionBtn: document.getElementById('cfgHideCloseAuctionBtn') ? document.getElementById('cfgHideCloseAuctionBtn').checked : false,
+                minIncrement: document.getElementById('cfgMinIncrement')?.value || 0,
+                paymentWindowHours: document.getElementById('cfgPaymentWindow')?.value || 24,
+                reviewWindowMinutes: document.getElementById('cfgReviewWindow')?.value || 15,
+                hotline: document.getElementById('cfgHotline')?.value || '',
+                supportEmail: document.getElementById('cfgSupportEmail')?.value || '',
+                hideAgentCredentials: document.getElementById('cfgHideAgentCredentials')?.checked ?? true,
+                hideCloseAuctionBtn: document.getElementById('cfgHideCloseAuctionBtn')?.checked ?? false,
                 smtp: smtpData
             });
 

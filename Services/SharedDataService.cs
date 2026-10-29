@@ -561,6 +561,8 @@ public class SharedDataService
             ["settings"] = settings,
             ["bankConfig"] = ParseSetting("bankConfig") ?? new JsonObject(),
             ["routeSubscriptions"] = ParseSetting("routeSubscriptions") ?? new JsonObject(),
+            ["airports"] = ParseSetting("airports") ?? DefaultAirportsJson(),
+            ["aircraftTypes"] = ParseSetting("aircraftTypes") ?? DefaultAircraftTypesJson(),
             ["emailLogs"] = emailLogs,
             ["activityLogs"] = ToArray(filteredLogs.Select(l => EntityJson.ToNode(l))),
             ["readNotificationIds"] = ParseSetting("readNotificationIds") ?? new JsonArray(),
@@ -575,6 +577,43 @@ public class SharedDataService
         var a = new JsonArray();
         foreach (var i in items) a.Add(i);
         return a;
+    }
+
+    private static JsonArray DefaultAirportsJson()
+    {
+        return new JsonArray
+        {
+            new JsonObject { ["code"] = "DAD", ["name"] = "Da Nang International Airport" },
+            new JsonObject { ["code"] = "DLI", ["name"] = "Lien Khuong Airport" },
+            new JsonObject { ["code"] = "HAN", ["name"] = "Noi Bai International Airport" },
+            new JsonObject { ["code"] = "HPH", ["name"] = "Cat Bi International Airport" },
+            new JsonObject { ["code"] = "HUI", ["name"] = "Phu Bai International Airport" },
+            new JsonObject { ["code"] = "SGN", ["name"] = "Tan Son Nhat International Airport" },
+            new JsonObject { ["code"] = "UIH", ["name"] = "Phu Cat Airport" },
+            new JsonObject { ["code"] = "PQC", ["name"] = "Phu Quoc International Airport" },
+            new JsonObject { ["code"] = "VCA", ["name"] = "Can Tho International Airport" },
+            new JsonObject { ["code"] = "CXR", ["name"] = "Cam Ranh International Airport" },
+            new JsonObject { ["code"] = "VII", ["name"] = "Vinh International Airport" },
+            new JsonObject { ["code"] = "VDO", ["name"] = "Van Don International Airport" }
+        };
+    }
+
+    private static JsonArray DefaultAircraftTypesJson()
+    {
+        return new JsonArray
+        {
+            new JsonObject { ["code"] = "32V", ["name"] = "A320" },
+            new JsonObject { ["code"] = "32I", ["name"] = "A321" },
+            new JsonObject { ["code"] = "32E", ["name"] = "A321" },
+            new JsonObject { ["code"] = "32S", ["name"] = "A320" },
+            new JsonObject { ["code"] = "32O", ["name"] = "A320" },
+            new JsonObject { ["code"] = "32Q", ["name"] = "A320" },
+            new JsonObject { ["code"] = "32Y", ["name"] = "A320" },
+            new JsonObject { ["code"] = "32L", ["name"] = "A320" },
+            new JsonObject { ["code"] = "32B", ["name"] = "A321" },
+            new JsonObject { ["code"] = "320", ["name"] = "A320" },
+            new JsonObject { ["code"] = "321", ["name"] = "A321" }
+        };
     }
 
     // ---------------------------------------------------------------- merge (POST /api/data)
@@ -942,6 +981,8 @@ public class SharedDataService
             }
             if (incoming["bankConfig"] != null) await SetSettingAsync("bankConfig", incoming["bankConfig"]!.DeepClone());
             if (incoming["routeSubscriptions"] != null) await SetSettingAsync("routeSubscriptions", incoming["routeSubscriptions"]!.DeepClone());
+            if (incoming["airports"] != null) await SetSettingAsync("airports", incoming["airports"]!.DeepClone());
+            if (incoming["aircraftTypes"] != null) await SetSettingAsync("aircraftTypes", incoming["aircraftTypes"]!.DeepClone());
 
             // 9) Chat (upsert, không xóa)
             var chatArr = ArrayOf(incoming, "chats").ToList();

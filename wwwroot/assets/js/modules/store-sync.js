@@ -681,6 +681,8 @@
                 settings: data.settings,
                 bankConfig: data.bankConfig,
                 routeSubscriptions: data.routeSubscriptions,
+                airports: data.airports || [],
+                aircraftTypes: data.aircraftTypes || [],
                 activityLogs: Array.isArray(data.activityLogs) ? data.activityLogs.slice(0, 100) : [],
                 chats: data.chats || []
             }, (k, v) => (k === 'dataUrl' && typeof v === 'string' && v.length > 2000) ? null : v);
@@ -1194,6 +1196,12 @@
                 if (serverData.settings) local.settings = serverData.settings;
                 if (serverData.bankConfig) local.bankConfig = serverData.bankConfig;
                 if (serverData.routeSubscriptions) local.routeSubscriptions = serverData.routeSubscriptions;
+                if (serverData.airports && Array.isArray(serverData.airports) && serverData.airports.length > 0) {
+                    local.airports = serverData.airports;
+                }
+                if (serverData.aircraftTypes && Array.isArray(serverData.aircraftTypes) && serverData.aircraftTypes.length > 0) {
+                    local.aircraftTypes = serverData.aircraftTypes;
+                }
 
                 // Reconcile bids and enforce locks
                 reconcileAuctionSummaries(local);

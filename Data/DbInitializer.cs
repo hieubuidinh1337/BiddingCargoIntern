@@ -72,6 +72,30 @@ public static class DbInitializer
                 logger.LogInformation("Đã khởi tạo danh sách quản trị mặc định trong bảng settings (adminsList).");
             }
 
+            var airportsSetting = await db.Settings.FirstOrDefaultAsync(s => s.Key == "airports");
+            if (airportsSetting == null || string.IsNullOrWhiteSpace(airportsSetting.Value) || airportsSetting.Value.Trim() == "[]")
+            {
+                var defaultAirportsJson = "[{\"code\":\"DAD\",\"name\":\"Da Nang International Airport\"},{\"code\":\"DLI\",\"name\":\"Lien Khuong Airport\"},{\"code\":\"HAN\",\"name\":\"Noi Bai International Airport\"},{\"code\":\"HPH\",\"name\":\"Cat Bi International Airport\"},{\"code\":\"HUI\",\"name\":\"Phu Bai International Airport\"},{\"code\":\"SGN\",\"name\":\"Tan Son Nhat International Airport\"},{\"code\":\"UIH\",\"name\":\"Phu Cat Airport\"},{\"code\":\"PQC\",\"name\":\"Phu Quoc International Airport\"},{\"code\":\"VCA\",\"name\":\"Can Tho International Airport\"},{\"code\":\"CXR\",\"name\":\"Cam Ranh International Airport\"},{\"code\":\"VII\",\"name\":\"Vinh International Airport\"},{\"code\":\"VDO\",\"name\":\"Van Don International Airport\"}]";
+                if (airportsSetting == null)
+                    db.Settings.Add(new Setting { Key = "airports", Value = defaultAirportsJson });
+                else
+                    airportsSetting.Value = defaultAirportsJson;
+                await db.SaveChangesAsync();
+                logger.LogInformation("Đã khởi tạo danh mục sân bay mặc định trong bảng settings (airports).");
+            }
+
+            var aircraftTypesSetting = await db.Settings.FirstOrDefaultAsync(s => s.Key == "aircraftTypes");
+            if (aircraftTypesSetting == null || string.IsNullOrWhiteSpace(aircraftTypesSetting.Value) || aircraftTypesSetting.Value.Trim() == "[]")
+            {
+                var defaultAircraftTypesJson = "[{\"code\":\"32V\",\"name\":\"A320\"},{\"code\":\"32I\",\"name\":\"A321\"},{\"code\":\"32E\",\"name\":\"A321\"},{\"code\":\"32S\",\"name\":\"A320\"},{\"code\":\"32O\",\"name\":\"A320\"},{\"code\":\"32Q\",\"name\":\"A320\"},{\"code\":\"32Y\",\"name\":\"A320\"},{\"code\":\"32L\",\"name\":\"A320\"},{\"code\":\"32B\",\"name\":\"A321\"},{\"code\":\"320\",\"name\":\"A320\"},{\"code\":\"321\",\"name\":\"A321\"}]";
+                if (aircraftTypesSetting == null)
+                    db.Settings.Add(new Setting { Key = "aircraftTypes", Value = defaultAircraftTypesJson });
+                else
+                    aircraftTypesSetting.Value = defaultAircraftTypesJson;
+                await db.SaveChangesAsync();
+                logger.LogInformation("Đã khởi tạo danh mục loại tàu bay mặc định trong bảng settings (aircraftTypes).");
+            }
+
             await DeduplicateExistingLogsAsync(db, logger);
             logger.LogInformation("SQL Server database kết nối thành công và sẵn sàng.");
         }

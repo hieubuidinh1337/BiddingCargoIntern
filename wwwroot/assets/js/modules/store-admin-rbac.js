@@ -529,7 +529,11 @@
         // ==========================================
         getAirports: function () {
             const data = loadData();
-            return (data.airports && Array.isArray(data.airports)) ? [...data.airports] : [];
+            if (!data.airports || !Array.isArray(data.airports) || data.airports.length === 0) {
+                data.airports = JSON.parse(JSON.stringify(defaultData.airports || []));
+                saveData(data);
+            }
+            return [...data.airports];
         },
         addAirport: function (code, name) {
             if (!code || !name) return { success: false, message: 'Mã và tên sân bay không được để trống.' };
@@ -635,7 +639,11 @@
         // ==========================================
         getAircraftTypes: function () {
             const data = loadData();
-            return (data.aircraftTypes && Array.isArray(data.aircraftTypes)) ? [...data.aircraftTypes] : [];
+            if (!data.aircraftTypes || !Array.isArray(data.aircraftTypes) || data.aircraftTypes.length === 0) {
+                data.aircraftTypes = JSON.parse(JSON.stringify(defaultData.aircraftTypes || []));
+                saveData(data);
+            }
+            return [...data.aircraftTypes];
         },
         addAircraftType: function (code, name) {
             if (!code || !name) return { success: false, message: 'Mã và tên loại tàu bay không được để trống.' };
