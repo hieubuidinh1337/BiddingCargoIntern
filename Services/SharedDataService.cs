@@ -165,32 +165,70 @@ public class SharedDataService
     public async Task MaintenanceAsync()
     {
         var nowMs = Util.NowMs();
-        if (nowMs - _lastMaintenanceMs < 30_000) return;
-        _lastMaintenanceMs = nowMs;
-
-        var auctions = await _db.Auctions.ToListAsync();
-        var bids = await _db.Bids.ToListAsync();
-        AuctionRules.ReconcileStatuses(auctions, bids);
-        AuctionRules.ReconcileSummaries(auctions, bids);
-        await SettleClosedAuctionsCoreAsync(auctions, bids, saveImmediately: false);
-
-        // Chính sách bảo trì: xóa các cảnh báo "TÀI KHOẢN ĐÃ BỊ KHÓA" của những đại lý đã được mở khóa.
-        if (_cfg.GetValue("App:AutoUnlockAgents", false))
+        var hasDueAuction = false;
+        var snap = _cachedDbSnapshot;
+        if (snap != null)
         {
-            foreach (var a in await _db.Agents.ToListAsync())
+            foreach (var a in snap.Value.auctions)
             {
-                if (a.Status is "LOCKED" or "Đã khóa" || a.IsLocked || !string.IsNullOrEmpty(a.LockedReason))
+                if (a.Status == "UPCOMING")
                 {
-                    a.Status = "Đang hoạt động"; a.IsLocked = false; a.LockedReason = null; a.LockedAt = null;
+                    var openMs = Util.ParseIso(a.OpenDateIso)?.ToUnixTimeMilliseconds()
+                                 ?? (Util.ParseFlightDate(a.OpenDate) is { } od ? new DateTimeOffset(od).ToUnixTimeMilliseconds() : (long?)null);
+                    if (!openMs.HasValue || openMs.Value <= nowMs) { hasDueAuction = true; break; }
+                }
+                if (a.Status is "OPEN" or "UPCOMING")
+                {
+                    var endMs = Util.ParseIso(a.EndTime)?.ToUnixTimeMilliseconds()
+                                ?? (Util.ParseFlightDate(a.CloseDate) is { } cd ? new DateTimeOffset(cd).ToUnixTimeMilliseconds() : (long?)null);
+                    if (endMs.HasValue && endMs.Value <= nowMs) { hasDueAuction = true; break; }
                 }
             }
-            var alerts = await _db.Notifications
-                .Where(n => n.Type == "ALERT" && n.Title != null && n.Title.Contains("TÀI KHOẢN ĐÃ BỊ KHÓA")).ToListAsync();
-            if (alerts.Count > 0) _db.Notifications.RemoveRange(alerts);
+        }
+        else
+        {
+            hasDueAuction = true;
         }
 
-        await CleanupClosedChatsAsync();
-        if (_db.ChangeTracker.HasChanges()) await _db.SaveChangesAsync();
+        if (!hasDueAuction && nowMs - _lastMaintenanceMs < 10_000) return;
+        _lastMaintenanceMs = nowMs;
+
+        await Gate.WaitAsync();
+        try
+        {
+            var auctions = await _db.Auctions.ToListAsync();
+            var bids = await _db.Bids.ToListAsync();
+            var statusChanged = AuctionRules.ReconcileStatuses(auctions, bids);
+            var summaryChanged = AuctionRules.ReconcileSummaries(auctions, bids);
+            await SettleClosedAuctionsCoreAsync(auctions, bids, saveImmediately: false);
+
+            // Chính sách bảo trì: xóa các cảnh báo "TÀI KHOẢN ĐÃ BỊ KHÓA" của những đại lý đã được mở khóa.
+            if (_cfg.GetValue("App:AutoUnlockAgents", false))
+            {
+                foreach (var a in await _db.Agents.ToListAsync())
+                {
+                    if (a.Status is "LOCKED" or "Đã khóa" || a.IsLocked || !string.IsNullOrEmpty(a.LockedReason))
+                    {
+                        a.Status = "Đang hoạt động"; a.IsLocked = false; a.LockedReason = null; a.LockedAt = null;
+                    }
+                }
+                var alerts = await _db.Notifications
+                    .Where(n => n.Type == "ALERT" && n.Title != null && n.Title.Contains("TÀI KHOẢN ĐÃ BỊ KHÓA")).ToListAsync();
+                if (alerts.Count > 0) _db.Notifications.RemoveRange(alerts);
+            }
+
+            await CleanupClosedChatsAsync();
+            if (_db.ChangeTracker.HasChanges() || statusChanged || summaryChanged)
+            {
+                await BumpVersionAsync();
+                await _db.SaveChangesAsync();
+                InvalidateSnapshotCache();
+            }
+        }
+        finally
+        {
+            Gate.Release();
+        }
     }
 
     /// <summary>Xóa phiên chat đã CLOSED quá 7 ngày.</summary>
@@ -291,8 +329,19 @@ public class SharedDataService
         }
         else if (isAdmin)
         {
-            // Sealed-bid: trong phiên đang mở Admin không được xem giá/đại lý
-            var open = auctionList.Where(a => a.Status == "OPEN").Select(a => (long)a.Id).ToHashSet();
+            // Sealed-bid: trong phiên đang mở (chưa hết hạn đóng thầu) Admin không được xem giá/đại lý
+            var open = auctionList.Where(a =>
+            {
+                if (a.Status != "OPEN") return false;
+                var endMs = Util.ParseIso(a.EndTime)?.ToUnixTimeMilliseconds()
+                            ?? (Util.ParseFlightDate(a.CloseDate) is { } cd ? new DateTimeOffset(cd).ToUnixTimeMilliseconds() : (long?)null);
+                return !endMs.HasValue || endMs.Value > nowMs;
+            }).Select(a => (long)a.Id).ToHashSet();
+
+            var topBidsByAuction = bidList.Where(b => b.PriceKg > 0)
+                .GroupBy(b => b.AuctionId)
+                .ToDictionary(g => (long)g.Key, g => g.OrderByDescending(b => b.PriceKg).ThenBy(b => b.Timestamp).First());
+
             foreach (var b in bids)
             {
                 if (!open.Contains(EntityJson.Lng(b, "auctionId") ?? -1)) continue;
@@ -301,9 +350,29 @@ public class SharedDataService
             }
             foreach (var a in auctions)
             {
-                if (EntityJson.Str(a, "status") != "OPEN") continue;
-                a["leadingAgentCode"] = "AG-***"; a["leadingAgentName"] = "Bảo mật trong phiên";
-                a["currentPriceKg"] = a["startingPriceKg"]?.DeepClone();
+                var aid = EntityJson.Lng(a, "id") ?? -1;
+                if (open.Contains(aid))
+                {
+                    a["leadingAgentCode"] = "AG-***"; a["leadingAgentName"] = "Bảo mật trong phiên";
+                    a["currentPriceKg"] = a["startingPriceKg"]?.DeepClone();
+                }
+                else if (EntityJson.Str(a, "status") == "OPEN" || EntityJson.Str(a, "status") == "CLOSED")
+                {
+                    if (EntityJson.Str(a, "status") == "OPEN") a["status"] = "CLOSED";
+                    if (topBidsByAuction.TryGetValue(aid, out var topBid))
+                    {
+                        if ((EntityJson.Lng(a, "winningPriceKg") ?? 0) <= 0)
+                            a["winningPriceKg"] = topBid.PriceKg;
+                        if ((EntityJson.Lng(a, "currentPriceKg") ?? 0) < topBid.PriceKg)
+                            a["currentPriceKg"] = topBid.PriceKg;
+                        var wc = EntityJson.Str(a, "winnerAgentCode");
+                        if (string.IsNullOrEmpty(wc) || wc == "AG-***")
+                        {
+                            a["winnerAgentCode"] = topBid.AgentCode;
+                            a["winnerAgentName"] = topBid.AgentName;
+                        }
+                    }
+                }
             }
         }
         else
@@ -521,6 +590,7 @@ public class SharedDataService
                 var code = EntityJson.Str(n, "code")?.Trim();
                 if (string.IsNullOrEmpty(code)) continue;
                 var key = code.ToUpperInvariant();
+                if (Util.IsAnonCode(key) || PseudoAgentCodes.Contains(key)) continue;
                 if (!agents.TryGetValue(key, out var ag))
                 {
                     ag = new Agent { Code = code, Status = "Hoạt động", Password = "12345678", Pin = "1234" };
@@ -605,6 +675,10 @@ public class SharedDataService
                         }
                     }
                 }
+                if (string.IsNullOrWhiteSpace(r.AgentCode) || !agents.ContainsKey(r.AgentCode.Trim().ToUpperInvariant()))
+                    r.AgentCode = null;
+                else
+                    r.AgentCode = agents[r.AgentCode.Trim().ToUpperInvariant()].Code;
             }
 
             // 3) Phiên đấu giá
@@ -622,7 +696,11 @@ public class SharedDataService
                 }
                 var prevWinner = a.WinnerAgentCode;
                 var prevLeader = a.LeadingAgentCode;
+                var prevWinPrice = a.WinningPriceKg;
+                var prevCurrPrice = a.CurrentPriceKg;
                 EntityJson.Apply(a, n);
+                if (prevWinPrice > 0 && a.WinningPriceKg <= 0) a.WinningPriceKg = prevWinPrice;
+                if (prevCurrPrice > a.CurrentPriceKg) a.CurrentPriceKg = prevCurrPrice;
                 if (a.CurrentPriceKg == 0) a.CurrentPriceKg = a.StartingPriceKg;
 
                 if (!string.IsNullOrWhiteSpace(a.WinnerAgentCode) && a.WinnerAgentCode != "AG-***" && a.WinnerAgentCode != "Chưa có")
@@ -667,6 +745,7 @@ public class SharedDataService
 
                 var agentName = EntityJson.Str(n, "agentName");
                 await EnsureAgentAsync(code, agentName, agentName);
+                if (!existingAuctions.ContainsKey((int)auctionId.Value) || !agents.ContainsKey(code)) continue;
 
                 var nowMs = ts ?? Util.NowMs();
                 var bidId = rawId != "" ? rawId : $"BID-{nowMs}-{Random.Shared.Next(0, 1000)}";
@@ -714,8 +793,12 @@ public class SharedDataService
                     existingWons[wonId] = w;
                 }
                 var prevWonAgent = w.AgentCode;
+                var prevWonPrice = w.PriceKg;
+                var prevWonTotal = w.TotalAmountVND;
                 EntityJson.Apply(w, n);
                 w.WonId = wonId;
+                if (prevWonPrice > 0 && w.PriceKg <= 0) w.PriceKg = prevWonPrice;
+                if (prevWonTotal > 0 && w.TotalAmountVND <= 0) w.TotalAmountVND = prevWonTotal;
                 if (!string.IsNullOrWhiteSpace(w.AgentCode) && w.AgentCode != "AG-***")
                 {
                     await EnsureAgentAsync(w.AgentCode, EntityJson.GetExtraString(w, "agentName"), EntityJson.GetExtraString(w, "agentName"));
@@ -723,6 +806,10 @@ public class SharedDataService
                 if (string.IsNullOrWhiteSpace(w.AgentCode) || w.AgentCode == "AG-***" || !agents.ContainsKey(w.AgentCode.Trim().ToUpperInvariant()))
                 {
                     w.AgentCode = (!string.IsNullOrWhiteSpace(prevWonAgent) && agents.ContainsKey(prevWonAgent.Trim().ToUpperInvariant())) ? prevWonAgent : null;
+                }
+                if (w.AuctionId.HasValue && !existingAuctions.ContainsKey(w.AuctionId.Value))
+                {
+                    w.AuctionId = null;
                 }
             }
 
@@ -774,6 +861,19 @@ public class SharedDataService
                 }
                 EntityJson.Apply(nt, n);
                 nt.Id = id.Value;
+                if (!string.IsNullOrWhiteSpace(nt.TargetAgentCode))
+                {
+                    var tc = nt.TargetAgentCode.Trim().ToUpperInvariant();
+                    if (!tc.Contains(',') && !Util.IsAnonCode(tc) && !PseudoAgentCodes.Contains(tc))
+                    {
+                        await EnsureAgentAsync(tc, null, null);
+                    }
+                    nt.TargetAgentCode = agents.TryGetValue(tc, out var targetAg) ? targetAg.Code : null;
+                }
+                else
+                {
+                    nt.TargetAgentCode = null;
+                }
             }
 
             // 7) Nhật ký hoạt động phía client
@@ -884,7 +984,8 @@ public class SharedDataService
                 foreach (var n in chatArr) UpsertChatInMemory(n, existingChats, existingChatMsgs, agents);
             }
 
-            // 10) Đối soát sau khi gộp & lưu một lần duy nhất
+            // 10) Lưu các bản ghi mới trước khi chạy đối soát để tránh xung đột ChangeTracker & đảm bảo dữ liệu mới có trong truy vấn
+            await _db.SaveChangesAsync();
             await ReconcileAfterMergeAsync();
             var version = await BumpVersionAsync();
             await _db.SaveChangesAsync();
@@ -1002,8 +1103,20 @@ public class SharedDataService
     {
         var agents = await AgentsAsync();
         var changed = false;
-        var wonByAuctionId = (await _db.WonAuctions.Where(w => w.AuctionId.HasValue).ToListAsync())
-            .GroupBy(w => w.AuctionId!.Value).ToDictionary(g => g.Key, g => g.First());
+        var allWons = await _db.WonAuctions.ToListAsync();
+        foreach (var localWon in _db.WonAuctions.Local)
+        {
+            if (!allWons.Any(w => string.Equals(w.WonId, localWon.WonId, StringComparison.OrdinalIgnoreCase)))
+                allWons.Add(localWon);
+        }
+        var wonById = allWons
+            .Where(w => !string.IsNullOrEmpty(w.WonId))
+            .GroupBy(w => w.WonId, StringComparer.OrdinalIgnoreCase)
+            .ToDictionary(g => g.Key, g => g.First(), StringComparer.OrdinalIgnoreCase);
+        var wonByAuctionId = allWons
+            .Where(w => w.AuctionId.HasValue)
+            .GroupBy(w => w.AuctionId!.Value)
+            .ToDictionary(g => g.Key, g => g.First());
         var wonNotifs = await _db.Notifications.AsNoTracking().Where(n => n.Type == "WON").ToListAsync();
 
         foreach (var a in auctions.Where(a => a.Status == "CLOSED"))
@@ -1035,27 +1148,59 @@ public class SharedDataService
                 var now = DateTimeOffset.UtcNow.ToOffset(TimeSpan.FromHours(7));
                 var dateStr = now.ToString("yyyyMMdd");
                 var wonId = $"WON-{dateStr}-{a.Id:D2}";
-                existingWon = new WonAuction
+                if (wonById.TryGetValue(wonId, out var trackedById))
                 {
-                    WonId = wonId,
-                    AuctionId = a.Id,
-                    AgentCode = code,
-                    FlightNumber = a.FlightNumber ?? $"VU{a.Id}",
-                    Route = a.Route ?? $"{a.Origin} - {a.Destination}",
-                    CapacityKg = a.CapacityKg,
-                    PriceKg = top.PriceKg,
-                    TotalAmountVND = top.PriceKg * a.CapacityKg,
-                    PaymentDeadline = Util.ToIso(now.AddHours(24)),
-                    PaymentStatus = "UNPAID",
-                    AwbNumber = $"998-{Random.Shared.Next(10000000, 99999999)}",
-                    CutOffTime = a.CutOffTime ?? "Hôm nay 18:00",
-                    Warehouse = "Kho hàng SCSC / TCS Tân Sơn Nhất (Cửa số 4)"
-                };
-                EntityJson.SetExtra(existingWon, "agentName", top.AgentName ?? code);
-                EntityJson.SetExtra(existingWon, "etdIso", a.EtdIso ?? a.EndTime);
-                _db.WonAuctions.Add(existingWon);
-                wonByAuctionId[a.Id] = existingWon;
-                changed = true;
+                    existingWon = trackedById;
+                    existingWon.AuctionId ??= a.Id;
+                    wonByAuctionId[a.Id] = existingWon;
+                    changed = true;
+                }
+                else
+                {
+                    existingWon = new WonAuction
+                    {
+                        WonId = wonId,
+                        AuctionId = a.Id,
+                        AgentCode = code,
+                        FlightNumber = a.FlightNumber ?? $"VU{a.Id}",
+                        Route = a.Route ?? $"{a.Origin} - {a.Destination}",
+                        CapacityKg = a.CapacityKg,
+                        PriceKg = top.PriceKg,
+                        TotalAmountVND = top.PriceKg * a.CapacityKg,
+                        PaymentDeadline = Util.ToIso(now.AddHours(24)),
+                        PaymentStatus = "UNPAID",
+                        AwbNumber = $"998-{Random.Shared.Next(10000000, 99999999)}",
+                        CutOffTime = a.CutOffTime ?? "Hôm nay 18:00",
+                        Warehouse = "Kho hàng SCSC / TCS Tân Sơn Nhất (Cửa số 4)"
+                    };
+                    EntityJson.SetExtra(existingWon, "agentName", top.AgentName ?? code);
+                    EntityJson.SetExtra(existingWon, "etdIso", a.EtdIso ?? a.EndTime);
+                    _db.WonAuctions.Add(existingWon);
+                    wonById[wonId] = existingWon;
+                    wonByAuctionId[a.Id] = existingWon;
+                    changed = true;
+                }
+            }
+
+            if (existingWon != null)
+            {
+                if (existingWon.PriceKg <= 0 && top.PriceKg > 0)
+                {
+                    existingWon.PriceKg = top.PriceKg;
+                    existingWon.TotalAmountVND = top.PriceKg * a.CapacityKg;
+                    changed = true;
+                }
+                if (existingWon.TotalAmountVND <= 0 && existingWon.PriceKg > 0 && a.CapacityKg > 0)
+                {
+                    existingWon.TotalAmountVND = existingWon.PriceKg * a.CapacityKg;
+                    changed = true;
+                }
+                if (string.IsNullOrEmpty(existingWon.AgentCode) || existingWon.AgentCode == "AG-***")
+                {
+                    existingWon.AgentCode = code;
+                    EntityJson.SetExtra(existingWon, "agentName", top.AgentName ?? code);
+                    changed = true;
+                }
             }
 
             // Đảm bảo có thông báo trúng thầu cho đại lý

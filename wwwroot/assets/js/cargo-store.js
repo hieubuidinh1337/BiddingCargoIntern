@@ -29,13 +29,14 @@
         }
     } catch (e) { }
 
+    const CACHE_VER = '?v=20261029_3';
     if (typeof document !== 'undefined' && document.readyState === 'loading') {
-        const tags = MODULES.map(m => `<script src="${basePath}${m}"><\/script>`).join('\n');
+        const tags = MODULES.map(m => `<script src="${basePath}${m}${CACHE_VER}"><\/script>`).join('\n');
         document.write(tags);
     } else if (typeof document !== 'undefined' && document.head) {
         MODULES.forEach(m => {
             const s = document.createElement('script');
-            s.src = basePath + m;
+            s.src = basePath + m + CACHE_VER;
             s.async = false;
             document.head.appendChild(s);
         });

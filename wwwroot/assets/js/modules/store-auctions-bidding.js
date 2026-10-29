@@ -335,14 +335,26 @@
                 }
             });
 
-            const pushPromise = saveData(data, false, true);
-
             this.logActivity({
                 actionCategory: 'Phiên đấu giá',
                 actionTitle: 'Tạo mới phiên đấu giá',
                 target: flightNumber,
                 details: `Khởi tạo phiên đấu giá ${flightCode} (${origin} - ${dest}), ${isUpcoming ? `mở lúc ${formattedOpen}, ` : ''}đóng thầu lúc ${formattedClose}. Tải trọng: ${this.formatNumber(capacityKg)} Kg, Giá sàn: ${this.formatCurrency(startingPriceKg)}/Kg.`
             });
+
+            const bulkPromise = Promise.resolve(saveData(data, false, true)).catch(() => null);
+            const directCreatePromise = (typeof window !== 'undefined' && typeof fetch !== 'undefined' && window.location && window.location.protocol && window.location.protocol.startsWith('http'))
+                ? fetch('/api/admin/auctions/create', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(newAuction)
+                }).then(r => r.json()).catch(() => null)
+                : Promise.resolve(null);
+
+            const pushPromise = Promise.race([
+                Promise.all([directCreatePromise, bulkPromise]),
+                new Promise(resolve => setTimeout(resolve, 4000))
+            ]);
 
             return {
                 success: true,

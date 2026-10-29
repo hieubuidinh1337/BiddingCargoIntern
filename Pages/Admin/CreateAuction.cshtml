@@ -1285,8 +1285,12 @@
                 sel.value = defaultVal;
             };
 
-            populate('openHour', hours, '08');
-            populate('openMinute', minutes, '00');
+            const now = new Date();
+            const curH = String(now.getHours()).padStart(2, '0');
+            const curM = String(now.getMinutes()).padStart(2, '0');
+
+            populate('openHour', hours, curH);
+            populate('openMinute', minutes, curM);
             populate('closeHour', hours, '23');
             populate('closeMinute', minutes, '59');
             populate('etdHour', hours, '08');
@@ -1768,49 +1772,76 @@
                 submitBtn.innerHTML = '<i class="fa-solid fa-spinner fa-spin mr-1.5"></i> Đang lưu...';
             }
 
-            const res = (window.CargoStore && CargoStore.createAuction)
-                ? CargoStore.createAuction({
-                    flightNumber: fn,
-                    origin: origin,
-                    destination: dest,
-                    flightStartDate: flightStartDateVal,
-                    flightEndDate: flightEndDateVal,
-                    flightPeriod: flightPeriodVal,
-                    openDate: openIso,
-                    closeDate: closeIso,
-                    isUpcoming: openDt.getTime() > (Date.now() + 30000),
-                    etd: etdIso,
-                    eta: etaIso,
-                    aircraft: document.getElementById('aircraftType').value,
-                    capacityKg: capacityKgVal,
-                    startingPriceKg: startingPriceVal,
-                    priceUnit: priceUnitVal,
-                    minStep: 0,
-                    specialNotes: document.getElementById('specialNotes').value,
-                    cutOffTime: 'Theo ngày đóng phiên',
-                    allowedAgents: allowedAgentsVal
-                })
-                : { success: false, message: 'Hệ thống lưu trữ chưa sẵn sàng.' };
+            try {
+                const res = (window.CargoStore && CargoStore.createAuction)
+                    ? CargoStore.createAuction({
+                        flightNumber: fn,
+                        origin: origin,
+                        destination: dest,
+                        flightStartDate: flightStartDateVal,
+                        flightEndDate: flightEndDateVal,
+                        flightPeriod: flightPeriodVal,
+                        openDate: openIso,
+                        closeDate: closeIso,
+                        isUpcoming: openDt.getTime() > (Date.now() + 30000),
+                        etd: etdIso,
+                        eta: etaIso,
+                        aircraft: document.getElementById('aircraftType').value,
+                        capacityKg: capacityKgVal,
+                        startingPriceKg: startingPriceVal,
+                        priceUnit: priceUnitVal,
+                        minStep: 0,
+                        specialNotes: document.getElementById('specialNotes').value,
+                        cutOffTime: 'Theo ngày đóng phiên',
+                        allowedAgents: allowedAgentsVal
+                    })
+                    : { success: false, message: 'Hệ thống lưu trữ chưa sẵn sàng.' };
 
-            if (res.success) {
-                // Ensure immediate push to SQL Server database before redirect
-                try {
-                    if (res.pushPromise) {
-                        await res.pushPromise;
-                    } else if (window.CargoStore && CargoStore.saveDataImmediate) {
-                        await CargoStore.saveDataImmediate();
+                if (res.success) {
+                    // Ensure immediate push to SQL Server database before redirect (with safe timeout)
+                    try {
+                        const syncTask = res.pushPromise
+                            ? res.pushPromise
+                            : ((window.CargoStore && CargoStore.saveDataImmediate) ? CargoStore.saveDataImmediate() : Promise.resolve());
+                        await Promise.race([
+                            syncTask,
+                            new Promise(resolve => setTimeout(resolve, 3500))
+                        ]);
+                    } catch (err) {
+                        console.warn('Sync before redirect warning:', err);
                     }
-                } catch (err) {
-                    console.warn('Sync before redirect warning:', err);
+                    if (submitBtn) {
+                        submitBtn.disabled = false;
+                        submitBtn.innerHTML = '<i class="fa-solid fa-circle-check mr-1.5"></i> Đã lưu thành công';
+                    }
+                    if (window.showAlert) {
+                        await window.showAlert(res.message, 'success');
+                    } else {
+                        await alert(res.message);
+                    }
+                    window.location.href = '/admin/auctions';
+                } else {
+                    if (submitBtn) {
+                        submitBtn.disabled = false;
+                        submitBtn.innerHTML = '<i class="fa-solid fa-floppy-disk"></i> Lưu';
+                    }
+                    if (window.showAlert) {
+                        await window.showAlert('❌ ' + (res.message || 'Tạo phiên đấu giá thất bại!'), 'error');
+                    } else {
+                        await alert('❌ ' + (res.message || 'Tạo phiên đấu giá thất bại!'));
+                    }
                 }
-                alert(res.message);
-                window.location.href = '03-AuctionList.html';
-            } else {
+            } catch (unexpectedErr) {
+                console.error('Create auction unexpected error:', unexpectedErr);
                 if (submitBtn) {
                     submitBtn.disabled = false;
                     submitBtn.innerHTML = '<i class="fa-solid fa-floppy-disk"></i> Lưu';
                 }
-                alert('❌ ' + (res.message || 'Tạo phiên đấu giá thất bại!'));
+                if (window.showAlert) {
+                    await window.showAlert('❌ Đã xảy ra lỗi khi lưu phiên đấu giá: ' + (unexpectedErr.message || unexpectedErr), 'error');
+                } else {
+                    alert('❌ Đã xảy ra lỗi khi lưu phiên đấu giá!');
+                }
             }
         });
     </script>

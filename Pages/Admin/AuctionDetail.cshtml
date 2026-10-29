@@ -1574,7 +1574,7 @@
                 } else if (!hasActualBids) {
                     detPriceEl.innerHTML = '<span class="text-slate-400 font-normal italic text-lg">---</span>';
                 } else {
-                    const finalWinPrice = auction.winningPriceKg || highestBidPrice;
+                    const finalWinPrice = Number(auction.winningPriceKg) || highestBidPrice || Number(auction.currentPriceKg) || Number(auction.startingPriceKg) || 0;
                     detPriceEl.textContent = CargoStore.formatCurrency(finalWinPrice) + '/Kg';
                 }
             }
@@ -1897,7 +1897,9 @@
                     ? '<span class="text-slate-500 italic flex items-center gap-1.5"><i class="fa-solid fa-user-shield text-slate-400 text-[10px]"></i>Đại lý tham gia (Bảo mật)</span>'
                     : `<span class="font-bold text-slate-800">${b.agentName}</span>`;
 
-                const isHighest = Number(b.priceKg) === highestPrice && highestPrice > 0;
+                const effBidPrice = Number(b.priceKg) || (!isOpen ? (Number(auction.winningPriceKg) || Number(auction.currentPriceKg) || Number(auction.startingPriceKg) || 0) : 0);
+                const effBidWeight = Number(b.weightKg) || Number(auction.capacityKg) || 0;
+                const isHighest = (effBidPrice === highestPrice && highestPrice > 0) || (paginatedBids.length === 1 && !isOpen);
                 let statusBadge = '';
                 if (!isOpen || b.status === 'WON') {
                     statusBadge = (isHighest || b.status === 'WON') ?
@@ -1912,8 +1914,8 @@
                 <tr class="${isNewestItem ? 'bg-blue-50/70 font-medium border-l-4 border-l-blue-600' : 'hover:bg-slate-50'} transition">
                     <td class="py-3 px-4">${displayCode}</td>
                     <td class="py-3 px-4">${displayName}</td>
-                    <td class="py-3 px-4 font-bold text-slate-900">${CargoStore.formatCurrency(b.priceKg)}</td>
-                    <td class="py-3 px-4 text-slate-700">${CargoStore.formatCurrency(b.priceKg * b.weightKg)}</td>
+                    <td class="py-3 px-4 font-bold text-slate-900">${CargoStore.formatCurrency(effBidPrice)}</td>
+                    <td class="py-3 px-4 text-slate-700">${CargoStore.formatCurrency(effBidPrice * effBidWeight)}</td>
                     <td class="py-3 px-4 text-gray-500 text-[11px] font-medium">${CargoStore.formatTimeAgo(b.timestamp, b.time)}</td>
                     <td class="py-3 px-4">
                         ${statusBadge}
@@ -2067,6 +2069,7 @@
                         cardLabelEl.className = 'text-[11px] font-semibold text-amber-700';
                     }
                     loadAdminDetail();
+                    syncAdminDetailFromServer();
                     return;
                 }
                 if (badgeEl) {

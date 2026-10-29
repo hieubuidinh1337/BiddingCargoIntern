@@ -27,34 +27,86 @@ public class AuctionManagementService
         if (string.IsNullOrEmpty(fn))
             throw new ApiException("Vui lòng nhập số hiệu chuyến bay.");
 
-        var maxId = await _db.Auctions.MaxAsync(a => (int?)a.Id) ?? 0;
-        var nextId = maxId + 1;
-
-        var auction = new Auction
+        await SharedDataService.Gate.WaitAsync();
+        try
         {
-            Id = nextId,
-            FlightNumber = fn,
-            Origin = origin,
-            Destination = dest,
-            Route = EntityJson.Str(body, "route") ?? $"{origin} - {dest}",
-            Status = EntityJson.Str(body, "status") ?? "OPEN"
-        };
+            var clientId = (int?)EntityJson.Lng(body, "id");
+            var flightCode = (EntityJson.Str(body, "flightCode") ?? "").Trim();
 
-        EntityJson.Apply(auction, body);
-        auction.Id = nextId;
-        if (auction.CurrentPriceKg <= 0) auction.CurrentPriceKg = auction.StartingPriceKg;
+            Auction? existing = null;
+            if (clientId.HasValue && clientId.Value > 0)
+            {
+                existing = await _db.Auctions.FindAsync(clientId.Value);
+            }
+            if (existing == null && !string.IsNullOrEmpty(flightCode))
+            {
+                existing = await _db.Auctions.FirstOrDefaultAsync(a => a.FlightCode == flightCode);
+            }
 
-        _db.Auctions.Add(auction);
-        _db.ActivityLogs.Add(LogService.Make(
-            EntityJson.Str(body, "createdBy") ?? "Admin", "admin", "ADMIN",
-            "Phiên đấu giá", "Tạo phiên đấu giá mới", fn,
-            $"Tạo mới phiên đấu giá chuyến bay {fn} ({auction.Route}), tải trọng {auction.CapacityKg} kg, giá khởi điểm {Util.FmtVi(auction.StartingPriceKg)}đ/kg.",
-            ip, "Admin Portal"));
+            int targetId;
+            Auction auction;
+            if (existing != null)
+            {
+                auction = existing;
+                targetId = existing.Id;
+            }
+            else
+            {
+                var maxId = await _db.Auctions.MaxAsync(a => (int?)a.Id) ?? 0;
+                targetId = (clientId.HasValue && clientId.Value > maxId) ? clientId.Value : (maxId + 1);
+                auction = new Auction
+                {
+                    Id = targetId,
+                    FlightNumber = fn,
+                    Origin = origin,
+                    Destination = dest,
+                    Route = EntityJson.Str(body, "route") ?? $"{origin} - {dest}",
+                    Status = EntityJson.Str(body, "status") ?? "OPEN"
+                };
+                _db.Auctions.Add(auction);
+            }
 
-        await _shared.BumpVersionAsync();
-        await _db.SaveChangesAsync();
-        SharedDataService.InvalidateSnapshotCache();
-        return auction;
+            EntityJson.Apply(auction, body);
+            auction.Id = targetId;
+            if (auction.CurrentPriceKg <= 0) auction.CurrentPriceKg = auction.StartingPriceKg;
+
+            var validAgents = (await _db.Agents.AsNoTracking().Select(a => a.Code).ToListAsync())
+                .ToHashSet(StringComparer.OrdinalIgnoreCase);
+
+            if (string.IsNullOrWhiteSpace(auction.LeadingAgentCode) ||
+                auction.LeadingAgentCode == "Chưa có" ||
+                auction.LeadingAgentCode == "AG-***" ||
+                !validAgents.Contains(auction.LeadingAgentCode.Trim()))
+            {
+                auction.LeadingAgentCode = null;
+            }
+
+            if (string.IsNullOrWhiteSpace(auction.WinnerAgentCode) ||
+                auction.WinnerAgentCode == "Chưa có" ||
+                auction.WinnerAgentCode == "AG-***" ||
+                !validAgents.Contains(auction.WinnerAgentCode.Trim()))
+            {
+                auction.WinnerAgentCode = null;
+            }
+
+            if (existing == null)
+            {
+                _db.ActivityLogs.Add(LogService.Make(
+                    EntityJson.Str(body, "createdBy") ?? "Admin", "admin", "ADMIN",
+                    "Phiên đấu giá", "Tạo mới phiên đấu giá", fn,
+                    $"Tạo mới phiên đấu giá chuyến bay {fn} ({auction.Route}), tải trọng {auction.CapacityKg} kg, giá khởi điểm {Util.FmtVi(auction.StartingPriceKg)}đ/kg.",
+                    ip, "Admin Portal"));
+            }
+
+            await _shared.BumpVersionAsync();
+            await _db.SaveChangesAsync();
+            SharedDataService.InvalidateSnapshotCache();
+            return auction;
+        }
+        finally
+        {
+            SharedDataService.Gate.Release();
+        }
     }
 
     public async Task<Auction> UpdateAuctionAsync(int id, JsonObject body, string? ip)

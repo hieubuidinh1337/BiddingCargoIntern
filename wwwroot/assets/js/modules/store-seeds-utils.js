@@ -330,13 +330,28 @@ if (typeof globalThis !== 'undefined') globalThis.CargoStore = CargoStore;
         const allBids = Array.isArray(data.bids) ? data.bids : [];
 
         data.auctions.forEach(a => {
+            const rawMatchingBids = allBids.filter(b => b && (
+                String(b.auctionId) === String(a.id) ||
+                (a.flightCode && b.flightCode && String(b.flightCode).toUpperCase() === String(a.flightCode).toUpperCase())
+            ));
+
+            if (a.status === 'CLOSED' && rawMatchingBids.length > 0) {
+                const fallbackPrice = Number(a.winningPriceKg) || Number(a.currentPriceKg) || Number(a.startingPriceKg) || 0;
+                rawMatchingBids.forEach(b => {
+                    if (!(Number(b.priceKg) > 0) && fallbackPrice > 0) {
+                        b.priceKg = fallbackPrice;
+                        changed = true;
+                    }
+                    if (!(Number(b.weightKg) > 0) && Number(a.capacityKg) > 0) {
+                        b.weightKg = Number(a.capacityKg);
+                        changed = true;
+                    }
+                });
+            }
+
             // Filter bids directly from allBids — do NOT use this.getBidsForAuction()
             // because this function is a standalone (not a CargoStore method), so "this" is undefined/window.
-            const auctionBids = allBids
-                .filter(b => b && (
-                    String(b.auctionId) === String(a.id) ||
-                    (a.flightCode && b.flightCode && String(b.flightCode).toUpperCase() === String(a.flightCode).toUpperCase())
-                ))
+            const auctionBids = rawMatchingBids
                 .filter(b => b && Number.isFinite(Number(b.priceKg)) && Number(b.priceKg) > 0)
                 .sort((x, y) => (Number(y.priceKg) || 0) - (Number(x.priceKg) || 0));
 
@@ -362,12 +377,25 @@ if (typeof globalThis !== 'undefined') globalThis.CargoStore = CargoStore;
                     }
                 }
 
-                const bidCount = auctionBids.length;
+                if (a.status === 'CLOSED') {
+                    if (!(Number(a.winningPriceKg) > 0) && Number.isFinite(highestPrice) && highestPrice > 0) {
+                        a.winningPriceKg = highestPrice;
+                        a.winnerTotalAmountVND = highestPrice * (Number(a.capacityKg) || 0);
+                        changed = true;
+                    }
+                    if ((!a.winnerAgentCode || a.winnerAgentCode === 'AG-***') && normalizedLeaderCode && normalizedLeaderCode !== 'AG-***') {
+                        a.winnerAgentCode = normalizedLeaderCode;
+                        a.winnerAgentName = normalizedLeaderName;
+                        changed = true;
+                    }
+                }
+
+                const bidCount = rawMatchingBids.length;
                 if ((a.bidsCount || 0) !== bidCount) {
                     a.bidsCount = bidCount;
                     changed = true;
                 }
-            } else {
+            } else if (rawMatchingBids.length === 0) {
                 if (a.leadingAgentCode || a.leadingAgentName || (a.bidsCount || 0) !== 0 || (a.startingPriceKg && a.currentPriceKg !== a.startingPriceKg)) {
                     a.leadingAgentCode = null;
                     a.leadingAgentName = null;
@@ -587,7 +615,7 @@ if (typeof globalThis !== 'undefined') globalThis.CargoStore = CargoStore;
 
             // Xử lý chốt kết quả và người trúng thầu đối với phiên đã CLOSED
             if (auction.status === 'CLOSED') {
-                const bids = (data.bids || []).filter(b => b.auctionId == auction.id).sort((a, b) => b.priceKg - a.priceKg);
+                const bids = (data.bids || []).filter(b => b.auctionId == auction.id).sort((a, b) => (Number(b.priceKg) || 0) - (Number(a.priceKg) || 0));
                 const highestBid = bids.length > 0 ? bids[0] : null;
 
                 if (!highestBid) {
@@ -603,10 +631,23 @@ if (typeof globalThis !== 'undefined') globalThis.CargoStore = CargoStore;
                     }
                     auction.isFinalLocked = true;
                 } else {
-                    auction.winnerAgentCode = highestBid.agentCode;
-                    auction.winnerAgentName = highestBid.agentName;
-                    auction.winningPriceKg = highestBid.priceKg;
-                    auction.winnerTotalAmountVND = highestBid.priceKg * auction.capacityKg;
+                    const resolvedPriceKg = Number(highestBid.priceKg) || Number(auction.winningPriceKg) || Number(auction.currentPriceKg) || Number(auction.startingPriceKg) || 0;
+                    if (!(Number(highestBid.priceKg) > 0) && resolvedPriceKg > 0) {
+                        highestBid.priceKg = resolvedPriceKg;
+                        modified = true;
+                    }
+                    if (!(Number(highestBid.weightKg) > 0) && Number(auction.capacityKg) > 0) {
+                        highestBid.weightKg = Number(auction.capacityKg);
+                        modified = true;
+                    }
+                    if (highestBid.agentCode && highestBid.agentCode !== 'AG-***') {
+                        auction.winnerAgentCode = highestBid.agentCode;
+                        auction.winnerAgentName = highestBid.agentName;
+                    }
+                    if (resolvedPriceKg > 0) {
+                        auction.winningPriceKg = resolvedPriceKg;
+                        auction.winnerTotalAmountVND = resolvedPriceKg * (Number(auction.capacityKg) || 0);
+                    }
 
                     // Tự động chốt kết quả khi hết thời gian điều chỉnh
                     const sysSettings = data.settings || {};
@@ -626,7 +667,7 @@ if (typeof globalThis !== 'undefined') globalThis.CargoStore = CargoStore;
                     }
 
                     // Chỉ sinh đơn wonAuctions và set status WON khi phiên đã chốt thầu chính thức
-                    if (auction.isFinalLocked) {
+                    if (auction.isFinalLocked && resolvedPriceKg > 0 && highestBid.agentCode && highestBid.agentCode !== 'AG-***') {
                         highestBid.status = 'WON';
                         if (!data.wonAuctions) data.wonAuctions = [];
                         let existingWon = data.wonAuctions.find(w => w.auctionId == auction.id);
@@ -643,8 +684,8 @@ if (typeof globalThis !== 'undefined') globalThis.CargoStore = CargoStore;
                             flightNumber: auction.flightNumber,
                             route: auction.route,
                             capacityKg: auction.capacityKg,
-                            priceKg: highestBid.priceKg,
-                            totalAmountVND: highestBid.priceKg * auction.capacityKg,
+                            priceKg: resolvedPriceKg,
+                            totalAmountVND: resolvedPriceKg * (Number(auction.capacityKg) || 0),
                             paymentDeadline: payDeadline,
                             paymentStatus: 'UNPAID',
                             paidAt: null,
@@ -671,7 +712,7 @@ if (typeof globalThis !== 'undefined') globalThis.CargoStore = CargoStore;
                                 timestamp: wonNotifId,
                                 targetAgentCode: highestBid.agentCode,
                                 title: `🏆 CHÚC MỪNG! Bạn đã thắng thầu chuyến bay ${auction.flightNumber}`,
-                                message: `Đại lý ${highestBid.agentName} (${highestBid.agentCode}) đã trúng thầu chuyến bay ${auction.flightNumber} (${auction.route}) với giá ${formatCurrency(highestBid.priceKg)}/Kg. Phiên đấu giá đã hoàn tất thành công và ghi nhận bạn là người trúng thầu.`,
+                                message: `Đại lý ${highestBid.agentName} (${highestBid.agentCode}) đã trúng thầu chuyến bay ${auction.flightNumber} (${auction.route}) với giá ${formatCurrency(resolvedPriceKg)}/Kg. Phiên đấu giá đã hoàn tất thành công và ghi nhận bạn là người trúng thầu.`,
                                 time: formatTimeAgo(wonNotifId),
                                 type: 'WON',
                                 read: false,
@@ -679,6 +720,10 @@ if (typeof globalThis !== 'undefined') globalThis.CargoStore = CargoStore;
                             });
                             modified = true;
                         }
+                    } else if (!(Number(existingWon.priceKg) > 0) && resolvedPriceKg > 0) {
+                        existingWon.priceKg = resolvedPriceKg;
+                        existingWon.totalAmountVND = resolvedPriceKg * (Number(auction.capacityKg) || 0);
+                        modified = true;
                     }
                 }
                 }

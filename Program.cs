@@ -154,8 +154,15 @@ app.UseStaticFiles(new StaticFileOptions
 {
     OnPrepareResponse = ctx =>
     {
-        // Cho phép trình duyệt cache tài nguyên tĩnh (JS/CSS/ảnh) kèm ETag/Last-Modified để chuyển trang mượt mà
-        ctx.Context.Response.Headers.CacheControl = "public, max-age=3600";
+        var name = ctx.File.Name.ToLowerInvariant();
+        if (name.EndsWith(".js") || name.EndsWith(".css"))
+        {
+            ctx.Context.Response.Headers.CacheControl = "no-cache";
+        }
+        else
+        {
+            ctx.Context.Response.Headers.CacheControl = "public, max-age=3600";
+        }
     }
 });
 

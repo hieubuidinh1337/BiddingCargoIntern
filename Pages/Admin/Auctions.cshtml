@@ -1275,6 +1275,9 @@
                     if (timer && timer.isEnded) {
                         needFullRefresh = true;
                     }
+                    if (el.innerHTML.includes('Mở sau:') || el.innerHTML.includes('Đang kích hoạt mở')) {
+                        needFullRefresh = true;
+                    }
                 }
 
                 const newBadge = getAuctionTimerBadgeHtml(a);

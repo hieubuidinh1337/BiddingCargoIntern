@@ -666,8 +666,8 @@
                 } catch (e) { }
             }
 
-            const bodyPayload = JSON.stringify({
-                dataEpoch: currentEpoch,
+            const buildPayload = (epochVal) => JSON.stringify({
+                dataEpoch: epochVal,
                 auctions: data.auctions,
                 bids: data.bids,
                 wonAuctions: data.wonAuctions,
@@ -685,11 +685,30 @@
                 chats: data.chats || []
             }, (k, v) => (k === 'dataUrl' && typeof v === 'string' && v.length > 2000) ? null : v);
 
-            const res = await fetch(apiUrl, {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: bodyPayload
-            });
+            const sendPush = async (epochVal) => {
+                const controller = typeof AbortController !== 'undefined' ? new AbortController() : null;
+                const timer = controller ? setTimeout(() => controller.abort(), 8000) : null;
+                try {
+                    return await fetch(apiUrl, {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: buildPayload(epochVal),
+                        signal: controller ? controller.signal : undefined
+                    });
+                } finally {
+                    if (timer) clearTimeout(timer);
+                }
+            };
+
+            let res = await sendPush(currentEpoch);
+            if (res.status === 409) {
+                const conflictJson = await res.json().catch(() => null);
+                if (conflictJson && conflictJson.dataEpoch) {
+                    currentEpoch = conflictJson.dataEpoch;
+                    try { localStorage.setItem(EPOCH_KEY, currentEpoch); } catch (e) { }
+                    res = await sendPush(currentEpoch);
+                }
+            }
             if (res.ok) {
                 const resJson = await res.json();
                 if (resJson && resJson.stale) {
@@ -823,11 +842,27 @@
                 const la = localAuctions.find(x => String(x.id) === String(sa.id));
                 return la && la.status !== sa.status;
             });
+            const hasUnmaskedBidOnServer = serverBids.some(sb => {
+                if (!sb || !sb.id) return false;
+                const lb = localBids.find(x => String(x.id) === String(sb.id));
+                if (!lb) return true;
+                return (Number(sb.priceKg) > 0 && !(Number(lb.priceKg) > 0)) ||
+                       (sb.agentCode && sb.agentCode !== 'AG-***' && (!lb.agentCode || lb.agentCode === 'AG-***'));
+            });
+            const hasWinnerUpdateOnServer = serverAuctions.some(sa => {
+                if (!sa || !sa.id) return false;
+                const la = localAuctions.find(x => String(x.id) === String(sa.id));
+                if (!la) return true;
+                return (Number(sa.winningPriceKg) > 0 && Number(la.winningPriceKg) !== Number(sa.winningPriceKg)) ||
+                       (sa.winnerAgentCode && sa.winnerAgentCode !== 'AG-***' && la.winnerAgentCode !== sa.winnerAgentCode);
+            });
 
             const shouldSync = force || !lastServerVersion ||
                 (serverData && serverData.version && serverData.version !== lastServerVersion) ||
                 hasNewAuctionOnServer ||
                 hasStatusMismatch ||
+                hasUnmaskedBidOnServer ||
+                hasWinnerUpdateOnServer ||
                 serverNotifs.length !== localNotifs.length ||
                 serverAuctions.length !== localAuctions.length ||
                 serverWons.length !== localWons.length ||
@@ -840,6 +875,7 @@
                 const oldStr = JSON.stringify(local);
 
                 // Merge shared collections from server by ID to preserve local created/updated items
+                let hasUnsyncedLocalAuction = false;
                 if (serverData.auctions && Array.isArray(serverData.auctions)) {
                     const validServerAuctions = serverData.auctions.filter(a => a && a.origin && a.destination && a.flightNumber && a.flightNumber !== 'VU-HIST' && (a.capacityKg || 0) > 0);
                     const auctionMap = new Map();
@@ -850,6 +886,7 @@
                         const serverItem = auctionMap.get(aKey);
                         if (!serverItem) {
                             auctionMap.set(aKey, a);
+                            hasUnsyncedLocalAuction = true;
                         } else {
                             // Final states (CANCELLED, DELETED) must NEVER be overwritten by server's older status
                             const FINAL_STATES = ['CANCELLED', 'DELETED'];
@@ -866,15 +903,24 @@
                                 });
                             } else if (a.status === 'CLOSED' || serverItem.status === 'CLOSED') {
                                 // If either server or local is CLOSED, stay CLOSED! Never revert to OPEN or UPCOMING
+                                const validWinnerCode = (serverItem.winnerAgentCode && serverItem.winnerAgentCode !== 'AG-***')
+                                    ? serverItem.winnerAgentCode
+                                    : ((a.winnerAgentCode && a.winnerAgentCode !== 'AG-***') ? a.winnerAgentCode : (serverItem.winnerAgentCode || a.winnerAgentCode));
+                                const validWinnerName = (serverItem.winnerAgentName && !String(serverItem.winnerAgentName).includes('Bảo mật') && !String(serverItem.winnerAgentName).includes('ẩn danh'))
+                                    ? serverItem.winnerAgentName
+                                    : ((a.winnerAgentName && !String(a.winnerAgentName).includes('Bảo mật') && !String(a.winnerAgentName).includes('ẩn danh')) ? a.winnerAgentName : (serverItem.winnerAgentName || a.winnerAgentName));
+                                const validWinningPrice = Math.max(Number(serverItem.winningPriceKg) || 0, Number(a.winningPriceKg) || 0);
+                                const validCurrentPrice = Math.max(Number(serverItem.currentPriceKg) || 0, Number(a.currentPriceKg) || 0, validWinningPrice);
                                 auctionMap.set(aKey, {
-                                    ...serverItem,
                                     ...a,
+                                    ...serverItem,
                                     status: 'CLOSED',
                                     isFinalLocked: a.isFinalLocked || serverItem.isFinalLocked || false,
-                                    closedAt: a.closedAt || serverItem.closedAt,
-                                    winnerAgentCode: a.winnerAgentCode || serverItem.winnerAgentCode,
-                                    winnerAgentName: a.winnerAgentName || serverItem.winnerAgentName,
-                                    winningPriceKg: a.winningPriceKg || serverItem.winningPriceKg
+                                    closedAt: serverItem.closedAt || a.closedAt,
+                                    winnerAgentCode: validWinnerCode,
+                                    winnerAgentName: validWinnerName,
+                                    winningPriceKg: validWinningPrice,
+                                    currentPriceKg: validCurrentPrice
                                 });
                             } else {
                                 auctionMap.set(aKey, {
@@ -900,9 +946,14 @@
                             wonMap.set(wKey, w);
                         } else {
                             // Merge: preserve local updates if server has default UNPAID or lacks fields
+                            const validPriceKg = Math.max(Number(serverItem.priceKg) || 0, Number(w.priceKg) || 0);
+                            const validCapKg = Math.max(Number(serverItem.capacityKg) || 0, Number(w.capacityKg) || 0);
+                            const validTotal = Math.max(Number(serverItem.totalAmountVND) || 0, Number(w.totalAmountVND) || 0, validPriceKg * validCapKg);
                             wonMap.set(wKey, {
                                 ...w,
                                 ...serverItem,
+                                priceKg: validPriceKg,
+                                totalAmountVND: validTotal,
                                 paymentStatus: (serverItem.paymentStatus && serverItem.paymentStatus !== 'UNPAID') ? serverItem.paymentStatus : (w.paymentStatus || serverItem.paymentStatus),
                                 paymentProof: serverItem.paymentProof || w.paymentProof,
                                 cargoDeclaration: serverItem.cargoDeclaration || w.cargoDeclaration
@@ -919,22 +970,29 @@
                         if (b && b.id) localBidMap.set(String(b.id), b);
                     });
 
-                    // Reconcile server bids: never allow masked 'AG-***' to overwrite this agent's own placed bids
+                    // Reconcile server bids: never allow masked 'AG-***' or null priceKg to overwrite valid local bids
                     const reconciledServerBids = serverData.bids.map(sb => {
                         if (!sb || !sb.id) return sb;
                         const lb = localBidMap.get(String(sb.id));
-                        if (lb && lb.agentCode && lb.agentCode !== 'AG-***') {
-                            const lbCode = String(lb.agentCode).trim().toUpperCase();
-                            if (myCode && (lbCode === myCode || sb.agentCode === 'AG-***')) {
-                                return {
-                                    ...sb,
-                                    agentCode: lb.agentCode,
-                                    agentName: lb.agentName || sb.agentName,
-                                    isAnonymous: (sb.isAnonymous !== undefined) ? sb.isAnonymous : lb.isAnonymous
-                                };
-                            }
-                        }
-                        return sb;
+                        if (!lb) return sb;
+
+                        const resolvedPriceKg = (Number(sb.priceKg) > 0) ? Number(sb.priceKg) : ((Number(lb.priceKg) > 0) ? Number(lb.priceKg) : 0);
+                        const resolvedWeightKg = (Number(sb.weightKg) > 0) ? Number(sb.weightKg) : ((Number(lb.weightKg) > 0) ? Number(lb.weightKg) : 0);
+                        const sbCodeValid = sb.agentCode && sb.agentCode !== 'AG-***';
+                        const lbCodeValid = lb.agentCode && lb.agentCode !== 'AG-***';
+                        const resolvedAgentCode = sbCodeValid ? sb.agentCode : (lbCodeValid ? lb.agentCode : sb.agentCode);
+                        const sbNameValid = sb.agentName && !String(sb.agentName).includes('Bảo mật') && !String(sb.agentName).includes('ẩn danh');
+                        const resolvedAgentName = sbNameValid ? sb.agentName : (lb.agentName || sb.agentName);
+
+                        return {
+                            ...lb,
+                            ...sb,
+                            agentCode: resolvedAgentCode,
+                            agentName: resolvedAgentName,
+                            priceKg: resolvedPriceKg,
+                            weightKg: resolvedWeightKg,
+                            isAnonymous: (sb.isAnonymous !== undefined) ? sb.isAnonymous : lb.isAnonymous
+                        };
                     });
 
                     const serverBidIds = new Set(reconciledServerBids.map(b => String(b.id)));
@@ -1148,6 +1206,9 @@
                         window.dispatchEvent(new CustomEvent('cargostore_updated', { detail: local }));
                     } catch (e) { }
                     updateHeaderNotifBadges(local);
+                }
+                if (hasUnsyncedLocalAuction && isAdminPage && local.currentAdmin) {
+                    pushToServerImmediate(local);
                 }
             }
         } catch (e) {

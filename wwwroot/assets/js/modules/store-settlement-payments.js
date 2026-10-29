@@ -99,7 +99,7 @@
             auction.reviewWindowMinutes = configReviewMins;
 
             // Find highest bid for this auction
-            let bids = (data.bids || []).filter(b => b.auctionId == id).sort((a, b) => b.priceKg - a.priceKg);
+            let bids = (data.bids || []).filter(b => b.auctionId == id).sort((a, b) => (Number(b.priceKg) || 0) - (Number(a.priceKg) || 0));
             let highestBid = bids.length > 0 ? bids[0] : null;
 
             // Luôn kích hoạt thời gian điều chỉnh/đối soát khi đóng phiên để Admin có quyền xem xét, từ chối hoặc chốt
@@ -115,27 +115,38 @@
             }
 
             if (highestBid) {
+                const resolvedPriceKg = Number(highestBid.priceKg) || Number(auction.winningPriceKg) || Number(auction.currentPriceKg) || Number(auction.startingPriceKg) || 0;
+                if (!(Number(highestBid.priceKg) > 0) && resolvedPriceKg > 0) {
+                    highestBid.priceKg = resolvedPriceKg;
+                }
+                if (!(Number(highestBid.weightKg) > 0) && Number(auction.capacityKg) > 0) {
+                    highestBid.weightKg = Number(auction.capacityKg);
+                }
                 highestBid.status = 'WON';
-                auction.winnerAgentCode = highestBid.agentCode;
-                auction.winnerAgentName = highestBid.agentName;
-                auction.winningPriceKg = highestBid.priceKg;
-                auction.winnerTotalAmountVND = highestBid.priceKg * auction.capacityKg;
+                if (highestBid.agentCode && highestBid.agentCode !== 'AG-***') {
+                    auction.winnerAgentCode = highestBid.agentCode;
+                    auction.winnerAgentName = highestBid.agentName;
+                }
+                auction.winningPriceKg = resolvedPriceKg;
+                auction.winnerTotalAmountVND = resolvedPriceKg * (Number(auction.capacityKg) || 0);
 
                 if (!data.wonAuctions) data.wonAuctions = [];
                 let newWonItem = data.wonAuctions.find(w => w.auctionId == auction.id);
                 if (newWonItem) {
-                    newWonItem.agentCode = highestBid.agentCode;
-                    newWonItem.agentName = highestBid.agentName;
+                    if (highestBid.agentCode && highestBid.agentCode !== 'AG-***') {
+                        newWonItem.agentCode = highestBid.agentCode;
+                        newWonItem.agentName = highestBid.agentName;
+                    }
                     newWonItem.flightNumber = auction.flightNumber;
                     newWonItem.route = auction.route;
-                    newWonItem.priceKg = highestBid.priceKg;
-                    newWonItem.totalAmountVND = highestBid.priceKg * auction.capacityKg;
+                    newWonItem.priceKg = resolvedPriceKg;
+                    newWonItem.totalAmountVND = resolvedPriceKg * (Number(auction.capacityKg) || 0);
                     newWonItem.paymentDeadline = calculatePaymentDeadline(auction, new Date());
                     newWonItem.paymentStatus = 'UNPAID';
                     newWonItem.paidAt = null;
                     newWonItem.notifiedAt = null;
                     newWonItem.cargoDeclaration = null;
-                } else {
+                } else if (highestBid.agentCode && highestBid.agentCode !== 'AG-***' && resolvedPriceKg > 0) {
                     const now = new Date();
                     const dateStr = now.toISOString().slice(0, 10).replace(/-/g, '');
                     const payDeadline = calculatePaymentDeadline(auction, now);
@@ -147,8 +158,8 @@
                         flightNumber: auction.flightNumber,
                         route: auction.route,
                         capacityKg: auction.capacityKg,
-                        priceKg: highestBid.priceKg,
-                        totalAmountVND: highestBid.priceKg * auction.capacityKg,
+                        priceKg: resolvedPriceKg,
+                        totalAmountVND: resolvedPriceKg * (Number(auction.capacityKg) || 0),
                         paymentDeadline: payDeadline,
                         paymentStatus: 'UNPAID',
                         paidAt: null,
@@ -182,7 +193,7 @@
                     timestamp: closeNotifId,
                     targetAgentCode: highestBid.agentCode,
                     title: `🏆 CHÚC MỪNG! Phiên ${auction.flightNumber} đã chốt kết quả!`,
-                    message: `Đại lý ${highestBid.agentName} (${highestBid.agentCode}) đã trúng thầu chuyến ${auction.flightNumber} (${auction.route}) mức giá ${formatCurrency(highestBid.priceKg)}/Kg. Phiên đấu giá đã hoàn tất thành công và ghi nhận bạn là người trúng thầu.`,
+                    message: `Đại lý ${highestBid.agentName} (${highestBid.agentCode}) đã trúng thầu chuyến ${auction.flightNumber} (${auction.route}) mức giá ${formatCurrency(resolvedPriceKg)}/Kg. Phiên đấu giá đã hoàn tất thành công và ghi nhận bạn là người trúng thầu.`,
                     time: formatTimeAgo(closeNotifId),
                     type: 'WON',
                     read: false,
@@ -191,6 +202,15 @@
             }
 
             saveData(data);
+            if (typeof window !== 'undefined' && window.location && window.location.protocol && window.location.protocol.startsWith('http')) {
+                fetch('/api/auctions/close', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ auctionId: Number(auction.id) })
+                }).then(() => {
+                    if (typeof syncWithServer === 'function') syncWithServer(true);
+                }).catch(() => { });
+            }
             const adminActor = (data.currentAdmin && (data.currentAdmin.fullName || data.currentAdmin.username))
                 ? (data.currentAdmin.fullName || data.currentAdmin.username)
                 : 'Ban Điều Hành';
@@ -332,17 +352,20 @@
             }
 
             // Group by agentCode, lấy mức giá cao nhất mà mỗi đại lý đã đặt
+            const fallbackAuctionPrice = Number(auction.winningPriceKg) || Number(auction.currentPriceKg) || Number(auction.startingPriceKg) || 0;
             const agentMap = {};
             bids.forEach(b => {
                 const code = (b.agentCode || '').toUpperCase();
-                if (!agentMap[code] || Number(b.priceKg) > Number(agentMap[code].priceKg)) {
-                    agentMap[code] = b;
+                const effPrice = Number(b.priceKg) || (auction.status === 'CLOSED' ? fallbackAuctionPrice : 0);
+                const prevPrice = agentMap[code] ? (Number(agentMap[code].priceKg) || (auction.status === 'CLOSED' ? fallbackAuctionPrice : 0)) : -1;
+                if (!agentMap[code] || effPrice > prevPrice) {
+                    agentMap[code] = { ...b, priceKg: effPrice };
                 }
             });
 
             // Sắp xếp giảm dần theo priceKg, nếu bằng nhau thì ưu tiên thời gian nộp sớm hơn
             const sortedBids = Object.values(agentMap).sort((a, b) => {
-                const diff = Number(b.priceKg) - Number(a.priceKg);
+                const diff = (Number(b.priceKg) || 0) - (Number(a.priceKg) || 0);
                 if (diff !== 0) return diff;
                 return (Number(a.timestamp || 0)) - (Number(b.timestamp || 0));
             });
@@ -389,23 +412,29 @@
 
             // AUTO-CONFIRM: Tự động chọn đại lý cao nhất chưa bị reject làm người trúng thầu hiện tại
             let currentWinnerCode = (auction.winnerAgentCode || '').toUpperCase();
-            if (!currentWinnerCode || rejectedCodes.includes(currentWinnerCode)) {
+            if (!currentWinnerCode || currentWinnerCode === 'AG-***' || rejectedCodes.includes(currentWinnerCode) || !(Number(auction.winningPriceKg) > 0)) {
                 const candidate = sortedBids.find(b => !rejectedCodes.includes((b.agentCode || '').toUpperCase()));
                 if (candidate) {
+                    const candPrice = Number(candidate.priceKg) || fallbackAuctionPrice;
                     currentWinnerCode = (candidate.agentCode || '').toUpperCase();
-                    auction.winnerAgentCode = candidate.agentCode;
-                    auction.winnerAgentName = candidate.agentName;
-                    auction.winningPriceKg = Number(candidate.priceKg);
-                    auction.winnerTotalAmountVND = Number(candidate.priceKg) * Number(auction.capacityKg);
+                    if (candidate.agentCode && candidate.agentCode !== 'AG-***') {
+                        auction.winnerAgentCode = candidate.agentCode;
+                        auction.winnerAgentName = candidate.agentName;
+                    }
+                    if (candPrice > 0) {
+                        auction.winningPriceKg = candPrice;
+                        auction.winnerTotalAmountVND = candPrice * (Number(auction.capacityKg) || 0);
+                    }
                 }
             }
 
             return sortedBids.map((b, idx) => {
                 const code = (b.agentCode || '').toUpperCase();
-                const ag = (data.agentsList || []).find(x => (x.agentCode || '').toUpperCase() === code) || {};
+                const ag = (data.agentsList || []).find(x => (x.agentCode || x.code || '').toUpperCase() === code) || {};
                 
                 const isRejected = rejectedCodes.includes(code) || b.status === 'REJECTED' || b.status === 'CANCELLED_UNPAID';
                 const isCurrentCandidate = code === currentWinnerCode && !isRejected;
+                const effectivePriceKg = Number(b.priceKg) || (auction.status === 'CLOSED' ? fallbackAuctionPrice : 0);
 
                 return {
                     rank: idx + 1,
@@ -414,8 +443,8 @@
                     repName: ag.repName || 'Đại diện ủy quyền',
                     phone: ag.phone || '0901 234 567',
                     email: ag.email || '-',
-                    priceKg: Number(b.priceKg),
-                    totalAmountVND: Number(b.priceKg) * Number(auction.capacityKg),
+                    priceKg: effectivePriceKg,
+                    totalAmountVND: effectivePriceKg * (Number(auction.capacityKg) || 0),
                     timestamp: b.timestamp,
                     time: b.time || formatTimeAgo(b.timestamp),
                     isCurrentCandidate: isCurrentCandidate,
@@ -449,20 +478,29 @@
             auction.reviewDeadline = auction.finalLockedAt;
 
             // Xác định đại lý cao nhất và chốt thắng thầu chính thức
-            const bids = (data.bids || []).filter(b => b.auctionId == auction.id).sort((a, b) => b.priceKg - a.priceKg);
+            const bids = (data.bids || []).filter(b => b.auctionId == auction.id).sort((a, b) => (Number(b.priceKg) || 0) - (Number(a.priceKg) || 0));
             const highestBid = bids.length > 0 ? bids[0] : null;
 
             if (highestBid) {
+                const resolvedPriceKg = Number(highestBid.priceKg) || Number(auction.winningPriceKg) || Number(auction.currentPriceKg) || Number(auction.startingPriceKg) || 0;
+                if (!(Number(highestBid.priceKg) > 0) && resolvedPriceKg > 0) {
+                    highestBid.priceKg = resolvedPriceKg;
+                }
+                if (!(Number(highestBid.weightKg) > 0) && Number(auction.capacityKg) > 0) {
+                    highestBid.weightKg = Number(auction.capacityKg);
+                }
                 highestBid.status = 'WON';
-                auction.winnerAgentCode = highestBid.agentCode;
-                auction.winnerAgentName = highestBid.agentName;
-                auction.winningPriceKg = highestBid.priceKg;
-                auction.winnerTotalAmountVND = highestBid.priceKg * auction.capacityKg;
+                if (highestBid.agentCode && highestBid.agentCode !== 'AG-***') {
+                    auction.winnerAgentCode = highestBid.agentCode;
+                    auction.winnerAgentName = highestBid.agentName;
+                }
+                auction.winningPriceKg = resolvedPriceKg;
+                auction.winnerTotalAmountVND = resolvedPriceKg * (Number(auction.capacityKg) || 0);
 
                 // Sinh đơn trúng thầu wonAuctions nếu chưa có
                 if (!data.wonAuctions) data.wonAuctions = [];
                 let existingWon = data.wonAuctions.find(w => w.auctionId == auction.id);
-                if (!existingWon) {
+                if (!existingWon && highestBid.agentCode && highestBid.agentCode !== 'AG-***' && resolvedPriceKg > 0) {
                     const _now = new Date();
                     const _pad = n => String(n).padStart(2, '0');
                     const dateStr = `${_now.getFullYear()}${_pad(_now.getMonth() + 1)}${_pad(_now.getDate())}`;
@@ -474,8 +512,8 @@
                         flightNumber: auction.flightNumber,
                         route: auction.route,
                         capacityKg: auction.capacityKg,
-                        priceKg: highestBid.priceKg,
-                        totalAmountVND: highestBid.priceKg * auction.capacityKg,
+                        priceKg: resolvedPriceKg,
+                        totalAmountVND: resolvedPriceKg * (Number(auction.capacityKg) || 0),
                         paymentDeadline: calculatePaymentDeadline(auction, _now),
                         paymentStatus: 'UNPAID',
                         paidAt: null,
@@ -493,12 +531,15 @@
                         timestamp: Date.now(),
                         targetAgentCode: highestBid.agentCode,
                         title: `🏆 CHÚC MỪNG! Bạn đã thắng thầu chuyến bay ${auction.flightNumber}`,
-                        message: `Đại lý ${highestBid.agentName} (${highestBid.agentCode}) đã trúng thầu chính thức chuyến bay ${auction.flightNumber} (${auction.route}) với giá ${formatCurrency(highestBid.priceKg)}/Kg.`,
+                        message: `Đại lý ${highestBid.agentName} (${highestBid.agentCode}) đã trúng thầu chính thức chuyến bay ${auction.flightNumber} (${auction.route}) với giá ${formatCurrency(resolvedPriceKg)}/Kg.`,
                         time: new Date().toLocaleString('vi-VN'),
                         type: 'WON',
                         read: false,
                         link: `07-WinnerManagement.html?wonId=${existingWon.wonId}`
                     });
+                } else if (existingWon && !(Number(existingWon.priceKg) > 0) && resolvedPriceKg > 0) {
+                    existingWon.priceKg = resolvedPriceKg;
+                    existingWon.totalAmountVND = resolvedPriceKg * (Number(auction.capacityKg) || 0);
                 }
             }
 
