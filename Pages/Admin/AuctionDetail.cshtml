@@ -473,12 +473,13 @@
             </div>
             <div class="bg-white rounded-2xl p-4 border shadow-sm" id="detCountdownCard">
                 <p class="text-xs text-slate-500 flex items-center justify-between">
-                    <span>Thời gian đếm ngược</span>
-                    <i class="fa-solid fa-hourglass-half text-amber-500"></i>
+                    <span id="detCountdownCardTitle">Thời gian đếm ngược</span>
+                    <i id="detCountdownCardIcon" class="fa-solid fa-hourglass-half text-amber-500"></i>
                 </p>
-                <div class="mt-1 flex items-baseline gap-1.5">
+                <div class="mt-1 flex items-baseline gap-1.5 flex-wrap">
                     <p class="text-xl font-bold font-mono text-amber-600 tracking-tight" id="detCountdownCardTime">
                         --:--:--</p>
+                    <span id="detCountdownCardLabel" class="text-[11px] font-semibold text-amber-700"></span>
                 </div>
             </div>
         </div>
@@ -2025,10 +2026,64 @@
             const badgeTextEl = document.getElementById('detCountdownText');
             const cardTimeEl = document.getElementById('detCountdownCardTime');
             const cardLabelEl = document.getElementById('detCountdownCardLabel');
+            const cardTitleEl = document.getElementById('detCountdownCardTitle');
+            const cardIconEl = document.getElementById('detCountdownCardIcon');
 
             if (!auction) return;
             const isOpen = auction.status === 'OPEN';
+            const isUpcoming = auction.status === 'UPCOMING';
+            const isCancelled = auction.status === 'CANCELLED';
+
+            // TRƯỜNG HỢP 1: PHIÊN SẮP DIỄN RA (status === 'UPCOMING')
+            if (isUpcoming) {
+                const openMs = auction.openDateIso ? Date.parse(auction.openDateIso) : (CargoStore.parseFlightDate ? CargoStore.parseFlightDate(auction.openDate)?.getTime() : 0);
+                const diffMs = openMs - Date.now();
+
+                if (cardTitleEl) cardTitleEl.textContent = 'Thời gian mở phiên';
+                if (cardIconEl) cardIconEl.className = 'fa-solid fa-hourglass-start text-blue-500';
+
+                if (diffMs > 0) {
+                    const h = Math.floor(diffMs / (1000 * 60 * 60));
+                    const m = Math.floor((diffMs / (1000 * 60)) % 60);
+                    const s = Math.floor((diffMs / 1000) % 60);
+                    const timeStr = h >= 24 ?
+                        `${Math.floor(h / 24)}d ${String(h % 24).padStart(2, '0')}:${String(m).padStart(2, '0')}:${String(s).padStart(2, '0')}` :
+                        `${String(h).padStart(2, '0')}:${String(m).padStart(2, '0')}:${String(s).padStart(2, '0')}`;
+
+                    if (badgeEl) {
+                        badgeEl.classList.remove('hidden');
+                        if (badgeTextEl) badgeTextEl.textContent = `Mở sau: ${timeStr}`;
+                    }
+                    if (cardTimeEl) {
+                        cardTimeEl.textContent = timeStr;
+                        cardTimeEl.className = 'text-xl font-bold font-mono text-blue-600 tracking-tight';
+                    }
+                    if (cardLabelEl) {
+                        cardLabelEl.textContent = '(Sắp diễn ra)';
+                        cardLabelEl.className = 'text-[11px] font-semibold text-blue-700 bg-blue-50 border border-blue-200 px-1.5 py-0.5 rounded';
+                    }
+                } else {
+                    if (badgeEl) {
+                        badgeEl.classList.remove('hidden');
+                        if (badgeTextEl) badgeTextEl.textContent = 'Sắp diễn ra';
+                    }
+                    if (cardTimeEl) {
+                        cardTimeEl.textContent = 'Sắp diễn ra';
+                        cardTimeEl.className = 'text-xl font-bold text-amber-600 tracking-tight';
+                    }
+                    if (cardLabelEl) {
+                        cardLabelEl.textContent = '(Chờ mở phiên)';
+                        cardLabelEl.className = 'text-[11px] font-semibold text-amber-700 bg-amber-50 border border-amber-200 px-1.5 py-0.5 rounded';
+                    }
+                }
+                return;
+            }
+
+            // TRƯỜNG HỢP 2: PHIÊN ĐANG MỞ (status === 'OPEN')
             const timer = (CargoStore && CargoStore.getTimeRemaining) ? CargoStore.getTimeRemaining(auction.endTime) : null;
+
+            if (cardTitleEl) cardTitleEl.textContent = 'Thời gian đếm ngược';
+            if (cardIconEl) cardIconEl.className = 'fa-solid fa-hourglass-half text-amber-500';
 
             if (isOpen && timer && !timer.isEnded && timer.total > 0) {
                 const h = Math.floor(timer.total / (1000 * 60 * 60));
@@ -2050,46 +2105,48 @@
                     cardLabelEl.textContent = '(Đang đếm ngược)';
                     cardLabelEl.className = 'text-[11px] font-semibold text-amber-700';
                 }
-            } else {
-                if (isOpen && timer && timer.isEnded) {
-                    // Tự động đóng phiên và chuyển sang chế độ xét duyệt (throttle 3s, tránh render/đồng bộ mỗi giây gây lag)
-                    const expNow = Date.now();
-                    const shouldRefreshExpired = expNow - (window._adminDetailExpireRefresh || 0) > 3000;
-                    if (shouldRefreshExpired) {
-                        window._adminDetailExpireRefresh = expNow;
-                        if (CargoStore && CargoStore.checkAutoCloseAuctions) {
-                            CargoStore.checkAutoCloseAuctions();
-                        } else if (CargoStore && CargoStore.autoCloseExpiredAuctions) {
-                            CargoStore.autoCloseExpiredAuctions(CargoStore.getData());
-                        }
+            } else if (isOpen && timer && timer.isEnded) {
+                // Tự động đóng phiên và chuyển sang chế độ xét duyệt (throttle 3s, tránh render/đồng bộ mỗi giây gây lag)
+                const expNow = Date.now();
+                const shouldRefreshExpired = expNow - (window._adminDetailExpireRefresh || 0) > 3000;
+                if (shouldRefreshExpired) {
+                    window._adminDetailExpireRefresh = expNow;
+                    if (CargoStore && CargoStore.checkAutoCloseAuctions) {
+                        CargoStore.checkAutoCloseAuctions();
+                    } else if (CargoStore && CargoStore.autoCloseExpiredAuctions) {
+                        CargoStore.autoCloseExpiredAuctions(CargoStore.getData());
                     }
-                    if (badgeEl) {
-                        badgeEl.classList.remove('hidden');
-                        if (badgeTextEl) badgeTextEl.textContent = 'Đã hết giờ';
-                    }
-                    if (cardTimeEl) {
-                        cardTimeEl.textContent = 'Đã hết giờ';
-                        cardTimeEl.className = 'text-xl font-bold font-mono text-slate-500 tracking-tight';
-                    }
-                    if (cardLabelEl) {
-                        cardLabelEl.textContent = '(Đang chốt kết quả)';
-                        cardLabelEl.className = 'text-[11px] font-semibold text-amber-700';
-                    }
-                    if (shouldRefreshExpired) {
-                        loadAdminDetail();
-                        syncAdminDetailFromServer();
-                    }
-                    return;
                 }
+                if (badgeEl) {
+                    badgeEl.classList.remove('hidden');
+                    if (badgeTextEl) badgeTextEl.textContent = 'Đã hết giờ';
+                }
+                if (cardTimeEl) {
+                    cardTimeEl.textContent = 'Đã hết giờ';
+                    cardTimeEl.className = 'text-xl font-bold font-mono text-slate-500 tracking-tight';
+                }
+                if (cardLabelEl) {
+                    cardLabelEl.textContent = '(Đang chốt kết quả)';
+                    cardLabelEl.className = 'text-[11px] font-semibold text-amber-700';
+                }
+                if (shouldRefreshExpired) {
+                    loadAdminDetail();
+                    syncAdminDetailFromServer();
+                }
+            } else {
+                // TRƯỜNG HỢP 3: PHIÊN ĐÃ ĐÓNG HOẶC ĐÃ HỦY
                 if (badgeEl) {
                     badgeEl.classList.add('hidden');
                 }
+                if (cardIconEl) {
+                    cardIconEl.className = isCancelled ? 'fa-solid fa-ban text-red-400' : 'fa-solid fa-hourglass text-slate-400';
+                }
                 if (cardTimeEl) {
-                    cardTimeEl.textContent = auction.status === 'CANCELLED' ? 'Đã hủy' : 'Đã kết thúc';
+                    cardTimeEl.textContent = isCancelled ? 'Đã hủy' : 'Đã kết thúc';
                     cardTimeEl.className = 'text-xl font-bold text-slate-500 tracking-tight';
                 }
                 if (cardLabelEl) {
-                    cardLabelEl.textContent = '(Phiên đã đóng)';
+                    cardLabelEl.textContent = isCancelled ? '(Phiên đã hủy)' : '(Phiên đã đóng)';
                     cardLabelEl.className = 'text-[11px] font-semibold text-slate-400';
                 }
             }

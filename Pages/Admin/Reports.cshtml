@@ -569,7 +569,7 @@
                     </thead>
                     <tbody class="divide-y divide-gray-100" id="routeReportTableBody">
                         <tr>
-                            <td colspan="7" class="py-8 text-center text-gray-400">Đang tải dữ liệu báo cáo...</td>
+                            <td colspan="6" class="py-8 text-center text-gray-400">Đang tải dữ liệu báo cáo...</td>
                         </tr>
                     </tbody>
                 </table>
@@ -1408,18 +1408,13 @@
             const tbody = document.getElementById('routeReportTableBody');
             if (tbody) {
                 if (!metrics.routes || metrics.routes.length === 0) {
-                    tbody.innerHTML = `<tr><td colspan="7" class="py-8 text-center text-gray-400">Chưa có dữ liệu chuyến bay nào trong hệ thống</td></tr>`;
+                    tbody.innerHTML = `<tr><td colspan="6" class="py-8 text-center text-gray-400">Chưa có dữ liệu chuyến bay nào trong hệ thống</td></tr>`;
                 } else {
                     const dotColors = ['bg-blue-500', 'bg-emerald-500', 'bg-purple-500', 'bg-amber-500', 'bg-indigo-500'];
-                    const barColors = ['bg-blue-500', 'bg-emerald-500', 'bg-purple-500', 'bg-amber-500', 'bg-indigo-500'];
-                    const textColors = ['text-blue-600', 'text-emerald-600', 'text-purple-600', 'text-amber-600', 'text-indigo-600'];
 
                     const rowsHtml = metrics.routes.map((r, idx) => {
-                        const fillRate = r.totalOfferedKg > 0 ? (r.totalWonKg / r.totalOfferedKg * 100) : 0;
                         const avgPrice = r.totalWonKg > 0 ? Math.round(r.totalRevenue / r.totalWonKg) : 0;
                         const dotColor = dotColors[idx % dotColors.length];
-                        const barColor = barColors[idx % barColors.length];
-                        const textColor = textColors[idx % textColors.length];
 
                         return `
                             <tr class="hover:bg-slate-50 transition">
@@ -1429,14 +1424,6 @@
                                 <td class="py-3 px-3.5 font-medium text-slate-700 whitespace-nowrap">${r.flightCount} chuyến</td>
                                 <td class="py-3 px-3.5 text-slate-600 whitespace-nowrap">${CargoStore.formatNumber(r.totalOfferedKg)} Kg</td>
                                 <td class="py-3 px-3.5 font-bold text-slate-900 whitespace-nowrap">${CargoStore.formatNumber(r.totalWonKg)} Kg</td>
-                                <td class="py-3 px-3.5 whitespace-nowrap">
-                                    <div class="flex items-center gap-2">
-                                        <div class="w-16 sm:w-20 bg-gray-200 h-2 rounded-full overflow-hidden">
-                                            <div class="${barColor} h-full" style="width: ${Math.min(fillRate, 100)}%;"></div>
-                                        </div>
-                                        <span class="font-bold ${textColor}">${fillRate.toFixed(1)}%</span>
-                                    </div>
-                                </td>
                                 <td class="py-3 px-3.5 font-semibold text-blue-600 whitespace-nowrap">${CargoStore.formatCurrency(avgPrice)}/Kg</td>
                                 <td class="py-3 px-3.5 text-right font-bold text-slate-900 whitespace-nowrap">${CargoStore.formatCurrency(r.totalRevenue)}</td>
                             </tr>
@@ -1451,11 +1438,6 @@
                             <td class="py-3 px-3.5 text-slate-800 whitespace-nowrap">${metrics.routes.reduce((sum, r) => sum + r.flightCount, 0)} chuyến</td>
                             <td class="py-3 px-3.5 text-slate-700 whitespace-nowrap">${CargoStore.formatNumber(metrics.grandTotalOfferedKg)} Kg</td>
                             <td class="py-3 px-3.5 text-blue-700 whitespace-nowrap">${CargoStore.formatNumber(metrics.grandTotalWonKg)} Kg</td>
-                            <td class="py-3 px-3.5 whitespace-nowrap">
-                                <span class="text-emerald-700 bg-emerald-100 px-2 py-0.5 rounded text-[11px] font-bold">
-                                    ${metrics.grandFillRate.toFixed(1)}%
-                                </span>
-                            </td>
                             <td class="py-3 px-3.5 text-blue-700 whitespace-nowrap">${CargoStore.formatCurrency(metrics.grandAvgPrice)}/Kg</td>
                             <td class="py-3 px-3.5 text-right text-sm sm:text-base text-blue-700 font-extrabold whitespace-nowrap">${CargoStore.formatCurrency(metrics.grandTotalRevenue)}</td>
                         </tr>

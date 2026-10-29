@@ -125,11 +125,11 @@
 
                 <!-- Big Countdown Box -->
                 <div class="bg-white/10 backdrop-blur border border-white/20 rounded-2xl p-3 sm:p-4 text-center min-w-[180px] sm:min-w-[200px]">
-                    <p class="text-[10px] sm:text-[11px] uppercase tracking-wider text-slate-300 font-semibold mb-1">Thời gian còn lại</p>
+                    <p class="text-[10px] sm:text-[11px] uppercase tracking-wider text-slate-300 font-semibold mb-1" id="countdownTitle">Thời gian còn lại</p>
                     <div class="text-xl sm:text-2xl md:text-3xl font-mono font-bold text-amber-300" id="countdownClock">
                         --:--:--
                     </div>
-                    <p class="text-[10px] text-slate-400 mt-1">Đóng thầu trước ETD 3 giờ</p>
+                    <p class="text-[10px] text-slate-400 mt-1" id="countdownSubtext">Đóng thầu trước ETD 3 giờ</p>
                 </div>
             </div>
         </div>
@@ -415,6 +415,7 @@
             if (specMinStepEl) specMinStepEl.textContent = '+' + CargoStore.formatCurrency(currentAuction.minStep || 0) + '/Kg';
             
             const timer = CargoStore.getTimeRemaining(currentAuction.endTime);
+            const isClosed = currentAuction.status === 'CLOSED' || (currentAuction.status === 'OPEN' && timer.isEnded);
             // Quy tắc: Phiên đấu giá hết thời gian ko chốt mà thêm thời gian đại lý đặt tiếp
             if (currentAuction.status === 'OPEN' && timer.isEnded) {
                 if (CargoStore && CargoStore.autoCloseExpiredAuctions) {
@@ -530,28 +531,27 @@
                             <i class="fa-solid fa-trophy text-amber-600"></i> Bạn đã thắng thầu phiên này
                         </span>
                     `;
+                } else if (currentAuction.status === 'UPCOMING') {
+                    topBadge.innerHTML = `
+                        <span class="inline-block w-2.5 h-2.5 rounded-full bg-amber-500 animate-pulse"></span>
+                        <span class="text-xs font-medium text-amber-700 bg-amber-50 px-2.5 py-1 rounded-full border border-amber-200">Phiên sắp diễn ra (Mở lúc ${currentAuction.openDate || 'sắp tới'})</span>
+                    `;
                 } else if (isClosed) {
-                const sysSettings = (typeof CargoStore !== 'undefined' && CargoStore.getSystemSettings) ? CargoStore.getSystemSettings() : {};
-                const hideCloseBtn = sysSettings && sysSettings.hideCloseAuctionBtn === true;
-                const testSec = document.getElementById('quickTestCloseSection');
-                if (testSec && hideCloseBtn) testSec.classList.add('hidden');
-                if (testSec) testSec.classList.add('hidden');
-                    if (isClosed) {
-                        topBadge.innerHTML = `
-                            <span class="inline-block w-2.5 h-2.5 rounded-full bg-red-500"></span>
-                            <span class="text-xs font-medium text-red-700 bg-red-50 px-2.5 py-1 rounded-full border border-red-200">Phiên đã đóng thầu</span>
-                        `;
-                    } else if (currentAuction.status === 'UPCOMING') {
-                        topBadge.innerHTML = `
-                            <span class="inline-block w-2.5 h-2.5 rounded-full bg-amber-500 animate-pulse"></span>
-                            <span class="text-xs font-medium text-amber-700 bg-amber-50 px-2.5 py-1 rounded-full border border-amber-200">Phiên sắp diễn ra (Mở lúc ${currentAuction.openDate || 'sắp tới'})</span>
-                        `;
-                    } else {
-                        topBadge.innerHTML = `
-                            <span class="inline-block w-2.5 h-2.5 rounded-full bg-green-500 animate-pulse"></span>
-                            <span class="text-xs font-medium text-green-700 bg-green-50 px-2.5 py-1 rounded-full border border-green-200">Phiên đang mở trực tiếp</span>
-                        `;
-                    }
+                    const sysSettings = (typeof CargoStore !== 'undefined' && CargoStore.getSystemSettings) ? CargoStore.getSystemSettings() : {};
+                    const hideCloseBtn = sysSettings && sysSettings.hideCloseAuctionBtn === true;
+                    const testSec = document.getElementById('quickTestCloseSection');
+                    if (testSec && hideCloseBtn) testSec.classList.add('hidden');
+                    if (testSec) testSec.classList.add('hidden');
+                    topBadge.innerHTML = `
+                        <span class="inline-block w-2.5 h-2.5 rounded-full bg-red-500"></span>
+                        <span class="text-xs font-medium text-red-700 bg-red-50 px-2.5 py-1 rounded-full border border-red-200">Phiên đã đóng thầu</span>
+                    `;
+                } else {
+                    topBadge.innerHTML = `
+                        <span class="inline-block w-2.5 h-2.5 rounded-full bg-green-500 animate-pulse"></span>
+                        <span class="text-xs font-medium text-green-700 bg-green-50 px-2.5 py-1 rounded-full border border-green-200">Phiên đang mở trực tiếp</span>
+                    `;
+                }
             }
 
             // Input and Submit Controls
@@ -712,11 +712,8 @@
             document.getElementById('bidCountBadge').textContent = bids.length + ' lượt đặt';
             const myCode = getMyCode();
             const timer = CargoStore.getTimeRemaining(currentAuction.endTime);
-            const isClosed = currentAuction.status === 'CLOSED' || timer.isEnded;
+            const isClosed = currentAuction.status === 'CLOSED' || (currentAuction.status === 'OPEN' && timer.isEnded);
 
-            if (!isClosed) {
-                bids = bids.sort((a, b) => (Number(b.timestamp || b.id) || 0) - (Number(a.timestamp || a.id) || 0));
-            }
             if (!isClosed) {
                 bids = bids.sort((a, b) => (Number(b.timestamp || b.id) || 0) - (Number(a.timestamp || a.id) || 0));
             }
@@ -873,22 +870,54 @@
         // Realtime Clock update
         function updateClock() {
             if (!currentAuction) return;
-            const timer = CargoStore.getTimeRemaining(currentAuction.endTime);
             const clock = document.getElementById('countdownClock');
-            if (clock) {
-                if (currentAuction.status === 'CLOSED') {
-                    clock.textContent = '00:00:00 - ĐÃ ĐÓNG';
-                } else if (timer.isEnded) {
-                    // Quy tắc: Phiên đấu giá hết thời gian ko chốt mà thêm thời gian đại lý đặt tiếp
-                    if (CargoStore && CargoStore.autoCloseExpiredAuctions) {
-                        CargoStore.autoCloseExpiredAuctions(CargoStore.getData());
-                    }
-                    currentAuction = CargoStore.getAuctionById(currentAuction.id);
-                    loadAuctionDetail();
-                } else {
+            const countdownTitle = document.getElementById('countdownTitle');
+            const countdownSubtext = document.getElementById('countdownSubtext');
+            if (!clock) return;
+
+            // TRƯỜNG HỢP: PHIÊN SẮP DIỄN RA (UPCOMING)
+            if (currentAuction.status === 'UPCOMING') {
+                if (countdownTitle) countdownTitle.textContent = 'Thời gian mở phiên';
+                if (countdownSubtext) countdownSubtext.textContent = 'Tự động mở thầu khi đến giờ';
+
+                const openMs = currentAuction.openDateIso ? Date.parse(currentAuction.openDateIso) : (CargoStore.parseFlightDate ? CargoStore.parseFlightDate(currentAuction.openDate)?.getTime() : 0);
+                const diffMs = openMs - Date.now();
+
+                if (diffMs > 0) {
+                    const h = Math.floor(diffMs / (1000 * 60 * 60));
+                    const m = Math.floor((diffMs / (1000 * 60)) % 60);
+                    const s = Math.floor((diffMs / 1000) % 60);
                     const pad = n => String(n).padStart(2, '0');
-                    clock.textContent = `${pad(timer.hours)}:${pad(timer.minutes)}:${pad(timer.seconds)}`;
+                    clock.className = 'text-xl sm:text-2xl md:text-3xl font-mono font-bold text-blue-300';
+                    clock.textContent = h >= 24 ?
+                        `${Math.floor(h / 24)}d ${pad(h % 24)}:${pad(m)}:${pad(s)}` :
+                        `${pad(h)}:${pad(m)}:${pad(s)}`;
+                } else {
+                    clock.className = 'text-xl sm:text-2xl font-bold text-amber-300 tracking-wide';
+                    clock.textContent = 'SẮP DIỄN RA';
                 }
+                return;
+            }
+
+            // TRƯỜNG HỢP: PHIÊN ĐANG MỞ HOẶC ĐÃ ĐÓNG
+            if (countdownTitle) countdownTitle.textContent = 'Thời gian còn lại';
+            if (countdownSubtext) countdownSubtext.textContent = 'Đóng thầu trước ETD 3 giờ';
+
+            const timer = CargoStore.getTimeRemaining(currentAuction.endTime);
+            if (currentAuction.status === 'CLOSED') {
+                clock.className = 'text-xl sm:text-2xl font-bold text-slate-300';
+                clock.textContent = '00:00:00 - ĐÃ ĐÓNG';
+            } else if (timer.isEnded) {
+                // Quy tắc: Phiên đấu giá hết thời gian ko chốt mà thêm thời gian đại lý đặt tiếp
+                if (CargoStore && CargoStore.autoCloseExpiredAuctions) {
+                    CargoStore.autoCloseExpiredAuctions(CargoStore.getData());
+                }
+                currentAuction = CargoStore.getAuctionById(currentAuction.id);
+                loadAuctionDetail();
+            } else {
+                const pad = n => String(n).padStart(2, '0');
+                clock.className = 'text-xl sm:text-2xl md:text-3xl font-mono font-bold text-amber-300';
+                clock.textContent = `${pad(timer.hours)}:${pad(timer.minutes)}:${pad(timer.seconds)}`;
             }
         }
 
