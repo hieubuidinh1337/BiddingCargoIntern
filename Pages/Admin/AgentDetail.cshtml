@@ -529,7 +529,6 @@
                         <option value="ALL">Tất cả kết quả</option>
                         <option value="WON">Trúng thầu (Winner)</option>
                         <option value="LOST">Không trúng thầu</option>
-                        <option value="ACTIVE">Phiên đang mở</option>
                     </select>
                 </div>
             </div>
@@ -680,8 +679,12 @@
             document.getElementById('profBusinessField').textContent = reg.businessField || reg.field || 'Freight Forwarder (Giao nhận vận tải hàng không)';
 
             const webEl = document.getElementById('profWebsite');
-            const website = reg.website || 'https://vietravelairlines.vn';
-            webEl.innerHTML = `<a href="${website}" target="_blank" class="hover:underline flex items-center gap-1"><i class="fa-solid fa-globe text-slate-400"></i> ${website}</a>`;
+            const website = (reg.website || ag.website || '').trim();
+            if (website && !website.includes('vietravelairlines.vn') && !website.includes('tsn-logistics.vn')) {
+                webEl.innerHTML = `<a href="${website}" target="_blank" class="hover:underline flex items-center gap-1 text-blue-600"><i class="fa-solid fa-globe text-slate-400"></i> ${website}</a>`;
+            } else {
+                webEl.innerHTML = '<span class="text-slate-400 italic font-normal">Chưa cập nhật</span>';
+            }
 
             document.getElementById('profAddress').textContent = ag.address || reg.address || 'Chưa cập nhật địa chỉ trụ sở';
 
@@ -689,7 +692,7 @@
             document.getElementById('profPosition').textContent = ag.position || reg.repPosition || 'Người đại diện theo pháp luật';
             document.getElementById('profPhone').textContent = ag.phone || reg.phone || '-';
             document.getElementById('profEmail').textContent = ag.email || reg.email || '-';
-            document.getElementById('profCitizenId').textContent = reg.citizenId || '079090001234';
+            document.getElementById('profCitizenId').textContent = (ag.citizenId || reg.citizenId || '').trim() || '-';
             document.getElementById('profNotifEmail').textContent = reg.notifEmail || ag.email || reg.email || '-';
         }
 

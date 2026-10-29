@@ -451,6 +451,11 @@ public class SharedDataService
                         try { n["documents"] = JsonNode.Parse(matchedReg.Documents); } catch { }
                     }
                 }
+                var regWebsite = EntityJson.GetExtraString(matchedReg, "website");
+                if (!string.IsNullOrWhiteSpace(regWebsite) && !regWebsite.Contains("vietravelairlines.vn") && !regWebsite.Contains("tsn-logistics.vn"))
+                    n["website"] = regWebsite.Trim();
+                else
+                    n["website"] = null;
             }
 
             if (string.IsNullOrEmpty(EntityJson.Str(n, "fullName")) && !string.IsNullOrEmpty(EntityJson.Str(n, "repName")))

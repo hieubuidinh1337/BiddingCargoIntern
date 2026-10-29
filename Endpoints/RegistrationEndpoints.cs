@@ -95,7 +95,7 @@ public static class RegistrationEndpoints
                 db.Notifications.Add(notif);
             }
 
-            db.ActivityLogs.Add(LogService.Make(rep != "" ? rep : comp, mst != "" ? mst : "guest", "AGENT", "Quản lý Đại lý", "Nộp hồ sơ đăng ký đại lý", $"Hồ sơ {regId}",
+            db.ActivityLogs.Add(LogService.Make(rep != "" ? rep : comp, mst != "" ? mst : "guest", "AGENT", "Tài khoản", "Nộp hồ sơ đăng ký đại lý", $"Hồ sơ {regId}",
                 $"Đại lý {comp} (MST: {mst}) nộp hồ sơ đăng ký đại lý mới. Người đại diện: {rep} ({mail}).", ctx.Connection.RemoteIpAddress?.ToString(), "Web Portal"));
 
             await shared.BumpVersionAsync();

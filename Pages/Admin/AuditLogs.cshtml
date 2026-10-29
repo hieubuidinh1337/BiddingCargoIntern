@@ -1019,6 +1019,11 @@
                     const serverSet = new Set(json.logs.map(l => String(l.id)));
                     const pendingLocal = localLogs.filter(l => l && l.id && !serverSet.has(String(l.id)));
                     const combined = [...json.logs, ...pendingLocal];
+                    combined.forEach(l => {
+                        if (l && l.actionTitle && (l.actionTitle.includes('Nộp hồ sơ') || l.actionTitle.includes('gửi hồ sơ'))) {
+                            l.actionCategory = 'Tài khoản';
+                        }
+                    });
                     serverLogs = deduplicateLogs(combined)
                         .sort((a, b) => getEffectiveTime(b) - getEffectiveTime(a));
                     updateKpisAndTabCounters();
@@ -1035,8 +1040,13 @@
         }
 
         function getAllLogs() {
-            if (serverLogs.length > 0) return serverLogs;
-            return CargoStore.getActivityLogs ? CargoStore.getActivityLogs() : [];
+            const list = (serverLogs.length > 0) ? serverLogs : (CargoStore.getActivityLogs ? CargoStore.getActivityLogs() : []);
+            list.forEach(l => {
+                if (l && l.actionTitle && (l.actionTitle.includes('Nộp hồ sơ') || l.actionTitle.includes('gửi hồ sơ'))) {
+                    l.actionCategory = 'Tài khoản';
+                }
+            });
+            return list;
         }
 
         function parseTs(tsStr) {
@@ -1290,7 +1300,11 @@
                         roleBadge = '<span class="px-2 py-0.5 rounded text-[10px] font-bold bg-amber-100 text-amber-700 border border-amber-200">AGENT</span>';
                     }
 
-                    const cat = log.actionCategory || 'Khác';
+                    let cat = log.actionCategory || 'Khác';
+                    if (log.actionTitle && (log.actionTitle.includes('Nộp hồ sơ') || log.actionTitle.includes('gửi hồ sơ'))) {
+                        cat = 'Tài khoản';
+                        log.actionCategory = 'Tài khoản';
+                    }
                     const titleLower = (log.actionTitle || '').toLowerCase();
                     const isLogout = titleLower.includes('đăng xuất') || titleLower.includes('logout');
 
@@ -1320,6 +1334,9 @@
                     } else if (cat === 'Quản lý Đại lý') {
                         catIconHtml = '<div class="w-7 h-7 rounded-lg bg-sky-100 text-sky-600 flex items-center justify-center shrink-0"><i class="fa-solid fa-users text-xs"></i></div>';
                         catBadgeClass = 'bg-sky-50 text-sky-700 border-sky-200';
+                    } else if (cat === 'Tài khoản') {
+                        catIconHtml = '<div class="w-7 h-7 rounded-lg bg-blue-100 text-blue-600 flex items-center justify-center shrink-0"><i class="fa-solid fa-user-gear text-xs"></i></div>';
+                        catBadgeClass = 'bg-blue-50 text-blue-700 border-blue-200';
                     } else if (cat === 'Cấu hình hệ thống') {
                         catIconHtml = '<div class="w-7 h-7 rounded-lg bg-slate-200 text-slate-700 flex items-center justify-center shrink-0"><i class="fa-solid fa-gear text-xs"></i></div>';
                         catBadgeClass = 'bg-slate-100 text-slate-700 border-slate-200';

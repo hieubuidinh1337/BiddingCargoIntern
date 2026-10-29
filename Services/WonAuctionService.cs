@@ -197,6 +197,15 @@ public class WonAuctionService
         {
             EntityJson.SetExtra(agent, "address", reg.Address);
         }
+        var regWebsite = EntityJson.GetExtraString(reg, "website");
+        if (!string.IsNullOrWhiteSpace(regWebsite) && !regWebsite.Contains("vietravelairlines.vn") && !regWebsite.Contains("tsn-logistics.vn"))
+        {
+            EntityJson.SetExtra(agent, "website", regWebsite.Trim());
+        }
+        else
+        {
+            EntityJson.SetExtra(agent, "website", null);
+        }
         EntityJson.SetExtra(agent, "province", "TP. Hồ Chí Minh");
         EntityJson.SetExtra(agent, "joinedDate", DateTime.Now.ToString("dd/MM/yyyy"));
         if (!string.IsNullOrEmpty(reg.Documents))
